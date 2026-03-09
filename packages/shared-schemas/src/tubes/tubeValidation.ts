@@ -1,9 +1,7 @@
 /**
  * Tube Validation Utilities
  *
- * Parsing and preprocessing for tube data:
- * - Concentration parser handles all scientific notation formats
- * - Zod preprocessors normalize data at API boundaries
+ * Concentration and date parsers with Zod preprocessors for normalizing form data at API boundaries.
  */
 
 import { z } from 'zod';
@@ -11,9 +9,6 @@ import { CONCENTRATION_UNITS, type ConcentrationUnit } from './tubeSchemas';
 
 // Concentration Parsing
 
-/**
- * Suffix multipliers for common abbreviations
- */
 const SUFFIX_MULTIPLIERS: Record<string, number> = {
   'k': 1e3,
   'K': 1e3,
@@ -34,7 +29,7 @@ type ConcentrationParseResult =
   | { success: false; error: string };
 
 /**
- * Comprehensive Concentration Parser
+ * Concentration Parser
  *
  * Accepts flexible input formats:
  * - Plain numbers: 5000000
@@ -49,7 +44,6 @@ type ConcentrationParseResult =
  * - { success: false, error: string } for malformed input
  */
 export function parseConcentrationInput(value: unknown): ConcentrationParseResult {
-  // Handle null/undefined/empty
   if (value === undefined || value === null || value === '') {
     return { success: true, value: undefined };
   }
@@ -59,7 +53,6 @@ export function parseConcentrationInput(value: unknown): ConcentrationParseResul
     return { success: true, value: 0 };
   }
 
-  // Already a number - validate and return
   if (typeof value === 'number') {
     if (Number.isFinite(value)) {
       return { success: true, value };
@@ -67,13 +60,11 @@ export function parseConcentrationInput(value: unknown): ConcentrationParseResul
     return { success: false, error: 'Invalid number value' };
   }
 
-  // String processing
   const str = String(value).trim();
   if (!str) {
     return { success: true, value: undefined };
   }
 
-  // Clean input: remove separators (commas, spaces, underscores)
   const cleaned = str.replace(/[,\s_]/g, '');
   if (!cleaned) {
     return { success: true, value: undefined };
@@ -95,7 +86,6 @@ export function parseConcentrationInput(value: unknown): ConcentrationParseResul
       return { success: false, error: 'Invalid scientific notation' };
     }
 
-    // Has 'e' or 'E' but didn't match valid pattern
     if (/[eE]$/.test(cleaned) || /[eE][+-]$/.test(cleaned)) {
       return { success: false, error: 'Incomplete scientific notation (e.g., use 1.5e6)' };
     }
@@ -145,9 +135,7 @@ export function parseConcentrationInput(value: unknown): ConcentrationParseResul
     return { success: false, error: 'Invalid caret notation' };
   }
 
-  // Check for incomplete caret notation
   if (/\^/.test(cleaned)) {
-    // Has caret but didn't match valid patterns
     if (/10\^$/.test(cleaned) || /[xX*×]10\^$/.test(cleaned)) {
       return { success: false, error: 'Incomplete caret notation (e.g., use 1.5x10^6)' };
     }
@@ -160,10 +148,8 @@ export function parseConcentrationInput(value: unknown): ConcentrationParseResul
     return { success: true, value: num };
   }
 
-  // If we got here, it's invalid
   return { success: false, error: 'Invalid concentration value' };
 }
-
 
 // ZOD SCHEMAS (with validation and transformation)
 
@@ -205,7 +191,6 @@ export const concentrationPreprocessor = z
 export const concentrationPreprocessorNullable = z
   .unknown()
   .transform((val, ctx) => {
-    // Preserve null for clearing
     if (val === null) return null;
     // Empty string = clear (consistent with nullableOptionalFromEmpty for unit)
     if (val === '' || (typeof val === 'string' && val.trim() === '')) return null;
@@ -233,31 +218,23 @@ export const concentrationPreprocessorNullable = z
 /**
  * Date Parser - converts Date objects to YYYY-MM-DD strings
  *
- * Handles HTML5 date input values (Date objects) and converts to schema-compliant strings
- *
  * Accepts:
  * - Date objects from HTML5 <input type="date">
  * - YYYY-MM-DD strings (already valid)
  * - ISO datetime strings
  * - Empty strings (→ undefined)
- *
- * Returns: string (YYYY-MM-DD) | undefined
  */
 export function parseDate(value: unknown): string | undefined {
-  // Handle null/undefined/empty
   if (value === undefined || value === null || value === '') return undefined;
 
-  // Already a YYYY-MM-DD string - return as-is
   if (typeof value === 'string') {
     const trimmed = value.trim();
     if (!trimmed) return undefined;
 
-    // Valid YYYY-MM-DD format - return directly
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
       return trimmed;
     }
 
-    // ISO datetime string - extract date part
     if (trimmed.includes('T') || trimmed.includes('Z')) {
       try {
         const date = new Date(trimmed);
@@ -272,7 +249,6 @@ export function parseDate(value: unknown): string | undefined {
     return trimmed; // Let Zod validate format
   }
 
-  // Date object from HTML5 input - convert to YYYY-MM-DD
   if (value instanceof Date) {
     if (isNaN(value.getTime())) return undefined;
     return value.toISOString().split('T')[0];
@@ -331,7 +307,7 @@ export const optionalFromEmpty = <S extends z.ZodTypeAny>(schema: S) =>
 export const nullableOptionalFromEmpty = <S extends z.ZodTypeAny>(schema: S) =>
   z.preprocess(
     (val) => {
-      if (val === null) return null; // Preserve null for clearing field
+      if (val === null) return null;
       if (val === undefined) return undefined;
       if (typeof val === 'string' && val.trim() === '') return null; // Convert empty strings to null for tri-state PATCH
       return val;
@@ -340,21 +316,14 @@ export const nullableOptionalFromEmpty = <S extends z.ZodTypeAny>(schema: S) =>
   );
 
 /**
- * Validates concentration + unit invariant
- * Business Rule: Both must be present OR both must be absent
- * 
- * @param concentration - Cell concentration value
- * @param unit - Concentration unit (c/v or c/mL)
- * @returns true if valid, false if violates invariant
+ * Business Rule: concentration and unit must both be present or both absent.
  */
-export function validateConcentrationUnit(
+function validateConcentrationUnit(
   concentration: number | undefined | null,
   unit: ConcentrationUnit | undefined | null
 ): boolean {
   const hasConcentration = concentration !== undefined && concentration !== null;
   const hasUnit = unit !== undefined && unit !== null;
-  
-  // Both present OR both absent
   return (hasConcentration && hasUnit) || (!hasConcentration && !hasUnit);
 }
 
@@ -370,12 +339,10 @@ export const concentrationUnitRefinement = <T extends {
     const hasConcentration = data.concentration !== undefined && data.concentration !== null;
     const hasUnit = data.concentrationUnit !== undefined && data.concentrationUnit !== null;
 
-    // Validation passes if both present or both absent
     if (validateConcentrationUnit(data.concentration, data.concentrationUnit)) {
       return;
     }
 
-    // Determine which field is missing and provide appropriate error
     if (hasUnit && !hasConcentration) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

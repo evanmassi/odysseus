@@ -1,11 +1,7 @@
 /**
- * Zod schemas for tube data validation
- * Provides runtime validation and TypeScript type generation
+ * Tube Data Schemas
  *
- * Architecture:
- * - Domain schemas (tubeSampleSchema): Strict types, no preprocessing
- * - Request schemas (createTubeRequestSchema, updateTubeRequestSchema): Preprocessing for HTML forms
- * - Validation utilities in tubeValidation.ts provide centralized parsing
+ * Zod schemas for tube validation, API requests, and TypeScript type generation.
  */
 
 import { z } from 'zod';
@@ -20,21 +16,12 @@ import {
 } from './tubeValidation';
 import { EQUIPMENT_DEFAULTS } from '../constants/equipmentDefaults';
 
-/**
- * Concentration unit enum values (const tuple for type preservation)
- */
 export const CONCENTRATION_UNITS = ['c/v', 'c/mL'] as const;
 export type ConcentrationUnit = typeof CONCENTRATION_UNITS[number];
 
-/**
- * Default value for unknown researcher (used in optimistic updates)
- */
+/** Default display name for unresolved researcher IDs in optimistic updates. */
 export const UNKNOWN_RESEARCHER = 'Unknown' as const;
 
-/**
- * Core tube location schema
- * Required fields - strict validation
- */
 export const tubeLocationSchema = z.object({
   tankId: z.string().min(1, 'Tank ID is required'),
   rackId: z.string().min(1, 'Rack ID is required'),
@@ -42,13 +29,9 @@ export const tubeLocationSchema = z.object({
   position: z.number().int().min(1).max(EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX, `Position must be between 1-${EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX}`)
 });
 
-/**
- * Concentration unit schema (reusable, preserves literal types)
- */
 export const concentrationUnitSchema = z.enum(CONCENTRATION_UNITS);
 
 /**
- * Tube sample data schema
  * Domain schema with strict types used for API responses and domain entities.
  * No preprocessing - maintains type precision.
  */
@@ -75,17 +58,11 @@ export const tubeSampleSchema = z.object({
   notes: z.string().optional()
 });
 
-/**
- * Tube timestamps schema
- */
 export const tubeTimestampsSchema = z.object({
   createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]),
   updatedAt: z.union([z.string().datetime('Invalid updated date'), z.date()])
 });
 
-/**
- * Complete tube data schema
- */
 export const tubeDataSchema = z.object({
   id: z.string().min(1, 'Tube ID is required'),
   location: tubeLocationSchema,
@@ -102,13 +79,9 @@ export const tubeDataSchema = z.object({
   sharedWithUserIds: z.array(z.string()).optional(),
 });
 
-/**
- * Array of tubes schema
- */
 export const tubeDataArraySchema = z.array(tubeDataSchema);
 
 /**
- * Tube creation request sample schema
  * Preprocesses HTML form data:
  * - Empty strings → error for required fields
  * - Scientific notation → number (unified parser)
@@ -165,7 +138,6 @@ export const createTubeRequestSchema = z.object({
 });
 
 /**
- * Tube update sample schema
  * Supports tri-state PATCH semantics: empty strings → undefined, null preserved.
  * Business rule: concentration + unit must both be present or both absent.
  * cellType must not be empty if provided.
@@ -217,8 +189,7 @@ export const tubeUpdateSampleSchema = concentrationUnitRefinement(
 );
 
 /**
- * Tube update request schema (partial data)
- * Uses nullable fields to support PATCH semantics (null = clear)
+ * Uses nullable fields to support PATCH semantics (null = clear field).
  */
 export const updateTubeRequestSchema = z.object({
   location: tubeLocationSchema.partial().optional(),
@@ -228,9 +199,6 @@ export const updateTubeRequestSchema = z.object({
   lockNote: z.string().max(100).optional()
 });
 
-/**
- * Tube query filters schema
- */
 export const tubeQueryFiltersSchema = z.object({
   tankId: z.string().optional(),
   rackId: z.string().optional(),
@@ -245,43 +213,18 @@ export const tubeQueryFiltersSchema = z.object({
   offset: z.number().int().min(0).optional()
 });
 
-/**
- * Batch tube operation schema
- */
 export const batchTubeOperationSchema = z.object({
   action: z.enum(['create', 'update', 'delete']),
   tubes: z.union([
-    z.array(createTubeRequestSchema), // for create
+    z.array(createTubeRequestSchema),
     z.array(z.object({
       id: z.string().min(1),
       data: updateTubeRequestSchema
-    })), // for update
-    z.array(z.string().min(1)) // for delete
+    })),
+    z.array(z.string().min(1))
   ])
 });
 
-/**
- * Note: Form-specific schemas removed
- * 
- * Previously had:
- * - tubeFormSampleSchema
- * - tubeFormDataSchema
- * - tubeFormValidationSchema (deprecated)
- *
- * These schemas were removed because:
- * - Client should use createTubeRequestSchema directly (API contract)
- * - No transformation needed (form data = API data)
- * - Reduces duplication and drift
- *
- * Migration path:
- * - Client forms: Use createTubeRequestSchema instead
- * - Validation: Already enforced in API schema
- * - Business rules: Concentration+unit refinement applied
- */
-
-/**
- * Tube validation result schema
- */
 export const tubeValidationResultSchema = z.object({
   isValid: z.boolean(),
   errors: z.array(z.object({
@@ -295,9 +238,6 @@ export const tubeValidationResultSchema = z.object({
   })).optional()
 });
 
-/**
- * Domain types used for API responses, database, and domain logic
- */
 export type TubeData = z.infer<typeof tubeDataSchema>;
 export type TubeLocation = z.infer<typeof tubeLocationSchema>;
 export type TubeSample = z.infer<typeof tubeSampleSchema>;
@@ -327,21 +267,6 @@ export type UpdateTubeFormInput = z.input<typeof updateTubeRequestSchema>;
 
 // UTILITY FUNCTIONS
 
-/**
- * Tube position utilities with validation
- */
 export const validateTubePosition = (position: number): boolean => {
   return position >= 1 && position <= EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX;
-};
-
-/**
- * Validate concentration/unit invariant
- */
-export const validateConcentrationUnit = (
-  concentration: number | undefined,
-  unit: ConcentrationUnit | undefined
-): boolean => {
-  if (concentration && !unit) return false;
-  if (!concentration && unit) return false;
-  return true;
 };

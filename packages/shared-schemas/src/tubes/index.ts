@@ -1,7 +1,7 @@
 /**
  * Tubes Barrel
  *
- * Tube schemas, lock operations, validation, formatters, and data mappers.
+ * Public exports for tube schemas, validation utilities, formatters, mappers, and lock operations.
  */
 
 export {
@@ -31,7 +31,6 @@ export {
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
   validateTubePosition,
-  validateConcentrationUnit,
 } from './tubeSchemas';
 
 export {
@@ -43,7 +42,6 @@ export {
   datePreprocessorNullable,
   optionalFromEmpty,
   nullableOptionalFromEmpty,
-  validateConcentrationUnit as validateConcentrationUnitInvariant,
   concentrationUnitRefinement,
 } from './tubeValidation';
 

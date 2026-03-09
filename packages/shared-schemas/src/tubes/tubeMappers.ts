@@ -25,6 +25,7 @@ export function tubeDataToCreateRequest(
     location: newLocation,
     sample: {
       cellType: tube.sample.cellType || '', // Provide empty string if undefined (will fail validation)
+      species: tube.sample.species,
       donorInternalId: tube.sample.donorInternalId,
       donorSourceId: tube.sample.donorSourceId,
       concentration: tube.sample.concentration,
@@ -35,6 +36,9 @@ export function tubeDataToCreateRequest(
       mediaSelection: tube.sample.mediaSelection,
       cultureCondition: tube.sample.cultureCondition,
       lotNumber: tube.sample.lotNumber,
+      source: tube.sample.source,
+      catalogNumber: tube.sample.catalogNumber,
+      passageNumber: tube.sample.passageNumber,
       notes: tube.sample.notes
     },
     researcherId: tube.researcherId
@@ -42,14 +46,8 @@ export function tubeDataToCreateRequest(
 }
 
 /**
- * Batch transform multiple tubes for paste operation
- *
- * Use case: Multi-tube paste with position mapping
- * - Maps each tube to new location
- * - Preserves relative positioning via positionMap
- *
- * @param tubes - Source tubes to transform
- * @param positionMap - Function that maps source tube to new location
+ * Batch transform multiple tubes for paste operation.
+ * Use case: Multi-tube paste with position mapping — preserves relative positioning via positionMap.
  */
 export function tubeDataArrayToCreateRequests(
   tubes: TubeData[],

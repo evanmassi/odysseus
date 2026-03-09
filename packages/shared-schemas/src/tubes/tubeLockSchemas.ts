@@ -1,24 +1,16 @@
 /**
- * Tube Lock Schemas
+ * Tube Lock and Access Operations
  *
- * Zod schemas for tube locking operations.
- * Supports batch lock/unlock and access sharing.
+ * Schemas for batch locking, unlocking, and shared access grant/revoke requests and results.
  */
 
 import { z } from 'zod';
 
-/**
- * Lock tubes request schema
- * Lock one or more tubes with optional note
- */
 export const lockTubesRequestSchema = z.object({
   tubeIds: z.array(z.string().min(1)).min(1).max(100),
   lockNote: z.string().max(100).optional(),
 });
 
-/**
- * Unlock tubes request schema
- */
 export const unlockTubesRequestSchema = z.object({
   tubeIds: z.array(z.string().min(1)).min(1).max(100),
 });
@@ -67,17 +59,11 @@ export const batchUnlockResultSchema = z.object({
   skipped: z.array(skippedTubeSchema),
 });
 
-/**
- * Share access result schema
- */
 export const shareAccessResultSchema = z.object({
   shared: z.array(z.string()),
   skipped: z.array(skippedTubeSchema),
 });
 
-/**
- * Revoke access result schema
- */
 export const revokeAccessResultSchema = z.object({
   revoked: z.array(z.string()),
   skipped: z.array(skippedTubeSchema),

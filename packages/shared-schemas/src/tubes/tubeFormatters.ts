@@ -1,8 +1,7 @@
 /**
- * Display formatting utilities for tube data
+ * Tube Display Formatters
  *
- * Presentation layer formatters applied only in UI components.
- * Business logic operates on raw data; these utilities handle display-only transformations.
+ * Presentation-only utilities for formatting tube location, concentration, and date values in UI components.
  */
 
 import type { TubeLocation, ConcentrationUnit } from './tubeSchemas';
@@ -46,8 +45,6 @@ export function formatConcentrationDisplay(
 }
 
 /**
- * Format tube location for display
- *
  * Examples:
  * - "Tank 1 / Rack A / Box 1 / Pos 42" (numeric)
  * - "Tank 1 / Rack A / Box 1 / Pos C5" (alphanumeric)
