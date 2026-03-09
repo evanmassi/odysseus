@@ -9,23 +9,16 @@ import React from 'react';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
 export interface TooltipProps {
-  /** The content to show in the tooltip */
   content: React.ReactNode;
-  /** The element that triggers the tooltip */
   children: React.ReactNode;
-  /** Side of the trigger to show tooltip */
   side?: 'top' | 'right' | 'bottom' | 'left';
-  /** Alignment relative to trigger */
   align?: 'start' | 'center' | 'end';
-  /** Delay in ms before showing tooltip */
+  /** Delay in ms before showing */
   delayDuration?: number;
-  /** Whether the tooltip is disabled */
   disabled?: boolean;
-  /** Additional class name for the content */
+  /** Applied to the tooltip content element, not the trigger */
   className?: string;
-  /** Controlled open state */
   open?: boolean;
-  /** Callback when open state changes */
   onOpenChange?: (open: boolean) => void;
 }
 

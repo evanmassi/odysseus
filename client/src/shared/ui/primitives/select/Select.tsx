@@ -1,8 +1,7 @@
 /**
  * Select Component
  *
- * Accessible select dropdown primitive following design system tokens
- * Supports single/multi selection, search, and full WCAG AA compliance
+ * Accessible select dropdown primitive with design system tokens.
  */
 
 import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } from 'react';
@@ -14,7 +13,6 @@ import { defaultSelectProps } from './types';
 
 import type { SelectOption, SelectProps, SelectRef } from './types';
 
-// Select styling using semantic design tokens
 const selectVariants = cva(
   [
     // Base styles - rounded-lg matches input-field class
@@ -56,7 +54,6 @@ const selectVariants = cva(
   }
 );
 
-// Dropdown menu styling - uses fixed positioning via portal
 const dropdownVariants = cva(
   [
     'fixed z-[9999]',
@@ -77,7 +74,6 @@ const dropdownVariants = cva(
   }
 );
 
-// Option styling
 const optionVariants = cva(
   ['px-3 py-2 cursor-pointer text-sm', 'flex items-center gap-2', 'transition-colors duration-150'],
   {
@@ -103,7 +99,6 @@ const optionVariants = cva(
   }
 );
 
-// Select Component
 export const Select = forwardRef<SelectRef, SelectProps>(
   (
     {
@@ -407,7 +402,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         return () => document.removeEventListener('mousedown', handleClickOutside);
       }
 
-      // Return undefined explicitly when dropdown is not open
       return undefined;
     }, [isOpen]);
 
@@ -469,7 +463,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
 
     return (
       <div className={wrapperClasses}>
-        {/* Label */}
         {label && (
           <label
             id={labelId}
@@ -479,7 +472,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           </label>
         )}
 
-        {/* Select Container */}
         <div
           ref={el => {
             // Use type assertion to safely assign to mutable refs
@@ -504,12 +496,10 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           tabIndex={disabled ? -1 : 0}
           {...props}
         >
-          {/* Display Value */}
           <div className="flex items-center justify-between h-full">
             <div className="flex-1 truncate">{renderDisplayValueContent()}</div>
 
             <div className="flex items-center gap-1">
-              {/* Clear Button */}
               {clearable && selectedOptions.length > 0 && !disabled && (
                 <button
                   type="button"
@@ -523,7 +513,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                 </button>
               )}
 
-              {/* Dropdown Arrow */}
               <svg
                 className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 viewBox="0 0 24 24"
@@ -535,7 +524,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           </div>
         </div>
 
-        {/* Dropdown Menu - rendered via portal to escape overflow containers */}
         {createPortal(
           <div
             ref={dropdownRef}
@@ -550,7 +538,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
               maxHeight,
             }}
           >
-            {/* Search Input */}
             {searchable && isOpen && (
               <div className="px-3 py-2 border-b border-border">
                 <input
@@ -564,7 +551,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
               </div>
             )}
 
-            {/* Options */}
             <div
               ref={optionsRef}
               role="listbox"
@@ -649,14 +635,12 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           document.body
         )}
 
-        {/* Description */}
         {description && (
           <p id={descriptionId} className="text-xs text-muted-foreground mt-1">
             {description}
           </p>
         )}
 
-        {/* Error/Warning/Success Message */}
         {currentMessage && (
           <p
             id={errorId}

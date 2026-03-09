@@ -11,33 +11,24 @@ import { Eye, EyeOff } from 'lucide-react';
 export type AuthInputValidationState = 'default' | 'success' | 'warning' | 'error';
 
 export interface AuthInputProps {
-  /** HTML id for label association */
   id: string;
-  /** Input type */
   type?: 'text' | 'password' | 'email';
-  /** Current value */
   value: string;
-  /** Called when value changes */
   onChange: (value: string) => void;
-  /** Called when input loses focus */
   onBlur?: () => void;
-  /** Floating label text */
+  /** Floating label rendered above the input */
   label: string;
-  /** Placeholder text */
   placeholder?: string;
-  /** Icon displayed on the left side */
+  /** Rendered on the left side of the input */
   icon?: React.ReactNode;
-  /** Validation state controlling border and label colors */
+  /** Controls border and label colors */
   state?: AuthInputValidationState;
-  /** Show required asterisk after label */
+  /** Shows required asterisk after label */
   required?: boolean;
-  /** Disable the input */
   disabled?: boolean;
-  /** Maximum character length */
   maxLength?: number;
-  /** Auto-focus the input on mount */
   autoFocus?: boolean;
-  /** Additional class for the container */
+  /** Applied to the outer container */
   className?: string;
 }
 

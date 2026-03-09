@@ -7,19 +7,12 @@
 import React, { forwardRef } from 'react';
 
 export interface CheckboxProps {
-  /** Whether the checkbox is checked */
   checked: boolean;
-  /** Called when checkbox state changes */
   onChange: (checked: boolean) => void;
-  /** Accessible label for the checkbox */
   'aria-label'?: string;
-  /** HTML id for label association */
   id?: string;
-  /** Whether the checkbox is disabled */
   disabled?: boolean;
-  /** Whether the checkbox is in indeterminate state */
   indeterminate?: boolean;
-  /** Additional class name */
   className?: string;
 }
 
@@ -41,7 +34,6 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       if (input) {
         input.indeterminate = indeterminate;
       }
-      // Forward ref
       if (typeof ref === 'function') {
         ref(input);
       } else if (ref) {

@@ -1,36 +1,17 @@
 /**
  * Input Component Types
  *
- * Type definitions for accessible Input primitive components
- * Includes text, number, search, and validation functionality
+ * Type definitions for the Input primitive component.
  */
 
 import type { ComponentProps, ReactNode } from 'react';
 
-// Input variant types
-export type InputVariant =
-  | 'default' // Standard input
-  | 'filled' // Filled background input
-  | 'outlined' // Outlined input (default)
-  | 'underlined' // Underlined input
-  | 'ghost'; // Minimal input (no border)
+export type InputVariant = 'default' | 'filled' | 'outlined' | 'underlined' | 'ghost';
 
-// Input size types
-export type InputSize =
-  | 'xs' // Extra small (28px height)
-  | 'sm' // Small (32px height)
-  | 'md' // Medium (40px height) - default
-  | 'lg' // Large (48px height)
-  | 'xl'; // Extra large (56px height)
+export type InputSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
-// Input state types
-export type InputState =
-  | 'default' // Normal state
-  | 'error' // Error state
-  | 'warning' // Warning state
-  | 'success'; // Success state
+export type InputState = 'default' | 'error' | 'warning' | 'success';
 
-// Input types (HTML input types)
 export type InputType =
   | 'text'
   | 'email'
@@ -45,75 +26,52 @@ export type InputType =
   | 'month'
   | 'week';
 
-// Validation result
 export interface ValidationResult {
   isValid: boolean;
   message?: string;
   type?: 'error' | 'warning' | 'success';
 }
 
-// Validation function type
 export type ValidationFunction = (value: string) => ValidationResult | Promise<ValidationResult>;
 
-// Base input props (extends HTML input attributes)
 export interface BaseInputProps extends Omit<ComponentProps<'input'>, 'size' | 'prefix'> {
-  // Appearance
   variant?: InputVariant;
   size?: InputSize;
   state?: InputState;
-
-  // Label and description
   label?: string;
   description?: string;
   placeholder?: string;
-
-  // Icons and addons
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   prefix?: string | ReactNode;
   suffix?: string | ReactNode;
-
-  // Validation
   error?: string;
   warning?: string;
   success?: string;
   required?: boolean;
   validate?: ValidationFunction | ValidationFunction[];
   validateOn?: 'blur' | 'change' | 'submit';
-
-  // State
   isLoading?: boolean;
   readOnly?: boolean;
   disabled?: boolean;
-
-  // Layout
   fullWidth?: boolean;
-
-  // Accessibility
   'aria-label'?: string;
   'aria-describedby'?: string;
   'aria-invalid'?: boolean;
   'aria-required'?: boolean;
-
-  // Custom styling
   className?: string;
   inputClassName?: string;
   labelClassName?: string;
-
-  // Event handlers
   onValueChange?: (value: string) => void;
   onValidationChange?: (result: ValidationResult) => void;
 }
 
-// Input ref type
 export type InputRef = HTMLInputElement;
 
-// Main input component props
 export interface InputProps extends BaseInputProps {
   type?: InputType;
 }
 
-// Default props
 export const defaultInputProps: Partial<InputProps> = {
   type: 'text',
   variant: 'outlined',

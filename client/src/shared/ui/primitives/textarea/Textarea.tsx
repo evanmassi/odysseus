@@ -11,47 +11,27 @@ export type TextareaSize = 'sm' | 'md' | 'lg';
 export type TextareaResize = 'none' | 'vertical' | 'horizontal' | 'both';
 
 export interface TextareaProps {
-  /** Current value */
   value?: string;
-  /** Called when value changes */
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  /** Called when value changes (convenience handler that passes string directly) */
+  /** Convenience handler that passes the string value directly */
   onValueChange?: (value: string) => void;
-  /** Called when textarea loses focus */
   onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
-  /** Placeholder text */
   placeholder?: string;
-  /** Number of visible text rows */
   rows?: number;
-  /** Maximum character length */
   maxLength?: number;
-  /** Validation state */
   state?: TextareaState;
-  /** Size variant */
   size?: TextareaSize;
-  /** Resize behavior */
   resize?: TextareaResize;
-  /** Whether textarea takes full width */
   fullWidth?: boolean;
-  /** Disable the textarea */
   disabled?: boolean;
-  /** Read-only mode */
   readOnly?: boolean;
-  /** HTML name attribute */
   name?: string;
-  /** HTML id attribute */
   id?: string;
-  /** Accessible label */
   'aria-label'?: string;
-  /** ID of element that labels this textarea */
   'aria-labelledby'?: string;
-  /** ID of element that describes this textarea */
   'aria-describedby'?: string;
-  /** Whether the field is required */
   'aria-required'?: boolean;
-  /** Whether the field has an error */
   'aria-invalid'?: boolean;
-  /** Additional class name */
   className?: string;
 }
 

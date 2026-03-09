@@ -1,7 +1,7 @@
 /**
- * OverflowMenu Types
+ * Overflow Menu Types
  *
- * Type definitions for the OverflowMenu component
+ * Type definitions for the overflow menu component.
  */
 
 import type { LucideIcon } from 'lucide-react';
@@ -15,12 +15,10 @@ export interface OverflowMenuItem {
 }
 
 export interface OverflowMenuProps {
-  /** Array of menu items to display */
   items: OverflowMenuItem[];
-  /** Labels of items that should have a divider before them */
+  /** Labels of items that should have a divider rendered before them */
   dividerBefore?: string[];
-  /** Size of the trigger button */
+  /** Controls the trigger button size */
   size?: 'sm' | 'md';
-  /** Optional aria-label for the trigger button */
   'aria-label'?: string;
 }

@@ -1,3 +1,9 @@
+/**
+ * Date Picker Types
+ *
+ * Type definitions for the date picker primitive.
+ */
+
 export type DatePickerSize = 'xs' | 'sm' | 'md' | 'lg';
 
 export type DatePickerState = 'default' | 'error' | 'warning' | 'success';

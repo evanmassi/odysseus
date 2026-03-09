@@ -1,5 +1,7 @@
 /**
  * Menu Primitives
+ *
+ * Barrel export for context menu and overflow menu components.
  */
 
 export { ContextMenu } from './ContextMenu';

@@ -1,9 +1,7 @@
 /**
- * OverflowMenu Component
+ * Overflow Menu
  *
- * A vertical three-dot menu that opens a dropdown with action items.
- * Uses portal-based rendering to escape overflow containers.
- * Implements WAI-ARIA Menu Button pattern for full keyboard accessibility.
+ * Three-dot dropdown menu with portal rendering and WAI-ARIA keyboard navigation.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';

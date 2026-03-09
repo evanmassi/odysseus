@@ -1,3 +1,9 @@
+/**
+ * Error Banner
+ *
+ * Fixed-position error display with copy and clear actions.
+ */
+
 import { useState, useEffect } from 'react';
 
 import { CircleX, X, Copy } from 'lucide-react';

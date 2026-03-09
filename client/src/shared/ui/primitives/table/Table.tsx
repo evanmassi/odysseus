@@ -19,7 +19,6 @@ import type {
   TableRounded,
 } from './types';
 
-// Table context
 const TableContext = createContext<TableContextValue | null>(null);
 
 const useTableContext = () => {
@@ -30,7 +29,6 @@ const useTableContext = () => {
   return context;
 };
 
-// Table styling with semantic tokens
 const tableVariants = cva(['w-full border-collapse'], {
   variants: {
     variant: {
@@ -57,7 +55,6 @@ const tableVariants = cva(['w-full border-collapse'], {
   },
 });
 
-// Header styling with semantic tokens
 const headerVariants = cva(
   ['px-4 py-3 text-left font-semibold text-foreground', 'border-b border-border bg-muted'],
   {
@@ -84,7 +81,6 @@ const headerVariants = cva(
   }
 );
 
-// Cell styling with semantic tokens
 const cellVariants = cva(['px-4 py-3 border-b border-border'], {
   variants: {
     align: {
@@ -98,7 +94,6 @@ const cellVariants = cva(['px-4 py-3 border-b border-border'], {
   },
 });
 
-// Row styling with semantic tokens
 const rowVariants = cva([''], {
   variants: {
     striped: {
@@ -126,7 +121,6 @@ const rowVariants = cva([''], {
   },
 });
 
-// Sort indicator component
 interface SortIndicatorProps {
   direction?: 'asc' | 'desc';
   className?: string;
@@ -150,7 +144,6 @@ const SortIndicator: React.FC<SortIndicatorProps> = ({ direction, className = ''
   </span>
 );
 
-// Checkbox component for selection
 interface TableCheckboxProps {
   checked: boolean;
   indeterminate?: boolean;
@@ -192,7 +185,6 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
   );
 };
 
-// Table Header component
 export const TableHeader = <T,>({
   columns,
   className = '',
@@ -273,7 +265,6 @@ export const TableHeader = <T,>({
   );
 };
 
-// Table Body component
 export const TableBody = <T extends TableRowBase>({
   columns,
   data,
@@ -372,8 +363,6 @@ export const TableBody = <T extends TableRowBase>({
   );
 };
 
-// Main Table component
-// Rounded container classes mapping
 const roundedClasses: Record<TableRounded, string> = {
   none: '',
   sm: 'rounded-sm',

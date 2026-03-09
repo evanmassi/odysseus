@@ -1,5 +1,7 @@
 /**
  * UI Primitives
+ *
+ * Barrel export for all shared primitive components and their types.
  */
 
 export { AlertBanner } from './banners/AlertBanner';

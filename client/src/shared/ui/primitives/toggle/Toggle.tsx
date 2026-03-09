@@ -7,17 +7,11 @@
 import React, { forwardRef } from 'react';
 
 export interface ToggleProps {
-  /** Whether the toggle is on */
   checked: boolean;
-  /** Called when toggle state changes */
   onChange: (checked: boolean) => void;
-  /** Accessible label for the toggle */
   'aria-label'?: string;
-  /** Whether the toggle is disabled */
   disabled?: boolean;
-  /** Size variant */
   size?: 'sm' | 'md';
-  /** Additional class name */
   className?: string;
 }
 

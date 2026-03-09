@@ -2,7 +2,6 @@
  * Context Menu
  *
  * Right-click menu for grid cell operations with keyboard shortcut hints.
- * Implements WAI-ARIA Menu pattern for full keyboard accessibility.
  */
 import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 

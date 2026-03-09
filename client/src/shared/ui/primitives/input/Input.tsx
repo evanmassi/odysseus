@@ -1,8 +1,7 @@
 /**
  * Input Component
  *
- * Accessible, customizable input primitive following design system tokens
- * Supports validation, multiple variants, sizes, and full WCAG AA compliance
+ * Accessible input primitive with validation, multiple variants, and design system tokens.
  */
 
 import React, { forwardRef, useState, useId, useCallback, useEffect, useRef } from 'react';
@@ -13,9 +12,7 @@ import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef, ValidationResult } from './types';
 
-// Input styling variants
 const inputVariants = cva(
-  // Base input styles
   [
     // Layout & positioning
     'w-full relative',
@@ -36,7 +33,6 @@ const inputVariants = cva(
   ],
   {
     variants: {
-      // Variant styles
       variant: {
         default: ['bg-card border border-border', 'hover:border-muted-foreground'],
         filled: ['bg-muted border border-transparent', 'hover:bg-accent', 'focus:bg-card'],
@@ -49,7 +45,6 @@ const inputVariants = cva(
         ghost: ['bg-transparent border-0', 'hover:bg-muted', 'focus:bg-muted'],
       },
 
-      // Size styles using design system spacing
       size: {
         xs: [
           'h-7 px-2 text-xs', // 28px height
@@ -80,28 +75,24 @@ const inputVariants = cva(
         success: 'border-2 border-success-border',
       },
 
-      // Full width option
       fullWidth: {
         true: 'w-full',
         false: 'w-auto',
       },
 
-      // Has left icon
       hasLeftIcon: {
         true: '',
         false: '',
       },
 
-      // Has right icon
       hasRightIcon: {
         true: '',
         false: '',
       },
     },
 
-    // Compound variants for icon padding adjustments
     compoundVariants: [
-      // Left icon padding adjustments
+      // Left icon padding
       {
         hasLeftIcon: true,
         size: 'xs',
@@ -128,7 +119,7 @@ const inputVariants = cva(
         className: 'pl-12',
       },
 
-      // Right icon padding adjustments
+      // Right icon padding
       {
         hasRightIcon: true,
         size: 'xs',
@@ -156,7 +147,6 @@ const inputVariants = cva(
       },
     ],
 
-    // Default variants
     defaultVariants: {
       variant: 'outlined',
       size: 'md',
@@ -168,7 +158,6 @@ const inputVariants = cva(
   }
 );
 
-// Wrapper styling
 const wrapperVariants = cva(['relative flex flex-col'], {
   variants: {
     fullWidth: {
@@ -181,7 +170,6 @@ const wrapperVariants = cva(['relative flex flex-col'], {
   },
 });
 
-// Icon styling
 const iconVariants = cva(['absolute top-1/2 transform -translate-y-1/2 pointer-events-none'], {
   variants: {
     position: {
@@ -213,7 +201,6 @@ const iconVariants = cva(['absolute top-1/2 transform -translate-y-1/2 pointer-e
   ],
 });
 
-// Loading spinner component for inputs
 interface InputLoadingSpinnerProps {
   size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }
@@ -237,7 +224,6 @@ const InputLoadingSpinner: React.FC<InputLoadingSpinnerProps> = ({ size }) => {
   );
 };
 
-// Input label component
 interface InputLabelProps {
   htmlFor?: string;
   children: React.ReactNode;
@@ -264,7 +250,6 @@ const InputLabel: React.FC<InputLabelProps> = ({
   </label>
 );
 
-// Input description component
 interface InputDescriptionProps {
   id?: string;
   children: React.ReactNode;
@@ -277,7 +262,6 @@ const InputDescription: React.FC<InputDescriptionProps> = ({ id, children, class
   </p>
 );
 
-// Input error message component
 interface InputErrorProps {
   id?: string;
   children: React.ReactNode;
@@ -304,7 +288,6 @@ const InputError: React.FC<InputErrorProps> = ({
   );
 };
 
-// Main Input component
 export const Input = forwardRef<InputRef, InputProps>(
   (
     {
@@ -538,16 +521,13 @@ export const Input = forwardRef<InputRef, InputProps>(
 
     return (
       <div className={wrapperClasses}>
-        {/* Label */}
         {label && (
           <InputLabel htmlFor={id} isRequired={required} className={labelClassName}>
             {label}
           </InputLabel>
         )}
 
-        {/* Input wrapper with icons */}
         <div className="relative">
-          {/* Left icon or prefix */}
           {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/prefix */}
           {(leftIcon || prefix) && (
             <div className={iconVariants({ position: 'left', size })}>
@@ -556,7 +536,6 @@ export const Input = forwardRef<InputRef, InputProps>(
             </div>
           )}
 
-          {/* Input element */}
           <input
             ref={mergedRef}
             id={id}
@@ -584,7 +563,6 @@ export const Input = forwardRef<InputRef, InputProps>(
             {...props}
           />
 
-          {/* Right icon, suffix, or loading spinner */}
           {isLoading ? (
             <InputLoadingSpinner size={size!} />
           ) : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/suffix
@@ -596,10 +574,8 @@ export const Input = forwardRef<InputRef, InputProps>(
           ) : null}
         </div>
 
-        {/* Description */}
         {description && <InputDescription id={descriptionId}>{description}</InputDescription>}
 
-        {/* Error/Warning/Success message */}
         {currentMessage && (
           <InputError id={errorId} type={currentMessage.type}>
             {currentMessage.message}

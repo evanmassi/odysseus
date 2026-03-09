@@ -1,3 +1,9 @@
+/**
+ * Date Picker
+ *
+ * Calendar-based date selector with portal dropdown and keyboard navigation.
+ */
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 import { cva } from 'class-variance-authority';

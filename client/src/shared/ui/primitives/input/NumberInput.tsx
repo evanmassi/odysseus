@@ -9,23 +9,15 @@ import React, { forwardRef, useCallback } from 'react';
 import { Minus, Plus } from 'lucide-react';
 
 export interface NumberInputProps {
-  /** Current value */
   value: number;
-  /** Called when value changes */
   onChange: (value: number) => void;
-  /** Minimum value */
   min?: number;
-  /** Maximum value */
   max?: number;
-  /** Step increment */
   step?: number;
-  /** Size variant */
   size?: 'xs' | 'sm' | 'md' | 'lg';
-  /** Whether the input is disabled */
   disabled?: boolean;
-  /** Accessible label */
   'aria-label'?: string;
-  /** Additional class name for the container */
+  /** Applied to the outer container */
   className?: string;
 }
 

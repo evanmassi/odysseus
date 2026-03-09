@@ -1,7 +1,7 @@
 /**
  * Chip Component Types
  *
- * Type definitions for the Chip primitive supporting static, selectable, and removable behaviors.
+ * Type definitions for the Chip primitive.
  */
 
 import type { HTMLAttributes, ReactNode } from 'react';

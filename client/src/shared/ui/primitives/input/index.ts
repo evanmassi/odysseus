@@ -1,5 +1,7 @@
 /**
  * Input Primitives
+ *
+ * Barrel export for text, number, and auth input components.
  */
 
 export { AuthInput } from './AuthInput';

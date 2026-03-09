@@ -1,3 +1,9 @@
+/**
+ * Scroll Area
+ *
+ * Themed scrollbar wrapper built on OverlayScrollbars.
+ */
+
 import { forwardRef } from 'react';
 
 import {

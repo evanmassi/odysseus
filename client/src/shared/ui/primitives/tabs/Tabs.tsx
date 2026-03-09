@@ -42,9 +42,6 @@ function useTabsContext() {
   return context;
 }
 
-/**
- * Individual tab button. Must be used within a Tabs component.
- */
 export function Tab({ id, icon, children, disabled = false }: TabProps) {
   const { value, onChange, orientation } = useTabsContext();
   const isActive = value === id;

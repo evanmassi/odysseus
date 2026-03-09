@@ -40,7 +40,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary - main action button (dark mode handled in buttons.css)
+        // Dark mode overrides in buttons.css
         primary: [
           'btn-variant-primary',
           'bg-action text-white border border-action',
@@ -49,7 +49,6 @@ const buttonVariants = cva(
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
-        // Secondary - outlined/ghost style for secondary actions
         secondary: [
           'bg-transparent text-secondary-foreground border border-transparent',
           'hover:bg-accent hover:text-accent-foreground',
@@ -57,14 +56,12 @@ const buttonVariants = cva(
           'shadow-none',
         ],
 
-        // Tertiary - minimal text-style button
         tertiary: [
           'bg-transparent text-secondary-foreground border-transparent',
           'hover:bg-accent hover:text-accent-foreground',
           'active:bg-accent',
         ],
 
-        // Danger - destructive actions
         danger: [
           'bg-danger-bg/70 text-danger-btnText border border-danger-bg/70',
           'hover:bg-danger-hover/70 hover:border-danger-hover/70',
@@ -72,7 +69,6 @@ const buttonVariants = cva(
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
-        // Success - confirmations and positive actions
         success: [
           'bg-success-bg text-success-btnText border border-success-bg',
           'hover:bg-success-hover hover:border-success-hover',
@@ -80,7 +76,6 @@ const buttonVariants = cva(
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
-        // Warning - caution actions
         warning: [
           'bg-warning-bg/70 text-warning-btnText border border-warning-bg/70',
           'hover:bg-warning-hover/70 hover:border-warning-hover/70',
@@ -88,7 +83,6 @@ const buttonVariants = cva(
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
-        // Info - informational actions
         info: [
           'bg-info-bg/70 text-info-btnText border border-info-bg/70',
           'hover:bg-info-hover/70 hover:border-info-hover/70',
@@ -96,28 +90,24 @@ const buttonVariants = cva(
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
-        // Ghost - minimal button without background
         ghost: [
           'bg-transparent text-muted-foreground border-transparent',
           'hover:bg-muted hover:text-accent-foreground',
           'active:bg-muted',
         ],
 
-        // Ghost Danger - ghost button with danger styling (for toolbar delete actions)
         'ghost-danger': [
           'bg-transparent text-danger-text border-transparent',
           'hover:bg-danger-light',
           'active:bg-danger-light',
         ],
 
-        // Ghost Warning - ghost button with warning styling (for toolbar warning actions)
         'ghost-warning': [
           'bg-transparent text-warning-text border-transparent',
           'hover:bg-warning-light',
           'active:bg-warning-light',
         ],
 
-        // Cancel - dialog cancel actions
         cancel: [
           'bg-card text-card-foreground border border-border',
           'hover:bg-accent hover:text-accent-foreground',
@@ -125,7 +115,6 @@ const buttonVariants = cva(
           'shadow-sm',
         ],
 
-        // Clear - for clear/reset actions
         clear: [
           'bg-clear-bg text-clear-text border border-clear-bg',
           'hover:bg-clear-hover hover:border-clear-hover',
