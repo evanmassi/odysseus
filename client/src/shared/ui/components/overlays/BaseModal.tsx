@@ -7,9 +7,7 @@ import React from 'react';
 
 import { X } from 'lucide-react';
 
-import { useModalKeyboardNavigation } from '@shared/hooks/keyboard/useModalKeyboardNavigation';
-import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { useAnimatedClose, useFocusTrap, useModalKeyboardNavigation } from '@shared/hooks';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { ModalPortal } from './ModalPortal';

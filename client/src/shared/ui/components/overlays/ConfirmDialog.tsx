@@ -28,8 +28,7 @@ import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 import { AnimatedXMark } from '@shared/ui/components/icons/AnimatedXMark';
 

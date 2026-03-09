@@ -7,8 +7,7 @@ import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 
 import { X } from 'lucide-react';
 
-import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { AnimatedInfoMark } from '@shared/ui/components/icons/AnimatedInfoMark';
 import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 

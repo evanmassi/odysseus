@@ -9,9 +9,9 @@ import { type ReactNode, type RefObject, useRef, useState, useEffect } from 'rea
 
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick-altered.svg?react';
-import { mergeRefs } from '@shared/hooks/mergeRefs';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { useFocusTrap } from '@shared/hooks';
 import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
+import { mergeRefs } from '@shared/utils';
 
 import { AnimatedBorder } from './AnimatedBorder';
 

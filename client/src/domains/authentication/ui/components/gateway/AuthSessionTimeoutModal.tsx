@@ -10,8 +10,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { LogOut } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { Button } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 

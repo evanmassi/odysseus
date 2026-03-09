@@ -9,7 +9,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 
 import { authService } from '@domains/authentication/services/AuthService';
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { useFocusTrap } from '@shared/hooks';
 import { Button } from '@shared/ui';
 import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
 

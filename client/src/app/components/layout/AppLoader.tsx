@@ -7,7 +7,7 @@
 import { AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
 
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
-import { env } from '@shared/config/environment';
+import { env } from '@shared/config';
 import { AlertBanner, Button, LoadingSpinner } from '@shared/ui';
 
 import { LOADING_MESSAGES } from '../../bootstrap/constants';

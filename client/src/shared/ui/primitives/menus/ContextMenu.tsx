@@ -19,7 +19,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-import { useMenuKeyboardNavigation } from '@shared/hooks/keyboard';
+import { useMenuKeyboardNavigation } from '@shared/hooks';
 
 interface ContextMenuProps {
   isVisible: boolean;

@@ -9,7 +9,7 @@ import React, { Component } from 'react';
 
 import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react';
 
-import { env } from '@shared/config/environment';
+import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 import { Button } from '@shared/ui';
 

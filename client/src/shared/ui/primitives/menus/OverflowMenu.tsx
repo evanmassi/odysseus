@@ -11,7 +11,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { MoreVertical } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-import { useMenuKeyboardNavigation } from '@shared/hooks/keyboard';
+import { useMenuKeyboardNavigation } from '@shared/hooks';
 
 import type { OverflowMenuProps, OverflowMenuItem } from './types';
 
