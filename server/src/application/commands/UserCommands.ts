@@ -32,7 +32,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { type UserSettings, PasswordValidator } from '@odysseus/shared-schemas';
-import type { EnhancedLoginResponse, RefreshTokenResponse } from '@application/types/token';
+import type { EnhancedLoginResponse, RefreshTokenResponse } from '@application/types/tokenTypes';
 
 // Create User Command
 

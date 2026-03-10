@@ -25,7 +25,7 @@ import {
   EnhancedLoginResponse,
   RefreshTokenResponse,
   TokenConfiguration
-} from '@application/types/token';
+} from '@application/types/tokenTypes';
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
 export interface JwtSessionConfig {
