@@ -1,12 +1,12 @@
-import { ValidationError } from '@domain/errors/ValidationError';
-import { generateId } from '@domain/utils/generateId';
-
 /**
- * Researcher Entity
+ * Researcher Profile
  *
  * Links a Person to research activities. Approval workflow prevents researchers
  * from appearing in dropdowns until their linked user account is approved.
  */
+
+import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
 
 export type ResearcherApprovalStatus = 'pending' | 'approved';
 export type ResearcherSource = 'registration' | 'admin';

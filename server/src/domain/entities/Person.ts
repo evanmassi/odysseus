@@ -1,13 +1,12 @@
+/**
+ * Person Identity Profile
+ *
+ * Identity foundation linked to User accounts and Researcher profiles.
+ */
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
-/**
- * Person Entity
- *
- * Represents an individual's profile information (name, email, position).
- * Serves as the identity foundation that can be linked to User accounts
- * and Researcher profiles.
- */
 export class Person {
   private constructor(
     private readonly _id: string,
