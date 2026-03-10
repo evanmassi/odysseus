@@ -293,11 +293,6 @@ export class TubePositionService {
     if (positions.length === 0) return results;
 
     const { tankId, rackId, boxId } = positions[0];
-    const testLocation = Location.create(tankId, rackId, boxId, 1);
-    const locationValid = preloadedData.config.isLocationValid(
-      Location.create(tankId, rackId, boxId, 1)
-    );
-
     const boxInfo = preloadedData.config.getBox(tankId, rackId, boxId);
     if (!boxInfo) {
       const reason = `Location ${tankId}-${rackId}-${boxId} does not exist in equipment configuration`;

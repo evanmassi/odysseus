@@ -1,14 +1,11 @@
 import { User } from '@domain/entities/User';
 import { Tube } from '@domain/entities/Tube';
 import { Researcher } from '@domain/entities/Researcher';
-import { Storage } from '@domain/entities/Storage';
 import { Location } from '@domain/valueObjects/Location';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
 import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
-import type { RackConfiguration, BoxConfiguration } from '@odysseus/shared-schemas';
 
 /**
  * Minimal interface for resource ownership checking
@@ -636,14 +633,6 @@ export class AccessControlService {
     }
 
     return false;
-  }
-
-  /**
-   * Check if user can be assigned resources
-   * User must be active to receive resource assignments
-   */
-  canBeAssignedResources(user: User): boolean {
-    return true;
   }
 
   // ADMIN OPERATIONS

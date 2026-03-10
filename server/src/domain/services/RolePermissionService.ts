@@ -1,4 +1,4 @@
-import { Permission, PermissionKey } from '@domain/valueObjects/Permission';
+import { Permission } from '@domain/valueObjects/Permission';
 import { ValidationError } from '@domain/errors/ValidationError';
 
 /**
@@ -139,33 +139,6 @@ export class RolePermissionService {
     return this.ROLES.filter(role => this.hasPermission(role, permission));
   }
 
-  /**
-   * Compare permissions between two roles
-   * 
-   * @param role1 - First role
-   * @param role2 - Second role
-   * @returns Object with permission comparison results
-   */
-  static compareRolePermissions(role1: UserRole, role2: UserRole): RolePermissionComparison {
-    const permissions1 = new Set(this.getPermissionKeysForRole(role1));
-    const permissions2 = new Set(this.getPermissionKeysForRole(role2));
-    
-    const common = Array.from(permissions1).filter(p => permissions2.has(p));
-    const onlyInRole1 = Array.from(permissions1).filter(p => !permissions2.has(p));
-    const onlyInRole2 = Array.from(permissions2).filter(p => !permissions1.has(p));
-    
-    return {
-      role1,
-      role2,
-      commonPermissions: common,
-      onlyInRole1,
-      onlyInRole2,
-      role1HasMorePermissions: permissions1.size > permissions2.size,
-      role2HasMorePermissions: permissions2.size > permissions1.size,
-      identicalPermissions: permissions1.size === permissions2.size && common.length === permissions1.size
-    };
-  }
-
   // VALIDATION
 
   /**
@@ -180,78 +153,6 @@ export class RolePermissionService {
     }
   }
 
-  // AUDITING & REPORTING
-
-  /**
-   * Generate complete role-permission audit report
-   * 
-   * @returns Comprehensive permission audit data
-   */
-  static generatePermissionAudit(): PermissionAuditReport {
-    const auditData: PermissionAuditReport = {
-      totalRoles: this.ROLES.length,
-      totalPermissions: Permission.ALL_PERMISSIONS.length,
-      rolePermissionMatrix: {} as Record<UserRole, readonly string[]>,
-      permissionUsage: {},
-      categories: Permission.getAllCategories(),
-      generatedAt: new Date().toISOString()
-    };
-
-    // Build role-permission matrix for audit
-    this.ROLES.forEach(role => {
-      const permissions = this.getPermissionKeysForRole(role);
-      auditData.rolePermissionMatrix[role] = permissions;
-    });
-
-    // Build permission usage statistics
-    Permission.ALL_PERMISSIONS.forEach(permission => {
-      const rolesWithPermission = this.getRolesWithPermission(permission);
-      auditData.permissionUsage[permission.key] = {
-        description: permission.description,
-        category: permission.category,
-        assignedToRoles: rolesWithPermission.slice(),
-        totalRolesAssigned: rolesWithPermission.length
-      };
-    });
-
-    return auditData;
-  }
 }
 
-// Type Definitions
-
-/**
- * Valid user roles in the system
- */
 export type UserRole = typeof RolePermissionService.ROLES[number];
-
-/**
- * Role permission comparison result
- */
-export interface RolePermissionComparison {
-  role1: UserRole;
-  role2: UserRole;
-  commonPermissions: string[];
-  onlyInRole1: string[];
-  onlyInRole2: string[];
-  role1HasMorePermissions: boolean;
-  role2HasMorePermissions: boolean;
-  identicalPermissions: boolean;
-}
-
-/**
- * Permission audit report structure
- */
-export interface PermissionAuditReport {
-  totalRoles: number;
-  totalPermissions: number;
-  rolePermissionMatrix: Record<UserRole, readonly string[]>;
-  permissionUsage: Record<string, {
-    description: string;
-    category: string;
-    assignedToRoles: UserRole[];
-    totalRolesAssigned: number;
-  }>;
-  categories: readonly string[];
-  generatedAt: string;
-}
