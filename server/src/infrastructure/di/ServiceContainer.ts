@@ -53,7 +53,9 @@ import { AuditRetentionService } from '@application/services/AuditRetentionServi
 import { ExportService } from '@application/services/ExportService';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import { PresenceService } from '@application/services/PresenceService';
-import { TubePositionService, AccessControlService, ValidationService } from '@domain/services';
+import { TubePositionService } from '@domain/services/TubePositionService';
+import { AccessControlService } from '@domain/services/AccessControlService';
+import { ValidationService } from '@domain/services/ValidationService';
 import { StorageChangeDetector } from '@domain/services/StorageChangeDetector';
 
 // Infrastructure services
