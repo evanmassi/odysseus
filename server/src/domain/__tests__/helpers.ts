@@ -1,6 +1,10 @@
+/**
+ * Domain Test Factories
+ *
+ * Shared helpers for creating domain entities in tests with sensible defaults.
+ */
+
 import { User } from '@domain/entities/User';
-import { Lab } from '@domain/entities/Lab';
-import { InviteCode } from '@domain/entities/InviteCode';
 import { Tube } from '@domain/entities/Tube';
 import { UserRole } from '@domain/valueObjects/UserRole';
 
@@ -40,26 +44,6 @@ export function createTestSystemAdmin(overrides: {
   return User.createSystemAdmin(
     overrides.username ?? 'sysadmin',
     'api_' + 'x'.repeat(32)
-  );
-}
-
-export function createTestLab(name: string = 'Test Lab'): Lab {
-  return Lab.create(name);
-}
-
-export function createTestInviteCode(overrides: {
-  labId?: string;
-  createdBy?: string;
-  role?: 'lab_admin' | 'user';
-  maxUses?: number;
-  expiresAt?: Date;
-} = {}): InviteCode {
-  return InviteCode.create(
-    overrides.labId ?? 'lab_test123',
-    overrides.createdBy ?? 'user_admin123',
-    overrides.role ?? 'user',
-    overrides.maxUses,
-    overrides.expiresAt
   );
 }
 

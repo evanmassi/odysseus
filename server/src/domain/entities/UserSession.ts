@@ -2,14 +2,11 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
 /**
- * UserSession Entity
+ * User Session Tracking
  *
- * Represents an active user session for concurrent session management.
- * Tracks device information, activity, and session lifecycle.
- * Used to enforce maxConcurrentSessions security policy.
+ * Tracks active sessions per user to enforce maxConcurrentSessions security policy.
  */
 export class UserSession {
-
   private constructor(
     private readonly _id: string,
     private readonly _userId: string,
@@ -25,9 +22,6 @@ export class UserSession {
     this.validate();
   }
 
-  /**
-   * Factory method to create a new user session
-   */
   static create(
     userId: string,
     refreshToken: string,
@@ -53,9 +47,6 @@ export class UserSession {
     );
   }
 
-  /**
-   * Factory method to reconstitute session from persistence data
-   */
   static fromData(data: {
     id: string;
     userId: string;
@@ -82,9 +73,6 @@ export class UserSession {
     );
   }
 
-  /**
-   * Validate session invariants
-   */
   private validate(): void {
     this.validateId();
     this.validateUserId();
@@ -122,53 +110,32 @@ export class UserSession {
 
   // BUSINESS LOGIC
 
-  /**
-   * Check if session is currently valid (active and not expired)
-   */
   isValid(): boolean {
     return this._isActive && !this.isExpired();
   }
 
-  /**
-   * Check if session has expired
-   */
   isExpired(): boolean {
     return new Date() > this._expiresAt;
   }
 
-  /**
-   * Update last used timestamp
-   */
   recordActivity(): void {
     this._lastUsedAt = new Date();
   }
 
-  /**
-   * Revoke session (mark as inactive)
-   */
   revoke(): void {
     this._isActive = false;
   }
 
-  /**
-   * Calculate session age in minutes
-   */
   getAgeInMinutes(): number {
     const now = new Date();
     return Math.floor((now.getTime() - this._createdAt.getTime()) / (1000 * 60));
   }
 
-  /**
-   * Calculate minutes since last activity
-   */
   getInactiveMinutes(): number {
     const now = new Date();
     return Math.floor((now.getTime() - this._lastUsedAt.getTime()) / (1000 * 60));
   }
 
-  /**
-   * Calculate minutes until expiration
-   */
   getMinutesUntilExpiration(): number {
     const now = new Date();
     return Math.floor((this._expiresAt.getTime() - now.getTime()) / (1000 * 60));
@@ -189,15 +156,15 @@ export class UserSession {
   }
 
   get createdAt(): Date {
-    return this._createdAt;
+    return new Date(this._createdAt);
   }
 
   get lastUsedAt(): Date {
-    return this._lastUsedAt;
+    return new Date(this._lastUsedAt);
   }
 
   get expiresAt(): Date {
-    return this._expiresAt;
+    return new Date(this._expiresAt);
   }
 
   get isActive(): boolean {
@@ -216,14 +183,21 @@ export class UserSession {
     return this._userAgent;
   }
 
-  /**
-   * Convert to plain object for API responses
-   */
-  toJSON() {
+  toJSON(): {
+    id: string;
+    userId: string;
+    createdAt: string;
+    lastUsedAt: string;
+    expiresAt: string;
+    isActive: boolean;
+    isExpired: boolean;
+    deviceInfo?: string;
+    ipAddress?: string;
+    userAgent?: string;
+  } {
     return {
       id: this._id,
       userId: this._userId,
-      refreshToken: this._refreshToken,
       createdAt: this._createdAt.toISOString(),
       lastUsedAt: this._lastUsedAt.toISOString(),
       expiresAt: this._expiresAt.toISOString(),
