@@ -1,3 +1,9 @@
+/**
+ * Tube Entity Tests
+ *
+ * Validates creation, location moves, sample updates, locking, sharing, and roundtrip serialization.
+ */
+
 import { Tube } from './Tube';
 import { Location } from '@domain/valueObjects/Location';
 import { createTestTube } from '@domain/__tests__/helpers';
