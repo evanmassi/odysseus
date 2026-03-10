@@ -1,6 +1,11 @@
+/**
+ * User Entity Tests
+ *
+ * Validates authentication, roles, permissions, approval workflow, and credential management.
+ */
+
 import { User } from './User';
 import { UserRole } from '@domain/valueObjects/UserRole';
-import { Permission } from '@domain/valueObjects/Permission';
 import { createTestUser, createTestAdmin, createTestSystemAdmin } from '@domain/__tests__/helpers';
 
 describe('User', () => {

@@ -1,3 +1,9 @@
+/**
+ * User Account and Authentication
+ *
+ * Aggregate root for user identity, credentials, roles, and approval workflow.
+ */
+
 import { UserRole } from '@domain/valueObjects/UserRole';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -29,11 +35,6 @@ interface UserConstructorProps {
   labId?: string;
 }
 
-/**
- * User Entity (Authentication Aggregate Root)
- * Represents a user in the system with authentication and authorization
- * Contains all business logic for user management and permissions
- */
 export class User {
   private _passwordHash?: string;
   private _salt?: string;
@@ -92,9 +93,6 @@ export class User {
     this.validate();
   }
 
-  /**
-   * Factory method to create a new user
-   */
   static create(
     username: string,
     apiKey: string,
@@ -148,9 +146,6 @@ export class User {
     });
   }
 
-  /**
-   * Factory method to create a new user with password authentication
-   */
   static createWithPassword(
     username: string,
     password: string,
@@ -181,9 +176,6 @@ export class User {
     return user;
   }
 
-  /**
-   * Factory method to reconstitute user from persistence data
-   */
   static fromData(data: {
     id: string;
     username: string;
@@ -235,7 +227,7 @@ export class User {
       lastActivity: new Date(data.lastActivity),
       researcherId: data.researcherId,
       personId: data.personId,
-      status: data.status || 'pending',
+      status: data.status ?? 'pending',
       emailVerified: data.emailVerified === 1,
       emailVerificationToken: data.emailVerificationToken,
       emailVerificationExpiry: data.emailVerificationExpiry,
@@ -257,16 +249,10 @@ export class User {
     return user;
   }
 
-  /**
-   * Generate secure API key
-   */
   private static generateApiKey(): string {
     return 'api_' + crypto.randomBytes(32).toString('hex');
   }
 
-  /**
-   * Validate user state (invariants)
-   */
   private validate(): void {
     this.validateUsername();
     this.validateApiKey();
@@ -282,7 +268,6 @@ export class User {
       throw new ValidationError('Username cannot exceed 100 characters');
     }
 
-    // Business rule: Username format validation
     const usernamePattern = /^[a-zA-Z0-9_\-\.@]+$/;
     if (!usernamePattern.test(this._username)) {
       throw new ValidationError('Username can only contain letters, numbers, underscores, hyphens, dots, and @ symbols');
@@ -309,44 +294,39 @@ export class User {
     }
   }
 
-  /**
-   * Business method: Update user activity timestamp
-   */
+  // Absolute minimum for security — policy enforcement (min length, complexity) is in the application layer
+  private validatePasswordStrength(password: string): void {
+    if (!password || password.trim().length === 0) {
+      throw new ValidationError('Password is required');
+    }
+    if (password.length < 4) {
+      throw new ValidationError('Password must be at least 4 characters long');
+    }
+    if (password.length > 128) {
+      throw new ValidationError('Password cannot exceed 128 characters');
+    }
+  }
+
+  private hashAndStorePassword(plainPassword: string): void {
+    this._salt = crypto.randomBytes(16).toString('hex');
+    this._passwordHash = crypto.pbkdf2Sync(plainPassword, this._salt, 10000, 64, 'sha512').toString('hex');
+  }
+
   recordActivity(): void {
     this._lastActivity = new Date();
   }
 
   /**
-   * Business method: Set user password (with hashing and salt)
-   *
-   * Note: Policy validation (min length, strong password, special chars) is handled
-   * by the application layer (CommandHandlers) using configurable security settings.
-   * This method only performs basic validation and password hashing.
+   * Policy validation (min length, strong password, special chars) is handled
+   * by the application layer using configurable security settings.
+   * This method only performs basic validation and hashing.
    */
   setPassword(plainPassword: string): void {
-    if (!plainPassword || plainPassword.trim().length === 0) {
-      throw new ValidationError('Password is required');
-    }
-
-    // Absolute minimum length for security (policy enforcement happens in application layer)
-    if (plainPassword.length < 4) {
-      throw new ValidationError('Password must be at least 4 characters long');
-    }
-
-    if (plainPassword.length > 128) {
-      throw new ValidationError('Password cannot exceed 128 characters');
-    }
-
-    // Generate salt and hash password
-    this._salt = crypto.randomBytes(16).toString('hex');
-    this._passwordHash = crypto.pbkdf2Sync(plainPassword, this._salt, 10000, 64, 'sha512').toString('hex');
-
+    this.validatePasswordStrength(plainPassword);
+    this.hashAndStorePassword(plainPassword);
     this.recordActivity();
   }
 
-  /**
-   * Business method: Validate provided password against stored hash
-   */
   validatePassword(plainPassword: string): boolean {
     if (!this._passwordHash || !this._salt) {
       return false;
@@ -360,16 +340,10 @@ export class User {
     return this._passwordHash === hash;
   }
 
-  /**
-   * Business query: Check if user has a password set
-   */
   hasPassword(): boolean {
     return !!this._passwordHash && !!this._salt;
   }
 
-  /**
-   * Business method: Change user role (admin operation)
-   */
   changeRole(newRole: 'system_admin' | 'lab_admin' | 'user', performedBy: User): void {
     if (!performedBy.isAdmin()) {
       throw new PermissionError('Only administrators can change user roles');
@@ -396,16 +370,11 @@ export class User {
     }
   }
 
-  /**
-   * Business method: Check if user has permission for an action
-   */
   hasPermission(action: string): boolean {
     return this._role.hasPermission(action);
   }
 
-  /**
-   * Business method: Ensure user has permission (throws if not)
-   */
+  /** @throws PermissionError if user lacks the given permission */
   requirePermission(action: string): void {
     if (!this.hasPermission(action)) {
       throw new PermissionError(`Permission denied for action: ${action}`, {
@@ -417,9 +386,6 @@ export class User {
     }
   }
 
-  /**
-   * Business method: Check if user can manage another user
-   */
   canManage(other: User): boolean {
     if (!this.isAdmin()) {
       return false;
@@ -447,9 +413,7 @@ export class User {
     return true;
   }
 
-  /**
-   * Business method: Ensure user can manage another user
-   */
+  /** @throws PermissionError if this user cannot manage the target user */
   requireCanManage(other: User): void {
     if (!this.canManage(other)) {
       throw new PermissionError('Cannot manage user', {
@@ -477,16 +441,10 @@ export class User {
     return this._role.isUser();
   }
 
-  /**
-   * Business query: Check if user has higher privileges than another user
-   */
   hasHigherPrivilegesThan(other: User): boolean {
     return this._role.hasHigherPrivilegesThan(other._role);
   }
 
-  /**
-   * Business method: Approve pending user (admin operation)
-   */
   approve(approvedBy: User): void {
     if (!approvedBy.isAdmin()) {
       throw new PermissionError('Only administrators can approve users');
@@ -559,23 +517,14 @@ export class User {
     this.recordActivity();
   }
 
-  /**
-   * Business query: Check if user is pending approval
-   */
   isPending(): boolean {
     return this._status === 'pending';
   }
 
-  /**
-   * Business query: Check if user is approved
-   */
   isApproved(): boolean {
     return this._status === 'approved';
   }
 
-  /**
-   * Business query: Check if user is rejected
-   */
   isRejected(): boolean {
     return this._status === 'rejected';
   }
@@ -588,28 +537,17 @@ export class User {
     return this._status === 'suspended';
   }
 
-  /**
-   * Business method: Unlink researcher profile from user
-   * Used when deleting users to preserve researcher records for tube history
-   */
+  /** Preserves researcher records for tube history when deleting a user */
   unlinkResearcher(): void {
     this._researcherId = undefined;
     this.recordActivity();
   }
 
-  /**
-   * Business query: Check if user has linked researcher profile
-   */
   hasResearcherProfile(): boolean {
-    return this._researcherId != null; // != null checks for both null and undefined
+    return this._researcherId != null;
   }
 
-  /**
-   * Business query: Get user's permission list
-   */
   getPermissions(): string[] {
-    const permissions: string[] = [];
-    
     const allPermissions = [
       'create_tubes', 'edit_tubes', 'delete_tubes',
       'manage_users', 'admin_settings', 'manage_configuration',
@@ -621,9 +559,6 @@ export class User {
     return allPermissions.filter(permission => this.hasPermission(permission));
   }
 
-  /**
-   * Convert to data object for persistence
-   */
   toData(): {
     id: string;
     username: string;
@@ -678,79 +613,66 @@ export class User {
     };
   }
 
-  /**
-   * Equality check (identity-based for entities)
-   */
   equals(other: User): boolean {
     if (!other) return false;
     return this._id === other._id;
   }
 
-  /**
-   * String representation
-   */
   toString(): string {
     return `User(${this._username}) - ${this._role.toString()}`;
   }
 
-  // Getters (immutable access to entity state)
+  // GETTERS
+
   get id(): string { return this._id; }
   get username(): string { return this._username; }
   get apiKey(): string { return this._apiKey; }
   get role(): UserRole { return this._role; }
-  get createdAt(): Date { return new Date(this._createdAt); } // Return copy
-  get lastActivity(): Date { return new Date(this._lastActivity); } // Return copy
+  get createdAt(): Date { return new Date(this._createdAt); }
+  get lastActivity(): Date { return new Date(this._lastActivity); }
   get researcherId(): string | undefined { return this._researcherId; }
   get personId(): string | undefined { return this._personId; }
   get status(): 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended' { return this._status; }
 
-  // Password getters (for persistence layer)
+  // PASSWORD
+
   get passwordHash(): string | undefined { return this._passwordHash; }
   get salt(): string | undefined { return this._salt; }
 
-  // Email verification getters (for persistence layer)
+  // EMAIL VERIFICATION
+
   get emailVerified(): boolean { return this._emailVerified; }
   get emailVerificationToken(): string | undefined { return this._emailVerificationToken; }
-  get emailVerificationExpiry(): Date | undefined { return this._emailVerificationExpiry; }
-  get lastVerificationEmailSent(): Date | undefined { return this._lastVerificationEmailSent; }
+  get emailVerificationExpiry(): Date | undefined { return this._emailVerificationExpiry ? new Date(this._emailVerificationExpiry) : undefined; }
+  get lastVerificationEmailSent(): Date | undefined { return this._lastVerificationEmailSent ? new Date(this._lastVerificationEmailSent) : undefined; }
 
-  // Password reset getters (for persistence layer)
+  // PASSWORD RESET
+
   get passwordResetToken(): string | undefined { return this._passwordResetToken; }
-  get passwordResetExpiry(): Date | undefined { return this._passwordResetExpiry; }
+  get passwordResetExpiry(): Date | undefined { return this._passwordResetExpiry ? new Date(this._passwordResetExpiry) : undefined; }
   get requirePasswordChange(): boolean { return this._requirePasswordChange; }
-  get lastPasswordChange(): Date | undefined { return this._lastPasswordChange; }
+  get lastPasswordChange(): Date | undefined { return this._lastPasswordChange ? new Date(this._lastPasswordChange) : undefined; }
   get isDemo(): boolean { return this._labIsDemo; }
 
   get labId(): string | undefined { return this._labId; }
 
   get roleString(): 'system_admin' | 'lab_admin' | 'user' { return this._role.value; }
 
-  /**
-   * Generate email verification token
-   * Returns unhashed token (for email) while storing hashed version
-   */
+  /** @returns Unhashed token for the email — only time it's visible */
   generateVerificationToken(): string {
     const token = crypto.randomBytes(32).toString('hex');
 
-    // Hash token before storage using same approach as passwords
     const salt = crypto.randomBytes(16).toString('hex');
     const hashedToken = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
 
-    // Store hashed token with salt embedded (format: salt:hash)
+    // Store as salt:hash so verification can re-derive the hash
     this._emailVerificationToken = `${salt}:${hashedToken}`;
-
     this._emailVerificationExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000);
-
-    // Track when verification email was sent (for rate limiting)
     this._lastVerificationEmailSent = new Date();
 
-    // Return unhashed token (only time it's visible)
     return token;
   }
 
-  /**
-   * Verify email with provided token
-   */
   verifyEmail(token: string): void {
     if (!this._emailVerificationToken) {
       throw EmailVerificationError.noToken();
@@ -776,26 +698,17 @@ export class User {
     this._emailVerificationExpiry = undefined;
   }
 
-  /**
-   * Mark email as verified (for admin auto-approval or manual verification)
-   */
   markEmailVerified(): void {
     this._emailVerified = true;
     this._emailVerificationToken = undefined;
     this._emailVerificationExpiry = undefined;
   }
 
-  /**
-   * Check if email is verified
-   */
   isEmailVerified(): boolean {
     return this._emailVerified;
   }
 
-  /**
-   * Check if user can resend verification email (rate limiting)
-   * Max 1 email per 5 minutes
-   */
+  /** Rate-limited: max 1 verification email per 5 minutes */
   canResendVerification(): boolean {
     if (!this._lastVerificationEmailSent) {
       return true;
@@ -805,143 +718,71 @@ export class User {
     return this._lastVerificationEmailSent < fiveMinutesAgo;
   }
 
-  /**
-   * Admin resets user password (bypasses current password check)
-   *
-   * @param plainPassword - New password to set
-   * @param requireChange - Force password change on next login
-   * @throws ValidationError if password too weak
-   */
+  /** Bypasses current password check. @throws ValidationError if password too weak */
   adminResetPassword(plainPassword: string, requireChange: boolean = true): void {
-    // Validate password strength
-    if (!plainPassword || plainPassword.trim().length === 0) {
-      throw new ValidationError('Password is required');
-    }
+    this.validatePasswordStrength(plainPassword);
+    this.hashAndStorePassword(plainPassword);
 
-    if (plainPassword.length < 4) {
-      throw new ValidationError('Password must be at least 4 characters long');
-    }
-
-    if (plainPassword.length > 128) {
-      throw new ValidationError('Password cannot exceed 128 characters');
-    }
-
-    // Generate new salt and hash password
-    this._salt = crypto.randomBytes(16).toString('hex');
-    this._passwordHash = crypto.pbkdf2Sync(plainPassword, this._salt, 10000, 64, 'sha512').toString('hex');
-
-    // Set flags
     this._requirePasswordChange = requireChange;
     this._lastPasswordChange = new Date();
     this._lastActivity = new Date();
 
-    // Clear any existing reset token
     this._passwordResetToken = undefined;
     this._passwordResetExpiry = undefined;
   }
 
-  /**
-   * Generate secure password reset token (15-minute expiry)
-   *
-   * @returns Unhashed token to send to user (only time it's visible)
-   */
+  /** 15-minute expiry. @returns Unhashed token for the reset URL — only time it's visible */
   generatePasswordResetToken(): string {
-    // Generate secure random token (64 characters)
     const token = crypto.randomBytes(32).toString('hex');
 
-    // Hash token before storage using same approach as email verification
     const salt = crypto.randomBytes(16).toString('hex');
     const hashedToken = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
 
-    // Store hashed token with salt embedded (format: salt:hash)
     this._passwordResetToken = `${salt}:${hashedToken}`;
-
-    // Set 15-minute expiry
     this._passwordResetExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Return unhashed token for URL (only time it's visible)
     return token;
   }
 
-  /**
-   * Reset password using token
-   *
-   * @param token - Unhashed token from reset URL
-   * @param newPassword - New password to set
-   * @throws ValidationError if token invalid or expired
-   */
+  /** @throws ValidationError if token invalid/expired or password too weak */
   resetPasswordWithToken(token: string, newPassword: string): void {
     if (!this._passwordResetToken) {
       throw new ValidationError('No password reset token found');
     }
 
-    // Check expiry (15 minutes)
     if (!this._passwordResetExpiry || new Date() > this._passwordResetExpiry) {
       throw new ValidationError('Password reset token expired');
     }
 
-    // Extract salt and hash from stored token
     const [storedSalt, storedHash] = this._passwordResetToken.split(':');
     if (!storedSalt || !storedHash) {
       throw new ValidationError('Invalid password reset token format');
     }
 
-    // Validate token matches stored hash
     const testHash = crypto.pbkdf2Sync(token, storedSalt, 10000, 64, 'sha512').toString('hex');
     if (testHash !== storedHash) {
       throw new ValidationError('Invalid password reset token');
     }
 
-    // Validate new password strength
-    if (!newPassword || newPassword.trim().length === 0) {
-      throw new ValidationError('Password is required');
-    }
+    this.validatePasswordStrength(newPassword);
+    this.hashAndStorePassword(newPassword);
 
-    if (newPassword.length < 4) {
-      throw new ValidationError('Password must be at least 4 characters long');
-    }
-
-    if (newPassword.length > 128) {
-      throw new ValidationError('Password cannot exceed 128 characters');
-    }
-
-    // Set new password with new salt
-    this._salt = crypto.randomBytes(16).toString('hex');
-    this._passwordHash = crypto.pbkdf2Sync(newPassword, this._salt, 10000, 64, 'sha512').toString('hex');
-
-    // Clear token and flags
     this._passwordResetToken = undefined;
     this._passwordResetExpiry = undefined;
-    this._requirePasswordChange = false; // User chose own password
+    this._requirePasswordChange = false;
     this._lastPasswordChange = new Date();
     this._lastActivity = new Date();
   }
 
-  /**
-   * Check if user must change password on next login
-   */
   isPasswordChangeRequired(): boolean {
     return this._requirePasswordChange;
   }
 
-  /**
-   * Mark password change as completed
-   * Called after user successfully changes password
-   */
   markPasswordChanged(): void {
     this._requirePasswordChange = false;
     this._lastPasswordChange = new Date();
   }
 
-  /**
-   * Business method: Update user settings (immutable)
-   *
-   * Returns new User instance with updated settings following immutability principle.
-   * Settings are per-user preferences like position display format, theme, etc.
-   *
-   * @param newSettings - New user settings to apply
-   * @returns New User instance with updated settings
-   */
   updateSettings(newSettings: UserSettings): User {
     const user = new User({
       id: this._id,
@@ -972,9 +813,6 @@ export class User {
     return user;
   }
 
-  /**
-   * Get user settings
-   */
   get settings(): UserSettings {
     return this._settings;
   }
