@@ -357,8 +357,8 @@ export class TubePositionService {
     rackId: string,
     boxId: string,
     position: number,
-    excludeTubeId?: string,
-    labId: string = ''
+    excludeTubeId: string | undefined,
+    labId: string
   ): Promise<{ isValid: boolean; reason?: string; conflicts?: PositionConflict[] }> {
     const location = Location.create(tankId, rackId, boxId, position);
     const result = await this.canPlaceTubeAt(location, labId, excludeTubeId);

@@ -236,7 +236,7 @@ export class ValidationService {
     tubeIds: string[],
     updates: Partial<TubeUpdateData> | null,
     user: User,
-    labId: string = ''
+    labId: string
   ): Promise<BulkValidationResult> {
     const result: BulkValidationResult = {
       isValid: true,
@@ -359,7 +359,7 @@ export class ValidationService {
     currentConfig: Storage,
     updatedConfig: Storage,
     user: User,
-    labId: string = ''
+    labId: string
   ): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
@@ -429,7 +429,7 @@ export class ValidationService {
   private async validateTubeBusinessRules(
     tubeData: TubeBusinessRuleInput,
     operation: 'create' | 'update',
-    labId: string = ''
+    labId: string
   ): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
@@ -474,7 +474,7 @@ export class ValidationService {
     return result;
   }
 
-  private async validateEquipmentRemovalInConfig(currentConfig: Storage, updatedConfig: Storage, labId: string = ''): Promise<DomainValidationResult> {
+  private async validateEquipmentRemovalInConfig(currentConfig: Storage, updatedConfig: Storage, labId: string): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
       errors: [],
