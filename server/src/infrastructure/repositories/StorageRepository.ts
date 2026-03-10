@@ -31,7 +31,7 @@ export class StorageRepository implements IStorageRepository {
     try {
       const row = await this.context.queryOne<{ config_json: ConfigurationJson; version: number; updated_at: Date | string }>(`
         SELECT config_json, version, updated_at
-        FROM configuration_current
+        FROM storage_current
         WHERE lab_id = $1
       `, [labId]);
 
@@ -55,7 +55,7 @@ export class StorageRepository implements IStorageRepository {
         const configJson = JSON.stringify(configuration.toData());
 
         const versionResult = await client.query<{ version: number }>(
-          `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+          `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING version`,
           [labId, now, 'Storage configuration updated', 'system', configJson]
@@ -64,7 +64,7 @@ export class StorageRepository implements IStorageRepository {
         newVersion = versionResult.rows[0].version;
 
         await client.query(
-          `UPDATE configuration_current
+          `UPDATE storage_current
            SET version = $1, updated_at = $2, config_json = $3
            WHERE lab_id = $4`,
           [newVersion, now, configJson, labId]
@@ -90,7 +90,7 @@ export class StorageRepository implements IStorageRepository {
 
     await this.context.transaction(async (client) => {
       const versionResult = await client.query<{ version: number }>(
-        `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+        `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING version`,
         [labId, now, 'Default configuration created', 'system', configJson]
@@ -99,7 +99,7 @@ export class StorageRepository implements IStorageRepository {
       const version = versionResult.rows[0].version;
 
       await client.query(
-        `INSERT INTO configuration_current (lab_id, version, updated_at, config_json)
+        `INSERT INTO storage_current (lab_id, version, updated_at, config_json)
          VALUES ($1, $2, $3, $4)`,
         [labId, version, now, configJson]
       );
@@ -114,7 +114,7 @@ export class StorageRepository implements IStorageRepository {
     try {
       const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(`
         SELECT config_json
-        FROM configuration_versions
+        FROM storage_versions
         WHERE lab_id = $1 AND version = $2
       `, [labId, version]);
 
@@ -134,7 +134,7 @@ export class StorageRepository implements IStorageRepository {
     try {
       const rows = await this.context.queryMany<{ version: number; updated_at: Date | string; change_description: string; changed_by: string; config_json: ConfigurationJson }>(`
         SELECT version, updated_at, change_description, changed_by, config_json
-        FROM configuration_versions
+        FROM storage_versions
         WHERE lab_id = $1
         ORDER BY version DESC
         LIMIT $2
@@ -162,7 +162,7 @@ export class StorageRepository implements IStorageRepository {
         const configJson = JSON.stringify(configuration.toData());
 
         const versionResult = await client.query<{ version: number }>(
-          `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+          `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING version`,
           [labId, now, changeDescription, changedBy, configJson]
@@ -171,7 +171,7 @@ export class StorageRepository implements IStorageRepository {
         newVersion = versionResult.rows[0].version;
 
         await client.query(
-          `UPDATE configuration_current
+          `UPDATE storage_current
            SET version = $1, updated_at = $2, config_json = $3
            WHERE lab_id = $4`,
           [newVersion, now, configJson, labId]
@@ -202,7 +202,7 @@ export class StorageRepository implements IStorageRepository {
         const configJson = JSON.stringify(configuration.toData());
 
         const versionResult = await client.query<{ version: number }>(
-          `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+          `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING version`,
           [labId, now, changeDescription, changedBy, configJson]
@@ -211,7 +211,7 @@ export class StorageRepository implements IStorageRepository {
         newVersion = versionResult.rows[0].version;
 
         const updateResult = await client.query(
-          `UPDATE configuration_current
+          `UPDATE storage_current
            SET version = $1, updated_at = $2, config_json = $3
            WHERE lab_id = $4 AND version = $5`,
           [newVersion, now, configJson, labId, expectedVersion]
@@ -219,7 +219,7 @@ export class StorageRepository implements IStorageRepository {
 
         if (updateResult.rowCount === 0) {
           const currentRow = await client.query<{ version: number }>(
-            `SELECT version FROM configuration_current WHERE lab_id = $1`,
+            `SELECT version FROM storage_current WHERE lab_id = $1`,
             [labId]
           );
           const currentVersion = currentRow.rows[0]?.version ?? 0;
@@ -495,7 +495,7 @@ export class StorageRepository implements IStorageRepository {
       const configJson = JSON.stringify(config.toData());
 
       await this.context.execute(`
-        INSERT INTO configuration_snapshots (id, version, created_at, description, created_by, size_bytes, config_json)
+        INSERT INTO storage_snapshots (id, version, created_at, description, created_by, size_bytes, config_json)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [snapshotId, config.version, now, description || 'Storage configuration snapshot', 'system', configJson.length, configJson]);
 
@@ -524,7 +524,7 @@ export class StorageRepository implements IStorageRepository {
 
     try {
       const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(`
-        SELECT config_json FROM configuration_snapshots WHERE id = $1
+        SELECT config_json FROM storage_snapshots WHERE id = $1
       `, [snapshotId]);
 
       if (!row) {
@@ -717,7 +717,7 @@ export class StorageRepository implements IStorageRepository {
     try {
       const rows = await this.context.queryMany<{ id: string; version: number; created_at: Date | string; description: string; created_by: string; size_bytes: number }>(`
         SELECT id, version, created_at, description, created_by, size_bytes
-        FROM configuration_snapshots
+        FROM storage_snapshots
         ORDER BY created_at DESC
       `);
 
@@ -743,7 +743,7 @@ export class StorageRepository implements IStorageRepository {
 
     try {
       const keepRows = await this.context.queryMany<{ id: string }>(`
-        SELECT id FROM configuration_snapshots
+        SELECT id FROM storage_snapshots
         ORDER BY created_at DESC
         LIMIT $1
       `, [keepCount]);
@@ -756,7 +756,7 @@ export class StorageRepository implements IStorageRepository {
 
       const placeholders = keepIds.map((_, i) => `$${i + 1}`).join(',');
       const result = await this.context.execute(
-        `DELETE FROM configuration_snapshots WHERE id NOT IN (${placeholders})`,
+        `DELETE FROM storage_snapshots WHERE id NOT IN (${placeholders})`,
         keepIds
       );
 
@@ -1055,7 +1055,7 @@ export class StorageRepository implements IStorageRepository {
 
       const backupRow = await this.context.queryOne<{ updated_at: Date | string }>(`
         SELECT cc.updated_at
-        FROM configuration_current cc
+        FROM storage_current cc
         WHERE cc.lab_id = $1
       `, [labId]);
       const lastBackup = backupRow?.updated_at
@@ -1107,7 +1107,7 @@ export class StorageRepository implements IStorageRepository {
           }
 
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
-            'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
+            'SELECT config_json, version FROM storage_current WHERE lab_id = $1',
             [labId]
           );
           if (configRow.rows.length === 0) {
@@ -1129,7 +1129,7 @@ export class StorageRepository implements IStorageRepository {
           const configJson = JSON.stringify(configData);
 
           const versionResult = await client.query<{ version: number }>(
-            `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+            `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
              VALUES ($1, $2, $3, $4, $5)
              RETURNING version`,
             [labId, now, `Deleted tank '${tankName}'`, changedBy, configJson]
@@ -1138,7 +1138,7 @@ export class StorageRepository implements IStorageRepository {
           const newVersion = versionResult.rows[0].version;
 
           const updateResult = await client.query(
-            `UPDATE configuration_current
+            `UPDATE storage_current
              SET version = $1, updated_at = $2, config_json = $3
              WHERE lab_id = $4 AND version = $5`,
             [newVersion, now, configJson, labId, currentVersion]
@@ -1194,7 +1194,7 @@ export class StorageRepository implements IStorageRepository {
           }
 
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
-            'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
+            'SELECT config_json, version FROM storage_current WHERE lab_id = $1',
             [labId]
           );
           if (configRow.rows.length === 0) {
@@ -1224,7 +1224,7 @@ export class StorageRepository implements IStorageRepository {
           const configJson = JSON.stringify(configData);
 
           const versionResult = await client.query<{ version: number }>(
-            `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+            `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
              VALUES ($1, $2, $3, $4, $5)
              RETURNING version`,
             [labId, now, `Deleted rack '${rackName}' from tank '${tankName}'`, changedBy, configJson]
@@ -1233,7 +1233,7 @@ export class StorageRepository implements IStorageRepository {
           const newVersion = versionResult.rows[0].version;
 
           const updateResult = await client.query(
-            `UPDATE configuration_current
+            `UPDATE storage_current
              SET version = $1, updated_at = $2, config_json = $3
              WHERE lab_id = $4 AND version = $5`,
             [newVersion, now, configJson, labId, currentVersion]
@@ -1291,7 +1291,7 @@ export class StorageRepository implements IStorageRepository {
           }
 
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
-            'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
+            'SELECT config_json, version FROM storage_current WHERE lab_id = $1',
             [labId]
           );
           if (configRow.rows.length === 0) {
@@ -1329,7 +1329,7 @@ export class StorageRepository implements IStorageRepository {
           const configJson = JSON.stringify(configData);
 
           const versionResult = await client.query<{ version: number }>(
-            `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+            `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
              VALUES ($1, $2, $3, $4, $5)
              RETURNING version`,
             [labId, now, `Deleted box '${boxName}' from rack '${rackName}'`, changedBy, configJson]
@@ -1338,7 +1338,7 @@ export class StorageRepository implements IStorageRepository {
           const newVersion = versionResult.rows[0].version;
 
           const updateResult = await client.query(
-            `UPDATE configuration_current
+            `UPDATE storage_current
              SET version = $1, updated_at = $2, config_json = $3
              WHERE lab_id = $4 AND version = $5`,
             [newVersion, now, configJson, labId, currentVersion]

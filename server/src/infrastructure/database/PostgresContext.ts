@@ -80,7 +80,7 @@ export class PostgresContext {
     `);
 
     // Configuration tables
-    await this.createConfigurationTables();
+    await this.createStorageTables();
 
     // Persons table
     await this.pool.query(`
@@ -281,10 +281,10 @@ export class PostgresContext {
   /**
    * Create configuration tables
    */
-  private async createConfigurationTables(): Promise<void> {
+  private async createStorageTables(): Promise<void> {
     // Configuration versions (append-only event log)
     await this.pool.query(`
-      CREATE TABLE IF NOT EXISTS configuration_versions (
+      CREATE TABLE IF NOT EXISTS storage_versions (
         version SERIAL PRIMARY KEY,
         lab_id TEXT NOT NULL REFERENCES labs(id),
         updated_at TIMESTAMPTZ NOT NULL,
@@ -297,19 +297,19 @@ export class PostgresContext {
 
     // Configuration current (one row per lab for fast reads)
     await this.pool.query(`
-      CREATE TABLE IF NOT EXISTS configuration_current (
+      CREATE TABLE IF NOT EXISTS storage_current (
         id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
         lab_id TEXT NOT NULL REFERENCES labs(id) UNIQUE,
         version INTEGER NOT NULL,
         updated_at TIMESTAMPTZ NOT NULL,
         config_json JSONB NOT NULL,
-        FOREIGN KEY (version) REFERENCES configuration_versions(version)
+        FOREIGN KEY (version) REFERENCES storage_versions(version)
       )
     `);
 
     // Configuration snapshots
     await this.pool.query(`
-      CREATE TABLE IF NOT EXISTS configuration_snapshots (
+      CREATE TABLE IF NOT EXISTS storage_snapshots (
         id TEXT PRIMARY KEY,
         lab_id TEXT NOT NULL REFERENCES labs(id),
         version INTEGER NOT NULL,
@@ -318,7 +318,7 @@ export class PostgresContext {
         created_by TEXT,
         size_bytes INTEGER NOT NULL,
         config_json JSONB NOT NULL,
-        FOREIGN KEY (version) REFERENCES configuration_versions(version)
+        FOREIGN KEY (version) REFERENCES storage_versions(version)
       )
     `);
 
@@ -628,9 +628,9 @@ export class PostgresContext {
       BEGIN
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'configuration_current' AND column_name = 'lab_id'
+          WHERE table_name = 'storage_current' AND column_name = 'lab_id'
         ) THEN
-          ALTER TABLE configuration_current ADD COLUMN lab_id TEXT REFERENCES labs(id);
+          ALTER TABLE storage_current ADD COLUMN lab_id TEXT REFERENCES labs(id);
         END IF;
       END $$
     `);
@@ -640,9 +640,9 @@ export class PostgresContext {
       BEGIN
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'configuration_versions' AND column_name = 'lab_id'
+          WHERE table_name = 'storage_versions' AND column_name = 'lab_id'
         ) THEN
-          ALTER TABLE configuration_versions ADD COLUMN lab_id TEXT REFERENCES labs(id);
+          ALTER TABLE storage_versions ADD COLUMN lab_id TEXT REFERENCES labs(id);
         END IF;
       END $$
     `);
@@ -652,9 +652,9 @@ export class PostgresContext {
       BEGIN
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'configuration_snapshots' AND column_name = 'lab_id'
+          WHERE table_name = 'storage_snapshots' AND column_name = 'lab_id'
         ) THEN
-          ALTER TABLE configuration_snapshots ADD COLUMN lab_id TEXT REFERENCES labs(id);
+          ALTER TABLE storage_snapshots ADD COLUMN lab_id TEXT REFERENCES labs(id);
         END IF;
       END $$
     `);
@@ -667,12 +667,12 @@ export class PostgresContext {
       await this.pool.query(`UPDATE lookup_values SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
       await this.pool.query(`UPDATE audit_log a SET lab_id = u.lab_id FROM users u WHERE a.user_id = u.id AND a.lab_id IS NULL AND u.lab_id IS NOT NULL`);
       await this.pool.query(`UPDATE audit_log_archive a SET lab_id = u.lab_id FROM users u WHERE a.user_id = u.id AND a.lab_id IS NULL AND u.lab_id IS NOT NULL`);
-      await this.pool.query(`UPDATE configuration_current SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
-      await this.pool.query(`UPDATE configuration_versions SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
-      await this.pool.query(`UPDATE configuration_snapshots SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE storage_current SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE storage_versions SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE storage_snapshots SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
     }
 
-    // configuration_current: singleton → per-lab
+    // storage_current: singleton → per-lab
     await this.pool.query(`
       DO $$
       DECLARE
@@ -681,12 +681,12 @@ export class PostgresContext {
         SELECT con.conname INTO constraint_name
         FROM pg_constraint con
         JOIN pg_class rel ON rel.oid = con.conrelid
-        WHERE rel.relname = 'configuration_current'
+        WHERE rel.relname = 'storage_current'
           AND con.contype = 'c'
           AND pg_get_constraintdef(con.oid) LIKE '%id = 1%';
 
         IF constraint_name IS NOT NULL THEN
-          EXECUTE 'ALTER TABLE configuration_current DROP CONSTRAINT ' || constraint_name;
+          EXECUTE 'ALTER TABLE storage_current DROP CONSTRAINT ' || constraint_name;
         END IF;
       END $$
     `);
@@ -697,30 +697,30 @@ export class PostgresContext {
         IF NOT EXISTS (
           SELECT 1 FROM pg_constraint con
           JOIN pg_class rel ON rel.oid = con.conrelid
-          WHERE rel.relname = 'configuration_current'
+          WHERE rel.relname = 'storage_current'
             AND con.contype = 'u'
             AND pg_get_constraintdef(con.oid) LIKE '%lab_id%'
         ) THEN
-          ALTER TABLE configuration_current ADD CONSTRAINT configuration_current_lab_id_unique UNIQUE (lab_id);
+          ALTER TABLE storage_current ADD CONSTRAINT storage_current_lab_id_unique UNIQUE (lab_id);
         END IF;
       END $$
     `);
 
-    // configuration_current.id: convert to auto-generated identity for multi-lab support
+    // storage_current.id: convert to auto-generated identity for multi-lab support
     await this.pool.query(`
       DO $$
       BEGIN
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'configuration_current'
+          WHERE table_name = 'storage_current'
             AND column_name = 'id'
             AND identity_generation IS NOT NULL
         ) THEN
-          ALTER TABLE configuration_current
+          ALTER TABLE storage_current
             ALTER COLUMN id DROP DEFAULT,
             ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
-          PERFORM setval(pg_get_serial_sequence('configuration_current', 'id'),
-            COALESCE((SELECT MAX(id) FROM configuration_current), 0) + 1, false);
+          PERFORM setval(pg_get_serial_sequence('storage_current', 'id'),
+            COALESCE((SELECT MAX(id) FROM storage_current), 0) + 1, false);
         END IF;
       END $$
     `);
@@ -830,9 +830,9 @@ export class PostgresContext {
       BEGIN
         IF EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'configuration_current' AND column_name = 'lab_id' AND is_nullable = 'YES'
+          WHERE table_name = 'storage_current' AND column_name = 'lab_id' AND is_nullable = 'YES'
         ) THEN
-          ALTER TABLE configuration_current ALTER COLUMN lab_id SET NOT NULL;
+          ALTER TABLE storage_current ALTER COLUMN lab_id SET NOT NULL;
         END IF;
       END $$
     `);
@@ -842,9 +842,9 @@ export class PostgresContext {
       BEGIN
         IF EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'configuration_versions' AND column_name = 'lab_id' AND is_nullable = 'YES'
+          WHERE table_name = 'storage_versions' AND column_name = 'lab_id' AND is_nullable = 'YES'
         ) THEN
-          ALTER TABLE configuration_versions ALTER COLUMN lab_id SET NOT NULL;
+          ALTER TABLE storage_versions ALTER COLUMN lab_id SET NOT NULL;
         END IF;
       END $$
     `);
@@ -854,9 +854,9 @@ export class PostgresContext {
       BEGIN
         IF EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'configuration_snapshots' AND column_name = 'lab_id' AND is_nullable = 'YES'
+          WHERE table_name = 'storage_snapshots' AND column_name = 'lab_id' AND is_nullable = 'YES'
         ) THEN
-          ALTER TABLE configuration_snapshots ALTER COLUMN lab_id SET NOT NULL;
+          ALTER TABLE storage_snapshots ALTER COLUMN lab_id SET NOT NULL;
         END IF;
       END $$
     `);
@@ -911,7 +911,37 @@ export class PostgresContext {
     await this.migrateUserStatusConstraint();
     await this.migrateEquipmentIds();
     await this.normalizeLabIds();
+    await this.renameConfigurationTablesToStorage();
     await this.ensureSystemAdminPerson();
+  }
+
+  private async renameConfigurationTablesToStorage(): Promise<void> {
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_versions') THEN
+          ALTER TABLE configuration_versions RENAME TO storage_versions;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_current') THEN
+          ALTER TABLE configuration_current RENAME TO storage_current;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_snapshots') THEN
+          ALTER TABLE configuration_snapshots RENAME TO storage_snapshots;
+        END IF;
+        IF EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_configuration_versions_updated_at') THEN
+          ALTER INDEX idx_configuration_versions_updated_at RENAME TO idx_storage_versions_updated_at;
+        END IF;
+        IF EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_configuration_snapshots_created_at') THEN
+          ALTER INDEX idx_configuration_snapshots_created_at RENAME TO idx_storage_snapshots_created_at;
+        END IF;
+        IF EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_configuration_snapshots_version') THEN
+          ALTER INDEX idx_configuration_snapshots_version RENAME TO idx_storage_snapshots_version;
+        END IF;
+        IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'configuration_current_lab_id_unique') THEN
+          ALTER TABLE storage_current RENAME CONSTRAINT configuration_current_lab_id_unique TO storage_current_lab_id_unique;
+        END IF;
+      END $$
+    `);
   }
 
   private async migrateUserStatusConstraint(): Promise<void> {
@@ -960,7 +990,7 @@ export class PostgresContext {
 
       const childTables = [
         'users', 'researchers', 'tubes', 'lookup_values',
-        'configuration_current', 'configuration_versions', 'configuration_snapshots',
+        'storage_current', 'storage_versions', 'storage_snapshots',
         'audit_log', 'audit_log_archive', 'invite_codes',
       ];
       for (const table of childTables) {
@@ -1009,7 +1039,7 @@ export class PostgresContext {
       const labId = lab.id as string;
 
       const configRow = await this.pool.query(
-        'SELECT config_json FROM configuration_current WHERE lab_id = $1',
+        'SELECT config_json FROM storage_current WHERE lab_id = $1',
         [labId]
       );
       if (configRow.rows.length === 0) continue;
@@ -1068,12 +1098,12 @@ export class PostgresContext {
         }
 
         await client.query(
-          'UPDATE configuration_current SET config_json = $1 WHERE lab_id = $2',
+          'UPDATE storage_current SET config_json = $1 WHERE lab_id = $2',
           [JSON.stringify(updatedConfig), labId]
         );
 
         const versions = await client.query(
-          'SELECT version, config_json FROM configuration_versions WHERE lab_id = $1',
+          'SELECT version, config_json FROM storage_versions WHERE lab_id = $1',
           [labId]
         );
         for (const ver of versions.rows) {
@@ -1091,13 +1121,13 @@ export class PostgresContext {
             if (newTankId) tank.id = newTankId;
           }
           await client.query(
-            'UPDATE configuration_versions SET config_json = $1 WHERE version = $2',
+            'UPDATE storage_versions SET config_json = $1 WHERE version = $2',
             [JSON.stringify(verConfig), ver.version]
           );
         }
 
         const snapshots = await client.query(
-          'SELECT id, config_json FROM configuration_snapshots WHERE lab_id = $1',
+          'SELECT id, config_json FROM storage_snapshots WHERE lab_id = $1',
           [labId]
         );
         for (const snap of snapshots.rows) {
@@ -1115,7 +1145,7 @@ export class PostgresContext {
             if (newTankId) tank.id = newTankId;
           }
           await client.query(
-            'UPDATE configuration_snapshots SET config_json = $1 WHERE id = $2',
+            'UPDATE storage_snapshots SET config_json = $1 WHERE id = $2',
             [JSON.stringify(snapConfig), snap.id]
           );
         }
@@ -1203,9 +1233,9 @@ export class PostgresContext {
       'CREATE INDEX IF NOT EXISTS idx_researchers_approval_status ON researchers(approval_status)',
 
       // Configuration indexes
-      'CREATE INDEX IF NOT EXISTS idx_configuration_versions_updated_at ON configuration_versions(updated_at DESC)',
-      'CREATE INDEX IF NOT EXISTS idx_configuration_snapshots_created_at ON configuration_snapshots(created_at DESC)',
-      'CREATE INDEX IF NOT EXISTS idx_configuration_snapshots_version ON configuration_snapshots(version)',
+      'CREATE INDEX IF NOT EXISTS idx_storage_versions_updated_at ON storage_versions(updated_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_storage_snapshots_created_at ON storage_snapshots(created_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_storage_snapshots_version ON storage_snapshots(version)',
 
       // Lookup value indexes
       'CREATE INDEX IF NOT EXISTS idx_lookup_values_category ON lookup_values(category)',
@@ -1345,7 +1375,7 @@ export class PostgresContext {
       if (!labId) return;
 
       const existing = await this.pool.query(
-        'SELECT lab_id FROM configuration_current WHERE lab_id = $1',
+        'SELECT lab_id FROM storage_current WHERE lab_id = $1',
         [labId]
       );
 
@@ -1357,7 +1387,7 @@ export class PostgresContext {
         const now = new Date().toISOString();
 
         const versionResult = await this.pool.query(
-          `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+          `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING version`,
           [labId, now, 'Initial system configuration', 'system', configJson]
@@ -1366,7 +1396,7 @@ export class PostgresContext {
         const version = versionResult.rows[0].version;
 
         await this.pool.query(
-          `INSERT INTO configuration_current (lab_id, version, updated_at, config_json)
+          `INSERT INTO storage_current (lab_id, version, updated_at, config_json)
            VALUES ($1, $2, $3, $4)`,
           [labId, version, now, configJson]
         );

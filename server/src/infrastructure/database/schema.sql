@@ -247,7 +247,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_archive_archived_at ON audit_log_archive(ar
 -- CONFIGURATION TABLES
 
 -- Current configuration (single row table)
-CREATE TABLE IF NOT EXISTS configuration_current (
+CREATE TABLE IF NOT EXISTS storage_current (
   id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
   config_json TEXT NOT NULL,
   version INTEGER NOT NULL DEFAULT 1,
@@ -255,7 +255,7 @@ CREATE TABLE IF NOT EXISTS configuration_current (
 );
 
 -- Configuration version history
-CREATE TABLE IF NOT EXISTS configuration_versions (
+CREATE TABLE IF NOT EXISTS storage_versions (
   version SERIAL PRIMARY KEY,
   config_json TEXT NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -264,10 +264,10 @@ CREATE TABLE IF NOT EXISTS configuration_versions (
   changed_by TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_configuration_versions_updated_at ON configuration_versions(updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_storage_versions_updated_at ON storage_versions(updated_at DESC);
 
 -- Configuration snapshots (named saves)
-CREATE TABLE IF NOT EXISTS configuration_snapshots (
+CREATE TABLE IF NOT EXISTS storage_snapshots (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
@@ -277,8 +277,8 @@ CREATE TABLE IF NOT EXISTS configuration_snapshots (
   created_by TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_configuration_snapshots_created_at ON configuration_snapshots(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_configuration_snapshots_version ON configuration_snapshots(version);
+CREATE INDEX IF NOT EXISTS idx_storage_snapshots_created_at ON storage_snapshots(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_storage_snapshots_version ON storage_snapshots(version);
 
 -- Security configuration (separate from main config for security)
 CREATE TABLE IF NOT EXISTS security_config (
