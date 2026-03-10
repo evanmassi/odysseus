@@ -45,7 +45,7 @@ export class ValidationService {
 
     // 1. Permission validation
     try {
-      this.accessControlService.requireCanCreateTube(user);
+      await this.accessControlService.requireCanCreateTube(user);
     } catch (error) {
       result.isValid = false;
       result.errors.push(error instanceof Error ? error.message : 'Permission denied');

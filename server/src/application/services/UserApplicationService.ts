@@ -69,7 +69,7 @@ export class UserApplicationService {
         throw new PermissionError('Invalid admin credentials');
       }
 
-      this.accessControlService.requireCanManageUsers(admin);
+      await this.accessControlService.requireCanManageUsers(admin);
       targetRole = request.role || 'user';
     }
 
@@ -187,7 +187,7 @@ export class UserApplicationService {
    */
   async getAllUsers(adminApiKey: string): Promise<UserResponse[]> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
 
     const users = admin.isSystemAdmin()
       ? await this.userRepository.findAll()
@@ -221,7 +221,7 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     const targetUser = await this.getUserOrThrow(userId);
 
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     // Prevent admin from changing their own role (lockout protection)
@@ -256,7 +256,7 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     const targetUser = await this.getUserOrThrow(userId);
 
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     // Prevent admin from deleting themselves
@@ -582,7 +582,7 @@ export class UserApplicationService {
    */
   async approveUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
@@ -626,7 +626,7 @@ export class UserApplicationService {
    */
   async rejectUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
@@ -650,7 +650,7 @@ export class UserApplicationService {
 
   async deactivateUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     if (admin.id === userId) {
@@ -682,7 +682,7 @@ export class UserApplicationService {
 
   async suspendUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     if (admin.id === userId) {
@@ -724,7 +724,7 @@ export class UserApplicationService {
    */
   async getPendingUsers(adminApiKey: string): Promise<UserResponse[]> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
 
     const pendingUsers = admin.isSystemAdmin()
       ? await this.userRepository.findByStatus('pending')
@@ -755,7 +755,7 @@ export class UserApplicationService {
     }
 
     const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
@@ -811,7 +811,7 @@ export class UserApplicationService {
    */
   async unlinkResearcherFromUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
+    await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);

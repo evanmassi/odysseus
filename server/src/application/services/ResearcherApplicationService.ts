@@ -161,7 +161,7 @@ export class ResearcherApplicationService {
    */
   async createResearcher(labId: string, request: CreateResearcherRequest, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
-    this.accessControlService.requireCanManageResearchers(user);
+    await this.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
     // Validate email is provided
@@ -275,7 +275,7 @@ export class ResearcherApplicationService {
    */
   async updateResearcher(id: string, updates: { firstName?: string; lastName?: string; position?: string; department?: string; email?: string; active?: boolean }, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
-    this.accessControlService.requireCanManageResearchers(user);
+    await this.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
@@ -418,7 +418,7 @@ export class ResearcherApplicationService {
    */
   async deactivateResearcher(id: string, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
-    this.accessControlService.requireCanManageResearchers(user);
+    await this.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
@@ -462,7 +462,7 @@ export class ResearcherApplicationService {
    */
   async activateResearcher(id: string, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
-    this.accessControlService.requireCanManageResearchers(user);
+    await this.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
@@ -498,7 +498,7 @@ export class ResearcherApplicationService {
     tubeCount: number;
   }>> {
     const user = await this.getUserByApiKey(userApiKey);
-    this.accessControlService.requireCanViewTubes(user);
+    await this.accessControlService.requireCanViewTubes(user);
 
     const activeResearchers = await this.researcherRepository.getMostActiveResearchers(10);
 

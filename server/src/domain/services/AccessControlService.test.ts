@@ -485,43 +485,31 @@ describe('AccessControlService', () => {
     });
 
     describe('requireCanCreateTube', () => {
-      it('should not throw for admin', () => {
+      it('should not throw for admin', async () => {
         const admin = createTestAdmin();
-        expect(() => createService().requireCanCreateTube(admin)).not.toThrow();
+        await expect(createService().requireCanCreateTube(admin)).resolves.not.toThrow();
       });
 
-      it('should throw for user without researcher profile', () => {
+      it('should throw for user without researcher profile', async () => {
         const user = createTestUser();
-        expect(() => createService().requireCanCreateTube(user)).toThrow(PermissionError);
+        await expect(createService().requireCanCreateTube(user)).rejects.toThrow(PermissionError);
       });
 
-      it('should not throw for user with researcher profile', () => {
+      it('should not throw for user with researcher profile', async () => {
         const user = createTestUser({ researcherId: 'res_1' });
-        expect(() => createService().requireCanCreateTube(user)).not.toThrow();
+        await expect(createService().requireCanCreateTube(user)).resolves.not.toThrow();
       });
     });
 
     describe('requireCanManageUsers', () => {
-      it('should not throw for admin', () => {
+      it('should not throw for admin', async () => {
         const admin = createTestAdmin();
-        expect(() => createService().requireCanManageUsers(admin)).not.toThrow();
+        await expect(createService().requireCanManageUsers(admin)).resolves.not.toThrow();
       });
 
-      it('should throw for regular user', () => {
+      it('should throw for regular user', async () => {
         const user = createTestUser();
-        expect(() => createService().requireCanManageUsers(user)).toThrow(PermissionError);
-      });
-    });
-
-    describe('requireCanBulkEditTubes', () => {
-      it('should not throw for admin', () => {
-        const admin = createTestAdmin();
-        expect(() => createService().requireCanBulkEditTubes(admin)).not.toThrow();
-      });
-
-      it('should throw for regular user', () => {
-        const user = createTestUser();
-        expect(() => createService().requireCanBulkEditTubes(user)).toThrow(PermissionError);
+        await expect(createService().requireCanManageUsers(user)).rejects.toThrow(PermissionError);
       });
     });
   });

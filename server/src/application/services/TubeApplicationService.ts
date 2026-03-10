@@ -101,7 +101,7 @@ export class TubeApplicationService {
    */
   async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string> }): Promise<TubeResponse> {
     // 1. Check permissions
-    this.accessControlService.requireCanCreateTube(authenticatedUser);
+    await this.accessControlService.requireCanCreateTube(authenticatedUser);
 
     // 2. Map DTO to domain (thin, no logic)
     const tubeData = TubeDto.fromCreateRequest(request);
@@ -326,7 +326,7 @@ export class TubeApplicationService {
    * Get all tubes with filtering.
    */
   async getAllTubes(authenticatedUser: User, searchRequest?: TubeSearchRequest): Promise<TubeResponse[]> {
-    this.accessControlService.requireCanViewTubes(authenticatedUser);
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
 
@@ -359,7 +359,7 @@ export class TubeApplicationService {
     boxId: string,
     authenticatedUser: User
   ): Promise<TubeResponse[]> {
-    this.accessControlService.requireCanViewTubes(authenticatedUser);
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tankId)) {
@@ -379,7 +379,7 @@ export class TubeApplicationService {
     boxId: string,
     authenticatedUser: User
   ): Promise<TubeResponse[]> {
-    this.accessControlService.requireCanViewTubes(authenticatedUser);
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId, authenticatedUser.labId!);
 
@@ -396,7 +396,7 @@ export class TubeApplicationService {
     searchRequest: TubeSearchRequest,
     authenticatedUser: User
   ): Promise<TubeResponse[]> {
-    this.accessControlService.requireCanViewTubes(authenticatedUser);
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const requestedTankId = searchRequest.tankId;
@@ -418,7 +418,7 @@ export class TubeApplicationService {
     searchRequest: TubeSearchRequest,
     authenticatedUser: User
   ): Promise<TubeSearchResponse> {
-    this.accessControlService.requireCanViewTubes(authenticatedUser);
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const requestedTankId = searchRequest.tankId;
@@ -1093,7 +1093,7 @@ export class TubeApplicationService {
     completionRate: number;
     expirationRate: number;
   }> {
-    this.accessControlService.requireCanViewTubes(authenticatedUser);
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const stats = await this.tubeRepository.getStats(allowedTankIds, authenticatedUser.labId!);

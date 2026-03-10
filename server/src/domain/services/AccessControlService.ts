@@ -96,6 +96,14 @@ export class AccessControlService {
     return this.createDeniedResult(`Only the assigned researcher or administrators can delete this tube`);
   }
 
+  async canViewTubes(user: User): Promise<AccessResult> {
+    if (!user.hasPermission('view_tubes')) {
+      return this.createDeniedResult('User does not have permission to view tubes');
+    }
+
+    return this.createAllowedResult();
+  }
+
   async canMoveTube(user: User, tube: Tube, newLocation?: Location): Promise<AccessResult> {
     const editCheck = await this.canEditTube(user, tube);
     if (!editCheck.allowed) {
@@ -557,85 +565,31 @@ export class AccessControlService {
 
   // REQUIRE METHODS
 
-  requireCanCreateTube(user: User): void {
-    this.requirePermission(user, 'create_tubes', 'create tubes');
-
-    if (!user.isAdmin() && !user.hasResearcherProfile()) {
-      throw new PermissionError('Researcher profile required for tube operations', {
-        userId: user.id,
-        role: user.roleString
-      });
+  async requireCanCreateTube(user: User): Promise<void> {
+    const result = await this.canCreateTube(user);
+    if (!result.allowed) {
+      throw new PermissionError(result.reason, { userId: user.id });
     }
   }
 
-  requireCanViewTube(user: User, tube: Tube): void {
-    this.requirePermission(user, 'view_tubes', 'view tubes', { tubeId: tube.id });
-    this.requireTubeOwnership(user, tube, 'view');
-  }
-
-  requireCanViewTubes(user: User): void {
-    this.requirePermission(user, 'view_tubes', 'view tubes');
-  }
-
-  requireCanEditTube(user: User, tube: Tube): void {
-    this.requirePermission(user, 'edit_tubes', 'edit tubes', { tubeId: tube.id });
-    this.requireTubeOwnership(user, tube, 'edit');
-  }
-
-  requireCanDeleteTube(user: User, tube: Tube): void {
-    this.requirePermission(user, 'delete_tubes', 'delete tubes', { tubeId: tube.id });
-    this.requireTubeOwnership(user, tube, 'delete');
-  }
-
-  requireCanBulkEditTubes(user: User): void {
-    this.requirePermission(user, 'bulk_edit', 'perform bulk operations');
-    if (!user.isAdmin()) {
-      throw new PermissionError('Bulk operations require administrative privileges', {
-        userId: user.id,
-        role: user.roleString
-      });
+  async requireCanViewTubes(user: User): Promise<void> {
+    const result = await this.canViewTubes(user);
+    if (!result.allowed) {
+      throw new PermissionError(result.reason, { userId: user.id });
     }
   }
 
-  requireCanManageUsers(user: User): void {
-    if (!user.isAdmin()) {
-      throw new PermissionError('User management requires administrative privileges', {
-        userId: user.id,
-        role: user.roleString,
-        requiredRole: 'admin'
-      });
+  async requireCanManageUsers(user: User): Promise<void> {
+    const result = await this.canManageUsers(user);
+    if (!result.allowed) {
+      throw new PermissionError(result.reason, { userId: user.id });
     }
   }
 
-  requireCanManageResearchers(user: User): void {
-    this.requirePermission(user, 'manage_researchers', 'manage researchers');
-  }
-
-  // SHARED REQUIRE HELPERS
-
-  private requirePermission(
-    user: User,
-    permission: string,
-    action: string,
-    extra?: Record<string, unknown>
-  ): void {
-    if (!user.hasPermission(permission)) {
-      throw new PermissionError(`User does not have permission to ${action}`, {
-        userId: user.id,
-        role: user.roleString,
-        requiredPermission: permission,
-        ...extra
-      });
-    }
-  }
-
-  private requireTubeOwnership(user: User, tube: Tube, action: string): void {
-    if (!user.isAdmin() && tube.researcherId !== user.researcherId) {
-      throw new PermissionError(`User can only ${action} their own tubes`, {
-        userId: user.id,
-        tubeId: tube.id,
-        tubeResearcherId: tube.researcherId
-      });
+  async requireCanManageResearchers(user: User): Promise<void> {
+    const result = await this.canManageResearchers(user);
+    if (!result.allowed) {
+      throw new PermissionError(result.reason, { userId: user.id });
     }
   }
 }
