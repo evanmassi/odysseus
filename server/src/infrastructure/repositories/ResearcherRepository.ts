@@ -658,8 +658,8 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async getStats(): Promise<ResearcherRepositoryStats> {
     const totalResearchers = await this.count();
-    const activeResearchers = await this.countActive();
-    const inactiveResearchers = await this.countInactive();
+    const activeResearchers = await this.countByStatus(true);
+    const inactiveResearchers = await this.countByStatus(false);
 
     const researchersWithTubes = await this.findWithAssignedTubes();
     const researchersWithoutTubes = await this.findWithoutTubes();
@@ -718,36 +718,6 @@ export class ResearcherRepository implements IResearcherRepository {
           : new Date(newestResearcherRow.created_at)
       } : undefined
     };
-  }
-
-  // BACKWARD COMPATIBILITY METHODS
-
-  async findWithTubes(): Promise<Researcher[]> {
-    return this.findWithAssignedTubes();
-  }
-
-  async countActive(): Promise<number> {
-    return this.countByStatus(true);
-  }
-
-  async countInactive(): Promise<number> {
-    return this.countByStatus(false);
-  }
-
-  async activate(id: string): Promise<boolean> {
-    return this.updateStatus(id, true);
-  }
-
-  async deactivate(id: string): Promise<boolean> {
-    return this.updateStatus(id, false);
-  }
-
-  async activateMany(ids: string[]): Promise<number> {
-    return this.updateStatusForMany(ids, true);
-  }
-
-  async deactivateMany(ids: string[]): Promise<number> {
-    return this.updateStatusForMany(ids, false);
   }
 
   async getMostActiveResearchers(limit: number = 10): Promise<Array<{ researcher: Researcher, tubeCount: number }>> {

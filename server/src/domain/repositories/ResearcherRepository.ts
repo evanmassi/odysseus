@@ -70,6 +70,8 @@ export interface ResearcherRepository {
   findWithAssignedTubes(): Promise<Researcher[]>;
   findWithoutTubes(): Promise<Researcher[]>;
   getUsageStats(): Promise<ResearcherUsageStats[]>;
+  getTubeCountByResearcher(researcherId: string): Promise<number>;
+  getMostActiveResearchers(limit?: number): Promise<Array<{ researcher: Researcher, tubeCount: number }>>;
 
   // VALIDATION OPERATIONS
 
@@ -81,18 +83,6 @@ export interface ResearcherRepository {
   isHealthy(): Promise<boolean>;
   getStats(): Promise<ResearcherRepositoryStats>;
   cleanupInactive(daysSinceCreation: number): Promise<number>;
-
-  // BACKWARD COMPATIBILITY METHODS
-
-  getTubeCountByResearcher(researcherId: string): Promise<number>;
-  getMostActiveResearchers(limit?: number): Promise<Array<{ researcher: Researcher, tubeCount: number }>>;
-  findWithTubes(): Promise<Researcher[]>;
-  countActive(): Promise<number>;
-  countInactive(): Promise<number>;
-  activate(id: string): Promise<boolean>;
-  deactivate(id: string): Promise<boolean>;
-  activateMany(ids: string[]): Promise<number>;
-  deactivateMany(ids: string[]): Promise<number>;
 }
 
 export interface ResearcherValidationResult {
