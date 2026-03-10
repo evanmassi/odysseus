@@ -1,10 +1,10 @@
-import { DomainError } from './DomainError';
-
 /**
  * Email Verification Error
  *
  * Email verification operation failure. Maps to HTTP 400.
  */
+
+import { DomainError } from './DomainError';
 export class EmailVerificationError extends DomainError {
   readonly code = 'EMAIL_VERIFICATION_ERROR';
   readonly statusCode = 400;

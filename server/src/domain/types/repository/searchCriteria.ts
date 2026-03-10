@@ -1,10 +1,10 @@
-import type { Tube } from '@domain/entities/Tube';
-
 /**
  * Repository Search Criteria Types
  *
  * Centralized search criteria interfaces for all repositories.
  */
+
+import type { Tube } from '@domain/entities/Tube';
 
 /**
  * Enhanced search result with matched terms for highlighting

@@ -1,9 +1,10 @@
-import { DomainError } from './DomainError';
-
 /**
- * Thrown when optimistic locking detects concurrent modification.
- * Maps to HTTP 409 Conflict.
+ * Conflict Error
+ *
+ * Thrown when optimistic locking detects concurrent modification. Maps to HTTP 409.
  */
+
+import { DomainError } from './DomainError';
 export class ConflictError extends DomainError {
   readonly code = 'CONFLICT_ERROR';
   readonly statusCode = 409;

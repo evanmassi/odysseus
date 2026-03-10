@@ -1,12 +1,11 @@
+/**
+ * Tube Location
+ *
+ * Immutable value object representing a physical position: Tank → Rack → Box → Position.
+ */
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
-
-/**
- * Location Value Object - Encapsulates all tube position logic with flexible identifiers
- * Represents a physical location: Tank -> Rack -> Box -> Position
- * Supports any lab naming convention
- * Immutable and self-validating
- */
 export class Location {
   private constructor(
     private readonly _tankId: string,
@@ -17,10 +16,6 @@ export class Location {
     this.validate();
   }
 
-  /**
-   * Factory method to create a Location with validation
-   * Accepts either individual parameters or a data object
-   */
   static create(
     tankIdOrData: string | { tankId: string; rackId: string; boxId: string; position: number },
     rackId?: string,
@@ -38,9 +33,6 @@ export class Location {
     return new Location(tankIdOrData, rackId!, boxId!, position!);
   }
 
-  /**
-   * Validates all location parameters according to business rules
-   */
   private validate(): void {
     this.validateTankId();
     this.validateRackId();
@@ -88,9 +80,6 @@ export class Location {
     }
   }
 
-  /**
-   * Equality check for value objects
-   */
   equals(other: Location): boolean {
     if (!other) return false;
     
@@ -100,23 +89,14 @@ export class Location {
            this._position === other._position;
   }
 
-  /**
-   * Human-readable string representation
-   */
   toString(): string {
     return `Tank-${this._tankId}/Rack-${this._rackId}/Box-${this._boxId}/Pos-${this._position}`;
   }
 
-  /**
-   * Unique identifier for this location
-   */
   toKey(): string {
     return `${this._tankId}-${this._rackId}-${this._boxId.toUpperCase()}-${this._position}`;
   }
 
-  /**
-   * Convert to data object for persistence/serialization
-   */
   toData(): {tankId: string, rackId: string, boxId: string, position: number} {
     return {
       tankId: this._tankId,
@@ -126,36 +106,26 @@ export class Location {
     };
   }
 
-  // Getters (immutable access)
+  // Getters
   get tankId(): string { return this._tankId; }
   get rackId(): string { return this._rackId; }
   get boxId(): string { return this._boxId.toUpperCase(); }
   get position(): number { return this._position; }
 
-  /**
-   * Business logic: Check if this position is in the same rack as another
-   */
   isInSameRack(other: Location): boolean {
     return this._tankId === other._tankId && this._rackId === other._rackId;
   }
 
-  /**
-   * Business logic: Check if this position is in the same box as another
-   */
   isInSameBox(other: Location): boolean {
     return this.isInSameRack(other) && this._boxId.toUpperCase() === other._boxId.toUpperCase();
   }
 
-  /**
-   * Update location with new values (returns new instance - immutable)
-   * Implements partial update pattern for value objects
-   */
-  update(updates: Partial<{
+  update(updates: {
     tankId?: string;
     rackId?: string;
     boxId?: string;
     position?: number;
-  }>): Location {
+  }): Location {
     return Location.create({
       tankId: updates.tankId ?? this._tankId,
       rackId: updates.rackId ?? this._rackId,

@@ -411,7 +411,7 @@ export class User {
       throw new PermissionError(`Permission denied for action: ${action}`, {
         userId: this._id,
         username: this._username,
-        role: this._role.role,
+        role: this._role.value,
         action
       });
     }
@@ -454,7 +454,7 @@ export class User {
     if (!this.canManage(other)) {
       throw new PermissionError('Cannot manage user', {
         managerId: this._id,
-        managerRole: this._role.role,
+        managerRole: this._role.value,
         targetUserId: other._id
       });
     }
@@ -641,7 +641,7 @@ export class User {
       id: this._id,
       username: this._username,
       apiKey: this._apiKey,
-      role: this._role.role,
+      role: this._role.value,
       createdAt: this._createdAt.toISOString(),
       lastActivity: this._lastActivity.toISOString(),
       researcherId: this._researcherId,
@@ -667,7 +667,7 @@ export class User {
     return {
       id: this._id,
       username: this._username,
-      role: this._role.role,
+      role: this._role.value,
       createdAt: this._createdAt.toISOString(),
       lastActivity: this._lastActivity.toISOString(),
       status: this._status,
@@ -723,7 +723,7 @@ export class User {
 
   get labId(): string | undefined { return this._labId; }
 
-  get roleString(): 'system_admin' | 'lab_admin' | 'user' { return this._role.role; }
+  get roleString(): 'system_admin' | 'lab_admin' | 'user' { return this._role.value; }
 
   /**
    * Generate email verification token

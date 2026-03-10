@@ -4,9 +4,9 @@ import { Permission } from './Permission';
 describe('UserRole', () => {
   describe('create', () => {
     it('should create from valid role strings', () => {
-      expect(UserRole.create('system_admin').role).toBe('system_admin');
-      expect(UserRole.create('lab_admin').role).toBe('lab_admin');
-      expect(UserRole.create('user').role).toBe('user');
+      expect(UserRole.create('system_admin').value).toBe('system_admin');
+      expect(UserRole.create('lab_admin').value).toBe('lab_admin');
+      expect(UserRole.create('user').value).toBe('user');
     });
 
     it('should throw for invalid role', () => {
@@ -19,19 +19,19 @@ describe('UserRole', () => {
   describe('convenience factories', () => {
     it('should create system admin', () => {
       const role = UserRole.systemAdmin();
-      expect(role.role).toBe('system_admin');
+      expect(role.value).toBe('system_admin');
       expect(role.isSystemAdmin()).toBe(true);
     });
 
     it('should create lab admin', () => {
       const role = UserRole.labAdmin();
-      expect(role.role).toBe('lab_admin');
+      expect(role.value).toBe('lab_admin');
       expect(role.isLabAdmin()).toBe(true);
     });
 
     it('should create user', () => {
       const role = UserRole.user();
-      expect(role.role).toBe('user');
+      expect(role.value).toBe('user');
       expect(role.isUser()).toBe(true);
     });
   });
@@ -176,10 +176,6 @@ describe('UserRole', () => {
       expect(UserRole.user().toData()).toEqual({ role: 'user' });
     });
 
-    it('value getter should match role getter', () => {
-      const role = UserRole.systemAdmin();
-      expect(role.value).toBe(role.role);
-    });
   });
 
   describe('static utilities', () => {

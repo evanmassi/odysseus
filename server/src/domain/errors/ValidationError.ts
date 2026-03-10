@@ -1,10 +1,10 @@
-import { DomainError } from './DomainError';
-
 /**
  * Validation Error
  *
  * Domain validation rule violation. Maps to HTTP 400.
  */
+
+import { DomainError } from './DomainError';
 export class ValidationError extends DomainError {
   readonly code = 'VALIDATION_ERROR';
   readonly statusCode = 400;

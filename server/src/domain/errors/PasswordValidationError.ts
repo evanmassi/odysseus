@@ -1,10 +1,10 @@
-import { DomainError } from './DomainError';
-
 /**
  * Password Validation Error
  *
  * Password does not meet validation requirements. Maps to HTTP 400.
  */
+
+import { DomainError } from './DomainError';
 export class PasswordValidationError extends DomainError {
   readonly code = 'PASSWORD_VALIDATION_ERROR';
   readonly statusCode = 400;

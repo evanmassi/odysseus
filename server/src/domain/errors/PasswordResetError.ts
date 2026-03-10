@@ -1,10 +1,10 @@
-import { DomainError } from './DomainError';
-
 /**
  * Password Reset Error
  *
  * Password reset token validation failure. Maps to HTTP 400.
  */
+
+import { DomainError } from './DomainError';
 export class PasswordResetError extends DomainError {
   readonly code = 'PASSWORD_RESET_ERROR';
   readonly statusCode = 400;

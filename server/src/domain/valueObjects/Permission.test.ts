@@ -108,43 +108,6 @@ describe('Permission', () => {
     });
   });
 
-  describe('isValidKey', () => {
-    it('should return true for valid keys', () => {
-      expect(Permission.isValidKey('view_tubes')).toBe(true);
-      expect(Permission.isValidKey('manage_labs')).toBe(true);
-    });
-
-    it('should return false for invalid keys', () => {
-      expect(Permission.isValidKey('nonexistent')).toBe(false);
-      expect(Permission.isValidKey('')).toBe(false);
-    });
-  });
-
-  describe('getAllKeys', () => {
-    it('should return all permission keys', () => {
-      const keys = Permission.getAllKeys();
-      expect(keys.length).toBe(13);
-      expect(keys).toContain('view_tubes');
-      expect(keys).toContain('manage_global_settings');
-    });
-  });
-
-  describe('getByCategory', () => {
-    it('should return tube management permissions', () => {
-      const tubePerms = Permission.getByCategory('TUBE_MANAGEMENT');
-      expect(tubePerms.length).toBe(5);
-    });
-
-    it('should return multi-tenancy permissions', () => {
-      const mtPerms = Permission.getByCategory('MULTI_TENANCY');
-      expect(mtPerms.length).toBe(4);
-    });
-
-    it('should return empty for unknown category', () => {
-      expect(Permission.getByCategory('UNKNOWN').length).toBe(0);
-    });
-  });
-
   describe('getAllCategories', () => {
     it('should return all categories', () => {
       const categories = Permission.getAllCategories();

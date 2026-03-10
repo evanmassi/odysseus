@@ -1,13 +1,12 @@
+/**
+ * User Role
+ *
+ * Role value object with permission checking via RolePermissionService.
+ */
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { Permission } from '@domain/valueObjects/Permission';
 import { RolePermissionService, UserRole as UserRoleType } from '@domain/services/RolePermissionService';
-
-/**
- * UserRole Value Object - Centralized role management
- *
- * Represents user roles with permission checking.
- * All permission logic centralized in RolePermissionService.
- */
 export class UserRole {
   private static readonly VALID_ROLES = ['system_admin', 'lab_admin', 'user'] as const;
 
@@ -104,10 +103,6 @@ export class UserRole {
 
   toData(): { role: 'system_admin' | 'lab_admin' | 'user' } {
     return { role: this._role };
-  }
-
-  get role(): 'system_admin' | 'lab_admin' | 'user' {
-    return this._role;
   }
 
   get value(): 'system_admin' | 'lab_admin' | 'user' {

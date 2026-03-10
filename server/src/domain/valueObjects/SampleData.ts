@@ -1,10 +1,10 @@
-import { ValidationError } from '@domain/errors/ValidationError';
-
 /**
- * SampleData Value Object - Encapsulates all sample-related validation and logic
- * Represents biological sample information with business rules
- * Immutable and self-validating
+ * Sample Data
+ *
+ * Immutable value object for biological sample information with domain validation.
  */
+
+import { ValidationError } from '@domain/errors/ValidationError';
 export class SampleData {
   private constructor(
     private readonly _cellType?: string,
@@ -65,16 +65,10 @@ export class SampleData {
     );
   }
 
-  /**
-   * Factory method for empty sample data
-   */
   static empty(): SampleData {
     return new SampleData();
   }
 
-  /**
-   * Validates all sample data according to business rules
-   */
   private validate(): void {
     this.validateConcentration();
     this.validateDate();
@@ -255,16 +249,10 @@ export class SampleData {
     });
   }
 
-  /**
-   * Check if sample has concentration data
-   */
   hasConcentration(): boolean {
     return this._concentration !== undefined && this._concentrationUnit !== undefined;
   }
 
-  /**
-   * Check if sample is expired (business logic can be added here)
-   */
   isExpired(): boolean {
     if (!this._date) return false;
     
@@ -276,16 +264,10 @@ export class SampleData {
     return sampleDate < twoYearsAgo;
   }
 
-  /**
-   * Check if sample has complete information
-   */
   isComplete(): boolean {
     return !!(this._cellType && this._donorInternalId && this._date);
   }
 
-  /**
-   * Convert to data object for persistence/serialization
-   */
   toData(): {
     cellType?: string;
     species?: string;

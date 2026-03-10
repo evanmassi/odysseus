@@ -1,10 +1,10 @@
-import { DomainError } from './DomainError';
-
 /**
  * Permission Error
  *
  * User lacks permission for the requested action. Maps to HTTP 403.
  */
+
+import { DomainError } from './DomainError';
 export class PermissionError extends DomainError {
   readonly code = 'PERMISSION_ERROR';
   readonly statusCode = 403;

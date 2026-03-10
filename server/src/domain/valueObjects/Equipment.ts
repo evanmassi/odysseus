@@ -1,3 +1,9 @@
+/**
+ * Lab Equipment Value Objects
+ *
+ * Immutable Tank, Rack, and Box definitions with domain validation.
+ */
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
   EQUIPMENT_DEFAULTS,
@@ -10,12 +16,6 @@ import {
   type PositionDisplayConfig,
 } from '@odysseus/shared-schemas';
 
-/**
- * Equipment Value Objects - Represent physical equipment in the lab
- * Tank, Rack, and Box definitions with validation
- * Immutable and self-validating
- */
-
 export interface CreateTankOptions {
   id: string;
   name: string;
@@ -26,10 +26,7 @@ export interface CreateTankOptions {
   isSeeded?: boolean;
 }
 
-/**
- * Tank Value Object - Represents a liquid nitrogen tank
- * Contains nested racks (composition relationship)
- */
+/** Represents a liquid nitrogen tank containing racks. */
 export class Tank {
   private constructor(
     private readonly _id: string,
@@ -136,10 +133,6 @@ export interface CreateRackOptions {
   isSeeded?: boolean;
 }
 
-/**
- * Rack Value Object - Represents a rack within a tank
- * Contains nested boxes (composition relationship)
- */
 export class Rack {
   private constructor(
     private readonly _id: string,
@@ -266,10 +259,6 @@ export interface CreateBoxOptions {
   isSeeded?: boolean;
 }
 
-/**
- * Box Value Object - Represents a storage box within a rack
- * No longer stores parent references (tankId/rackId) - composition handles hierarchy
- */
 export class Box {
   private static readonly POSITIONS_PER_BOX = EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX;
 
@@ -329,9 +318,7 @@ export class Box {
     return Number.isInteger(position) && position >= 1 && position <= this._maxPositions;
   }
 
-  /**
-   * Business logic: Convert 1D position to 2D grid coordinates
-   */
+  /** Convert 1D position to 2D grid coordinates. */
   positionToGridCoordinates(position: number): { row: number; col: number } {
     if (!this.canAccommodatePosition(position)) {
       throw new ValidationError(`Position ${position} is not valid for this box`);
@@ -343,9 +330,7 @@ export class Box {
     return { row, col };
   }
 
-  /**
-   * Business logic: Convert 2D grid coordinates to 1D position
-   */
+  /** Convert 2D grid coordinates to 1D position. */
   gridCoordinatesToPosition(row: number, col: number): number {
     if (row < 1 || row > this._gridConfig.rows || col < 1 || col > this._gridConfig.cols) {
       throw new ValidationError('Grid coordinates are out of bounds');
@@ -392,11 +377,6 @@ export class Box {
     }
   }
 
-  /**
-   * Get all valid position labels for this box
-   *
-   * @returns Array of position labels in order
-   */
   getAllPositionLabels(): string[] {
     const config = this._positionDisplay || getDefaultPositionDisplay(
       this._gridConfig.rows,
@@ -448,10 +428,7 @@ export class Box {
   get isSeeded(): boolean { return this._isSeeded; }
 }
 
-/**
- * Equipment Configuration - Manages all equipment in the lab
- * Uses nested composition: Tank -> Rack[] -> Box[]
- */
+/** Top-level equipment container: Tank → Rack[] → Box[]. */
 export class EquipmentConfiguration {
   private constructor(
     private readonly _tanks: Tank[]
@@ -477,9 +454,6 @@ export class EquipmentConfiguration {
     // Tanks validate their own rack/box relationships internally
   }
 
-  /**
-   * Business logic: Check if a location is valid in this configuration
-   */
   isLocationValid(tankId: string, rackId: string, boxId: string, position: number): boolean {
     const tank = this._tanks.find(t => t.id === tankId && t.isActive);
     if (!tank) {
@@ -499,25 +473,16 @@ export class EquipmentConfiguration {
     return true;
   }
 
-  /**
-   * Get all active tanks
-   */
   getActiveTanks(): Tank[] {
     return this._tanks.filter(t => t.isActive);
   }
 
-  /**
-   * Get active racks for a tank
-   */
   getActiveRacksForTank(tankId: string): Rack[] {
     const tank = this._tanks.find(t => t.id === tankId);
     if (!tank) return [];
-    return tank.racks.filter(r => r.isActive) as Rack[];
+    return tank.racks.filter(r => r.isActive);
   }
 
-  /**
-   * Get active boxes for a rack
-   */
   getActiveBoxesForRack(tankId: string, rackId: string): Box[] {
     const tank = this._tanks.find(t => t.id === tankId);
     if (!tank) return [];
@@ -525,17 +490,9 @@ export class EquipmentConfiguration {
     const rack = tank.racks.find(r => r.id === rackId);
     if (!rack) return [];
 
-    return rack.boxes.filter(b => b.isActive) as Box[];
+    return rack.boxes.filter(b => b.isActive);
   }
 
-  /**
-   * Find a specific box in the equipment configuration
-   *
-   * @param tankId - Tank identifier
-   * @param rackId - Rack identifier (as string for compatibility)
-   * @param boxId - Box identifier
-   * @returns The Box if found, null otherwise
-   */
   findBox(tankId: string, rackId: string, boxId: string): Box | null {
     const tank = this._tanks.find(t => t.id === tankId && t.isActive);
     if (!tank) return null;
