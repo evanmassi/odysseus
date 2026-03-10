@@ -1,22 +1,12 @@
 /**
- * EmailService Interface - Domain Layer
+ * Email Delivery Contract
  *
- * Interface in domain, implementation in infrastructure
- * Email is an external concern, so implementation details belong in infrastructure
+ * Domain interface — implementation lives in infrastructure.
  */
 export interface EmailService {
-  /**
-   * Send verification email with token link
-   * @param email - User's email address
-   * @param token - Verification token (unhashed)
-   * @param username - User's username for personalization
-   */
+  /** @param token Unhashed verification token */
   sendVerificationEmail(email: string, token: string, username: string): Promise<void>;
 
-  /**
-   * Send password reset email with token link
-   * @param email - User's email address
-   * @param token - Reset token (unhashed)
-   */
+  /** @param token Unhashed reset token */
   sendPasswordResetEmail(email: string, token: string): Promise<void>;
 }

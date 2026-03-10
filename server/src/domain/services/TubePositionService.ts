@@ -1,3 +1,9 @@
+/**
+ * Tube Position Validation and Placement
+ *
+ * Validates tube placement against equipment configuration, position conflicts, and business rules.
+ */
+
 import { Location } from '@domain/valueObjects/Location';
 import { Tube } from '@domain/entities/Tube';
 import { Storage } from '@domain/entities/Storage';
@@ -195,6 +201,7 @@ export class TubePositionService {
 
       const nearbyTubes = allTubesInBox.filter(tube => {
         const distance = Math.abs(tube.position - location.position);
+        // Within 10 positions — a single box row in most grid configurations
         return distance <= 10 && tube.tankId === location.tankId;
       });
 
@@ -210,7 +217,8 @@ export class TubePositionService {
       const boxTubes = tubes.filter(tube => tube.tankId === tankId);
       const maxPosition = await this.storageRepository.getMaxPosition(labId, tankId, rackId, boxId);
 
-      const researchers = new Set(boxTubes.map(tube => tube.researcherId).filter(r => r));      const cellTypes = new Set(boxTubes.map(tube => tube.cellType).filter(ct => ct));
+      const researchers = new Set(boxTubes.map(tube => tube.researcherId).filter(r => r));
+      const cellTypes = new Set(boxTubes.map(tube => tube.cellType).filter(ct => ct));
 
       const occupiedPositions = boxTubes.map(tube => tube.position);
       const availablePositions = [];

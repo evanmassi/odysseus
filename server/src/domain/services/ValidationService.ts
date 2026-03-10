@@ -1,3 +1,9 @@
+/**
+ * Cross-Entity Validation Orchestration
+ *
+ * Coordinates validation across multiple aggregates for tube, researcher, and storage operations.
+ */
+
 import { Tube } from '@domain/entities/Tube';
 import { User } from '@domain/entities/User';
 import { Researcher } from '@domain/entities/Researcher';
@@ -13,19 +19,6 @@ import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import type { DomainValidationResult, BulkValidationResult } from '@domain/types/services';
 import type { TubeCreationData, TubeUpdateData, TubeBusinessRuleInput } from '@domain/types/services';
-
-/**
- * ValidationService
- * 
- * Domain service that handles complex validation logic that spans
- * multiple aggregates and requires cross-entity business rules.
- * 
- * This service coordinates validation that involves:
- * - Multiple entities and their relationships
- * - Complex business rules that cross entity boundaries
- * - Integration between domain services
- * - Comprehensive validation for operations
- */
 export class ValidationService {
   
   constructor(
@@ -39,9 +32,6 @@ export class ValidationService {
 
   // TUBE VALIDATION
 
-  /**
-   * Comprehensive validation for tube creation
-   */
   async validateTubeCreation(
     tubeData: TubeCreationData,
     user: User
@@ -114,9 +104,6 @@ export class ValidationService {
     return result;
   }
 
-  /**
-   * Comprehensive validation for tube updates
-   */
   async validateTubeUpdate(
     tube: Tube,
     updates: TubeUpdateData,
@@ -206,9 +193,6 @@ export class ValidationService {
     return result;
   }
 
-  /**
-   * Validation for tube deletion
-   */
   async validateTubeDeletion(tube: Tube, user: User): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
@@ -241,9 +225,6 @@ export class ValidationService {
 
   // BULK OPERATIONS VALIDATION
 
-  /**
-   * Validate bulk tube operations
-   */
   async validateBulkTubeOperation(
     operation: 'update' | 'delete',
     tubeIds: string[],
@@ -338,10 +319,6 @@ export class ValidationService {
 
   // RESEARCHER VALIDATION
 
-  /**
-   * Validate researcher ID reference
-   * Validates researcher ID instead of name
-   */
   async validateResearcherIdReference(researcherId: string): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
@@ -359,8 +336,7 @@ export class ValidationService {
       if (!researcher) {
         result.errors.push(`Researcher ID '${researcherId}' not found in system.`);
       } else if (!researcher.isActive()) {
-        // Note: Researcher names are now in Person entity
-        // TODO: Look up Person to display name in warning message
+        // TODO(2026-03-10): Look up Person to display researcher name in warning message
         result.warnings.push(`Researcher '${researcher.id}' is marked as inactive`);
       }
     } catch (error) {
@@ -372,9 +348,6 @@ export class ValidationService {
 
   // CONFIGURATION VALIDATION
 
-  /**
-   * Validate system configuration changes
-   */
   async validateStorageUpdate(
     currentConfig: Storage,
     updatedConfig: Storage,

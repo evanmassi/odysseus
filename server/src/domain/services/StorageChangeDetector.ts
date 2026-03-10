@@ -1,3 +1,9 @@
+/**
+ * Storage Configuration Change Detector
+ *
+ * Compares two Storage entities and emits domain events for all detected changes.
+ */
+
 import { Storage } from '@domain/entities/Storage';
 import { Rack, Box } from '@domain/valueObjects/Equipment';
 import type { DomainEvent } from '@domain/events/DomainEvent';
@@ -23,9 +29,6 @@ import {
   BoxReassignedEvent
 } from '@domain/events/StorageEvents';
 
-/**
- * Change summary for high-level configuration updates
- */
 export interface ConfigurationChangeSummary {
   tanksAdded: number;
   tanksUpdated: number;
@@ -39,23 +42,7 @@ export interface ConfigurationChangeSummary {
   labNameChanged: boolean;
 }
 
-/**
- * Configuration Change Detector
- *
- * Domain service that compares two Configuration entities
- * and generates domain events for all detected changes.
- *
- * Handles the nested hierarchy: Storage → Tanks → Racks → Boxes
- */
 export class StorageChangeDetector {
-  /**
-   * Detect all changes between old and new configurations
-   *
-   * @param oldConfig - Previous configuration state
-   * @param newConfig - New configuration state
-   * @param userId - User who made the changes
-   * @returns Array of domain events representing all changes
-   */
   detectChanges(oldConfig: Storage, newConfig: Storage, userId: string): DomainEvent[] {
     const events: DomainEvent[] = [];
     const summary: ConfigurationChangeSummary = {
@@ -71,17 +58,7 @@ export class StorageChangeDetector {
       labNameChanged: false
     };
 
-    // Detect lab name changes
-    logger.debug('Comparing lab names', {
-      oldLabName: oldConfig.systemSettings.labName,
-      newLabName: newConfig.systemSettings.labName,
-      areEqual: oldConfig.systemSettings.labName === newConfig.systemSettings.labName
-    });
     if (oldConfig.systemSettings.labName !== newConfig.systemSettings.labName) {
-      logger.debug('Lab name changed', {
-        from: oldConfig.systemSettings.labName,
-        to: newConfig.systemSettings.labName
-      });
       events.push(new LabNameChangedEvent(
         userId,
         oldConfig.systemSettings.labName,
@@ -168,9 +145,6 @@ export class StorageChangeDetector {
     return events;
   }
 
-  /**
-   * Detect rack-level changes within a tank
-   */
   private detectRackChanges(
     oldRacks: readonly Rack[],
     newRacks: readonly Rack[],
@@ -242,9 +216,6 @@ export class StorageChangeDetector {
     return events;
   }
 
-  /**
-   * Detect assignment changes for a rack
-   */
   private detectRackAssignmentChanges(
     oldRack: Rack,
     newRack: Rack,
@@ -287,9 +258,6 @@ export class StorageChangeDetector {
     return events;
   }
 
-  /**
-   * Detect box-level changes within a rack
-   */
   private detectBoxChanges(
     oldBoxes: readonly Box[],
     newBoxes: readonly Box[],
@@ -368,9 +336,6 @@ export class StorageChangeDetector {
     return events;
   }
 
-  /**
-   * Detect assignment changes for a box
-   */
   private detectBoxAssignmentChanges(
     oldBox: Box,
     newBox: Box,
