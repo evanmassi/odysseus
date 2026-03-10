@@ -4,7 +4,7 @@
  * Batch operations for clearing or transferring user resource assignments.
  */
 
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -14,7 +14,7 @@ import { EventBus } from '@application/contracts/EventBus';
 import {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
-} from '@domain/events/ConfigurationEvents';
+} from '@domain/events/StorageEvents';
 
 // COMMAND INTERFACES
 
@@ -36,13 +36,13 @@ export interface BulkReassignResourcesCommand {
 /** Unassigns all resources (racks and boxes) from a user. */
 export class BulkUnassignResourcesCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
 
   async handle(command: BulkUnassignResourcesCommand): Promise<{ racksAffected: number; boxesAffected: number }> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -85,7 +85,7 @@ export class BulkUnassignResourcesCommandHandler {
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       currentConfig,
       expectedVersion,
@@ -119,7 +119,7 @@ export class BulkUnassignResourcesCommandHandler {
 /** Reassigns all resources (racks and boxes) from one user to another. */
 export class BulkReassignResourcesCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
@@ -129,7 +129,7 @@ export class BulkReassignResourcesCommandHandler {
       throw new ValidationError('Cannot reassign resources to the same user');
     }
 
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -178,7 +178,7 @@ export class BulkReassignResourcesCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       currentConfig,
       expectedVersion,

@@ -1,33 +1,33 @@
-import { Configuration } from '@domain/entities/Configuration';
+import { Storage } from '@domain/entities/Storage';
 import { Location } from '@domain/valueObjects/Location';
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
-import type { EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/stats';
+import type { EquipmentSummary, CapacityInfo, StorageRepositoryStats } from '@domain/types/repository/stats';
 
 /**
  * Configuration Repository Interface
  * Defines the contract for lab-scoped configuration data access operations.
  * All lab-specific methods require an explicit labId parameter.
  */
-export interface ConfigurationRepository {
+export interface StorageRepository {
 
   // CONFIGURATION MANAGEMENT
 
-  getForLab(labId: string): Promise<Configuration | null>;
-  saveForLab(labId: string, configuration: Configuration): Promise<number>;
-  ensureDefaultForLab(labId: string): Promise<Configuration>;
+  getForLab(labId: string): Promise<Storage | null>;
+  saveForLab(labId: string, configuration: Storage): Promise<number>;
+  ensureDefaultForLab(labId: string): Promise<Storage>;
 
   // VERSIONING AND HISTORY
 
-  getByVersion(labId: string, version: number): Promise<Configuration | null>;
-  getHistory(labId: string, limit?: number): Promise<ConfigurationHistory[]>;
-  saveWithVersioning(labId: string, configuration: Configuration, changeDescription?: string, changedBy?: string): Promise<number>;
+  getByVersion(labId: string, version: number): Promise<Storage | null>;
+  getHistory(labId: string, limit?: number): Promise<StorageHistory[]>;
+  saveWithVersioning(labId: string, configuration: Storage, changeDescription?: string, changedBy?: string): Promise<number>;
 
   /**
    * Save with optimistic locking. @throws ConflictError if version mismatch.
    */
   saveWithOptimisticLock(
     labId: string,
-    configuration: Configuration,
+    configuration: Storage,
     expectedVersion: number,
     changeDescription?: string,
     changedBy?: string
@@ -113,23 +113,23 @@ export interface ConfigurationRepository {
 
   // BACKUP AND RESTORE
 
-  exportConfiguration(labId: string): Promise<ConfigurationExport>;
-  importConfiguration(labId: string, configExport: ConfigurationExport): Promise<Configuration>;
-  createSnapshot(labId: string, description?: string): Promise<ConfigurationSnapshot>;
-  restoreFromSnapshot(labId: string, snapshotId: string): Promise<Configuration>;
-  listSnapshots(labId: string): Promise<ConfigurationSnapshot[]>;
+  exportStorage(labId: string): Promise<StorageExport>;
+  importStorage(labId: string, configExport: StorageExport): Promise<Storage>;
+  createSnapshot(labId: string, description?: string): Promise<StorageSnapshot>;
+  restoreFromSnapshot(labId: string, snapshotId: string): Promise<Storage>;
+  listSnapshots(labId: string): Promise<StorageSnapshot[]>;
   cleanupSnapshots(labId: string, keepCount: number): Promise<number>;
 
   // INTEGRATION SUPPORT
 
-  getForApi(labId: string): Promise<ApiConfigurationResponse>;
-  getForFrontend(labId: string): Promise<FrontendConfiguration>;
-  validateConfiguration(labId: string, configuration: Configuration): Promise<ConfigurationValidationResult>;
+  getForApi(labId: string): Promise<ApiStorageResponse>;
+  getForFrontend(labId: string): Promise<FrontendStorage>;
+  validateStorage(labId: string, configuration: Storage): Promise<StorageValidationResult>;
 
   // MAINTENANCE OPERATIONS
 
   isHealthy(): Promise<boolean>;
-  getStats(labId: string): Promise<ConfigurationRepositoryStats>;
+  getStats(labId: string): Promise<StorageRepositoryStats>;
   performMaintenance(labId: string): Promise<MaintenanceResult>;
 
   // SECURITY & ADMIN CONFIGURATION (system-wide, not lab-scoped)
@@ -142,22 +142,22 @@ export interface ConfigurationRepository {
 /**
  * Configuration history entry for audit trails
  */
-export interface ConfigurationHistory {
+export interface StorageHistory {
   version: number;
   timestamp: Date;
   changeDescription?: string;
   changedBy?: string;
-  configuration: Configuration;
+  configuration: Storage;
 }
 
 
 /**
  * Configuration export format for backups
  */
-export interface ConfigurationExport {
+export interface StorageExport {
   version: string; // Export format version
   timestamp: Date;
-  configuration: Configuration;
+  configuration: Storage;
   metadata: {
     exportedBy?: string;
     description?: string;
@@ -171,7 +171,7 @@ export interface ConfigurationExport {
 /**
  * Configuration snapshot for rollback
  */
-export interface ConfigurationSnapshot {
+export interface StorageSnapshot {
   id: string;
   version: number;
   timestamp: Date;
@@ -184,7 +184,7 @@ export interface ConfigurationSnapshot {
  * API-optimized configuration response
  * Uses nested structure: tanks contain racks, racks contain boxes
  */
-export interface ApiConfigurationResponse {
+export interface ApiStorageResponse {
   equipment: {
     tanks: Array<{
       id: string;
@@ -222,7 +222,7 @@ export interface ApiConfigurationResponse {
 /**
  * Frontend-optimized configuration
  */
-export interface FrontendConfiguration {
+export interface FrontendStorage {
   tanks: Array<{
     id: string;
     name: string;
@@ -245,7 +245,7 @@ export interface FrontendConfiguration {
 /**
  * Configuration validation result
  */
-export interface ConfigurationValidationResult {
+export interface StorageValidationResult {
   isValid: boolean;
   errors: string[];
   warnings: string[];

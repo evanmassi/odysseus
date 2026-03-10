@@ -9,7 +9,7 @@ import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { generateCsv, formatDateForCsv, formatDateShort } from '@infrastructure/utils/csvGenerator';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -85,7 +85,7 @@ export class ExportService {
     private userRepository: UserRepository,
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository,
-    private configurationRepository: ConfigurationRepository
+    private storageRepository: StorageRepository
   ) {}
 
   /**
@@ -295,8 +295,8 @@ export class ExportService {
   async exportSystemBackup(labId: string): Promise<SystemBackup> {
     logger.info('[ExportService] Exporting system backup', { labId });
 
-    const configuration = await this.configurationRepository.getForLab(labId);
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const configuration = await this.storageRepository.getForLab(labId);
+    const securityConfig = await this.storageRepository.getSecurityConfig();
 
     return {
       exportedAt: new Date().toISOString(),

@@ -107,7 +107,7 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
     setIsSavingLabName(true);
     try {
       // Use dedicated system settings endpoint - only updates labName, preserves all equipment
-      await httpClient.put('/configuration/system', { labName: trimmedName });
+      await httpClient.put('/storage/system', { labName: trimmedName });
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
 

@@ -17,7 +17,7 @@ import {
   SearchRankTier,
 } from '@infrastructure/database/searchUtils';
 import { logger } from '@infrastructure/logging/logger';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 
 /**
  * TubeRepository implementation
@@ -26,7 +26,7 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 export class TubeRepository implements ITubeRepository {
   constructor(
     private context: PostgresContext,
-    private configurationRepository: ConfigurationRepository
+    private storageRepository: StorageRepository
   ) {}
 
   async findById(id: string, labId: string): Promise<Tube | null> {
@@ -605,7 +605,7 @@ export class TubeRepository implements ITubeRepository {
         logger.warn('[TubeRepository] No labId provided for position label parsing');
         return sql;
       }
-      const configuration = await this.configurationRepository.getForLab(labId);
+      const configuration = await this.storageRepository.getForLab(labId);
       if (!configuration) {
         logger.warn('[TubeRepository] No configuration found for position label parsing');
         return sql;

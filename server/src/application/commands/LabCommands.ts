@@ -5,7 +5,7 @@
  */
 
 import { LabRepository } from '@domain/repositories/LabRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { Lab } from '@domain/entities/Lab';
@@ -45,7 +45,7 @@ export interface ActivateLabCommand {
 export class CreateLabCommandHandler {
   constructor(
     private labRepository: LabRepository,
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
@@ -65,7 +65,7 @@ export class CreateLabCommandHandler {
     }
 
     await this.labRepository.save(lab);
-    await this.configurationRepository.ensureDefaultForLab(lab.id);
+    await this.storageRepository.ensureDefaultForLab(lab.id);
 
     await this.eventBus.publish(new LabCreatedEvent(lab.id, lab.name));
 

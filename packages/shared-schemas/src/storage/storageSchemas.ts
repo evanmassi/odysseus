@@ -108,11 +108,11 @@ const configurationPayloadSchema = z.object({
   currentLab: LabConfigurationSchema,
 });
 
-export const ConfigurationResponseSchema = z.object({
+export const StorageResponseSchema = z.object({
   configuration: configurationPayloadSchema,
 }).strict();
 
-export const SaveConfigurationRequestSchema = z.object({
+export const SaveStorageRequestSchema = z.object({
   configuration: configurationPayloadSchema,
 }).strict();
 
@@ -125,5 +125,5 @@ export type EquipmentConfiguration = z.infer<typeof EquipmentConfigurationSchema
 export type LabConfiguration = z.infer<typeof LabConfigurationSchema>;
 export type GlobalSettings = z.infer<typeof GlobalSettingsSchema>;
 export type SystemConfiguration = z.infer<typeof SystemConfigurationSchema>;
-export type ConfigurationResponse = z.infer<typeof ConfigurationResponseSchema>;
-export type SaveConfigurationRequest = z.infer<typeof SaveConfigurationRequestSchema>;
+export type StorageResponse = z.infer<typeof StorageResponseSchema>;
+export type SaveStorageRequest = z.infer<typeof SaveStorageRequestSchema>;

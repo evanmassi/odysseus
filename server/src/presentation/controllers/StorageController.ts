@@ -1,21 +1,21 @@
 import { Request, Response } from 'express';
 import { logger } from '@infrastructure/logging/logger';
 import {
-  GetCurrentConfigurationQueryHandler,
-  GetConfigurationForUserQueryHandler,
-  GetConfigurationHistoryQueryHandler,
-  GetConfigurationByVersionQueryHandler,
-  CheckConfigurationHealthQueryHandler
-} from '@application/queries/ConfigurationQueries';
+  GetCurrentStorageQueryHandler,
+  GetStorageForUserQueryHandler,
+  GetStorageHistoryQueryHandler,
+  GetStorageByVersionQueryHandler,
+  CheckStorageHealthQueryHandler
+} from '@application/queries/StorageQueries';
 import {
-  UpdateSystemConfigurationCommandHandler,
-  UpdateEquipmentConfigurationCommandHandler,
-  ResetConfigurationToDefaultCommandHandler,
-  ImportConfigurationCommandHandler,
+  UpdateSystemStorageCommandHandler,
+  UpdateEquipmentStorageCommandHandler,
+  ResetStorageToDefaultCommandHandler,
+  ImportStorageCommandHandler,
   UpdateBoxPositionDisplayCommandHandler,
   UpdateLabDefaultPositionDisplayCommandHandler,
   UpdateResourceLabelCommandHandler
-} from '@application/commands/ConfigurationCommands';
+} from '@application/commands/StorageCommands';
 import {
   AddTankCommandHandler,
   UpdateTankCommandHandler,
@@ -42,18 +42,18 @@ import {
   SeedDemoCommandHandler,
   UnseedDemoCommandHandler
 } from '@application/commands/DemoSeedCommands';
-import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
+import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
 import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ConflictError } from '@domain/errors/ConflictError';
-import { ConfigurationDto } from '@application/dto/ConfigurationDto';
+import { StorageDto } from '@application/dto/StorageDto';
 import { BaseController } from '@presentation/controllers/BaseController';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 
 /** Response shape for configuration import endpoint */
-interface ImportConfigurationResponse {
+interface ImportStorageResponse {
   success: boolean;
   warnings: string[];
   message: string;
@@ -64,34 +64,34 @@ interface ImportConfigurationResponse {
 }
 
 /**
- * Configuration Controller - CQRS-based configuration management
+ * Storage Controller - CQRS-based storage management
  *
  * Handles HTTP requests for system configuration operations.
  * Delegates business logic to CQRS command/query handlers.
  *
  * Routes:
- * - GET /api/configuration - Get current configuration
- * - PUT /api/configuration/system - Update system settings
- * - PUT /api/configuration/equipment - Update equipment configuration
- * - GET /api/configuration/history - Get configuration history
- * - GET /api/configuration/version/:version - Get specific version
- * - POST /api/configuration/reset - Reset to defaults
- * - POST /api/configuration/import - Import configuration
- * - GET /api/configuration/health - Configuration health check
+ * - GET /api/storage - Get current configuration
+ * - PUT /api/storage/system - Update system settings
+ * - PUT /api/storage/equipment - Update equipment configuration
+ * - GET /api/storage/history - Get configuration history
+ * - GET /api/storage/version/:version - Get specific version
+ * - POST /api/storage/reset - Reset to defaults
+ * - POST /api/storage/import - Import configuration
+ * - GET /api/storage/health - Storage health check
  */
-export interface ConfigurationControllerDeps {
+export interface StorageControllerDeps {
   // Query handlers
-  getCurrentConfigurationHandler: GetCurrentConfigurationQueryHandler;
-  getConfigurationForUserHandler: GetConfigurationForUserQueryHandler;
-  getConfigurationHistoryHandler: GetConfigurationHistoryQueryHandler;
-  getConfigurationByVersionHandler: GetConfigurationByVersionQueryHandler;
-  checkConfigurationHealthHandler: CheckConfigurationHealthQueryHandler;
+  getCurrentStorageHandler: GetCurrentStorageQueryHandler;
+  getStorageForUserHandler: GetStorageForUserQueryHandler;
+  getStorageHistoryHandler: GetStorageHistoryQueryHandler;
+  getStorageByVersionHandler: GetStorageByVersionQueryHandler;
+  checkStorageHealthHandler: CheckStorageHealthQueryHandler;
 
   // System-wide configuration handlers
-  updateSystemConfigurationHandler: UpdateSystemConfigurationCommandHandler;
-  updateEquipmentConfigurationHandler: UpdateEquipmentConfigurationCommandHandler;
-  resetConfigurationHandler: ResetConfigurationToDefaultCommandHandler;
-  importConfigurationHandler: ImportConfigurationCommandHandler;
+  updateSystemStorageHandler: UpdateSystemStorageCommandHandler;
+  updateEquipmentStorageHandler: UpdateEquipmentStorageCommandHandler;
+  resetStorageHandler: ResetStorageToDefaultCommandHandler;
+  importStorageHandler: ImportStorageCommandHandler;
   updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
   updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler;
   updateResourceLabelHandler: UpdateResourceLabelCommandHandler;
@@ -113,20 +113,20 @@ export interface ConfigurationControllerDeps {
   bulkReassignHandler: BulkReassignResourcesCommandHandler;
   seedDemoHandler: SeedDemoCommandHandler;
   unseedDemoHandler: UnseedDemoCommandHandler;
-  initializeConfigHandler: InitializeConfigurationCommandHandler;
+  initializeConfigHandler: InitializeStorageCommandHandler;
   labRepository: LabRepository;
 }
 
-export class ConfigurationController extends BaseController {
-  private getCurrentConfigurationHandler: GetCurrentConfigurationQueryHandler;
-  private getConfigurationForUserHandler: GetConfigurationForUserQueryHandler;
-  private getConfigurationHistoryHandler: GetConfigurationHistoryQueryHandler;
-  private getConfigurationByVersionHandler: GetConfigurationByVersionQueryHandler;
-  private checkConfigurationHealthHandler: CheckConfigurationHealthQueryHandler;
-  private updateSystemConfigurationHandler: UpdateSystemConfigurationCommandHandler;
-  private updateEquipmentConfigurationHandler: UpdateEquipmentConfigurationCommandHandler;
-  private resetConfigurationHandler: ResetConfigurationToDefaultCommandHandler;
-  private importConfigurationHandler: ImportConfigurationCommandHandler;
+export class StorageController extends BaseController {
+  private getCurrentStorageHandler: GetCurrentStorageQueryHandler;
+  private getStorageForUserHandler: GetStorageForUserQueryHandler;
+  private getStorageHistoryHandler: GetStorageHistoryQueryHandler;
+  private getStorageByVersionHandler: GetStorageByVersionQueryHandler;
+  private checkStorageHealthHandler: CheckStorageHealthQueryHandler;
+  private updateSystemStorageHandler: UpdateSystemStorageCommandHandler;
+  private updateEquipmentStorageHandler: UpdateEquipmentStorageCommandHandler;
+  private resetStorageHandler: ResetStorageToDefaultCommandHandler;
+  private importStorageHandler: ImportStorageCommandHandler;
   private updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
   private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler;
   private updateResourceLabelHandler: UpdateResourceLabelCommandHandler;
@@ -146,20 +146,20 @@ export class ConfigurationController extends BaseController {
   private bulkReassignHandler: BulkReassignResourcesCommandHandler;
   private seedDemoHandler: SeedDemoCommandHandler;
   private unseedDemoHandler: UnseedDemoCommandHandler;
-  private initializeConfigHandler: InitializeConfigurationCommandHandler;
+  private initializeConfigHandler: InitializeStorageCommandHandler;
   private labRepository: LabRepository;
 
-  constructor(deps: ConfigurationControllerDeps) {
+  constructor(deps: StorageControllerDeps) {
     super();
-    this.getCurrentConfigurationHandler = deps.getCurrentConfigurationHandler;
-    this.getConfigurationForUserHandler = deps.getConfigurationForUserHandler;
-    this.getConfigurationHistoryHandler = deps.getConfigurationHistoryHandler;
-    this.getConfigurationByVersionHandler = deps.getConfigurationByVersionHandler;
-    this.checkConfigurationHealthHandler = deps.checkConfigurationHealthHandler;
-    this.updateSystemConfigurationHandler = deps.updateSystemConfigurationHandler;
-    this.updateEquipmentConfigurationHandler = deps.updateEquipmentConfigurationHandler;
-    this.resetConfigurationHandler = deps.resetConfigurationHandler;
-    this.importConfigurationHandler = deps.importConfigurationHandler;
+    this.getCurrentStorageHandler = deps.getCurrentStorageHandler;
+    this.getStorageForUserHandler = deps.getStorageForUserHandler;
+    this.getStorageHistoryHandler = deps.getStorageHistoryHandler;
+    this.getStorageByVersionHandler = deps.getStorageByVersionHandler;
+    this.checkStorageHealthHandler = deps.checkStorageHealthHandler;
+    this.updateSystemStorageHandler = deps.updateSystemStorageHandler;
+    this.updateEquipmentStorageHandler = deps.updateEquipmentStorageHandler;
+    this.resetStorageHandler = deps.resetStorageHandler;
+    this.importStorageHandler = deps.importStorageHandler;
     this.updateBoxPositionDisplayHandler = deps.updateBoxPositionDisplayHandler;
     this.updateLabDefaultPositionDisplayHandler = deps.updateLabDefaultPositionDisplayHandler;
     this.updateResourceLabelHandler = deps.updateResourceLabelHandler;
@@ -186,11 +186,11 @@ export class ConfigurationController extends BaseController {
   // QUERY ENDPOINTS
 
   /**
-   * GET /api/configuration
+   * GET /api/storage
    * Get current system configuration filtered by user's demo status.
    * Demo users see only demo tanks; real users see only real tanks.
    */
-  async getCurrentConfiguration(req: Request, res: Response): Promise<void> {
+  async getCurrentStorage(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user;
 
@@ -208,10 +208,10 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
-      const configuration = await this.getConfigurationForUserHandler.handle({ labId: user.labId, user });
+      const configuration = await this.getStorageForUserHandler.handle({ labId: user.labId, user });
 
       // Use DTO to transform domain entity to API response format
-      const configurationResponse = ConfigurationDto.toResponse(configuration);
+      const configurationResponse = StorageDto.toResponse(configuration);
 
       if (user.isDemo) {
         const lab = await this.labRepository.findById(user.labId);
@@ -231,16 +231,16 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * GET /api/configuration/history
+   * GET /api/storage/history
    * Get configuration history with pagination
    */
-  async getConfigurationHistory(req: Request, res: Response): Promise<void> {
+  async getStorageHistory(req: Request, res: Response): Promise<void> {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
       
       const labId = this.extractLabId(req);
-      const history = await this.getConfigurationHistoryHandler.handle({
+      const history = await this.getStorageHistoryHandler.handle({
         labId,
         limit,
         offset
@@ -267,10 +267,10 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * GET /api/configuration/version/:version
+   * GET /api/storage/version/:version
    * Get specific configuration version
    */
-  async getConfigurationByVersion(req: Request, res: Response): Promise<void> {
+  async getStorageByVersion(req: Request, res: Response): Promise<void> {
     try {
       const version = parseInt(req.params.version);
       
@@ -282,7 +282,7 @@ export class ConfigurationController extends BaseController {
       }
       
       const labId = this.extractLabId(req);
-      const configuration = await this.getConfigurationByVersionHandler.handle({
+      const configuration = await this.getStorageByVersionHandler.handle({
         labId,
         version
       });
@@ -302,13 +302,13 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * GET /api/configuration/version
+   * GET /api/storage/version
    * Get current configuration version (lightweight endpoint for cache validation)
    */
-  async getConfigurationVersion(req: Request, res: Response): Promise<void> {
+  async getStorageVersion(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const configuration = await this.getCurrentConfigurationHandler.handle({ labId });
+      const configuration = await this.getCurrentStorageHandler.handle({ labId });
 
       res.json({
         success: true,
@@ -324,13 +324,13 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * GET /api/configuration/health
+   * GET /api/storage/health
    * Check configuration system health
    */
-  async checkConfigurationHealth(req: Request, res: Response): Promise<void> {
+  async checkStorageHealth(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const health = await this.checkConfigurationHealthHandler.handle({ labId });
+      const health = await this.checkStorageHealthHandler.handle({ labId });
       
       res.json({
         status: health.isHealthy ? 'healthy' : 'unhealthy',
@@ -347,24 +347,24 @@ export class ConfigurationController extends BaseController {
   // COMMAND ENDPOINTS
 
   /**
-   * PUT /api/configuration/system
+   * PUT /api/storage/system
    * Update system configuration settings
    */
-  async updateSystemConfiguration(req: Request, res: Response): Promise<void> {
+  async updateSystemStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = this.extractLabId(req);
 
-      const updatedConfiguration = await this.updateSystemConfigurationHandler.handle({
+      const updatedStorage = await this.updateSystemStorageHandler.handle({
         userId,
         labId,
         systemSettings: req.body
       });
       
       res.json({
-        version: updatedConfiguration.version,
-        lastUpdated: updatedConfiguration.updatedAt,
-        systemSettings: updatedConfiguration.systemSettings
+        version: updatedStorage.version,
+        lastUpdated: updatedStorage.updatedAt,
+        systemSettings: updatedStorage.systemSettings
       });
       
     } catch (error) {
@@ -373,15 +373,15 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/equipment
+   * PUT /api/storage/equipment
    * Update equipment configuration
    */
-  async updateEquipmentConfiguration(req: Request, res: Response): Promise<void> {
+  async updateEquipmentStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = this.extractLabId(req);
 
-      const updatedConfiguration = await this.updateEquipmentConfigurationHandler.handle({
+      const updatedStorage = await this.updateEquipmentStorageHandler.handle({
         userId,
         labId,
         tanks: req.body.tanks,
@@ -390,9 +390,9 @@ export class ConfigurationController extends BaseController {
       });
       
       res.json({
-        version: updatedConfiguration.version,
-        lastUpdated: updatedConfiguration.updatedAt,
-        equipment: updatedConfiguration.equipment
+        version: updatedStorage.version,
+        lastUpdated: updatedStorage.updatedAt,
+        equipment: updatedStorage.equipment
       });
       
     } catch (error) {
@@ -401,10 +401,10 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * POST /api/configuration/reset
+   * POST /api/storage/reset
    * Reset configuration to factory defaults
    */
-  async resetConfigurationToDefault(req: Request, res: Response): Promise<void> {
+  async resetStorageToDefault(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = this.extractLabId(req);
@@ -417,16 +417,16 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
-      const defaultConfiguration = await this.resetConfigurationHandler.handle({
+      const defaultStorage = await this.resetStorageHandler.handle({
         userId,
         labId,
         confirmationToken
       });
       
       res.json({
-        message: 'Configuration reset to defaults successfully',
-        version: defaultConfiguration.version,
-        lastUpdated: defaultConfiguration.updatedAt
+        message: 'Storage reset to defaults successfully',
+        version: defaultStorage.version,
+        lastUpdated: defaultStorage.updatedAt
       });
       
     } catch (error) {
@@ -435,16 +435,16 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * POST /api/configuration/import
+   * POST /api/storage/import
    * Import configuration from JSON data
    */
-  async importConfiguration(req: Request, res: Response): Promise<void> {
+  async importStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = this.extractLabId(req);
       const validateOnly = req.query.validateOnly === 'true';
 
-      const result = await this.importConfigurationHandler.handle({
+      const result = await this.importStorageHandler.handle({
         userId,
         labId,
         configurationData: req.body,
@@ -453,19 +453,19 @@ export class ConfigurationController extends BaseController {
       
       if (!result.isValid) {
         res.status(400).json({
-          error: 'Configuration import validation failed',
+          error: 'Storage import validation failed',
           errors: result.errors,
           warnings: result.warnings
         });
         return;
       }
       
-      const response: ImportConfigurationResponse = {
+      const response: ImportStorageResponse = {
         success: true,
         warnings: result.warnings,
         message: validateOnly
-          ? 'Configuration validation successful'
-          : 'Configuration imported successfully'
+          ? 'Storage validation successful'
+          : 'Storage imported successfully'
       };
 
       if (result.configuration) {
@@ -483,7 +483,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/box-position-display
+   * PUT /api/storage/box-position-display
    * Update position display configuration for a specific box
    */
   async updateBoxPositionDisplay(req: Request, res: Response): Promise<void> {
@@ -503,7 +503,7 @@ export class ConfigurationController extends BaseController {
 
       const labId = this.extractLabId(req);
 
-      const updatedConfiguration = await this.updateBoxPositionDisplayHandler.handle({
+      const updatedStorage = await this.updateBoxPositionDisplayHandler.handle({
         userId,
         labId,
         tankId,
@@ -515,8 +515,8 @@ export class ConfigurationController extends BaseController {
       res.json({
         success: true,
         message: `Position display updated for box ${boxId}`,
-        version: updatedConfiguration.version,
-        lastUpdated: updatedConfiguration.updatedAt
+        version: updatedStorage.version,
+        lastUpdated: updatedStorage.updatedAt
       });
 
     } catch (error) {
@@ -525,7 +525,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/lab-position-display
+   * PUT /api/storage/lab-position-display
    * Update lab-wide default position display format
    */
   async updateLabDefaultPositionDisplay(req: Request, res: Response): Promise<void> {
@@ -534,7 +534,7 @@ export class ConfigurationController extends BaseController {
       const labId = this.extractLabId(req);
       const { positionDisplay } = req.body;
 
-      const updatedConfiguration = await this.updateLabDefaultPositionDisplayHandler.handle({
+      const updatedStorage = await this.updateLabDefaultPositionDisplayHandler.handle({
         userId,
         labId,
         positionDisplay: positionDisplay || null
@@ -545,8 +545,8 @@ export class ConfigurationController extends BaseController {
         message: positionDisplay
           ? `Lab default position display updated to ${positionDisplay.format}`
           : 'Lab default position display cleared',
-        version: updatedConfiguration.version,
-        lastUpdated: updatedConfiguration.updatedAt
+        version: updatedStorage.version,
+        lastUpdated: updatedStorage.updatedAt
       });
 
     } catch (error) {
@@ -555,7 +555,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/resource-label
+   * PUT /api/storage/resource-label
    * Update custom label for a rack or box
    *
    * This endpoint uses fine-grained permissions (canEditResource) rather than
@@ -599,7 +599,7 @@ export class ConfigurationController extends BaseController {
 
       const labId = this.extractLabId(req);
 
-      const updatedConfiguration = await this.updateResourceLabelHandler.handle({
+      const updatedStorage = await this.updateResourceLabelHandler.handle({
         userId,
         labId,
         resourceType,
@@ -612,8 +612,8 @@ export class ConfigurationController extends BaseController {
       res.json({
         success: true,
         message: `Label updated for ${resourceType} ${resourceType === 'box' ? boxId : rackId}`,
-        version: updatedConfiguration.version,
-        lastUpdated: updatedConfiguration.updatedAt
+        version: updatedStorage.version,
+        lastUpdated: updatedStorage.updatedAt
       });
 
     } catch (error) {
@@ -622,7 +622,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * GET /api/configuration/position-display-presets
+   * GET /api/storage/position-display-presets
    * Get available position display format presets
    */
   async getPositionDisplayPresets(req: Request, res: Response): Promise<void> {
@@ -650,7 +650,7 @@ export class ConfigurationController extends BaseController {
   // CQRS TANK ENDPOINTS
 
   /**
-   * POST /api/configuration/tanks
+   * POST /api/storage/tanks
    * Add a new tank
    */
   async addTank(req: Request, res: Response): Promise<void> {
@@ -680,7 +680,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/tanks/:tankId
+   * PUT /api/storage/tanks/:tankId
    * Update a tank
    */
   async updateTank(req: Request, res: Response): Promise<void> {
@@ -704,7 +704,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * DELETE /api/configuration/tanks/:tankId
+   * DELETE /api/storage/tanks/:tankId
    * Delete a tank
    */
   async deleteTank(req: Request, res: Response): Promise<void> {
@@ -728,7 +728,7 @@ export class ConfigurationController extends BaseController {
   // CQRS RACK ENDPOINTS
 
   /**
-   * POST /api/configuration/tanks/:tankId/racks
+   * POST /api/storage/tanks/:tankId/racks
    * Add rack(s) to a tank
    */
   async addRacks(req: Request, res: Response): Promise<void> {
@@ -752,7 +752,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/tanks/:tankId/racks/:rackId
+   * PUT /api/storage/tanks/:tankId/racks/:rackId
    * Update a rack
    */
   async updateRack(req: Request, res: Response): Promise<void> {
@@ -776,7 +776,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * DELETE /api/configuration/tanks/:tankId/racks/:rackId
+   * DELETE /api/storage/tanks/:tankId/racks/:rackId
    * Delete a rack
    */
   async deleteRack(req: Request, res: Response): Promise<void> {
@@ -798,7 +798,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/tanks/:tankId/racks/:rackId/assign
+   * PUT /api/storage/tanks/:tankId/racks/:rackId/assign
    * Assign or unassign a rack
    */
   async assignRack(req: Request, res: Response): Promise<void> {
@@ -832,7 +832,7 @@ export class ConfigurationController extends BaseController {
   // CQRS BOX ENDPOINTS
 
   /**
-   * POST /api/configuration/tanks/:tankId/racks/:rackId/boxes
+   * POST /api/storage/tanks/:tankId/racks/:rackId/boxes
    * Add box(es) to a rack
    */
   async addBoxes(req: Request, res: Response): Promise<void> {
@@ -856,7 +856,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId
+   * PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId
    * Update a box
    */
   async updateBox(req: Request, res: Response): Promise<void> {
@@ -890,7 +890,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * DELETE /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId
+   * DELETE /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId
    * Delete a box
    */
   async deleteBox(req: Request, res: Response): Promise<void> {
@@ -912,7 +912,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * PUT /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId/assign
+   * PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId/assign
    * Assign or unassign a box
    */
   async assignBox(req: Request, res: Response): Promise<void> {
@@ -947,7 +947,7 @@ export class ConfigurationController extends BaseController {
   // BULK ASSIGNMENT ENDPOINTS
 
   /**
-   * POST /api/configuration/bulk-unassign
+   * POST /api/storage/bulk-unassign
    * Unassign all resources from a user
    */
   async bulkUnassignResources(req: Request, res: Response): Promise<void> {
@@ -980,7 +980,7 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * POST /api/configuration/bulk-reassign
+   * POST /api/storage/bulk-reassign
    * Reassign all resources from one user to another
    */
   async bulkReassignResources(req: Request, res: Response): Promise<void> {
@@ -1015,10 +1015,10 @@ export class ConfigurationController extends BaseController {
   // INITIALIZE ENDPOINT
 
   /**
-   * POST /api/configuration/initialize
+   * POST /api/storage/initialize
    * Initialize configuration for fresh install
    */
-  async initializeConfiguration(req: Request, res: Response): Promise<void> {
+  async initializeStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const { labName, tankCount, racksPerTank, boxesPerRack } = req.body;
@@ -1054,7 +1054,7 @@ export class ConfigurationController extends BaseController {
       res.status(201).json({
         success: true,
         data: { success: true },
-        message: `Configuration initialized for lab '${labName}'`
+        message: `Storage initialized for lab '${labName}'`
       });
     } catch (error) {
       this.handleError(error, res, 'Failed to initialize configuration');
@@ -1078,7 +1078,7 @@ export class ConfigurationController extends BaseController {
    * Centralized error handling
    */
   private handleError(error: unknown, res: Response, fallbackMessage: string): void {
-    logger.error('Configuration API error:', { error });
+    logger.error('Storage API error:', { error });
 
     if (error instanceof PermissionError) {
       res.status(403).json({

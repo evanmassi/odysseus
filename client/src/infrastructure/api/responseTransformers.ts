@@ -35,7 +35,7 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   Researcher: new Set(['createdAt', 'updatedAt']),
   TankConfiguration: new Set(['createdAt', 'updatedAt']),
   LabConfiguration: new Set(['createdAt', 'updatedAt']),
-  ConfigurationResponse: new Set(['createdAt', 'updatedAt']), // Also applied to nested configs (labs, tanks, racks, boxes)
+  StorageResponse: new Set(['createdAt', 'updatedAt']), // Also applied to nested configs (labs, tanks, racks, boxes)
   UserSettings: new Set([]),
   UserSettingsResponse: new Set([]),
   AdminUser: new Set(['createdAt', 'lastActivity']),

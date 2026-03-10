@@ -1,7 +1,7 @@
 import { User } from '@domain/entities/User';
 import { Tube } from '@domain/entities/Tube';
 import { Researcher } from '@domain/entities/Researcher';
-import { Configuration } from '@domain/entities/Configuration';
+import { Storage } from '@domain/entities/Storage';
 import { Location } from '@domain/valueObjects/Location';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -461,7 +461,7 @@ export class AccessControlService {
   /**
    * Check if user can modify system configuration
    */
-  async canModifyConfiguration(user: User): Promise<AccessResult> {
+  async canModifyStorage(user: User): Promise<AccessResult> {
     if (!user.hasPermission('manage_configuration')) {
       return this.createDeniedResult('User does not have permission to modify configuration');
     }
@@ -473,7 +473,7 @@ export class AccessControlService {
    * Check if user can delete equipment (tanks, racks, boxes)
    */
   async canDeleteEquipment(user: User, equipmentType: 'tank' | 'rack' | 'box', equipmentId: string): Promise<AccessResult> {
-    const configCheck = await this.canModifyConfiguration(user);
+    const configCheck = await this.canModifyStorage(user);
     if (!configCheck.allowed) {
       return configCheck;
     }

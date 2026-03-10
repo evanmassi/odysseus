@@ -10,7 +10,7 @@ import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 
 export class AuthRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
@@ -18,10 +18,10 @@ export class AuthRouteModule implements RouteModule {
   constructor(
     private readonly authController: AuthController,
     private readonly authMiddleware: AuthMiddleware,
-    configurationRepository: ConfigurationRepository
+    storageRepository: StorageRepository
   ) {
     // Create rate limit middleware with injected repository
-    this.rateLimitMiddleware = createRateLimitMiddleware(configurationRepository);
+    this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
 
   getBasePath(): string {

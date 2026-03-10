@@ -1,8 +1,8 @@
 import { Location } from '@domain/valueObjects/Location';
 import { Tube } from '@domain/entities/Tube';
-import { Configuration } from '@domain/entities/Configuration';
+import { Storage } from '@domain/entities/Storage';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { ValidationError } from '@domain/errors/ValidationError';
 import type { PositionConflict, PositionValidation, PositionValidationWithWarnings, PositionValidationResult, BoxStatistics } from '@domain/types/services';
 
@@ -10,7 +10,7 @@ export class TubePositionService {
 
   constructor(
     private tubeRepository: TubeRepository,
-    private configurationRepository: ConfigurationRepository
+    private storageRepository: StorageRepository
   ) {}
 
   // POSITION VALIDATION
@@ -53,25 +53,25 @@ export class TubePositionService {
     const result: PositionValidation = { isValid: true, errors: [] };
 
     try {
-      const isValid = await this.configurationRepository.isLocationValid(labId, location);
+      const isValid = await this.storageRepository.isLocationValid(labId, location);
 
       if (!isValid) {
         result.isValid = false;
         result.errors.push(`Location ${location.toString()} does not exist in equipment configuration`);
 
-        const tankExists = await this.configurationRepository.tankExists(labId, location.tankId);
+        const tankExists = await this.storageRepository.tankExists(labId, location.tankId);
         if (!tankExists) {
           result.errors.push(`Tank '${location.tankId}' does not exist`);
         } else {
-          const rackExists = await this.configurationRepository.rackExists(labId, location.tankId, location.rackId);
+          const rackExists = await this.storageRepository.rackExists(labId, location.tankId, location.rackId);
           if (!rackExists) {
             result.errors.push(`Rack ${location.rackId} does not exist in tank '${location.tankId}'`);
           } else {
-            const boxExists = await this.configurationRepository.boxExists(labId, location.tankId, location.rackId, location.boxId);
+            const boxExists = await this.storageRepository.boxExists(labId, location.tankId, location.rackId, location.boxId);
             if (!boxExists) {
               result.errors.push(`Box '${location.boxId}' does not exist in rack ${location.rackId} of tank '${location.tankId}'`);
             } else {
-              const maxPosition = await this.configurationRepository.getMaxPosition(labId, location.tankId, location.rackId, location.boxId);
+              const maxPosition = await this.storageRepository.getMaxPosition(labId, location.tankId, location.rackId, location.boxId);
               if (location.position > maxPosition) {
                 result.errors.push(`Position ${location.position} exceeds maximum position ${maxPosition} for this box`);
               }
@@ -120,7 +120,7 @@ export class TubePositionService {
         labId
       );
 
-      const maxPosition = await this.configurationRepository.getMaxPosition(
+      const maxPosition = await this.storageRepository.getMaxPosition(
         labId,
         location.tankId,
         location.rackId,
@@ -167,7 +167,7 @@ export class TubePositionService {
         labId
       );
 
-      const availablePositions = await this.configurationRepository.getAvailablePositions(
+      const availablePositions = await this.storageRepository.getAvailablePositions(
         labId,
         location.tankId,
         location.rackId,
@@ -208,7 +208,7 @@ export class TubePositionService {
     try {
       const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId, labId);
       const boxTubes = tubes.filter(tube => tube.tankId === tankId);
-      const maxPosition = await this.configurationRepository.getMaxPosition(labId, tankId, rackId, boxId);
+      const maxPosition = await this.storageRepository.getMaxPosition(labId, tankId, rackId, boxId);
 
       const researchers = new Set(boxTubes.map(tube => tube.researcherId).filter(r => r));      const cellTypes = new Set(boxTubes.map(tube => tube.cellType).filter(ct => ct));
 
@@ -282,7 +282,7 @@ export class TubePositionService {
   validatePositionBatch(
     positions: Array<{ tankId: string; rackId: string; boxId: string; position: number }>,
     preloadedData: {
-      config: Configuration;
+      config: Storage;
       occupiedPositions: Set<number>;
       maxPosition: number;
       tubesInBox: Tube[];

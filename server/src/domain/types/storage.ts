@@ -1,12 +1,12 @@
 /**
  * Configuration Import Types
  *
- * Shape accepted by Configuration.fromData() for importing lab configuration.
+ * Shape accepted by Storage.fromData() for importing lab configuration.
  */
 
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 
-export interface ConfigurationImportData {
+export interface StorageImportData {
   tanks: Array<{
     id: string;
     name: string;

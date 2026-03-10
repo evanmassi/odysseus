@@ -1,26 +1,26 @@
-import { Configuration } from '@domain/entities/Configuration';
+import { Storage } from '@domain/entities/Storage';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { NAMING_PATTERNS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import type {
-  ConfigurationResponse,
+  StorageResponse,
   SystemConfiguration,
 } from '@odysseus/shared-schemas';
 
 /**
- * ConfigurationDto - Application Layer DTO
+ * StorageDto - Application Layer DTO
  *
  * Handles bidirectional transformation between Domain Entity and API format.
  * Key responsibility: Box name transformation
  *   - LOAD: server {name: "A"} → client {id: "A", name: "Box A"}
  *   - SAVE: client {id: "A", name: "Box A"} → server {name: "A"}
  */
-export class ConfigurationDto {
+export class StorageDto {
 
   /**
    * Convert domain Configuration entity to API response format
-   * Matches ConfigurationResponseSchema from shared-schemas
+   * Matches StorageResponseSchema from shared-schemas
    */
-  static toResponse(config: Configuration): ConfigurationResponse {
+  static toResponse(config: Storage): StorageResponse {
     const configData = config.toData();
     const defaultGridConfig = {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,

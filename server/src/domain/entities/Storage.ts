@@ -15,7 +15,7 @@ import {
  * Represents the complete system configuration including equipment
  * Contains all business logic for system configuration management
  */
-export class Configuration {
+export class Storage {
   private constructor(
     private _equipment: EquipmentConfiguration,
     private _systemSettings: SystemSettings,
@@ -28,7 +28,7 @@ export class Configuration {
   /**
    * Factory method to create default configuration
    */
-  static createDefault(): Configuration {
+  static createDefault(): Storage {
     // Create default boxes A-J for each rack
     const defaultBoxes: Box[] = [];
     for (let i = 0; i < EQUIPMENT_DEFAULTS.BOXES_PER_RACK; i++) {
@@ -53,7 +53,7 @@ export class Configuration {
     const equipment = EquipmentConfiguration.create(defaultTanks);
     const systemSettings = SystemSettings.createDefault();
 
-    return new Configuration(equipment, systemSettings, new Date(), 1);
+    return new Storage(equipment, systemSettings, new Date(), 1);
   }
 
   /**
@@ -101,7 +101,7 @@ export class Configuration {
     };
     updatedAt?: string;
     version?: number;
-  }): Configuration {
+  }): Storage {
     // Reconstruct tanks with nested racks and boxes
     const tanks = data.tanks.map(tankData => {
       const racks = tankData.racks.map(rackData => {
@@ -156,7 +156,7 @@ export class Configuration {
     const equipment = EquipmentConfiguration.create(tanks);
     const systemSettings = SystemSettings.fromData(data.systemSettings);
 
-    return new Configuration(
+    return new Storage(
       equipment,
       systemSettings,
       data.updatedAt ? new Date(data.updatedAt) : new Date(),
@@ -169,7 +169,7 @@ export class Configuration {
    */
   private validate(): void {
     if (this._version < 1) {
-      throw new ValidationError('Configuration version must be at least 1');
+      throw new ValidationError('Storage configuration version must be at least 1');
     }
     
     // Equipment configuration validates itself
@@ -341,9 +341,9 @@ export class Configuration {
     autoSave?: boolean;
     auditTrailEnabled?: boolean;
     syncEnabled?: boolean;
-  }): Configuration {
+  }): Storage {
     const newSystemSettings = this._systemSettings.update(updates);
-    return new Configuration(
+    return new Storage(
       this._equipment,
       newSystemSettings,
       new Date(),
@@ -355,9 +355,9 @@ export class Configuration {
    * Business method: Update tanks configuration
    * Tanks now contain nested racks and boxes
    */
-  updateTanks(tanks: Tank[]): Configuration {
+  updateTanks(tanks: Tank[]): Storage {
     const newEquipment = EquipmentConfiguration.create(tanks);
-    return new Configuration(
+    return new Storage(
       newEquipment,
       this._systemSettings,
       new Date(),
@@ -368,7 +368,7 @@ export class Configuration {
   /**
    * Business method: Update racks configuration for a specific tank
    */
-  updateRacks(tankId: string, racks: Rack[]): Configuration {
+  updateRacks(tankId: string, racks: Rack[]): Storage {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
       throw new ValidationError(`Tank '${tankId}' not found`);
@@ -389,7 +389,7 @@ export class Configuration {
     newTanks[tankIndex] = updatedTank;
 
     const newEquipment = EquipmentConfiguration.create(newTanks);
-    return new Configuration(
+    return new Storage(
       newEquipment,
       this._systemSettings,
       new Date(),
@@ -400,7 +400,7 @@ export class Configuration {
   /**
    * Business method: Update boxes configuration for a specific rack
    */
-  updateBoxes(tankId: string, rackId: string, boxes: Box[]): Configuration {
+  updateBoxes(tankId: string, rackId: string, boxes: Box[]): Storage {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
       throw new ValidationError(`Tank '${tankId}' not found`);
@@ -444,7 +444,7 @@ export class Configuration {
     newTanks[tankIndex] = updatedTank;
 
     const newEquipment = EquipmentConfiguration.create(newTanks);
-    return new Configuration(
+    return new Storage(
       newEquipment,
       this._systemSettings,
       new Date(),
@@ -469,7 +469,7 @@ export class Configuration {
     rackId: string,
     boxId: string,
     positionDisplay: PositionDisplayConfig | null
-  ): Configuration {
+  ): Storage {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
       throw new ValidationError(`Tank '${tankId}' not found`);
@@ -538,8 +538,8 @@ export class Configuration {
     // Create new equipment configuration
     const newEquipment = EquipmentConfiguration.create(newTanks);
 
-    // Return new Configuration instance (immutability)
-    return new Configuration(
+    // Return new Storage instance (immutability)
+    return new Storage(
       newEquipment,
       this._systemSettings,
       new Date(),
@@ -919,12 +919,12 @@ export class Configuration {
    */
   updateLabDefaultPositionDisplay(
     positionDisplay: PositionDisplayConfig | null
-  ): Configuration {
+  ): Storage {
     const newSystemSettings = this._systemSettings.update({
       defaultPositionDisplay: positionDisplay
     });
 
-    return new Configuration(
+    return new Storage(
       this._equipment,
       newSystemSettings,
       new Date(),

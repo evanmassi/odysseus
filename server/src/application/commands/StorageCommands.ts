@@ -1,9 +1,9 @@
-import { Configuration } from '@domain/entities/Configuration';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { Storage } from '@domain/entities/Storage';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ValidationService } from '@domain/services/ValidationService';
-import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
+import { StorageChangeDetector } from '@domain/services/StorageChangeDetector';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { User } from '@domain/entities/User';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
@@ -14,7 +14,7 @@ import { rejectDemoConfigOperation } from '@application/guards/DemoGuards';
 import { logger } from '@infrastructure/logging/logger';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
-import type { ConfigurationImportData } from '@domain/types/configuration';
+import type { StorageImportData } from '@domain/types/storage';
 import {
   RackAssignedEvent,
   RackUnassignedEvent,
@@ -26,14 +26,14 @@ import {
   BoxLabelUpdatedEvent,
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
-} from '@domain/events/ConfigurationEvents';
+} from '@domain/events/StorageEvents';
 
 // CONFIGURATION COMMAND CONTRACTS
 
 /**
  * Update System Configuration Command
  */
-export interface UpdateSystemConfigurationCommand {
+export interface UpdateSystemStorageCommand {
   userId: string;
   labId: string;
   systemSettings: {
@@ -50,7 +50,7 @@ export interface UpdateSystemConfigurationCommand {
 /**
  * Update Equipment Configuration Command
  */
-export interface UpdateEquipmentConfigurationCommand {
+export interface UpdateEquipmentStorageCommand {
   userId: string;
   labId: string;
   tanks?: Array<{
@@ -78,7 +78,7 @@ export interface UpdateEquipmentConfigurationCommand {
 /**
  * Reset Configuration to Default Command
  */
-export interface ResetConfigurationToDefaultCommand {
+export interface ResetStorageToDefaultCommand {
   userId: string;
   labId: string;
   confirmationToken: string;
@@ -87,10 +87,10 @@ export interface ResetConfigurationToDefaultCommand {
 /**
  * Import Configuration Command
  */
-export interface ImportConfigurationCommand {
+export interface ImportStorageCommand {
   userId: string;
   labId: string;
-  configurationData: ConfigurationImportData;
+  configurationData: StorageImportData;
   validateOnly?: boolean;
 }
 
@@ -103,21 +103,21 @@ export interface ImportConfigurationCommand {
  * Validates permissions and business rules before applying changes.
  * 
  * @example
- * const handler = new UpdateSystemConfigurationCommandHandler(configRepo, validationService);
+ * const handler = new UpdateSystemStorageCommandHandler(configRepo, validationService);
  * await handler.handle({
  *   userId: 'admin-user-id',
  *   systemSettings: { labName: 'New Lab Name', timezone: 'UTC' }
  * });
  */
-export class UpdateSystemConfigurationCommandHandler {
+export class UpdateSystemStorageCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private validationService: ValidationService,
     private userRepository: UserRepository
   ) {}
 
-  async handle(command: UpdateSystemConfigurationCommand): Promise<Configuration> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+  async handle(command: UpdateSystemStorageCommand): Promise<Storage> {
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -130,7 +130,7 @@ export class UpdateSystemConfigurationCommandHandler {
     const updatedConfig = currentConfig.updateSystemSettings(command.systemSettings);
     
     // Validate the configuration update
-    const validationResult = await this.validationService.validateConfigurationUpdate(
+    const validationResult = await this.validationService.validateStorageUpdate(
       currentConfig,
       updatedConfig,
       user,
@@ -145,7 +145,7 @@ export class UpdateSystemConfigurationCommandHandler {
 
     // Save the updated configuration with optimistic locking
     const expectedVersion = currentConfig.version;
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       updatedConfig,
       expectedVersion,
@@ -173,20 +173,20 @@ export class UpdateSystemConfigurationCommandHandler {
  * Validates that changes don't break existing tube assignments.
  * 
  * @example
- * const handler = new UpdateEquipmentConfigurationCommandHandler(configRepo, validationService);
+ * const handler = new UpdateEquipmentStorageCommandHandler(configRepo, validationService);
  * await handler.handle({
  *   userId: 'admin-user-id',
  *   tanks: [{ id: 'tank-1', name: 'Main Tank', capacity: 100, isActive: true }]
  * });
  */
-export class UpdateEquipmentConfigurationCommandHandler {
+export class UpdateEquipmentStorageCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private validationService: ValidationService
   ) {}
 
-  async handle(command: UpdateEquipmentConfigurationCommand): Promise<Configuration> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+  async handle(command: UpdateEquipmentStorageCommand): Promise<Storage> {
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -218,7 +218,7 @@ export class UpdateEquipmentConfigurationCommandHandler {
     }
 
     // Validate the configuration update
-    const validationResult = await this.validationService.validateConfigurationUpdate(
+    const validationResult = await this.validationService.validateStorageUpdate(
       currentConfig,
       updatedConfig,
       user,
@@ -233,7 +233,7 @@ export class UpdateEquipmentConfigurationCommandHandler {
 
     // Save the updated configuration with optimistic locking
     const expectedVersion = currentConfig.version;
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       updatedConfig,
       expectedVersion,
@@ -257,17 +257,17 @@ export class UpdateEquipmentConfigurationCommandHandler {
  * This is a destructive operation requiring special confirmation.
  * Validates that no tubes exist before resetting to prevent orphaned data.
  */
-export class ResetConfigurationToDefaultCommandHandler {
+export class ResetStorageToDefaultCommandHandler {
   private static readonly CONFIRMATION_TOKEN = 'RESET_CONFIRM_TOKEN';
 
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private tubeRepository: TubeRepository,
     private userRepository: UserRepository
   ) {}
 
-  async handle(command: ResetConfigurationToDefaultCommand): Promise<Configuration> {
-    if (command.confirmationToken !== ResetConfigurationToDefaultCommandHandler.CONFIRMATION_TOKEN) {
+  async handle(command: ResetStorageToDefaultCommand): Promise<Storage> {
+    if (command.confirmationToken !== ResetStorageToDefaultCommandHandler.CONFIRMATION_TOKEN) {
       throw new ValidationError('Invalid confirmation token for configuration reset');
     }
 
@@ -286,12 +286,12 @@ export class ResetConfigurationToDefaultCommandHandler {
       );
     }
 
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     const expectedVersion = currentConfig?.version ?? 0;
 
-    const defaultConfig = Configuration.createDefault();
+    const defaultConfig = Storage.createDefault();
 
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       defaultConfig,
       expectedVersion,
@@ -319,27 +319,27 @@ export class ResetConfigurationToDefaultCommandHandler {
  * Validates imported data before applying changes.
  * 
  * @example
- * const handler = new ImportConfigurationCommandHandler(configRepo, validationService);
+ * const handler = new ImportStorageCommandHandler(configRepo, validationService);
  * const result = await handler.handle({
  *   userId: 'admin-user-id',
  *   configurationData: importedJson,
  *   validateOnly: true
  * });
  */
-export class ImportConfigurationCommandHandler {
+export class ImportStorageCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private validationService: ValidationService
   ) {}
 
-  async handle(command: ImportConfigurationCommand): Promise<ImportResult> {
+  async handle(command: ImportStorageCommand): Promise<ImportResult> {
     try {
       // Get user for permission validation
       const user = await this.getUserById(command.userId);
       rejectDemoConfigOperation(user, 'Import configuration');
 
       // Parse and validate imported configuration
-      const importedConfig = Configuration.fromData(command.configurationData);
+      const importedConfig = Storage.fromData(command.configurationData);
       
       // If validate-only mode, return validation results without saving
       if (command.validateOnly) {
@@ -351,11 +351,11 @@ export class ImportConfigurationCommandHandler {
         };
       }
 
-      const currentConfig = await this.configurationRepository.getForLab(command.labId);
+      const currentConfig = await this.storageRepository.getForLab(command.labId);
       
       if (currentConfig) {
         // Validate the configuration update
-        const validationResult = await this.validationService.validateConfigurationUpdate(
+        const validationResult = await this.validationService.validateStorageUpdate(
           currentConfig,
           importedConfig,
           user,
@@ -374,7 +374,7 @@ export class ImportConfigurationCommandHandler {
 
       // Save imported configuration with optimistic locking
       const expectedVersion = currentConfig?.version ?? 0;
-      const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      const newVersion = await this.storageRepository.saveWithOptimisticLock(
         command.labId,
         importedConfig,
         expectedVersion,
@@ -437,13 +437,13 @@ export interface UpdateBoxPositionDisplayCommand {
  */
 export class UpdateBoxPositionDisplayCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private validationService: ValidationService,
     private userRepository: UserRepository
   ) {}
 
-  async handle(command: UpdateBoxPositionDisplayCommand): Promise<Configuration> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+  async handle(command: UpdateBoxPositionDisplayCommand): Promise<Storage> {
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -473,7 +473,7 @@ export class UpdateBoxPositionDisplayCommandHandler {
     );
 
     // Validate the configuration update
-    const validationResult = await this.validationService.validateConfigurationUpdate(
+    const validationResult = await this.validationService.validateStorageUpdate(
       currentConfig,
       updatedConfig,
       user,
@@ -488,7 +488,7 @@ export class UpdateBoxPositionDisplayCommandHandler {
 
     // Save the updated configuration with optimistic locking
     const expectedVersion = currentConfig.version;
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       updatedConfig,
       expectedVersion,
@@ -529,13 +529,13 @@ export interface UpdateLabDefaultPositionDisplayCommand {
  */
 export class UpdateLabDefaultPositionDisplayCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private validationService: ValidationService,
     private userRepository: UserRepository
   ) {}
 
-  async handle(command: UpdateLabDefaultPositionDisplayCommand): Promise<Configuration> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+  async handle(command: UpdateLabDefaultPositionDisplayCommand): Promise<Storage> {
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
 
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize configuration first.');
@@ -550,7 +550,7 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
     );
 
     // Validate the configuration update
-    const validationResult = await this.validationService.validateConfigurationUpdate(
+    const validationResult = await this.validationService.validateStorageUpdate(
       currentConfig,
       updatedConfig,
       user,
@@ -565,7 +565,7 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
 
     // Save the updated configuration with optimistic locking
     const expectedVersion = currentConfig.version;
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       updatedConfig,
       expectedVersion,
@@ -612,7 +612,7 @@ export interface AssignmentChange {
  */
 export interface ImportResult {
   isValid: boolean;
-  configuration: Configuration | null;
+  configuration: Storage | null;
   warnings: string[];
   errors: string[];
 }
@@ -652,13 +652,13 @@ export interface UpdateResourceLabelCommand {
  */
 export class UpdateResourceLabelCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userRepository: UserRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
 
-  async handle(command: UpdateResourceLabelCommand): Promise<Configuration> {
+  async handle(command: UpdateResourceLabelCommand): Promise<Storage> {
     // Validate required fields
     if (command.resourceType === 'box' && !command.boxId) {
       throw new ValidationError('boxId is required for box label updates');
@@ -670,7 +670,7 @@ export class UpdateResourceLabelCommandHandler {
       throw new ValidationError(`Custom label cannot exceed ${MAX_LABEL_LENGTH} characters`);
     }
 
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -735,7 +735,7 @@ export class UpdateResourceLabelCommandHandler {
     );
 
     // Save the updated configuration with optimistic locking
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       currentConfig,
       expectedVersion,

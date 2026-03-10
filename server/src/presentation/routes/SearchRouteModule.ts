@@ -10,7 +10,7 @@ import { RouteModule } from '@presentation/routes/RouteModule';
 import { SearchController } from '@presentation/controllers/SearchController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
 
@@ -20,10 +20,10 @@ export class SearchRouteModule implements RouteModule {
   constructor(
     private readonly searchController: SearchController,
     private readonly authMiddleware: AuthMiddleware,
-    configurationRepository: ConfigurationRepository
+    storageRepository: StorageRepository
   ) {
     // Create rate limit middleware with injected repository
-    this.rateLimitMiddleware = createRateLimitMiddleware(configurationRepository);
+    this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
 
   getBasePath(): string {

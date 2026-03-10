@@ -10,7 +10,7 @@
 import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesUpdatedEvent } from './TubeEvents';
 import type { TubesLockedEvent, TubesUnlockedEvent, TubeAccessSharedEvent, TubeAccessRevokedEvent } from './TubeLockEvents';
 import type {
-  ConfigurationUpdatedEvent,
+  StorageUpdatedEvent,
   TankUpdatedEvent,
   TankAddedEvent,
   TankDeletedEvent,
@@ -31,7 +31,7 @@ import type {
   BoxLabelUpdatedEvent,
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
-} from './ConfigurationEvents';
+} from './StorageEvents';
 import type {
   UserCreatedEvent,
   UserPasswordChangedEvent,
@@ -89,8 +89,8 @@ export interface DomainEventMap {
   'TubeAccessShared': TubeAccessSharedEvent;
   'TubeAccessRevoked': TubeAccessRevokedEvent;
 
-  // Configuration events
-  'ConfigurationUpdated': ConfigurationUpdatedEvent;
+  // Storage events
+  'StorageUpdated': StorageUpdatedEvent;
   'TankUpdated': TankUpdatedEvent;
   'TankAdded': TankAddedEvent;
   'TankDeleted': TankDeletedEvent;

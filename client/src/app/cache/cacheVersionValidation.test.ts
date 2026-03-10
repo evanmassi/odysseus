@@ -229,7 +229,7 @@ describe('validateCacheVersion', () => {
       await validateCacheVersion('my-access-token');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/configuration/version'),
+        expect.stringContaining('/storage/version'),
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer my-access-token',

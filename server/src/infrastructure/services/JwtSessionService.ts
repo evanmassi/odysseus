@@ -15,7 +15,7 @@ import { SessionService, SessionValidationResult, SessionValidationOutcome } fro
 import { ConfigurationService } from '@infrastructure/services/ConfigurationService';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import {
@@ -64,7 +64,7 @@ export class JwtSessionService implements SessionService {
     configurationService: ConfigurationService,
     private readonly userRepository: UserRepository,
     private readonly refreshTokenRepository: RefreshTokenRepository,
-    private readonly configurationRepository: ConfigurationRepository,
+    private readonly storageRepository: StorageRepository,
     private readonly userSessionRepository: UserSessionRepository,
     private readonly labRepository?: LabRepository
   ) {
@@ -90,7 +90,7 @@ export class JwtSessionService implements SessionService {
       return this.securityConfigCache;
     }
 
-    this.securityConfigCache = await this.configurationRepository.getSecurityConfig();
+    this.securityConfigCache = await this.storageRepository.getSecurityConfig();
     this.securityConfigCacheTime = now;
     return this.securityConfigCache;
   }
@@ -104,7 +104,7 @@ export class JwtSessionService implements SessionService {
    * - sessionTimeoutMinutes: How long until idle user is logged out
    */
   private async getAccessTokenExpirySeconds(): Promise<number> {
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
     return securityConfig.accessTokenExpiryMinutes * 60; // Convert minutes to seconds
   }
 
@@ -113,7 +113,7 @@ export class JwtSessionService implements SessionService {
    * Used for calculating Date objects
    */
   private async getAccessTokenExpiryMilliseconds(): Promise<number> {
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
     return securityConfig.accessTokenExpiryMinutes * 60 * 1000; // Convert minutes to milliseconds
   }
 
@@ -131,7 +131,7 @@ export class JwtSessionService implements SessionService {
       // This prevents demo sessions from affecting real user session limits
       const maxSessions = isDemo
         ? JwtSessionService.DEMO_MAX_SESSIONS
-        : (await this.configurationRepository.getSecurityConfig()).maxConcurrentSessions;
+        : (await this.storageRepository.getSecurityConfig()).maxConcurrentSessions;
 
       // Count current active sessions
       const currentSessionCount = await this.userSessionRepository.countActiveSessions(userId);

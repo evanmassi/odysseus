@@ -1,7 +1,7 @@
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
@@ -41,7 +41,7 @@ export class UserApplicationService {
     private accessControlService: AccessControlService,
     private personRepository?: PersonRepository,
     private researcherRepository?: ResearcherRepository,
-    private configurationRepository?: ConfigurationRepository,
+    private storageRepository?: StorageRepository,
     private eventBus?: EventBus,
     private inviteCodeRepository?: InviteCodeRepository,
     private labRepository?: LabRepository,
@@ -278,9 +278,9 @@ export class UserApplicationService {
       });
     }
 
-    if (this.configurationRepository) {
+    if (this.storageRepository) {
       const config = admin.labId
-        ? await this.configurationRepository.getForLab(admin.labId)
+        ? await this.storageRepository.getForLab(admin.labId)
         : null;
       if (config) {
         const configData = config.toData();
@@ -389,8 +389,8 @@ export class UserApplicationService {
    * @throws ValidationError if researcher name exists or password invalid
    */
   async registerWithResearcher(request: RegisterWithResearcherRequest & { inviteCode?: string }, createResearcher: boolean = true): Promise<User> {
-    if (!this.researcherRepository || !this.configurationRepository) {
-      throw new Error('ResearcherRepository and ConfigurationRepository are required for this operation');
+    if (!this.researcherRepository || !this.storageRepository) {
+      throw new Error('ResearcherRepository and StorageRepository are required for this operation');
     }
 
     const isFirstUser = await this.userRepository.isEmpty();
@@ -555,11 +555,11 @@ export class UserApplicationService {
    * Uses shared PasswordValidator for consistent validation across client/server
    */
   private async validatePasswordPolicy(password: string): Promise<void> {
-    if (!this.configurationRepository) {
-      throw new Error('ConfigurationRepository is required for password validation');
+    if (!this.storageRepository) {
+      throw new Error('StorageRepository is required for password validation');
     }
 
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
 
     try {
       PasswordValidator.enforce(password, securityConfig);

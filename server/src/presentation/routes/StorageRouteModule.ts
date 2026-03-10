@@ -1,28 +1,28 @@
 import { Router, RequestHandler, Request, Response, NextFunction } from 'express';
-import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
+import { StorageController } from '@presentation/controllers/StorageController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { logger } from '@infrastructure/logging/logger';
 
 /**
- * Configuration Route Module
+ * Storage Route Module
  *
  * Handles all configuration-related HTTP routes with proper authentication and authorization.
  *
  * Routes:
- * - GET /api/configuration - Get current configuration (authenticated)
- * - PUT /api/configuration/system - Update system settings (admin only)  
- * - PUT /api/configuration/equipment - Update equipment config (admin only)
- * - GET /api/configuration/history - Get config history (admin only)
- * - GET /api/configuration/version/:version - Get specific version (admin only)
- * - POST /api/configuration/reset - Reset to defaults (admin only)
- * - POST /api/configuration/import - Import configuration (admin only)
- * - GET /api/configuration/health - Health check (authenticated)
+ * - GET /api/storage - Get current configuration (authenticated)
+ * - PUT /api/storage/system - Update system settings (admin only)  
+ * - PUT /api/storage/equipment - Update equipment config (admin only)
+ * - GET /api/storage/history - Get config history (admin only)
+ * - GET /api/storage/version/:version - Get specific version (admin only)
+ * - POST /api/storage/reset - Reset to defaults (admin only)
+ * - POST /api/storage/import - Import configuration (admin only)
+ * - GET /api/storage/health - Health check (authenticated)
  */
-export class ConfigurationRouteModule implements RouteModule {
+export class StorageRouteModule implements RouteModule {
   
   constructor(
-    private configurationController: ConfigurationController,
+    private storageController: StorageController,
     private authMiddleware: AuthMiddleware
   ) {}
 
@@ -30,7 +30,7 @@ export class ConfigurationRouteModule implements RouteModule {
    * Get base path for configuration routes
    */
   getBasePath(): string {
-    return '/api/configuration';
+    return '/api/storage';
   }
 
   /**
@@ -58,73 +58,73 @@ export class ConfigurationRouteModule implements RouteModule {
     // PUBLIC CONFIGURATION ROUTES (Authenticated Users)
 
     /**
-     * GET /api/configuration
+     * GET /api/storage
      * Get current system configuration
      *
      * Access: Any authenticated user
      * Used by: Frontend for initial app configuration
      */
     router.get('/',
-      this.configurationController.getCurrentConfiguration.bind(this.configurationController)
+      this.storageController.getCurrentStorage.bind(this.storageController)
     );
 
     /**
-     * GET /api/configuration/version
+     * GET /api/storage/version
      * Get current configuration version (lightweight)
      *
      * Access: Any authenticated user
      * Used by: Client-side cache validation on startup
      */
     router.get('/version',
-      this.configurationController.getConfigurationVersion.bind(this.configurationController)
+      this.storageController.getStorageVersion.bind(this.storageController)
     );
 
     /**
-     * GET /api/configuration/health
+     * GET /api/storage/health
      * Check configuration system health
      *
      * Access: Any authenticated user
      * Used by: System monitoring, health checks
      */
     router.get('/health',
-      this.configurationController.checkConfigurationHealth.bind(this.configurationController)
+      this.storageController.checkStorageHealth.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/box-position-display
+     * PUT /api/storage/box-position-display
      * Update position display configuration for a specific box
      *
      * Access: Any authenticated user
      * Used by: Frontend when changing box labeling format (numeric vs alphanumeric)
      */
     router.put('/box-position-display',
-      this.configurationController.updateBoxPositionDisplay.bind(this.configurationController)
+      this.storageController.updateBoxPositionDisplay.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/lab-position-display
+     * PUT /api/storage/lab-position-display
      * Update lab-wide default position display format
      *
      * Access: Any authenticated user
      * Used by: Frontend when changing lab-wide default labeling format
      */
     router.put('/lab-position-display',
-      this.configurationController.updateLabDefaultPositionDisplay.bind(this.configurationController)
+      this.storageController.updateLabDefaultPositionDisplay.bind(this.storageController)
     );
 
     /**
-     * GET /api/configuration/position-display-presets
+     * GET /api/storage/position-display-presets
      * Get available position display format presets
      *
      * Access: Any authenticated user
      * Used by: Frontend to populate position display format selector
      */
     router.get('/position-display-presets',
-      this.configurationController.getPositionDisplayPresets.bind(this.configurationController)
+      this.storageController.getPositionDisplayPresets.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/resource-label
+     * PUT /api/storage/resource-label
      * Update custom label for a rack or box
      *
      * Access: Any authenticated user (uses fine-grained canEditResource permission)
@@ -132,13 +132,13 @@ export class ConfigurationRouteModule implements RouteModule {
      * Note: Not admin-only - owners can set labels on their own resources
      */
     router.put('/resource-label',
-      this.configurationController.updateResourceLabel.bind(this.configurationController)
+      this.storageController.updateResourceLabel.bind(this.storageController)
     );
 
     // ADMIN CONFIGURATION ROUTES (Admin Only)
 
     /**
-     * PUT /api/configuration/system
+     * PUT /api/storage/system
      * Update system configuration settings
      * 
      * Access: Admin users only
@@ -146,11 +146,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.put('/system',
       this.requireAdminPermission.bind(this),
-      this.configurationController.updateSystemConfiguration.bind(this.configurationController)
+      this.storageController.updateSystemStorage.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/equipment  
+     * PUT /api/storage/equipment  
      * Update equipment configuration
      * 
      * Access: Admin users only
@@ -158,11 +158,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.put('/equipment',
       this.requireAdminPermission.bind(this),
-      this.configurationController.updateEquipmentConfiguration.bind(this.configurationController)
+      this.storageController.updateEquipmentStorage.bind(this.storageController)
     );
 
     /**
-     * GET /api/configuration/history
+     * GET /api/storage/history
      * Get configuration history with pagination
      * 
      * Access: Admin users only
@@ -170,23 +170,23 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.get('/history',
       this.requireAdminPermission.bind(this),
-      this.configurationController.getConfigurationHistory.bind(this.configurationController)
+      this.storageController.getStorageHistory.bind(this.storageController)
     );
 
     /**
-     * GET /api/configuration/version/:version
+     * GET /api/storage/version/:version
      * Get specific configuration version
      * 
      * Access: Admin users only
-     * Used by: Configuration comparison, rollback operations
+     * Used by: Storage comparison, rollback operations
      */
     router.get('/version/:version',
       this.requireAdminPermission.bind(this),
-      this.configurationController.getConfigurationByVersion.bind(this.configurationController)
+      this.storageController.getStorageByVersion.bind(this.storageController)
     );
 
     /**
-     * POST /api/configuration/reset
+     * POST /api/storage/reset
      * Reset configuration to factory defaults
      * 
      * Access: Admin users only
@@ -194,25 +194,25 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.post('/reset',
       this.requireAdminPermission.bind(this),
-      this.configurationController.resetConfigurationToDefault.bind(this.configurationController)
+      this.storageController.resetStorageToDefault.bind(this.storageController)
     );
 
     /**
-     * POST /api/configuration/import
+     * POST /api/storage/import
      * Import configuration from JSON data
      * 
      * Access: Admin users only
-     * Used by: Configuration migration, backup restoration
+     * Used by: Storage migration, backup restoration
      */
     router.post('/import',
       this.requireAdminPermission.bind(this),
-      this.configurationController.importConfiguration.bind(this.configurationController)
+      this.storageController.importStorage.bind(this.storageController)
     );
 
     // CQRS TANK ROUTES (Admin Only)
 
     /**
-     * POST /api/configuration/tanks
+     * POST /api/storage/tanks
      * Add a new tank
      *
      * Access: Admin users only
@@ -220,11 +220,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.post('/tanks',
       this.requireAdminPermission.bind(this),
-      this.configurationController.addTank.bind(this.configurationController)
+      this.storageController.addTank.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/tanks/:tankId
+     * PUT /api/storage/tanks/:tankId
      * Update a tank
      *
      * Access: Admin users only
@@ -232,11 +232,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.put('/tanks/:tankId',
       this.requireAdminPermission.bind(this),
-      this.configurationController.updateTank.bind(this.configurationController)
+      this.storageController.updateTank.bind(this.storageController)
     );
 
     /**
-     * DELETE /api/configuration/tanks/:tankId
+     * DELETE /api/storage/tanks/:tankId
      * Delete a tank (blocked if tubes exist)
      *
      * Access: Admin users only
@@ -244,13 +244,13 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.delete('/tanks/:tankId',
       this.requireAdminPermission.bind(this),
-      this.configurationController.deleteTank.bind(this.configurationController)
+      this.storageController.deleteTank.bind(this.storageController)
     );
 
     // CQRS RACK ROUTES (Admin Only)
 
     /**
-     * POST /api/configuration/tanks/:tankId/racks
+     * POST /api/storage/tanks/:tankId/racks
      * Add rack(s) to a tank (supports bulk via count parameter)
      *
      * Access: Admin users only
@@ -258,11 +258,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.post('/tanks/:tankId/racks',
       this.requireAdminPermission.bind(this),
-      this.configurationController.addRacks.bind(this.configurationController)
+      this.storageController.addRacks.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/tanks/:tankId/racks/:rackId
+     * PUT /api/storage/tanks/:tankId/racks/:rackId
      * Update a rack
      *
      * Access: Admin users only
@@ -270,11 +270,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.put('/tanks/:tankId/racks/:rackId',
       this.requireAdminPermission.bind(this),
-      this.configurationController.updateRack.bind(this.configurationController)
+      this.storageController.updateRack.bind(this.storageController)
     );
 
     /**
-     * DELETE /api/configuration/tanks/:tankId/racks/:rackId
+     * DELETE /api/storage/tanks/:tankId/racks/:rackId
      * Delete a rack (blocked if tubes exist)
      *
      * Access: Admin users only
@@ -282,11 +282,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.delete('/tanks/:tankId/racks/:rackId',
       this.requireAdminPermission.bind(this),
-      this.configurationController.deleteRack.bind(this.configurationController)
+      this.storageController.deleteRack.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/tanks/:tankId/racks/:rackId/assign
+     * PUT /api/storage/tanks/:tankId/racks/:rackId/assign
      * Assign or unassign a rack to a user
      *
      * Access: Admin users only
@@ -294,13 +294,13 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.put('/tanks/:tankId/racks/:rackId/assign',
       this.requireAdminPermission.bind(this),
-      this.configurationController.assignRack.bind(this.configurationController)
+      this.storageController.assignRack.bind(this.storageController)
     );
 
     // CQRS BOX ROUTES (Admin Only)
 
     /**
-     * POST /api/configuration/tanks/:tankId/racks/:rackId/boxes
+     * POST /api/storage/tanks/:tankId/racks/:rackId/boxes
      * Add box(es) to a rack (supports bulk via count parameter)
      *
      * Access: Admin users only
@@ -308,11 +308,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.post('/tanks/:tankId/racks/:rackId/boxes',
       this.requireAdminPermission.bind(this),
-      this.configurationController.addBoxes.bind(this.configurationController)
+      this.storageController.addBoxes.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId
+     * PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId
      * Update a box
      *
      * Access: Admin users only
@@ -320,11 +320,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.put('/tanks/:tankId/racks/:rackId/boxes/:boxId',
       this.requireAdminPermission.bind(this),
-      this.configurationController.updateBox.bind(this.configurationController)
+      this.storageController.updateBox.bind(this.storageController)
     );
 
     /**
-     * DELETE /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId
+     * DELETE /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId
      * Delete a box (blocked if tubes exist)
      *
      * Access: Admin users only
@@ -332,11 +332,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.delete('/tanks/:tankId/racks/:rackId/boxes/:boxId',
       this.requireAdminPermission.bind(this),
-      this.configurationController.deleteBox.bind(this.configurationController)
+      this.storageController.deleteBox.bind(this.storageController)
     );
 
     /**
-     * PUT /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId/assign
+     * PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId/assign
      * Assign or unassign a box to a user
      *
      * Access: Admin users only
@@ -344,13 +344,13 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.put('/tanks/:tankId/racks/:rackId/boxes/:boxId/assign',
       this.requireAdminPermission.bind(this),
-      this.configurationController.assignBox.bind(this.configurationController)
+      this.storageController.assignBox.bind(this.storageController)
     );
 
     // BULK ASSIGNMENT ROUTES (Admin Only)
 
     /**
-     * POST /api/configuration/bulk-unassign
+     * POST /api/storage/bulk-unassign
      * Unassign all resources from a user
      *
      * Access: Admin users only
@@ -358,11 +358,11 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.post('/bulk-unassign',
       this.requireAdminPermission.bind(this),
-      this.configurationController.bulkUnassignResources.bind(this.configurationController)
+      this.storageController.bulkUnassignResources.bind(this.storageController)
     );
 
     /**
-     * POST /api/configuration/bulk-reassign
+     * POST /api/storage/bulk-reassign
      * Reassign all resources from one user to another
      *
      * Access: Admin users only
@@ -370,13 +370,13 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.post('/bulk-reassign',
       this.requireAdminPermission.bind(this),
-      this.configurationController.bulkReassignResources.bind(this.configurationController)
+      this.storageController.bulkReassignResources.bind(this.storageController)
     );
 
     // INITIALIZE ROUTE (Admin Only)
 
     /**
-     * POST /api/configuration/initialize
+     * POST /api/storage/initialize
      * Initialize configuration for fresh install
      *
      * Access: Admin users only
@@ -384,21 +384,21 @@ export class ConfigurationRouteModule implements RouteModule {
      */
     router.post('/initialize',
       this.requireAdminPermission.bind(this),
-      this.configurationController.initializeConfiguration.bind(this.configurationController)
+      this.storageController.initializeStorage.bind(this.storageController)
     );
 
     // EXPORT ROUTES
 
     /**
-     * GET /api/configuration/export
+     * GET /api/storage/export
      * Export current configuration as JSON
      *
      * Access: Admin users only
-     * Used by: Configuration backup, migration preparation
+     * Used by: Storage backup, migration preparation
      */
     router.get('/export',
       this.requireAdminPermission.bind(this),
-      this.exportConfiguration.bind(this)
+      this.exportStorage.bind(this)
     );
   }
 
@@ -457,7 +457,7 @@ export class ConfigurationRouteModule implements RouteModule {
   /**
    * Export current configuration as downloadable JSON
    */
-  private async exportConfiguration(req: Request, res: Response): Promise<void> {
+  private async exportStorage(req: Request, res: Response): Promise<void> {
     try {
       // Get current configuration through controller
       // This is a simplified approach - in a full implementation,
@@ -468,7 +468,7 @@ export class ConfigurationRouteModule implements RouteModule {
         status: () => mockResponse
       } as unknown as Response;
 
-      await this.configurationController.getCurrentConfiguration(mockRequest, mockResponse);
+      await this.storageController.getCurrentStorage(mockRequest, mockResponse);
 
       // Set headers for file download
       res.setHeader('Content-Type', 'application/json');
@@ -483,7 +483,7 @@ export class ConfigurationRouteModule implements RouteModule {
       });
 
     } catch (error) {
-      logger.error('Configuration export failed:', { error });
+      logger.error('Storage export failed:', { error });
       res.status(500).json({
         error: {
           code: 'EXPORT_FAILED',

@@ -1350,9 +1350,9 @@ export class PostgresContext {
       );
 
       if (existing.rows.length === 0) {
-        const { Configuration } = await import('../../domain/entities/Configuration');
+        const { Storage } = await import('../../domain/entities/Storage');
 
-        const defaultConfig = Configuration.createDefault();
+        const defaultConfig = Storage.createDefault();
         const configJson = JSON.stringify(defaultConfig.toData());
         const now = new Date().toISOString();
 

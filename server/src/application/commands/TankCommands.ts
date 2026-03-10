@@ -4,7 +4,7 @@
  * Atomic operations for tank management with domain event emission.
  */
 
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
@@ -19,7 +19,7 @@ import {
   TankAddedEvent,
   TankUpdatedEvent,
   TankDeletedEvent
-} from '@domain/events/ConfigurationEvents';
+} from '@domain/events/StorageEvents';
 import type { FieldChange } from '@domain/types/fieldChange';
 
 // COMMAND INTERFACES
@@ -56,14 +56,14 @@ export interface ResetDemoDataCommand {
 /** Creates a new tank in the configuration. */
 export class AddTankCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private labRepository: LabRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
 
   async handle(command: AddTankCommand): Promise<{ tankId: string }> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -80,7 +80,7 @@ export class AddTankCommandHandler {
 
     const expectedVersion = currentConfig.version;
     currentConfig.addTank(tankId, command.name);
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       currentConfig,
       expectedVersion,
@@ -113,13 +113,13 @@ export class AddTankCommandHandler {
 /** Updates an existing tank's properties. */
 export class UpdateTankCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
 
   async handle(command: UpdateTankCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -165,7 +165,7 @@ export class UpdateTankCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       currentConfig,
       expectedVersion,
@@ -201,7 +201,7 @@ export class UpdateTankCommandHandler {
  */
 export class DeleteTankCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private tubeRepository: TubeRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
@@ -213,11 +213,11 @@ export class DeleteTankCommandHandler {
       throw PermissionError.configurationManagement('delete tank', command.userId);
     }
 
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (currentConfig) rejectIfSeeded(user, currentConfig, command.tankId);
 
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
-    const { tankName } = await this.configurationRepository.deleteEmptyTank(
+    const { tankName } = await this.storageRepository.deleteEmptyTank(
       command.labId,
       command.tankId,
       command.userId
@@ -244,7 +244,7 @@ export class DeleteTankCommandHandler {
 /** Deletes all tubes in the lab (used for demo lab reset). */
 export class ResetDemoDataCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private tubeRepository: TubeRepository,
     private userRepository: UserRepository
   ) {}
@@ -255,7 +255,7 @@ export class ResetDemoDataCommandHandler {
       throw PermissionError.configurationManagement('reset demo data', command.userId);
     }
 
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found.');
     }
@@ -271,7 +271,7 @@ export class ResetDemoDataCommandHandler {
     if (currentConfig.hasAnySeededResources()) {
       const expectedVersion = currentConfig.version;
       currentConfig.removeNonSeededEquipment();
-      await this.configurationRepository.saveWithOptimisticLock(
+      await this.storageRepository.saveWithOptimisticLock(
         command.labId,
         currentConfig,
         expectedVersion,

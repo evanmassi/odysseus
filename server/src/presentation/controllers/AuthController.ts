@@ -30,7 +30,7 @@ import { GetAllUsersQuery, GetAllUsersQueryHandler } from '@application/queries/
 import { GetUserStatisticsQuery, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 
 import { UserRole } from '@domain/valueObjects/UserRole';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
@@ -73,7 +73,7 @@ export interface AuthControllerDeps {
   researcherApplicationService: ResearcherApplicationService;
 
   // Repositories
-  configRepository: ConfigurationRepository;
+  configRepository: StorageRepository;
   researcherRepository: ResearcherRepository;
   personRepository: PersonRepository;
   userSessionRepository: UserSessionRepository;
@@ -105,7 +105,7 @@ export class AuthController {
   private sessionService: SessionService;
   private userApplicationService: UserApplicationService;
   private researcherApplicationService: ResearcherApplicationService;
-  private configRepository: ConfigurationRepository;
+  private configRepository: StorageRepository;
   private researcherRepository: ResearcherRepository;
   private personRepository: PersonRepository;
   private userSessionRepository: UserSessionRepository;

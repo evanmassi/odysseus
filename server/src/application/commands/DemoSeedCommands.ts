@@ -6,7 +6,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
@@ -38,7 +38,7 @@ export interface UpdateDemoLimitsCommand {
 
 export class SeedDemoCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private labRepository: LabRepository,
     private userRepository: UserRepository,
     private auditRepository?: AuditRepository
@@ -55,7 +55,7 @@ export class SeedDemoCommandHandler {
       throw new ValidationError('Only demo labs can be seeded');
     }
 
-    const config = await this.configurationRepository.getForLab(command.labId);
+    const config = await this.storageRepository.getForLab(command.labId);
     if (!config) {
       throw new ValidationError('No configuration found for lab');
     }
@@ -73,7 +73,7 @@ export class SeedDemoCommandHandler {
 
     const expectedVersion = config.version;
     config.seedAll();
-    await this.configurationRepository.saveWithOptimisticLock(
+    await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       config,
       expectedVersion,
@@ -154,7 +154,7 @@ export class SeedDemoCommandHandler {
 
 export class UnseedDemoCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private labRepository: LabRepository,
     private userRepository: UserRepository
   ) {}
@@ -170,14 +170,14 @@ export class UnseedDemoCommandHandler {
       throw new ValidationError('Only demo labs can be unseeded');
     }
 
-    const config = await this.configurationRepository.getForLab(command.labId);
+    const config = await this.storageRepository.getForLab(command.labId);
     if (!config) {
       throw new ValidationError('No configuration found for lab');
     }
 
     const expectedVersion = config.version;
     config.unseedAll();
-    await this.configurationRepository.saveWithOptimisticLock(
+    await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       config,
       expectedVersion,

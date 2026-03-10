@@ -3,7 +3,7 @@ import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositori
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
 import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
-import { ConfigurationRepository as ConfigurationRepositoryImpl } from '@infrastructure/repositories/ConfigurationRepository';
+import { StorageRepository as StorageRepositoryImpl } from '@infrastructure/repositories/StorageRepository';
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
 import { UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
@@ -16,7 +16,7 @@ import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { AuditRepository } from '@domain/repositories/AuditRepository';
@@ -36,7 +36,7 @@ export class RepositoryFactory {
   private userRepository?: UserRepository;
   private researcherRepository?: ResearcherRepository;
   private personRepository?: PersonRepository;
-  private configurationRepository?: ConfigurationRepository;
+  private storageRepository?: StorageRepository;
   private refreshTokenRepository?: RefreshTokenRepository;
   private userSessionRepository?: UserSessionRepository;
   private auditRepository?: AuditRepository;
@@ -60,7 +60,7 @@ export class RepositoryFactory {
    */
   getTubeRepository(): TubeRepository {
     if (!this.tubeRepository) {
-      const configRepo = this.getConfigurationRepository();
+      const configRepo = this.getStorageRepository();
       this.tubeRepository = new TubeRepositoryImpl(this.postgresContext, configRepo);
     }
     return this.tubeRepository;
@@ -100,11 +100,11 @@ export class RepositoryFactory {
   /**
    * Get configuration repository instance
    */
-  getConfigurationRepository(): ConfigurationRepository {
-    if (!this.configurationRepository) {
-      this.configurationRepository = new ConfigurationRepositoryImpl(this.postgresContext);
+  getStorageRepository(): StorageRepository {
+    if (!this.storageRepository) {
+      this.storageRepository = new StorageRepositoryImpl(this.postgresContext);
     }
-    return this.configurationRepository;
+    return this.storageRepository;
   }
 
   /**
@@ -164,7 +164,7 @@ export class RepositoryFactory {
       users: this.getUserRepository(),
       researchers: this.getResearcherRepository(),
       persons: this.getPersonRepository(),
-      configurations: this.getConfigurationRepository(),
+      storage: this.getStorageRepository(),
       refreshTokens: this.getRefreshTokenRepository(),
       userSessions: this.getUserSessionRepository(),
       audit: this.getAuditRepository(),
@@ -184,7 +184,7 @@ export class RepositoryFactory {
         repositories.tubes.isHealthy(),
         repositories.users.isHealthy(),
         repositories.researchers.isHealthy(),
-        repositories.configurations.isHealthy()
+        repositories.storage.isHealthy()
       ]);
       return healthChecks.every(healthy => healthy);
     } catch {

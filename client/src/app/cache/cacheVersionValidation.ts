@@ -45,7 +45,7 @@ async function fetchServerVersion(accessToken: string): Promise<number | null> {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
     const apiBaseUrl = import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api';
 
-    const response = await fetch(`${apiBaseUrl}/configuration/version`, {
+    const response = await fetch(`${apiBaseUrl}/storage/version`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${accessToken}`,

@@ -8,7 +8,7 @@ export * from './PublicRouteModule';
 export * from './AuthRouteModule';
 export * from './AdminRouteModule';
 export * from './ResourceRouteModule';
-export * from './ConfigurationRouteModule';
+export * from './StorageRouteModule';
 export * from './SearchRouteModule';
 export * from './UserRouteModule';
 export * from './SystemAdminRouteModule';

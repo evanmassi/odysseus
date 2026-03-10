@@ -14,7 +14,7 @@ import { ResearcherController } from '@presentation/controllers/ResearcherContro
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import {
   CreateTubeHttpSchema,
@@ -38,10 +38,10 @@ export class ResourceRouteModule implements RouteModule {
     private researcherController: ResearcherController,
     private lookupValueController: LookupValueController,
     private authMiddleware: AuthMiddleware,
-    configurationRepository: ConfigurationRepository
+    storageRepository: StorageRepository
   ) {
     // Create rate limit middleware with injected repository
-    this.rateLimitMiddleware = createRateLimitMiddleware(configurationRepository);
+    this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
 
   getBasePath(): string {

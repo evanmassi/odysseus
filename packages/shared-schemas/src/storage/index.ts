@@ -14,8 +14,8 @@ export {
   LabConfigurationSchema,
   GlobalSettingsSchema,
   SystemConfigurationSchema,
-  ConfigurationResponseSchema,
-  SaveConfigurationRequestSchema,
+  StorageResponseSchema,
+  SaveStorageRequestSchema,
   type GridConfiguration,
   type BoxConfiguration,
   type RackConfiguration,
@@ -25,8 +25,8 @@ export {
   type LabConfiguration,
   type GlobalSettings,
   type SystemConfiguration,
-  type ConfigurationResponse,
-  type SaveConfigurationRequest,
+  type StorageResponse,
+  type SaveStorageRequest,
 } from './storageSchemas';
 
 export {

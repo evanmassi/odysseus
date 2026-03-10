@@ -12,7 +12,7 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { Server as SocketIOServer } from 'socket.io';
-import type { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import { logger } from '@infrastructure/logging/logger';
 import { PresenceService } from '@application/services/PresenceService';
 import {
@@ -36,7 +36,7 @@ import {
   BoxReassignedEvent,
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
-} from '@domain/events/ConfigurationEvents';
+} from '@domain/events/StorageEvents';
 import {
   UserApprovedEvent,
   UserDeletedEvent,
@@ -82,7 +82,7 @@ export class SocketEventHandler {
     private io: SocketIOServer,
     private eventBus: EventBus,
     private presenceService: PresenceService,
-    private configurationRepository: ConfigurationRepository
+    private storageRepository: StorageRepository
   ) {
     this.subscribeToEvents();
     this.setupPresenceHandlers();
@@ -206,30 +206,30 @@ export class SocketEventHandler {
    */
   private subscribeToEvents(): void {
     // Configuration events - debounced to batch rapid changes
-    this.eventBus.subscribe('TankAdded', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('TankUpdated', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('TankDeleted', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('RackAdded', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('RackUpdated', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('RackDeleted', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('BoxAdded', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('BoxUpdated', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('BoxDeleted', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('LabNameChanged', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('RackLabelUpdated', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('BoxLabelUpdated', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('TankAdded', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('TankUpdated', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('TankDeleted', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackAdded', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackUpdated', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackDeleted', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxAdded', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxUpdated', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxDeleted', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('LabNameChanged', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackLabelUpdated', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxLabelUpdated', (e) => this.handleStorageChange(e));
 
     // Assignment events - also configuration changes
-    this.eventBus.subscribe('RackAssigned', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('RackUnassigned', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('RackReassigned', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('BoxAssigned', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('BoxUnassigned', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('BoxReassigned', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('RackAssigned', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackUnassigned', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('RackReassigned', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxAssigned', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxUnassigned', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BoxReassigned', (e) => this.handleStorageChange(e));
 
     // Bulk resource events - triggered during user deletion cascade
-    this.eventBus.subscribe('BulkResourcesUnassigned', (e) => this.handleConfigurationChange(e));
-    this.eventBus.subscribe('BulkResourcesReassigned', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BulkResourcesUnassigned', (e) => this.handleStorageChange(e));
+    this.eventBus.subscribe('BulkResourcesReassigned', (e) => this.handleStorageChange(e));
 
     // User events
     this.eventBus.subscribe('UserApproved', (e) => this.handleUserApproved(e));
@@ -266,7 +266,7 @@ export class SocketEventHandler {
    * Handle any configuration change event
    * Debounces rapid changes to avoid spamming clients with updates
    */
-  private async handleConfigurationChange(
+  private async handleStorageChange(
     event:
       | TankAddedEvent
       | TankUpdatedEvent
@@ -297,7 +297,7 @@ export class SocketEventHandler {
         labId: event.labId,
       });
 
-      logger.debug('Configuration event queued for debounced emission', {
+      logger.debug('Storage configuration event queued for debounced emission', {
         eventType: event.eventName(),
         queueSize: this.pendingConfigEvents.length,
       });
@@ -309,7 +309,7 @@ export class SocketEventHandler {
 
       // Emit after debounce delay (2 seconds of inactivity)
       this.configUpdateTimer = setTimeout(() => {
-        this.emitConfigurationUpdate();
+        this.emitStorageUpdate();
       }, this.DEBOUNCE_DELAY_MS);
     } catch (error) {
       logger.error('Failed to queue configuration event', {
@@ -322,7 +322,7 @@ export class SocketEventHandler {
   /**
    * Emit batched configuration update to all connected clients
    */
-  private emitConfigurationUpdate(): void {
+  private emitStorageUpdate(): void {
     if (this.pendingConfigEvents.length === 0) {
       return;
     }

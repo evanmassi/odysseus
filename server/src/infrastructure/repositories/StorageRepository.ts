@@ -1,6 +1,6 @@
-import { ConfigurationRepository as IConfigurationRepository, ConfigurationHistory, ConfigurationExport, ConfigurationValidationResult, ConfigurationSnapshot, ApiConfigurationResponse, FrontendConfiguration, MaintenanceResult } from '@domain/repositories/ConfigurationRepository';
-import type { EquipmentSummary, ConfigurationRepositoryStats, CapacityInfo } from '@domain/types/repository';
-import { Configuration } from '@domain/entities/Configuration';
+import { StorageRepository as IStorageRepository, StorageHistory, StorageExport, StorageValidationResult, StorageSnapshot, ApiStorageResponse, FrontendStorage, MaintenanceResult } from '@domain/repositories/StorageRepository';
+import type { EquipmentSummary, StorageRepositoryStats, CapacityInfo } from '@domain/types/repository';
+import { Storage } from '@domain/entities/Storage';
 import { Location } from '@domain/valueObjects/Location';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { generateId } from '@domain/utils/generateId';
@@ -13,21 +13,21 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { logger } from '@infrastructure/logging/logger';
 
 /** Type for configuration JSON stored in JSONB columns */
-type ConfigurationJson = Parameters<typeof Configuration.fromData>[0];
+type ConfigurationJson = Parameters<typeof Storage.fromData>[0];
 
 /**
- * ConfigurationRepository - Configuration data access
+ * StorageRepository - Configuration data access
  *
  * Manages lab-scoped configuration with versioning and snapshots.
  * All lab-specific methods require an explicit labId parameter.
  */
-export class ConfigurationRepository implements IConfigurationRepository {
+export class StorageRepository implements IStorageRepository {
 
   constructor(private context: PostgresContext) {}
 
   // CORE CONFIGURATION MANAGEMENT
 
-  async getForLab(labId: string): Promise<Configuration | null> {
+  async getForLab(labId: string): Promise<Storage | null> {
     try {
       const row = await this.context.queryOne<{ config_json: ConfigurationJson; version: number; updated_at: Date | string }>(`
         SELECT config_json, version, updated_at
@@ -39,7 +39,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
         return null;
       }
 
-      return Configuration.fromData({ ...row.config_json, version: row.version });
+      return Storage.fromData({ ...row.config_json, version: row.version });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to get configuration for lab:', { labId, message: errorMessage });
@@ -47,7 +47,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async saveForLab(labId: string, configuration: Configuration): Promise<number> {
+  async saveForLab(labId: string, configuration: Storage): Promise<number> {
     try {
       let newVersion = 0;
       await this.context.transaction(async (client) => {
@@ -58,7 +58,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
           `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING version`,
-          [labId, now, 'Configuration updated', 'system', configJson]
+          [labId, now, 'Storage configuration updated', 'system', configJson]
         );
 
         newVersion = versionResult.rows[0].version;
@@ -78,13 +78,13 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async ensureDefaultForLab(labId: string): Promise<Configuration> {
+  async ensureDefaultForLab(labId: string): Promise<Storage> {
     const existing = await this.getForLab(labId);
     if (existing) {
       return existing;
     }
 
-    const defaultConfig = Configuration.createDefault();
+    const defaultConfig = Storage.createDefault();
     const configJson = JSON.stringify(defaultConfig.toData());
     const now = new Date();
 
@@ -110,7 +110,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   // VERSIONING & HISTORY
 
-  async getByVersion(labId: string, version: number): Promise<Configuration | null> {
+  async getByVersion(labId: string, version: number): Promise<Storage | null> {
     try {
       const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(`
         SELECT config_json
@@ -122,7 +122,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
         return null;
       }
 
-      return Configuration.fromData(row.config_json);
+      return Storage.fromData(row.config_json);
 
     } catch (error) {
       logger.error('Failed to get configuration by version:', { error, labId, version });
@@ -130,7 +130,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async getHistory(labId: string, limit: number = 50): Promise<ConfigurationHistory[]> {
+  async getHistory(labId: string, limit: number = 50): Promise<StorageHistory[]> {
     try {
       const rows = await this.context.queryMany<{ version: number; updated_at: Date | string; change_description: string; changed_by: string; config_json: ConfigurationJson }>(`
         SELECT version, updated_at, change_description, changed_by, config_json
@@ -145,7 +145,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
         timestamp: row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at),
         changeDescription: row.change_description,
         changedBy: row.changed_by,
-        configuration: Configuration.fromData(row.config_json)
+        configuration: Storage.fromData(row.config_json)
       }));
 
     } catch (error) {
@@ -154,7 +154,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async saveWithVersioning(labId: string, configuration: Configuration, changeDescription: string = 'Configuration updated', changedBy: string = 'system'): Promise<number> {
+  async saveWithVersioning(labId: string, configuration: Storage, changeDescription: string = 'Storage configuration updated', changedBy: string = 'system'): Promise<number> {
     try {
       let newVersion = 0;
       await this.context.transaction(async (client) => {
@@ -177,7 +177,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
           [newVersion, now, configJson, labId]
         );
 
-        logger.info(`Configuration saved with version ${newVersion}: ${changeDescription}`);
+        logger.info(`Storage configuration saved with version ${newVersion}: ${changeDescription}`);
       });
 
       return newVersion;
@@ -190,9 +190,9 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   async saveWithOptimisticLock(
     labId: string,
-    configuration: Configuration,
+    configuration: Storage,
     expectedVersion: number,
-    changeDescription: string = 'Configuration updated',
+    changeDescription: string = 'Storage configuration updated',
     changedBy: string = 'system'
   ): Promise<number> {
     try {
@@ -227,7 +227,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
           throw ConflictError.configuration(expectedVersion, currentVersion);
         }
 
-        logger.info(`Configuration saved with optimistic lock (v${expectedVersion} → v${newVersion}): ${changeDescription}`);
+        logger.info(`Storage configuration saved with optimistic lock (v${expectedVersion} → v${newVersion}): ${changeDescription}`);
       });
 
       return newVersion;
@@ -374,7 +374,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
   }
 
-  async validateConfiguration(labId: string, configuration: Configuration): Promise<ConfigurationValidationResult> {
+  async validateStorage(labId: string, configuration: Storage): Promise<StorageValidationResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
     const recommendations: string[] = [];
@@ -412,7 +412,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
   }
 
-  async exportConfiguration(labId: string): Promise<ConfigurationExport> {
+  async exportStorage(labId: string): Promise<StorageExport> {
     const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration to export');
@@ -424,7 +424,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       configuration: config,
       metadata: {
         exportedBy: 'system',
-        description: 'Configuration export',
+        description: 'Storage configuration export',
         systemInfo: {
           appVersion: '2.0.0',
           platform: process.platform
@@ -444,7 +444,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async getStats(labId: string): Promise<ConfigurationRepositoryStats> {
+  async getStats(labId: string): Promise<StorageRepositoryStats> {
     const config = await this.getForLab(labId);
     const now = new Date();
 
@@ -482,7 +482,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return boxes.map(box => box.name);
   }
 
-  async createSnapshot(labId: string, description?: string): Promise<ConfigurationSnapshot> {
+  async createSnapshot(labId: string, description?: string): Promise<StorageSnapshot> {
     const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration to snapshot');
@@ -497,13 +497,13 @@ export class ConfigurationRepository implements IConfigurationRepository {
       await this.context.execute(`
         INSERT INTO configuration_snapshots (id, version, created_at, description, created_by, size_bytes, config_json)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-      `, [snapshotId, config.version, now, description || 'Configuration snapshot', 'system', configJson.length, configJson]);
+      `, [snapshotId, config.version, now, description || 'Storage configuration snapshot', 'system', configJson.length, configJson]);
 
-      const snapshot: ConfigurationSnapshot = {
+      const snapshot: StorageSnapshot = {
         id: snapshotId,
         version: config.version,
         timestamp: now,
-        description: description || 'Configuration snapshot',
+        description: description || 'Storage configuration snapshot',
         createdBy: 'system',
         sizeBytes: configJson.length
       };
@@ -517,7 +517,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async restoreFromSnapshot(labId: string, snapshotId: string): Promise<Configuration> {
+  async restoreFromSnapshot(labId: string, snapshotId: string): Promise<Storage> {
     if (!snapshotId) {
       throw new ValidationError('Snapshot ID is required');
     }
@@ -531,7 +531,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
         throw new ValidationError(`Snapshot not found: ${snapshotId}`);
       }
 
-      const config = Configuration.fromData(row.config_json);
+      const config = Storage.fromData(row.config_json);
 
       await this.saveWithVersioning(labId, config, `Restored from snapshot ${snapshotId}`);
 
@@ -698,22 +698,22 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   // BACKUP AND RESTORE
 
-  async importConfiguration(labId: string, configExport: ConfigurationExport): Promise<Configuration> {
+  async importStorage(labId: string, configExport: StorageExport): Promise<Storage> {
     if (!configExport || !configExport.configuration) {
       throw new ValidationError('Invalid configuration export provided');
     }
 
-    const validationResult = await this.validateConfiguration(labId, configExport.configuration);
+    const validationResult = await this.validateStorage(labId, configExport.configuration);
     if (!validationResult.isValid) {
-      throw new ValidationError(`Configuration import failed: ${validationResult.errors.join(', ')}`);
+      throw new ValidationError(`Storage configuration import failed: ${validationResult.errors.join(', ')}`);
     }
 
-    await this.saveWithVersioning(labId, configExport.configuration, 'Configuration imported');
+    await this.saveWithVersioning(labId, configExport.configuration, 'Storage configuration imported');
 
     return configExport.configuration;
   }
 
-  async listSnapshots(labId: string): Promise<ConfigurationSnapshot[]> {
+  async listSnapshots(labId: string): Promise<StorageSnapshot[]> {
     try {
       const rows = await this.context.queryMany<{ id: string; version: number; created_at: Date | string; description: string; created_by: string; size_bytes: number }>(`
         SELECT id, version, created_at, description, created_by, size_bytes
@@ -776,7 +776,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   // INTEGRATION SUPPORT
 
-  async getForApi(labId: string): Promise<ApiConfigurationResponse> {
+  async getForApi(labId: string): Promise<ApiStorageResponse> {
     const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration available for API response');
@@ -818,7 +818,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
   }
 
-  async getForFrontend(labId: string): Promise<FrontendConfiguration> {
+  async getForFrontend(labId: string): Promise<FrontendStorage> {
     const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration available for frontend');
@@ -857,9 +857,9 @@ export class ConfigurationRepository implements IConfigurationRepository {
     try {
       const config = await this.getForLab(labId);
       if (config) {
-        const validationResult = await this.validateConfiguration(labId, config);
+        const validationResult = await this.validateStorage(labId, config);
         if (validationResult.isValid) {
-          tasksPerformed.push('Configuration validation completed');
+          tasksPerformed.push('Storage configuration validation completed');
         } else {
           errors.push(...validationResult.errors);
         }

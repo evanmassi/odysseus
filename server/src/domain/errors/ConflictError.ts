@@ -23,10 +23,10 @@ export class ConflictError extends DomainError {
 
   static configuration(expectedVersion: number, currentVersion: number): ConflictError {
     return new ConflictError(
-      `Configuration was modified by another user. Expected version ${expectedVersion}, but current version is ${currentVersion}. Please refresh and try again.`,
+      `Storage configuration was modified by another user. Expected version ${expectedVersion}, but current version is ${currentVersion}. Please refresh and try again.`,
       currentVersion,
       expectedVersion,
-      { resourceType: 'Configuration' }
+      { resourceType: 'StorageConfiguration' }
     );
   }
 

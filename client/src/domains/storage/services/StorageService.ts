@@ -1,4 +1,4 @@
-import { ConfigurationResponseSchema, positionDisplayConfigSchema } from '@odysseus/shared-schemas';
+import { StorageResponseSchema, positionDisplayConfigSchema } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
 import { httpClient } from '@infra/api/HttpClient';
@@ -6,7 +6,7 @@ import { logger } from '@infra/logger';
 import { InfrastructureError } from '@shared/errors';
 
 import type {
-  ConfigurationResponse,
+  StorageResponse,
   PositionDisplayConfig,
   POSITION_DISPLAY_PRESETS,
   GridConfiguration,
@@ -28,9 +28,9 @@ const SuccessResponseSchema = z.object({ success: z.boolean() });
  * HTTP client for storage equipment CRUD and configuration management.
  */
 export class StorageService {
-  static async loadConfiguration(): Promise<ConfigurationResponse> {
+  static async loadConfiguration(): Promise<StorageResponse> {
     try {
-      const response = await httpClient.getData('/configuration', ConfigurationResponseSchema);
+      const response = await httpClient.getData('/storage', StorageResponseSchema);
       return response;
     } catch (error) {
       logger.error('StorageService load configuration failed', { error });
@@ -44,7 +44,7 @@ export class StorageService {
   static async checkConfigurationExists(): Promise<boolean> {
     try {
       const { exists } = await httpClient.getData(
-        '/configuration/exists',
+        '/storage/exists',
         z.object({ exists: z.boolean() })
       );
       return exists;
@@ -69,7 +69,7 @@ export class StorageService {
       });
 
       const response = await httpClient.getData(
-        '/configuration/position-display-presets',
+        '/storage/position-display-presets',
         responseSchema
       );
 
@@ -93,7 +93,7 @@ export class StorageService {
     positionDisplay: PositionDisplayConfig | null
   ): Promise<void> {
     try {
-      await httpClient.put('/configuration/box-position-display', {
+      await httpClient.put('/storage/box-position-display', {
         tankId,
         rackId,
         boxId,
@@ -114,7 +114,7 @@ export class StorageService {
     positionDisplay: PositionDisplayConfig | null
   ): Promise<void> {
     try {
-      await httpClient.put('/configuration/lab-position-display', {
+      await httpClient.put('/storage/lab-position-display', {
         positionDisplay,
       });
     } catch (error) {
@@ -135,7 +135,7 @@ export class StorageService {
     customLabel: string | undefined
   ): Promise<void> {
     try {
-      await httpClient.put('/configuration/resource-label', {
+      await httpClient.put('/storage/resource-label', {
         resourceType,
         tankId,
         rackId,
@@ -157,7 +157,7 @@ export class StorageService {
   static async addTank(name: string, location?: string): Promise<{ tankId: string }> {
     try {
       const response = await httpClient.postData(
-        '/configuration/tanks',
+        '/storage/tanks',
         { name, location },
         AddTankResponseSchema
       );
@@ -177,7 +177,7 @@ export class StorageService {
     updates: { name?: string; location?: string; isActive?: boolean }
   ): Promise<void> {
     try {
-      await httpClient.put(`/configuration/tanks/${tankId}`, updates);
+      await httpClient.put(`/storage/tanks/${tankId}`, updates);
     } catch (error) {
       logger.error('StorageService update tank failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to update tank ${tankId}`, {
@@ -191,7 +191,7 @@ export class StorageService {
   /** Delete a tank (blocks if tubes exist). */
   static async deleteTank(tankId: string): Promise<void> {
     try {
-      await httpClient.delete(`/configuration/tanks/${tankId}`);
+      await httpClient.delete(`/storage/tanks/${tankId}`);
     } catch (error) {
       logger.error('StorageService delete tank failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to delete tank ${tankId}`, {
@@ -206,7 +206,7 @@ export class StorageService {
   static async addRacks(tankId: string, count: number): Promise<{ rackIds: string[] }> {
     try {
       const response = await httpClient.postData(
-        `/configuration/tanks/${tankId}/racks`,
+        `/storage/tanks/${tankId}/racks`,
         { count },
         AddRacksResponseSchema
       );
@@ -227,7 +227,7 @@ export class StorageService {
     updates: { name?: string; capacity?: number; isActive?: boolean }
   ): Promise<void> {
     try {
-      await httpClient.put(`/configuration/tanks/${tankId}/racks/${rackId}`, updates);
+      await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}`, updates);
     } catch (error) {
       logger.error('StorageService update rack failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to update rack ${rackId}`, {
@@ -242,7 +242,7 @@ export class StorageService {
   /** Delete a rack (blocks if tubes exist). */
   static async deleteRack(tankId: string, rackId: string): Promise<void> {
     try {
-      await httpClient.delete(`/configuration/tanks/${tankId}/racks/${rackId}`);
+      await httpClient.delete(`/storage/tanks/${tankId}/racks/${rackId}`);
     } catch (error) {
       logger.error('StorageService delete rack failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to delete rack ${rackId}`, {
@@ -259,7 +259,7 @@ export class StorageService {
     assignedUserId: string | null
   ): Promise<void> {
     try {
-      await httpClient.put(`/configuration/tanks/${tankId}/racks/${rackId}/assign`, {
+      await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}/assign`, {
         assignedUserId,
       });
     } catch (error) {
@@ -282,7 +282,7 @@ export class StorageService {
   ): Promise<{ boxIds: string[] }> {
     try {
       const response = await httpClient.postData(
-        `/configuration/tanks/${tankId}/racks/${rackId}/boxes`,
+        `/storage/tanks/${tankId}/racks/${rackId}/boxes`,
         { count },
         AddBoxesResponseSchema
       );
@@ -310,10 +310,7 @@ export class StorageService {
     }
   ): Promise<void> {
     try {
-      await httpClient.put(
-        `/configuration/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`,
-        updates
-      );
+      await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`, updates);
     } catch (error) {
       logger.error('StorageService update box failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to update box ${boxId}`, {
@@ -329,7 +326,7 @@ export class StorageService {
   /** Delete a box (blocks if tubes exist). */
   static async deleteBox(tankId: string, rackId: string, boxId: string): Promise<void> {
     try {
-      await httpClient.delete(`/configuration/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`);
+      await httpClient.delete(`/storage/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`);
     } catch (error) {
       logger.error('StorageService delete box failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to delete box ${boxId}`, {
@@ -348,7 +345,7 @@ export class StorageService {
     assignedUserId: string | null
   ): Promise<void> {
     try {
-      await httpClient.put(`/configuration/tanks/${tankId}/racks/${rackId}/boxes/${boxId}/assign`, {
+      await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}/boxes/${boxId}/assign`, {
         assignedUserId,
       });
     } catch (error) {
@@ -371,7 +368,7 @@ export class StorageService {
   ): Promise<{ racksAffected: number; boxesAffected: number }> {
     try {
       const response = await httpClient.postData(
-        '/configuration/bulk-unassign',
+        '/storage/bulk-unassign',
         { fromUserId },
         BulkOperationResponseSchema
       );
@@ -391,7 +388,7 @@ export class StorageService {
   ): Promise<{ racksAffected: number; boxesAffected: number }> {
     try {
       const response = await httpClient.postData(
-        '/configuration/bulk-reassign',
+        '/storage/bulk-reassign',
         { fromUserId, toUserId },
         BulkOperationResponseSchema
       );
@@ -414,7 +411,7 @@ export class StorageService {
   ): Promise<void> {
     try {
       await httpClient.postData(
-        '/configuration/initialize',
+        '/storage/initialize',
         { labName, tankCount, racksPerTank },
         SuccessResponseSchema
       );

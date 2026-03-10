@@ -1,5 +1,5 @@
-import { Configuration } from '@domain/entities/Configuration';
-import { ConfigurationRepository, ConfigurationHistory } from '@domain/repositories/ConfigurationRepository';
+import { Storage } from '@domain/entities/Storage';
+import { StorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
 import { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 
@@ -8,14 +8,14 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 /**
  * Get Current Configuration Query
  */
-export interface GetCurrentConfigurationQuery {
+export interface GetCurrentStorageQuery {
   labId: string;
 }
 
 /**
  * Get Configuration History Query
  */
-export interface GetConfigurationHistoryQuery {
+export interface GetStorageHistoryQuery {
   labId: string;
   limit?: number;
   offset?: number;
@@ -24,7 +24,7 @@ export interface GetConfigurationHistoryQuery {
 /**
  * Get Configuration by Version Query
  */
-export interface GetConfigurationByVersionQuery {
+export interface GetStorageByVersionQuery {
   labId: string;
   version: number;
 }
@@ -38,17 +38,17 @@ export interface GetConfigurationByVersionQuery {
  * Creates default configuration if none exists.
  * 
  * @example
- * const handler = new GetCurrentConfigurationQueryHandler(configRepository);
+ * const handler = new GetCurrentStorageQueryHandler(configRepository);
  * const config = await handler.handle({});
  */
-export class GetCurrentConfigurationQueryHandler {
-  constructor(private configurationRepository: ConfigurationRepository) {}
+export class GetCurrentStorageQueryHandler {
+  constructor(private storageRepository: StorageRepository) {}
 
-  async handle(query: GetCurrentConfigurationQuery): Promise<Configuration> {
-    let configuration = await this.configurationRepository.getForLab(query.labId);
+  async handle(query: GetCurrentStorageQuery): Promise<Storage> {
+    let configuration = await this.storageRepository.getForLab(query.labId);
 
     if (!configuration) {
-      configuration = await this.configurationRepository.ensureDefaultForLab(query.labId);
+      configuration = await this.storageRepository.ensureDefaultForLab(query.labId);
     }
 
     return configuration;
@@ -58,7 +58,7 @@ export class GetCurrentConfigurationQueryHandler {
 /**
  * Get Configuration for User Query
  */
-export interface GetConfigurationForUserQuery {
+export interface GetStorageForUserQuery {
   labId: string;
   user: User;
 }
@@ -69,14 +69,14 @@ export interface GetConfigurationForUserQuery {
  * Returns the current configuration for the user's lab.
  * Each lab has its own configuration — no cross-lab filtering needed.
  */
-export class GetConfigurationForUserQueryHandler {
-  constructor(private configurationRepository: ConfigurationRepository) {}
+export class GetStorageForUserQueryHandler {
+  constructor(private storageRepository: StorageRepository) {}
 
-  async handle(query: GetConfigurationForUserQuery): Promise<Configuration> {
-    let configuration = await this.configurationRepository.getForLab(query.labId);
+  async handle(query: GetStorageForUserQuery): Promise<Storage> {
+    let configuration = await this.storageRepository.getForLab(query.labId);
 
     if (!configuration) {
-      configuration = await this.configurationRepository.ensureDefaultForLab(query.labId);
+      configuration = await this.storageRepository.ensureDefaultForLab(query.labId);
     }
 
     return configuration;
@@ -90,14 +90,14 @@ export class GetConfigurationForUserQueryHandler {
  * Used for audit trails and configuration rollback features.
  *
  * @example
- * const handler = new GetConfigurationHistoryQueryHandler(configRepository);
+ * const handler = new GetStorageHistoryQueryHandler(configRepository);
  * const history = await handler.handle({ limit: 10, offset: 0 });
  */
-export class GetConfigurationHistoryQueryHandler {
-  constructor(private configurationRepository: ConfigurationRepository) {}
+export class GetStorageHistoryQueryHandler {
+  constructor(private storageRepository: StorageRepository) {}
 
-  async handle(query: GetConfigurationHistoryQuery): Promise<ConfigurationHistory[]> {
-    return this.configurationRepository.getHistory(query.labId, query.limit);
+  async handle(query: GetStorageHistoryQuery): Promise<StorageHistory[]> {
+    return this.storageRepository.getHistory(query.labId, query.limit);
   }
 }
 
@@ -108,14 +108,14 @@ export class GetConfigurationHistoryQueryHandler {
  * Used for version comparison and rollback operations.
  * 
  * @example
- * const handler = new GetConfigurationByVersionQueryHandler(configRepository);
+ * const handler = new GetStorageByVersionQueryHandler(configRepository);
  * const config = await handler.handle({ version: 5 });
  */
-export class GetConfigurationByVersionQueryHandler {
-  constructor(private configurationRepository: ConfigurationRepository) {}
+export class GetStorageByVersionQueryHandler {
+  constructor(private storageRepository: StorageRepository) {}
 
-  async handle(query: GetConfigurationByVersionQuery): Promise<Configuration> {
-    const configuration = await this.configurationRepository.getByVersion(query.labId, query.version);
+  async handle(query: GetStorageByVersionQuery): Promise<Storage> {
+    const configuration = await this.storageRepository.getByVersion(query.labId, query.version);
     
     if (!configuration) {
       throw NotFoundError.configuration();
@@ -132,15 +132,15 @@ export class GetConfigurationByVersionQueryHandler {
  * Used for system health monitoring and diagnostics.
  * 
  * @example
- * const handler = new CheckConfigurationHealthQueryHandler(configRepository);
+ * const handler = new CheckStorageHealthQueryHandler(configRepository);
  * const health = await handler.handle({});
  */
-export class CheckConfigurationHealthQueryHandler {
-  constructor(private configurationRepository: ConfigurationRepository) {}
+export class CheckStorageHealthQueryHandler {
+  constructor(private storageRepository: StorageRepository) {}
 
-  async handle(query: { labId: string }): Promise<ConfigurationHealthReport> {
+  async handle(query: { labId: string }): Promise<StorageHealthReport> {
     try {
-      const configuration = await this.configurationRepository.getForLab(query.labId);
+      const configuration = await this.storageRepository.getForLab(query.labId);
       
       if (!configuration) {
         return {
@@ -184,7 +184,7 @@ export class CheckConfigurationHealthQueryHandler {
     } catch (error) {
       return {
         isHealthy: false,
-        issues: [`Configuration validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
+        issues: [`Storage configuration validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
         lastUpdated: null,
         version: 0
       };
@@ -197,7 +197,7 @@ export class CheckConfigurationHealthQueryHandler {
 /**
  * Configuration Health Report
  */
-export interface ConfigurationHealthReport {
+export interface StorageHealthReport {
   isHealthy: boolean;
   issues: string[];
   lastUpdated: Date | null;

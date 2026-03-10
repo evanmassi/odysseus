@@ -1,13 +1,13 @@
 import { Tube } from '@domain/entities/Tube';
 import { User } from '@domain/entities/User';
 import { Researcher } from '@domain/entities/Researcher';
-import { Configuration } from '@domain/entities/Configuration';
+import { Storage } from '@domain/entities/Storage';
 import { Location } from '@domain/valueObjects/Location';
 import { SampleData } from '@domain/valueObjects/SampleData';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
@@ -32,7 +32,7 @@ export class ValidationService {
     private tubeRepository: TubeRepository,
     private userRepository: UserRepository,
     private researcherRepository: ResearcherRepository,
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private tubePositionService: TubePositionService,
     private accessControlService: AccessControlService
   ) {}
@@ -375,9 +375,9 @@ export class ValidationService {
   /**
    * Validate system configuration changes
    */
-  async validateConfigurationUpdate(
-    currentConfig: Configuration,
-    updatedConfig: Configuration,
+  async validateStorageUpdate(
+    currentConfig: Storage,
+    updatedConfig: Storage,
     user: User,
     labId: string = ''
   ): Promise<DomainValidationResult> {
@@ -389,7 +389,7 @@ export class ValidationService {
 
     // 1. Permission check
     try {
-      const accessResult = await this.accessControlService.canModifyConfiguration(user);
+      const accessResult = await this.accessControlService.canModifyStorage(user);
       if (!accessResult.allowed) {
         result.isValid = false;
         result.errors.push(accessResult.reason);
@@ -412,7 +412,7 @@ export class ValidationService {
     }
 
     // 3. Business rules for configuration changes
-    const businessRules = await this.validateConfigurationBusinessRulesForConfig(updatedConfig);
+    const businessRules = await this.validateStorageBusinessRulesForConfig(updatedConfig);
     if (!businessRules.isValid) {
       result.isValid = false;
       result.errors.push(...businessRules.errors);
@@ -497,7 +497,7 @@ export class ValidationService {
     return result;
   }
 
-  private isEquipmentBeingRemovedInConfig(currentConfig: Configuration, updatedConfig: Configuration): boolean {
+  private isEquipmentBeingRemovedInConfig(currentConfig: Storage, updatedConfig: Storage): boolean {
     const currentTanks = currentConfig.tanks;
     const updatedTanks = updatedConfig.tanks;
     const updatedTankIds = new Set(updatedTanks.map(t => t.id));
@@ -539,7 +539,7 @@ export class ValidationService {
     return false;
   }
 
-  private async validateEquipmentRemovalInConfig(currentConfig: Configuration, updatedConfig: Configuration, labId: string = ''): Promise<DomainValidationResult> {
+  private async validateEquipmentRemovalInConfig(currentConfig: Storage, updatedConfig: Storage, labId: string = ''): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
       errors: [],
@@ -627,7 +627,7 @@ export class ValidationService {
     return result;
   }
 
-  private async validateConfigurationBusinessRulesForConfig(config: Configuration): Promise<DomainValidationResult> {
+  private async validateStorageBusinessRulesForConfig(config: Storage): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
       errors: [],

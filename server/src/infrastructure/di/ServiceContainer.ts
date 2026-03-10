@@ -3,7 +3,7 @@ import { logger } from '@infrastructure/logging/logger';
 
 // CQRS Command Handlers
 import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler, GetUserSettingsQueryHandler } from '@application/commands/UserCommands';
-import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCommandHandler, ResetConfigurationToDefaultCommandHandler, ImportConfigurationCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/ConfigurationCommands';
+import { UpdateSystemStorageCommandHandler, UpdateEquipmentStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 // CQRS CQRS Command Handlers - Storage Management
@@ -12,14 +12,14 @@ import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHand
 import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
 import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
 import { SeedDemoCommandHandler, UnseedDemoCommandHandler, UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
-import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
+import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
 import { CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
 import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
 import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler, ValidateInviteCodeQueryHandler } from '@application/commands/InviteCodeCommands';
 
 // CQRS Query Handlers
 import { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
-import { GetCurrentConfigurationQueryHandler, GetConfigurationForUserQueryHandler, GetConfigurationHistoryQueryHandler, GetConfigurationByVersionQueryHandler, CheckConfigurationHealthQueryHandler } from '@application/queries/ConfigurationQueries';
+import { GetCurrentStorageQueryHandler, GetStorageForUserQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler } from '@application/queries/StorageQueries';
 
 // Event Bus
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
@@ -33,7 +33,7 @@ import { AuthController } from '@presentation/controllers/AuthController';
 import { TubeController } from '@presentation/controllers/TubeController';
 import { TubeLockController } from '@presentation/controllers/TubeLockController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
-import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
+import { StorageController } from '@presentation/controllers/StorageController';
 import { SearchController } from '@presentation/controllers/SearchController';
 import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
@@ -54,7 +54,7 @@ import { ExportService } from '@application/services/ExportService';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import { PresenceService } from '@application/services/PresenceService';
 import { TubePositionService, AccessControlService, ValidationService } from '@domain/services';
-import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
+import { StorageChangeDetector } from '@domain/services/StorageChangeDetector';
 
 // Infrastructure services
 import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
@@ -97,11 +97,11 @@ export class ServiceContainer {
   private generatePasswordResetTokenHandler?: GeneratePasswordResetTokenCommandHandler;
   private resetPasswordWithTokenHandler?: ResetPasswordWithTokenCommandHandler;
   
-  // CQRS Command Handlers - Configuration Domain
-  private updateSystemConfigurationHandler?: UpdateSystemConfigurationCommandHandler;
-  private updateEquipmentConfigurationHandler?: UpdateEquipmentConfigurationCommandHandler;
-  private resetConfigurationToDefaultHandler?: ResetConfigurationToDefaultCommandHandler;
-  private importConfigurationHandler?: ImportConfigurationCommandHandler;
+  // CQRS Command Handlers - Storage Domain
+  private updateSystemStorageHandler?: UpdateSystemStorageCommandHandler;
+  private updateEquipmentStorageHandler?: UpdateEquipmentStorageCommandHandler;
+  private resetStorageToDefaultHandler?: ResetStorageToDefaultCommandHandler;
+  private importStorageHandler?: ImportStorageCommandHandler;
   private updateBoxPositionDisplayHandler?: UpdateBoxPositionDisplayCommandHandler;
   private updateLabDefaultPositionDisplayHandler?: UpdateLabDefaultPositionDisplayCommandHandler;
   private updateResourceLabelHandler?: UpdateResourceLabelCommandHandler;
@@ -122,7 +122,7 @@ export class ServiceContainer {
   private assignBoxHandler?: AssignBoxCommandHandler;
   private bulkUnassignHandler?: BulkUnassignResourcesCommandHandler;
   private bulkReassignHandler?: BulkReassignResourcesCommandHandler;
-  private initializeConfigHandler?: InitializeConfigurationCommandHandler;
+  private initializeConfigHandler?: InitializeStorageCommandHandler;
   private seedDemoHandler?: SeedDemoCommandHandler;
   private unseedDemoHandler?: UnseedDemoCommandHandler;
   private updateDemoLimitsHandler?: UpdateDemoLimitsCommandHandler;
@@ -143,12 +143,12 @@ export class ServiceContainer {
   private getAllUsersHandler?: GetAllUsersQueryHandler;
   private getUserStatsHandler?: GetUserStatisticsQueryHandler;
   
-  // CQRS Query Handlers - Configuration Domain
-  private getCurrentConfigurationHandler?: GetCurrentConfigurationQueryHandler;
-  private getConfigurationForUserHandler?: GetConfigurationForUserQueryHandler;
-  private getConfigurationHistoryHandler?: GetConfigurationHistoryQueryHandler;
-  private getConfigurationByVersionHandler?: GetConfigurationByVersionQueryHandler;
-  private checkConfigurationHealthHandler?: CheckConfigurationHealthQueryHandler;
+  // CQRS Query Handlers - Storage Domain
+  private getCurrentStorageHandler?: GetCurrentStorageQueryHandler;
+  private getStorageForUserHandler?: GetStorageForUserQueryHandler;
+  private getStorageHistoryHandler?: GetStorageHistoryQueryHandler;
+  private getStorageByVersionHandler?: GetStorageByVersionQueryHandler;
+  private checkStorageHealthHandler?: CheckStorageHealthQueryHandler;
   private resetDemoDataHandler?: ResetDemoDataCommandHandler;
 
   // Controllers
@@ -156,7 +156,7 @@ export class ServiceContainer {
   private tubeController?: TubeController;
   private tubeLockController?: TubeLockController;
   private researcherController?: ResearcherController;
-  private configurationController?: ConfigurationController;
+  private storageController?: StorageController;
   private searchController?: SearchController;
   private userController?: UserController;
   private personController?: PersonController;
@@ -224,7 +224,7 @@ export class ServiceContainer {
     if (!this.passwordService) {
       const repositories = this.repositoryFactory.getRepositories();
       this.passwordService = new BcryptPasswordService(
-        repositories.configurations,
+        repositories.storage,
         12 // 12 salt rounds
       );
     }
@@ -238,7 +238,7 @@ export class ServiceContainer {
         this.configurationService,
         repositories.users,
         repositories.refreshTokens,
-        repositories.configurations,
+        repositories.storage,
         repositories.userSessions,
         repositories.labs
       );
@@ -263,7 +263,7 @@ export class ServiceContainer {
         repositories.users,
         this.getPasswordService(),
         this.getEventBus(),
-        repositories.configurations
+        repositories.storage
       );
     }
     return this.createUserHandler;
@@ -289,7 +289,7 @@ export class ServiceContainer {
         repositories.users,
         this.getPasswordService(),
         this.getEventBus(),
-        repositories.configurations,
+        repositories.storage,
         repositories.userSessions
       );
     }
@@ -313,7 +313,7 @@ export class ServiceContainer {
       this.deleteUserHandler = new DeleteUserCommandHandler(
         repositories.users,
         this.getEventBus(),
-        repositories.configurations
+        repositories.storage
       );
     }
     return this.deleteUserHandler;
@@ -396,61 +396,61 @@ export class ServiceContainer {
 
   // CONFIGURATION COMMAND HANDLERS
 
-  getUpdateSystemConfigurationHandler(): UpdateSystemConfigurationCommandHandler {
-    if (!this.updateSystemConfigurationHandler) {
+  getUpdateSystemStorageHandler(): UpdateSystemStorageCommandHandler {
+    if (!this.updateSystemStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.updateSystemConfigurationHandler = new UpdateSystemConfigurationCommandHandler(
-        repositories.configurations,
+      this.updateSystemStorageHandler = new UpdateSystemStorageCommandHandler(
+        repositories.storage,
         this.getValidationService(),
         repositories.users
       );
     }
-    return this.updateSystemConfigurationHandler;
+    return this.updateSystemStorageHandler;
   }
 
-  getUpdateEquipmentConfigurationHandler(): UpdateEquipmentConfigurationCommandHandler {
-    if (!this.updateEquipmentConfigurationHandler) {
+  getUpdateEquipmentStorageHandler(): UpdateEquipmentStorageCommandHandler {
+    if (!this.updateEquipmentStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.updateEquipmentConfigurationHandler = new UpdateEquipmentConfigurationCommandHandler(
-        repositories.configurations,
+      this.updateEquipmentStorageHandler = new UpdateEquipmentStorageCommandHandler(
+        repositories.storage,
         this.getValidationService()
       );
     }
-    return this.updateEquipmentConfigurationHandler;
+    return this.updateEquipmentStorageHandler;
   }
 
-  getResetConfigurationToDefaultHandler(): ResetConfigurationToDefaultCommandHandler {
-    if (!this.resetConfigurationToDefaultHandler) {
+  getResetStorageToDefaultHandler(): ResetStorageToDefaultCommandHandler {
+    if (!this.resetStorageToDefaultHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.resetConfigurationToDefaultHandler = new ResetConfigurationToDefaultCommandHandler(
-        repositories.configurations,
+      this.resetStorageToDefaultHandler = new ResetStorageToDefaultCommandHandler(
+        repositories.storage,
         repositories.tubes,
         repositories.users
       );
     }
-    return this.resetConfigurationToDefaultHandler;
+    return this.resetStorageToDefaultHandler;
   }
 
-  getImportConfigurationHandler(): ImportConfigurationCommandHandler {
-    if (!this.importConfigurationHandler) {
+  getImportConfigurationHandler(): ImportStorageCommandHandler {
+    if (!this.importStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.importConfigurationHandler = new ImportConfigurationCommandHandler(
-        repositories.configurations,
+      this.importStorageHandler = new ImportStorageCommandHandler(
+        repositories.storage,
         this.getValidationService()
       );
     }
-    return this.importConfigurationHandler;
+    return this.importStorageHandler;
   }
 
-  getConfigurationChangeDetector(): ConfigurationChangeDetector {
-    return new ConfigurationChangeDetector();
+  getStorageChangeDetector(): StorageChangeDetector {
+    return new StorageChangeDetector();
   }
 
   getUpdateBoxPositionDisplayHandler(): UpdateBoxPositionDisplayCommandHandler {
     if (!this.updateBoxPositionDisplayHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.updateBoxPositionDisplayHandler = new UpdateBoxPositionDisplayCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         this.getValidationService(),
         repositories.users
       );
@@ -462,7 +462,7 @@ export class ServiceContainer {
     if (!this.updateLabDefaultPositionDisplayHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.updateLabDefaultPositionDisplayHandler = new UpdateLabDefaultPositionDisplayCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         this.getValidationService(),
         repositories.users
       );
@@ -474,7 +474,7 @@ export class ServiceContainer {
     if (!this.updateResourceLabelHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.updateResourceLabelHandler = new UpdateResourceLabelCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getAccessControlService(),
         this.getEventBus()
@@ -509,7 +509,7 @@ export class ServiceContainer {
     if (!this.addTankHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.addTankHandler = new AddTankCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.labs,
         repositories.users,
         this.getEventBus()
@@ -522,7 +522,7 @@ export class ServiceContainer {
     if (!this.updateTankHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.updateTankHandler = new UpdateTankCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -534,7 +534,7 @@ export class ServiceContainer {
     if (!this.deleteTankHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.deleteTankHandler = new DeleteTankCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.tubes,
         repositories.users,
         this.getEventBus()
@@ -547,7 +547,7 @@ export class ServiceContainer {
     if (!this.resetDemoDataHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.resetDemoDataHandler = new ResetDemoDataCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.tubes,
         repositories.users
       );
@@ -559,7 +559,7 @@ export class ServiceContainer {
     if (!this.addRacksHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.addRacksHandler = new AddRacksCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.labs,
         repositories.users,
         this.getEventBus()
@@ -572,7 +572,7 @@ export class ServiceContainer {
     if (!this.updateRackHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.updateRackHandler = new UpdateRackCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -584,7 +584,7 @@ export class ServiceContainer {
     if (!this.deleteRackHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.deleteRackHandler = new DeleteRackCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.tubes,
         repositories.users,
         this.getEventBus()
@@ -597,7 +597,7 @@ export class ServiceContainer {
     if (!this.assignRackHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.assignRackHandler = new AssignRackCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -609,7 +609,7 @@ export class ServiceContainer {
     if (!this.addBoxesHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.addBoxesHandler = new AddBoxesCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.labs,
         repositories.users,
         this.getEventBus()
@@ -622,7 +622,7 @@ export class ServiceContainer {
     if (!this.updateBoxHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.updateBoxHandler = new UpdateBoxCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -634,7 +634,7 @@ export class ServiceContainer {
     if (!this.deleteBoxHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.deleteBoxHandler = new DeleteBoxCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.tubes,
         repositories.users,
         this.getEventBus()
@@ -647,7 +647,7 @@ export class ServiceContainer {
     if (!this.assignBoxHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.assignBoxHandler = new AssignBoxCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -659,7 +659,7 @@ export class ServiceContainer {
     if (!this.bulkUnassignHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.bulkUnassignHandler = new BulkUnassignResourcesCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -671,7 +671,7 @@ export class ServiceContainer {
     if (!this.bulkReassignHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.bulkReassignHandler = new BulkReassignResourcesCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -679,11 +679,11 @@ export class ServiceContainer {
     return this.bulkReassignHandler;
   }
 
-  getInitializeConfigHandler(): InitializeConfigurationCommandHandler {
+  getInitializeConfigHandler(): InitializeStorageCommandHandler {
     if (!this.initializeConfigHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.initializeConfigHandler = new InitializeConfigurationCommandHandler(
-        repositories.configurations,
+      this.initializeConfigHandler = new InitializeStorageCommandHandler(
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -695,7 +695,7 @@ export class ServiceContainer {
     if (!this.seedDemoHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.seedDemoHandler = new SeedDemoCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.labs,
         repositories.users,
         this.repositoryFactory.getAuditRepository()
@@ -708,7 +708,7 @@ export class ServiceContainer {
     if (!this.unseedDemoHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.unseedDemoHandler = new UnseedDemoCommandHandler(
-        repositories.configurations,
+        repositories.storage,
         repositories.labs,
         repositories.users
       );
@@ -734,7 +734,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.createSystemAdminHandler = new CreateSystemAdminCommandHandler(
         repositories.users,
-        repositories.configurations,
+        repositories.storage,
         this.getEventBus(),
         repositories.persons
       );
@@ -747,7 +747,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.createLabHandler = new CreateLabCommandHandler(
         repositories.labs,
-        repositories.configurations,
+        repositories.storage,
         repositories.users,
         this.getEventBus()
       );
@@ -797,7 +797,7 @@ export class ServiceContainer {
         repositories.inviteCodes,
         repositories.labs,
         repositories.users,
-        repositories.configurations,
+        repositories.storage,
         this.getEventBus()
       );
     }
@@ -870,54 +870,54 @@ export class ServiceContainer {
 
   // CONFIGURATION QUERY HANDLERS
 
-  getGetCurrentConfigurationHandler(): GetCurrentConfigurationQueryHandler {
-    if (!this.getCurrentConfigurationHandler) {
+  getGetCurrentStorageHandler(): GetCurrentStorageQueryHandler {
+    if (!this.getCurrentStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getCurrentConfigurationHandler = new GetCurrentConfigurationQueryHandler(
-        repositories.configurations
+      this.getCurrentStorageHandler = new GetCurrentStorageQueryHandler(
+        repositories.storage
       );
     }
-    return this.getCurrentConfigurationHandler;
+    return this.getCurrentStorageHandler;
   }
 
-  getGetConfigurationForUserHandler(): GetConfigurationForUserQueryHandler {
-    if (!this.getConfigurationForUserHandler) {
+  getGetStorageForUserHandler(): GetStorageForUserQueryHandler {
+    if (!this.getStorageForUserHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getConfigurationForUserHandler = new GetConfigurationForUserQueryHandler(
-        repositories.configurations
+      this.getStorageForUserHandler = new GetStorageForUserQueryHandler(
+        repositories.storage
       );
     }
-    return this.getConfigurationForUserHandler;
+    return this.getStorageForUserHandler;
   }
 
-  getGetConfigurationHistoryHandler(): GetConfigurationHistoryQueryHandler {
-    if (!this.getConfigurationHistoryHandler) {
+  getGetStorageHistoryHandler(): GetStorageHistoryQueryHandler {
+    if (!this.getStorageHistoryHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getConfigurationHistoryHandler = new GetConfigurationHistoryQueryHandler(
-        repositories.configurations
+      this.getStorageHistoryHandler = new GetStorageHistoryQueryHandler(
+        repositories.storage
       );
     }
-    return this.getConfigurationHistoryHandler;
+    return this.getStorageHistoryHandler;
   }
 
-  getGetConfigurationByVersionHandler(): GetConfigurationByVersionQueryHandler {
-    if (!this.getConfigurationByVersionHandler) {
+  getGetStorageByVersionHandler(): GetStorageByVersionQueryHandler {
+    if (!this.getStorageByVersionHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.getConfigurationByVersionHandler = new GetConfigurationByVersionQueryHandler(
-        repositories.configurations
+      this.getStorageByVersionHandler = new GetStorageByVersionQueryHandler(
+        repositories.storage
       );
     }
-    return this.getConfigurationByVersionHandler;
+    return this.getStorageByVersionHandler;
   }
 
-  getGetCheckConfigurationHealthHandler(): CheckConfigurationHealthQueryHandler {
-    if (!this.checkConfigurationHealthHandler) {
+  getGetCheckConfigurationHealthHandler(): CheckStorageHealthQueryHandler {
+    if (!this.checkStorageHealthHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.checkConfigurationHealthHandler = new CheckConfigurationHealthQueryHandler(
-        repositories.configurations
+      this.checkStorageHealthHandler = new CheckStorageHealthQueryHandler(
+        repositories.storage
       );
     }
-    return this.checkConfigurationHealthHandler;
+    return this.checkStorageHealthHandler;
   }
 
   // CONTROLLERS (CQRS-BASED)
@@ -943,7 +943,7 @@ export class ServiceContainer {
         sessionService: this.getSessionService(),
         userApplicationService: this.getUserApplicationService(),
         researcherApplicationService: this.getResearcherApplicationService(),
-        configRepository: this.repositoryFactory.getConfigurationRepository(),
+        configRepository: this.repositoryFactory.getStorageRepository(),
         researcherRepository: this.repositoryFactory.getResearcherRepository(),
         personRepository: this.repositoryFactory.getPersonRepository(),
         userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
@@ -966,7 +966,7 @@ export class ServiceContainer {
         this.repositoryFactory.getLabRepository(),
         this.repositoryFactory.getUserRepository(),
         this.repositoryFactory.getTubeRepository(),
-        this.repositoryFactory.getConfigurationRepository(),
+        this.repositoryFactory.getStorageRepository(),
         this.repositoryFactory.getResearcherRepository(),
         this.repositoryFactory.getPersonRepository()
       );
@@ -986,18 +986,18 @@ export class ServiceContainer {
     return this.inviteCodeController;
   }
 
-  getConfigurationController(): ConfigurationController {
-    if (!this.configurationController) {
-      this.configurationController = new ConfigurationController({
-        getCurrentConfigurationHandler: this.getGetCurrentConfigurationHandler(),
-        getConfigurationForUserHandler: this.getGetConfigurationForUserHandler(),
-        getConfigurationHistoryHandler: this.getGetConfigurationHistoryHandler(),
-        getConfigurationByVersionHandler: this.getGetConfigurationByVersionHandler(),
-        checkConfigurationHealthHandler: this.getGetCheckConfigurationHealthHandler(),
-        updateSystemConfigurationHandler: this.getUpdateSystemConfigurationHandler(),
-        updateEquipmentConfigurationHandler: this.getUpdateEquipmentConfigurationHandler(),
-        resetConfigurationHandler: this.getResetConfigurationToDefaultHandler(),
-        importConfigurationHandler: this.getImportConfigurationHandler(),
+  getStorageController(): StorageController {
+    if (!this.storageController) {
+      this.storageController = new StorageController({
+        getCurrentStorageHandler: this.getGetCurrentStorageHandler(),
+        getStorageForUserHandler: this.getGetStorageForUserHandler(),
+        getStorageHistoryHandler: this.getGetStorageHistoryHandler(),
+        getStorageByVersionHandler: this.getGetStorageByVersionHandler(),
+        checkStorageHealthHandler: this.getGetCheckConfigurationHealthHandler(),
+        updateSystemStorageHandler: this.getUpdateSystemStorageHandler(),
+        updateEquipmentStorageHandler: this.getUpdateEquipmentStorageHandler(),
+        resetStorageHandler: this.getResetStorageToDefaultHandler(),
+        importStorageHandler: this.getImportConfigurationHandler(),
         updateBoxPositionDisplayHandler: this.getUpdateBoxPositionDisplayHandler(),
         updateLabDefaultPositionDisplayHandler: this.getUpdateLabDefaultPositionDisplayHandler(),
         updateResourceLabelHandler: this.getUpdateResourceLabelHandler(),
@@ -1021,7 +1021,7 @@ export class ServiceContainer {
         labRepository: this.repositoryFactory.getLabRepository(),
       });
     }
-    return this.configurationController;
+    return this.storageController;
   }
 
   getUserController(): UserController {
@@ -1115,7 +1115,7 @@ export class ServiceContainer {
         repositories.users,
         repositories.researchers,
         repositories.persons,
-        repositories.configurations
+        repositories.storage
       );
     }
     return this.exportService;
@@ -1145,7 +1145,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.lookupValueController = new LookupValueController(
         this.getLookupValueApplicationService(),
-        repositories.configurations
+        repositories.storage
       );
     }
     return this.lookupValueController;
@@ -1158,7 +1158,7 @@ export class ServiceContainer {
         this.getAuditService(),
         this.getEventBus(),
         repositories.users,
-        repositories.configurations
+        repositories.storage
       );
     }
     return this.auditEventHandler;
@@ -1184,7 +1184,7 @@ export class ServiceContainer {
         this.socketIO,
         this.getEventBus(),
         this.getPresenceService(),
-        repositories.configurations
+        repositories.storage
       );
     }
     return this.socketEventHandler;
@@ -1210,7 +1210,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.tubePositionService = new TubePositionService(
         repositories.tubes,
-        repositories.configurations
+        repositories.storage
       );
     }
     return this.tubePositionService;
@@ -1234,7 +1234,7 @@ export class ServiceContainer {
         repositories.tubes,
         repositories.users,
         repositories.researchers,
-        repositories.configurations,
+        repositories.storage,
         this.getTubePositionService(),
         this.getAccessControlService()
       );
@@ -1250,7 +1250,7 @@ export class ServiceContainer {
         repositories.users,
         repositories.researchers,
         repositories.persons,
-        repositories.configurations,
+        repositories.storage,
         this.getTubePositionService(),
         this.getAccessControlService(),
         this.getEventBus()
@@ -1281,7 +1281,7 @@ export class ServiceContainer {
         this.getAccessControlService(),
         repositories.persons,
         repositories.researchers,
-        repositories.configurations,
+        repositories.storage,
         this.getEventBus(),
         repositories.inviteCodes,
         repositories.labs,
@@ -1347,7 +1347,7 @@ export class ServiceContainer {
       tubes: this.getTubeController(),
       auth: this.getAuthController(),
       researchers: this.getResearcherController(),
-      configurations: this.getConfigurationController(),
+      configurations: this.getStorageController(),
       person: this.getPersonController()
     };
   }

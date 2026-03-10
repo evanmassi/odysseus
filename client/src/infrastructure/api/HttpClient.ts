@@ -68,8 +68,8 @@ const URL_TRANSFORMER_REGISTRY: { match: (url: string) => boolean; transform: Tr
   },
   // Domain
   {
-    match: url => url.includes('/configuration'),
-    transform: data => transformApiResponse(data, 'ConfigurationResponse'),
+    match: url => url.includes('/storage'),
+    transform: data => transformApiResponse(data, 'StorageResponse'),
   },
   {
     match: url => url.includes('/tubes'),

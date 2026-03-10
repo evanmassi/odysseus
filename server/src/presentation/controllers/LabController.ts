@@ -12,7 +12,7 @@ import type { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoS
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
@@ -28,7 +28,7 @@ export class LabController extends BaseController {
     private labRepository: LabRepository,
     private userRepository: UserRepository,
     private tubeRepository: TubeRepository,
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository
   ) {
@@ -42,7 +42,7 @@ export class LabController extends BaseController {
       const demoLab = labs.find(lab => lab.isDemo);
       let demoIsSeeded = false;
       if (demoLab) {
-        const config = await this.configurationRepository.getForLab(demoLab.id);
+        const config = await this.storageRepository.getForLab(demoLab.id);
         demoIsSeeded = config?.hasAnySeededResources() ?? false;
       }
 
@@ -118,7 +118,7 @@ export class LabController extends BaseController {
         this.userRepository.findByLabId(labId),
         this.researcherRepository.findByLabId(labId),
         this.tubeRepository.countByLabId(labId),
-        this.configurationRepository.getForLab(labId),
+        this.storageRepository.getForLab(labId),
       ]);
 
       const userPersonIds = users.map(u => u.personId).filter((id): id is string => !!id);
@@ -231,7 +231,7 @@ export class LabController extends BaseController {
 
       const [tubeCounts, configs] = await Promise.all([
         Promise.all(labs.map(lab => this.tubeRepository.countByLabId(lab.id))),
-        Promise.all(labs.map(lab => this.configurationRepository.getForLab(lab.id))),
+        Promise.all(labs.map(lab => this.storageRepository.getForLab(lab.id))),
       ]);
 
       const labStats = labs.map((lab, i) => {

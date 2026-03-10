@@ -7,7 +7,7 @@ import type { FieldChange } from '@domain/types/fieldChange';
  * Fired when the entire configuration is updated.
  * Captures high-level changes for audit trail.
  */
-export class ConfigurationUpdatedEvent extends DomainEvent {
+export class StorageUpdatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly changesSummary: {
@@ -27,7 +27,7 @@ export class ConfigurationUpdatedEvent extends DomainEvent {
   }
 
   eventName(): string {
-    return 'ConfigurationUpdated';
+    return 'StorageUpdated';
   }
 
   getAggregateId(): string {

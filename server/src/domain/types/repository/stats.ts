@@ -113,7 +113,7 @@ export interface CapacityInfo {
   }>;
 }
 
-export interface ConfigurationRepositoryStats {
+export interface StorageRepositoryStats {
   currentVersion: number;
   totalHistoryEntries: number;
   totalSnapshots: number;

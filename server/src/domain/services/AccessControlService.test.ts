@@ -321,16 +321,16 @@ describe('AccessControlService', () => {
     });
   });
 
-  describe('canModifyConfiguration', () => {
+  describe('canModifyStorage', () => {
     it('should allow admin', async () => {
       const admin = createTestAdmin();
-      const result = await createService().canModifyConfiguration(admin);
+      const result = await createService().canModifyStorage(admin);
       expect(result.allowed).toBe(true);
     });
 
     it('should deny regular user', async () => {
       const user = createTestUser();
-      const result = await createService().canModifyConfiguration(user);
+      const result = await createService().canModifyStorage(user);
       expect(result.allowed).toBe(false);
     });
   });

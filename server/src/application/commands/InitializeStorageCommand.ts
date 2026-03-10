@@ -4,8 +4,8 @@
  * Creates default configuration for fresh installs.
  */
 
-import { Configuration } from '@domain/entities/Configuration';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { Storage } from '@domain/entities/Storage';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -13,12 +13,12 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import { ConfigurationUpdatedEvent } from '@domain/events/ConfigurationEvents';
+import { StorageUpdatedEvent } from '@domain/events/StorageEvents';
 import { generateId } from '@domain/utils/generateId';
 
 // COMMAND INTERFACE
 
-export interface InitializeConfigurationCommand {
+export interface InitializeStorageCommand {
   userId: string;
   labId: string;
   labName: string;
@@ -30,17 +30,17 @@ export interface InitializeConfigurationCommand {
 // COMMAND HANDLER
 
 /** Creates default configuration for fresh installs. Only runs if no configuration exists. */
-export class InitializeConfigurationCommandHandler {
+export class InitializeStorageCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
 
-  async handle(command: InitializeConfigurationCommand): Promise<void> {
-    const existingConfig = await this.configurationRepository.getForLab(command.labId);
+  async handle(command: InitializeStorageCommand): Promise<void> {
+    const existingConfig = await this.storageRepository.getForLab(command.labId);
     if (existingConfig) {
-      throw new ValidationError('Configuration already exists. Cannot reinitialize.');
+      throw new ValidationError('Storage configuration already exists. Cannot reinitialize.');
     }
 
     const user = await this.getUserById(command.userId);
@@ -101,7 +101,7 @@ export class InitializeConfigurationCommandHandler {
       }));
     }
 
-    const config = Configuration.fromData({
+    const config = Storage.fromData({
       tanks: tanks.map(t => t.toData()),
       systemSettings: {
         labName: command.labName,
@@ -113,7 +113,7 @@ export class InitializeConfigurationCommandHandler {
     });
 
     // Use version 0 since no config exists yet (protects against concurrent initialization)
-    await this.configurationRepository.saveWithOptimisticLock(
+    await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       config,
       0,
@@ -121,7 +121,7 @@ export class InitializeConfigurationCommandHandler {
       command.userId
     );
 
-    await this.eventBus.publish(new ConfigurationUpdatedEvent(
+    await this.eventBus.publish(new StorageUpdatedEvent(
       command.userId,
       {
         tanksAdded: tankCount,

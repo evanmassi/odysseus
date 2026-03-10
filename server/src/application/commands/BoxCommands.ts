@@ -5,7 +5,7 @@
  * Full parent context (tankId + rackId) required since boxId is not globally unique.
  */
 
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
@@ -24,7 +24,7 @@ import {
   BoxAssignedEvent,
   BoxUnassignedEvent,
   BoxReassignedEvent
-} from '@domain/events/ConfigurationEvents';
+} from '@domain/events/StorageEvents';
 import type { FieldChange } from '@domain/types/fieldChange';
 
 // COMMAND INTERFACES
@@ -71,7 +71,7 @@ export interface AssignBoxCommand {
 /** Creates one or more boxes in a rack. Pass count > 1 for bulk add. */
 export class AddBoxesCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private labRepository: LabRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
@@ -82,7 +82,7 @@ export class AddBoxesCommandHandler {
       throw new ValidationError('Count must be between 1 and 26 (A-Z)');
     }
 
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -146,7 +146,7 @@ export class AddBoxesCommandHandler {
     }
 
     const expectedVersion = currentConfig.version;
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       currentConfig,
       expectedVersion,
@@ -175,13 +175,13 @@ export class AddBoxesCommandHandler {
 /** Updates an existing box's properties. */
 export class UpdateBoxCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
 
   async handle(command: UpdateBoxCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -254,7 +254,7 @@ export class UpdateBoxCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       currentConfig,
       expectedVersion,
@@ -292,7 +292,7 @@ export class UpdateBoxCommandHandler {
  */
 export class DeleteBoxCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private tubeRepository: TubeRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
@@ -304,11 +304,11 @@ export class DeleteBoxCommandHandler {
       throw PermissionError.configurationManagement('delete box', command.userId);
     }
 
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (currentConfig) rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
 
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
-    const { tankName, rackName, boxName } = await this.configurationRepository.deleteEmptyBox(
+    const { tankName, rackName, boxName } = await this.storageRepository.deleteEmptyBox(
       command.labId,
       command.tankId,
       command.rackId,
@@ -341,13 +341,13 @@ export class DeleteBoxCommandHandler {
 /** Assigns or unassigns a box to/from a user. */
 export class AssignBoxCommandHandler {
   constructor(
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
 
   async handle(command: AssignBoxCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    const currentConfig = await this.storageRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -413,7 +413,7 @@ export class AssignBoxCommandHandler {
     const action = command.assignedUserId
       ? (previousUserId ? 'Reassigned' : 'Assigned')
       : 'Unassigned';
-    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.storageRepository.saveWithOptimisticLock(
       command.labId,
       currentConfig,
       expectedVersion,

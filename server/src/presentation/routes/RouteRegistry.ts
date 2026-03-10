@@ -135,13 +135,13 @@ export class RouteRegistry {
             'GET /api/auth/me',
             'GET /api/tubes',
             'GET /api/admin/users',
-            'GET /api/configuration',
-            'PUT /api/configuration/system',
-            'PUT /api/configuration/equipment',
-            'GET /api/configuration/history',
-            'POST /api/configuration/reset',
-            'POST /api/configuration/import',
-            'GET /api/configuration/health'
+            'GET /api/storage',
+            'PUT /api/storage/system',
+            'PUT /api/storage/equipment',
+            'GET /api/storage/history',
+            'POST /api/storage/reset',
+            'POST /api/storage/import',
+            'GET /api/storage/health'
           ]
         },
         timestamp: new Date().toISOString()

@@ -11,7 +11,7 @@ import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody } from '@presentation/middleware/requestValidation';
 import {
   registerWithResearcherSchema,
@@ -25,10 +25,10 @@ export class PublicRouteModule implements RouteModule {
   constructor(
     private readonly authController: AuthController,
     private readonly inviteCodeController: InviteCodeController,
-    configurationRepository: ConfigurationRepository
+    storageRepository: StorageRepository
   ) {
     // Create rate limit middleware with injected repository
-    this.rateLimitMiddleware = createRateLimitMiddleware(configurationRepository);
+    this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
 
   getBasePath(): string {

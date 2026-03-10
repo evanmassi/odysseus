@@ -22,8 +22,8 @@ export type {
   LabConfiguration,
   GlobalSettings,
   SystemConfiguration,
-  ConfigurationResponse,
-  SaveConfigurationRequest,
+  StorageResponse,
+  SaveStorageRequest,
 } from '@odysseus/shared-schemas';
 
 export {
@@ -36,8 +36,8 @@ export {
   LabConfigurationSchema,
   GlobalSettingsSchema,
   SystemConfigurationSchema,
-  ConfigurationResponseSchema,
-  SaveConfigurationRequestSchema,
+  StorageResponseSchema,
+  SaveStorageRequestSchema,
 } from '@odysseus/shared-schemas';
 
 // UI Helpers (computed properties)

@@ -7,7 +7,7 @@
 import { Request, Response } from 'express';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { ErrorDto } from '@application/dto/ErrorDto';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { handleControllerError } from '@presentation/utils/ErrorHandler';
@@ -16,7 +16,7 @@ import type { LookupCategory } from '@domain/entities/LookupValue';
 export class LookupValueController extends BaseController {
   constructor(
     private lookupValueService: LookupValueApplicationService,
-    private configurationRepository: ConfigurationRepository
+    private storageRepository: StorageRepository
   ) {
     super();
   }
@@ -26,7 +26,7 @@ export class LookupValueController extends BaseController {
     if (user.isSystemAdmin()) return;
     if (!user.isDemo) return;
 
-    const config = await this.configurationRepository.getForLab(this.extractLabId(req));
+    const config = await this.storageRepository.getForLab(this.extractLabId(req));
     if (config?.hasAnySeededResources()) {
       throw new ValidationError('Catalog is locked in seeded demo mode');
     }

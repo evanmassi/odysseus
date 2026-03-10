@@ -1,10 +1,10 @@
-import { Configuration } from '@domain/entities/Configuration';
+import { Storage } from '@domain/entities/Storage';
 import { Rack, Box } from '@domain/valueObjects/Equipment';
 import type { DomainEvent } from '@domain/events/DomainEvent';
 import type { FieldChange } from '@domain/types/fieldChange';
 import { logger } from '@infrastructure/logging/logger';
 import {
-  ConfigurationUpdatedEvent,
+  StorageUpdatedEvent,
   TankUpdatedEvent,
   TankAddedEvent,
   TankDeletedEvent,
@@ -21,7 +21,7 @@ import {
   BoxAssignedEvent,
   BoxUnassignedEvent,
   BoxReassignedEvent
-} from '@domain/events/ConfigurationEvents';
+} from '@domain/events/StorageEvents';
 
 /**
  * Change summary for high-level configuration updates
@@ -45,9 +45,9 @@ export interface ConfigurationChangeSummary {
  * Domain service that compares two Configuration entities
  * and generates domain events for all detected changes.
  *
- * Handles the nested hierarchy: Configuration → Tanks → Racks → Boxes
+ * Handles the nested hierarchy: Storage → Tanks → Racks → Boxes
  */
-export class ConfigurationChangeDetector {
+export class StorageChangeDetector {
   /**
    * Detect all changes between old and new configurations
    *
@@ -56,7 +56,7 @@ export class ConfigurationChangeDetector {
    * @param userId - User who made the changes
    * @returns Array of domain events representing all changes
    */
-  detectChanges(oldConfig: Configuration, newConfig: Configuration, userId: string): DomainEvent[] {
+  detectChanges(oldConfig: Storage, newConfig: Storage, userId: string): DomainEvent[] {
     const events: DomainEvent[] = [];
     const summary: ConfigurationChangeSummary = {
       tanksAdded: 0,
@@ -156,10 +156,10 @@ export class ConfigurationChangeDetector {
 
     // Add summary event if any changes detected
     if (events.length > 0) {
-      events.push(new ConfigurationUpdatedEvent(userId, summary));
+      events.push(new StorageUpdatedEvent(userId, summary));
     }
 
-    logger.debug('Configuration change detection complete', {
+    logger.debug('Storage configuration change detection complete', {
       totalEvents: events.length,
       eventTypes: events.map(e => e.eventName()),
       summary

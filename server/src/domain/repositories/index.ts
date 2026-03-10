@@ -17,20 +17,20 @@
 export { TubeRepository } from './TubeRepository';
 export { UserRepository } from './UserRepository';
 export { ResearcherRepository, ResearcherValidationResult, DuplicateCheckResult } from './ResearcherRepository';
-export { ConfigurationRepository, ConfigurationHistory, ConfigurationExport, ConfigurationSnapshot, ApiConfigurationResponse, FrontendConfiguration, ConfigurationValidationResult, MaintenanceResult } from './ConfigurationRepository';
+export { StorageRepository, StorageHistory, StorageExport, StorageSnapshot, ApiStorageResponse, FrontendStorage, StorageValidationResult, MaintenanceResult } from './StorageRepository';
 export { LabRepository } from './LabRepository';
 export { InviteCodeRepository } from './InviteCodeRepository';
 
 // Repository Types (re-exported from centralized locations)
 export type { TubeSearchCriteria, ResearcherSearchCriteria, UserSearchCriteria } from '@domain/types/repository/searchCriteria';
-export type { TubeRepositoryStats, ResearcherUsageStats, ResearcherRepositoryStats, UserRepositoryStats, EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/stats';
+export type { TubeRepositoryStats, ResearcherUsageStats, ResearcherRepositoryStats, UserRepositoryStats, EquipmentSummary, CapacityInfo, StorageRepositoryStats } from '@domain/types/repository/stats';
 export { RefreshTokenRepository } from './RefreshTokenRepository';
 
 // Import types for use in interfaces below
 import { TubeRepository } from './TubeRepository';
 import { UserRepository } from './UserRepository';
 import { ResearcherRepository } from './ResearcherRepository';
-import { ConfigurationRepository } from './ConfigurationRepository';
+import { StorageRepository } from './StorageRepository';
 import { RefreshTokenRepository } from './RefreshTokenRepository';
 import { LabRepository } from './LabRepository';
 import { InviteCodeRepository } from './InviteCodeRepository';
@@ -61,7 +61,7 @@ export interface RepositoryFactory {
   /**
    * Create configuration repository instance
    */
-  createConfigurationRepository(): ConfigurationRepository;
+  createStorageRepository(): StorageRepository;
   
   createRefreshTokenRepository(): RefreshTokenRepository;
   createLabRepository(): LabRepository;
@@ -90,7 +90,7 @@ export interface RepositoryManager {
   tubes: TubeRepository;
   users: UserRepository;
   researchers: ResearcherRepository;
-  configuration: ConfigurationRepository;
+  configuration: StorageRepository;
   refreshTokens: RefreshTokenRepository;
   labs: LabRepository;
   inviteCodes: InviteCodeRepository;

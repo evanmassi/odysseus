@@ -3,9 +3,9 @@ import type { TubeSearchCriteria } from '@domain/types/repository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { Tube } from '@domain/entities/Tube';
-import { Configuration } from '@domain/entities/Configuration';
+import { Storage } from '@domain/entities/Storage';
 import { User } from '@domain/entities/User';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
@@ -54,7 +54,7 @@ export class TubeApplicationService {
     private userRepository: UserRepository,
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository,
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private tubePositionService: TubePositionService,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
@@ -64,11 +64,11 @@ export class TubeApplicationService {
    * Helper: Get container info (rack + box) for a tube location
    * Used for container assignment permission checks
    */
-  private async getContainerInfo(labId: string, tankId: string, rackId: string, boxId: string, preloadedConfig?: Configuration | null): Promise<{
+  private async getContainerInfo(labId: string, tankId: string, rackId: string, boxId: string, preloadedConfig?: Storage | null): Promise<{
     rack: { assignedUserId?: string | null };
     box: { assignedUserId?: string | null };
   } | null> {
-    const config = preloadedConfig !== undefined ? preloadedConfig : await this.configurationRepository.getForLab(labId);
+    const config = preloadedConfig !== undefined ? preloadedConfig : await this.storageRepository.getForLab(labId);
     if (!config) return null;
 
     const result = config.getBox(tankId, rackId, boxId);
@@ -81,7 +81,7 @@ export class TubeApplicationService {
   }
 
   private async getAllowedTankIds(labId: string, _user: User): Promise<string[]> {
-    const config = await this.configurationRepository.getForLab(labId);
+    const config = await this.storageRepository.getForLab(labId);
     if (!config) return [];
 
     return config.tanks.map(t => t.id);
@@ -99,14 +99,14 @@ export class TubeApplicationService {
    * Create a new tube.
    * Trust Zod-validated input, enforce business rules only.
    */
-  async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Configuration | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string> }): Promise<TubeResponse> {
+  async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string> }): Promise<TubeResponse> {
     // 1. Check permissions
     this.accessControlService.requireCanCreateTube(authenticatedUser);
 
     // 2. Map DTO to domain (thin, no logic)
     const tubeData = TubeDto.fromCreateRequest(request);
 
-    const config = options?.config !== undefined ? options.config : await this.configurationRepository.getForLab(authenticatedUser.labId!);
+    const config = options?.config !== undefined ? options.config : await this.storageRepository.getForLab(authenticatedUser.labId!);
 
     // 2.5. Check container access (assignment protects the container)
     const containerInfo = await this.getContainerInfo(
@@ -209,7 +209,7 @@ export class TubeApplicationService {
     created: TubeResponse[];
     failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
   }> {
-    const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
+    const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
 
     // Pre-fetch researcher names in bulk (2 queries total instead of 2 per tube)
     const researcherNameCache = new Map<string, string>();
@@ -443,7 +443,7 @@ export class TubeApplicationService {
    * Update tube
    * Trust Zod-validated input, check business rules only
    */
-  async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Configuration | null; preloadedTube?: Tube }): Promise<TubeResponse> {
+  async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube }): Promise<TubeResponse> {
     const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
@@ -597,7 +597,7 @@ export class TubeApplicationService {
   /**
    * Delete tube
    */
-  async deleteTube(id: string, authenticatedUser: User, options?: { config?: Configuration | null; preloadedTube?: Tube }): Promise<void> {
+  async deleteTube(id: string, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube }): Promise<void> {
     const tube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
@@ -657,7 +657,7 @@ export class TubeApplicationService {
   }> {
     // No upfront permission check — each tube is authorized individually
     // This allows users to batch edit tubes they have access to (own space or shared access)
-    const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
+    const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
 
     // Pre-fetch all tubes in one query
     const tubeIds = request.updates.map(u => u.id);
@@ -703,7 +703,7 @@ export class TubeApplicationService {
     // No upfront permission check — each tube is authorized individually
     // This allows users to delete tubes they have access to (own space or shared access)
     // Consistent with bulkUpdateTubes which uses the same per-tube authorization pattern
-    const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
+    const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
 
     const tubes = await this.tubeRepository.findByIds(tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
@@ -785,7 +785,7 @@ export class TubeApplicationService {
     const locked: string[] = [];
     const skipped: SkippedTube[] = [];
 
-    const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
+    const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
     const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));

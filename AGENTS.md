@@ -114,7 +114,7 @@ import { createTubeRequestSchema, type TubeData } from '@odysseus/shared-schemas
 | Tubes | `/api/tubes` | Yes | CRUD, locking, sharing |
 | Researchers | `/api/researchers` | Yes | CRUD, stats |
 | Search | `/api/search` | Yes | Advanced search, suggestions, saved searches |
-| Configuration | `/api/configuration` | Yes | Lab config, tank/rack/box CRUD |
+| Storage | `/api/storage` | Yes | Lab storage, tank/rack/box CRUD |
 | Admin | `/api/admin` | Admin | Users, security, audit, metrics |
 
 ---

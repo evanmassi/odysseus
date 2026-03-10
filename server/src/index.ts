@@ -128,13 +128,13 @@ class OdysseusServer {
 
   private setupRoutes(): void {
     // Initialize modular route system
-    const { RouteRegistry, PublicRouteModule, AuthRouteModule, AdminRouteModule, ResourceRouteModule, ConfigurationRouteModule, SearchRouteModule, UserRouteModule, SystemAdminRouteModule } = require('./presentation/routes');
+    const { RouteRegistry, PublicRouteModule, AuthRouteModule, AdminRouteModule, ResourceRouteModule, StorageRouteModule, SearchRouteModule, UserRouteModule, SystemAdminRouteModule } = require('./presentation/routes');
 
     const registry = new RouteRegistry(this.app);
     const authController = this.serviceContainer.getAuthController();
     const tubeController = this.serviceContainer.getTubeController();
     const researcherController = this.serviceContainer.getResearcherController();
-    const configurationController = this.serviceContainer.getConfigurationController();
+    const configurationController = this.serviceContainer.getStorageController();
     const searchController = this.serviceContainer.getSearchController();
     const userController = this.serviceContainer.getUserController();
     const personController = this.serviceContainer.getPersonController();
@@ -145,17 +145,17 @@ class OdysseusServer {
     const labController = this.serviceContainer.getLabController();
     const inviteCodeController = this.serviceContainer.getInviteCodeController();
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
-    const configurationRepository = this.repositoryFactory.getConfigurationRepository();
+    const storageRepository = this.repositoryFactory.getStorageRepository();
 
     // Register all route modules
-    registry.registerModule(new PublicRouteModule(authController, inviteCodeController, configurationRepository));
-    registry.registerModule(new AuthRouteModule(authController, authMiddleware, configurationRepository));
+    registry.registerModule(new PublicRouteModule(authController, inviteCodeController, storageRepository));
+    registry.registerModule(new AuthRouteModule(authController, authMiddleware, storageRepository));
     registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, exportController, lookupValueController, inviteCodeController, authMiddleware));
     registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, authController, configurationController, auditController, authMiddleware));
     const tubeLockController = this.serviceContainer.getTubeLockController();
-    registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, configurationRepository));
-    registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));
-    registry.registerModule(new SearchRouteModule(searchController, authMiddleware, configurationRepository));
+    registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, storageRepository));
+    registry.registerModule(new StorageRouteModule(configurationController, authMiddleware));
+    registry.registerModule(new SearchRouteModule(searchController, authMiddleware, storageRepository));
     registry.registerModule(new UserRouteModule(userController, personController, sessionController, authMiddleware));
 
     // Apply all routes

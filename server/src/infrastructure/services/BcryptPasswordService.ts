@@ -8,14 +8,14 @@
 
 import * as bcrypt from 'bcrypt';
 import { PasswordService, PasswordValidationResult } from '@application/contracts/PasswordService';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 
 export class BcryptPasswordService implements PasswordService {
   private readonly saltRounds: number;
   private readonly forbiddenPasswords: string[];
 
   constructor(
-    private readonly configurationRepository: ConfigurationRepository,
+    private readonly storageRepository: StorageRepository,
     saltRounds: number = 12
   ) {
     this.saltRounds = saltRounds;
@@ -55,7 +55,7 @@ export class BcryptPasswordService implements PasswordService {
     let score = 0;
 
     // Read current security configuration
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
 
     // Check minimum length (from SecurityConfig)
     const minLength = securityConfig.passwordMinLength;

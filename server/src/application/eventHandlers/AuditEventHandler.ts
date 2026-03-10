@@ -34,7 +34,7 @@ import {
   BoxLabelUpdatedEvent,
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
-} from '@domain/events/ConfigurationEvents';
+} from '@domain/events/StorageEvents';
 import {
   UserCreatedEvent,
   UserPasswordChangedEvent,
@@ -64,7 +64,7 @@ import {
   InviteCodeUsedEvent
 } from '@domain/events/LabEvents';
 import { UserRepository } from '@domain/repositories/UserRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { Location } from '@domain/valueObjects/Location';
 import type { FieldChange } from '@domain/types/fieldChange';
 import { logger } from '@infrastructure/logging/logger';
@@ -81,7 +81,7 @@ export class AuditEventHandler {
     private auditService: AuditService,
     private eventBus: EventBus,
     private userRepository: UserRepository,
-    private configurationRepository: ConfigurationRepository
+    private storageRepository: StorageRepository
   ) {
     this.subscribeToEvents();
   }
@@ -235,7 +235,7 @@ export class AuditEventHandler {
   /** Resolve a Location to a human-readable path (e.g. "Tank 1 · Rack A · Box 1 · A1"). */
   private async getDisplayLocation(location: Location, labId: string): Promise<string> {
     try {
-      const config = await this.configurationRepository.getForLab(labId);
+      const config = await this.storageRepository.getForLab(labId);
       if (!config) return location.toString();
 
       const tank = config.equipment.tanks.find(t => t.id === location.tankId);

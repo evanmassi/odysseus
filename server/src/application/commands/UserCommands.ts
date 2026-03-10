@@ -8,7 +8,7 @@ import { BaseCommand, Command, CommandHandler, CommandResult } from '@applicatio
 import { UserRole } from '@domain/valueObjects/UserRole';
 import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
@@ -25,7 +25,7 @@ import {
   UserLoggedInEvent,
   UserLoggedOutEvent
 } from '@domain/events/UserEvents';
-import { BulkResourcesUnassignedEvent } from '@domain/events/ConfigurationEvents';
+import { BulkResourcesUnassignedEvent } from '@domain/events/StorageEvents';
 import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
 import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -53,7 +53,7 @@ export class CreateUserCommandHandler implements CommandHandler<CreateUserComman
     private userRepository: UserRepository,
     private passwordService: PasswordService,
     private eventBus: EventBus,
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private inviteCodeRepository?: InviteCodeRepository
   ) {}
 
@@ -113,7 +113,7 @@ export class CreateUserCommandHandler implements CommandHandler<CreateUserComman
   }
 
   private async validatePasswordPolicy(password: string): Promise<void> {
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
     try {
       PasswordValidator.enforce(password, securityConfig);
     } catch (error) {
@@ -143,7 +143,7 @@ export class CreateSystemAdminCommand extends BaseCommand {
 export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSystemAdminCommand, User> {
   constructor(
     private userRepository: UserRepository,
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private eventBus: EventBus,
     private personRepository: PersonRepository
   ) {}
@@ -194,7 +194,7 @@ export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSys
   }
 
   private async validatePasswordPolicy(password: string): Promise<void> {
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
     try {
       PasswordValidator.enforce(password, securityConfig);
     } catch (error) {
@@ -222,7 +222,7 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
     private userRepository: UserRepository,
     private passwordService: PasswordService,
     private eventBus: EventBus,
-    private configurationRepository: ConfigurationRepository,
+    private storageRepository: StorageRepository,
     private userSessionRepository: UserSessionRepository
   ) {}
 
@@ -271,7 +271,7 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
    * Validate password against configured security policy
    */
   private async validatePasswordPolicy(password: string): Promise<void> {
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
     try {
       PasswordValidator.enforce(password, securityConfig);
     } catch (error) {
@@ -348,7 +348,7 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
   constructor(
     private userRepository: UserRepository,
     private eventBus: EventBus,
-    private configurationRepository: ConfigurationRepository
+    private storageRepository: StorageRepository
   ) {}
 
   async handle(command: DeleteUserCommand): Promise<void> {
@@ -372,7 +372,7 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
       if (!user.labId) {
         break; // No lab context — no configuration to update
       }
-      const configuration = await this.configurationRepository.getForLab(user.labId);
+      const configuration = await this.storageRepository.getForLab(user.labId);
       if (!configuration) {
         break; // No configuration to update
       }
@@ -388,7 +388,7 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
       }
 
       try {
-        await this.configurationRepository.saveWithOptimisticLock(
+        await this.storageRepository.saveWithOptimisticLock(
           user.labId!,
           configuration,
           expectedVersion,

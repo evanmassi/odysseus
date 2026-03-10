@@ -7,14 +7,14 @@
 
 import { User } from '@domain/entities/User';
 import { Lab } from '@domain/entities/Lab';
-import { Configuration } from '@domain/entities/Configuration';
+import { Storage } from '@domain/entities/Storage';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { DEMO_LIMITS_DEFAULTS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
 export function rejectIfSeeded(
   user: User,
-  config: Configuration,
+  config: Storage,
   tankId: string,
   rackId?: string,
   boxId?: string
@@ -27,7 +27,7 @@ export function rejectIfSeeded(
 
 export function enforceAddTankLimit(
   user: User,
-  config: Configuration,
+  config: Storage,
   lab: Lab
 ): void {
   if (!user.isDemo) return;
@@ -41,7 +41,7 @@ export function enforceAddTankLimit(
 
 export function enforceAddRacksLimit(
   user: User,
-  config: Configuration,
+  config: Storage,
   lab: Lab,
   tankId: string,
   count: number
@@ -60,7 +60,7 @@ export function enforceAddRacksLimit(
 
 export function enforceAddBoxesLimit(
   user: User,
-  config: Configuration,
+  config: Storage,
   lab: Lab,
   tankId: string,
   rackId: string,

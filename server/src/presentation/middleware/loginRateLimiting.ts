@@ -7,13 +7,13 @@
  * Architecture:
  * - RateLimitingService: Core business logic for tracking and enforcing rate limits
  * - createRateLimitMiddleware: Factory function that creates Express middleware
- * - ConfigurationRepository: Injected dependency for reading security policies
+ * - StorageRepository: Injected dependency for reading security policies
  *
  * @module middleware/RateLimiting
  */
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { logger } from '@infrastructure/logging/logger';
 
 /**
@@ -56,7 +56,7 @@ export class RateLimitingService {
   private readonly CLEANUP_INTERVAL_MS = 60000; // 1 minute
   private readonly TIME_WINDOW_MS = 60000; // 1 minute
 
-  constructor(private readonly configurationRepository: ConfigurationRepository) {
+  constructor(private readonly storageRepository: StorageRepository) {
     // Schedule periodic cleanup to prevent memory leaks
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
@@ -98,7 +98,7 @@ export class RateLimitingService {
    * @returns Block status with time remaining if blocked
    */
   async isBlocked(identifier: string): Promise<BlockStatus> {
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
 
     // If rate limiting disabled, allow all requests
     if (!securityConfig.enableRateLimiting) {
@@ -134,7 +134,7 @@ export class RateLimitingService {
    * @param identifier - Unique identifier (typically IP address)
    */
   async recordAttempt(identifier: string): Promise<void> {
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    const securityConfig = await this.storageRepository.getSecurityConfig();
 
     // If rate limiting disabled, don't track attempts
     if (!securityConfig.enableRateLimiting) {
@@ -225,7 +225,7 @@ export class RateLimitingService {
 /**
  * Factory function to create rate limiting middleware
  *
- * @param configurationRepository - Repository for reading security configuration
+ * @param storageRepository - Repository for reading security configuration
  * @returns Express middleware function for rate limiting
  *
  * @example
@@ -235,14 +235,14 @@ export class RateLimitingService {
  * ```
  */
 export function createRateLimitMiddleware(
-  configurationRepository: ConfigurationRepository
+  storageRepository: StorageRepository
 ): RequestHandler {
-  const service = new RateLimitingService(configurationRepository);
+  const service = new RateLimitingService(storageRepository);
 
   // Return Express middleware function
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const securityConfig = await configurationRepository.getSecurityConfig();
+      const securityConfig = await storageRepository.getSecurityConfig();
 
       // If rate limiting disabled, skip middleware
       if (!securityConfig.enableRateLimiting) {
