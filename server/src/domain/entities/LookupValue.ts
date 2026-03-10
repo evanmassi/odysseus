@@ -1,7 +1,7 @@
 /**
- * Lookup Value Entity
+ * Admin-Managed Dropdown Option
  *
- * Admin-managed dropdown option for tube metadata (species, source).
+ * Represents a selectable value for tube metadata fields (species, source, media).
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -107,6 +107,6 @@ export class LookupValue {
   get value(): string { return this._value; }
   get sortOrder(): number { return this._sortOrder; }
   get isActive(): boolean { return this._isActive; }
-  get createdAt(): Date { return this._createdAt; }
-  get updatedAt(): Date { return this._updatedAt; }
+  get createdAt(): Date { return new Date(this._createdAt); }
+  get updatedAt(): Date { return new Date(this._updatedAt); }
 }

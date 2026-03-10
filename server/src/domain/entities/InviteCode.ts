@@ -1,8 +1,7 @@
 /**
- * InviteCode Entity
+ * Lab Registration Invite Code
  *
- * Represents a registration invite code that grants access to a specific lab.
- * Lab admins generate codes, share them externally, and new users enter them during registration.
+ * Grants new users access to a specific lab during registration.
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';

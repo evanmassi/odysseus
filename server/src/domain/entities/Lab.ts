@@ -1,8 +1,7 @@
 /**
- * Lab Entity (Tenant Aggregate Root)
+ * Lab Tenant Aggregate Root
  *
- * Represents a lab tenant in the multi-tenancy system.
- * All tenant-scoped data (tubes, researchers, configuration, etc.) belongs to a lab.
+ * All tenant-scoped data (tubes, researchers, storage) belongs to a lab.
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -170,5 +169,5 @@ export class Lab {
   get isDemo(): boolean { return this._isDemo; }
   get createdAt(): Date { return new Date(this._createdAt); }
   get updatedAt(): Date { return new Date(this._updatedAt); }
-  get demoLimits(): DemoLimits | undefined { return this._demoLimits; }
+  get demoLimits(): DemoLimits | undefined { return this._demoLimits ? { ...this._demoLimits } : undefined; }
 }

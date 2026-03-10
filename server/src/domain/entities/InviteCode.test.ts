@@ -1,3 +1,7 @@
+/**
+ * Invite Code Entity Tests
+ */
+
 import { InviteCode } from './InviteCode';
 
 describe('InviteCode', () => {
