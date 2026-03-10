@@ -145,7 +145,7 @@ export class StorageRepository implements IStorageRepository {
         timestamp: row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at),
         changeDescription: row.change_description,
         changedBy: row.changed_by,
-        configuration: Storage.fromData(row.config_json)
+        storage: Storage.fromData(row.config_json)
       }));
 
     } catch (error) {
@@ -421,7 +421,7 @@ export class StorageRepository implements IStorageRepository {
     return {
       version: '1.0',
       timestamp: new Date(),
-      configuration: config,
+      storage: config,
       metadata: {
         exportedBy: 'system',
         description: 'Storage configuration export',
@@ -699,18 +699,18 @@ export class StorageRepository implements IStorageRepository {
   // BACKUP AND RESTORE
 
   async importStorage(labId: string, configExport: StorageExport): Promise<Storage> {
-    if (!configExport || !configExport.configuration) {
+    if (!configExport || !configExport.storage) {
       throw new ValidationError('Invalid configuration export provided');
     }
 
-    const validationResult = await this.validateStorage(labId, configExport.configuration);
+    const validationResult = await this.validateStorage(labId, configExport.storage);
     if (!validationResult.isValid) {
       throw new ValidationError(`Storage configuration import failed: ${validationResult.errors.join(', ')}`);
     }
 
-    await this.saveWithVersioning(labId, configExport.configuration, 'Storage configuration imported');
+    await this.saveWithVersioning(labId, configExport.storage, 'Storage configuration imported');
 
-    return configExport.configuration;
+    return configExport.storage;
   }
 
   async listSnapshots(labId: string): Promise<StorageSnapshot[]> {

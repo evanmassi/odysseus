@@ -488,8 +488,4 @@ export class UserRepository implements IUserRepository {
     return this.context.isHealthy();
   }
 
-  async cleanupExpiredSessions(): Promise<number> {
-    // Sessions managed by SessionRepository
-    return 0;
-  }
 }

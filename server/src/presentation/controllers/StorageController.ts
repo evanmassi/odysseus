@@ -250,7 +250,7 @@ export class StorageController extends BaseController {
         configurations: history.map(config => ({
           version: config.version,
           lastUpdated: config.timestamp,
-          systemSettings: config.configuration.systemSettings
+          systemSettings: config.storage.systemSettings
         })),
         pagination: {
           limit,

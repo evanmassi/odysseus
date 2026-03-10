@@ -93,10 +93,6 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
 
   // SESSION MANAGEMENT OPERATIONS
 
-  async createSession(session: UserSession): Promise<void> {
-    await this.save(session);
-  }
-
   async countActiveSessions(userId: string): Promise<number> {
     const now = new Date();
     const result = await this.context.queryOne<{ count: string }>(

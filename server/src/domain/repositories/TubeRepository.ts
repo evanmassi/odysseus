@@ -1,3 +1,9 @@
+/**
+ * Tube Repository Interface
+ *
+ * Data access contract for tube sample records and location queries.
+ */
+
 import { Tube } from '@domain/entities/Tube';
 import { Location } from '@domain/valueObjects/Location';
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteria';

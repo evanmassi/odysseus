@@ -1,33 +1,33 @@
-import { Storage } from '@domain/entities/Storage';
-import { Location } from '@domain/valueObjects/Location';
-import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
-import type { EquipmentSummary, CapacityInfo, StorageRepositoryStats } from '@domain/types/repository/stats';
-
 /**
  * Storage Repository Interface
  *
  * Data access contract for lab-scoped storage equipment and settings.
  */
+
+import { Storage } from '@domain/entities/Storage';
+import { Location } from '@domain/valueObjects/Location';
+import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
+import type { EquipmentSummary, CapacityInfo, StorageRepositoryStats } from '@domain/types/repository/stats';
 export interface StorageRepository {
 
-  // CONFIGURATION MANAGEMENT
+  // STORAGE MANAGEMENT
 
   getForLab(labId: string): Promise<Storage | null>;
-  saveForLab(labId: string, configuration: Storage): Promise<number>;
+  saveForLab(labId: string, storage: Storage): Promise<number>;
   ensureDefaultForLab(labId: string): Promise<Storage>;
 
   // VERSIONING AND HISTORY
 
   getByVersion(labId: string, version: number): Promise<Storage | null>;
   getHistory(labId: string, limit?: number): Promise<StorageHistory[]>;
-  saveWithVersioning(labId: string, configuration: Storage, changeDescription?: string, changedBy?: string): Promise<number>;
+  saveWithVersioning(labId: string, storage: Storage, changeDescription?: string, changedBy?: string): Promise<number>;
 
   /**
    * Save with optimistic locking. @throws ConflictError if version mismatch.
    */
   saveWithOptimisticLock(
     labId: string,
-    configuration: Storage,
+    storage: Storage,
     expectedVersion: number,
     changeDescription?: string,
     changedBy?: string
@@ -114,7 +114,7 @@ export interface StorageRepository {
   // BACKUP AND RESTORE
 
   exportStorage(labId: string): Promise<StorageExport>;
-  importStorage(labId: string, configExport: StorageExport): Promise<Storage>;
+  importStorage(labId: string, storageExport: StorageExport): Promise<Storage>;
   createSnapshot(labId: string, description?: string): Promise<StorageSnapshot>;
   restoreFromSnapshot(labId: string, snapshotId: string): Promise<Storage>;
   listSnapshots(labId: string): Promise<StorageSnapshot[]>;
@@ -124,7 +124,7 @@ export interface StorageRepository {
 
   getForApi(labId: string): Promise<ApiStorageResponse>;
   getForFrontend(labId: string): Promise<FrontendStorage>;
-  validateStorage(labId: string, configuration: Storage): Promise<StorageValidationResult>;
+  validateStorage(labId: string, storage: Storage): Promise<StorageValidationResult>;
 
   // MAINTENANCE OPERATIONS
 
@@ -139,25 +139,18 @@ export interface StorageRepository {
   getSystemMetrics(labId: string): Promise<SystemMetrics>;
 }
 
-/**
- * Storage history entry for audit trails
- */
 export interface StorageHistory {
   version: number;
   timestamp: Date;
   changeDescription?: string;
   changedBy?: string;
-  configuration: Storage;
+  storage: Storage;
 }
 
-
-/**
- * Storage export format for backups
- */
 export interface StorageExport {
-  version: string; // Export format version
+  version: string;
   timestamp: Date;
-  configuration: Storage;
+  storage: Storage;
   metadata: {
     exportedBy?: string;
     description?: string;
@@ -168,9 +161,6 @@ export interface StorageExport {
   };
 }
 
-/**
- * Storage snapshot for rollback
- */
 export interface StorageSnapshot {
   id: string;
   version: number;
@@ -180,10 +170,7 @@ export interface StorageSnapshot {
   sizeBytes: number;
 }
 
-/**
- * API-optimized storage response
- * Uses nested structure: tanks contain racks, racks contain boxes
- */
+/** Uses nested structure: tanks contain racks, racks contain boxes. */
 export interface ApiStorageResponse {
   equipment: {
     tanks: Array<{
@@ -219,9 +206,6 @@ export interface ApiStorageResponse {
   };
 }
 
-/**
- * Frontend-optimized storage response
- */
 export interface FrontendStorage {
   tanks: Array<{
     id: string;
@@ -242,9 +226,6 @@ export interface FrontendStorage {
   version: number;
 }
 
-/**
- * Storage validation result
- */
 export interface StorageValidationResult {
   isValid: boolean;
   errors: string[];
@@ -252,7 +233,6 @@ export interface StorageValidationResult {
   recommendations?: string[];
 }
 
-/** Maintenance operation result */
 export interface MaintenanceResult {
   success: boolean;
   tasksPerformed: string[];
