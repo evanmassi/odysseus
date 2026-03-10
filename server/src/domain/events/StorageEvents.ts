@@ -1,12 +1,12 @@
-import { DomainEvent } from './DomainEvent';
+/**
+ * Storage Domain Events
+ *
+ * Events for lab storage hierarchy changes (tanks, racks, boxes, assignments, labels).
+ */
+
+import { DomainEvent } from '@domain/events/DomainEvent';
 import type { FieldChange } from '@domain/types/fieldChange';
 
-/**
- * Configuration Updated Event
- *
- * Fired when the entire configuration is updated.
- * Captures high-level changes for audit trail.
- */
 export class StorageUpdatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -23,7 +23,7 @@ export class StorageUpdatedEvent extends DomainEvent {
       labNameChanged: boolean;
     }
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -31,15 +31,10 @@ export class StorageUpdatedEvent extends DomainEvent {
   }
 
   getAggregateId(): string {
-    return 'system-configuration';
+    return 'system-storage';
   }
 }
 
-/**
- * Tank Updated Event
- *
- * Fired when a specific tank's properties are modified.
- */
 export class TankUpdatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -47,7 +42,7 @@ export class TankUpdatedEvent extends DomainEvent {
     public readonly tankName: string,
     public readonly changes: FieldChange[]
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -59,18 +54,13 @@ export class TankUpdatedEvent extends DomainEvent {
   }
 }
 
-/**
- * Tank Added Event
- *
- * Fired when a new tank is added to the configuration.
- */
 export class TankAddedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -82,18 +72,13 @@ export class TankAddedEvent extends DomainEvent {
   }
 }
 
-/**
- * Tank Deleted Event
- *
- * Fired when a tank is removed from the configuration.
- */
 export class TankDeletedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -105,11 +90,6 @@ export class TankDeletedEvent extends DomainEvent {
   }
 }
 
-/**
- * Rack Added Event
- *
- * Fired when a new rack is added to a tank.
- */
 export class RackAddedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -118,7 +98,7 @@ export class RackAddedEvent extends DomainEvent {
     public readonly rackId: string,
     public readonly rackName: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -130,11 +110,6 @@ export class RackAddedEvent extends DomainEvent {
   }
 }
 
-/**
- * Rack Deleted Event
- *
- * Fired when a rack is removed from a tank.
- */
 export class RackDeletedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -143,7 +118,7 @@ export class RackDeletedEvent extends DomainEvent {
     public readonly rackId: string,
     public readonly rackName: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -155,11 +130,6 @@ export class RackDeletedEvent extends DomainEvent {
   }
 }
 
-/**
- * Rack Updated Event
- *
- * Fired when a specific rack's properties are modified.
- */
 export class RackUpdatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -169,7 +139,7 @@ export class RackUpdatedEvent extends DomainEvent {
     public readonly rackName: string,
     public readonly changes: FieldChange[]
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -181,11 +151,6 @@ export class RackUpdatedEvent extends DomainEvent {
   }
 }
 
-/**
- * Box Added Event
- *
- * Fired when a new box is added to a rack.
- */
 export class BoxAddedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -196,7 +161,7 @@ export class BoxAddedEvent extends DomainEvent {
     public readonly boxId: string,
     public readonly boxName: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -208,11 +173,6 @@ export class BoxAddedEvent extends DomainEvent {
   }
 }
 
-/**
- * Box Deleted Event
- *
- * Fired when a box is removed from a rack.
- */
 export class BoxDeletedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -223,7 +183,7 @@ export class BoxDeletedEvent extends DomainEvent {
     public readonly boxId: string,
     public readonly boxName: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -235,11 +195,6 @@ export class BoxDeletedEvent extends DomainEvent {
   }
 }
 
-/**
- * Box Updated Event
- *
- * Fired when a specific box's properties are modified.
- */
 export class BoxUpdatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -251,7 +206,7 @@ export class BoxUpdatedEvent extends DomainEvent {
     public readonly boxName: string,
     public readonly changes: FieldChange[]
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -263,18 +218,13 @@ export class BoxUpdatedEvent extends DomainEvent {
   }
 }
 
-/**
- * Lab Name Changed Event
- *
- * Fired when the laboratory name is changed.
- */
 export class LabNameChangedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly oldName: string,
     public readonly newName: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -282,15 +232,10 @@ export class LabNameChangedEvent extends DomainEvent {
   }
 
   getAggregateId(): string {
-    return 'system-configuration';
+    return 'system-storage';
   }
 }
 
-/**
- * Rack Assigned Event
- *
- * Fired when a rack is assigned to a user.
- */
 export class RackAssignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -301,7 +246,7 @@ export class RackAssignedEvent extends DomainEvent {
     public readonly assignedUserId: string,
     public readonly assignedUsername: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -313,11 +258,6 @@ export class RackAssignedEvent extends DomainEvent {
   }
 }
 
-/**
- * Rack Unassigned Event
- *
- * Fired when a rack is unassigned from a user.
- */
 export class RackUnassignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -328,7 +268,7 @@ export class RackUnassignedEvent extends DomainEvent {
     public readonly previousUserId: string,
     public readonly previousUsername: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -340,11 +280,6 @@ export class RackUnassignedEvent extends DomainEvent {
   }
 }
 
-/**
- * Rack Reassigned Event
- *
- * Fired when a rack is reassigned from one user to another.
- */
 export class RackReassignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -357,7 +292,7 @@ export class RackReassignedEvent extends DomainEvent {
     public readonly newUserId: string,
     public readonly newUsername: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -369,11 +304,6 @@ export class RackReassignedEvent extends DomainEvent {
   }
 }
 
-/**
- * Box Assigned Event
- *
- * Fired when a box is assigned to a user.
- */
 export class BoxAssignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -386,7 +316,7 @@ export class BoxAssignedEvent extends DomainEvent {
     public readonly assignedUserId: string,
     public readonly assignedUsername: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -398,11 +328,6 @@ export class BoxAssignedEvent extends DomainEvent {
   }
 }
 
-/**
- * Box Unassigned Event
- *
- * Fired when a box is unassigned from a user.
- */
 export class BoxUnassignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -415,7 +340,7 @@ export class BoxUnassignedEvent extends DomainEvent {
     public readonly previousUserId: string,
     public readonly previousUsername: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -427,11 +352,6 @@ export class BoxUnassignedEvent extends DomainEvent {
   }
 }
 
-/**
- * Box Reassigned Event
- *
- * Fired when a box is reassigned from one user to another.
- */
 export class BoxReassignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -446,7 +366,7 @@ export class BoxReassignedEvent extends DomainEvent {
     public readonly newUserId: string,
     public readonly newUsername: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -458,11 +378,6 @@ export class BoxReassignedEvent extends DomainEvent {
   }
 }
 
-/**
- * Rack Label Updated Event
- *
- * Fired when a rack's custom label is updated.
- */
 export class RackLabelUpdatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -473,7 +388,7 @@ export class RackLabelUpdatedEvent extends DomainEvent {
     public readonly oldLabel: string | undefined,
     public readonly newLabel: string | undefined
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -485,11 +400,6 @@ export class RackLabelUpdatedEvent extends DomainEvent {
   }
 }
 
-/**
- * Box Label Updated Event
- *
- * Fired when a box's custom label is updated.
- */
 export class BoxLabelUpdatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -502,7 +412,7 @@ export class BoxLabelUpdatedEvent extends DomainEvent {
     public readonly oldLabel: string | undefined,
     public readonly newLabel: string | undefined
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -514,11 +424,6 @@ export class BoxLabelUpdatedEvent extends DomainEvent {
   }
 }
 
-/**
- * Bulk Resources Unassigned Event
- *
- * Fired when multiple resources are unassigned from a user at once.
- */
 export class BulkResourcesUnassignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -527,7 +432,7 @@ export class BulkResourcesUnassignedEvent extends DomainEvent {
     public readonly racksAffected: number,
     public readonly boxesAffected: number
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -535,15 +440,10 @@ export class BulkResourcesUnassignedEvent extends DomainEvent {
   }
 
   getAggregateId(): string {
-    return 'system-configuration';
+    return 'system-storage';
   }
 }
 
-/**
- * Bulk Resources Reassigned Event
- *
- * Fired when multiple resources are reassigned from one user to another.
- */
 export class BulkResourcesReassignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
@@ -554,7 +454,7 @@ export class BulkResourcesReassignedEvent extends DomainEvent {
     public readonly racksAffected: number,
     public readonly boxesAffected: number
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -562,7 +462,7 @@ export class BulkResourcesReassignedEvent extends DomainEvent {
   }
 
   getAggregateId(): string {
-    return 'system-configuration';
+    return 'system-storage';
   }
 }
 

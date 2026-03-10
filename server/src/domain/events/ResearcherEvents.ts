@@ -27,7 +27,7 @@ export class ResearcherCreatedEvent extends DomainEvent {
     return this.researcherId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       researcherId: this.researcherId,
       firstName: this.firstName,
@@ -58,7 +58,7 @@ export class ResearcherUpdatedEvent extends DomainEvent {
     return this.researcherId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       researcherId: this.researcherId,
       firstName: this.firstName,
@@ -88,7 +88,7 @@ export class ResearcherDeactivatedEvent extends DomainEvent {
     return this.researcherId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       researcherId: this.researcherId,
       firstName: this.firstName,
@@ -117,7 +117,7 @@ export class ResearcherReactivatedEvent extends DomainEvent {
     return this.researcherId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       researcherId: this.researcherId,
       firstName: this.firstName,
@@ -145,7 +145,7 @@ export class ResearcherDeletedEvent extends DomainEvent {
     return this.researcherId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       researcherId: this.researcherId,
       firstName: this.firstName,
@@ -175,7 +175,7 @@ export class ResearcherApprovedEvent extends DomainEvent {
     return this.researcherId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       researcherId: this.researcherId,
       firstName: this.firstName,

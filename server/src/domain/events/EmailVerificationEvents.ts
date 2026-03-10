@@ -4,7 +4,7 @@
  * Events that occur during email verification processes
  */
 
-import { DomainEvent } from './DomainEvent';
+import { DomainEvent } from '@domain/events/DomainEvent';
 
 export class VerificationEmailSentEvent extends DomainEvent {
   constructor(
@@ -22,7 +22,7 @@ export class VerificationEmailSentEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       email: this.email
@@ -46,7 +46,7 @@ export class EmailVerifiedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       email: this.email
@@ -70,7 +70,7 @@ export class VerificationEmailResentEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       email: this.email

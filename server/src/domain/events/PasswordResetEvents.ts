@@ -1,10 +1,10 @@
 /**
  * Password Reset Domain Events
  *
- * Events emitted during admin-initiated password reset operations.
+ * Events emitted during password reset operations.
  */
 
-import { DomainEvent } from './DomainEvent';
+import { DomainEvent } from '@domain/events/DomainEvent';
 
 export class PasswordResetByAdminEvent extends DomainEvent {
   constructor(
@@ -12,7 +12,7 @@ export class PasswordResetByAdminEvent extends DomainEvent {
     public readonly adminUserId: string,
     public readonly requirePasswordChange: boolean
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -23,7 +23,7 @@ export class PasswordResetByAdminEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       adminUserId: this.adminUserId,
@@ -38,7 +38,7 @@ export class PasswordResetTokenGeneratedEvent extends DomainEvent {
     public readonly adminUserId: string,
     public readonly expiresAt: Date
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -49,7 +49,7 @@ export class PasswordResetTokenGeneratedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       adminUserId: this.adminUserId,
@@ -62,7 +62,7 @@ export class PasswordResetCompletedEvent extends DomainEvent {
   constructor(
     public readonly userId: string
   ) {
-    super();
+    super(1);
   }
 
   eventName(): string {
@@ -73,7 +73,7 @@ export class PasswordResetCompletedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId
     };

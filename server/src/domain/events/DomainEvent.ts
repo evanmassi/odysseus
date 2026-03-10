@@ -1,8 +1,7 @@
 /**
- * Base Domain Event
- * 
- * Abstract base class for all domain events in the system.
- * Domain events represent something meaningful that happened in the domain.
+ * Domain Event Base Class
+ *
+ * All concrete events extend this for consistent serialization and routing.
  */
 
 import { randomUUID } from 'crypto';
@@ -20,20 +19,10 @@ export abstract class DomainEvent {
     this.labId = labId;
   }
 
-  /**
-   * Returns the name of this domain event.
-   * Used for event routing and handling.
-   */
   abstract eventName(): string;
 
-  /**
-   * Returns the aggregate root ID this event relates to.
-   */
   abstract getAggregateId(): string;
 
-  /**
-   * Converts the event to a serializable format for persistence.
-   */
   toData(): DomainEventData {
     return {
       eventId: this.eventId,
@@ -46,11 +35,7 @@ export abstract class DomainEvent {
     };
   }
 
-  /**
-   * Returns the event-specific data for serialization.
-   * Override this method in concrete event implementations.
-   */
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {};
   }
 }
@@ -62,5 +47,5 @@ export interface DomainEventData {
   occurredOn: string;
   version: number;
   labId?: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }

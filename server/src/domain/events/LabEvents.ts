@@ -22,7 +22,7 @@ export class LabCreatedEvent extends DomainEvent {
     return this.labId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       labId: this.labId,
       name: this.name,
@@ -47,7 +47,7 @@ export class InviteCodeCreatedEvent extends DomainEvent {
     return this.codeId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       codeId: this.codeId,
       labId: this.labId,
@@ -73,7 +73,7 @@ export class InviteCodeUsedEvent extends DomainEvent {
     return this.codeId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       codeId: this.codeId,
       labId: this.labId,

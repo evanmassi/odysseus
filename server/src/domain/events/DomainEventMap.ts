@@ -1,10 +1,7 @@
 /**
- * Domain Event Map
+ * Domain Event Type Registry
  *
- * Type-safe mapping from event names to event classes.
- * Enables compile-time verification that event handlers match their subscribed events.
- *
- * Pattern: Same approach used by Socket.io, Redux, and tRPC for typed event systems.
+ * Central registry enabling compile-time verification of event handler subscriptions.
  */
 
 import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesUpdatedEvent } from './TubeEvents';
@@ -71,10 +68,6 @@ import type {
   InviteCodeUsedEvent
 } from './LabEvents';
 
-/**
- * Maps event name strings to their corresponding event class types.
- * TypeScript uses this to infer handler parameter types from subscription names.
- */
 export interface DomainEventMap {
   // Tube CRUD events
   'TubeCreated': TubeCreatedEvent;
@@ -157,8 +150,4 @@ export interface DomainEventMap {
   'InviteCodeUsed': InviteCodeUsedEvent;
 }
 
-/**
- * Union type of all valid event names.
- * Prevents typos in event subscriptions at compile time.
- */
 export type DomainEventName = keyof DomainEventMap;

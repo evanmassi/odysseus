@@ -26,7 +26,7 @@ export class TubeCreatedEvent extends DomainEvent {
     return this.tubeId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       tubeId: this.tubeId,
       location: this.location.toData(),
@@ -56,7 +56,7 @@ export class TubeUpdatedEvent extends DomainEvent {
     return this.tubeId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       tubeId: this.tubeId,
       oldLocation: this.oldLocation.toData(),
@@ -86,7 +86,7 @@ export class TubeLocationChangedEvent extends DomainEvent {
     return this.tubeId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       tubeId: this.tubeId,
       oldLocation: this.oldLocation.toData(),
@@ -114,7 +114,7 @@ export class TubeDeletedEvent extends DomainEvent {
     return this.tubeId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       tubeId: this.tubeId,
       location: this.location.toData(),
@@ -129,7 +129,7 @@ export class BulkTubesUpdatedEvent extends DomainEvent {
     public readonly tubeIds: string[],
     public readonly tankIds: string[],
     public readonly updatedBy: string,
-    public readonly changesSummary: Record<string, any>
+    public readonly changesSummary: Record<string, unknown>
   ) {
     super(1);
   }
@@ -143,7 +143,7 @@ export class BulkTubesUpdatedEvent extends DomainEvent {
     return `bulk-${this.tubeIds.join(',')}`;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       tubeIds: this.tubeIds,
       tankIds: this.tankIds,

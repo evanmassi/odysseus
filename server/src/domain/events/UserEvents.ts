@@ -25,7 +25,7 @@ export class UserCreatedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -52,7 +52,7 @@ export class UserPasswordChangedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -81,7 +81,7 @@ export class UserRoleChangedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -110,7 +110,7 @@ export class UserDeletedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -136,7 +136,7 @@ export class UserLoggedInEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username
@@ -161,7 +161,7 @@ export class UserLoggedOutEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username
@@ -189,7 +189,7 @@ export class UserLinkedToResearcherEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -220,7 +220,7 @@ export class UserUnlinkedFromResearcherEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -249,7 +249,7 @@ export class UserApprovedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -276,7 +276,7 @@ export class UserRejectedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -303,7 +303,7 @@ export class UserDeactivatedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -330,7 +330,7 @@ export class UserSuspendedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
@@ -358,7 +358,7 @@ export class UserReactivatedEvent extends DomainEvent {
     return this.userId;
   }
 
-  protected getEventData(): Record<string, any> {
+  protected getEventData(): Record<string, unknown> {
     return {
       userId: this.userId,
       username: this.username,
