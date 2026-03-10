@@ -4,9 +4,9 @@ import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 import type { EquipmentSummary, CapacityInfo, StorageRepositoryStats } from '@domain/types/repository/stats';
 
 /**
- * Configuration Repository Interface
- * Defines the contract for lab-scoped configuration data access operations.
- * All lab-specific methods require an explicit labId parameter.
+ * Storage Repository Interface
+ *
+ * Data access contract for lab-scoped storage equipment and settings.
  */
 export interface StorageRepository {
 
@@ -140,7 +140,7 @@ export interface StorageRepository {
 }
 
 /**
- * Configuration history entry for audit trails
+ * Storage history entry for audit trails
  */
 export interface StorageHistory {
   version: number;
@@ -152,7 +152,7 @@ export interface StorageHistory {
 
 
 /**
- * Configuration export format for backups
+ * Storage export format for backups
  */
 export interface StorageExport {
   version: string; // Export format version
@@ -169,7 +169,7 @@ export interface StorageExport {
 }
 
 /**
- * Configuration snapshot for rollback
+ * Storage snapshot for rollback
  */
 export interface StorageSnapshot {
   id: string;
@@ -181,7 +181,7 @@ export interface StorageSnapshot {
 }
 
 /**
- * API-optimized configuration response
+ * API-optimized storage response
  * Uses nested structure: tanks contain racks, racks contain boxes
  */
 export interface ApiStorageResponse {
@@ -220,7 +220,7 @@ export interface ApiStorageResponse {
 }
 
 /**
- * Frontend-optimized configuration
+ * Frontend-optimized storage response
  */
 export interface FrontendStorage {
   tanks: Array<{
@@ -243,7 +243,7 @@ export interface FrontendStorage {
 }
 
 /**
- * Configuration validation result
+ * Storage validation result
  */
 export interface StorageValidationResult {
   isValid: boolean;
@@ -252,9 +252,7 @@ export interface StorageValidationResult {
   recommendations?: string[];
 }
 
-/**
- * Maintenance operation result
- */
+/** Maintenance operation result */
 export interface MaintenanceResult {
   success: boolean;
   tasksPerformed: string[];
