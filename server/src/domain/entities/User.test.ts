@@ -5,7 +5,7 @@
  */
 
 import { User } from './User';
-import { UserRole } from '@domain/valueObjects/UserRole';
+import { UserRole } from '@domain/value-objects/UserRole';
 import { createTestUser, createTestAdmin, createTestSystemAdmin } from '@domain/__tests__/helpers';
 
 describe('User', () => {

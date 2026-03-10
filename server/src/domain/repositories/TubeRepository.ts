@@ -5,7 +5,7 @@
  */
 
 import { Tube } from '@domain/entities/Tube';
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteria';
 import type { TubeRepositoryStats } from '@domain/types/repository/stats';
 

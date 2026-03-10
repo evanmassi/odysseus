@@ -5,7 +5,7 @@
  */
 
 import { Storage } from '@domain/entities/Storage';
-import { Rack, Box } from '@domain/valueObjects/Equipment';
+import { Rack, Box } from '@domain/value-objects/Equipment';
 import type { DomainEvent } from '@domain/events/DomainEvent';
 import type { FieldChange } from '@domain/types/fieldChange';
 import {

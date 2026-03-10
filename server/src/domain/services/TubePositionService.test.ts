@@ -3,7 +3,7 @@
  */
 
 import { TubePositionService } from './TubePositionService';
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import { Storage } from '@domain/entities/Storage';
 import { createTestTube } from '@domain/__tests__/helpers';
 

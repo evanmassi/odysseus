@@ -29,7 +29,7 @@ import { GetUserByIdQuery, GetUserByIdQueryHandler } from '@application/queries/
 import { GetAllUsersQuery, GetAllUsersQueryHandler } from '@application/queries/UserQueries';
 import { GetUserStatisticsQuery, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 
-import { UserRole } from '@domain/valueObjects/UserRole';
+import { UserRole } from '@domain/value-objects/UserRole';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';

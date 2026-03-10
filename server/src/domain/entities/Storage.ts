@@ -4,9 +4,9 @@
  * Manages the equipment hierarchy (tanks → racks → boxes) and system settings.
  */
 
-import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/valueObjects/Equipment';
+import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import { generateId } from '@domain/utils/generateId';
 import {
   EQUIPMENT_DEFAULTS,

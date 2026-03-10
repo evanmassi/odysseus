@@ -11,7 +11,7 @@ import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
-import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
+import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { StorageUpdatedEvent } from '@domain/events/StorageEvents';
 import { generateId } from '@domain/utils/generateId';

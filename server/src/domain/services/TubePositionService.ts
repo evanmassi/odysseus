@@ -4,7 +4,7 @@
  * Validates tube placement against equipment configuration, position conflicts, and business rules.
  */
 
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import { Tube } from '@domain/entities/Tube';
 import { Storage } from '@domain/entities/Storage';
 import { TubeRepository } from '@domain/repositories/TubeRepository';

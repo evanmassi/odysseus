@@ -7,8 +7,8 @@
 import { Tube } from '@domain/entities/Tube';
 import { User } from '@domain/entities/User';
 import { Storage } from '@domain/entities/Storage';
-import { Location } from '@domain/valueObjects/Location';
-import { SampleData } from '@domain/valueObjects/SampleData';
+import { Location } from '@domain/value-objects/Location';
+import { SampleData } from '@domain/value-objects/SampleData';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';

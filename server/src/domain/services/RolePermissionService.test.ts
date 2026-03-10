@@ -3,7 +3,7 @@
  */
 
 import { RolePermissionService } from './RolePermissionService';
-import { Permission } from '@domain/valueObjects/Permission';
+import { Permission } from '@domain/value-objects/Permission';
 
 describe('RolePermissionService', () => {
   describe('hasPermission', () => {

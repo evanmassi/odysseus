@@ -4,8 +4,8 @@
  * Aggregate root for a physical tube with location, sample data, and locking.
  */
 
-import { Location } from '@domain/valueObjects/Location';
-import { SampleData } from '@domain/valueObjects/SampleData';
+import { Location } from '@domain/value-objects/Location';
+import { SampleData } from '@domain/value-objects/SampleData';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 

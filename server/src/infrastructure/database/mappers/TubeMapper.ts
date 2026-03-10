@@ -1,6 +1,6 @@
 import { Tube } from '@domain/entities/Tube';
-import { Location } from '@domain/valueObjects/Location';
-import { SampleData } from '@domain/valueObjects/SampleData';
+import { Location } from '@domain/value-objects/Location';
+import { SampleData } from '@domain/value-objects/SampleData';
 
 /**
  * Database-to-Domain transformation utility

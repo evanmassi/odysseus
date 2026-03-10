@@ -5,8 +5,8 @@
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
-import { Location } from '@domain/valueObjects/Location';
-import { SampleData } from '@domain/valueObjects/SampleData';
+import { Location } from '@domain/value-objects/Location';
+import { SampleData } from '@domain/value-objects/SampleData';
 
 export class TubeCreatedEvent extends DomainEvent {
   constructor(

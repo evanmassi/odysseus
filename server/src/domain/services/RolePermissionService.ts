@@ -4,7 +4,7 @@
  * Maps roles to permissions and provides lookup/validation.
  */
 
-import { Permission } from '@domain/valueObjects/Permission';
+import { Permission } from '@domain/value-objects/Permission';
 import { ValidationError } from '@domain/errors/ValidationError';
 export class RolePermissionService {
   

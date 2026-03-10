@@ -65,7 +65,7 @@ import {
 } from '@domain/events/LabEvents';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import type { FieldChange } from '@domain/types/fieldChange';
 import { logger } from '@infrastructure/logging/logger';
 

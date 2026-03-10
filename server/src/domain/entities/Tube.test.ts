@@ -5,7 +5,7 @@
  */
 
 import { Tube } from './Tube';
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import { createTestTube } from '@domain/__tests__/helpers';
 
 describe('Tube', () => {

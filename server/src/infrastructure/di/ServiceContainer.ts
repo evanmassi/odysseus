@@ -23,9 +23,9 @@ import { GetCurrentStorageQueryHandler, GetStorageForUserQueryHandler, GetStorag
 
 // Event Bus
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
-import { AuditEventHandler } from '@application/eventHandlers/AuditEventHandler';
-import { SocketEventHandler } from '@application/eventHandlers/SocketEventHandler';
-import { ResearcherApprovalEventHandler } from '@application/eventHandlers/ResearcherApprovalEventHandler';
+import { AuditEventHandler } from '@application/event-handlers/AuditEventHandler';
+import { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
+import { ResearcherApprovalEventHandler } from '@application/event-handlers/ResearcherApprovalEventHandler';
 import type { Server as SocketIOServer } from 'socket.io';
 
 // Controllers

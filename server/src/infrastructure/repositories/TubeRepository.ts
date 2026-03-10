@@ -1,7 +1,7 @@
 import { Tube } from '@domain/entities/Tube';
 import { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
 import type { TubeSearchCriteria, TubeSearchResult, TubeRepositoryStats } from '@domain/types/repository';
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';

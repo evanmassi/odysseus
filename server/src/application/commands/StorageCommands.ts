@@ -6,7 +6,7 @@ import { ValidationService } from '@domain/services/ValidationService';
 import { StorageChangeService } from '@domain/services/StorageChangeService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { User } from '@domain/entities/User';
-import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
+import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';

@@ -7,7 +7,7 @@
 import { User } from '@domain/entities/User';
 import { Tube } from '@domain/entities/Tube';
 import { Researcher } from '@domain/entities/Researcher';
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { PermissionError } from '@domain/errors/PermissionError';

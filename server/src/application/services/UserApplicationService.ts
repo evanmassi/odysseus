@@ -8,7 +8,7 @@ import { UserSessionRepository } from '@domain/repositories/UserSessionRepositor
 import { User } from '@domain/entities/User';
 import { Researcher } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
-import { UserRole } from '@domain/valueObjects/UserRole';
+import { UserRole } from '@domain/value-objects/UserRole';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { CreateUserRequest, UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest, UserDto } from '@application/dto/UserDto';
 import { RegisterWithResearcherRequest, PasswordValidator } from '@odysseus/shared-schemas';

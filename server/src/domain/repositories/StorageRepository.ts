@@ -5,7 +5,7 @@
  */
 
 import { Storage } from '@domain/entities/Storage';
-import { Location } from '@domain/valueObjects/Location';
+import { Location } from '@domain/value-objects/Location';
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 import type { EquipmentSummary, CapacityInfo, StorageRepositoryStats } from '@domain/types/repository/stats';
 export interface StorageRepository {

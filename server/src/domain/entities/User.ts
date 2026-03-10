@@ -4,7 +4,7 @@
  * Aggregate root for user identity, credentials, roles, and approval workflow.
  */
 
-import { UserRole } from '@domain/valueObjects/UserRole';
+import { UserRole } from '@domain/value-objects/UserRole';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EmailVerificationError } from '@domain/errors/EmailVerificationError';

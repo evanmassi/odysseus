@@ -10,7 +10,7 @@ import { LabRepository } from '@domain/repositories/LabRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { User } from '@domain/entities/User';
-import { Box } from '@domain/valueObjects/Equipment';
+import { Box } from '@domain/value-objects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';

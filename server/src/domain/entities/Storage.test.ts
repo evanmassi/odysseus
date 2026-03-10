@@ -3,7 +3,7 @@
  */
 
 import { Storage } from './Storage';
-import { Box, Rack, Tank } from '@domain/valueObjects/Equipment';
+import { Box, Rack, Tank } from '@domain/value-objects/Equipment';
 import { generateId } from '@domain/utils/generateId';
 
 function createMinimalStorage(): Storage {

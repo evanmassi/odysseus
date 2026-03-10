@@ -6,7 +6,7 @@
 
 import { User } from '@domain/entities/User';
 import { Tube } from '@domain/entities/Tube';
-import { UserRole } from '@domain/valueObjects/UserRole';
+import { UserRole } from '@domain/value-objects/UserRole';
 
 export function createTestUser(overrides: {
   username?: string;

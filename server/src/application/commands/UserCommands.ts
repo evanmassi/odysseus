@@ -5,7 +5,7 @@
  */
 
 import { BaseCommand, Command, CommandHandler, CommandResult } from '@application/commands/Command';
-import { UserRole } from '@domain/valueObjects/UserRole';
+import { UserRole } from '@domain/value-objects/UserRole';
 import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { StorageRepository } from '@domain/repositories/StorageRepository';

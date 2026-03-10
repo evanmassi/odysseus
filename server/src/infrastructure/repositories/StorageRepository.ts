@@ -1,8 +1,8 @@
 import { StorageRepository as IStorageRepository, StorageHistory, StorageExport, StorageValidationResult, StorageSnapshot, ApiStorageResponse, FrontendStorage, MaintenanceResult } from '@domain/repositories/StorageRepository';
 import type { EquipmentSummary, StorageRepositoryStats, CapacityInfo } from '@domain/types/repository';
 import { Storage } from '@domain/entities/Storage';
-import { Location } from '@domain/valueObjects/Location';
-import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
+import { Location } from '@domain/value-objects/Location';
+import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import { generateId } from '@domain/utils/generateId';
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 import { DEFAULT_SECURITY_CONFIG, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';

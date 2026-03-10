@@ -1,5 +1,5 @@
 import { Storage } from '@domain/entities/Storage';
-import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
+import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import { NAMING_PATTERNS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import type {
   StorageResponse,
