@@ -6,7 +6,6 @@
 
 import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
 import { Location } from '@domain/valueObjects/Location';
 import { generateId } from '@domain/utils/generateId';
 import {
@@ -15,6 +14,7 @@ import {
   SYSTEM_DEFAULTS,
   type PositionDisplayConfig,
 } from '@odysseus/shared-schemas';
+
 export class Storage {
   private constructor(
     private _equipment: EquipmentConfiguration,
@@ -112,14 +112,7 @@ export class Storage {
           })
         );
 
-        // Use the maximum of: actual box count, requested capacity, or default
-        // This handles legacy data migration where old capacity=9 but new boxes.length=10
-        const effectiveCapacity = Math.max(
-          boxes.length,
-          rackData.maxBoxes || 0,
-          rackData.capacity || 0,
-          EQUIPMENT_DEFAULTS.BOXES_PER_RACK
-        );
+        const effectiveCapacity = Storage.effectiveRackCapacity(boxes.length, rackData.maxBoxes, rackData.capacity);
 
         return Rack.create({
           id: rackData.id,
@@ -161,6 +154,15 @@ export class Storage {
     if (this._version < 1) {
       throw new ValidationError('Storage configuration version must be at least 1');
     }
+  }
+
+  /** Handles legacy data migration where old capacity=9 but new boxes.length=10 */
+  private static effectiveRackCapacity(
+    boxCount: number,
+    maxBoxes: number | undefined,
+    capacity: number | undefined
+  ): number {
+    return Math.max(boxCount, maxBoxes || 0, capacity || 0, EQUIPMENT_DEFAULTS.BOXES_PER_RACK);
   }
 
   addTank(id: string, name: string, maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK): Tank {
@@ -924,12 +926,7 @@ export class Storage {
           })
         );
 
-        const effectiveCapacity = Math.max(
-          boxes.length,
-          rackData.maxBoxes || 0,
-          rackData.capacity || 0,
-          EQUIPMENT_DEFAULTS.BOXES_PER_RACK
-        );
+        const effectiveCapacity = Storage.effectiveRackCapacity(boxes.length, rackData.maxBoxes, rackData.capacity);
 
         return Rack.create({
           id: rackData.id,
