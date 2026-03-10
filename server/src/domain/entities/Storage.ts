@@ -192,18 +192,17 @@ export class Storage {
     }
 
     const tank = this._equipment.tanks[tankIndex];
-    const rackIdStr = rackId;
 
     if (!tank.canAccommodateRack()) {
       throw new ValidationError(`Tank '${tankId}' is at maximum rack capacity (${tank.maxRacks})`);
     }
 
     // Business rule: Rack IDs must be unique within a tank
-    if (tank.racks.some(r => r.id === rackIdStr)) {
+    if (tank.racks.some(r => r.id === rackId)) {
       throw new ValidationError(`Rack ${rackId} already exists in tank '${tankId}'`);
     }
 
-    const newRack = Rack.create({ id: rackIdStr, name: rackName, boxes: initialBoxes, maxBoxes, capacity: maxBoxes });
+    const newRack = Rack.create({ id: rackId, name: rackName, boxes: initialBoxes, maxBoxes, capacity: maxBoxes });
 
     const newRacks = [...tank.racks, newRack] as Rack[];
     const newMaxRacks = Math.max(tank.maxRacks, newRacks.length);
@@ -235,8 +234,7 @@ export class Storage {
     }
 
     const tank = this._equipment.tanks[tankIndex];
-    const rackIdStr = rackId;
-    const rackIndex = tank.racks.findIndex(r => r.id === rackIdStr);
+    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
     if (rackIndex === -1) {
       throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
     }
@@ -368,8 +366,7 @@ export class Storage {
     }
 
     const tank = this._equipment.tanks[tankIndex];
-    const rackIdStr = rackId;
-    const rackIndex = tank.racks.findIndex(r => r.id === rackIdStr);
+    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
     if (rackIndex === -1) {
       throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
     }
@@ -640,7 +637,7 @@ export class Storage {
           });
         }
 
-        if (updatedBoxes !== rack.boxes) {
+        if (updatedBoxes.some((b, i) => b !== rack.boxes[i])) {
           return Rack.create({
             id: rack.id,
             name: rack.name,
@@ -855,8 +852,7 @@ export class Storage {
     const tank = this._equipment.tanks.find(t => t.id === tankId);
     if (!tank) return [];
 
-    const rackIdStr = rackId;
-    const rack = tank.racks.find(r => r.id === rackIdStr);
+    const rack = tank.racks.find(r => r.id === rackId);
     if (!rack) return [];
 
     const box = rack.boxes.find(b => b.name === boxId.toUpperCase() && b.isActive);
