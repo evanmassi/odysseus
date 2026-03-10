@@ -1,5 +1,5 @@
 /**
- * Storage Configuration Change Detector
+ * Storage Configuration Change Detection
  *
  * Compares two Storage entities and emits domain events for all detected changes.
  */
@@ -8,7 +8,6 @@ import { Storage } from '@domain/entities/Storage';
 import { Rack, Box } from '@domain/valueObjects/Equipment';
 import type { DomainEvent } from '@domain/events/DomainEvent';
 import type { FieldChange } from '@domain/types/fieldChange';
-import { logger } from '@infrastructure/logging/logger';
 import {
   StorageUpdatedEvent,
   TankUpdatedEvent,
@@ -42,7 +41,7 @@ export interface ConfigurationChangeSummary {
   labNameChanged: boolean;
 }
 
-export class StorageChangeDetector {
+export class StorageChangeService {
   detectChanges(oldConfig: Storage, newConfig: Storage, userId: string): DomainEvent[] {
     const events: DomainEvent[] = [];
     const summary: ConfigurationChangeSummary = {
@@ -135,12 +134,6 @@ export class StorageChangeDetector {
     if (events.length > 0) {
       events.push(new StorageUpdatedEvent(userId, summary));
     }
-
-    logger.debug('Storage configuration change detection complete', {
-      totalEvents: events.length,
-      eventTypes: events.map(e => e.eventName()),
-      summary
-    });
 
     return events;
   }

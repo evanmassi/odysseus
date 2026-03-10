@@ -3,7 +3,7 @@ import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ValidationService } from '@domain/services/ValidationService';
-import { StorageChangeDetector } from '@domain/services/StorageChangeDetector';
+import { StorageChangeService } from '@domain/services/StorageChangeService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { User } from '@domain/entities/User';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';

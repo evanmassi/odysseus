@@ -56,7 +56,7 @@ import { PresenceService } from '@application/services/PresenceService';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { ValidationService } from '@domain/services/ValidationService';
-import { StorageChangeDetector } from '@domain/services/StorageChangeDetector';
+import { StorageChangeService } from '@domain/services/StorageChangeService';
 
 // Infrastructure services
 import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
@@ -444,8 +444,8 @@ export class ServiceContainer {
     return this.importStorageHandler;
   }
 
-  getStorageChangeDetector(): StorageChangeDetector {
-    return new StorageChangeDetector();
+  getStorageChangeService(): StorageChangeService {
+    return new StorageChangeService();
   }
 
   getUpdateBoxPositionDisplayHandler(): UpdateBoxPositionDisplayCommandHandler {
