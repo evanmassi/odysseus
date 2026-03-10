@@ -6,7 +6,6 @@
 
 import { Tube } from '@domain/entities/Tube';
 import { User } from '@domain/entities/User';
-import { Researcher } from '@domain/entities/Researcher';
 import { Storage } from '@domain/entities/Storage';
 import { Location } from '@domain/valueObjects/Location';
 import { SampleData } from '@domain/valueObjects/SampleData';
@@ -14,6 +13,7 @@ import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
@@ -26,6 +26,7 @@ export class ValidationService {
     private userRepository: UserRepository,
     private researcherRepository: ResearcherRepository,
     private storageRepository: StorageRepository,
+    private personRepository: PersonRepository,
     private tubePositionService: TubePositionService,
     private accessControlService: AccessControlService
   ) {}
@@ -336,8 +337,9 @@ export class ValidationService {
       if (!researcher) {
         result.errors.push(`Researcher ID '${researcherId}' not found in system.`);
       } else if (!researcher.isActive()) {
-        // TODO(2026-03-10): Look up Person to display researcher name in warning message
-        result.warnings.push(`Researcher '${researcher.id}' is marked as inactive`);
+        const person = await this.personRepository.findById(researcher.personId);
+        const name = person?.fullName ?? researcher.id;
+        result.warnings.push(`Researcher '${name}' is marked as inactive`);
       }
     } catch (error) {
       result.warnings.push('Unable to verify researcher information');

@@ -1237,6 +1237,7 @@ export class ServiceContainer {
         repositories.users,
         repositories.researchers,
         repositories.storage,
+        repositories.persons,
         this.getTubePositionService(),
         this.getAccessControlService()
       );
