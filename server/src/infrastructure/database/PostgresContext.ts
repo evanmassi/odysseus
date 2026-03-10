@@ -47,6 +47,9 @@ export class PostgresContext {
         client.release();
       }
 
+      // Rename legacy tables before createTables() so IF NOT EXISTS checks work
+      await this.renameConfigurationTablesToStorage();
+
       // Create schema
       await this.createTables();
       await this.runSchemaMigrations();
@@ -911,7 +914,6 @@ export class PostgresContext {
     await this.migrateUserStatusConstraint();
     await this.migrateEquipmentIds();
     await this.normalizeLabIds();
-    await this.renameConfigurationTablesToStorage();
     await this.ensureSystemAdminPerson();
   }
 
@@ -919,13 +921,16 @@ export class PostgresContext {
     await this.pool.query(`
       DO $$
       BEGIN
-        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_versions') THEN
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_versions')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'storage_versions') THEN
           ALTER TABLE configuration_versions RENAME TO storage_versions;
         END IF;
-        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_current') THEN
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_current')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'storage_current') THEN
           ALTER TABLE configuration_current RENAME TO storage_current;
         END IF;
-        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_snapshots') THEN
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'configuration_snapshots')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'storage_snapshots') THEN
           ALTER TABLE configuration_snapshots RENAME TO storage_snapshots;
         END IF;
         IF EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_configuration_versions_updated_at') THEN
