@@ -20,7 +20,7 @@ import {
   TankUpdatedEvent,
   TankDeletedEvent
 } from '@domain/events/StorageEvents';
-import type { FieldChange } from '@domain/types/fieldChange';
+import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
 // COMMAND INTERFACES
 

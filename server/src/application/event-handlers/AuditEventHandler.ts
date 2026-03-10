@@ -66,7 +66,7 @@ import {
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { Location } from '@domain/value-objects/Location';
-import type { FieldChange } from '@domain/types/fieldChange';
+import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { logger } from '@infrastructure/logging/logger';
 
 /**

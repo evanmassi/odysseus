@@ -6,8 +6,8 @@
 
 import { Tube } from '@domain/entities/Tube';
 import { Location } from '@domain/value-objects/Location';
-import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteria';
-import type { TubeRepositoryStats } from '@domain/types/repository/stats';
+import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteriaTypes';
+import type { TubeRepositoryStats } from '@domain/types/repository/statsTypes';
 
 export interface TubeRepository {
 

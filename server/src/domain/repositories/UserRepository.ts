@@ -5,8 +5,8 @@
  */
 
 import { User } from '@domain/entities/User';
-import type { UserSearchCriteria } from '@domain/types/repository/searchCriteria';
-import type { UserRepositoryStats } from '@domain/types/repository/stats';
+import type { UserSearchCriteria } from '@domain/types/repository/searchCriteriaTypes';
+import type { UserRepositoryStats } from '@domain/types/repository/statsTypes';
 
 export interface UserRepository {
 

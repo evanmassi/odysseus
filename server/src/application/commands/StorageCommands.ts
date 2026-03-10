@@ -14,7 +14,7 @@ import { rejectDemoConfigOperation } from '@application/guards/DemoGuards';
 import { logger } from '@infrastructure/logging/logger';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
-import type { StorageImportData } from '@domain/types/storage';
+import type { StorageImportData } from '@domain/types/storageTypes';
 import {
   RackAssignedEvent,
   RackUnassignedEvent,

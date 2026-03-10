@@ -5,8 +5,8 @@
  */
 
 import { Researcher } from '@domain/entities/Researcher';
-import type { ResearcherSearchCriteria } from '@domain/types/repository/searchCriteria';
-import type { ResearcherUsageStats, ResearcherRepositoryStats } from '@domain/types/repository/stats';
+import type { ResearcherSearchCriteria } from '@domain/types/repository/searchCriteriaTypes';
+import type { ResearcherUsageStats, ResearcherRepositoryStats } from '@domain/types/repository/statsTypes';
 
 export interface ResearcherRepository {
 

@@ -4,6 +4,6 @@
  * Centralized type definitions for all repository-related interfaces.
  */
 
-export * from './searchCriteria';
-export * from './stats';
-export * from './queryOptions';
+export * from './searchCriteriaTypes';
+export * from './statsTypes';
+export * from './queryOptionsTypes';
