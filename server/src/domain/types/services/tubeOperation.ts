@@ -35,9 +35,8 @@ interface SampleValidationFields {
   donorInternalId?: string;
 }
 
-/** Supports both nested (.sample) and flat sample data access */
-export interface TubeBusinessRuleInput extends SampleValidationFields {
-  sample?: SampleValidationFields;
+export interface TubeBusinessRuleInput {
+  sample: SampleValidationFields;
 }
 
 export interface TubeUpdateData {

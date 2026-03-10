@@ -183,7 +183,12 @@ export class ValidationService {
     }
 
     // 5. Business rules validation
-    const mergedData = { ...tube.toData(), ...updates };
+    const tubeSnapshot = tube.toData();
+    const mergedData = {
+      ...tubeSnapshot,
+      ...updates,
+      sample: { ...tubeSnapshot.sample, ...updates.sample },
+    };
     const businessRules = await this.validateTubeBusinessRules(mergedData, 'update', user.labId ?? '');
     if (!businessRules.isValid) {
       result.isValid = false;
@@ -377,14 +382,12 @@ export class ValidationService {
     }
 
     // 2. Validate configuration changes don't break existing tubes
-    if (this.isEquipmentBeingRemovedInConfig(currentConfig, updatedConfig)) {
-      const equipmentValidation = await this.validateEquipmentRemovalInConfig(currentConfig, updatedConfig, labId);
-      if (!equipmentValidation.isValid) {
-        result.isValid = false;
-        result.errors.push(...equipmentValidation.errors);
-      }
-      result.warnings.push(...equipmentValidation.warnings);
+    const equipmentValidation = await this.validateEquipmentRemovalInConfig(currentConfig, updatedConfig, labId);
+    if (!equipmentValidation.isValid) {
+      result.isValid = false;
+      result.errors.push(...equipmentValidation.errors);
     }
+    result.warnings.push(...equipmentValidation.warnings);
 
     // 3. Business rules for configuration changes
     const businessRules = await this.validateStorageBusinessRulesForConfig(updatedConfig);
@@ -434,8 +437,7 @@ export class ValidationService {
       warnings: []
     };
 
-    // Extract sample data - handle both nested and flat structures (for merged data)
-    const sample = tubeData.sample || tubeData;
+    const sample = tubeData.sample;
 
     // Business rule: Warn about concentration without unit or vice versa
     if ((sample.concentration !== undefined) !== (sample.concentrationUnit !== undefined)) {
@@ -470,48 +472,6 @@ export class ValidationService {
     }
 
     return result;
-  }
-
-  private isEquipmentBeingRemovedInConfig(currentConfig: Storage, updatedConfig: Storage): boolean {
-    const currentTanks = currentConfig.tanks;
-    const updatedTanks = updatedConfig.tanks;
-    const updatedTankIds = new Set(updatedTanks.map(t => t.id));
-
-    for (const currentTank of currentTanks) {
-      // Check if tank is completely removed
-      if (!updatedTankIds.has(currentTank.id)) {
-        return true;
-      }
-
-      // Check if tank is being deactivated
-      const updatedTank = updatedTanks.find(t => t.id === currentTank.id);
-      if (updatedTank && currentTank.isActive && !updatedTank.isActive) {
-        return true;
-      }
-
-      // Check if any racks are being removed from this tank
-      if (updatedTank) {
-        const updatedRackIds = new Set(updatedTank.racks.map(r => r.id));
-        for (const currentRack of currentTank.racks) {
-          if (!updatedRackIds.has(currentRack.id)) {
-            return true;
-          }
-
-          // Check if any boxes are being removed from this rack
-          const updatedRack = updatedTank.racks.find(r => r.id === currentRack.id);
-          if (updatedRack) {
-            const updatedBoxIds = new Set(updatedRack.boxes.map(b => b.name));
-            for (const currentBox of currentRack.boxes) {
-              if (!updatedBoxIds.has(currentBox.name)) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return false;
   }
 
   private async validateEquipmentRemovalInConfig(currentConfig: Storage, updatedConfig: Storage, labId: string = ''): Promise<DomainValidationResult> {

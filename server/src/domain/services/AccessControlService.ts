@@ -362,29 +362,6 @@ export class AccessControlService {
     return this.createAllowedResult();
   }
 
-  async canDeleteEquipment(user: User, equipmentType: 'tank' | 'rack' | 'box', equipmentId: string): Promise<AccessResult> {
-    const configCheck = await this.canModifyStorage(user);
-    if (!configCheck.allowed) {
-      return configCheck;
-    }
-
-    let tubeCount = 0;
-
-    try {
-      if (equipmentType === 'tank') {
-        tubeCount = await this.tubeRepository.countByTank(equipmentId, user.labId ?? '');
-      }
-
-      if (tubeCount > 0) {
-        return this.createDeniedResult(`Cannot delete ${equipmentType} with ${tubeCount} tubes. Move or delete tubes first.`);
-      }
-    } catch (error) {
-      return this.createDeniedResult('Unable to verify equipment usage');
-    }
-
-    return this.createAllowedResult();
-  }
-
   // RESOURCE ASSIGNMENT OPERATIONS
 
   canAccessContainer(

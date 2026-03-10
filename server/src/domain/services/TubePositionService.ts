@@ -146,11 +146,6 @@ export class TubePositionService {
         result.warnings?.push(`Adjacent tubes belong to researcher ${researcherId}. Consider consistency.`);
       }
 
-      if (location.position > maxPosition) {
-        result.isValid = false;
-        result.errors.push(`Position ${location.position} exceeds box capacity of ${maxPosition}`);
-      }
-
     } catch (error) {
       result.warnings?.push('Unable to apply some position business rules');
     }
