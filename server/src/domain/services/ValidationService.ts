@@ -89,9 +89,7 @@ export class ValidationService {
     // 4. Researcher validation
     if (tubeData.researcherId) {
       const researcherValidation = await this.validateResearcherIdReference(tubeData.researcherId);
-      if (!researcherValidation.isValid) {
-        result.warnings.push(...researcherValidation.errors);
-      }
+      result.warnings.push(...researcherValidation.warnings);
     }
 
     // 5. Business rules validation
@@ -176,9 +174,7 @@ export class ValidationService {
         result.warnings.push('Tube will be unassigned from any researcher');
       } else {
         const researcherValidation = await this.validateResearcherIdReference(updates.researcherId);
-        if (!researcherValidation.isValid) {
-          result.warnings.push(...researcherValidation.errors);
-        }
+        result.warnings.push(...researcherValidation.warnings);
       }
     }
 
@@ -340,7 +336,7 @@ export class ValidationService {
       const researcher = await this.researcherRepository.findById(researcherId);
 
       if (!researcher) {
-        result.errors.push(`Researcher ID '${researcherId}' not found in system.`);
+        result.warnings.push(`Researcher ID '${researcherId}' not found in system.`);
       } else if (!researcher.isActive()) {
         const person = await this.personRepository.findById(researcher.personId);
         const name = person?.fullName ?? researcher.id;

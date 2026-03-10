@@ -1,3 +1,7 @@
+/**
+ * User Role Value Object Tests
+ */
+
 import { UserRole } from './UserRole';
 import { Permission } from './Permission';
 

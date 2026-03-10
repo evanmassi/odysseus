@@ -1,3 +1,7 @@
+/**
+ * Access Control Service Tests
+ */
+
 import { AccessControlService } from './AccessControlService';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { createTestUser, createTestAdmin, createTestSystemAdmin, createTestTube } from '@domain/__tests__/helpers';

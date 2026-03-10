@@ -1,3 +1,7 @@
+/**
+ * Permission Value Object Tests
+ */
+
 import { Permission } from './Permission';
 
 describe('Permission', () => {
