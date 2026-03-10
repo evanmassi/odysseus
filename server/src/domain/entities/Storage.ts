@@ -1,3 +1,9 @@
+/**
+ * Lab Storage Aggregate Root
+ *
+ * Manages the equipment hierarchy (tanks → racks → boxes) and system settings.
+ */
+
 import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -9,12 +15,6 @@ import {
   SYSTEM_DEFAULTS,
   type PositionDisplayConfig,
 } from '@odysseus/shared-schemas';
-
-/**
- * Configuration Entity (System Settings Aggregate Root)
- * Represents the complete system configuration including equipment
- * Contains all business logic for system configuration management
- */
 export class Storage {
   private constructor(
     private _equipment: EquipmentConfiguration,
@@ -25,9 +25,6 @@ export class Storage {
     this.validate();
   }
 
-  /**
-   * Factory method to create default configuration
-   */
   static createDefault(): Storage {
     // Create default boxes A-J for each rack
     const defaultBoxes: Box[] = [];
@@ -56,10 +53,6 @@ export class Storage {
     return new Storage(equipment, systemSettings, new Date(), 1);
   }
 
-  /**
-   * Factory method to create configuration from data
-   * Accepts nested structure matching shared-schemas
-   */
   static fromData(data: {
     tanks: Array<{
       id: string;
@@ -164,21 +157,12 @@ export class Storage {
     );
   }
 
-  /**
-   * Validate configuration state (invariants)
-   */
   private validate(): void {
     if (this._version < 1) {
       throw new ValidationError('Storage configuration version must be at least 1');
     }
-    
-    // Equipment configuration validates itself
-    // System settings validate themselves
   }
 
-  /**
-   * Business method: Add new tank
-   */
   addTank(id: string, name: string, maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK): Tank {
     const newTank = Tank.create({ id, name, maxRacks });
 
@@ -195,10 +179,6 @@ export class Storage {
     return newTank;
   }
 
-  /**
-   * Business method: Add rack to tank
-   * @param initialBoxes - Optional boxes to include in the new rack (defaults to empty)
-   */
   addRack(
     tankId: string,
     rackId: string,
@@ -248,9 +228,6 @@ export class Storage {
     return newRack;
   }
 
-  /**
-   * Business method: Add box to rack
-   */
   addBox(tankId: string, rackId: string, boxId: string, gridConfig: { rows: number; cols: number } = { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS }): Box {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
@@ -316,9 +293,6 @@ export class Storage {
     return newBox;
   }
 
-  /**
-   * Business method: Remove tank (and all associated racks/boxes)
-   */
   removeTank(tankId: string): void {
     const tank = this._equipment.tanks.find(t => t.id === tankId);
     if (!tank) {
@@ -332,9 +306,6 @@ export class Storage {
     this.touch();
   }
 
-  /**
-   * Business method: Update system settings
-   */
   updateSystemSettings(updates: {
     labName?: string;
     defaultResearcher?: string;
@@ -351,10 +322,6 @@ export class Storage {
     );
   }
 
-  /**
-   * Business method: Update tanks configuration
-   * Tanks now contain nested racks and boxes
-   */
   updateTanks(tanks: Tank[]): Storage {
     const newEquipment = EquipmentConfiguration.create(tanks);
     return new Storage(
@@ -365,9 +332,6 @@ export class Storage {
     );
   }
 
-  /**
-   * Business method: Update racks configuration for a specific tank
-   */
   updateRacks(tankId: string, racks: Rack[]): Storage {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
@@ -397,9 +361,6 @@ export class Storage {
     );
   }
 
-  /**
-   * Business method: Update boxes configuration for a specific rack
-   */
   updateBoxes(tankId: string, rackId: string, boxes: Box[]): Storage {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
@@ -452,18 +413,7 @@ export class Storage {
     );
   }
 
-  /**
-   * Update position display configuration for a specific box
-   *
-   * Maintains immutability by creating new instances of affected objects.
-   * Increments configuration version to track changes.
-   *
-   * @param tankId - Tank identifier
-   * @param rackId - Rack identifier
-   * @param boxId - Box identifier
-   * @param positionDisplay - New position display config (null to reset to default)
-   * @returns New Configuration instance with updated box
-   */
+  /** Pass null for positionDisplay to reset to system default */
   updateBoxPositionDisplay(
     tankId: string,
     rackId: string,
@@ -548,14 +498,8 @@ export class Storage {
   }
 
   /**
-   * Clear custom labels from boxes that inherit ownership from a rack
-   *
-   * When a rack is unassigned, boxes that were "inheriting" ownership (no explicit
-   * assignedUserId) should have their custom labels cleared since the ownership
-   * context is gone. Boxes with explicit assignments are left untouched.
-   *
-   * @param tankId - Tank containing the rack
-   * @param rackId - Rack that was unassigned
+   * When a rack is unassigned, boxes inheriting ownership (no explicit assignedUserId)
+   * lose their ownership context, so their custom labels are cleared.
    */
   clearInheritedBoxLabelsForRack(tankId: string, rackId: string): void {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
@@ -625,10 +569,6 @@ export class Storage {
     this.touch();
   }
 
-  /**
-   * Count resource assignments for a specific user.
-   * Used before clearing to report affected resources.
-   */
   countAssignmentsForUser(userId: string): { racks: number; boxes: number } {
     let racks = 0;
     let boxes = 0;
@@ -649,15 +589,7 @@ export class Storage {
     return { racks, boxes };
   }
 
-  /**
-   * Clear all resource assignments for a specific user
-   *
-   * Called when a user is deleted to prevent orphaned assignment references.
-   * Clears both assignedUserId and customLabel on affected racks and boxes.
-   *
-   * @param userId - The user ID whose assignments should be cleared
-   * @returns true if any assignments were cleared, false otherwise
-   */
+  /** Called on user deletion to prevent orphaned assignment references */
   clearAllAssignmentsForUser(userId: string): boolean {
     let hasChanges = false;
 
@@ -749,19 +681,7 @@ export class Storage {
     return hasChanges;
   }
 
-  /**
-   * Update custom label for a rack or box
-   *
-   * Allows resource owners to set a custom label on their assigned resources.
-   * Uses mutable pattern (like clearInheritedBoxLabelsForRack) since this is
-   * called as part of a command that handles its own persistence.
-   *
-   * @param resourceType - 'rack' or 'box'
-   * @param tankId - Tank containing the resource
-   * @param rackId - Rack ID (for rack) or parent rack ID (for box)
-   * @param boxId - Box ID (only for box type)
-   * @param customLabel - New label (empty string or undefined to clear)
-   */
+  /** Mutable pattern — called within commands that handle their own persistence */
   updateResourceCustomLabel(
     resourceType: 'rack' | 'box',
     tankId: string,
@@ -875,9 +795,6 @@ export class Storage {
     this.touch();
   }
 
-  /**
-   * Get a rack by ID for permission checking
-   */
   getRack(tankId: string, rackId: string): { rack: ReturnType<Rack['toData']>; tank: ReturnType<Tank['toData']> } | null {
     const tank = this._equipment.tanks.find(t => t.id === tankId);
     if (!tank) return null;
@@ -888,9 +805,6 @@ export class Storage {
     return { rack: rack.toData(), tank: tank.toData() };
   }
 
-  /**
-   * Get a box by ID for permission checking
-   */
   getBox(tankId: string, rackId: string, boxId: string): {
     box: ReturnType<Box['toData']>;
     rack: ReturnType<Rack['toData']>;
@@ -908,15 +822,7 @@ export class Storage {
     return { box: box.toData(), rack: rack.toData(), tank: tank.toData() };
   }
 
-  /**
-   * Business method: Update lab default position display
-   *
-   * Sets the lab-wide default for position display format.
-   * Pass null to clear the lab default (fall back to system default).
-   *
-   * @param positionDisplay - New default position display config (null = clear)
-   * @returns New Configuration instance (immutability)
-   */
+  /** Pass null to clear lab default and fall back to system default */
   updateLabDefaultPositionDisplay(
     positionDisplay: PositionDisplayConfig | null
   ): Storage {
@@ -932,9 +838,6 @@ export class Storage {
     );
   }
 
-  /**
-   * Business query: Validate if location exists in configuration
-   */
   isLocationValid(location: Location): boolean {
     return this._equipment.isLocationValid(
       location.tankId,
@@ -944,16 +847,10 @@ export class Storage {
     );
   }
 
-  /**
-   * Business query: Check if location exists in configuration
-   */
   locationExists(tankId: string, rackId: string, boxId: string, position: number): boolean {
     return this._equipment.isLocationValid(tankId, rackId, boxId, position);
   }
 
-  /**
-   * Business query: Get available positions in a box
-   */
   getAvailablePositions(tankId: string, rackId: string, boxId: string, occupiedPositions: number[]): number[] {
     const tank = this._equipment.tanks.find(t => t.id === tankId);
     if (!tank) return [];
@@ -975,12 +872,6 @@ export class Storage {
     return allPositions;
   }
 
-  /**
-   * Update configuration from data (DDD update pattern)
-   * Mutates existing aggregate and increments version
-   *
-   * @param data - New configuration data from client
-   */
   public updateFromData(data: {
     tanks: Array<{
       id: string;
@@ -1072,7 +963,6 @@ export class Storage {
     this._equipment = EquipmentConfiguration.create(tanks);
     this._systemSettings = SystemSettings.fromData(data.systemSettings);
 
-    // Increment version and update timestamp
     this.touch();
   }
 
@@ -1170,10 +1060,6 @@ export class Storage {
     this._version = version;
   }
 
-  /**
-   * Convert to data object for persistence
-   * Returns nested structure matching shared-schemas
-   */
   toData(): {
     tanks: Array<{
       id: string;
@@ -1227,10 +1113,6 @@ export class Storage {
     };
   }
 
-  /**
-   * Convert to API response format
-   * Returns nested structure matching shared-schemas
-   */
   toApiData(): {
     equipment: {
       tanks: ReturnType<Tank['toData']>[];
@@ -1262,20 +1144,16 @@ export class Storage {
     };
   }
 
-  // Getters (immutable access)
+  // Getters
   get equipment(): EquipmentConfiguration { return this._equipment; }
   get systemSettings(): SystemSettings { return this._systemSettings; }
   get updatedAt(): Date { return new Date(this._updatedAt); }
   get version(): number { return this._version; }
 
-  // Convenience getter for tanks (most common access pattern)
+  // Convenience getter for tanks
   get tanks(): readonly Tank[] { return this._equipment.tanks; }
 }
 
-/**
- * System Settings Value Object
- * Represents general system configuration settings
- */
 class SystemSettings {
   private constructor(
     private readonly _labName: string,
