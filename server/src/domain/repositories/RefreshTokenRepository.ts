@@ -39,30 +39,13 @@ export interface RefreshTokenRepository {
   /** Used for device limit enforcement. */
   countActiveTokensForUser(userId: string): Promise<number>;
 
-  findRecentlyUsedTokens(userId: string, minutesAgo: number): Promise<RefreshToken[]>;
-  findTokensByIpAddress(ipAddress: string): Promise<RefreshToken[]>;
-  findTokensCreatedBetween(startDate: Date, endDate: Date): Promise<RefreshToken[]>;
-
   // MAINTENANCE OPERATIONS
 
   /** Permanent deletion — should be called periodically by maintenance job. */
   cleanupExpiredTokens(olderThanDays?: number): Promise<number>;
 
-  getTokenStatistics(): Promise<{
-    total: number;
-    active: number;
-    expired: number;
-    revoked: number;
-    averageLifespanDays: number;
-  }>;
-
   // BATCH OPERATIONS
 
   batchRevoke(tokenIds: string[]): Promise<number>;
   batchDelete(tokenIds: string[]): Promise<number>;
-
-  // TRANSACTION SUPPORT
-
-  /** Used for atomic token rotation. */
-  executeInTransaction<T>(operation: (repository: RefreshTokenRepository) => Promise<T>): Promise<T>;
 }
