@@ -23,7 +23,7 @@ export class NotFoundError extends DomainError {
     );
   }
 
-  static configuration(): NotFoundError {
+  static storage(): NotFoundError {
     return new NotFoundError('Storage configuration not found');
   }
 }

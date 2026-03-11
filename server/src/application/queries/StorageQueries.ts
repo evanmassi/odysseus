@@ -8,7 +8,7 @@ import { Storage } from '@domain/entities/Storage';
 import { StorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 
-// CONFIGURATION QUERY CONTRACTS
+// STORAGE QUERY CONTRACTS
 
 export interface GetCurrentStorageQuery {
   labId: string;
@@ -17,7 +17,6 @@ export interface GetCurrentStorageQuery {
 export interface GetStorageHistoryQuery {
   labId: string;
   limit?: number;
-  offset?: number;
 }
 
 export interface GetStorageByVersionQuery {
@@ -25,7 +24,7 @@ export interface GetStorageByVersionQuery {
   version: number;
 }
 
-// CONFIGURATION QUERY HANDLERS
+// STORAGE QUERY HANDLERS
 
 /** Creates default configuration if none exists. */
 export class GetCurrentStorageQueryHandler {
@@ -42,8 +41,7 @@ export class GetCurrentStorageQueryHandler {
   }
 }
 
-
-/** Returns historical configuration versions with pagination for audit trails and rollback. */
+/** Returns historical storage versions for audit trails and rollback. */
 export class GetStorageHistoryQueryHandler {
   constructor(private storageRepository: StorageRepository) {}
 
@@ -52,7 +50,7 @@ export class GetStorageHistoryQueryHandler {
   }
 }
 
-/** Returns a specific configuration version for comparison and rollback operations. */
+/** Returns a specific storage version. Throws if not found. */
 export class GetStorageByVersionQueryHandler {
   constructor(private storageRepository: StorageRepository) {}
 
@@ -60,14 +58,14 @@ export class GetStorageByVersionQueryHandler {
     const configuration = await this.storageRepository.getByVersion(query.labId, query.version);
 
     if (!configuration) {
-      throw NotFoundError.configuration();
+      throw NotFoundError.storage();
     }
 
     return configuration;
   }
 }
 
-/** Validates current configuration integrity for system health monitoring. */
+/** Validates current storage configuration integrity. */
 export class CheckStorageHealthQueryHandler {
   constructor(private storageRepository: StorageRepository) {}
 
