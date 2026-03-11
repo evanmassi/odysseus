@@ -2,7 +2,7 @@ import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { AuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import type { PaginatedResult } from '@domain/types/repository';
-import { AUDIT_RETENTION_CONFIG } from '@application/config/AuditConfig';
+import { AUDIT_RETENTION_CONFIG, ARCHIVE_RETENTION_DAYS } from '@application/config/AuditConfig';
 import { logger } from '@infrastructure/logging/logger';
 
 /**
@@ -149,7 +149,7 @@ export class AuditRetentionService {
       archiveTable: {
         count: archiveCount,
         oldestEntry: oldestArchived,
-        retentionDays: AUDIT_RETENTION_CONFIG.archiveRetentionDays,
+        retentionDays: ARCHIVE_RETENTION_DAYS,
       },
       nextArchivalDate,
       performanceWarning,
@@ -163,7 +163,7 @@ export class AuditRetentionService {
     return {
       activeRetentionDays: AUDIT_RETENTION_CONFIG.activeRetentionDays,
       totalRetentionDays: AUDIT_RETENTION_CONFIG.totalRetentionDays,
-      archiveRetentionDays: AUDIT_RETENTION_CONFIG.archiveRetentionDays,
+      archiveRetentionDays: ARCHIVE_RETENTION_DAYS,
       enableAutoArchival: AUDIT_RETENTION_CONFIG.enableAutoArchival,
       activeTableWarningThreshold: AUDIT_RETENTION_CONFIG.activeTableWarningThreshold,
     };
