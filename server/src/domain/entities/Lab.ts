@@ -58,7 +58,7 @@ export class Lab {
     );
   }
 
-  private static generateSlug(name: string): string {
+  static generateSlug(name: string): string {
     return name
       .toLowerCase()
       .trim()

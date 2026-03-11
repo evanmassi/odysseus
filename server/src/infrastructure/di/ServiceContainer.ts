@@ -761,8 +761,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.updateLabHandler = new UpdateLabCommandHandler(
         repositories.labs,
-        repositories.users,
-        this.getEventBus()
+        repositories.users
       );
     }
     return this.updateLabHandler;

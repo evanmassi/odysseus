@@ -9,12 +9,11 @@ import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { Lab } from '@domain/entities/Lab';
-import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
 import { LabCreatedEvent } from '@domain/events/LabEvents';
+import { requireSystemAdmin } from '@application/guards/UserGuards';
 
 // COMMAND INTERFACES
 
@@ -51,7 +50,7 @@ export class CreateLabCommandHandler {
   ) {}
 
   async handle(command: CreateLabCommand): Promise<{ labId: string }> {
-    const user = await this.requireSystemAdmin(command.userId);
+    await requireSystemAdmin(this.userRepository, command.userId);
 
     if (!command.name || command.name.trim().length === 0) {
       throw new ValidationError('Lab name is required');
@@ -71,43 +70,27 @@ export class CreateLabCommandHandler {
 
     return { labId: lab.id };
   }
-
-  private async requireSystemAdmin(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    if (!user.isSystemAdmin()) {
-      throw new PermissionError('Only system admins can manage labs', { userId });
-    }
-    return user;
-  }
 }
 
 export class UpdateLabCommandHandler {
   constructor(
     private labRepository: LabRepository,
-    private userRepository: UserRepository,
-    private eventBus: EventBus
+    private userRepository: UserRepository
   ) {}
 
   async handle(command: UpdateLabCommand): Promise<void> {
-    await this.requireSystemAdmin(command.userId);
+    await requireSystemAdmin(this.userRepository, command.userId);
 
     const lab = await this.labRepository.findById(command.labId);
     if (!lab) {
       throw NotFoundError.forEntity('Lab', command.labId);
     }
 
-    if (!command.name || command.name.trim().length === 0) {
-      throw new ValidationError('Lab name is required');
-    }
-
     if (lab.name === command.name) {
       return;
     }
 
-    const newSlug = command.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const newSlug = Lab.generateSlug(command.name);
     const existingBySlug = await this.labRepository.findBySlug(newSlug);
     if (existingBySlug && existingBySlug.id !== lab.id) {
       throw new ValidationError(`A lab with a similar name already exists: '${existingBySlug.name}'`);
@@ -115,17 +98,6 @@ export class UpdateLabCommandHandler {
 
     lab.updateName(command.name);
     await this.labRepository.save(lab);
-  }
-
-  private async requireSystemAdmin(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    if (!user.isSystemAdmin()) {
-      throw new PermissionError('Only system admins can manage labs', { userId });
-    }
-    return user;
   }
 }
 
@@ -137,7 +109,7 @@ export class DeactivateLabCommandHandler {
   ) {}
 
   async handle(command: DeactivateLabCommand): Promise<void> {
-    await this.requireSystemAdmin(command.userId);
+    await requireSystemAdmin(this.userRepository, command.userId);
 
     const lab = await this.labRepository.findById(command.labId);
     if (!lab) {
@@ -156,17 +128,6 @@ export class DeactivateLabCommandHandler {
       labUsers.map(user => this.userSessionRepository.revokeAllSessions(user.id))
     );
   }
-
-  private async requireSystemAdmin(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    if (!user.isSystemAdmin()) {
-      throw new PermissionError('Only system admins can manage labs', { userId });
-    }
-    return user;
-  }
 }
 
 export class ActivateLabCommandHandler {
@@ -176,7 +137,7 @@ export class ActivateLabCommandHandler {
   ) {}
 
   async handle(command: ActivateLabCommand): Promise<void> {
-    await this.requireSystemAdmin(command.userId);
+    await requireSystemAdmin(this.userRepository, command.userId);
 
     const lab = await this.labRepository.findById(command.labId);
     if (!lab) {
@@ -189,16 +150,5 @@ export class ActivateLabCommandHandler {
 
     lab.activate();
     await this.labRepository.save(lab);
-  }
-
-  private async requireSystemAdmin(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    if (!user.isSystemAdmin()) {
-      throw new PermissionError('Only system admins can manage labs', { userId });
-    }
-    return user;
   }
 }
