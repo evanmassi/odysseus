@@ -1,21 +1,14 @@
 /**
- * Socket Event Handler
+ * Real-Time Event Broadcaster
  *
- * Subscribes to domain events and emits Socket.IO events to connected clients.
- * Provides real-time updates for configuration, tubes, and researchers.
- *
- * Design principles:
- * - Real-time: Immediate notification to all connected clients
- * - Type-safe: Validated event payloads
- * - Non-blocking: Socket failures don't break main operations
+ * Bridges domain events to Socket.IO for live client updates across all entity types.
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { Server as SocketIOServer } from 'socket.io';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import { logger } from '@infrastructure/logging/logger';
 import { PresenceService } from '@application/services/PresenceService';
-import {
+import type {
   TankUpdatedEvent,
   TankAddedEvent,
   TankDeletedEvent,
@@ -37,7 +30,7 @@ import {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from '@domain/events/StorageEvents';
-import {
+import type {
   UserApprovedEvent,
   UserDeletedEvent,
   UserRoleChangedEvent,
@@ -45,44 +38,38 @@ import {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent
 } from '@domain/events/UserEvents';
-import {
+import { TubeLocationChangedEvent } from '@domain/events/TubeEvents';
+import type {
   TubeCreatedEvent,
   TubeUpdatedEvent,
-  TubeLocationChangedEvent,
   TubeDeletedEvent,
   BulkTubesUpdatedEvent
 } from '@domain/events/TubeEvents';
-import {
+import type {
   TubesLockedEvent,
   TubesUnlockedEvent,
   TubeAccessSharedEvent,
   TubeAccessRevokedEvent
 } from '@domain/events/TubeLockEvents';
 import {
+  ResearcherDeactivatedEvent,
+  ResearcherReactivatedEvent
+} from '@domain/events/ResearcherEvents';
+import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
-  ResearcherDeactivatedEvent,
-  ResearcherReactivatedEvent,
   ResearcherDeletedEvent
 } from '@domain/events/ResearcherEvents';
 
-/**
- * Socket Event Handler
- *
- * Bridges domain events to Socket.IO real-time updates.
- * Emits events to all connected clients for immediate synchronization.
- */
 export class SocketEventHandler {
-  // Debouncing for configuration changes
-  private configUpdateTimer: NodeJS.Timeout | null = null;
-  private pendingConfigEvents: Array<{ type: string; userId: string; labId?: string }> = [];
-  private readonly DEBOUNCE_DELAY_MS = 2000; // 2 seconds
+  private configTimersByLab = new Map<string, NodeJS.Timeout>();
+  private pendingEventsByLab = new Map<string, Array<{ type: string; userId: string }>>();
+  private readonly DEBOUNCE_DELAY_MS = 2000;
 
   constructor(
     private io: SocketIOServer,
     private eventBus: EventBus,
-    private presenceService: PresenceService,
-    private storageRepository: StorageRepository
+    private presenceService: PresenceService
   ) {
     this.subscribeToEvents();
     this.setupPresenceHandlers();
@@ -100,13 +87,8 @@ export class SocketEventHandler {
     }
   }
 
-  /**
-   * Setup socket connection/disconnection handlers for presence tracking
-   * Registers authenticated users and broadcasts online status changes
-   */
   private setupPresenceHandlers(): void {
     this.io.on('connection', (socket) => {
-      // Only register authenticated users for presence
       if (socket.userId && socket.username) {
         try {
           this.presenceService.registerConnection(socket.userId, socket.id, socket.username, socket.labId);
@@ -200,10 +182,6 @@ export class SocketEventHandler {
     });
   }
 
-  /**
-   * Subscribe to domain events for real-time Socket.IO updates.
-   * Arrow functions preserve type safety with DomainEventMap.
-   */
   private subscribeToEvents(): void {
     // Configuration events - debounced to batch rapid changes
     this.eventBus.subscribe('TankAdded', (e) => this.handleStorageChange(e));
@@ -262,10 +240,7 @@ export class SocketEventHandler {
 
   // CONFIGURATION EVENT HANDLERS
 
-  /**
-   * Handle any configuration change event
-   * Debounces rapid changes to avoid spamming clients with updates
-   */
+  /** Debounces rapid changes to avoid spamming clients with updates. */
   private async handleStorageChange(
     event:
       | TankAddedEvent
@@ -290,27 +265,30 @@ export class SocketEventHandler {
       | BulkResourcesReassignedEvent
   ): Promise<void> {
     try {
-      // Collect event information
-      this.pendingConfigEvents.push({
+      const labId = event.labId ?? 'unknown';
+
+      if (!this.pendingEventsByLab.has(labId)) {
+        this.pendingEventsByLab.set(labId, []);
+      }
+      this.pendingEventsByLab.get(labId)!.push({
         type: event.eventName(),
         userId: event.userId,
-        labId: event.labId,
       });
 
       logger.debug('Storage configuration event queued for debounced emission', {
         eventType: event.eventName(),
-        queueSize: this.pendingConfigEvents.length,
+        labId,
+        queueSize: this.pendingEventsByLab.get(labId)!.length,
       });
 
-      // Clear existing timer
-      if (this.configUpdateTimer) {
-        clearTimeout(this.configUpdateTimer);
+      const existingTimer = this.configTimersByLab.get(labId);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
       }
 
-      // Emit after debounce delay (2 seconds of inactivity)
-      this.configUpdateTimer = setTimeout(() => {
-        this.emitStorageUpdate();
-      }, this.DEBOUNCE_DELAY_MS);
+      this.configTimersByLab.set(labId, setTimeout(() => {
+        this.emitStorageUpdate(labId);
+      }, this.DEBOUNCE_DELAY_MS));
     } catch (error) {
       logger.error('Failed to queue configuration event', {
         error: error instanceof Error ? error.message : String(error),
@@ -319,53 +297,47 @@ export class SocketEventHandler {
     }
   }
 
-  /**
-   * Emit batched configuration update to all connected clients
-   */
-  private emitStorageUpdate(): void {
-    if (this.pendingConfigEvents.length === 0) {
+  private emitStorageUpdate(labId: string): void {
+    const pending = this.pendingEventsByLab.get(labId);
+    if (!pending || pending.length === 0) {
       return;
     }
 
     try {
-      // Get unique event types
-      const eventTypes = [...new Set(this.pendingConfigEvents.map(e => e.type))];
-      const lastEvent = this.pendingConfigEvents[this.pendingConfigEvents.length - 1];
+      const eventTypes = [...new Set(pending.map(e => e.type))];
+      const lastEvent = pending[pending.length - 1];
 
       const payload = {
         eventTypes,
-        eventCount: this.pendingConfigEvents.length,
+        eventCount: pending.length,
         updatedAt: new Date().toISOString(),
         changedBy: lastEvent.userId,
       };
 
       logger.debug('Emitting batched configuration_updated socket event', {
         eventTypes,
-        eventCount: this.pendingConfigEvents.length,
+        eventCount: pending.length,
+        labId,
         connectedClients: this.io.sockets.sockets.size,
       });
 
-      const labId = this.pendingConfigEvents[0]?.labId;
-      this.emitToLabRooms(labId, 'configuration_updated', payload);
-
-      // Clear pending events
-      this.pendingConfigEvents = [];
-      this.configUpdateTimer = null;
+      this.emitToLabRooms(labId === 'unknown' ? undefined : labId, 'configuration_updated', payload);
     } catch (error) {
       logger.error('Failed to emit configuration_updated event', {
         error: error instanceof Error ? error.message : String(error),
-        eventCount: this.pendingConfigEvents.length,
+        labId,
+        eventCount: pending.length,
       });
-      // Don't rethrow - Socket failures shouldn't break domain operations
+    } finally {
+      this.pendingEventsByLab.delete(labId);
+      this.configTimersByLab.delete(labId);
     }
   }
 
   // TUBE EVENT HANDLERS
-  // Emit socket events for real-time tube updates across all clients
 
   private async handleTubeCreated(event: TubeCreatedEvent): Promise<void> {
     try {
-      // Convert value objects to plain data for serialization
       const locationData = event.location.toData();
 
       const payload = {
@@ -375,7 +347,6 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      // Emit to appropriate room based on tank demo status
       logger.debug('Emitting tube_created socket event', {
         tubeId: event.tubeId,
         location: locationData,
@@ -396,12 +367,10 @@ export class SocketEventHandler {
     event: TubeUpdatedEvent | TubeLocationChangedEvent
   ): Promise<void> {
     try {
-      // Get the correct "by" field based on event type
       const changedBy = event instanceof TubeLocationChangedEvent
         ? event.movedBy
         : event.updatedBy;
 
-      // Convert value objects to plain data for serialization
       const oldLocationData = event.oldLocation.toData();
       const newLocationData = event.newLocation.toData();
 
@@ -430,7 +399,6 @@ export class SocketEventHandler {
 
   private async handleTubeDeleted(event: TubeDeletedEvent): Promise<void> {
     try {
-      // Convert value objects to plain data for serialization
       const locationData = event.location.toData();
 
       const payload = {
@@ -482,7 +450,6 @@ export class SocketEventHandler {
   }
 
   // RESEARCHER EVENT HANDLERS
-  // Emit socket events for real-time researcher updates across all clients
 
   private async handleResearcherCreated(event: ResearcherCreatedEvent): Promise<void> {
     try {
@@ -523,7 +490,6 @@ export class SocketEventHandler {
         : eventType === 'ResearcherReactivated' ? 'researcher_reactivated'
         : 'researcher_updated';
 
-      // Get the correct "by" field based on event type
       let changedBy: string;
       if (event instanceof ResearcherDeactivatedEvent) {
         changedBy = event.deactivatedBy;

@@ -14,9 +14,10 @@ export class ResearcherCreatedEvent extends DomainEvent {
     public readonly lastName: string,
     public readonly email: string | undefined,
     public readonly position: string | undefined,
-    public readonly createdBy: string
+    public readonly createdBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -45,9 +46,10 @@ export class ResearcherUpdatedEvent extends DomainEvent {
     public readonly firstName: string,
     public readonly lastName: string,
     public readonly changes: FieldChange[],
-    public readonly updatedBy: string
+    public readonly updatedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -75,9 +77,10 @@ export class ResearcherDeactivatedEvent extends DomainEvent {
     public readonly firstName: string,
     public readonly lastName: string,
     public readonly tubeCount: number,
-    public readonly deactivatedBy: string
+    public readonly deactivatedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -104,9 +107,10 @@ export class ResearcherReactivatedEvent extends DomainEvent {
     public readonly researcherId: string,
     public readonly firstName: string,
     public readonly lastName: string,
-    public readonly reactivatedBy: string
+    public readonly reactivatedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -132,9 +136,10 @@ export class ResearcherDeletedEvent extends DomainEvent {
     public readonly researcherId: string,
     public readonly firstName: string,
     public readonly lastName: string,
-    public readonly deletedBy: string
+    public readonly deletedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -162,9 +167,10 @@ export class ResearcherApprovedEvent extends DomainEvent {
     public readonly firstName: string,
     public readonly lastName: string,
     public readonly linkedUserId: string,
-    public readonly approvedBy: string
+    public readonly approvedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {

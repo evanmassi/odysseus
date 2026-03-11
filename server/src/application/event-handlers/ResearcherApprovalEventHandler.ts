@@ -1,9 +1,7 @@
 /**
- * Researcher Approval Event Handler
+ * User-Researcher Approval Cascade
  *
- * Syncs researcher approval status with user approval/rejection.
- * Registration-created researchers are auto-approved when user is approved,
- * and auto-deleted (with user) when user is rejected.
+ * Auto-approves or deletes registration-created researchers when their linked user is approved or rejected.
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
@@ -12,8 +10,8 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import { UserApprovedEvent, UserRejectedEvent } from '@domain/events/UserEvents';
 import { ResearcherApprovedEvent } from '@domain/events/ResearcherEvents';
-import { Researcher } from '@domain/entities/Researcher';
-import { Person } from '@domain/entities/Person';
+import type { Researcher } from '@domain/entities/Researcher';
+import type { Person } from '@domain/entities/Person';
 import { logger } from '@infrastructure/logging/logger';
 
 export class ResearcherApprovalEventHandler {
@@ -59,9 +57,9 @@ export class ResearcherApprovalEventHandler {
           person?.firstName || 'Unknown',
           person?.lastName || 'Unknown',
           event.userId,
-          event.approvedBy
+          event.approvedBy,
+          event.labId!
         );
-        approvedEvent.labId = event.labId;
         await this.eventBus.publish(approvedEvent);
 
         logger.info('Researcher approved via user approval cascade', {
@@ -121,7 +119,6 @@ export class ResearcherApprovalEventHandler {
         throw userDeleteError;
       }
 
-      // Delete researcher if exists and was from registration
       if (researcher && researcher.source === 'registration') {
         try {
           await this.researcherRepository.delete(researcher.id);
@@ -133,7 +130,6 @@ export class ResearcherApprovalEventHandler {
           });
         }
 
-        // Delete person last
         if (person) {
           try {
             await this.personRepository.delete(person.id);

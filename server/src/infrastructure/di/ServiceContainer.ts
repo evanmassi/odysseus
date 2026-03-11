@@ -1143,12 +1143,10 @@ export class ServiceContainer {
     }
 
     if (!this.socketEventHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
       this.socketEventHandler = new SocketEventHandler(
         this.socketIO,
         this.getEventBus(),
-        this.getPresenceService(),
-        repositories.storage
+        this.getPresenceService()
       );
     }
     return this.socketEventHandler;

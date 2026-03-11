@@ -1,3 +1,9 @@
+/**
+ * Domain Event Audit Logger
+ *
+ * Subscribes to domain events and persists them as audit log entries.
+ */
+
 import type { EventBus } from '@application/contracts/EventBus';
 import { AuditService } from '@application/services/AuditService';
 import {
@@ -69,12 +75,6 @@ import { Location } from '@domain/value-objects/Location';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { logger } from '@infrastructure/logging/logger';
 
-/**
- * Audit Event Handler
- *
- * Subscribes to domain events and persists them as audit log entries.
- * Non-blocking: audit failures are logged but never break main operations.
- */
 export class AuditEventHandler {
   constructor(
     private auditService: AuditService,

@@ -194,9 +194,9 @@ export class ResearcherApplicationService {
           existingPerson.lastName,
           existingPerson.email,
           existingPerson.position,
-          user.id
+          user.id,
+          labId
         );
-        createdEvent.labId = labId;
         await this.eventBus.publish(createdEvent);
 
         return ResearcherDto.toResponse(researcher, existingPerson);
@@ -233,9 +233,9 @@ export class ResearcherApplicationService {
         orphanedPerson.lastName,
         orphanedPerson.email,
         orphanedPerson.position,
-        user.id
+        user.id,
+        labId
       );
-      createdEvent.labId = labId;
       await this.eventBus.publish(createdEvent);
 
       return ResearcherDto.toResponse(researcher, orphanedPerson);
@@ -261,9 +261,9 @@ export class ResearcherApplicationService {
       person.lastName,
       person.email,
       person.position,
-      user.id
+      user.id,
+      labId
     );
-    createdEvent.labId = labId;
     await this.eventBus.publish(createdEvent);
 
     return ResearcherDto.toResponse(researcher, person);
@@ -341,9 +341,9 @@ export class ResearcherApplicationService {
         person.firstName,
         person.lastName,
         changes,
-        user.id
+        user.id,
+        researcher.labId!
       );
-      updatedEvent.labId = researcher.labId;
       await this.eventBus.publish(updatedEvent);
     }
 
@@ -407,9 +407,9 @@ export class ResearcherApplicationService {
       researcher.id,
       person.firstName,
       person.lastName,
-      user.username
+      user.username,
+      researcher.labId!
     );
-    deletedEvent.labId = researcher.labId;
     await this.eventBus.publish(deletedEvent);
   }
 
@@ -449,9 +449,9 @@ export class ResearcherApplicationService {
       person.firstName,
       person.lastName,
       tubeCount,
-      user.id
+      user.id,
+      researcher.labId!
     );
-    deactivatedEvent.labId = researcher.labId;
     await this.eventBus.publish(deactivatedEvent);
 
     return ResearcherDto.toResponse(researcher, person);
@@ -485,9 +485,9 @@ export class ResearcherApplicationService {
       researcher.id,
       person.firstName,
       person.lastName,
-      user.id
+      user.id,
+      researcher.labId!
     );
-    reactivatedEvent.labId = researcher.labId;
     await this.eventBus.publish(reactivatedEvent);
 
     return ResearcherDto.toResponse(researcher, person);
