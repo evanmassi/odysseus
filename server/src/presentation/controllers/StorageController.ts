@@ -8,7 +8,6 @@ import {
 } from '@application/queries/StorageQueries';
 import {
   UpdateSystemStorageCommandHandler,
-  UpdateEquipmentStorageCommandHandler,
   ResetStorageToDefaultCommandHandler,
   ImportStorageCommandHandler,
   UpdateBoxPositionDisplayCommandHandler,
@@ -87,7 +86,6 @@ export interface StorageControllerDeps {
 
   // System-wide configuration handlers
   updateSystemStorageHandler: UpdateSystemStorageCommandHandler;
-  updateEquipmentStorageHandler: UpdateEquipmentStorageCommandHandler;
   resetStorageHandler: ResetStorageToDefaultCommandHandler;
   importStorageHandler: ImportStorageCommandHandler;
   updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
@@ -121,7 +119,6 @@ export class StorageController extends BaseController {
   private getStorageByVersionHandler: GetStorageByVersionQueryHandler;
   private checkStorageHealthHandler: CheckStorageHealthQueryHandler;
   private updateSystemStorageHandler: UpdateSystemStorageCommandHandler;
-  private updateEquipmentStorageHandler: UpdateEquipmentStorageCommandHandler;
   private resetStorageHandler: ResetStorageToDefaultCommandHandler;
   private importStorageHandler: ImportStorageCommandHandler;
   private updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
@@ -153,7 +150,6 @@ export class StorageController extends BaseController {
     this.getStorageByVersionHandler = deps.getStorageByVersionHandler;
     this.checkStorageHealthHandler = deps.checkStorageHealthHandler;
     this.updateSystemStorageHandler = deps.updateSystemStorageHandler;
-    this.updateEquipmentStorageHandler = deps.updateEquipmentStorageHandler;
     this.resetStorageHandler = deps.resetStorageHandler;
     this.importStorageHandler = deps.importStorageHandler;
     this.updateBoxPositionDisplayHandler = deps.updateBoxPositionDisplayHandler;
@@ -362,34 +358,6 @@ export class StorageController extends BaseController {
       
     } catch (error) {
       this.handleError(error, res, 'Failed to update system configuration');
-    }
-  }
-
-  /**
-   * PUT /api/storage/equipment
-   * Update equipment configuration
-   */
-  async updateEquipmentStorage(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-      const labId = this.extractLabId(req);
-
-      const updatedStorage = await this.updateEquipmentStorageHandler.handle({
-        userId,
-        labId,
-        tanks: req.body.tanks,
-        racks: req.body.racks,
-        boxes: req.body.boxes
-      });
-      
-      res.json({
-        version: updatedStorage.version,
-        lastUpdated: updatedStorage.updatedAt,
-        equipment: updatedStorage.equipment
-      });
-      
-    } catch (error) {
-      this.handleError(error, res, 'Failed to update equipment configuration');
     }
   }
 

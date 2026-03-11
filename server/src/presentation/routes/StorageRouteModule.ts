@@ -150,18 +150,6 @@ export class StorageRouteModule implements RouteModule {
     );
 
     /**
-     * PUT /api/storage/equipment  
-     * Update equipment configuration
-     * 
-     * Access: Admin users only
-     * Used by: Admin panel equipment management page
-     */
-    router.put('/equipment',
-      this.requireAdminPermission.bind(this),
-      this.storageController.updateEquipmentStorage.bind(this.storageController)
-    );
-
-    /**
      * GET /api/storage/history
      * Get configuration history with pagination
      * 

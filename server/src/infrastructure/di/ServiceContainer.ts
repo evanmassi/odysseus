@@ -3,7 +3,7 @@ import { logger } from '@infrastructure/logging/logger';
 
 // CQRS Command Handlers
 import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler, GetUserSettingsQueryHandler } from '@application/commands/UserCommands';
-import { UpdateSystemStorageCommandHandler, UpdateEquipmentStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
+import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 // CQRS CQRS Command Handlers - Storage Management
@@ -102,7 +102,6 @@ export class ServiceContainer {
   
   // CQRS Command Handlers - Storage Domain
   private updateSystemStorageHandler?: UpdateSystemStorageCommandHandler;
-  private updateEquipmentStorageHandler?: UpdateEquipmentStorageCommandHandler;
   private resetStorageToDefaultHandler?: ResetStorageToDefaultCommandHandler;
   private importStorageHandler?: ImportStorageCommandHandler;
   private updateBoxPositionDisplayHandler?: UpdateBoxPositionDisplayCommandHandler;
@@ -410,17 +409,6 @@ export class ServiceContainer {
     return this.updateSystemStorageHandler;
   }
 
-  getUpdateEquipmentStorageHandler(): UpdateEquipmentStorageCommandHandler {
-    if (!this.updateEquipmentStorageHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.updateEquipmentStorageHandler = new UpdateEquipmentStorageCommandHandler(
-        repositories.storage,
-        this.getValidationService()
-      );
-    }
-    return this.updateEquipmentStorageHandler;
-  }
-
   getResetStorageToDefaultHandler(): ResetStorageToDefaultCommandHandler {
     if (!this.resetStorageToDefaultHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -438,7 +426,8 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.importStorageHandler = new ImportStorageCommandHandler(
         repositories.storage,
-        this.getValidationService()
+        this.getValidationService(),
+        repositories.users
       );
     }
     return this.importStorageHandler;
@@ -973,7 +962,6 @@ export class ServiceContainer {
         getStorageByVersionHandler: this.getGetStorageByVersionHandler(),
         checkStorageHealthHandler: this.getGetCheckConfigurationHealthHandler(),
         updateSystemStorageHandler: this.getUpdateSystemStorageHandler(),
-        updateEquipmentStorageHandler: this.getUpdateEquipmentStorageHandler(),
         resetStorageHandler: this.getResetStorageToDefaultHandler(),
         importStorageHandler: this.getImportConfigurationHandler(),
         updateBoxPositionDisplayHandler: this.getUpdateBoxPositionDisplayHandler(),
