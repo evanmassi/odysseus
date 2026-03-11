@@ -1,11 +1,19 @@
-import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
+/**
+ * Researcher Management Service
+ *
+ * Researcher entity stores research linkage (personId, active status);
+ * profile data (name, email, position, department) lives in the Person entity.
+ */
+
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { AccessControlService } from '@domain/services/AccessControlService';
 import { Researcher } from '@domain/entities/Researcher';
 import { User } from '@domain/entities/User';
 import { Person } from '@domain/entities/Person';
-import { AccessControlService } from '@domain/services/AccessControlService';
-import { CreateResearcherRequest, ResearcherResponse, ResearcherDto } from '@application/dto/ResearcherDto';
+import { ResearcherDto } from '@application/dto/ResearcherDto';
+import type { CreateResearcherRequest, ResearcherResponse } from '@application/dto/ResearcherDto';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -19,15 +27,6 @@ import {
   ResearcherDeletedEvent
 } from '@domain/events/ResearcherEvents';
 
-/**
- * ResearcherApplicationService - Researcher management use case orchestration
- *
- * Coordinates researcher operations and business rules.
- * No business logic - pure orchestration.
- *
- * Note: Researcher entity only stores research linkage (personId, active, etc.)
- * Profile data (name, email, position, department) lives in Person entity
- */
 export class ResearcherApplicationService {
   constructor(
     private researcherRepository: ResearcherRepository,
@@ -39,36 +38,15 @@ export class ResearcherApplicationService {
 
   async getAllResearchers(labId: string): Promise<ResearcherResponse[]> {
     const researchers = await this.researcherRepository.findByLabId(labId);
-
-    const researchersWithPersons = await Promise.all(
-      researchers.map(async (researcher) => ({
-        researcher,
-        person: await this.getPersonForResearcher(researcher)
-      }))
-    );
-    return researchersWithPersons.map(item => ResearcherDto.toResponse(item.researcher, item.person));
+    return this.resolveWithPersons(researchers);
   }
 
-  /**
-   * Get only visible researchers (approved AND active).
-   * Used for dropdowns where only vetted, working researchers should appear.
-   */
+  /** Used for dropdowns where only vetted, working researchers should appear. */
   async getVisibleResearchers(labId: string): Promise<ResearcherResponse[]> {
     const researchers = await this.researcherRepository.findActiveByLabId(labId);
-
-    const researchersWithPersons = await Promise.all(
-      researchers.map(async (researcher) => ({
-        researcher,
-        person: await this.getPersonForResearcher(researcher)
-      }))
-    );
-    return researchersWithPersons.map(item => ResearcherDto.toResponse(item.researcher, item.person));
+    return this.resolveWithPersons(researchers);
   }
 
-  /**
-   * Get all researchers with admin metadata (tube counts, linked users)
-   * Admin-only: includes sensitive relationship data for management purposes.
-   */
   async getResearchersWithMetadata(labId: string, userApiKey: string): Promise<Array<{
     id: string;
     firstName: string;
@@ -89,40 +67,33 @@ export class ResearcherApplicationService {
 
     const researchers = await this.researcherRepository.findByLabId(labId);
     const users = await this.userRepository.findByLabId(labId);
-
-    const enrichedResearchers = await Promise.all(
-      researchers.map(async (researcher) => {
-        const person = await this.getPersonForResearcher(researcher);
-        const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
-        const linkedUser = users.find(u => u.researcherId === researcher.id);
-
-        return {
-          id: researcher.id,
-          firstName: person.firstName,
-          lastName: person.lastName,
-          position: person.position,
-          department: person.department,
-          email: person.email,
-          active: researcher.active,
-          createdAt: researcher.createdAt,
-          approvalStatus: researcher.approvalStatus,
-          source: researcher.source,
-          tubeCount,
-          linkedUserId: linkedUser?.id ?? null,
-          linkedUsername: linkedUser?.username ?? null,
-        };
-      })
+    const personMap = await this.buildPersonMap(researchers);
+    const tubeCounts = await this.researcherRepository.getTubeCountsByResearcherIds(
+      researchers.map(r => r.id)
     );
 
-    return enrichedResearchers;
+    return researchers.map(researcher => {
+      const person = personMap.get(researcher.personId)!;
+      const linkedUser = users.find(u => u.researcherId === researcher.id);
+
+      return {
+        id: researcher.id,
+        firstName: person.firstName,
+        lastName: person.lastName,
+        position: person.position,
+        department: person.department,
+        email: person.email,
+        active: researcher.active,
+        createdAt: researcher.createdAt,
+        approvalStatus: researcher.approvalStatus,
+        source: researcher.source,
+        tubeCount: tubeCounts.get(researcher.id) ?? 0,
+        linkedUserId: linkedUser?.id ?? null,
+        linkedUsername: linkedUser?.username ?? null,
+      };
+    });
   }
 
-  /**
-   * Get researchers not linked to any user account
-   *
-   * Admin-only: used for user-researcher linking interface.
-   * Returns all unlinked researchers - they have no demo status until linked.
-   */
   async getUnlinkedResearchers(labId: string, userApiKey: string): Promise<ResearcherResponse[]> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireAdminAccess(user);
@@ -130,19 +101,12 @@ export class ResearcherApplicationService {
     const researchers = await this.researcherRepository.findByLabId(labId);
     const users = await this.userRepository.findByLabId(labId);
 
-    // Filter to researchers without user links
     const linkedResearcherIds = new Set(
       users.filter(u => u.researcherId).map(u => u.researcherId!)
     );
 
     const unlinked = researchers.filter(r => !linkedResearcherIds.has(r.id));
-    const unlinkedWithPersons = await Promise.all(
-      unlinked.map(async (researcher) => ({
-        researcher,
-        person: await this.getPersonForResearcher(researcher)
-      }))
-    );
-    return unlinkedWithPersons.map(item => ResearcherDto.toResponse(item.researcher, item.person));
+    return this.resolveWithPersons(unlinked);
   }
 
   async getResearcherById(id: string): Promise<ResearcherResponse> {
@@ -152,11 +116,9 @@ export class ResearcherApplicationService {
   }
 
   /**
-   * Create new researcher
-   *
-   * Smart creation logic:
+   * Person resolution strategy:
    * 1. If User exists with this email → link Researcher to User's Person
-   * 2. If orphaned Person exists → reuse it (safety net, shouldn't happen with cleanup)
+   * 2. If orphaned Person exists → reuse it (safety net)
    * 3. Otherwise → create fresh Person + Researcher
    */
   async createResearcher(labId: string, request: CreateResearcherRequest, userApiKey: string): Promise<ResearcherResponse> {
@@ -164,58 +126,31 @@ export class ResearcherApplicationService {
     await this.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
-    // Validate email is provided
     if (!request.email?.trim()) {
       throw new ValidationError('Email is required for creating researcher profile', {});
     }
 
     const normalizedEmail = request.email.trim().toLowerCase();
 
-    // Check if User exists with this email - link to their Person
     const existingUser = await this.userRepository.findByEmail(normalizedEmail);
     if (existingUser?.personId) {
       const existingPerson = await this.personRepository.findById(existingUser.personId);
       if (existingPerson) {
-        // Check if this Person already has a Researcher
-        const existingResearcher = await this.researcherRepository.findByPersonId(existingPerson.id);
-        if (existingResearcher) {
-          throw new ValidationError('A researcher already exists for this user', {
-            email: normalizedEmail,
-            researcherId: existingResearcher.id
-          });
-        }
+        this.ensureNoExistingResearcher(existingPerson.id, normalizedEmail);
 
         const researcher = Researcher.create(existingPerson.id, { labId });
         await this.researcherRepository.save(researcher);
 
-        const createdEvent = new ResearcherCreatedEvent(
-          researcher.id,
-          existingPerson.firstName,
-          existingPerson.lastName,
-          existingPerson.email,
-          existingPerson.position,
-          user.id,
-          labId
-        );
-        await this.eventBus.publish(createdEvent);
-
+        await this.publishCreatedEvent(researcher, existingPerson, user.id, labId);
         return ResearcherDto.toResponse(researcher, existingPerson);
       }
     }
 
-    // Check for orphaned Person (safety net - shouldn't happen with cleanup)
+    // Check for orphaned Person (safety net — shouldn't happen with cleanup)
     const orphanedPerson = await this.personRepository.findByEmail(normalizedEmail);
     if (orphanedPerson) {
-      // Check if this Person already has a Researcher
-      const existingResearcher = await this.researcherRepository.findByPersonId(orphanedPerson.id);
-      if (existingResearcher) {
-        throw new ValidationError('A researcher already exists with this email', {
-          email: normalizedEmail,
-          researcherId: existingResearcher.id
-        });
-      }
+      this.ensureNoExistingResearcher(orphanedPerson.id, normalizedEmail);
 
-      // Update orphaned Person with new profile data and reuse
       orphanedPerson.updateProfile(
         request.firstName.trim(),
         request.lastName.trim(),
@@ -227,21 +162,10 @@ export class ResearcherApplicationService {
       const researcher = Researcher.create(orphanedPerson.id, { labId });
       await this.researcherRepository.save(researcher);
 
-      const createdEvent = new ResearcherCreatedEvent(
-        researcher.id,
-        orphanedPerson.firstName,
-        orphanedPerson.lastName,
-        orphanedPerson.email,
-        orphanedPerson.position,
-        user.id,
-        labId
-      );
-      await this.eventBus.publish(createdEvent);
-
+      await this.publishCreatedEvent(researcher, orphanedPerson, user.id, labId);
       return ResearcherDto.toResponse(researcher, orphanedPerson);
     }
 
-    // Fresh creation - no existing Person with this email
     const person = Person.create(
       request.firstName.trim(),
       request.lastName.trim(),
@@ -255,24 +179,10 @@ export class ResearcherApplicationService {
     await this.personRepository.save(person);
     await this.researcherRepository.save(researcher);
 
-    const createdEvent = new ResearcherCreatedEvent(
-      researcher.id,
-      person.firstName,
-      person.lastName,
-      person.email,
-      person.position,
-      user.id,
-      labId
-    );
-    await this.eventBus.publish(createdEvent);
-
+    await this.publishCreatedEvent(researcher, person, user.id, labId);
     return ResearcherDto.toResponse(researcher, person);
   }
 
-  /**
-   * Update researcher
-   * Updates Person entity for profile data, Researcher for research-specific data
-   */
   async updateResearcher(id: string, updates: { firstName?: string; lastName?: string; position?: string; department?: string; email?: string; active?: boolean }, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireCanManageResearchers(user);
@@ -281,10 +191,8 @@ export class ResearcherApplicationService {
     const researcher = await this.getResearcherOrThrow(id);
     const person = await this.getPersonForResearcher(researcher);
 
-    // Track changes for audit
     const changes: AuditChange[] = [];
 
-    // Update Person entity for profile changes
     if (updates.firstName !== undefined || updates.lastName !== undefined ||
         updates.position !== undefined || updates.department !== undefined) {
       if (updates.firstName !== undefined && updates.firstName !== person.firstName) {
@@ -309,22 +217,14 @@ export class ResearcherApplicationService {
       await this.personRepository.save(person);
     }
 
-    // Update email separately
     if (updates.email !== undefined && updates.email !== person.email) {
       changes.push({ field: 'email', oldValue: person.email, newValue: updates.email });
       person.updateEmail(updates.email);
       await this.personRepository.save(person);
     }
 
-    // Update Researcher entity for active status
     if (updates.active !== undefined) {
-      // Can only toggle active status on approved researchers
-      if (researcher.isPending()) {
-        throw new ValidationError('Cannot change active status of pending researcher', {
-          researcherId: id,
-          approvalStatus: researcher.approvalStatus
-        });
-      }
+      this.rejectIfPending(researcher);
 
       if (updates.active) {
         researcher.activate();
@@ -334,7 +234,6 @@ export class ResearcherApplicationService {
       await this.researcherRepository.save(researcher);
     }
 
-    // Publish event if there were changes
     if (changes.length > 0) {
       const updatedEvent = new ResearcherUpdatedEvent(
         researcher.id,
@@ -351,10 +250,7 @@ export class ResearcherApplicationService {
   }
 
   /**
-   * Delete researcher (safe deletion only)
-   *
-   * Requires: zero tubes AND no linked user
-   * Prevents accidental deletion of researchers with historical data or active accounts.
+   * Requires zero tubes AND no linked user.
    * Cleans up orphaned Person if no other entity references it.
    */
   async deleteResearcher(id: string, userApiKey: string): Promise<void> {
@@ -363,12 +259,9 @@ export class ResearcherApplicationService {
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
-
-    // Get Person data for error messages and cleanup
     const person = await this.getPersonForResearcher(researcher);
     const personId = researcher.personId;
 
-    // Safety check: researcher must have zero tubes
     const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
     if (tubeCount > 0) {
       throw new ValidationError(
@@ -380,7 +273,6 @@ export class ResearcherApplicationService {
       );
     }
 
-    // Safety check: researcher must not be linked to any user
     const linkedUser = await this.userRepository.findByResearcherId(researcher.id);
     if (linkedUser) {
       throw new ValidationError(
@@ -394,10 +286,8 @@ export class ResearcherApplicationService {
       );
     }
 
-    // Delete researcher
     await this.researcherRepository.delete(id);
 
-    // Clean up orphaned Person if no User references it
     const userWithPerson = await this.userRepository.findByPersonId(personId);
     if (!userWithPerson) {
       await this.personRepository.delete(personId);
@@ -413,9 +303,6 @@ export class ResearcherApplicationService {
     await this.eventBus.publish(deletedEvent);
   }
 
-  /**
-   * Deactivate researcher (soft delete)
-   */
   async deactivateResearcher(id: string, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireCanManageResearchers(user);
@@ -427,20 +314,11 @@ export class ResearcherApplicationService {
       throw new PermissionError('Cannot deactivate your own researcher profile');
     }
 
-    // Can only toggle active status on approved researchers
-    if (researcher.isPending()) {
-      throw new ValidationError('Cannot change active status of pending researcher', {
-        researcherId: id,
-        approvalStatus: researcher.approvalStatus
-      });
-    }
+    this.rejectIfPending(researcher);
 
     const person = await this.getPersonForResearcher(researcher);
-
-    // Count tubes before deactivation for audit
     const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
 
-    // Deactivate researcher
     researcher.deactivate();
     await this.researcherRepository.save(researcher);
 
@@ -457,27 +335,16 @@ export class ResearcherApplicationService {
     return ResearcherDto.toResponse(researcher, person);
   }
 
-  /**
-   * Activate researcher
-   */
   async activateResearcher(id: string, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
-
-    // Can only toggle active status on approved researchers
-    if (researcher.isPending()) {
-      throw new ValidationError('Cannot change active status of pending researcher', {
-        researcherId: id,
-        approvalStatus: researcher.approvalStatus
-      });
-    }
+    this.rejectIfPending(researcher);
 
     const person = await this.getPersonForResearcher(researcher);
 
-    // Reactivate researcher
     researcher.activate();
     await this.researcherRepository.save(researcher);
 
@@ -501,25 +368,17 @@ export class ResearcherApplicationService {
     await this.accessControlService.requireCanViewTubes(user);
 
     const activeResearchers = await this.researcherRepository.getMostActiveResearchers(10);
+    const personMap = await this.buildPersonMap(activeResearchers.map(item => item.researcher));
 
-    return await Promise.all(
-      activeResearchers.map(async item => ({
-        researcher: ResearcherDto.toResponse(item.researcher, await this.getPersonForResearcher(item.researcher)),
-        tubeCount: item.tubeCount
-      }))
-    );
+    return activeResearchers.map(item => ({
+      researcher: ResearcherDto.toResponse(item.researcher, personMap.get(item.researcher.personId)!),
+      tubeCount: item.tubeCount
+    }));
   }
 
   async searchResearchers(namePattern: string): Promise<ResearcherResponse[]> {
     const researchers = await this.researcherRepository.searchByName(namePattern);
-
-    const researchersWithPersons = await Promise.all(
-      researchers.map(async (researcher) => ({
-        researcher,
-        person: await this.getPersonForResearcher(researcher)
-      }))
-    );
-    return researchersWithPersons.map(item => ResearcherDto.toResponse(item.researcher, item.person));
+    return this.resolveWithPersons(researchers);
   }
 
   async getResearcherTubeCount(id: string): Promise<{ tubeCount: number }> {
@@ -528,15 +387,60 @@ export class ResearcherApplicationService {
     return { tubeCount };
   }
 
-  /**
-   * Helper: Get authenticated user
-   */
+  // --- Private helpers ---
+
   private async getResearcherOrThrow(id: string): Promise<Researcher> {
     const researcher = await this.researcherRepository.findById(id);
     if (!researcher) {
       throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
     }
     return researcher;
+  }
+
+  private async getPersonForResearcher(researcher: Researcher): Promise<Person> {
+    const person = await this.personRepository.findById(researcher.personId);
+    if (!person) {
+      throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
+    }
+    return person;
+  }
+
+  private async resolveWithPersons(researchers: Researcher[]): Promise<ResearcherResponse[]> {
+    const personMap = await this.buildPersonMap(researchers);
+    return researchers.map(r => ResearcherDto.toResponse(r, personMap.get(r.personId)!));
+  }
+
+  private async buildPersonMap(researchers: Researcher[]): Promise<Map<string, Person>> {
+    const personIds = researchers.map(r => r.personId);
+    const persons = await this.personRepository.findByIds(personIds);
+    const personMap = new Map(persons.map(p => [p.id, p]));
+
+    for (const researcher of researchers) {
+      if (!personMap.has(researcher.personId)) {
+        throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
+      }
+    }
+
+    return personMap;
+  }
+
+  private async ensureNoExistingResearcher(personId: string, email: string): Promise<void> {
+    const existing = await this.researcherRepository.findByPersonId(personId);
+    if (existing) {
+      throw new ValidationError('A researcher already exists with this email', {
+        email,
+        researcherId: existing.id
+      });
+    }
+  }
+
+  private rejectIfPending(researcher: Researcher): void {
+    if (researcher.isPending()) {
+      throw new ValidationError('Cannot change active status of pending researcher', {
+        researcherId: researcher.id,
+        approvalStatus: researcher.approvalStatus
+      });
+    }
   }
 
   private rejectIfDemoLab(user: User): void {
@@ -553,14 +457,16 @@ export class ResearcherApplicationService {
     return user;
   }
 
-  /**
-   * Helper: Resolve Person entity from Researcher
-   */
-  private async getPersonForResearcher(researcher: Researcher): Promise<Person> {
-    const person = await this.personRepository.findById(researcher.personId);
-    if (!person) {
-      throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
-    }
-    return person;
+  private async publishCreatedEvent(researcher: Researcher, person: Person, userId: string, labId: string): Promise<void> {
+    const event = new ResearcherCreatedEvent(
+      researcher.id,
+      person.firstName,
+      person.lastName,
+      person.email,
+      person.position,
+      userId,
+      labId
+    );
+    await this.eventBus.publish(event);
   }
 }
