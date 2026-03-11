@@ -526,7 +526,6 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.deleteTankHandler = new DeleteTankCommandHandler(
         repositories.storage,
-        repositories.tubes,
         repositories.users,
         this.getEventBus()
       );

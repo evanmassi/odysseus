@@ -53,7 +53,6 @@ export interface ResetDemoDataCommand {
 
 // COMMAND HANDLERS
 
-/** Creates a new tank in the configuration. */
 export class AddTankCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -101,7 +100,6 @@ export class AddTankCommandHandler {
   }
 }
 
-/** Updates an existing tank's properties. */
 export class UpdateTankCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -177,15 +175,12 @@ export class UpdateTankCommandHandler {
 }
 
 /**
- * Delete Tank Command Handler
- *
- * Removes a tank. Uses atomic check-and-delete to prevent TOCTOU race conditions
+ * Uses atomic check-and-delete to prevent TOCTOU race conditions
  * where tubes could be added between the emptiness check and the actual deletion.
  */
 export class DeleteTankCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
-    private tubeRepository: TubeRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
@@ -257,5 +252,4 @@ export class ResetDemoDataCommandHandler {
 
     return { deletedTubes };
   }
-
 }
