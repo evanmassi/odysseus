@@ -1,3 +1,9 @@
+/**
+ * Lab Repository
+ *
+ * Data access for lab tenants with upsert support.
+ */
+
 import { Lab } from '@domain/entities/Lab';
 import { LabRepository as ILabRepository } from '@domain/repositories/LabRepository';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -45,12 +51,12 @@ export class LabRepository implements ILabRepository {
       `INSERT INTO labs (id, name, slug, is_active, is_demo, created_at, updated_at, demo_limits)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (id) DO UPDATE SET
-         name = $2,
-         slug = $3,
-         is_active = $4,
-         is_demo = $5,
-         updated_at = $7,
-         demo_limits = $8`,
+         name = EXCLUDED.name,
+         slug = EXCLUDED.slug,
+         is_active = EXCLUDED.is_active,
+         is_demo = EXCLUDED.is_demo,
+         updated_at = EXCLUDED.updated_at,
+         demo_limits = EXCLUDED.demo_limits`,
       [row.id, row.name, row.slug, row.is_active, row.is_demo, row.created_at, row.updated_at,
        row.demo_limits ? JSON.stringify(row.demo_limits) : null]
     );
@@ -65,10 +71,10 @@ export class LabRepository implements ILabRepository {
   }
 
   async exists(id: string): Promise<boolean> {
-    const row = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM labs WHERE id = $1',
+    const row = await this.context.queryOne<{ exists: boolean }>(
+      'SELECT EXISTS(SELECT 1 FROM labs WHERE id = $1) as exists',
       [id]
     );
-    return parseInt(row?.count ?? '0', 10) > 0;
+    return row?.exists ?? false;
   }
 }
