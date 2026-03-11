@@ -1,14 +1,16 @@
 /**
- * Bcrypt Password Service
+ * Password Hashing and Validation
  *
- * Secure password hashing using bcrypt algorithm.
- * Configurable salt rounds for hash strength.
- * Password validation dynamically reads SecurityConfig for enforcement.
+ * Bcrypt-based PasswordService that reads SecurityConfig for dynamic enforcement rules.
  */
 
 import * as bcrypt from 'bcrypt';
 import { PasswordService, PasswordValidationResult } from '@application/contracts/PasswordService';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
+
+const MAX_PASSWORD_LENGTH = 128;
+const SCORE_CAP = 4;
+const SPECIAL_CHARS = /[!@#$%^&*(),.?":{}|<>]/;
 
 export class BcryptPasswordService implements PasswordService {
   private readonly saltRounds: number;
@@ -54,10 +56,8 @@ export class BcryptPasswordService implements PasswordService {
     const errors: string[] = [];
     let score = 0;
 
-    // Read current security configuration
     const securityConfig = await this.storageRepository.getSecurityConfig();
 
-    // Check minimum length (from SecurityConfig)
     const minLength = securityConfig.passwordMinLength;
     if (password.length < minLength) {
       errors.push(`Password must be at least ${minLength} characters long`);
@@ -65,12 +65,12 @@ export class BcryptPasswordService implements PasswordService {
       score += 1;
     }
 
-    // Check maximum length (prevent DoS)
-    if (password.length > 128) {
-      errors.push('Password cannot exceed 128 characters');
+    // Prevent bcrypt DoS with extremely long input
+    if (password.length > MAX_PASSWORD_LENGTH) {
+      errors.push(`Password cannot exceed ${MAX_PASSWORD_LENGTH} characters`);
     }
 
-    // Check for forbidden passwords (always enforced)
+    // Always enforced regardless of requireStrongPasswords
     const lowerPassword = password.toLowerCase();
     if (this.forbiddenPasswords.some(forbidden =>
       lowerPassword.includes(forbidden.toLowerCase())
@@ -80,51 +80,44 @@ export class BcryptPasswordService implements PasswordService {
       score += 1;
     }
 
-    // If requireStrongPasswords is enabled, enforce additional requirements
     if (securityConfig.requireStrongPasswords) {
-      // Require uppercase
       if (!/[A-Z]/.test(password)) {
         errors.push('Password must contain at least one uppercase letter');
       } else {
         score += 1;
       }
 
-      // Require lowercase
       if (!/[a-z]/.test(password)) {
         errors.push('Password must contain at least one lowercase letter');
       } else {
         score += 1;
       }
 
-      // Require numbers
       if (!/\d/.test(password)) {
         errors.push('Password must contain at least one number');
       } else {
         score += 1;
       }
 
-      // Require special characters (if configured)
-      if (securityConfig.passwordRequireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      if (securityConfig.passwordRequireSpecialChars && !SPECIAL_CHARS.test(password)) {
         errors.push('Password must contain at least one special character');
-      } else if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      } else if (SPECIAL_CHARS.test(password)) {
         score += 1;
       }
     } else {
-      // Optional scoring when strong passwords not required
       if (/[A-Z]/.test(password)) score += 1;
       if (/[a-z]/.test(password)) score += 1;
       if (/\d/.test(password)) score += 1;
-      if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1;
+      if (SPECIAL_CHARS.test(password)) score += 1;
     }
 
-    // Additional scoring for password complexity
     if (password.length >= 12) score += 1;
     if (password.length >= 16) score += 1;
 
     return {
       isValid: errors.length === 0,
       errors,
-      score: Math.min(score, 4) // Cap at 4
+      score: Math.min(score, SCORE_CAP)
     };
   }
 }

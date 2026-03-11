@@ -1,12 +1,11 @@
+/**
+ * SMTP Email Service
+ *
+ * Nodemailer-based EmailService for sending transactional emails via SMTP.
+ */
+
 import nodemailer from 'nodemailer';
 import { EmailService } from '@domain/services/EmailService';
-
-/**
- * Nodemailer Email Service Implementation
- *
- * Sends emails via SMTP using Nodemailer library
- * Configured via environment variables
- */
 export class NodemailerEmailService implements EmailService {
   private transporter: nodemailer.Transporter;
   private fromAddress: string;

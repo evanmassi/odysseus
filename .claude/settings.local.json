@@ -96,7 +96,9 @@
       "Read(//c/Users/evan/Desktop/Odysseus/odysseus-app/packages/shared-schemas/src/**)",
       "Bash(find src:*)",
       "Bash(read f:*)",
-      "Bash(do:*)"
+      "Bash(do:*)",
+      "Read(//c/Users/evan/Desktop/Odysseus/**)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

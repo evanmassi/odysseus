@@ -1,12 +1,11 @@
+/**
+ * Development Email Logger
+ *
+ * Logs emails to console when SMTP credentials are not configured.
+ */
+
 import { EmailService } from '@domain/services/EmailService';
 import { logger } from '@infrastructure/logging/logger';
-
-/**
- * Console Email Service Implementation
- *
- * Development mode email service that logs emails to console
- * Use when SMTP credentials not configured
- */
 export class ConsoleEmailService implements EmailService {
   private verificationBaseUrl: string;
 
