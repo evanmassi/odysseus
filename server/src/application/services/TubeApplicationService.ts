@@ -1,15 +1,23 @@
-import { TubeRepository } from '@domain/repositories/TubeRepository';
+/**
+ * Tube Management Service
+ *
+ * Orchestrates tube CRUD, locking, and access sharing with per-tube authorization.
+ * Input validation is handled by Zod middleware; this layer enforces business rules only.
+ */
+
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { TubeSearchCriteria } from '@domain/types/repository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import { Tube } from '@domain/entities/Tube';
-import { Storage } from '@domain/entities/Storage';
-import { User } from '@domain/entities/User';
-import { TubePositionService } from '@domain/services/TubePositionService';
-import { AccessControlService } from '@domain/services/AccessControlService';
-import { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchRequest, TubeSearchResponse, TubeDto } from '@application/dto/TubeDto';
+import type { Storage } from '@domain/entities/Storage';
+import type { User } from '@domain/entities/User';
+import type { TubePositionService } from '@domain/services/TubePositionService';
+import type { AccessControlService } from '@domain/services/AccessControlService';
+import { TubeDto } from '@application/dto/TubeDto';
+import type { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchRequest, TubeSearchResponse } from '@application/dto/TubeDto';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -40,14 +48,6 @@ import type {
   SkippedTube
 } from '@odysseus/shared-schemas';
 
-/**
- * TubeApplicationService
- *
- * Thin orchestration layer:
- * - No input validation (Zod middleware already validated)
- * - Business rule validation only (domain services)
- * - Access control enforcement
- */
 export class TubeApplicationService {
   constructor(
     private tubeRepository: TubeRepository,
@@ -60,10 +60,6 @@ export class TubeApplicationService {
     private eventBus: EventBus
   ) {}
 
-  /**
-   * Helper: Get container info (rack + box) for a tube location
-   * Used for container assignment permission checks
-   */
   private async getContainerInfo(labId: string, tankId: string, rackId: string, boxId: string, preloadedConfig?: Storage | null): Promise<{
     rack: { assignedUserId?: string | null };
     box: { assignedUserId?: string | null };
@@ -80,7 +76,7 @@ export class TubeApplicationService {
     };
   }
 
-  private async getAllowedTankIds(labId: string, _user: User): Promise<string[]> {
+  private async getAllowedTankIds(labId: string): Promise<string[]> {
     const config = await this.storageRepository.getForLab(labId);
     if (!config) return [];
 
@@ -95,20 +91,13 @@ export class TubeApplicationService {
     return tube;
   }
 
-  /**
-   * Create a new tube.
-   * Trust Zod-validated input, enforce business rules only.
-   */
   async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string> }): Promise<TubeResponse> {
-    // 1. Check permissions
     await this.accessControlService.requireCanCreateTube(authenticatedUser);
 
-    // 2. Map DTO to domain (thin, no logic)
     const tubeData = TubeDto.fromCreateRequest(request);
 
     const config = options?.config !== undefined ? options.config : await this.storageRepository.getForLab(authenticatedUser.labId!);
 
-    // 2.5. Check container access (assignment protects the container)
     const containerInfo = await this.getContainerInfo(
       authenticatedUser.labId!,
       tubeData.location.tankId,
@@ -130,9 +119,7 @@ export class TubeApplicationService {
       }
     }
 
-    // 3. Check position availability (business rule)
     if (options?.positionValidation) {
-      // Use pre-validated result from batch validation
       if (!options.positionValidation.isValid) {
         throw new ValidationError(`Position conflict: ${options.positionValidation.reason}`, {
           position: `${tubeData.location.tankId}-${tubeData.location.rackId}-${tubeData.location.boxId}-${tubeData.location.position}`,
@@ -156,9 +143,7 @@ export class TubeApplicationService {
       }
     }
 
-    // 4. Snapshot person name for historical tracking
-    // If tube has a researcher, capture their name at creation time
-    // This preserves historical accuracy if person changes name later
+    // Snapshot person name at creation time for historical accuracy
     let createdByName: string | undefined;
     if (tubeData.researcherId) {
       if (options?.researcherNameCache?.has(tubeData.researcherId)) {
@@ -174,17 +159,14 @@ export class TubeApplicationService {
       }
     }
 
-    // 5. Create entity (domain applies defaults & validation)
     const tube = Tube.create({
       ...tubeData,
       createdByName,
       labId: authenticatedUser.labId
     });
 
-    // 6. Save
     await this.tubeRepository.save(tube);
 
-    // 7. Publish domain event
     const createdEvent = new TubeCreatedEvent(
       tube.id,
       tube.location,
@@ -197,10 +179,6 @@ export class TubeApplicationService {
     return TubeDto.toResponse(tube);
   }
 
-  /**
-   * Create multiple tubes with partial failure handling.
-   * Returns created tubes and any failures, matching bulkUpdateTubes pattern.
-   */
   async createTubes(
     requests: CreateTubeRequest[],
     authenticatedUser: User
@@ -211,7 +189,6 @@ export class TubeApplicationService {
   }> {
     const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
 
-    // Pre-fetch researcher names in bulk (2 queries total instead of 2 per tube)
     const researcherNameCache = new Map<string, string>();
     const uniqueResearcherIds = [...new Set(
       requests.map(r => r.researcherId).filter((id): id is string => !!id)
@@ -231,10 +208,8 @@ export class TubeApplicationService {
       }
     }
 
-    // Batch position validation per box group (~2 queries per box instead of per tube)
     const positionValidations = new Map<number, { isValid: boolean; reason?: string }>();
     if (config) {
-      // Group requests by box
       const boxGroups = new Map<string, Array<{ index: number; req: CreateTubeRequest }>>();
       for (let i = 0; i < requests.length; i++) {
         const req = requests[i];
@@ -286,13 +261,10 @@ export class TubeApplicationService {
     return { success: failed.length === 0, created, failed };
   }
 
-  /**
-   * Get tube by ID
-   */
   async getTubeById(id: string, authenticatedUser: User): Promise<TubeResponse> {
     const tube = await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     if (!allowedTankIds.includes(tube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
@@ -322,13 +294,10 @@ export class TubeApplicationService {
     return TubeDto.toResponse(tube);
   }
 
-  /**
-   * Get all tubes with filtering.
-   */
   async getAllTubes(authenticatedUser: User, searchRequest?: TubeSearchRequest): Promise<TubeResponse[]> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
 
     let tubes: Tube[];
 
@@ -350,9 +319,6 @@ export class TubeApplicationService {
     return TubeDto.toResponseList(tubes);
   }
 
-  /**
-   * Get tubes by location.
-   */
   async getTubesByLocation(
     tankId: string,
     rackId: string,
@@ -361,7 +327,7 @@ export class TubeApplicationService {
   ): Promise<TubeResponse[]> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     if (!allowedTankIds.includes(tankId)) {
       return [];
     }
@@ -383,22 +349,19 @@ export class TubeApplicationService {
 
     const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId, authenticatedUser.labId!);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     const filteredTubes = tubes.filter(tube => allowedTankIds.includes(tube.location.tankId));
 
     return TubeDto.toResponseList(filteredTubes);
   }
 
-  /**
-   * Search tubes with advanced criteria.
-   */
   async searchTubes(
     searchRequest: TubeSearchRequest,
     authenticatedUser: User
   ): Promise<TubeResponse[]> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     const requestedTankId = searchRequest.tankId;
     const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
       ? [requestedTankId]
@@ -420,7 +383,7 @@ export class TubeApplicationService {
   ): Promise<TubeSearchResponse> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     const requestedTankId = searchRequest.tankId;
     const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
       ? [requestedTankId]
@@ -439,19 +402,14 @@ export class TubeApplicationService {
     };
   }
 
-  /**
-   * Update tube
-   * Trust Zod-validated input, check business rules only
-   */
   async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube }): Promise<TubeResponse> {
     const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     if (!allowedTankIds.includes(existingTube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
-    // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
       authenticatedUser.labId!,
       existingTube.location.tankId,
@@ -475,10 +433,6 @@ export class TubeApplicationService {
       }
     }
 
-    // Note: Authorization is handled by canAccessTubeForModification above
-    // which checks container access OR shared access to the tube
-
-    // If position is changing, validate new position (business rule)
     const hasLocationUpdate = request.location && (
       request.location.tankId || request.location.rackId || 
       request.location.boxId || request.location.position !== undefined
@@ -490,7 +444,6 @@ export class TubeApplicationService {
       const newBoxId = request.location.boxId || existingTube.boxId;
       const newPosition = request.location.position !== undefined ? request.location.position : existingTube.position;
 
-      // Skip position check if position hasn't actually changed
       const positionChanged = (
         newTankId !== existingTube.tankId ||
         newRackId !== existingTube.rackId ||
@@ -503,7 +456,6 @@ export class TubeApplicationService {
           throw new PermissionError('Cannot move tube to inaccessible tank', { tankId: newTankId });
         }
 
-        // Also check destination container access for moves
         const destContainerInfo = await this.getContainerInfo(authenticatedUser.labId!, newTankId, newRackId, newBoxId, options?.config);
         if (destContainerInfo) {
           const destAccess = this.accessControlService.canAccessContainer(
@@ -538,7 +490,6 @@ export class TubeApplicationService {
       }
     }
 
-    // Check lock note update permission - only lock owner can modify
     if (request.lockNote !== undefined) {
       if (!existingTube.isLocked) {
         throw new PermissionError('Cannot update lock note on unlocked tube', { tubeId: id });
@@ -548,25 +499,19 @@ export class TubeApplicationService {
       }
     }
 
-    // Capture old state for event publishing
     const oldLocation = existingTube.location;
     const oldSampleData = existingTube.sampleData;
 
-    // Map DTO to domain (thin, no logic)
     const updateData = TubeDto.fromUpdateRequest(request);
 
-    // Update entity (domain handles validation)
     let updatedTube = existingTube.update(updateData);
 
-    // Apply lock note update if provided (separate from regular update)
     if (request.lockNote !== undefined) {
       updatedTube = updatedTube.updateLockNote(request.lockNote || undefined);
     }
 
-    // Save with optimistic locking to prevent concurrent modification overwrites
     await this.tubeRepository.saveWithOptimisticLock(updatedTube, existingTube.version);
 
-    // Publish domain events
     const locationChanged = !oldLocation.equals(updatedTube.location);
 
     if (locationChanged) {
@@ -594,13 +539,10 @@ export class TubeApplicationService {
     return TubeDto.toResponse(updatedTube);
   }
 
-  /**
-   * Delete tube
-   */
   async deleteTube(id: string, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube }): Promise<void> {
     const tube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     if (!allowedTankIds.includes(tube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
@@ -628,9 +570,6 @@ export class TubeApplicationService {
       }
     }
 
-    // Note: Authorization is handled by canAccessTubeForModification above
-    // which checks container access OR shared access to the tube
-
     await this.tubeRepository.delete(id, authenticatedUser.labId!);
 
     const deletedEvent = new TubeDeletedEvent(
@@ -643,10 +582,6 @@ export class TubeApplicationService {
     await this.eventBus.publish(deletedEvent);
   }
 
-  /**
-   * Bulk update tubes
-   * Each tube is authorized individually via updateTube's canAccessTubeForModification check
-   */
   async bulkUpdateTubes(
     request: BulkUpdateRequest,
     authenticatedUser: User
@@ -655,11 +590,8 @@ export class TubeApplicationService {
     updated: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
-    // No upfront permission check — each tube is authorized individually
-    // This allows users to batch edit tubes they have access to (own space or shared access)
     const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
 
-    // Pre-fetch all tubes in one query
     const tubeIds = request.updates.map(u => u.id);
     const tubes = await this.tubeRepository.findByIds(tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
@@ -689,9 +621,6 @@ export class TubeApplicationService {
     return { success: failed.length === 0, updated, failed };
   }
 
-  /**
-   * Bulk delete tubes
-   */
   async bulkDeleteTubes(
     tubeIds: string[],
     authenticatedUser: User
@@ -700,18 +629,14 @@ export class TubeApplicationService {
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
-    // No upfront permission check — each tube is authorized individually
-    // This allows users to delete tubes they have access to (own space or shared access)
-    // Consistent with bulkUpdateTubes which uses the same per-tube authorization pattern
     const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
 
     const tubes = await this.tubeRepository.findByIds(tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     const allowedTankSet = new Set(allowedTankIds);
 
-    // Validate permissions per tube, collect valid IDs
     const validatedIds: string[] = [];
     const validatedTubes: Tube[] = [];
     const failed: Array<{ id: string; error: string }> = [];
@@ -729,7 +654,6 @@ export class TubeApplicationService {
       }
 
       try {
-        // Check access: container ownership OR shared access
         const containerInfo = await this.getContainerInfo(
           authenticatedUser.labId!,
           tube.location.tankId,
@@ -774,10 +698,6 @@ export class TubeApplicationService {
     return { success: failed.length === 0, deleted: validatedIds, failed };
   }
 
-  /**
-   * Lock tubes
-   * Batch lock with partial success pattern
-   */
   async lockTubes(
     request: LockTubesRequest,
     authenticatedUser: User
@@ -786,7 +706,7 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
 
     const config = await this.storageRepository.getForLab(authenticatedUser.labId!);
-    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -821,7 +741,6 @@ export class TubeApplicationService {
         }
       }
 
-      // Check lock permission (with container info for lock-specific rules)
       const accessResult = this.accessControlService.canLockTube(
         authenticatedUser,
         tube,
@@ -832,24 +751,20 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Skip if already locked
       if (tube.isLocked) {
         skipped.push({ tubeId, reason: 'Tube is already locked' });
         continue;
       }
 
-      // Lock the tube with optimistic locking
       const lockedTube = tube.lock(authenticatedUser.id, request.lockNote);
       try {
         await this.tubeRepository.saveWithOptimisticLock(lockedTube, tube.version);
         locked.push(tubeId);
       } catch (error) {
-        // Version conflict means someone else modified the tube
         skipped.push({ tubeId, reason: 'Tube was modified by another user' });
       }
     }
 
-    // Publish single batch event after all tubes processed
     if (locked.length > 0) {
       const tankIds = [...new Set(locked.map(id => tubeMap.get(id)!.location.tankId))];
       logger.debug('[TubeService] Publishing TubesLockedEvent', {
@@ -868,10 +783,6 @@ export class TubeApplicationService {
     return { locked, skipped };
   }
 
-  /**
-   * Unlock tubes
-   * Batch unlock with partial success pattern
-   */
   async unlockTubes(
     request: UnlockTubesRequest,
     authenticatedUser: User
@@ -879,7 +790,7 @@ export class TubeApplicationService {
     const unlocked: string[] = [];
     const skipped: SkippedTube[] = [];
 
-    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -896,31 +807,26 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Check unlock permission
       const accessResult = this.accessControlService.canUnlockTube(authenticatedUser, tube);
       if (!accessResult.allowed) {
         skipped.push({ tubeId, reason: accessResult.reason });
         continue;
       }
 
-      // Skip if not locked
       if (!tube.isLocked) {
         skipped.push({ tubeId, reason: 'Tube is not locked' });
         continue;
       }
 
-      // Unlock the tube with optimistic locking
       const unlockedTube = tube.unlock();
       try {
         await this.tubeRepository.saveWithOptimisticLock(unlockedTube, tube.version);
         unlocked.push(tubeId);
       } catch (error) {
-        // Version conflict means someone else modified the tube
         skipped.push({ tubeId, reason: 'Tube was modified by another user' });
       }
     }
 
-    // Publish single batch event after all tubes processed
     if (unlocked.length > 0) {
       const tankIds = [...new Set(unlocked.map(id => tubeMap.get(id)!.location.tankId))];
       logger.debug('[TubeService] Publishing TubesUnlockedEvent', {
@@ -938,10 +844,6 @@ export class TubeApplicationService {
     return { unlocked, skipped };
   }
 
-  /**
-   * Share tube access with other users
-   * Batch share with partial success pattern
-   */
   async shareTubeAccess(
     request: ShareTubeAccessRequest,
     authenticatedUser: User
@@ -956,7 +858,7 @@ export class TubeApplicationService {
       throw new Error('One or more users not found');
     }
 
-    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -973,20 +875,17 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Check share permission
       const accessResult = this.accessControlService.canShareTubeAccess(authenticatedUser, tube);
       if (!accessResult.allowed) {
         skipped.push({ tubeId, reason: accessResult.reason });
         continue;
       }
 
-      // Must be locked to share access
       if (!tube.isLocked) {
         skipped.push({ tubeId, reason: 'Tube must be locked to share access' });
         continue;
       }
 
-      // Share with all validated users
       const updatedTube = tube.shareWith(request.userIds);
 
       await this.tubeRepository.save(updatedTube);
@@ -995,7 +894,6 @@ export class TubeApplicationService {
       tubeSharedUsers.push({ tubeId, sharedWithUserIds: updatedTube.sharedWithUserIds });
     }
 
-    // Publish single batch event after all tubes processed
     if (shared.length > 0) {
       const tankIds = [...new Set(shared.map(id => tubeMap.get(id)!.location.tankId))];
       const sharedEvent = new TubeAccessSharedEvent(
@@ -1012,10 +910,6 @@ export class TubeApplicationService {
     return { shared, skipped };
   }
 
-  /**
-   * Revoke tube access from users
-   * Batch revoke with partial success pattern
-   */
   async revokeTubeAccess(
     request: RevokeTubeAccessRequest,
     authenticatedUser: User
@@ -1024,7 +918,7 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
     const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
-    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -1041,20 +935,17 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Check share permission (same as share access)
       const accessResult = this.accessControlService.canShareTubeAccess(authenticatedUser, tube);
       if (!accessResult.allowed) {
         skipped.push({ tubeId, reason: accessResult.reason });
         continue;
       }
 
-      // Must be locked to revoke access
       if (!tube.isLocked) {
         skipped.push({ tubeId, reason: 'Tube must be locked to revoke access' });
         continue;
       }
 
-      // Revoke from all users
       const updatedTube = tube.revokeAccess(request.userIds);
 
       await this.tubeRepository.save(updatedTube);
@@ -1063,7 +954,6 @@ export class TubeApplicationService {
       tubeSharedUsers.push({ tubeId, sharedWithUserIds: updatedTube.sharedWithUserIds });
     }
 
-    // Publish single batch event after all tubes processed
     if (revoked.length > 0) {
       const tankIds = [...new Set(revoked.map(id => tubeMap.get(id)!.location.tankId))];
       const revokedEvent = new TubeAccessRevokedEvent(
@@ -1095,7 +985,7 @@ export class TubeApplicationService {
   }> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     const stats = await this.tubeRepository.getStats(allowedTankIds, authenticatedUser.labId!);
 
     return {
