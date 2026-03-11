@@ -1,20 +1,18 @@
+/**
+ * Person Repository
+ *
+ * Data access for person identity records (name, email, department).
+ */
+
 import { PersonRepository as IPersonRepository } from '@domain/repositories/PersonRepository';
 import { Person } from '@domain/entities/Person';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { PersonMapper, PersonRow } from '@infrastructure/database/mappers/PersonMapper';
 
-/**
- * Explicit column list for persons table queries
- */
 const PERSON_COLUMNS = `
   id, first_name, last_name, email, position, department, created_at, updated_at
 `.trim();
 
-/**
- * PersonRepository - Person data access
- *
- * Person stores human identity (name, email, department).
- */
 export class PersonRepository implements IPersonRepository {
 
   constructor(private context: PostgresContext) {}
@@ -38,11 +36,11 @@ export class PersonRepository implements IPersonRepository {
 
   async emailExists(email: string): Promise<boolean> {
     const normalizedEmail = email.toLowerCase().trim();
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM persons WHERE LOWER(email) = $1',
+    const row = await this.context.queryOne<{ exists: boolean }>(
+      'SELECT EXISTS(SELECT 1 FROM persons WHERE LOWER(email) = $1) as exists',
       [normalizedEmail]
     );
-    return parseInt(result?.count || '0', 10) > 0;
+    return row?.exists ?? false;
   }
 
   async save(person: Person): Promise<void> {
