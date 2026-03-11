@@ -9,6 +9,7 @@
     "copy-shared-schemas": "node -e \"const fs=require('fs');const path=require('path');const src='../packages/shared-schemas';const dest='dist/node_modules/@odysseus/shared-schemas';fs.mkdirSync(path.join(dest,'dist'),{recursive:true});fs.readdirSync(path.join(src,'dist')).forEach(f=>fs.copyFileSync(path.join(src,'dist',f),path.join(dest,'dist',f)));fs.copyFileSync(path.join(src,'package.json'),path.join(dest,'package.json'));\"",
     "start": "node dist/index.js",
     "package": "npm run build",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch"
   },

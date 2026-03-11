@@ -19,8 +19,9 @@
     "lint:client:fix": "cd client && npm run lint:fix",
     "format": "npm run format:client",
     "format:client": "cd client && npm run format",
-    "typecheck": "npm run typecheck:client",
+    "typecheck": "npm run typecheck:client && npm run typecheck:server",
     "typecheck:client": "cd client && npm run typecheck",
+    "typecheck:server": "cd server && npm run typecheck",
     "clean": "rimraf server/dist client/dist",
     "prepare": "husky"
   },
