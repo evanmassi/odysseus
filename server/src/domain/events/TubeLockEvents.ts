@@ -12,9 +12,10 @@ export class TubesLockedEvent extends DomainEvent {
     public readonly tubeIds: string[],
     public readonly tankIds: string[],
     public readonly lockedBy: string,
-    public readonly lockNote: string | undefined
+    public readonly lockNote: string | undefined,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -40,9 +41,10 @@ export class TubesUnlockedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
     public readonly tankIds: string[],
-    public readonly unlockedBy: string
+    public readonly unlockedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -69,9 +71,10 @@ export class TubeAccessSharedEvent extends DomainEvent {
     public readonly tankIds: string[],
     public readonly addedUserIds: string[],
     public readonly tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }>,
-    public readonly sharedBy: string
+    public readonly sharedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -99,9 +102,10 @@ export class TubeAccessRevokedEvent extends DomainEvent {
     public readonly tankIds: string[],
     public readonly revokedUserIds: string[],
     public readonly tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }>,
-    public readonly revokedBy: string
+    public readonly revokedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {

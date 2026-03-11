@@ -13,9 +13,10 @@ export class TubeCreatedEvent extends DomainEvent {
     public readonly tubeId: string,
     public readonly location: Location,
     public readonly sampleData: SampleData,
-    public readonly createdBy: string
+    public readonly createdBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -43,9 +44,10 @@ export class TubeUpdatedEvent extends DomainEvent {
     public readonly newLocation: Location,
     public readonly oldSampleData: SampleData,
     public readonly newSampleData: SampleData,
-    public readonly updatedBy: string
+    public readonly updatedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -73,9 +75,10 @@ export class TubeLocationChangedEvent extends DomainEvent {
     public readonly tubeId: string,
     public readonly oldLocation: Location,
     public readonly newLocation: Location,
-    public readonly movedBy: string
+    public readonly movedBy: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -101,9 +104,10 @@ export class TubeDeletedEvent extends DomainEvent {
     public readonly tubeId: string,
     public readonly location: Location,
     public readonly deletedBy: string,
-    public readonly sampleData: SampleData
+    public readonly sampleData: SampleData,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -129,9 +133,10 @@ export class BulkTubesUpdatedEvent extends DomainEvent {
     public readonly tubeIds: string[],
     public readonly tankIds: string[],
     public readonly updatedBy: string,
-    public readonly changesSummary: Record<string, unknown>
+    public readonly changesSummary: Record<string, unknown>,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {

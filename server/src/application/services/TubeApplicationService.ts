@@ -189,9 +189,9 @@ export class TubeApplicationService {
       tube.id,
       tube.location,
       tube.sampleData,
-      authenticatedUser.id
+      authenticatedUser.id,
+      authenticatedUser.labId!
     );
-    createdEvent.labId = authenticatedUser.labId;
     await this.eventBus.publish(createdEvent);
 
     return TubeDto.toResponse(tube);
@@ -574,9 +574,9 @@ export class TubeApplicationService {
         updatedTube.id,
         oldLocation,
         updatedTube.location,
-        authenticatedUser.id
+        authenticatedUser.id,
+        authenticatedUser.labId!
       );
-      locationEvent.labId = authenticatedUser.labId;
       await this.eventBus.publish(locationEvent);
     }
 
@@ -586,9 +586,9 @@ export class TubeApplicationService {
       updatedTube.location,
       oldSampleData,
       updatedTube.sampleData,
-      authenticatedUser.id
+      authenticatedUser.id,
+      authenticatedUser.labId!
     );
-    updateEvent.labId = authenticatedUser.labId;
     await this.eventBus.publish(updateEvent);
 
     return TubeDto.toResponse(updatedTube);
@@ -637,9 +637,9 @@ export class TubeApplicationService {
       tube.id,
       tube.location,
       authenticatedUser.id,
-      tube.sampleData
+      tube.sampleData,
+      authenticatedUser.labId!
     );
-    deletedEvent.labId = authenticatedUser.labId;
     await this.eventBus.publish(deletedEvent);
   }
 
@@ -680,9 +680,9 @@ export class TubeApplicationService {
         updated,
         tankIds,
         authenticatedUser.id,
-        { updated: updated.length, failed: failed.length }
+        { updated: updated.length, failed: failed.length },
+        authenticatedUser.labId!
       );
-      bulkUpdateEvent.labId = authenticatedUser.labId;
       await this.eventBus.publish(bulkUpdateEvent);
     }
 
@@ -764,9 +764,9 @@ export class TubeApplicationService {
           tube.id,
           tube.location,
           authenticatedUser.id,
-          tube.sampleData
+          tube.sampleData,
+          authenticatedUser.labId!
         );
-        tubeDeletedEvent.labId = authenticatedUser.labId;
         await this.eventBus.publish(tubeDeletedEvent);
       }
     }
@@ -859,9 +859,9 @@ export class TubeApplicationService {
         locked,
         tankIds,
         authenticatedUser.id,
-        request.lockNote
+        request.lockNote,
+        authenticatedUser.labId!
       );
-      lockedEvent.labId = authenticatedUser.labId;
       await this.eventBus.publish(lockedEvent);
     }
 
@@ -929,9 +929,9 @@ export class TubeApplicationService {
       const unlockedEvent = new TubesUnlockedEvent(
         unlocked,
         tankIds,
-        authenticatedUser.id
+        authenticatedUser.id,
+        authenticatedUser.labId!
       );
-      unlockedEvent.labId = authenticatedUser.labId;
       await this.eventBus.publish(unlockedEvent);
     }
 
@@ -1003,9 +1003,9 @@ export class TubeApplicationService {
         tankIds,
         request.userIds,
         tubeSharedUsers,
-        authenticatedUser.id
+        authenticatedUser.id,
+        authenticatedUser.labId!
       );
-      sharedEvent.labId = authenticatedUser.labId;
       await this.eventBus.publish(sharedEvent);
     }
 
@@ -1071,9 +1071,9 @@ export class TubeApplicationService {
         tankIds,
         request.userIds,
         tubeSharedUsers,
-        authenticatedUser.id
+        authenticatedUser.id,
+        authenticatedUser.labId!
       );
-      revokedEvent.labId = authenticatedUser.labId;
       await this.eventBus.publish(revokedEvent);
     }
 
