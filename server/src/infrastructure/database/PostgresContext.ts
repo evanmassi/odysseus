@@ -1,45 +1,38 @@
+/**
+ * Database Access Layer
+ *
+ * Manages the PostgreSQL connection lifecycle and ensures schema is up-to-date on startup.
+ */
+
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { logger } from '@infrastructure/logging/logger';
 import { generateId } from '@domain/utils/generateId';
-
-/**
- * PostgresContext - Database Access Layer
- *
- * Handles all database operations without business logic.
- * Clean separation between data access and domain concerns.
- */
 export class PostgresContext {
   private pool: Pool;
   private initialized: boolean = false;
 
   constructor() {
-    // Connection pool configuration
     this.pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production'
         ? { rejectUnauthorized: false }
         : false,
-      max: 20,                      // Maximum connections in pool
-      idleTimeoutMillis: 30000,     // Close idle connections after 30s
-      connectionTimeoutMillis: 2000, // Fail fast if can't connect in 2s
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
     });
 
-    // Log pool errors
     this.pool.on('error', (err) => {
       logger.error('Unexpected PostgreSQL pool error:', err);
     });
   }
 
-  /**
-   * Initialize database with production-ready schema
-   */
   async initialize(): Promise<void> {
     if (this.initialized) {
       return;
     }
 
     try {
-      // Test connection
       const client = await this.pool.connect();
       try {
         await client.query('SELECT NOW()');
@@ -50,7 +43,6 @@ export class PostgresContext {
       // Rename legacy tables before createTables() so IF NOT EXISTS checks work
       await this.renameConfigurationTablesToStorage();
 
-      // Create schema
       await this.createTables();
       await this.runSchemaMigrations();
       await this.createIndexes();
@@ -65,9 +57,6 @@ export class PostgresContext {
     }
   }
 
-  /**
-   * Create database tables
-   */
   private async createTables(): Promise<void> {
     // Labs table (root tenant — must be created before all FK references)
     await this.pool.query(`
@@ -82,7 +71,6 @@ export class PostgresContext {
       )
     `);
 
-    // Configuration tables
     await this.createStorageTables();
 
     // Persons table
@@ -281,9 +269,6 @@ export class PostgresContext {
 
   }
 
-  /**
-   * Create configuration tables
-   */
   private async createStorageTables(): Promise<void> {
     // Configuration versions (append-only event log)
     await this.pool.query(`
@@ -310,7 +295,6 @@ export class PostgresContext {
       )
     `);
 
-    // Configuration snapshots
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS storage_snapshots (
         id TEXT PRIMARY KEY,
@@ -325,7 +309,6 @@ export class PostgresContext {
       )
     `);
 
-    // Security configuration
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS security_config (
         id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -350,10 +333,7 @@ export class PostgresContext {
 
   }
 
-  /**
-   * Run schema migrations for existing databases.
-   * Called after createTables() so all tables exist before ALTER TABLE runs.
-   */
+  /** Called after createTables() so all tables exist before ALTER TABLE runs. */
   private async runSchemaMigrations(): Promise<void> {
     // Drop is_demo from users — demo status now derived from lab
     await this.pool.query(`
@@ -363,7 +343,7 @@ export class PostgresContext {
       DROP INDEX IF EXISTS idx_users_is_demo
     `);
 
-    // Rename vendor → source (column rename for existing databases)
+    // Rename vendor → source
     await this.pool.query(`
       DO $$
       BEGIN
@@ -400,7 +380,7 @@ export class PostgresContext {
       END $$
     `);
 
-    // Rename vendor → source in lookup_values (drop old constraint, update data, add new)
+    // Rename vendor → source in lookup_values
     await this.pool.query(`
       DO $$
       DECLARE
@@ -422,7 +402,6 @@ export class PostgresContext {
       END $$
     `);
 
-    // Add species, source, catalog_number, passage_number columns to tubes
     await this.pool.query(`
       DO $$
       BEGIN
@@ -490,7 +469,6 @@ export class PostgresContext {
       END $$
     `);
 
-    // Update lookup_values category CHECK constraint to include 'media'
     await this.pool.query(`
       DO $$
       DECLARE
@@ -662,7 +640,6 @@ export class PostgresContext {
       END $$
     `);
 
-    // Backfill existing rows with default lab
     if (backfillLabId) {
       await this.pool.query(`UPDATE users SET lab_id = $1 WHERE lab_id IS NULL AND role != 'system_admin'`, [backfillLabId]);
       await this.pool.query(`UPDATE researchers SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
@@ -764,7 +741,6 @@ export class PostgresContext {
       END $$
     `);
 
-    // Migrate role values and constraint
     // Drop old constraint FIRST so the UPDATE doesn't violate it
     await this.pool.query(`
       DO $$
@@ -1167,9 +1143,6 @@ export class PostgresContext {
     }
   }
 
-  /**
-   * Create database indexes
-   */
   private async createIndexes(): Promise<void> {
     const indexes = [
       // Person indexes
@@ -1195,7 +1168,6 @@ export class PostgresContext {
 
       // User indexes
       'CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key)',
-      'CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)',
       'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)',
       'CREATE INDEX IF NOT EXISTS idx_users_researcher_id ON users(researcher_id)',
       'CREATE INDEX IF NOT EXISTS idx_users_person_id ON users(person_id)',
@@ -1205,7 +1177,6 @@ export class PostgresContext {
 
       // Refresh token indexes
       'CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id)',
-      'CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token)',
       'CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON refresh_tokens(expires_at)',
       'CREATE INDEX IF NOT EXISTS idx_refresh_tokens_is_revoked ON refresh_tokens(is_revoked)',
       'CREATE INDEX IF NOT EXISTS idx_refresh_tokens_created_at ON refresh_tokens(created_at DESC)',
@@ -1268,14 +1239,9 @@ export class PostgresContext {
     }
   }
 
-  /**
-   * Create full-text search infrastructure
-   */
   private async createFullTextSearch(): Promise<void> {
-    // Install pg_trgm extension for partial matching
     await this.pool.query('CREATE EXTENSION IF NOT EXISTS pg_trgm');
 
-    // Add search_vector column to tubes if it doesn't exist
     await this.pool.query(`
       DO $$
       BEGIN
@@ -1288,33 +1254,17 @@ export class PostgresContext {
       END $$
     `);
 
-    // Add version column for optimistic locking (existing tubes get version 1)
-    await this.pool.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'tubes' AND column_name = 'version'
-        ) THEN
-          ALTER TABLE tubes ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
-        END IF;
-      END $$
-    `);
-
-    // Create GIN index for full-text search
     await this.pool.query(`
       CREATE INDEX IF NOT EXISTS idx_tubes_search_vector
       ON tubes USING GIN(search_vector)
     `);
 
-    // Create trigram indexes for partial matching
     await this.pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_cell_type_trgm ON tubes USING GIN(cell_type gin_trgm_ops)');
     await this.pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_donor_internal_trgm ON tubes USING GIN(donor_internal_id gin_trgm_ops)');
     await this.pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_donor_source_trgm ON tubes USING GIN(donor_source_id gin_trgm_ops)');
     await this.pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_lot_number_trgm ON tubes USING GIN(lot_number gin_trgm_ops)');
     await this.pool.query('CREATE INDEX IF NOT EXISTS idx_tubes_notes_trgm ON tubes USING GIN(notes gin_trgm_ops)');
 
-    // Create function to update search_vector
     await this.pool.query(`
       CREATE OR REPLACE FUNCTION tubes_search_vector_update() RETURNS trigger AS $$
       BEGIN
@@ -1339,7 +1289,6 @@ export class PostgresContext {
       $$ LANGUAGE plpgsql
     `);
 
-    // Create trigger to automatically update search_vector
     await this.pool.query(`
       DROP TRIGGER IF EXISTS tubes_search_vector_trigger ON tubes
     `);
@@ -1349,30 +1298,10 @@ export class PostgresContext {
       FOR EACH ROW EXECUTE FUNCTION tubes_search_vector_update()
     `);
 
-    // Populate/rebuild search_vector for all data (trigger definition may have changed)
-    await this.pool.query(`
-      UPDATE tubes SET search_vector =
-        setweight(to_tsvector('english', COALESCE(cell_type, '')), 'A') ||
-        setweight(to_tsvector('english', COALESCE(donor_internal_id, '')), 'A') ||
-        setweight(to_tsvector('english', COALESCE(donor_source_id, '')), 'A') ||
-        setweight(to_tsvector('english', COALESCE(species, '')), 'A') ||
-        setweight(to_tsvector('english', COALESCE(lot_number, '')), 'B') ||
-        setweight(to_tsvector('english', COALESCE(media_type, '')), 'B') ||
-        setweight(to_tsvector('english', COALESCE(catalog_number, '')), 'B') ||
-        setweight(to_tsvector('english', COALESCE(culture_condition, '')), 'B') ||
-        setweight(to_tsvector('english', COALESCE(source, '')), 'B') ||
-        setweight(to_tsvector('english', COALESCE(notes, '')), 'C') ||
-        setweight(to_tsvector('english', COALESCE(concentration, '')), 'C') ||
-        setweight(to_tsvector('english', COALESCE(created_by_name, '')), 'C') ||
-        setweight(to_tsvector('english', COALESCE(media_supplements, '')), 'C') ||
-        setweight(to_tsvector('english', COALESCE(media_selection, '')), 'C') ||
-        setweight(to_tsvector('english', COALESCE(passage_number::TEXT, '')), 'C')
-    `);
+    // Rebuild search_vector via trigger in case the trigger definition changed
+    await this.pool.query(`UPDATE tubes SET updated_at = updated_at`);
   }
 
-  /**
-   * Insert default configuration if none exists
-   */
   private async insertDefaultConfiguration(): Promise<void> {
     try {
       const firstLab = await this.pool.query('SELECT id FROM labs ORDER BY created_at LIMIT 1');
@@ -1413,9 +1342,6 @@ export class PostgresContext {
     }
   }
 
-  /**
-   * Query methods - type-safe and async
-   */
   async query<T extends QueryResultRow = QueryResultRow>(sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
     return this.pool.query<T>(sql, params);
   }
@@ -1440,10 +1366,7 @@ export class PostgresContext {
     }
   }
 
-  /**
-   * Query rows by ID list with auto-generated IN clause placeholders.
-   * Returns empty array for empty ID lists (no query executed).
-   */
+  /** Returns empty array for empty ID lists (no query executed). */
   async queryByIds<T extends QueryResultRow>(
     table: string,
     columns: string,
@@ -1466,9 +1389,6 @@ export class PostgresContext {
     }
   }
 
-  /**
-   * Transaction support
-   */
   async transaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
     const client = await this.pool.connect();
     try {
@@ -1504,16 +1424,10 @@ export class PostgresContext {
     }
   }
 
-  /**
-   * Get a client for manual transaction control
-   */
   async getClient(): Promise<PoolClient> {
     return this.pool.connect();
   }
 
-  /**
-   * Check database health
-   */
   async isHealthy(): Promise<boolean> {
     try {
       const result = await this.pool.query('SELECT 1 as test');
@@ -1523,9 +1437,6 @@ export class PostgresContext {
     }
   }
 
-  /**
-   * Get pool statistics
-   */
   getPoolStats(): { total: number; idle: number; waiting: number } {
     return {
       total: this.pool.totalCount,
@@ -1534,9 +1445,6 @@ export class PostgresContext {
     };
   }
 
-  /**
-   * Close database connection pool (graceful shutdown)
-   */
   async close(): Promise<void> {
     await this.pool.end();
   }
