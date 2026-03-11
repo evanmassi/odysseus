@@ -11,7 +11,7 @@ import { User } from '@domain/entities/User';
 import { logger } from '@infrastructure/logging/logger';
 import { RefreshToken } from '@domain/entities/RefreshToken';
 import { UserSession } from '@domain/entities/UserSession';
-import { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/commands/UserCommands';
+import { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/contracts/SessionService';
 import { ConfigurationService } from '@infrastructure/services/ConfigurationService';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';

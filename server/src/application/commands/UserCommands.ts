@@ -1,7 +1,7 @@
 /**
- * User Commands
+ * User CQRS Commands
  *
- * Commands for user-related operations.
+ * Account lifecycle operations — registration, login, password changes, role changes, deletion.
  */
 
 import { UserRole } from '@domain/value-objects/UserRole';
@@ -13,7 +13,6 @@ import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository'
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { Person } from '@domain/entities/Person';
-import { PasswordService } from '@application/contracts/PasswordService';
 import { logger } from '@infrastructure/logging/logger';
 import { EventBus } from '@application/contracts/EventBus';
 import {
@@ -21,8 +20,7 @@ import {
   UserPasswordChangedEvent,
   UserRoleChangedEvent,
   UserDeletedEvent,
-  UserLoggedInEvent,
-  UserLoggedOutEvent
+  UserLoggedInEvent
 } from '@domain/events/UserEvents';
 import { BulkResourcesUnassignedEvent } from '@domain/events/StorageEvents';
 import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
@@ -30,8 +28,8 @@ import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } fr
 import { ValidationError } from '@domain/errors/ValidationError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { type UserSettings, PasswordValidator } from '@odysseus/shared-schemas';
-import type { EnhancedLoginResponse, RefreshTokenResponse } from '@application/types/tokenTypes';
+import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
+import type { UserSettings } from '@odysseus/shared-schemas';
 
 // COMMAND INTERFACES
 
@@ -79,12 +77,16 @@ export interface LoginCommand {
   password: string;
 }
 
+export interface UpdateUserSettingsCommand {
+  userId: string;
+  settings: UserSettings;
+}
+
 // COMMAND HANDLERS
 
 export class CreateUserCommandHandler {
   constructor(
     private userRepository: UserRepository,
-    private passwordService: PasswordService,
     private eventBus: EventBus,
     private storageRepository: StorageRepository,
     private inviteCodeRepository?: InviteCodeRepository
@@ -96,7 +98,7 @@ export class CreateUserCommandHandler {
       throw new UserAlreadyExistsError(command.username);
     }
 
-    await this.validatePasswordPolicy(command.password);
+    await validatePasswordPolicy(this.storageRepository, command.password);
 
     let labId: string | undefined;
     let resolvedRole = command.role;
@@ -144,15 +146,6 @@ export class CreateUserCommandHandler {
 
     return user;
   }
-
-  private async validatePasswordPolicy(password: string): Promise<void> {
-    const securityConfig = await this.storageRepository.getSecurityConfig();
-    try {
-      PasswordValidator.enforce(password, securityConfig);
-    } catch (error) {
-      throw new ValidationError((error as Error).message);
-    }
-  }
 }
 
 export class CreateSystemAdminCommandHandler {
@@ -160,7 +153,8 @@ export class CreateSystemAdminCommandHandler {
     private userRepository: UserRepository,
     private storageRepository: StorageRepository,
     private eventBus: EventBus,
-    private personRepository: PersonRepository
+    private personRepository: PersonRepository,
+    private setupKey?: string
   ) {}
 
   async handle(command: CreateSystemAdminCommand): Promise<User> {
@@ -169,9 +163,8 @@ export class CreateSystemAdminCommandHandler {
       throw new ValidationError('System admin already exists');
     }
 
-    const requiredKey = process.env.SYSTEM_ADMIN_SETUP_KEY;
-    if (requiredKey) {
-      if (!command.setupKey || command.setupKey !== requiredKey) {
+    if (this.setupKey) {
+      if (!command.setupKey || command.setupKey !== this.setupKey) {
         throw new PermissionError('Invalid setup key');
       }
     }
@@ -186,7 +179,7 @@ export class CreateSystemAdminCommandHandler {
       throw new ValidationError('Email address already in use');
     }
 
-    await this.validatePasswordPolicy(command.password);
+    await validatePasswordPolicy(this.storageRepository, command.password);
 
     const person = Person.create(command.firstName, command.lastName, command.email, command.position, command.department);
     await this.personRepository.save(person);
@@ -207,21 +200,11 @@ export class CreateSystemAdminCommandHandler {
 
     return user;
   }
-
-  private async validatePasswordPolicy(password: string): Promise<void> {
-    const securityConfig = await this.storageRepository.getSecurityConfig();
-    try {
-      PasswordValidator.enforce(password, securityConfig);
-    } catch (error) {
-      throw new ValidationError((error as Error).message);
-    }
-  }
 }
 
 export class ChangeUserPasswordCommandHandler {
   constructor(
     private userRepository: UserRepository,
-    private passwordService: PasswordService,
     private eventBus: EventBus,
     private storageRepository: StorageRepository,
     private userSessionRepository: UserSessionRepository
@@ -238,7 +221,7 @@ export class ChangeUserPasswordCommandHandler {
       throw new InvalidCredentialsError('Current password is incorrect');
     }
 
-    await this.validatePasswordPolicy(command.newPassword);
+    await validatePasswordPolicy(this.storageRepository, command.newPassword);
 
     user.setPassword(command.newPassword);
     await this.userRepository.save(user);
@@ -258,15 +241,6 @@ export class ChangeUserPasswordCommandHandler {
 
     const event = new UserPasswordChangedEvent(user.id, user.username, command.initiatedBy, user.labId);
     await this.eventBus.publish(event);
-  }
-
-  private async validatePasswordPolicy(password: string): Promise<void> {
-    const securityConfig = await this.storageRepository.getSecurityConfig();
-    try {
-      PasswordValidator.enforce(password, securityConfig);
-    } catch (error) {
-      throw new ValidationError((error as Error).message);
-    }
   }
 }
 
@@ -387,7 +361,6 @@ export class DeleteUserCommandHandler {
     const deleteEvent = new UserDeletedEvent(command.userId, username, command.initiatedBy, user.labId);
     await this.eventBus.publish(deleteEvent);
 
-    // Trigger socket notification for real-time client cache invalidation
     if (racksAffected > 0 || boxesAffected > 0) {
       const cascadeEvent = new BulkResourcesUnassignedEvent(
         command.initiatedBy,
@@ -410,7 +383,6 @@ export interface LoginResult {
 export class LoginCommandHandler {
   constructor(
     private userRepository: UserRepository,
-    private sessionService: SessionService,
     private eventBus: EventBus,
     private labRepository?: LabRepository
   ) {}
@@ -480,11 +452,6 @@ export class LoginCommandHandler {
 
 // USER SETTINGS
 
-export interface UpdateUserSettingsCommand {
-  userId: string;
-  settings: UserSettings;
-}
-
 export class UpdateUserSettingsCommandHandler {
   constructor(private userRepository: UserRepository) {}
 
@@ -499,54 +466,4 @@ export class UpdateUserSettingsCommandHandler {
 
     return updatedUser;
   }
-}
-
-export interface GetUserSettingsQuery {
-  userId: string;
-}
-
-export class GetUserSettingsQueryHandler {
-  constructor(private userRepository: UserRepository) {}
-
-  async handle(query: GetUserSettingsQuery): Promise<UserSettings> {
-    const user = await this.userRepository.findById(query.userId);
-    if (!user) {
-      throw new UserNotFoundError(query.userId);
-    }
-
-    return user.settings;
-  }
-}
-
-// SESSION SERVICE INTERFACE
-
-export interface SessionValidationResult {
-  user: User;
-  sessionId: string;
-}
-
-export type SessionValidationOutcome =
-  | { success: true; user: User; sessionId: string }
-  | { success: false; code: 'INVALID_TOKEN' | 'SESSION_REVOKED' | 'SESSION_EXPIRED' | 'SESSION_IDLE_TIMEOUT' | 'SESSION_ABSOLUTE_TIMEOUT' | 'LAB_DEACTIVATED' };
-
-export interface SessionService {
-  validateSession(token: string): Promise<SessionValidationResult | null>;
-  revokeSession(token: string): Promise<void>;
-  createTokenPair(user: User, userAgent?: string, ipAddress?: string, deviceInfo?: string): Promise<EnhancedLoginResponse>;
-  refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponse>;
-
-  /**
-   * Validate session with full timeout checks and optional activity update.
-   * Used by auth middleware for enforcing idle and absolute timeouts.
-   */
-  validateSessionWithActivity(
-    token: string,
-    options?: { updateActivity?: boolean }
-  ): Promise<SessionValidationOutcome>;
-
-  /** Short-lived (5 min) token that only allows force-change-password endpoint. */
-  createPasswordChangeTempToken(user: User): string;
-
-  /** Returns user ID if valid, null if expired/invalid. */
-  verifyPasswordChangeTempToken(token: string): Promise<{ userId: string; username: string } | null>;
 }

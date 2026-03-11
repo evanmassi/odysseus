@@ -14,7 +14,8 @@ import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
 
 // CQRS Commands
-import { SessionService, CreateUserCommand, CreateUserCommandHandler } from '@application/commands/UserCommands';
+import type { SessionService } from '@application/contracts/SessionService';
+import { CreateUserCommand, CreateUserCommandHandler } from '@application/commands/UserCommands';
 import { CreateSystemAdminCommand, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
 import { LoginCommand, LoginCommandHandler } from '@application/commands/UserCommands';
 import { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';

@@ -8,6 +8,7 @@ import { BaseQuery, QueryHandler } from '@application/queries/Query';
 import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { UserNotFoundError } from '@domain/errors/UserErrors';
+import type { UserSettings } from '@odysseus/shared-schemas';
 
 // GET USER BY ID QUERY
 
@@ -92,5 +93,24 @@ export class GetUserStatisticsQueryHandler implements QueryHandler<GetUserStatis
       regularUsers,
       recentlyCreated
     };
+  }
+}
+
+// GET USER SETTINGS QUERY
+
+export interface GetUserSettingsQuery {
+  userId: string;
+}
+
+export class GetUserSettingsQueryHandler {
+  constructor(private userRepository: UserRepository) {}
+
+  async handle(query: GetUserSettingsQuery): Promise<UserSettings> {
+    const user = await this.userRepository.findById(query.userId);
+    if (!user) {
+      throw new UserNotFoundError(query.userId);
+    }
+
+    return user.settings;
   }
 }

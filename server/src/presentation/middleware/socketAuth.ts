@@ -12,7 +12,7 @@
 
 import type { Socket } from 'socket.io';
 import type { ExtendedError } from 'socket.io/dist/namespace';
-import type { SessionService } from '@application/commands/UserCommands';
+import type { SessionService } from '@application/contracts/SessionService';
 import { logger } from '@infrastructure/logging/logger';
 
 // Extend Socket interface with authenticated user info

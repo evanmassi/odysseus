@@ -2,7 +2,8 @@ import { RepositoryFactory } from '@infrastructure/repositories';
 import { logger } from '@infrastructure/logging/logger';
 
 // CQRS Command Handlers
-import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler, GetUserSettingsQueryHandler } from '@application/commands/UserCommands';
+import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
+import { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
 import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
@@ -70,7 +71,7 @@ import { AuditArchivalJob } from '@infrastructure/jobs/AuditArchivalJob';
 
 // Contracts
 import { PasswordService } from '@application/contracts/PasswordService';
-import { SessionService } from '@application/commands/UserCommands';
+import { SessionService } from '@application/contracts/SessionService';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { EmailService } from '@domain/services/EmailService';
 
@@ -261,7 +262,6 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.createUserHandler = new CreateUserCommandHandler(
         repositories.users,
-        this.getPasswordService(),
         this.getEventBus(),
         repositories.storage
       );
@@ -274,7 +274,6 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.loginHandler = new LoginCommandHandler(
         repositories.users,
-        this.getSessionService(),
         this.getEventBus(),
         repositories.labs
       );
@@ -287,7 +286,6 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.changePasswordHandler = new ChangeUserPasswordCommandHandler(
         repositories.users,
-        this.getPasswordService(),
         this.getEventBus(),
         repositories.storage,
         repositories.userSessions
@@ -725,7 +723,8 @@ export class ServiceContainer {
         repositories.users,
         repositories.storage,
         this.getEventBus(),
-        repositories.persons
+        repositories.persons,
+        process.env.SYSTEM_ADMIN_SETUP_KEY
       );
     }
     return this.createSystemAdminHandler;

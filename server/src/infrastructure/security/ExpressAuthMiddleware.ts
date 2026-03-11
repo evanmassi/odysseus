@@ -7,7 +7,7 @@
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
-import { SessionService } from '@application/commands/UserCommands';
+import { SessionService } from '@application/contracts/SessionService';
 import { logger } from '@infrastructure/logging/logger';
 
 export class ExpressAuthMiddleware implements AuthMiddleware {

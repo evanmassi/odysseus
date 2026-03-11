@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import {
-  UpdateUserSettingsCommandHandler,
-  GetUserSettingsQueryHandler
-} from '@application/commands/UserCommands';
+import { UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
+import { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { handleControllerError } from '@presentation/utils/ErrorHandler';
