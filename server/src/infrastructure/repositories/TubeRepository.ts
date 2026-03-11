@@ -1,3 +1,9 @@
+/**
+ * Tube Repository
+ *
+ * Data access for tube sample records with multi-layer full-text search and location queries.
+ */
+
 import { Tube } from '@domain/entities/Tube';
 import { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
 import type { TubeSearchCriteria, TubeSearchResult, TubeRepositoryStats } from '@domain/types/repository';
@@ -19,10 +25,6 @@ import {
 import { logger } from '@infrastructure/logging/logger';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 
-/**
- * TubeRepository implementation
- * Pure data access layer - no business logic
- */
 export class TubeRepository implements ITubeRepository {
   constructor(
     private context: PostgresContext,
@@ -248,14 +250,6 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
-  async findByTankAndRack(tankId: string, rackId: string, labId: string): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND lab_id = $3 ORDER BY box_id, position`,
-      [tankId, rackId, labId]
-    );
-    return TubeMapper.fromRows(rows);
-  }
-
   async isPositionAvailable(location: Location, labId: string): Promise<boolean> {
     const tube = await this.findByLocation(location, labId);
     return tube === null;
@@ -279,31 +273,7 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
-  async getActiveResearchers(labId: string): Promise<string[]> {
-    const rows = await this.context.queryMany<{ researcher_id: string }>(
-      'SELECT DISTINCT researcher_id FROM tubes WHERE researcher_id IS NOT NULL AND lab_id = $1 ORDER BY researcher_id',
-      [labId]
-    );
-    return rows.map((row: { researcher_id: string }) => row.researcher_id);
-  }
-
   // BUSINESS QUERIES
-
-  async findExpired(labId: string): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text AND lab_id = $1 ORDER BY date`,
-      [labId]
-    );
-    return TubeMapper.fromRows(rows);
-  }
-
-  async findIncomplete(labId: string): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE (cell_type IS NULL OR donor_internal_id IS NULL OR researcher_id IS NULL) AND lab_id = $1`,
-      [labId]
-    );
-    return TubeMapper.fromRows(rows);
-  }
 
   async countByLabId(labId: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
@@ -347,9 +317,6 @@ export class TubeRepository implements ITubeRepository {
 
   // SEARCH AND FILTERING
 
-  /**
-   * Allowed columns for sorting (SQL injection protection)
-   */
   private readonly ALLOWED_SORT_COLUMNS = [
     'rank',
     'created_at',
@@ -361,9 +328,6 @@ export class TubeRepository implements ITubeRepository {
     'lot_number'
   ] as const;
 
-  /**
-   * Explicit column list for SELECT queries (avoids SELECT * anti-pattern)
-   */
   private readonly TUBE_COLUMNS = `
     tubes.id,
     tubes.tank_id,
@@ -399,10 +363,6 @@ export class TubeRepository implements ITubeRepository {
     tubes.lab_id
   `.trim();
 
-  /**
-   * Helper: Add location filters to SQL query
-   * Supports both array-based (tankIds, rackIds, boxIds) and legacy single-value filters
-   */
   private addLocationFilters(
     baseSql: string,
     params: unknown[],
@@ -445,10 +405,6 @@ export class TubeRepository implements ITubeRepository {
     return sql;
   }
 
-  /**
-   * Helper: Add sample-related filters to SQL query
-   * Supports array-based filters for cellTypes, lotNumbers, donorIds, cultureConditions
-   */
   private addSampleFilters(
     baseSql: string,
     params: unknown[],
@@ -510,10 +466,6 @@ export class TubeRepository implements ITubeRepository {
     return sql;
   }
 
-  /**
-   * Helper: Add researcher filters to SQL query
-   * Supports array-based researcherIds filter
-   */
   private addResearcherFilters(
     baseSql: string,
     params: unknown[],
@@ -538,10 +490,6 @@ export class TubeRepository implements ITubeRepository {
     return sql;
   }
 
-  /**
-   * Helper: Add date range filters to SQL query
-   * Filters by date (YYYY-MM-DD format to prevent timezone bugs)
-   */
   private addDateRangeFilters(
     baseSql: string,
     params: unknown[],
@@ -563,13 +511,8 @@ export class TubeRepository implements ITubeRepository {
   }
 
   /**
-   * Helper: Add position label filter to SQL query
-   *
    * Parses alphanumeric position labels (e.g., "C5") using box position display config.
-   * Falls back to numeric parsing if label is numeric.
-   *
-   * NOTE: Position label is box-specific. This method works best when a single box is filtered.
-   * If multiple boxes are filtered, the label is parsed using the first box's config.
+   * Position label is box-specific — when multiple boxes are filtered, uses the first box's config.
    */
   private async addPositionLabelFilter(
     baseSql: string,
@@ -585,7 +528,6 @@ export class TubeRepository implements ITubeRepository {
     }
 
     try {
-      // Determine which box to use for position label parsing
       const boxId = criteria.boxId || criteria.boxIds?.[0];
       const tankId = criteria.tankId || criteria.tankIds?.[0];
       const rackId = criteria.rackId || criteria.rackIds?.[0];
@@ -611,18 +553,14 @@ export class TubeRepository implements ITubeRepository {
         return sql;
       }
 
-      // Find the box to get its position display configuration
       const box = configuration.equipment.findBox(tankId, rackId, boxId);
       if (!box) {
         logger.warn(`[TubeRepository] Box not found: ${tankId}/${rackId}/${boxId}`);
         return sql;
       }
 
-      // Parse position label using box's parsePositionLabel method
-      // This respects the box's position display configuration
       const numericPosition = box.parsePositionLabel(criteria.positionLabel);
 
-      // Add position filter to SQL
       sql += ` AND tubes.position = $${paramIndex.current++}`;
       params.push(numericPosition);
 
@@ -637,12 +575,6 @@ export class TubeRepository implements ITubeRepository {
     return sql;
   }
 
-  /**
-   * Enhanced search with comprehensive query support
-   * - Supports generic query string that searches ALL fields
-   * - Includes researcher name search via JOIN
-   * - Supports structured criteria for specific field filtering
-   */
   async search(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
     if (criteria.query && criteria.query.trim()) {
       return this.comprehensiveSearch(criteria, labId);
@@ -654,7 +586,6 @@ export class TubeRepository implements ITubeRepository {
   async searchWithHighlighting(criteria: TubeSearchCriteria, labId: string): Promise<TubeSearchResult> {
     const tubes = await this.search(criteria, labId);
 
-    // Gather all matched terms for highlighting
     const matchedTerms: string[] = [];
 
     if (criteria.query && criteria.query.trim()) {
@@ -662,22 +593,18 @@ export class TubeRepository implements ITubeRepository {
       const normalizedQuery = normalizeSearchQuery(rawQuery);
       const expandedTerms = expandWithSynonyms(normalizedQuery);
 
-      // Include original query
       matchedTerms.push(rawQuery.toLowerCase());
 
-      // Include normalized form if different
       if (normalizedQuery !== rawQuery.toLowerCase()) {
         matchedTerms.push(normalizedQuery);
       }
 
-      // Include all expanded synonyms
       for (const term of expandedTerms) {
         if (!matchedTerms.includes(term)) {
           matchedTerms.push(term);
         }
       }
 
-      // Include individual words from normalized query
       const words = normalizedQuery.split(/\s+/).filter(w => w.length >= 2);
       for (const word of words) {
         if (!matchedTerms.includes(word)) {
@@ -882,10 +809,6 @@ export class TubeRepository implements ITubeRepository {
     }
   }
 
-  /**
-   * Structured search using specific field criteria
-   * Used when no generic query is provided
-   */
   private async structuredSearch(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
     let sql = `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE lab_id = $1`;
     const params: unknown[] = [labId];
@@ -945,36 +868,9 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
-  async findByCellType(cellType: string, labId: string): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE cell_type ILIKE $1 AND lab_id = $2 ORDER BY created_at DESC`,
-      [`%${cellType}%`, labId]
-    );
-    return TubeMapper.fromRows(rows);
-  }
-
-  async findByDateRange(startDate: string, endDate: string, labId: string): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE date BETWEEN $1 AND $2 AND lab_id = $3 ORDER BY date`,
-      [startDate, endDate, labId]
-    );
-    return TubeMapper.fromRows(rows);
-  }
-
-  async findWithConcentration(labId: string): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE concentration IS NOT NULL AND lab_id = $1 ORDER BY concentration DESC`,
-      [labId]
-    );
-    return TubeMapper.fromRows(rows);
-  }
-
   // BULK OPERATIONS
 
-  /**
-   * Save multiple tubes in a transaction.
-   * Skips optimistic locking - used for imports where conflicts are pre-validated.
-   */
+  /** Skips optimistic locking — used for imports where conflicts are pre-validated. */
   async saveMany(tubes: Tube[]): Promise<void> {
     await this.context.transaction(async (client) => {
       for (const tube of tubes) {
@@ -1051,17 +947,6 @@ export class TubeRepository implements ITubeRepository {
     const result = await this.context.execute(
       `DELETE FROM tubes WHERE tank_id IN (${placeholders}) AND lab_id = $${tankIds.length + 1}`,
       [...tankIds, labId]
-    );
-    return result.rowCount ?? 0;
-  }
-
-  async updateResearcherForMany(tubeIds: string[], newResearcher: string): Promise<number> {
-    if (tubeIds.length === 0) return 0;
-
-    const placeholders = tubeIds.map((_, i) => `$${i + 3}`).join(',');
-    const result = await this.context.execute(
-      `UPDATE tubes SET researcher_id = $1, updated_at = $2 WHERE id IN (${placeholders})`,
-      [newResearcher, new Date(), ...tubeIds]
     );
     return result.rowCount ?? 0;
   }
