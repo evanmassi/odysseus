@@ -1,18 +1,15 @@
-import { Tube } from '@domain/entities/Tube';
-import { Location } from '@domain/value-objects/Location';
-import { SampleData } from '@domain/value-objects/SampleData';
-
 /**
- * Database-to-Domain transformation utility
- * Converts SQL NULL values to TypeScript undefined for proper optional handling
+ * Tube Mapper
+ *
+ * Converts between database rows and Tube domain entities.
  */
+
+import { Tube } from '@domain/entities/Tube';
+
 function nullToUndefined<T>(value: T | null): T | undefined {
   return value === null ? undefined : value;
 }
 
-/**
- * Database row structure for tubes table
- */
 export interface TubeRow {
   id: string;
   tank_id: string;
@@ -48,12 +45,6 @@ export interface TubeRow {
   lab_id?: string;
 }
 
-/**
- * TubeMapper - Clean conversion between Domain Entity and Database Row
- *
- * Handles all mapping logic without business rules.
- * Pure transformation functions.
- */
 export class TubeMapper {
 
   static toRow(tube: Tube): TubeRow {
@@ -100,35 +91,9 @@ export class TubeMapper {
   }
 
   static fromRow(row: TubeRow): Tube {
-    const location = Location.create(
-      row.tank_id,
-      row.rack_id,
-      row.box_id,
-      row.position
-    );
-
     const concentration = row.concentration ? parseFloat(row.concentration) : undefined;
     const concentrationUnit = nullToUndefined(row.concentration_unit);
     const validConcentrationUnit = (concentration !== undefined && concentrationUnit) ? concentrationUnit : undefined;
-
-    const sampleData = SampleData.create({
-      cellType: nullToUndefined(row.cell_type),
-      species: nullToUndefined(row.species),
-      donorInternalId: nullToUndefined(row.donor_internal_id),
-      donorSourceId: nullToUndefined(row.donor_source_id),
-      concentration,
-      concentrationUnit: validConcentrationUnit,
-      date: nullToUndefined(row.date),
-      mediaType: nullToUndefined(row.media_type),
-      mediaSupplements: nullToUndefined(row.media_supplements),
-      mediaSelection: nullToUndefined(row.media_selection),
-      cultureCondition: nullToUndefined(row.culture_condition),
-      lotNumber: nullToUndefined(row.lot_number),
-      source: nullToUndefined(row.source),
-      catalogNumber: nullToUndefined(row.catalog_number),
-      passageNumber: nullToUndefined(row.passage_number),
-      notes: nullToUndefined(row.notes)
-    });
 
     const sharedWithUserIdsJson = nullToUndefined(row.shared_with_user_ids);
     const sharedWithUserIds: string[] = sharedWithUserIdsJson
@@ -189,9 +154,5 @@ export class TubeMapper {
 
   static fromRows(rows: TubeRow[]): Tube[] {
     return rows.map(row => this.fromRow(row));
-  }
-
-  static toRows(tubes: Tube[]): TubeRow[] {
-    return tubes.map(tube => this.toRow(tube));
   }
 }

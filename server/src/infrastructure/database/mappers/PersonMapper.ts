@@ -1,8 +1,11 @@
+/**
+ * Person Mapper
+ *
+ * Converts between database rows and Person domain entities.
+ */
+
 import { Person } from '@domain/entities/Person';
 
-/**
- * Database row structure for persons table (PostgreSQL snake_case)
- */
 export interface PersonRow {
   id: string;
   first_name: string;
@@ -14,18 +17,8 @@ export interface PersonRow {
   updated_at: Date | string;
 }
 
-/**
- * PersonMapper - Conversion between Domain Entity and Database Row
- *
- * Handles translation between:
- * - Domain entities (camelCase)
- * - PostgreSQL rows (snake_case)
- */
 export class PersonMapper {
 
-  /**
-   * Convert Domain Entity to Database Row (for INSERT/UPDATE)
-   */
   static toRow(person: Person): PersonRow {
     return {
       id: person.id,
@@ -39,9 +32,6 @@ export class PersonMapper {
     };
   }
 
-  /**
-   * Convert Database Row to Domain Entity (from SELECT)
-   */
   static fromRow(row: PersonRow): Person {
     return Person.fromData({
       id: row.id,
@@ -59,17 +49,7 @@ export class PersonMapper {
     });
   }
 
-  /**
-   * Convert multiple rows to entities
-   */
   static fromRows(rows: PersonRow[]): Person[] {
     return rows.map(row => this.fromRow(row));
-  }
-
-  /**
-   * Convert multiple entities to rows
-   */
-  static toRows(persons: Person[]): PersonRow[] {
-    return persons.map(person => this.toRow(person));
   }
 }

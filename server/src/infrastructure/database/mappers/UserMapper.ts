@@ -1,8 +1,11 @@
+/**
+ * User Mapper
+ *
+ * Converts between database rows and User domain entities.
+ */
+
 import { User } from '@domain/entities/User';
 
-/**
- * Database row structure for users table
- */
 export interface UserRow {
   id: string;
   username: string;
@@ -28,16 +31,8 @@ export interface UserRow {
   lab_is_demo?: boolean;
 }
 
-/**
- * UserMapper - Conversion between domain entity and database row
- *
- * Domain entities remain persistence-agnostic (Clean Architecture).
- */
 export class UserMapper {
 
-  /**
-   * Convert domain entity to database row
-   */
   static toRow(user: User): UserRow {
     const settingsJson = JSON.stringify(user.settings);
 
@@ -65,9 +60,6 @@ export class UserMapper {
     };
   }
 
-  /**
-   * Convert database row to domain entity
-   */
   static fromRow(row: UserRow): User {
     const createdAt = row.created_at instanceof Date
       ? row.created_at
@@ -125,17 +117,7 @@ export class UserMapper {
     });
   }
 
-  /**
-   * Convert multiple rows to entities
-   */
   static fromRows(rows: UserRow[]): User[] {
     return rows.map(row => this.fromRow(row));
-  }
-
-  /**
-   * Convert multiple entities to rows
-   */
-  static toRows(users: User[]): UserRow[] {
-    return users.map(user => this.toRow(user));
   }
 }

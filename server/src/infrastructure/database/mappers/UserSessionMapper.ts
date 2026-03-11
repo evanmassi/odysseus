@@ -1,8 +1,11 @@
+/**
+ * User Session Mapper
+ *
+ * Converts between database rows and UserSession domain entities.
+ */
+
 import { UserSession } from '@domain/entities/UserSession';
 
-/**
- * Database row structure for user_sessions table (PostgreSQL snake_case)
- */
 export interface UserSessionRow {
   id: string;
   user_id: string;
@@ -16,18 +19,8 @@ export interface UserSessionRow {
   is_active: boolean;
 }
 
-/**
- * UserSessionMapper - Clean conversion between Domain Entity and Database Row
- *
- * Handles all mapping logic without business rules.
- * Pure transformation functions with proper date handling.
- * PostgreSQL version with snake_case columns and native boolean/date types.
- */
 export class UserSessionMapper {
 
-  /**
-   * Convert Domain Entity to Database Row
-   */
   static toRow(session: UserSession): UserSessionRow {
     return {
       id: session.id,
@@ -43,9 +36,6 @@ export class UserSessionMapper {
     };
   }
 
-  /**
-   * Convert Database Row to Domain Entity
-   */
   static fromRow(row: UserSessionRow): UserSession {
     return UserSession.fromData({
       id: row.id,
@@ -61,37 +51,7 @@ export class UserSessionMapper {
     });
   }
 
-  /**
-   * Convert multiple rows to entities
-   */
   static fromRows(rows: UserSessionRow[]): UserSession[] {
     return rows.map(row => this.fromRow(row));
-  }
-
-  /**
-   * Convert multiple entities to rows
-   */
-  static toRows(sessions: UserSession[]): UserSessionRow[] {
-    return sessions.map(session => this.toRow(session));
-  }
-
-  /**
-   * Create row for activity update
-   */
-  static toActivityUpdateRow(session: UserSession): { id: string; last_used_at: Date } {
-    return {
-      id: session.id,
-      last_used_at: session.lastUsedAt
-    };
-  }
-
-  /**
-   * Create row for revocation update
-   */
-  static toRevocationUpdateRow(session: UserSession): { id: string; is_active: boolean } {
-    return {
-      id: session.id,
-      is_active: session.isActive
-    };
   }
 }

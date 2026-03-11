@@ -1,3 +1,9 @@
+/**
+ * Invite Code Mapper
+ *
+ * Converts between database rows and InviteCode domain entities.
+ */
+
 import { InviteCode } from '@domain/entities/InviteCode';
 
 export interface InviteCodeRow {
@@ -55,9 +61,5 @@ export class InviteCodeMapper {
 
   static fromRows(rows: InviteCodeRow[]): InviteCode[] {
     return rows.map(row => this.fromRow(row));
-  }
-
-  static toRows(inviteCodes: InviteCode[]): InviteCodeRow[] {
-    return inviteCodes.map(code => this.toRow(code));
   }
 }

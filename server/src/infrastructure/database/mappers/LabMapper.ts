@@ -1,3 +1,9 @@
+/**
+ * Lab Mapper
+ *
+ * Converts between database rows and Lab domain entities.
+ */
+
 import { Lab } from '@domain/entities/Lab';
 import type { DemoLimits } from '@odysseus/shared-schemas';
 
@@ -50,9 +56,5 @@ export class LabMapper {
 
   static fromRows(rows: LabRow[]): Lab[] {
     return rows.map(row => this.fromRow(row));
-  }
-
-  static toRows(labs: Lab[]): LabRow[] {
-    return labs.map(lab => this.toRow(lab));
   }
 }

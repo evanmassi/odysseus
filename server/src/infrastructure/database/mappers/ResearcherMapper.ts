@@ -1,8 +1,11 @@
+/**
+ * Researcher Mapper
+ *
+ * Converts between database rows and Researcher domain entities.
+ */
+
 import { Researcher, ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
 
-/**
- * Database row structure for researchers table
- */
 export interface ResearcherRow {
   id: string;
   person_id: string;
@@ -13,14 +16,8 @@ export interface ResearcherRow {
   lab_id?: string;
 }
 
-/**
- * ResearcherMapper - Conversion between domain entity and database row
- */
 export class ResearcherMapper {
 
-  /**
-   * Convert domain entity to database row
-   */
   static toRow(researcher: Researcher): ResearcherRow {
     return {
       id: researcher.id,
@@ -33,9 +30,6 @@ export class ResearcherMapper {
     };
   }
 
-  /**
-   * Convert database row to domain entity
-   */
   static fromRow(row: ResearcherRow): Researcher {
     const createdAt = row.created_at instanceof Date
       ? row.created_at.toISOString()
@@ -52,17 +46,7 @@ export class ResearcherMapper {
     });
   }
 
-  /**
-   * Convert multiple rows to entities
-   */
   static fromRows(rows: ResearcherRow[]): Researcher[] {
     return rows.map(row => this.fromRow(row));
-  }
-
-  /**
-   * Convert multiple entities to rows
-   */
-  static toRows(researchers: Researcher[]): ResearcherRow[] {
-    return researchers.map(researcher => this.toRow(researcher));
   }
 }

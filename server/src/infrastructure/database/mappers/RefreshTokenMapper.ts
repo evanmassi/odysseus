@@ -1,8 +1,11 @@
+/**
+ * Refresh Token Mapper
+ *
+ * Converts between database rows and RefreshToken domain entities.
+ */
+
 import { RefreshToken } from '@domain/entities/RefreshToken';
 
-/**
- * Database row structure for refresh_tokens table
- */
 export interface RefreshTokenRow {
   id: string;
   user_id: string;
@@ -15,16 +18,8 @@ export interface RefreshTokenRow {
   ip_address: string | null;
 }
 
-/**
- * RefreshTokenMapper - Conversion between domain entity and database row
- *
- * Pure transformation functions with proper date handling.
- */
 export class RefreshTokenMapper {
 
-  /**
-   * Convert domain entity to database row
-   */
   static toRow(refreshToken: RefreshToken): RefreshTokenRow {
     return {
       id: refreshToken.id,
@@ -39,9 +34,6 @@ export class RefreshTokenMapper {
     };
   }
 
-  /**
-   * Convert database row to domain entity
-   */
   static fromRow(row: RefreshTokenRow): RefreshToken {
     return RefreshToken.fromData({
       id: row.id,
@@ -58,51 +50,7 @@ export class RefreshTokenMapper {
     });
   }
 
-  /**
-   * Convert multiple rows to entities
-   */
   static fromRows(rows: RefreshTokenRow[]): RefreshToken[] {
     return rows.map(row => this.fromRow(row));
-  }
-
-  /**
-   * Convert multiple entities to rows
-   */
-  static toRows(refreshTokens: RefreshToken[]): RefreshTokenRow[] {
-    return refreshTokens.map(token => this.toRow(token));
-  }
-
-  /**
-   * Create partial row for updates (only changed fields)
-   */
-  static toPartialRow(refreshToken: RefreshToken, fields: (keyof RefreshTokenRow)[]): Partial<RefreshTokenRow> {
-    const fullRow = this.toRow(refreshToken);
-    const partialRow: Partial<RefreshTokenRow> = {};
-
-    fields.forEach(field => {
-      (partialRow as Record<string, unknown>)[field] = fullRow[field];
-    });
-
-    return partialRow;
-  }
-
-  /**
-   * Create row for token usage update
-   */
-  static toUsageUpdateRow(refreshToken: RefreshToken): { id: string; last_used_at: Date | null } {
-    return {
-      id: refreshToken.id,
-      last_used_at: refreshToken.lastUsedAt || null
-    };
-  }
-
-  /**
-   * Create row for revocation update
-   */
-  static toRevocationUpdateRow(refreshToken: RefreshToken): { id: string; is_revoked: boolean } {
-    return {
-      id: refreshToken.id,
-      is_revoked: refreshToken.isRevoked
-    };
   }
 }
