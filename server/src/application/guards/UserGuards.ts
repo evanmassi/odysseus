@@ -17,6 +17,14 @@ export async function requireUser(userRepository: UserRepository, userId: string
   return user;
 }
 
+export async function requireAdmin(userRepository: UserRepository, userId: string): Promise<User> {
+  const user = await requireUser(userRepository, userId);
+  if (!user.isAdmin()) {
+    throw new PermissionError('Only administrators can perform this operation', { userId });
+  }
+  return user;
+}
+
 export async function requireSystemAdmin(userRepository: UserRepository, userId: string): Promise<User> {
   const user = await requireUser(userRepository, userId);
   if (!user.isSystemAdmin()) {

@@ -376,7 +376,8 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.generatePasswordResetTokenHandler = new GeneratePasswordResetTokenCommandHandler(
         repositories.users,
-        this.getEventBus()
+        this.getEventBus(),
+        process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password'
       );
     }
     return this.generatePasswordResetTokenHandler;

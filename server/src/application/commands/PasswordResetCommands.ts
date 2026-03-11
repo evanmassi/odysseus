@@ -1,31 +1,38 @@
 /**
  * Password Reset Commands
  *
- * Admin-initiated password reset without email dependency.
- * Two flows supported:
- * 1. Direct reset - Admin sets password immediately (force change recommended)
- * 2. Token-based - Admin generates 15-minute one-time link for user
+ * Admin-initiated password reset — supports direct reset and token-based reset flows.
  */
 
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { EventBus } from '@application/contracts/EventBus';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PasswordResetByAdminEvent, PasswordResetTokenGeneratedEvent, PasswordResetCompletedEvent } from '@domain/events/PasswordResetEvents';
+import { requireUser, requireAdmin } from '@application/guards/UserGuards';
 import { logger } from '@infrastructure/logging/logger';
 
-/**
- * Command: Admin directly resets user password
- */
+// COMMAND INTERFACES
+
 export interface AdminResetPasswordCommand {
-  adminUserId: string;           // Who performed reset (audit)
-  targetUserId: string;          // User getting password reset
+  adminUserId: string;
+  targetUserId: string;
   newPassword: string;
-  requirePasswordChange: boolean; // Forces user to set own password on next login
+  requirePasswordChange: boolean;
 }
+
+export interface GeneratePasswordResetTokenCommand {
+  adminUserId: string;
+  targetUserId: string;
+}
+
+export interface ResetPasswordWithTokenCommand {
+  token: string;
+  newPassword: string;
+}
+
+// COMMAND HANDLERS
 
 export class AdminResetPasswordCommandHandler {
   constructor(
@@ -35,22 +42,9 @@ export class AdminResetPasswordCommandHandler {
     private userSessionRepository: UserSessionRepository
   ) {}
 
-  async execute(command: AdminResetPasswordCommand): Promise<void> {
-    // Verify admin permissions
-    const admin = await this.userRepository.findById(command.adminUserId);
-    if (!admin) {
-      throw new NotFoundError('Admin user not found');
-    }
-
-    if (!admin.isAdmin()) {
-      throw new PermissionError('Only administrators can reset user passwords');
-    }
-
-    // Find target user
-    const targetUser = await this.userRepository.findById(command.targetUserId);
-    if (!targetUser) {
-      throw new NotFoundError('Target user not found');
-    }
+  async handle(command: AdminResetPasswordCommand): Promise<void> {
+    const admin = await requireAdmin(this.userRepository, command.adminUserId);
+    const targetUser = await requireUser(this.userRepository, command.targetUserId);
 
     targetUser.adminResetPassword(command.newPassword, command.requirePasswordChange);
     await this.userRepository.save(targetUser);
@@ -58,14 +52,12 @@ export class AdminResetPasswordCommandHandler {
     const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(targetUser.id);
     const revokedSessions = await this.userSessionRepository.revokeAllSessions(targetUser.id);
 
-    // Publish event
     await this.eventBus.publish(new PasswordResetByAdminEvent(
       targetUser.id,
       admin.id,
       command.requirePasswordChange
     ));
 
-    // Audit logging
     logger.info('Password reset by admin', {
       adminUserId: admin.id,
       adminUsername: admin.username,
@@ -79,50 +71,28 @@ export class AdminResetPasswordCommandHandler {
   }
 }
 
-/**
- * Command: Admin generates password reset token
- */
-export interface GeneratePasswordResetTokenCommand {
-  adminUserId: string;
-  targetUserId: string;
-}
-
 export class GeneratePasswordResetTokenCommandHandler {
   constructor(
     private userRepository: UserRepository,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private resetPasswordBaseUrl: string
   ) {}
 
-  async execute(command: GeneratePasswordResetTokenCommand): Promise<{ resetUrl: string; expiresAt: Date }> {
-    // Verify admin permissions
-    const admin = await this.userRepository.findById(command.adminUserId);
-    if (!admin) {
-      throw new NotFoundError('Admin user not found');
-    }
-
-    if (!admin.isAdmin()) {
-      throw new PermissionError('Only administrators can generate password reset tokens');
-    }
-
-    // Find target user
-    const targetUser = await this.userRepository.findById(command.targetUserId);
-    if (!targetUser) {
-      throw new NotFoundError('Target user not found');
-    }
+  async handle(command: GeneratePasswordResetTokenCommand): Promise<{ resetUrl: string; expiresAt: Date }> {
+    const admin = await requireAdmin(this.userRepository, command.adminUserId);
+    const targetUser = await requireUser(this.userRepository, command.targetUserId);
 
     const token = targetUser.generatePasswordResetToken();
     await this.userRepository.save(targetUser);
 
     const expiresAt = targetUser.passwordResetExpiry!;
 
-    // Publish event
     await this.eventBus.publish(new PasswordResetTokenGeneratedEvent(
       targetUser.id,
       admin.id,
       expiresAt
     ));
 
-    // Audit logging
     logger.info('Password reset token generated', {
       adminUserId: admin.id,
       adminUsername: admin.username,
@@ -132,21 +102,11 @@ export class GeneratePasswordResetTokenCommandHandler {
       timestamp: new Date().toISOString()
     });
 
-    // Environment-configurable base URL for deployment flexibility
-    const baseUrl = process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password';
     return {
-      resetUrl: `${baseUrl}?token=${token}`,
+      resetUrl: `${this.resetPasswordBaseUrl}?token=${token}`,
       expiresAt
     };
   }
-}
-
-/**
- * Command: User resets password with token
- */
-export interface ResetPasswordWithTokenCommand {
-  token: string;
-  newPassword: string;
 }
 
 export class ResetPasswordWithTokenCommandHandler {
@@ -157,7 +117,7 @@ export class ResetPasswordWithTokenCommandHandler {
     private userSessionRepository: UserSessionRepository
   ) {}
 
-  async execute(command: ResetPasswordWithTokenCommand): Promise<void> {
+  async handle(command: ResetPasswordWithTokenCommand): Promise<void> {
     const user = await this.userRepository.findByPasswordResetToken(command.token);
     if (!user) {
       throw new ValidationError('Invalid or expired password reset token');
@@ -169,7 +129,6 @@ export class ResetPasswordWithTokenCommandHandler {
     const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(user.id);
     const revokedSessions = await this.userSessionRepository.revokeAllSessions(user.id);
 
-    // Publish event
     await this.eventBus.publish(new PasswordResetCompletedEvent(user.id));
 
     logger.info('Password reset completed with token', {

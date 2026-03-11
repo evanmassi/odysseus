@@ -1336,7 +1336,7 @@ export class AuthController {
         throw new PermissionError('Authentication required');
       }
 
-      await this.adminResetPasswordHandler.execute({
+      await this.adminResetPasswordHandler.handle({
         adminUserId: adminUser.id,
         targetUserId: userId,
         newPassword,
@@ -1378,7 +1378,7 @@ export class AuthController {
         throw new PermissionError('Authentication required');
       }
 
-      const result = await this.generatePasswordResetTokenHandler.execute({
+      const result = await this.generatePasswordResetTokenHandler.handle({
         adminUserId: adminUser.id,
         targetUserId: userId
       });
@@ -1418,7 +1418,7 @@ export class AuthController {
         return;
       }
 
-      await this.resetPasswordWithTokenHandler.execute({
+      await this.resetPasswordWithTokenHandler.handle({
         token,
         newPassword
       });
