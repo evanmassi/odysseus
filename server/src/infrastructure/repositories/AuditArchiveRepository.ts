@@ -15,6 +15,9 @@ const AUDIT_ARCHIVE_COLUMNS = `
   lab_id, details, timestamp, ip_address, user_agent, archived_at
 `.trim();
 
+const COLUMNS_PER_ROW = 12;
+const DEFAULT_PAGE_LIMIT = 50;
+
 interface AuditArchiveRow {
   id: string;
   user_id: string;
@@ -30,6 +33,12 @@ interface AuditArchiveRow {
   archived_at: Date | string;
 }
 
+interface FilterResult {
+  whereClause: string;
+  params: unknown[];
+  nextParamIndex: number;
+}
+
 export class AuditArchiveRepository implements IAuditArchiveRepository {
   constructor(private context: PostgresContext) {}
 
@@ -37,166 +46,61 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     if (entries.length === 0) return;
 
     const archivedAt = new Date();
+    const params: unknown[] = [];
+    const valueSets: string[] = [];
+
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const offset = i * COLUMNS_PER_ROW;
+      valueSets.push(
+        `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, ` +
+        `$${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, $${offset + 12})`
+      );
+      params.push(
+        entry.id,
+        entry.userId,
+        entry.username,
+        entry.action,
+        entry.entityType,
+        entry.entityId || null,
+        entry.labId || null,
+        entry.details,
+        entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
+        entry.ipAddress || null,
+        entry.userAgent || null,
+        archivedAt
+      );
+    }
 
     await this.context.transaction(async (client) => {
-      for (const entry of entries) {
-        await client.query(
-          `INSERT INTO audit_log_archive (
-            id, user_id, username, action, entity_type, entity_id,
-            lab_id, details, timestamp, ip_address, user_agent, archived_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-          [
-            entry.id,
-            entry.userId,
-            entry.username,
-            entry.action,
-            entry.entityType,
-            entry.entityId || null,
-            entry.labId || null,
-            entry.details,
-            entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
-            entry.ipAddress || null,
-            entry.userAgent || null,
-            archivedAt
-          ]
-        );
-      }
+      await client.query(
+        `INSERT INTO audit_log_archive (
+          id, user_id, username, action, entity_type, entity_id,
+          lab_id, details, timestamp, ip_address, user_agent, archived_at
+        ) VALUES ${valueSets.join(', ')}`,
+        params
+      );
     });
 
     logger.info('Archived audit entries', { count: entries.length });
   }
 
   async findArchived(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>> {
-    const whereClauses: string[] = [];
-    const params: unknown[] = [];
-    let paramIndex = 1;
-
-    if (filters.username) {
-      whereClauses.push(`username = $${paramIndex++}`);
-      params.push(filters.username);
-    }
-
-    if (filters.action) {
-      whereClauses.push(`action = $${paramIndex++}`);
-      params.push(filters.action);
-    }
-
-    if (filters.entityType) {
-      whereClauses.push(`entity_type = $${paramIndex++}`);
-      params.push(filters.entityType);
-    }
-
-    if (filters.dateFrom) {
-      whereClauses.push(`timestamp >= $${paramIndex++}`);
-      params.push(filters.dateFrom);
-    }
-
-    if (filters.dateTo) {
-      whereClauses.push(`timestamp <= $${paramIndex++}`);
-      params.push(filters.dateTo);
-    }
-
-    const whereClause = whereClauses.length > 0
-      ? 'WHERE ' + whereClauses.join(' AND ')
-      : '';
-
-    const countQuery = `SELECT COUNT(*) as total FROM audit_log_archive ${whereClause}`;
-    const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
-    const total = parseInt(countRow?.total || '0', 10);
-
-    const limit = filters.limit || 50;
-    const offset = filters.offset || 0;
-
-    const dataQuery = `
-      SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive
-      ${whereClause}
-      ORDER BY timestamp DESC
-      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `;
-
-    const rows = await this.context.queryMany<AuditArchiveRow>(
-      dataQuery,
-      [...params, limit, offset]
-    );
-
-    return {
-      items: rows.map(this.rowToEntry),
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + rows.length < total,
-      },
-    };
+    return this.findPaginated(filters, this.buildFilterClauses(filters));
   }
 
   async findArchivedForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>> {
-    const whereClauses: string[] = ['lab_id = $1'];
-    const params: unknown[] = [labId];
-    let paramIndex = 2;
-
-    if (filters.username) {
-      whereClauses.push(`username = $${paramIndex++}`);
-      params.push(filters.username);
-    }
-
-    if (filters.action) {
-      whereClauses.push(`action = $${paramIndex++}`);
-      params.push(filters.action);
-    }
-
-    if (filters.entityType) {
-      whereClauses.push(`entity_type = $${paramIndex++}`);
-      params.push(filters.entityType);
-    }
-
-    if (filters.dateFrom) {
-      whereClauses.push(`timestamp >= $${paramIndex++}`);
-      params.push(filters.dateFrom);
-    }
-
-    if (filters.dateTo) {
-      whereClauses.push(`timestamp <= $${paramIndex++}`);
-      params.push(filters.dateTo);
-    }
-
-    const whereClause = 'WHERE ' + whereClauses.join(' AND ');
-
-    const countQuery = `SELECT COUNT(*) as total FROM audit_log_archive ${whereClause}`;
-    const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
-    const total = parseInt(countRow?.total || '0', 10);
-
-    const limit = filters.limit || 50;
-    const offset = filters.offset || 0;
-
-    const dataQuery = `
-      SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive
-      ${whereClause}
-      ORDER BY timestamp DESC
-      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `;
-
-    const rows = await this.context.queryMany<AuditArchiveRow>(
-      dataQuery,
-      [...params, limit, offset]
+    return this.findPaginated(
+      filters,
+      this.buildFilterClauses(filters, ['lab_id = $1'], [labId])
     );
-
-    return {
-      items: rows.map(this.rowToEntry),
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + rows.length < total,
-      },
-    };
   }
 
   async countArchived(): Promise<number> {
     const row = await this.context.queryOne<{ total: string }>(
       'SELECT COUNT(*) as total FROM audit_log_archive'
     );
-    return parseInt(row?.total || '0', 10);
+    return parseCount(row);
   }
 
   async getOldestArchivedTimestamp(): Promise<Date | null> {
@@ -216,6 +120,56 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
   }
 
   async exportToJSON(dateFrom?: Date, dateTo?: Date): Promise<string> {
+    const { whereClause, params } = this.buildDateClauses(dateFrom, dateTo);
+
+    const query = `SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive ${whereClause} ORDER BY timestamp DESC`;
+    const rows = await this.context.queryMany<AuditArchiveRow>(query, params);
+
+    return JSON.stringify(rows.map(this.rowToEntry), null, 2);
+  }
+
+  private buildFilterClauses(
+    filters: AuditLogFilters,
+    initialClauses: string[] = [],
+    initialParams: unknown[] = []
+  ): FilterResult {
+    const whereClauses = [...initialClauses];
+    const params = [...initialParams];
+    let paramIndex = initialParams.length + 1;
+
+    if (filters.username) {
+      whereClauses.push(`username = $${paramIndex++}`);
+      params.push(filters.username);
+    }
+
+    if (filters.action) {
+      whereClauses.push(`action = $${paramIndex++}`);
+      params.push(filters.action);
+    }
+
+    if (filters.entityType) {
+      whereClauses.push(`entity_type = $${paramIndex++}`);
+      params.push(filters.entityType);
+    }
+
+    if (filters.dateFrom) {
+      whereClauses.push(`timestamp >= $${paramIndex++}`);
+      params.push(filters.dateFrom);
+    }
+
+    if (filters.dateTo) {
+      whereClauses.push(`timestamp <= $${paramIndex++}`);
+      params.push(filters.dateTo);
+    }
+
+    const whereClause = whereClauses.length > 0
+      ? 'WHERE ' + whereClauses.join(' AND ')
+      : '';
+
+    return { whereClause, params, nextParamIndex: paramIndex };
+  }
+
+  private buildDateClauses(dateFrom?: Date, dateTo?: Date): Omit<FilterResult, 'nextParamIndex'> {
     const whereClauses: string[] = [];
     const params: unknown[] = [];
     let paramIndex = 1;
@@ -234,11 +188,40 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
       ? 'WHERE ' + whereClauses.join(' AND ')
       : '';
 
-    const query = `SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive ${whereClause} ORDER BY timestamp DESC`;
-    const rows = await this.context.queryMany<AuditArchiveRow>(query, params);
+    return { whereClause, params };
+  }
 
-    const entries = rows.map(this.rowToEntry);
-    return JSON.stringify(entries, null, 2);
+  private async findPaginated(filters: AuditLogFilters, filterResult: FilterResult): Promise<PaginatedResult<AuditLogEntry>> {
+    const { whereClause, params, nextParamIndex } = filterResult;
+
+    const countQuery = `SELECT COUNT(*) as total FROM audit_log_archive ${whereClause}`;
+    const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
+    const total = parseCount(countRow);
+
+    const limit = filters.limit || DEFAULT_PAGE_LIMIT;
+    const offset = filters.offset || 0;
+
+    const dataQuery = `
+      SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive
+      ${whereClause}
+      ORDER BY timestamp DESC
+      LIMIT $${nextParamIndex} OFFSET $${nextParamIndex + 1}
+    `;
+
+    const rows = await this.context.queryMany<AuditArchiveRow>(
+      dataQuery,
+      [...params, limit, offset]
+    );
+
+    return {
+      items: rows.map(this.rowToEntry),
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + rows.length < total,
+      },
+    };
   }
 
   private rowToEntry(row: AuditArchiveRow): AuditLogEntry {
@@ -256,4 +239,8 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
       userAgent: row.user_agent || undefined,
     };
   }
+}
+
+function parseCount(row: { total: string } | null): number {
+  return parseInt(row?.total || '0', 10);
 }
