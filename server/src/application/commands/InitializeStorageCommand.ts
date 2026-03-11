@@ -1,7 +1,7 @@
 /**
- * Initialize Configuration CQRS Command
+ * Initialize Storage CQRS Command
  *
- * Creates default configuration for fresh installs.
+ * Creates default storage layout for fresh installs.
  */
 
 import { Storage } from '@domain/entities/Storage';
@@ -58,6 +58,7 @@ export class InitializeStorageCommandHandler {
     if (racksPerTank < 1 || racksPerTank > 20) {
       throw new ValidationError('Racks per tank must be between 1 and 20');
     }
+    // 26 = letters A–Z used for box naming
     if (boxesPerRack < 1 || boxesPerRack > 26) {
       throw new ValidationError('Boxes per rack must be between 1 and 26');
     }

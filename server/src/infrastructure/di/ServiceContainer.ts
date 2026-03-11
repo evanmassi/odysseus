@@ -15,7 +15,8 @@ import { SeedDemoCommandHandler, UnseedDemoCommandHandler, UpdateDemoLimitsComma
 import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
 import { CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
 import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
-import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler, ValidateInviteCodeQueryHandler } from '@application/commands/InviteCodeCommands';
+import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
+import { ValidateInviteCodeQueryHandler } from '@application/queries/InviteCodeQueries';
 
 // CQRS Query Handlers
 import { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';

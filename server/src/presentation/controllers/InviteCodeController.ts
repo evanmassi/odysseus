@@ -7,7 +7,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { BaseController } from './BaseController';
 import { ResponseBuilder } from '@presentation/utils/ResponseBuilder';
-import type { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler, ValidateInviteCodeQueryHandler } from '@application/commands/InviteCodeCommands';
+import type { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
+import type { ValidateInviteCodeQueryHandler } from '@application/queries/InviteCodeQueries';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { logger } from '@infrastructure/logging/logger';
 
