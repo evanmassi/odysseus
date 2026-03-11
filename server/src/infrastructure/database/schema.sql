@@ -1,6 +1,4 @@
 -- Odysseus PostgreSQL Schema
--- Generated for PostgreSQL migration
--- All columns use snake_case naming convention
 
 -- PERSONS TABLE
 CREATE TABLE IF NOT EXISTS persons (
@@ -57,7 +55,6 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key);
-CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_researcher_id ON users(researcher_id);
 CREATE INDEX IF NOT EXISTS idx_users_person_id ON users(person_id);
@@ -80,7 +77,6 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 );
 
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_is_revoked ON refresh_tokens(is_revoked);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_created_at ON refresh_tokens(created_at DESC);
@@ -136,10 +132,13 @@ CREATE TABLE IF NOT EXISTS tubes (
   lock_note TEXT,
   locked_at TIMESTAMPTZ,
   shared_with_user_ids TEXT,
+  species TEXT,
+  source TEXT,
+  catalog_number TEXT,
+  passage_number INTEGER CHECK (passage_number >= 0 AND passage_number <= 999),
   search_vector TSVECTOR
 );
 
--- Tubes indexes
 CREATE INDEX IF NOT EXISTS idx_tubes_location ON tubes(tank_id, rack_id, box_id);
 CREATE INDEX IF NOT EXISTS idx_tubes_position ON tubes(rack_id, box_id, position);
 CREATE INDEX IF NOT EXISTS idx_tubes_researcher_id ON tubes(researcher_id);
@@ -154,9 +153,10 @@ CREATE INDEX IF NOT EXISTS idx_tubes_culture_condition ON tubes(culture_conditio
 CREATE INDEX IF NOT EXISTS idx_tubes_date ON tubes(date);
 CREATE INDEX IF NOT EXISTS idx_tubes_is_locked ON tubes(is_locked);
 CREATE INDEX IF NOT EXISTS idx_tubes_locked_by ON tubes(locked_by);
+CREATE INDEX IF NOT EXISTS idx_tubes_species ON tubes(species);
+CREATE INDEX IF NOT EXISTS idx_tubes_source ON tubes(source);
 CREATE INDEX IF NOT EXISTS idx_tubes_search_vector ON tubes USING GIN(search_vector);
 
--- Trigger to auto-update search_vector on insert/update
 CREATE OR REPLACE FUNCTION tubes_search_vector_update() RETURNS trigger AS $$
 BEGIN
   NEW.search_vector :=
@@ -193,16 +193,6 @@ CREATE TABLE IF NOT EXISTS lookup_values (
 
 CREATE INDEX IF NOT EXISTS idx_lookup_values_category ON lookup_values(category);
 CREATE INDEX IF NOT EXISTS idx_lookup_values_category_active ON lookup_values(category, is_active);
-
--- Add new tube metadata columns
-ALTER TABLE tubes ADD COLUMN IF NOT EXISTS species TEXT;
-ALTER TABLE tubes ADD COLUMN IF NOT EXISTS source TEXT;
-ALTER TABLE tubes ADD COLUMN IF NOT EXISTS catalog_number TEXT;
-ALTER TABLE tubes ADD COLUMN IF NOT EXISTS passage_number INTEGER
-  CHECK (passage_number >= 0 AND passage_number <= 999);
-
-CREATE INDEX IF NOT EXISTS idx_tubes_species ON tubes(species);
-CREATE INDEX IF NOT EXISTS idx_tubes_source ON tubes(source);
 
 -- AUDIT LOG TABLE
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -254,7 +244,6 @@ CREATE TABLE IF NOT EXISTS storage_current (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Configuration version history
 CREATE TABLE IF NOT EXISTS storage_versions (
   version SERIAL PRIMARY KEY,
   config_json TEXT NOT NULL,
@@ -280,7 +269,7 @@ CREATE TABLE IF NOT EXISTS storage_snapshots (
 CREATE INDEX IF NOT EXISTS idx_storage_snapshots_created_at ON storage_snapshots(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_storage_snapshots_version ON storage_snapshots(version);
 
--- Security configuration (separate from main config for security)
+-- Security configuration
 CREATE TABLE IF NOT EXISTS security_config (
   id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
   use_enhanced_auth BOOLEAN NOT NULL DEFAULT FALSE,
@@ -303,11 +292,8 @@ CREATE TABLE IF NOT EXISTS security_config (
 
 -- INITIAL DATA
 
--- Insert default security config if not exists
 INSERT INTO security_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 -- Default configuration is created by PostgresContext.insertDefaultConfiguration()
 -- using Configuration.createDefault() which generates proper default equipment
 
--- Reindex search vectors to pick up new trigger columns (species, source)
-UPDATE tubes SET updated_at = updated_at;
