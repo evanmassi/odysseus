@@ -1,6 +1,13 @@
+/**
+ * Application Logger
+ *
+ * Winston-based logger with console output and optional daily-rotated file logging.
+ */
+
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import path from 'path';
+import fs from 'fs';
 
 const logFormat = winston.format.combine(
   winston.format.timestamp(),
@@ -11,14 +18,12 @@ const logFormat = winston.format.combine(
   })
 );
 
-// Check if we're running in a packaged environment (pkg, electron asar, etc.)
-// Note: .pkg and .defaultApp are runtime-only properties not in Node.js type definitions
+// .pkg and .defaultApp are runtime-only properties not in Node.js type definitions
 const isPkgBundle = (process as any).pkg !== undefined;
 const isElectronApp = process.env.ELECTRON_APP === 'true';
 const isElectronPackaged = (process as any).defaultApp === false || /[\\/]electron\.exe$/i.test(process.execPath);
 
 const transports: winston.transport[] = [
-  // Console logging (always available)
   new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),
@@ -27,10 +32,8 @@ const transports: winston.transport[] = [
   })
 ];
 
-// Only add file logging in development mode (not in packaged apps or Electron)
 if (!isPkgBundle && !isElectronPackaged && !isElectronApp) {
   transports.push(
-    // Error logs with rotation
     new DailyRotateFile({
       filename: path.join(__dirname, '../../../logs/error-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
@@ -39,7 +42,6 @@ if (!isPkgBundle && !isElectronPackaged && !isElectronApp) {
       maxFiles: '7d',
       zippedArchive: true
     }),
-    // Combined logs with rotation
     new DailyRotateFile({
       filename: path.join(__dirname, '../../../logs/combined-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
@@ -56,8 +58,6 @@ export const logger = winston.createLogger({
   transports
 });
 
-// Create logs directory if it doesn't exist (only in development, not in Electron)
-import fs from 'fs';
 const logsDir = path.join(__dirname, '../../../logs');
 
 if (!isPkgBundle && !isElectronPackaged && !isElectronApp && !fs.existsSync(logsDir)) {
