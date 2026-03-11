@@ -1,25 +1,19 @@
-import { Storage } from '@domain/entities/Storage';
-import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
-import { NAMING_PATTERNS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
-import type {
-  StorageResponse,
-  SystemConfiguration,
-} from '@odysseus/shared-schemas';
-
 /**
- * StorageDto - Application Layer DTO
+ * Storage Data Transfer Object
  *
- * Handles bidirectional transformation between Domain Entity and API format.
- * Key responsibility: Box name transformation
- *   - LOAD: server {name: "A"} → client {id: "A", name: "Box A"}
- *   - SAVE: client {id: "A", name: "Box A"} → server {name: "A"}
+ * Bidirectional transformation between Domain Entity and API format.
+ * Key responsibility — box name transformation:
+ *   LOAD: server {name: "A"} → client {id: "A", name: "Box A"}
+ *   SAVE: client {id: "A", name: "Box A"} → server {name: "A"}
  */
+
+import { Storage } from '@domain/entities/Storage';
+import type { Tank, Rack, Box } from '@domain/value-objects/Equipment';
+import { NAMING_PATTERNS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+import type { StorageResponse } from '@odysseus/shared-schemas';
+
 export class StorageDto {
 
-  /**
-   * Convert domain Configuration entity to API response format
-   * Matches StorageResponseSchema from shared-schemas
-   */
   static toResponse(config: Storage): StorageResponse {
     const configData = config.toData();
     const defaultGridConfig = {
@@ -77,9 +71,6 @@ export class StorageDto {
     };
   }
 
-  /**
-   * Transform Tank domain data to API format
-   */
   private static transformTank(tankData: ReturnType<Tank['toData']>, updatedAt: string) {
     const defaultGridConfig = {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
@@ -100,9 +91,6 @@ export class StorageDto {
     };
   }
 
-  /**
-   * Transform Rack domain data to API format
-   */
   private static transformRack(rackData: ReturnType<Rack['toData']>) {
     return {
       id: rackData.id,
@@ -117,22 +105,16 @@ export class StorageDto {
   }
 
   /**
-   * Transform Box domain data to API format
-   *
-   * KEY TRANSFORMATION:
-   * Server Box has only `name` property (e.g., "A")
-   * Client expects both `id` and `name`:
-   *   - id: "A" (for internal referencing)
-   *   - name: "Box A" (for display)
+   * Server Box has only `name` (e.g., "A"). Client expects both `id` ("A") for
+   * internal referencing and `name` ("Box A") for display.
    */
   private static transformBox(boxData: ReturnType<Box['toData']>, index: number) {
-    // Calculate letter index from the box name itself (not array position)
-    // This ensures "B" becomes "Box B" even if it's at index 0
+    // Letter index derived from name, not array position — "B" becomes "Box B" even at index 0
     const letterIndex = boxData.name.toUpperCase().charCodeAt(0) - 65;
 
     return {
-      id: boxData.name,  // Server "A" becomes client id "A"
-      name: NAMING_PATTERNS.BOX.DEFAULT_NAME(letterIndex),  // Generate "Box A"
+      id: boxData.name,
+      name: NAMING_PATTERNS.BOX.DEFAULT_NAME(letterIndex),
       gridConfig: {
         ...boxData.gridConfig,
         template: 'standard' as const

@@ -5,7 +5,7 @@ import type {
   UnlockTubesRequest,
   ShareTubeAccessRequest,
   RevokeTubeAccessRequest
-} from '@application/dto/TubeLockDto';
+} from '@odysseus/shared-schemas';
 import { ErrorDto } from '@application/dto/ErrorDto';
 import { handleControllerError } from '@presentation/utils/ErrorHandler';
 import { logger } from '@infrastructure/logging/logger';

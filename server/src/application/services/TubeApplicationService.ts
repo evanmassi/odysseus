@@ -38,7 +38,7 @@ import type {
   ShareAccessResult,
   RevokeAccessResult,
   SkippedTube
-} from '@application/dto/TubeLockDto';
+} from '@odysseus/shared-schemas';
 
 /**
  * TubeApplicationService

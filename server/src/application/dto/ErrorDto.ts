@@ -1,12 +1,13 @@
+/**
+ * Standardized API Error Responses
+ *
+ * Maps domain errors to HTTP status codes and response format.
+ */
+
 import { DomainError } from '@domain/errors/DomainError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
-
-/**
- * Error DTOs - Standardized API error responses
- * Maps domain errors to HTTP status codes and formats
- */
 
 export interface ErrorResponse {
   success: false;
@@ -16,39 +17,7 @@ export interface ErrorResponse {
   timestamp: string;
 }
 
-export interface ValidationErrorResponse extends ErrorResponse {
-  code: 'VALIDATION_ERROR';
-  details: {
-    field?: string;
-    value?: unknown;
-    constraint?: string;
-  };
-}
-
-export interface NotFoundErrorResponse extends ErrorResponse {
-  code: 'NOT_FOUND';
-  details: {
-    resource: string;
-    id?: string;
-  };
-}
-
-export interface PermissionErrorResponse extends ErrorResponse {
-  code: 'PERMISSION_DENIED';
-  details: {
-    action?: string;
-    resource?: string;
-    userId?: string;
-  };
-}
-
-/**
- * Error DTO Conversion Utilities
- */
 export class ErrorDto {
-  /**
-   * Convert domain error to HTTP error response
-   */
   static fromDomainError(error: Error): { status: number; response: ErrorResponse } {
     const baseResponse = {
       success: false as const,
@@ -103,7 +72,6 @@ export class ErrorDto {
       };
     }
 
-    // Generic server error
     return {
       status: 500,
       response: {
@@ -114,9 +82,6 @@ export class ErrorDto {
     };
   }
 
-  /**
-   * Create success response
-   */
   static success<T>(data: T): { success: true; data: T } {
     return {
       success: true,
@@ -124,9 +89,6 @@ export class ErrorDto {
     };
   }
 
-  /**
-   * Create custom error response
-   */
   static customError(message: string, status: number = 400, code?: string, details?: unknown): { status: number; response: ErrorResponse } {
     return {
       status,

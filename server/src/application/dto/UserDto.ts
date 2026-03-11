@@ -1,14 +1,10 @@
-import { User } from '@domain/entities/User';
-
 /**
- * User DTOs - API data transfer objects
- * Clean separation between domain entities and HTTP API
+ * User Data Transfer Objects
+ *
+ * Separates domain User entity from HTTP API shape, stripping sensitive fields.
  */
 
-export interface LoginRequest {
-  username: string;
-  apiKey: string;
-}
+import { User } from '@domain/entities/User';
 
 export interface CreateUserRequest {
   username: string;
@@ -45,18 +41,8 @@ export interface AuthResponse {
   permissions: string[];
 }
 
-export interface UserListResponse {
-  users: UserResponse[];
-  total: number;
-}
-
-/**
- * DTO Conversion Utilities
- */
 export class UserDto {
-  /**
-   * Convert domain entity to API response (without sensitive data)
-   */
+  /** Strips sensitive fields (password hash, API key, tokens). */
   static toResponse(user: User): UserResponse {
     return {
       id: user.id,
@@ -67,39 +53,11 @@ export class UserDto {
     };
   }
 
-  /**
-   * Convert domain entity to auth response
-   */
   static toAuthResponse(user: User): AuthResponse {
     return {
       success: true,
       user: this.toResponse(user),
       permissions: user.getPermissions()
-    };
-  }
-
-  /**
-   * Convert multiple users to list response
-   */
-  static toListResponse(users: User[]): UserListResponse {
-    return {
-      users: users.map(user => this.toResponse(user)),
-      total: users.length
-    };
-  }
-
-  /**
-   * Convert create request to domain data
-   */
-  static fromCreateRequest(request: CreateUserRequest): {
-    username: string;
-    apiKey: string;
-    role: 'system_admin' | 'lab_admin' | 'user';
-  } {
-    return {
-      username: request.username,
-      apiKey: request.apiKey,
-      role: request.role || 'user'
     };
   }
 }

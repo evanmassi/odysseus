@@ -1,23 +1,18 @@
-import { Tube } from '@domain/entities/Tube';
-
 /**
- * Thin DTOs
+ * Tube Data Transfer Objects
  *
- * - No validation (Zod middleware already validated)
- * - No parsing (Zod preprocessor already parsed)
- * - No business logic (domain entities handle that)
- * - Pure structure mapping only
+ * Pure structure mapping — validation is handled by Zod middleware, business logic by domain entities.
  */
+
+import { Tube } from '@domain/entities/Tube';
 import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type TubeData
 } from '@odysseus/shared-schemas';
 
-// Re-export for backward compatibility
 export type { CreateTubeRequest, UpdateTubeRequest };
 
-// TubeResponse is the same as TubeData from shared schemas
 export type TubeResponse = TubeData;
 
 export interface BulkUpdateRequest {
@@ -47,55 +42,23 @@ export interface TubeSearchRequest {
 }
 
 /**
- * Enhanced search response with matched terms for highlighting
- *
- * matchedTerms contains all query variants used in the search:
- * - Original query
- * - Normalized form (hyphens split)
- * - Synonym expansions
- * - Individual words
- *
- * Client uses these for accurate result highlighting.
+ * matchedTerms contains all query variants used in the search (original, normalized,
+ * synonym expansions, individual words). Client uses these for result highlighting.
  */
 export interface TubeSearchResponse {
   tubes: TubeResponse[];
   matchedTerms: string[];
 }
 
-/**
- * DTO Conversion Utilities
- *
- * Thin mappers only
- * - No validation (trust Zod)
- * - No parsing (already done)
- * - No defaults (domain handles)
- * - Just structure mapping
- */
 export class TubeDto {
-  /**
-   * Convert domain entity to API response
-   *Direct passthrough via toData()
-   */
   static toResponse(tube: Tube): TubeResponse {
-    const data = tube.toData();
-
-    // Direct passthrough - researcherId is optional in schema
-    return data;
+    return tube.toData();
   }
 
-  /**
-   * Convert multiple domain entities to API responses
-   */
   static toResponseList(tubes: Tube[]): TubeResponse[] {
     return tubes.map(tube => this.toResponse(tube));
   }
 
-  /**
-   * Convert create request to data structure for Tube.create()
-   * Direct mapping - no transformation
-   * - Concentration already number (Zod preprocessed)
-   * - Researcher will get default in domain
-   */
   static fromCreateRequest(request: CreateTubeRequest): {
     location: { tankId: string; rackId: string; boxId: string; position: number };
     sample: {
@@ -143,11 +106,7 @@ export class TubeDto {
   }
 
   /**
-   * Convert update request to update data structure
-   *Direct mapping - preserves tri-state PATCH semantics
-   * - null = clear field
-   * - undefined = no change
-   * - value = set field
+   * Tri-state PATCH semantics: null = clear field, undefined = no change, value = set field.
    */
   static fromUpdateRequest(request: UpdateTubeRequest): {
     location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
