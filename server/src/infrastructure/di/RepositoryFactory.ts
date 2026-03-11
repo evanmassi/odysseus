@@ -1,3 +1,9 @@
+/**
+ * Repository Factory
+ *
+ * Lazy-singleton wiring for all repository implementations against PostgreSQL.
+ */
+
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
@@ -11,7 +17,6 @@ import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastruct
 import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
 import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
 
-// Repository interfaces
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
@@ -24,12 +29,6 @@ import { LookupValueRepository } from '@domain/repositories/LookupValueRepositor
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 
-/**
- * Repository Factory - Dependency injection
- *
- * Creates and manages all repository instances.
- * All repositories use PostgreSQL.
- */
 export class RepositoryFactory {
   private postgresContext: PostgresContext;
   private tubeRepository?: TubeRepository;
@@ -48,16 +47,10 @@ export class RepositoryFactory {
     this.postgresContext = new PostgresContext();
   }
 
-  /**
-   * Initialize database connection
-   */
   async initialize(): Promise<void> {
     await this.postgresContext.initialize();
   }
 
-  /**
-   * Get tube repository instance
-   */
   getTubeRepository(): TubeRepository {
     if (!this.tubeRepository) {
       const configRepo = this.getStorageRepository();
@@ -66,9 +59,6 @@ export class RepositoryFactory {
     return this.tubeRepository;
   }
 
-  /**
-   * Get user repository instance
-   */
   getUserRepository(): UserRepository {
     if (!this.userRepository) {
       this.userRepository = new UserRepositoryImpl(this.postgresContext);
@@ -76,9 +66,6 @@ export class RepositoryFactory {
     return this.userRepository;
   }
 
-  /**
-   * Get researcher repository instance
-   */
   getResearcherRepository(): ResearcherRepository {
     if (!this.researcherRepository) {
       const personRepo = this.getPersonRepository();
@@ -87,9 +74,6 @@ export class RepositoryFactory {
     return this.researcherRepository;
   }
 
-  /**
-   * Get person repository instance
-   */
   getPersonRepository(): PersonRepository {
     if (!this.personRepository) {
       this.personRepository = new PersonRepositoryImpl(this.postgresContext);
@@ -97,9 +81,6 @@ export class RepositoryFactory {
     return this.personRepository;
   }
 
-  /**
-   * Get configuration repository instance
-   */
   getStorageRepository(): StorageRepository {
     if (!this.storageRepository) {
       this.storageRepository = new StorageRepositoryImpl(this.postgresContext);
@@ -107,9 +88,6 @@ export class RepositoryFactory {
     return this.storageRepository;
   }
 
-  /**
-   * Get refresh token repository instance
-   */
   getRefreshTokenRepository(): RefreshTokenRepository {
     if (!this.refreshTokenRepository) {
       this.refreshTokenRepository = new RefreshTokenRepositoryImpl(this.postgresContext);
@@ -117,9 +95,6 @@ export class RepositoryFactory {
     return this.refreshTokenRepository;
   }
 
-  /**
-   * Get user session repository instance
-   */
   getUserSessionRepository(): UserSessionRepository {
     if (!this.userSessionRepository) {
       this.userSessionRepository = new UserSessionRepositoryImpl(this.postgresContext);
@@ -127,9 +102,6 @@ export class RepositoryFactory {
     return this.userSessionRepository;
   }
 
-  /**
-   * Get audit repository instance
-   */
   getAuditRepository(): AuditRepository {
     if (!this.auditRepository) {
       this.auditRepository = new AuditRepositoryImpl(this.postgresContext);
@@ -174,9 +146,6 @@ export class RepositoryFactory {
     };
   }
 
-  /**
-   * Check if all repositories are healthy
-   */
   async isHealthy(): Promise<boolean> {
     try {
       const repositories = this.getRepositories();
@@ -192,41 +161,11 @@ export class RepositoryFactory {
     }
   }
 
-  /**
-   * Close database connection
-   */
   async close(): Promise<void> {
     await this.postgresContext.close();
   }
 
-  /**
-   * Get PostgreSQL context
-   */
   getPostgresContext(): PostgresContext {
     return this.postgresContext;
   }
-}
-
-/**
- * Global repository factory instance
- * Will be initialized in server startup
- */
-export let repositoryFactory: RepositoryFactory;
-
-/**
- * Initialize global repository factory
- */
-export function initializeRepositories(): RepositoryFactory {
-  repositoryFactory = new RepositoryFactory();
-  return repositoryFactory;
-}
-
-/**
- * Get initialized repository factory
- */
-export function getRepositoryFactory(): RepositoryFactory {
-  if (!repositoryFactory) {
-    throw new Error('Repository factory not initialized. Call initializeRepositories() first.');
-  }
-  return repositoryFactory;
 }

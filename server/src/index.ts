@@ -5,7 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
-import { initializeRepositories, RepositoryFactory } from '@infrastructure/repositories';
+import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
 import { logger } from '@infrastructure/logging/logger';
 import { sanitizeStrings } from '@presentation/middleware/requestValidation';
@@ -76,7 +76,7 @@ class OdysseusServer {
   }
 
   private setupDatabase(): void {
-    this.repositoryFactory = initializeRepositories();
+    this.repositoryFactory = new RepositoryFactory();
   }
 
   private setupServices(): void {

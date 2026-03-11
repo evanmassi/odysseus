@@ -1,4 +1,4 @@
-import { RepositoryFactory } from '@infrastructure/repositories';
+import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import { logger } from '@infrastructure/logging/logger';
 
 // CQRS Command Handlers
