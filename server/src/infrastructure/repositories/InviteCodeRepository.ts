@@ -1,3 +1,9 @@
+/**
+ * Invite Code Repository
+ *
+ * Data access for registration invite codes with upsert support.
+ */
+
 import { InviteCode } from '@domain/entities/InviteCode';
 import { InviteCodeRepository as IInviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -52,8 +58,8 @@ export class InviteCodeRepository implements IInviteCodeRepository {
       `INSERT INTO invite_codes (id, lab_id, code, role, created_by, max_uses, use_count, expires_at, is_active, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        ON CONFLICT (id) DO UPDATE SET
-         use_count = $7,
-         is_active = $9`,
+         use_count = EXCLUDED.use_count,
+         is_active = EXCLUDED.is_active`,
       [row.id, row.lab_id, row.code, row.role, row.created_by, row.max_uses, row.use_count, row.expires_at, row.is_active, row.created_at]
     );
   }
