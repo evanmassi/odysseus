@@ -266,7 +266,7 @@ export class ResetStorageToDefaultCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('reset configuration', command.userId);
     }
     rejectDemoConfigOperation(user, 'Reset to default');

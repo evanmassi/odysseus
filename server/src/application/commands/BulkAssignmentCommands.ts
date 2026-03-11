@@ -48,7 +48,7 @@ export class BulkUnassignResourcesCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('bulk unassign resources', command.userId);
     }
 
@@ -127,7 +127,7 @@ export class BulkReassignResourcesCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('bulk reassign resources', command.userId);
     }
 

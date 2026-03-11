@@ -587,7 +587,6 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.deleteRackHandler = new DeleteRackCommandHandler(
         repositories.storage,
-        repositories.tubes,
         repositories.users,
         this.getEventBus()
       );

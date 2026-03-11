@@ -69,7 +69,7 @@ export class AddTankCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('add tank', command.userId);
     }
 
@@ -116,7 +116,7 @@ export class UpdateTankCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('update tank', command.userId);
     }
 
@@ -192,7 +192,7 @@ export class DeleteTankCommandHandler {
 
   async handle(command: DeleteTankCommand): Promise<void> {
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('delete tank', command.userId);
     }
 
@@ -226,7 +226,7 @@ export class ResetDemoDataCommandHandler {
 
   async handle(command: ResetDemoDataCommand): Promise<{ deletedTubes: number }> {
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('reset demo data', command.userId);
     }
 

@@ -44,7 +44,7 @@ export class InitializeStorageCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('initialize configuration', command.userId);
     }
 

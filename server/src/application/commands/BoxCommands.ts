@@ -89,7 +89,7 @@ export class AddBoxesCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('add box', command.userId);
     }
 
@@ -180,7 +180,7 @@ export class UpdateBoxCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('update box', command.userId);
     }
 
@@ -285,7 +285,7 @@ export class DeleteBoxCommandHandler {
 
   async handle(command: DeleteBoxCommand): Promise<void> {
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('delete box', command.userId);
     }
 
@@ -330,7 +330,7 @@ export class AssignBoxCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('assign box', command.userId);
     }
 

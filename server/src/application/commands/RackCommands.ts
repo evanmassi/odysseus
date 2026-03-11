@@ -1,13 +1,11 @@
 /**
  * Rack CQRS Commands
  *
- * Atomic operations for rack management with domain event emission.
- * Parent context (tankId) required since rackId is not globally unique.
+ * Manages rack lifecycle within tanks — add, update, delete, and assignment.
  */
 
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
-import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { User } from '@domain/entities/User';
 import { Box } from '@domain/value-objects/Equipment';
@@ -85,7 +83,7 @@ export class AddRacksCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('add rack', command.userId);
     }
 
@@ -145,7 +143,6 @@ export class AddRacksCommandHandler {
   }
 }
 
-/** Updates an existing rack's properties. */
 export class UpdateRackCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -160,7 +157,7 @@ export class UpdateRackCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('update rack', command.userId);
     }
 
@@ -236,14 +233,13 @@ export class UpdateRackCommandHandler {
 export class DeleteRackCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
-    private tubeRepository: TubeRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
 
   async handle(command: DeleteRackCommand): Promise<void> {
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('delete rack', command.userId);
     }
 
@@ -270,7 +266,6 @@ export class DeleteRackCommandHandler {
   }
 }
 
-/** Assigns or unassigns a rack to/from a user. */
 export class AssignRackCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -285,7 +280,7 @@ export class AssignRackCommandHandler {
     }
 
     const user = await requireUser(this.userRepository, command.userId);
-    if (!user.role.isAdmin()) {
+    if (!user.isAdmin()) {
       throw PermissionError.configurationManagement('assign rack', command.userId);
     }
 
@@ -305,7 +300,7 @@ export class AssignRackCommandHandler {
     if (command.assignedUserId) {
       assignedUser = await this.userRepository.findById(command.assignedUserId);
       if (!assignedUser) {
-        throw new ValidationError(`User '${command.assignedUserId}' not found`);
+        throw NotFoundError.forEntity('User', command.assignedUserId);
       }
       if (!assignedUser.hasResearcherProfile()) {
         throw new ValidationError('Cannot assign rack to a user without a linked researcher profile');
@@ -390,5 +385,4 @@ export class AssignRackCommandHandler {
       await this.eventBus.publish(event);
     }
   }
-
 }
