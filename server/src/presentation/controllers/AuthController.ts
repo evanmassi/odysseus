@@ -169,7 +169,7 @@ export class AuthController {
       const startTime = Date.now();
       const { username, password, email, firstName, lastName, setupKey, department, position } = req.body;
 
-      const command = new CreateSystemAdminCommand(username, password, email, firstName, lastName, setupKey, department, position);
+      const command: CreateSystemAdminCommand = { username, password, email, firstName, lastName, setupKey, department, position };
       const user = await this.createSystemAdminHandler.handle(command);
 
       logger.info('System admin created', { userId: user.id, username: user.username });
@@ -224,12 +224,12 @@ export class AuthController {
       const startTime = Date.now();
       const { username, password, role = 'admin' } = req.body;
       
-      const command = new CreateUserCommand(
+      const command: CreateUserCommand = {
         username,
         password,
-        UserRole.create(role),
-        'system' // First user is created by system
-      );
+        role: UserRole.create(role),
+        initiatedBy: 'system',
+      };
       
       const user = await this.createUserHandler.handle(command);
       
@@ -271,7 +271,7 @@ export class AuthController {
       const startTime = Date.now();
       const { username, password } = req.body;
 
-      const command = new LoginCommand(username, password);
+      const command: LoginCommand = { username, password };
       const result = await this.loginHandler.handle(command);
 
       if (result.user.isPending()) {
@@ -448,13 +448,13 @@ export class AuthController {
 
       const { currentPassword, newPassword } = req.body;
 
-      const command = new ChangeUserPasswordCommand(
-        user.id,
+      const command: ChangeUserPasswordCommand = {
+        userId: user.id,
         currentPassword,
         newPassword,
-        req.sessionId,
-        user.id
-      );
+        currentSessionId: req.sessionId,
+        initiatedBy: user.id,
+      };
       
       await this.changePasswordHandler.handle(command);
       
@@ -674,11 +674,11 @@ export class AuthController {
         return next(new Error('Admin user not found in request context'));
       }
       
-      const command = new ChangeUserRoleCommand(
-        id,
-        UserRole.create(role),
-        adminUser.id
-      );
+      const command: ChangeUserRoleCommand = {
+        userId: id,
+        newRole: UserRole.create(role),
+        initiatedBy: adminUser.id,
+      };
       
       await this.changeRoleHandler.handle(command);
       
@@ -708,7 +708,7 @@ export class AuthController {
         return next(new Error('Admin user not found in request context'));
       }
       
-      const command = new DeleteUserCommand(id, adminUser.id);
+      const command: DeleteUserCommand = { userId: id, initiatedBy: adminUser.id };
       await this.deleteUserHandler.handle(command);
       
       logger.info('User deleted', {
@@ -869,7 +869,7 @@ export class AuthController {
         const person = await this.personRepository.findById(user.personId);
         if (person && person.email) {
           try {
-            const sendCommand = new SendVerificationEmailCommand(user.id, user.id);
+            const sendCommand = { userId: user.id };
             await this.sendVerificationEmailHandler.handle(sendCommand);
             logger.info('Verification email sent', { userId: user.id, email: person.email });
           } catch (emailError) {
@@ -1173,7 +1173,7 @@ export class AuthController {
         return;
       }
 
-      const command = new VerifyEmailCommand(token);
+      const command: VerifyEmailCommand = { token };
       const user = await this.verifyEmailHandler.handle(command);
 
       // Get email from Person entity for logging
@@ -1226,7 +1226,7 @@ export class AuthController {
         return;
       }
 
-      const command = new ResendVerificationEmailCommand(user.id, user.id);
+      const command = { userId: user.id };
       await this.resendVerificationHandler.handle(command);
 
       logger.info('Verification email resent (public)', {
@@ -1258,7 +1258,7 @@ export class AuthController {
         throw new PermissionError('Authentication required');
       }
 
-      const command = new ResendVerificationEmailCommand(req.user.id, req.user.id);
+      const command = { userId: req.user.id };
       await this.resendVerificationHandler.handle(command);
 
       // Get email from Person entity for logging

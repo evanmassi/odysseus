@@ -1,10 +1,9 @@
 /**
  * User Commands
- * 
- * Commands for user-related operations in the CQRS pattern.
+ *
+ * Commands for user-related operations.
  */
 
-import { BaseCommand, CommandHandler } from '@application/commands/Command';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';
@@ -34,21 +33,55 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { type UserSettings, PasswordValidator } from '@odysseus/shared-schemas';
 import type { EnhancedLoginResponse, RefreshTokenResponse } from '@application/types/tokenTypes';
 
-// Create User Command
+// COMMAND INTERFACES
 
-export class CreateUserCommand extends BaseCommand {
-  constructor(
-    public readonly username: string,
-    public readonly password: string,
-    public readonly role: UserRole,
-    initiatedBy: string,
-    public readonly inviteCode?: string
-  ) {
-    super(initiatedBy);
-  }
+export interface CreateUserCommand {
+  username: string;
+  password: string;
+  role: UserRole;
+  initiatedBy: string;
+  inviteCode?: string;
 }
 
-export class CreateUserCommandHandler implements CommandHandler<CreateUserCommand, User> {
+export interface CreateSystemAdminCommand {
+  username: string;
+  password: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  setupKey?: string;
+  department?: string;
+  position?: string;
+  initiatedBy?: string;
+}
+
+export interface ChangeUserPasswordCommand {
+  userId: string;
+  currentPassword: string;
+  newPassword: string;
+  currentSessionId: string | undefined;
+  initiatedBy: string;
+}
+
+export interface ChangeUserRoleCommand {
+  userId: string;
+  newRole: UserRole;
+  initiatedBy: string;
+}
+
+export interface DeleteUserCommand {
+  userId: string;
+  initiatedBy: string;
+}
+
+export interface LoginCommand {
+  username: string;
+  password: string;
+}
+
+// COMMAND HANDLERS
+
+export class CreateUserCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private passwordService: PasswordService,
@@ -122,25 +155,7 @@ export class CreateUserCommandHandler implements CommandHandler<CreateUserComman
   }
 }
 
-// Create System Admin Command
-
-export class CreateSystemAdminCommand extends BaseCommand {
-  constructor(
-    public readonly username: string,
-    public readonly password: string,
-    public readonly email: string,
-    public readonly firstName: string,
-    public readonly lastName: string,
-    public readonly setupKey?: string,
-    public readonly department?: string,
-    public readonly position?: string,
-    initiatedBy: string = 'system'
-  ) {
-    super(initiatedBy);
-  }
-}
-
-export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSystemAdminCommand, User> {
+export class CreateSystemAdminCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private storageRepository: StorageRepository,
@@ -203,21 +218,7 @@ export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSys
   }
 }
 
-// Change User Password Command
-
-export class ChangeUserPasswordCommand extends BaseCommand {
-  constructor(
-    public readonly userId: string,
-    public readonly currentPassword: string,
-    public readonly newPassword: string,
-    public readonly currentSessionId: string | undefined,
-    initiatedBy: string
-  ) {
-    super(initiatedBy);
-  }
-}
-
-export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUserPasswordCommand, void> {
+export class ChangeUserPasswordCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private passwordService: PasswordService,
@@ -227,29 +228,22 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
   ) {}
 
   async handle(command: ChangeUserPasswordCommand): Promise<void> {
-    // Get user
     const user = await this.userRepository.findById(command.userId);
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }
 
-    // Verify current password using User's validatePassword method
     const isCurrentPasswordValid = user.validatePassword(command.currentPassword);
     if (!isCurrentPasswordValid) {
       throw new InvalidCredentialsError('Current password is incorrect');
     }
 
-    // Validate new password against security policy
     await this.validatePasswordPolicy(command.newPassword);
 
-    // Update user password
     user.setPassword(command.newPassword);
-
-    // Persist
     await this.userRepository.save(user);
 
-    // Revoke all other sessions for security (except current session)
-    // Changing password logs out all other devices
+    // Changing password revokes all other sessions for security
     if (command.currentSessionId) {
       const activeSessions = await this.userSessionRepository.findActiveSessionsByUserId(user.id);
       const otherSessionIds = activeSessions
@@ -262,14 +256,10 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
       }
     }
 
-    // Publish domain event
     const event = new UserPasswordChangedEvent(user.id, user.username, command.initiatedBy, user.labId);
     await this.eventBus.publish(event);
   }
 
-  /**
-   * Validate password against configured security policy
-   */
   private async validatePasswordPolicy(password: string): Promise<void> {
     const securityConfig = await this.storageRepository.getSecurityConfig();
     try {
@@ -280,47 +270,27 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
   }
 }
 
-// Change User Role Command
-
-export class ChangeUserRoleCommand extends BaseCommand {
-  constructor(
-    public readonly userId: string,
-    public readonly newRole: UserRole,
-    initiatedBy: string
-  ) {
-    super(initiatedBy);
-  }
-}
-
-export class ChangeUserRoleCommandHandler implements CommandHandler<ChangeUserRoleCommand, void> {
+export class ChangeUserRoleCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
 
   async handle(command: ChangeUserRoleCommand): Promise<void> {
-    // Get user to be updated
     const user = await this.userRepository.findById(command.userId);
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }
 
-    // Get the user performing the action
     const performingUser = await this.userRepository.findById(command.initiatedBy);
     if (!performingUser) {
       throw new UserNotFoundError(command.initiatedBy);
     }
 
-    // Store old role for event
     const oldRole = user.role;
-
-    // Update role using domain logic (this will enforce business rules)
     user.changeRole(command.newRole.value, performingUser);
-
-    // Persist
     await this.userRepository.save(user);
 
-    // Publish domain event
     const event = new UserRoleChangedEvent(
       user.id,
       user.username,
@@ -333,18 +303,7 @@ export class ChangeUserRoleCommandHandler implements CommandHandler<ChangeUserRo
   }
 }
 
-// Delete User Command
-
-export class DeleteUserCommand extends BaseCommand {
-  constructor(
-    public readonly userId: string,
-    initiatedBy: string
-  ) {
-    super(initiatedBy);
-  }
-}
-
-export class DeleteUserCommandHandler implements CommandHandler<DeleteUserCommand, void> {
+export class DeleteUserCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private eventBus: EventBus,
@@ -352,16 +311,13 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
   ) {}
 
   async handle(command: DeleteUserCommand): Promise<void> {
-    // Get user
     const user = await this.userRepository.findById(command.userId);
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }
 
-    // Store user data for event before deletion
     const username = user.username;
 
-    // Clear all resource assignments with retry logic for optimistic lock conflicts
     // Retry ensures cascade completes even during concurrent configuration changes
     const MAX_CASCADE_RETRIES = 3;
     let cascadeSucceeded = false;
@@ -370,21 +326,20 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
 
     for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
       if (!user.labId) {
-        break; // No lab context — no configuration to update
+        break;
       }
       const configuration = await this.storageRepository.getForLab(user.labId);
       if (!configuration) {
-        break; // No configuration to update
+        break;
       }
 
-      // Count affected resources before clearing
       const counts = configuration.countAssignmentsForUser(command.userId);
       const expectedVersion = configuration.version;
       const hadAssignments = configuration.clearAllAssignmentsForUser(command.userId);
 
       if (!hadAssignments) {
         cascadeSucceeded = true;
-        break; // No assignments to clear
+        break;
       }
 
       try {
@@ -427,15 +382,12 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
       );
     }
 
-    // Delete user only after cascade succeeds (atomic guarantee)
     await this.userRepository.delete(command.userId);
 
-    // Publish domain events
     const deleteEvent = new UserDeletedEvent(command.userId, username, command.initiatedBy, user.labId);
     await this.eventBus.publish(deleteEvent);
 
-    // Emit configuration change event if assignments were cleared
-    // This triggers socket notification for real-time client cache invalidation
+    // Trigger socket notification for real-time client cache invalidation
     if (racksAffected > 0 || boxesAffected > 0) {
       const cascadeEvent = new BulkResourcesUnassignedEvent(
         command.initiatedBy,
@@ -449,25 +401,13 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
   }
 }
 
-// Login Command
-
-export class LoginCommand extends BaseCommand {
-  constructor(
-    public readonly username: string,
-    public readonly password: string,
-    initiatedBy: string = 'system'
-  ) {
-    super(initiatedBy);
-  }
-}
-
 export interface LoginResult {
   user: User;
   sessionToken: string;
   requirePasswordChange: boolean;
 }
 
-export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginResult> {
+export class LoginCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private sessionService: SessionService,
@@ -476,10 +416,8 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
   ) {}
 
   async handle(command: LoginCommand): Promise<LoginResult> {
-    // Find user by username or email
     let user = await this.userRepository.findByUsername(command.username);
 
-    // If not found by username, try email
     if (!user) {
       user = await this.userRepository.findByEmail(command.username);
     }
@@ -488,7 +426,6 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
       throw new InvalidCredentialsError('Invalid username or password');
     }
 
-    // Verify password using User's domain logic
     const isPasswordValid = user.validatePassword(command.password);
     if (!isPasswordValid) {
       throw new InvalidCredentialsError('Invalid username or password');
@@ -511,7 +448,6 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
       throw new InvalidCredentialsError('Account has been suspended. Contact your system administrator.');
     }
 
-    // Check lab status — block login if lab is deactivated
     if (this.labRepository && user.labId) {
       const lab = await this.labRepository.findById(user.labId);
       if (lab && !lab.isActive) {
@@ -519,18 +455,13 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
       }
     }
 
-    // Check email verification if not admin-approved
-    // Admin approval bypasses email verification requirement (admin manually vets users)
-    // This allows system to work without email service - admin approval is primary security gate
+    // Admin approval bypasses email verification (admin manually vets users)
     if (!user.isEmailVerified() && user.status !== 'approved') {
       throw new InvalidCredentialsError('Email not verified. Check your inbox for verification link.');
     }
 
-    // Check if user must change password - return flag instead of blocking
     const requirePasswordChange = user.isPasswordChangeRequired();
 
-    // Only publish login event if not requiring password change
-    // Full login event published after password is changed
     if (!requirePasswordChange) {
       await this.eventBus.publish(new UserLoggedInEvent(
         user.id,
@@ -539,7 +470,6 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
       ));
     }
 
-    // Return user with password change flag for AuthController to handle
     return {
       user,
       sessionToken: '', // Legacy field - OAuth 2.0 tokens created by AuthController
@@ -548,66 +478,38 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
   }
 }
 
-// User Settings Commands
+// USER SETTINGS
 
-/**
- * Update User Settings Command
- *
- * Updates per-user preferences and configuration settings.
- * Settings are optional and extensible for future customization features.
- */
 export interface UpdateUserSettingsCommand {
   userId: string;
   settings: UserSettings;
 }
 
-/**
- * Update User Settings Command Handler
- *
- * Handles user settings updates with proper domain logic and persistence.
- * Uses immutable update pattern from User entity.
- */
 export class UpdateUserSettingsCommandHandler {
   constructor(private userRepository: UserRepository) {}
 
   async handle(command: UpdateUserSettingsCommand): Promise<User> {
-    // Fetch current user
     const user = await this.userRepository.findById(command.userId);
-
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }
 
-    // Update settings (immutable - returns new User instance)
     const updatedUser = user.updateSettings(command.settings);
-
-    // Persist changes
     await this.userRepository.save(updatedUser);
 
     return updatedUser;
   }
 }
 
-/**
- * Get User Settings Query
- *
- * Retrieves current user settings for preferences UI.
- */
 export interface GetUserSettingsQuery {
   userId: string;
 }
 
-/**
- * Get User Settings Query Handler
- *
- * Simple query handler to fetch user settings.
- */
 export class GetUserSettingsQueryHandler {
   constructor(private userRepository: UserRepository) {}
 
   async handle(query: GetUserSettingsQuery): Promise<UserSettings> {
     const user = await this.userRepository.findById(query.userId);
-
     if (!user) {
       throw new UserNotFoundError(query.userId);
     }
@@ -616,52 +518,35 @@ export class GetUserSettingsQueryHandler {
   }
 }
 
-// Session Service Interface
+// SESSION SERVICE INTERFACE
 
-/**
- * Session validation result containing authenticated user and session metadata
- */
 export interface SessionValidationResult {
   user: User;
   sessionId: string;
 }
 
-/**
- * Session validation outcome with explicit error codes
- * Discriminated union for type-safe error handling in middleware
- */
 export type SessionValidationOutcome =
   | { success: true; user: User; sessionId: string }
   | { success: false; code: 'INVALID_TOKEN' | 'SESSION_REVOKED' | 'SESSION_EXPIRED' | 'SESSION_IDLE_TIMEOUT' | 'SESSION_ABSOLUTE_TIMEOUT' | 'LAB_DEACTIVATED' };
 
 export interface SessionService {
-  // OAuth 2.0 dual token support (pure implementation)
   validateSession(token: string): Promise<SessionValidationResult | null>;
   revokeSession(token: string): Promise<void>;
   createTokenPair(user: User, userAgent?: string, ipAddress?: string, deviceInfo?: string): Promise<EnhancedLoginResponse>;
   refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponse>;
 
   /**
-   * Validate session with full timeout checks and optional activity update
-   * Used by auth middleware for enforcing idle and absolute timeouts
-   *
-   * @param token - JWT access token
-   * @param options.updateActivity - Whether to update lastUsedAt (default: true)
+   * Validate session with full timeout checks and optional activity update.
+   * Used by auth middleware for enforcing idle and absolute timeouts.
    */
   validateSessionWithActivity(
     token: string,
     options?: { updateActivity?: boolean }
   ): Promise<SessionValidationOutcome>;
 
-  /**
-   * Create temporary token for password change flow
-   * Short-lived (5 min), only allows force-change-password endpoint
-   */
+  /** Short-lived (5 min) token that only allows force-change-password endpoint. */
   createPasswordChangeTempToken(user: User): string;
 
-  /**
-   * Verify temporary password change token
-   * Returns user ID if valid, null if expired/invalid
-   */
+  /** Returns user ID if valid, null if expired/invalid. */
   verifyPasswordChangeTempToken(token: string): Promise<{ userId: string; username: string } | null>;
 }

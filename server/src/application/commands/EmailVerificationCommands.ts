@@ -1,10 +1,9 @@
 /**
  * Email Verification Commands
  *
- * Commands for email verification operations in the CQRS pattern
+ * Commands for email verification operations.
  */
 
-import { BaseCommand, CommandHandler } from '@application/commands/Command';
 import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
@@ -18,18 +17,23 @@ import {
   VerificationEmailResentEvent
 } from '@domain/events/EmailVerificationEvents';
 
-// Send Verification Email Command
+// COMMAND INTERFACES
 
-export class SendVerificationEmailCommand extends BaseCommand {
-  constructor(
-    public readonly userId: string,
-    initiatedBy: string
-  ) {
-    super(initiatedBy);
-  }
+export interface SendVerificationEmailCommand {
+  userId: string;
 }
 
-export class SendVerificationEmailCommandHandler implements CommandHandler<SendVerificationEmailCommand, void> {
+export interface VerifyEmailCommand {
+  token: string;
+}
+
+export interface ResendVerificationEmailCommand {
+  userId: string;
+}
+
+// COMMAND HANDLERS
+
+export class SendVerificationEmailCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private personRepository: PersonRepository,
@@ -43,7 +47,6 @@ export class SendVerificationEmailCommandHandler implements CommandHandler<SendV
       throw new NotFoundError('User not found');
     }
 
-    // Get email from Person entity
     if (!user.personId) {
       throw new EmailVerificationError('User does not have a linked person profile');
     }
@@ -67,18 +70,7 @@ export class SendVerificationEmailCommandHandler implements CommandHandler<SendV
   }
 }
 
-// Verify Email Command
-
-export class VerifyEmailCommand extends BaseCommand {
-  constructor(
-    public readonly token: string,
-    initiatedBy: string = 'system'
-  ) {
-    super(initiatedBy);
-  }
-}
-
-export class VerifyEmailCommandHandler implements CommandHandler<VerifyEmailCommand, User> {
+export class VerifyEmailCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private personRepository: PersonRepository,
@@ -94,7 +86,6 @@ export class VerifyEmailCommandHandler implements CommandHandler<VerifyEmailComm
     user.verifyEmail(command.token);
     await this.userRepository.save(user);
 
-    // Get email from Person entity for event
     const person = user.personId ? await this.personRepository.findById(user.personId) : null;
     const email = person?.email || 'unknown';
 
@@ -105,18 +96,7 @@ export class VerifyEmailCommandHandler implements CommandHandler<VerifyEmailComm
   }
 }
 
-// Resend Verification Email Command
-
-export class ResendVerificationEmailCommand extends BaseCommand {
-  constructor(
-    public readonly userId: string,
-    initiatedBy: string
-  ) {
-    super(initiatedBy);
-  }
-}
-
-export class ResendVerificationEmailCommandHandler implements CommandHandler<ResendVerificationEmailCommand, void> {
+export class ResendVerificationEmailCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private personRepository: PersonRepository,
@@ -130,7 +110,6 @@ export class ResendVerificationEmailCommandHandler implements CommandHandler<Res
       throw new NotFoundError('User not found');
     }
 
-    // Get email from Person entity
     if (!user.personId) {
       throw new EmailVerificationError('User does not have a linked person profile');
     }
