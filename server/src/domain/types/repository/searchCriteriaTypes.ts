@@ -75,19 +75,6 @@ export interface TubeSearchCriteria {
   groupBy?: 'auto' | 'none' | 'donor' | 'cellType' | 'researcher' | 'lotNumber' | 'media' | 'location';
 }
 
-export interface ResearcherSearchCriteria {
-  name?: string;
-  namePattern?: string;
-  isActive?: boolean;
-  createdAfter?: Date;
-  createdBefore?: Date;
-  hasTubes?: boolean;
-  limit?: number;
-  offset?: number;
-  sortBy?: 'firstName' | 'lastName' | 'createdAt';
-  sortOrder?: 'asc' | 'desc';
-}
-
 export interface UserSearchCriteria {
   username?: string;
   role?: 'admin' | 'user';

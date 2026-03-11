@@ -21,40 +21,6 @@ export interface TubeRepositoryStats {
   expirationRate: number;
 }
 
-export interface ResearcherUsageStats {
-  researcherId: string;
-  researcherName: string;
-  isActive: boolean;
-  tubeCount: number;
-  lastTubeCreated?: Date;
-  activeTubes: number;
-  expiredTubes: number;
-}
-
-export interface ResearcherRepositoryStats {
-  totalResearchers: number;
-  activeResearchers: number;
-  inactiveResearchers: number;
-  researchersWithTubes: number;
-  researchersWithoutTubes: number;
-  averageTubesPerResearcher: number;
-  mostProductiveResearcher?: {
-    id: string;
-    name: string;
-    tubeCount: number;
-  };
-  oldestResearcher?: {
-    id: string;
-    name: string;
-    createdAt: Date;
-  };
-  newestResearcher?: {
-    id: string;
-    name: string;
-    createdAt: Date;
-  };
-}
-
 export interface UserRepositoryStats {
   totalUsers: number;
   adminCount: number;
@@ -84,42 +50,3 @@ export interface UserRepositoryStats {
   };
 }
 
-export interface EquipmentSummary {
-  totalTanks: number;
-  totalRacks: number;
-  totalBoxes: number;
-  totalPositions: number;
-  tankSummaries: Array<{
-    tankId: string;
-    tankName: string;
-    rackCount: number;
-    boxCount: number;
-    positionCount: number;
-    isActive: boolean;
-  }>;
-}
-
-export interface CapacityInfo {
-  totalCapacity: number;
-  availableCapacity: number;
-  utilizationRate: number;
-  capacityByTank: Array<{
-    tankId: string;
-    tankName: string;
-    capacity: number;
-    used: number;
-    available: number;
-    utilizationRate: number;
-  }>;
-}
-
-export interface StorageRepositoryStats {
-  currentVersion: number;
-  totalHistoryEntries: number;
-  totalSnapshots: number;
-  configurationSize: number;
-  lastUpdated: Date;
-  averageUpdateFrequency: number;
-  oldestSnapshot?: Date;
-  newestSnapshot?: Date;
-}
