@@ -71,6 +71,7 @@ export interface ResearcherRepository {
   findWithoutTubes(): Promise<Researcher[]>;
   getUsageStats(): Promise<ResearcherUsageStats[]>;
   getTubeCountByResearcher(researcherId: string): Promise<number>;
+  getTubeCountsByResearcherIds(researcherIds: string[]): Promise<Map<string, number>>;
   getMostActiveResearchers(limit?: number): Promise<Array<{ researcher: Researcher, tubeCount: number }>>;
 
   // VALIDATION OPERATIONS

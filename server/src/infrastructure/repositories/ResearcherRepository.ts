@@ -749,4 +749,16 @@ export class ResearcherRepository implements IResearcherRepository {
     );
     return parseInt(result?.count || '0', 10);
   }
+
+  async getTubeCountsByResearcherIds(researcherIds: string[]): Promise<Map<string, number>> {
+    if (researcherIds.length === 0) return new Map();
+
+    const placeholders = researcherIds.map((_, i) => `$${i + 1}`).join(', ');
+    const rows = await this.context.queryMany<{ researcher_id: string; count: string }>(
+      `SELECT researcher_id, COUNT(*) as count FROM tubes WHERE researcher_id IN (${placeholders}) GROUP BY researcher_id`,
+      researcherIds
+    );
+
+    return new Map(rows.map(r => [r.researcher_id, parseInt(r.count, 10)]));
+  }
 }

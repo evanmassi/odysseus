@@ -1,19 +1,18 @@
 /**
- * Export Service
+ * Data Export Service
  *
- * Handles data export operations for admin users.
- * Transforms domain data into export-friendly formats (CSV/JSON).
+ * Transforms domain data into CSV/JSON export formats for admin users.
  */
 
-import { TubeRepository } from '@domain/repositories/TubeRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { generateCsv, formatDateForCsv, formatDateShort } from '@infrastructure/utils/csvGenerator';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { Person } from '@domain/entities/Person';
+import { generateCsv, formatDateForCsv } from '@infrastructure/utils/csvGenerator';
 import { logger } from '@infrastructure/logging/logger';
 
-/** Flattened tube data for export */
 interface TubeExportRow {
   id: string;
   tankId: string;
@@ -42,7 +41,6 @@ interface TubeExportRow {
   updatedAt: string;
 }
 
-/** User data for export (excludes sensitive fields) */
 interface UserExportRow {
   id: string;
   username: string;
@@ -56,7 +54,6 @@ interface UserExportRow {
   researcherId: string;
 }
 
-/** Researcher data for export */
 interface ResearcherExportRow {
   id: string;
   firstName: string;
@@ -71,7 +68,6 @@ interface ResearcherExportRow {
   createdAt: string;
 }
 
-/** System backup structure */
 interface SystemBackup {
   exportedAt: string;
   version: string;
@@ -88,24 +84,15 @@ export class ExportService {
     private storageRepository: StorageRepository
   ) {}
 
-  /**
-   * Export all tubes with researcher names resolved
-   */
   async exportTubes(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
     logger.info('[ExportService] Exporting tubes', { format, labId });
 
     const tubes = await this.tubeRepository.findAllByLabId(labId);
 
-    // Build researcher lookup map
     const researcherIds = [...new Set(tubes.map(t => t.researcherId).filter(Boolean))] as string[];
     const researchers = await this.researcherRepository.findByIds(researcherIds);
+    const personMap = await this.buildPersonMap(researchers.map(r => r.personId));
 
-    // Get person data for researcher names
-    const personIds = researchers.map(r => r.personId);
-    const persons = await this.personRepository.findByIds(personIds);
-    const personMap = new Map(persons.map(p => [p.id, p]));
-
-    // Build researcher name map
     const researcherNameMap = new Map<string, string>();
     for (const researcher of researchers) {
       const person = personMap.get(researcher.personId);
@@ -114,7 +101,6 @@ export class ExportService {
       }
     }
 
-    // Transform to export format
     const exportData: TubeExportRow[] = tubes.map(tube => ({
       id: tube.id,
       tankId: tube.tankId,
@@ -147,7 +133,6 @@ export class ExportService {
       return exportData;
     }
 
-    // CSV with friendly column headers
     return generateCsv(exportData, [
       { key: 'id', header: 'ID' },
       { key: 'tankId', header: 'Tank' },
@@ -175,20 +160,13 @@ export class ExportService {
     ]);
   }
 
-  /**
-   * Export all users (excludes sensitive data like passwords)
-   */
   async exportUsers(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
     logger.info('[ExportService] Exporting users', { format, labId });
 
     const users = await this.userRepository.findByLabId(labId);
-
-    // Get person data for names and emails
     const personIds = users.map(u => u.personId).filter(Boolean) as string[];
-    const persons = await this.personRepository.findByIds(personIds);
-    const personMap = new Map(persons.map(p => [p.id, p]));
+    const personMap = await this.buildPersonMap(personIds);
 
-    // Transform to export format
     const exportData: UserExportRow[] = users.map(user => {
       const person = user.personId ? personMap.get(user.personId) : undefined;
       return {
@@ -223,18 +201,11 @@ export class ExportService {
     ]);
   }
 
-  /**
-   * Export all researchers with tube counts
-   */
   async exportResearchers(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
     logger.info('[ExportService] Exporting researchers', { format, labId });
 
     const researchers = await this.researcherRepository.findByLabId(labId);
-
-    // Get person data
-    const personIds = researchers.map(r => r.personId);
-    const persons = await this.personRepository.findByIds(personIds);
-    const personMap = new Map(persons.map(p => [p.id, p]));
+    const personMap = await this.buildPersonMap(researchers.map(r => r.personId));
 
     const users = await this.userRepository.findByLabId(labId);
     const userByResearcherId = new Map<string, string>();
@@ -244,14 +215,10 @@ export class ExportService {
       }
     }
 
-    // Get tube counts
-    const tubeCounts = new Map<string, number>();
-    for (const researcher of researchers) {
-      const count = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
-      tubeCounts.set(researcher.id, count);
-    }
+    const tubeCounts = await this.researcherRepository.getTubeCountsByResearcherIds(
+      researchers.map(r => r.id)
+    );
 
-    // Transform to export format
     const exportData: ResearcherExportRow[] = researchers.map(researcher => {
       const person = personMap.get(researcher.personId);
       return {
@@ -288,10 +255,7 @@ export class ExportService {
     ]);
   }
 
-  /**
-   * Export system configuration and settings for backup
-   * Always returns JSON (structure too complex for CSV)
-   */
+  /** Always JSON — structure too complex for CSV. */
   async exportSystemBackup(labId: string): Promise<SystemBackup> {
     logger.info('[ExportService] Exporting system backup', { labId });
 
@@ -332,5 +296,10 @@ export class ExportService {
       } : null,
       securityConfig: securityConfig ?? null
     };
+  }
+
+  private async buildPersonMap(personIds: string[]): Promise<Map<string, Person>> {
+    const persons = await this.personRepository.findByIds(personIds);
+    return new Map(persons.map(p => [p.id, p]));
   }
 }
