@@ -4,8 +4,9 @@
  * Orchestrates CRUD for admin-managed dropdown values (species, source).
  */
 
-import { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
-import { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
+import { LookupValue } from '@domain/entities/LookupValue';
+import type { LookupCategory } from '@domain/entities/LookupValue';
+import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 
