@@ -4,7 +4,7 @@
  * Commands for user-related operations in the CQRS pattern.
  */
 
-import { BaseCommand, Command, CommandHandler, CommandResult } from '@application/commands/Command';
+import { BaseCommand, CommandHandler } from '@application/commands/Command';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';

@@ -233,15 +233,13 @@ export class StorageController extends BaseController {
   async getStorageHistory(req: Request, res: Response): Promise<void> {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
-      const offset = parseInt(req.query.offset as string) || 0;
-      
+
       const labId = this.extractLabId(req);
       const history = await this.getStorageHistoryHandler.handle({
         labId,
-        limit,
-        offset
+        limit
       });
-      
+
       const response = {
         configurations: history.map(config => ({
           version: config.version,
@@ -250,7 +248,6 @@ export class StorageController extends BaseController {
         })),
         pagination: {
           limit,
-          offset,
           total: history.length
         }
       };
