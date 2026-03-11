@@ -2,7 +2,7 @@ import { Router, RequestHandler } from 'express';
 import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
 import { SessionController } from '@presentation/controllers/SessionController';
-import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
+import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { validateBody } from '@presentation/middleware/requestValidation';
 import { userLookupRequestSchema } from '@odysseus/shared-schemas';

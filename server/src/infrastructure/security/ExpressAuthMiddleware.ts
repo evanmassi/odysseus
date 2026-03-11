@@ -6,9 +6,64 @@
  */
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
+import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { SessionService } from '@application/contracts/SessionService';
 import { logger } from '@infrastructure/logging/logger';
+
+function errorResponse(
+  res: Response,
+  req: Request,
+  status: number,
+  code: string,
+  message: string
+): void {
+  res.status(status).json({
+    success: false,
+    error: { code, message },
+    meta: {
+      timestamp: new Date().toISOString(),
+      requestId: req.headers['x-request-id'] || 'unknown'
+    }
+  });
+}
+
+function requireRoleMiddleware(
+  check: (user: Request['user']) => boolean,
+  label: string
+): RequestHandler {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    try {
+      if (!req.user) {
+        errorResponse(res, req, 401, 'UNAUTHORIZED', 'Authentication required');
+        return;
+      }
+
+      if (!check(req.user)) {
+        logger.warn(`Non-${label} user attempted ${label} access`, {
+          userId: req.user.id,
+          username: req.user.username,
+          role: req.user.role.value,
+          path: req.path,
+          method: req.method
+        });
+
+        errorResponse(res, req, 403, 'FORBIDDEN', `${label} access required`);
+        return;
+      }
+
+      next();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error(`${label} authorization middleware error`, {
+        error: errorMessage,
+        path: req.path,
+        method: req.method
+      });
+
+      errorResponse(res, req, 500, 'AUTHORIZATION_ERROR', 'Authorization service error');
+    }
+  };
+}
 
 export class ExpressAuthMiddleware implements AuthMiddleware {
   constructor(
@@ -21,28 +76,15 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          res.status(401).json({
-            success: false,
-            error: {
-              code: 'UNAUTHORIZED',
-              message: 'Authorization header required'
-            },
-            meta: {
-              timestamp: new Date().toISOString(),
-              requestId: req.headers['x-request-id'] || 'unknown'
-            }
-          });
+          errorResponse(res, req, 401, 'UNAUTHORIZED', 'Authorization header required');
           return;
         }
 
-        const token = authHeader.substring(7); // Remove 'Bearer '
+        const token = authHeader.substring(7);
 
-        // Use validateSessionWithActivity with updateActivity: true (default)
-        // This updates lastUsedAt for real user activity
         const result = await this.sessionService.validateSessionWithActivity(token);
 
         if (!result.success) {
-          // Map error codes to appropriate HTTP responses
           const errorMessages: Record<string, string> = {
             INVALID_TOKEN: 'Invalid or expired token',
             SESSION_REVOKED: 'Session has been revoked',
@@ -51,21 +93,11 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
             LAB_DEACTIVATED: 'Your lab has been deactivated. Contact your system administrator'
           };
 
-          res.status(401).json({
-            success: false,
-            error: {
-              code: result.code,
-              message: errorMessages[result.code] || 'Authentication failed'
-            },
-            meta: {
-              timestamp: new Date().toISOString(),
-              requestId: req.headers['x-request-id'] || 'unknown'
-            }
-          });
+          errorResponse(res, req, 401, result.code, errorMessages[result.code] || 'Authentication failed');
           return;
         }
 
-        // Block non-approved users immediately (catches deactivated/suspended mid-session)
+        // Catches status changes (deactivated/suspended) that occurred mid-session
         if (!result.user.isApproved()) {
           const statusMessages: Record<string, string> = {
             deactivated: 'Account has been deactivated. Contact your lab administrator',
@@ -75,17 +107,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           };
           const message = statusMessages[result.user.status] || 'Account is not approved for access';
 
-          res.status(403).json({
-            success: false,
-            error: {
-              code: 'ACCOUNT_INACTIVE',
-              message
-            },
-            meta: {
-              timestamp: new Date().toISOString(),
-              requestId: req.headers['x-request-id'] || 'unknown'
-            }
-          });
+          errorResponse(res, req, 403, 'ACCOUNT_INACTIVE', message);
           return;
         }
 
@@ -109,196 +131,16 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           method: req.method
         });
 
-        res.status(500).json({
-          success: false,
-          error: {
-            code: 'AUTHENTICATION_ERROR',
-            message: 'Authentication service error'
-          },
-          meta: {
-            timestamp: new Date().toISOString(),
-            requestId: req.headers['x-request-id'] || 'unknown'
-          }
-        });
+        errorResponse(res, req, 500, 'AUTHENTICATION_ERROR', 'Authentication service error');
       }
     };
   }
 
   get requireAdmin(): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction): void => {
-      try {
-        if (!req.user) {
-          res.status(401).json({
-            success: false,
-            error: {
-              code: 'UNAUTHORIZED',
-              message: 'Authentication required'
-            },
-            meta: {
-              timestamp: new Date().toISOString(),
-              requestId: req.headers['x-request-id'] || 'unknown'
-            }
-          });
-          return;
-        }
-
-        if (!req.user.isAdmin()) {
-          logger.warn('Non-admin user attempted admin access', {
-            userId: req.user.id,
-            username: req.user.username,
-            role: req.user.role.value,
-            path: req.path,
-            method: req.method
-          });
-
-          res.status(403).json({
-            success: false,
-            error: {
-              code: 'FORBIDDEN',
-              message: 'Admin access required'
-            },
-            meta: {
-              timestamp: new Date().toISOString(),
-              requestId: req.headers['x-request-id'] || 'unknown'
-            }
-          });
-          return;
-        }
-
-        logger.debug('Admin access granted', {
-          userId: req.user.id,
-          username: req.user.username,
-          path: req.path
-        });
-
-        next();
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        logger.error('Admin authorization middleware error', {
-          error: errorMessage,
-          path: req.path,
-          method: req.method
-        });
-
-        res.status(500).json({
-          success: false,
-          error: {
-            code: 'AUTHORIZATION_ERROR',
-            message: 'Authorization service error'
-          },
-          meta: {
-            timestamp: new Date().toISOString(),
-            requestId: req.headers['x-request-id'] || 'unknown'
-          }
-        });
-      }
-    };
+    return requireRoleMiddleware(user => user!.isAdmin(), 'Admin');
   }
 
   get requireSystemAdmin(): RequestHandler {
-    return (req: Request, res: Response, next: NextFunction): void => {
-      try {
-        if (!req.user) {
-          res.status(401).json({
-            success: false,
-            error: {
-              code: 'UNAUTHORIZED',
-              message: 'Authentication required'
-            },
-            meta: {
-              timestamp: new Date().toISOString(),
-              requestId: req.headers['x-request-id'] || 'unknown'
-            }
-          });
-          return;
-        }
-
-        if (!req.user.isSystemAdmin()) {
-          logger.warn('Non-system-admin user attempted system admin access', {
-            userId: req.user.id,
-            username: req.user.username,
-            role: req.user.role.value,
-            path: req.path,
-            method: req.method
-          });
-
-          res.status(403).json({
-            success: false,
-            error: {
-              code: 'FORBIDDEN',
-              message: 'System admin access required'
-            },
-            meta: {
-              timestamp: new Date().toISOString(),
-              requestId: req.headers['x-request-id'] || 'unknown'
-            }
-          });
-          return;
-        }
-
-        next();
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        logger.error('System admin authorization middleware error', {
-          error: errorMessage,
-          path: req.path,
-          method: req.method
-        });
-
-        res.status(500).json({
-          success: false,
-          error: {
-            code: 'AUTHORIZATION_ERROR',
-            message: 'Authorization service error'
-          },
-          meta: {
-            timestamp: new Date().toISOString(),
-            requestId: req.headers['x-request-id'] || 'unknown'
-          }
-        });
-      }
-    };
-  }
-
-  get optionalAuthenticate(): RequestHandler {
-    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      try {
-        const authHeader = req.headers.authorization;
-
-        // No auth header is OK for optional auth
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          next();
-          return;
-        }
-
-        const token = authHeader.substring(7);
-        const validationResult = await this.sessionService.validateSession(token);
-
-        if (validationResult) {
-          req.user = validationResult.user;
-          req.sessionId = validationResult.sessionId;
-          logger.debug('Optional authentication successful', {
-            userId: validationResult.user.id,
-            username: validationResult.user.username,
-            sessionId: validationResult.sessionId,
-            path: req.path
-          });
-        } else {
-          logger.debug('Optional authentication failed - continuing without user', {
-            path: req.path
-          });
-        }
-
-        next();
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        logger.warn('Optional authentication error - continuing without user', {
-          error: errorMessage,
-          path: req.path
-        });
-        // For optional auth, we continue even if there's an error
-        next();
-      }
-    };
+    return requireRoleMiddleware(user => user!.isSystemAdmin(), 'System admin');
   }
 }

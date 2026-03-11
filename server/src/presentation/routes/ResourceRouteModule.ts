@@ -12,7 +12,7 @@ import { TubeController } from '@presentation/controllers/TubeController';
 import { TubeLockController } from '@presentation/controllers/TubeLockController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
-import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
+import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';

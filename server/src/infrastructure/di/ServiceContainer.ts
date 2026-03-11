@@ -72,7 +72,7 @@ import { AuditArchivalJob } from '@infrastructure/jobs/AuditArchivalJob';
 // Contracts
 import { PasswordService } from '@application/contracts/PasswordService';
 import { SessionService } from '@application/contracts/SessionService';
-import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
+import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { EmailService } from '@domain/services/EmailService';
 
 /**

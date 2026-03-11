@@ -13,7 +13,7 @@ import { InviteCodeController } from '@presentation/controllers/InviteCodeContro
 import { AuthController } from '@presentation/controllers/AuthController';
 import { StorageController } from '@presentation/controllers/StorageController';
 import { AuditController } from '@presentation/controllers/AuditController';
-import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
+import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import { updateSecurityConfigSchema, updateDemoLimitsSchema } from '@odysseus/shared-schemas';
 

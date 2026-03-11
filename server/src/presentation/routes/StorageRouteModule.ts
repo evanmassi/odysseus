@@ -1,6 +1,6 @@
 import { Router, RequestHandler, Request, Response, NextFunction } from 'express';
 import { StorageController } from '@presentation/controllers/StorageController';
-import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
+import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { logger } from '@infrastructure/logging/logger';
 

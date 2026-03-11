@@ -8,7 +8,7 @@ import { Router, RequestHandler } from 'express';
 import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { SearchController } from '@presentation/controllers/SearchController';
-import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
+import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';

@@ -14,7 +14,7 @@ import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
+import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import {
   updateSecurityConfigSchema,
