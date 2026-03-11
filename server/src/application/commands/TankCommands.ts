@@ -8,12 +8,12 @@ import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
-import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddTankLimit } from '@application/guards/DemoGuards';
+import { requireUser } from '@application/guards/UserGuards';
 import { generateId } from '@domain/utils/generateId';
 import {
   TankAddedEvent,
@@ -68,7 +68,7 @@ export class AddTankCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('add tank', command.userId);
     }
@@ -99,15 +99,6 @@ export class AddTankCommandHandler {
 
     return { tankId };
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
-
 }
 
 /** Updates an existing tank's properties. */
@@ -124,7 +115,7 @@ export class UpdateTankCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update tank', command.userId);
     }
@@ -183,14 +174,6 @@ export class UpdateTankCommandHandler {
     event.labId = command.labId;
     await this.eventBus.publish(event);
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /**
@@ -208,7 +191,7 @@ export class DeleteTankCommandHandler {
   ) {}
 
   async handle(command: DeleteTankCommand): Promise<void> {
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete tank', command.userId);
     }
@@ -231,14 +214,6 @@ export class DeleteTankCommandHandler {
     event.labId = command.labId;
     await this.eventBus.publish(event);
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /** Deletes all tubes in the lab (used for demo lab reset). */
@@ -250,7 +225,7 @@ export class ResetDemoDataCommandHandler {
   ) {}
 
   async handle(command: ResetDemoDataCommand): Promise<{ deletedTubes: number }> {
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('reset demo data', command.userId);
     }
@@ -283,11 +258,4 @@ export class ResetDemoDataCommandHandler {
     return { deletedTubes };
   }
 
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }

@@ -15,6 +15,7 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddBoxesLimit } from '@application/guards/DemoGuards';
+import { requireUser } from '@application/guards/UserGuards';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import {
@@ -87,7 +88,7 @@ export class AddBoxesCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('add box', command.userId);
     }
@@ -162,14 +163,6 @@ export class AddBoxesCommandHandler {
 
     return { boxIds };
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /** Updates an existing box's properties. */
@@ -186,7 +179,7 @@ export class UpdateBoxCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update box', command.userId);
     }
@@ -276,14 +269,6 @@ export class UpdateBoxCommandHandler {
     event.labId = command.labId;
     await this.eventBus.publish(event);
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /**
@@ -299,7 +284,7 @@ export class DeleteBoxCommandHandler {
   ) {}
 
   async handle(command: DeleteBoxCommand): Promise<void> {
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete box', command.userId);
     }
@@ -328,14 +313,6 @@ export class DeleteBoxCommandHandler {
     event.labId = command.labId;
     await this.eventBus.publish(event);
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /** Assigns or unassigns a box to/from a user. */
@@ -352,7 +329,7 @@ export class AssignBoxCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('assign box', command.userId);
     }
@@ -469,11 +446,4 @@ export class AssignBoxCommandHandler {
     }
   }
 
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }

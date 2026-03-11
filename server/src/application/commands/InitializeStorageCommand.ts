@@ -7,10 +7,10 @@
 import { Storage } from '@domain/entities/Storage';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
-import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
+import { requireUser } from '@application/guards/UserGuards';
 import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { StorageUpdatedEvent } from '@domain/events/StorageEvents';
@@ -43,7 +43,7 @@ export class InitializeStorageCommandHandler {
       throw new ValidationError('Storage configuration already exists. Cannot reinitialize.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('initialize configuration', command.userId);
     }
@@ -136,13 +136,5 @@ export class InitializeStorageCommandHandler {
         labNameChanged: true
       }
     ));
-  }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
   }
 }

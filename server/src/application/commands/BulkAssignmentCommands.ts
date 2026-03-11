@@ -6,11 +6,11 @@
 
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
-import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
+import { requireUser } from '@application/guards/UserGuards';
 import {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
@@ -47,7 +47,7 @@ export class BulkUnassignResourcesCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('bulk unassign resources', command.userId);
     }
@@ -106,14 +106,6 @@ export class BulkUnassignResourcesCommandHandler {
 
     return { racksAffected, boxesAffected };
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /** Reassigns all resources (racks and boxes) from one user to another. */
@@ -134,7 +126,7 @@ export class BulkReassignResourcesCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('bulk reassign resources', command.userId);
     }
@@ -200,13 +192,5 @@ export class BulkReassignResourcesCommandHandler {
     await this.eventBus.publish(event);
 
     return { racksAffected, boxesAffected };
-  }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
   }
 }

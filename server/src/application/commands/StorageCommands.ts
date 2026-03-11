@@ -11,6 +11,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
 import { rejectDemoConfigOperation } from '@application/guards/DemoGuards';
+import { requireUser } from '@application/guards/UserGuards';
 import { logger } from '@infrastructure/logging/logger';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
@@ -124,7 +125,7 @@ export class UpdateSystemStorageCommandHandler {
 
     // Validate user permissions through validation service
     // (ValidationService will check user permissions via AccessControlService)
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     
     // Create updated configuration with new system settings
     const updatedConfig = currentConfig.updateSystemSettings(command.systemSettings);
@@ -157,13 +158,6 @@ export class UpdateSystemStorageCommandHandler {
     return updatedConfig;
   }
 
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /**
@@ -271,7 +265,7 @@ export class ResetStorageToDefaultCommandHandler {
       throw new ValidationError('Invalid confirmation token for configuration reset');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('reset configuration', command.userId);
     }
@@ -303,13 +297,6 @@ export class ResetStorageToDefaultCommandHandler {
     return defaultConfig;
   }
 
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /**
@@ -449,7 +436,7 @@ export class UpdateBoxPositionDisplayCommandHandler {
     }
 
     // Get user for permission validation
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
 
     // Validate that the box exists
     const box = currentConfig.equipment.findBox(
@@ -500,13 +487,6 @@ export class UpdateBoxPositionDisplayCommandHandler {
     return updatedConfig;
   }
 
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /**
@@ -542,7 +522,7 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
     }
 
     // Get user for permission validation
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
 
     // Update lab default position display
     const updatedConfig = currentConfig.updateLabDefaultPositionDisplay(
@@ -579,13 +559,6 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
     return updatedConfig;
   }
 
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 // ASSIGNMENT TYPES
@@ -675,7 +648,7 @@ export class UpdateResourceLabelCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
 
     // Get resource and parent for permission check
     let resource: ResourceWithOwnership & { customLabel?: string } | null = null;
@@ -779,11 +752,4 @@ export class UpdateResourceLabelCommandHandler {
     return currentConfig;
   }
 
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }

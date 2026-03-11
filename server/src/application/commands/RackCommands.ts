@@ -16,6 +16,7 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddRacksLimit } from '@application/guards/DemoGuards';
+import { requireUser } from '@application/guards/UserGuards';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { generateId } from '@domain/utils/generateId';
 import {
@@ -83,7 +84,7 @@ export class AddRacksCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('add rack', command.userId);
     }
@@ -142,14 +143,6 @@ export class AddRacksCommandHandler {
 
     return { rackIds };
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /** Updates an existing rack's properties. */
@@ -166,7 +159,7 @@ export class UpdateRackCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update rack', command.userId);
     }
@@ -234,14 +227,6 @@ export class UpdateRackCommandHandler {
     event.labId = command.labId;
     await this.eventBus.publish(event);
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /**
@@ -257,7 +242,7 @@ export class DeleteRackCommandHandler {
   ) {}
 
   async handle(command: DeleteRackCommand): Promise<void> {
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete rack', command.userId);
     }
@@ -283,14 +268,6 @@ export class DeleteRackCommandHandler {
     event.labId = command.labId;
     await this.eventBus.publish(event);
   }
-
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
 
 /** Assigns or unassigns a rack to/from a user. */
@@ -307,7 +284,7 @@ export class AssignRackCommandHandler {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    const user = await this.getUserById(command.userId);
+    const user = await requireUser(this.userRepository, command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('assign rack', command.userId);
     }
@@ -414,11 +391,4 @@ export class AssignRackCommandHandler {
     }
   }
 
-  private async getUserById(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    return user;
-  }
 }
