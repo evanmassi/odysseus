@@ -5,15 +5,15 @@
  * and managing demo resource limits.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import { requireSystemAdmin } from '@application/guards/UserGuards';
 import type { DemoLimits, SeedDemoResponse, UnseedDemoResponse } from '@odysseus/shared-schemas';
 
 // COMMAND INTERFACES
@@ -45,7 +45,7 @@ export class SeedDemoCommandHandler {
   ) {}
 
   async handle(command: SeedDemoCommand): Promise<SeedDemoResponse> {
-    await this.requireSystemAdmin(command.userId);
+    await requireSystemAdmin(this.userRepository, command.userId);
 
     const lab = await this.labRepository.findById(command.labId);
     if (!lab) {
@@ -124,12 +124,12 @@ export class SeedDemoCommandHandler {
     ];
 
     const auditEntries = entries.map(e => ({
-      id: uuidv4(),
+      id: randomUUID(),
       userId: e.actor.id,
       username: e.actor.username,
       action: e.action,
       entityType: e.entityType,
-      entityId: uuidv4(),
+      entityId: randomUUID(),
       details: JSON.stringify(e.details),
       timestamp: new Date(now.getTime() - e.hoursAgo * 60 * 60 * 1000),
       ipAddress: undefined,
@@ -140,16 +140,6 @@ export class SeedDemoCommandHandler {
     await this.auditRepository!.saveMany(auditEntries);
   }
 
-  private async requireSystemAdmin(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    if (!user.isSystemAdmin()) {
-      throw new PermissionError('Only system admins can seed demo labs', { userId });
-    }
-    return user;
-  }
 }
 
 export class UnseedDemoCommandHandler {
@@ -160,7 +150,7 @@ export class UnseedDemoCommandHandler {
   ) {}
 
   async handle(command: UnseedDemoCommand): Promise<UnseedDemoResponse> {
-    await this.requireSystemAdmin(command.userId);
+    await requireSystemAdmin(this.userRepository, command.userId);
 
     const lab = await this.labRepository.findById(command.labId);
     if (!lab) {
@@ -191,16 +181,6 @@ export class UnseedDemoCommandHandler {
     };
   }
 
-  private async requireSystemAdmin(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    if (!user.isSystemAdmin()) {
-      throw new PermissionError('Only system admins can unseed demo labs', { userId });
-    }
-    return user;
-  }
 }
 
 export class UpdateDemoLimitsCommandHandler {
@@ -210,7 +190,7 @@ export class UpdateDemoLimitsCommandHandler {
   ) {}
 
   async handle(command: UpdateDemoLimitsCommand): Promise<DemoLimits> {
-    await this.requireSystemAdmin(command.userId);
+    await requireSystemAdmin(this.userRepository, command.userId);
 
     const lab = await this.labRepository.findById(command.labId);
     if (!lab) {
@@ -226,14 +206,4 @@ export class UpdateDemoLimitsCommandHandler {
     return lab.demoLimits!;
   }
 
-  private async requireSystemAdmin(userId: string): Promise<User> {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new ValidationError(`User not found: ${userId}`);
-    }
-    if (!user.isSystemAdmin()) {
-      throw new PermissionError('Only system admins can manage demo limits', { userId });
-    }
-    return user;
-  }
 }
