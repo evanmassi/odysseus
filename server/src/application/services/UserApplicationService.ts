@@ -29,6 +29,11 @@ import {
   UserReactivatedEvent
 } from '@domain/events/UserEvents';
 
+export type EnrichedPublicUser = ReturnType<User['toPublicData']> & {
+  firstName?: string;
+  lastName?: string;
+};
+
 /**
  * UserApplicationService - User and authentication use case orchestration
  *
@@ -183,20 +188,59 @@ export class UserApplicationService {
   }
 
   /**
-   * Get all users (excludes pending users - use getPendingUsers() for those)
+   * Returns non-pending lab users enriched with Person names.
+   * Name resolution priority: direct personId link, then linked researcher's person.
    */
-  async getAllUsers(adminApiKey: string): Promise<UserResponse[]> {
-    const admin = await this.getUserByApiKey(adminApiKey);
-    await this.accessControlService.requireCanManageUsers(admin);
+  async getEnrichedLabUsers(labId: string): Promise<EnrichedPublicUser[]> {
+    const users = await this.userRepository.findByLabId(labId);
+    const nonPendingUsers = users.filter(u => !u.isPending());
+    const publicDataList = nonPendingUsers.map(u => u.toPublicData());
 
-    const users = admin.isSystemAdmin()
-      ? await this.userRepository.findAll()
-      : admin.labId
-        ? await this.userRepository.findByLabId(admin.labId)
-        : await this.userRepository.findAll();
+    if (!this.personRepository || !this.researcherRepository) {
+      return publicDataList;
+    }
 
-    const approvedOrRejectedUsers = users.filter(user => user.status !== 'pending');
-    return approvedOrRejectedUsers.map(user => UserDto.toResponse(user));
+    const directPersonIds = publicDataList
+      .map(u => u.personId)
+      .filter((id): id is string => id != null);
+    const researcherIds = publicDataList
+      .map(u => u.researcherId)
+      .filter((id): id is string => id != null);
+
+    const [directPersons, researchers] = await Promise.all([
+      this.personRepository.findByIds(directPersonIds),
+      this.researcherRepository.findByIds(researcherIds)
+    ]);
+
+    const researcherPersonIds = researchers
+      .map(r => r.personId)
+      .filter((id): id is string => id != null);
+    const researcherPersons = await this.personRepository.findByIds(researcherPersonIds);
+
+    const directPersonMap = new Map(directPersons.map(p => [p.id, p]));
+    const researcherMap = new Map(researchers.map(r => [r.id, r]));
+    const researcherPersonMap = new Map(researcherPersons.map(p => [p.id, p]));
+
+    return publicDataList.map(publicData => {
+      if (publicData.personId) {
+        const person = directPersonMap.get(publicData.personId);
+        if (person) {
+          return { ...publicData, firstName: person.firstName, lastName: person.lastName };
+        }
+      }
+
+      if (publicData.researcherId) {
+        const researcher = researcherMap.get(publicData.researcherId);
+        if (researcher) {
+          const person = researcherPersonMap.get(researcher.personId);
+          if (person) {
+            return { ...publicData, firstName: person.firstName, lastName: person.lastName };
+          }
+        }
+      }
+
+      return publicData;
+    });
   }
 
   /**

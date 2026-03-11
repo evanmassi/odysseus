@@ -629,67 +629,8 @@ export class AuthController {
         res.status(403).json(ResponseBuilder.error('LAB_REQUIRED', 'Lab context required'));
         return;
       }
-      const users = await this.userRepository.findByLabId(labId);
-      const nonPendingUsers = users.filter(u => !u.isPending());
 
-      const publicDataList = nonPendingUsers.map(u => u.toPublicData());
-
-      // Collect IDs for batch fetching
-      const directPersonIds = publicDataList
-        .map(u => u.personId)
-        .filter((id): id is string => id != null);
-      const researcherIds = publicDataList
-        .map(u => u.researcherId)
-        .filter((id): id is string => id != null);
-
-      // Batch fetch persons (direct) and researchers
-      const [directPersons, researchers] = await Promise.all([
-        this.personRepository.findByIds(directPersonIds),
-        this.researcherRepository.findByIds(researcherIds)
-      ]);
-
-      // Collect researcher's personIds and batch fetch those too
-      const researcherPersonIds = researchers
-        .map(r => r.personId)
-        .filter((id): id is string => id != null);
-      const researcherPersons = await this.personRepository.findByIds(researcherPersonIds);
-
-      // Build lookup maps
-      const directPersonMap = new Map(directPersons.map(p => [p.id, p]));
-      const researcherMap = new Map(researchers.map(r => [r.id, r]));
-      const researcherPersonMap = new Map(researcherPersons.map(p => [p.id, p]));
-
-      // Enrich user data with Person name information
-      const enrichedUsers = publicDataList.map(publicData => {
-        // Priority 1: User's direct personId
-        if (publicData.personId) {
-          const person = directPersonMap.get(publicData.personId);
-          if (person) {
-            return {
-              ...publicData,
-              firstName: person.firstName,
-              lastName: person.lastName
-            };
-          }
-        }
-
-        // Priority 2: Linked researcher's person
-        if (publicData.researcherId) {
-          const researcher = researcherMap.get(publicData.researcherId);
-          if (researcher) {
-            const person = researcherPersonMap.get(researcher.personId);
-            if (person) {
-              return {
-                ...publicData,
-                firstName: person.firstName,
-                lastName: person.lastName
-              };
-            }
-          }
-        }
-
-        return publicData;
-      });
+      const enrichedUsers = await this.userApplicationService.getEnrichedLabUsers(labId);
 
       const response = ResponseBuilder.withTiming(startTime, {
         users: enrichedUsers
