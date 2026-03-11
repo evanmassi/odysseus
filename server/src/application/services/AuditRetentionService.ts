@@ -1,3 +1,9 @@
+/**
+ * Audit Retention Service
+ *
+ * Orchestrates audit log archival, expiry, and cross-table querying.
+ */
+
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { AuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
@@ -5,9 +11,6 @@ import type { PaginatedResult } from '@domain/types/repository';
 import { AUDIT_RETENTION_CONFIG, ARCHIVE_RETENTION_DAYS } from '@application/config/AuditConfig';
 import { logger } from '@infrastructure/logging/logger';
 
-/**
- * Retention metrics for monitoring
- */
 export interface RetentionMetrics {
   activeTable: {
     count: number;
@@ -24,9 +27,6 @@ export interface RetentionMetrics {
   performanceWarning: boolean;
 }
 
-/**
- * Retention policy configuration
- */
 export interface RetentionPolicy {
   activeRetentionDays: number;
   totalRetentionDays: number;
@@ -35,23 +35,12 @@ export interface RetentionPolicy {
   activeTableWarningThreshold: number;
 }
 
-/**
- * Audit Retention Service
- *
- * Application service orchestrating audit log retention and archival.
- * Coordinates between active repository and archive repository.
- */
 export class AuditRetentionService {
   constructor(
     private auditRepository: AuditRepository,
     private archiveRepository: AuditArchiveRepository
   ) {}
 
-  /**
-   * Archive old entries from active table to archive table
-   *
-   * Returns count of entries archived
-   */
   async archiveOldEntries(): Promise<number> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - AUDIT_RETENTION_CONFIG.activeRetentionDays);
@@ -62,24 +51,17 @@ export class AuditRetentionService {
     });
 
     let totalArchived = 0;
-    let hasMore = true;
 
-    // Process in batches to prevent memory issues
-    while (hasMore) {
+    while (true) {
       const entries = await this.auditRepository.findOlderThan(
         cutoffDate,
         AUDIT_RETENTION_CONFIG.archivalBatchSize
       );
 
-      if (entries.length === 0) {
-        hasMore = false;
-        break;
-      }
+      if (entries.length === 0) break;
 
-      // Save to archive table
       await this.archiveRepository.saveArchived(entries);
 
-      // Delete from active table
       const entryIds = entries.map((e: AuditLogEntry) => e.id);
       const deleted = await this.auditRepository.deleteArchived(entryIds);
 
@@ -90,21 +72,13 @@ export class AuditRetentionService {
         totalArchived,
       });
 
-      // If we got fewer entries than batch size, we're done
-      if (entries.length < AUDIT_RETENTION_CONFIG.archivalBatchSize) {
-        hasMore = false;
-      }
+      if (entries.length < AUDIT_RETENTION_CONFIG.archivalBatchSize) break;
     }
 
     logger.info('Audit log archival completed', { totalArchived });
     return totalArchived;
   }
 
-  /**
-   * Delete expired entries from archive table
-   *
-   * Returns count of entries deleted
-   */
   async deleteExpiredEntries(): Promise<number> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - AUDIT_RETENTION_CONFIG.totalRetentionDays);
@@ -120,15 +94,11 @@ export class AuditRetentionService {
     return deleted;
   }
 
-  /**
-   * Get retention metrics for monitoring dashboard
-   */
   async getRetentionMetrics(): Promise<RetentionMetrics> {
     const activeMetrics = await this.auditRepository.getActiveTableMetrics();
     const archiveCount = await this.archiveRepository.countArchived();
     const oldestArchived = await this.archiveRepository.getOldestArchivedTimestamp();
 
-    // Calculate next archival date (oldest entry + retention period)
     let nextArchivalDate: Date | null = null;
     if (activeMetrics.oldestEntry) {
       const next = new Date(activeMetrics.oldestEntry);
@@ -136,7 +106,6 @@ export class AuditRetentionService {
       nextArchivalDate = next;
     }
 
-    // Check if active table is approaching warning threshold
     const performanceWarning = activeMetrics.count >= AUDIT_RETENTION_CONFIG.activeTableWarningThreshold;
 
     return {
@@ -156,9 +125,6 @@ export class AuditRetentionService {
     };
   }
 
-  /**
-   * Get current retention policy
-   */
   getRetentionPolicy(): RetentionPolicy {
     return {
       activeRetentionDays: AUDIT_RETENTION_CONFIG.activeRetentionDays,
@@ -169,48 +135,22 @@ export class AuditRetentionService {
     };
   }
 
-  /**
-   * Query logs across both active and archive tables
-   *
-   * If includeArchive is true, queries both tables and merges results
-   */
   async queryAllLogs(
     filters: AuditLogFilters,
     includeArchive: boolean = false
   ): Promise<PaginatedResult<AuditLogEntry>> {
-    // Always query active table
-    const activeResult = await this.auditRepository.findAll(filters);
-
-    // If not including archive, return active results only
     if (!includeArchive) {
-      return activeResult;
+      return this.auditRepository.findAll(filters);
     }
 
-    // Query archive table with same filters
-    const archiveResult = await this.archiveRepository.findArchived(filters);
+    // Fetch full qualifying sets without pagination — mergeAndPaginate applies it after sorting
+    const unpaginatedFilters = this.stripPagination(filters);
+    const [activeResult, archiveResult] = await Promise.all([
+      this.auditRepository.findAll(unpaginatedFilters),
+      this.archiveRepository.findArchived(unpaginatedFilters),
+    ]);
 
-    // Merge results (both are already sorted by timestamp DESC)
-    const mergedItems = [...activeResult.items, ...archiveResult.items]
-      .sort((a, b) => {
-        const aTime = typeof a.timestamp === 'string' ? new Date(a.timestamp).getTime() : a.timestamp.getTime();
-        const bTime = typeof b.timestamp === 'string' ? new Date(b.timestamp).getTime() : b.timestamp.getTime();
-        return bTime - aTime;
-      });
-
-    // Apply pagination to merged results
-    const limit = filters.limit || 50;
-    const offset = filters.offset || 0;
-    const paginatedItems = mergedItems.slice(offset, offset + limit);
-
-    return {
-      items: paginatedItems,
-      pagination: {
-        total: activeResult.pagination.total + archiveResult.pagination.total,
-        limit,
-        offset,
-        hasMore: offset + paginatedItems.length < mergedItems.length,
-      },
-    };
+    return this.mergeAndPaginate(activeResult, archiveResult, filters);
   }
 
   async queryAllLogsForLab(
@@ -218,14 +158,42 @@ export class AuditRetentionService {
     labId: string,
     includeArchive: boolean = false
   ): Promise<PaginatedResult<AuditLogEntry>> {
-    const activeResult = await this.auditRepository.findAllForLab(filters, labId);
-
     if (!includeArchive) {
-      return activeResult;
+      return this.auditRepository.findAllForLab(filters, labId);
     }
 
-    const archiveResult = await this.archiveRepository.findArchived(filters);
+    const unpaginatedFilters = this.stripPagination(filters);
+    const [activeResult, archiveResult] = await Promise.all([
+      this.auditRepository.findAllForLab(unpaginatedFilters, labId),
+      this.archiveRepository.findArchivedForLab(unpaginatedFilters, labId),
+    ]);
 
+    return this.mergeAndPaginate(activeResult, archiveResult, filters);
+  }
+
+  async exportArchivedLogs(dateFrom?: Date, dateTo?: Date): Promise<string> {
+    return this.archiveRepository.exportToJSON(dateFrom, dateTo);
+  }
+
+  async runManualArchival(): Promise<{ archived: number; deleted: number }> {
+    logger.info('Manual archival triggered');
+
+    const archived = await this.archiveOldEntries();
+    const deleted = await this.deleteExpiredEntries();
+
+    return { archived, deleted };
+  }
+
+  private stripPagination(filters: AuditLogFilters): AuditLogFilters {
+    const { limit, offset, ...rest } = filters;
+    return rest;
+  }
+
+  private mergeAndPaginate(
+    activeResult: PaginatedResult<AuditLogEntry>,
+    archiveResult: PaginatedResult<AuditLogEntry>,
+    filters: AuditLogFilters
+  ): PaginatedResult<AuditLogEntry> {
     const mergedItems = [...activeResult.items, ...archiveResult.items]
       .sort((a, b) => {
         const aTime = typeof a.timestamp === 'string' ? new Date(a.timestamp).getTime() : a.timestamp.getTime();
@@ -235,35 +203,17 @@ export class AuditRetentionService {
 
     const limit = filters.limit || 50;
     const offset = filters.offset || 0;
+    const total = activeResult.pagination.total + archiveResult.pagination.total;
     const paginatedItems = mergedItems.slice(offset, offset + limit);
 
     return {
       items: paginatedItems,
       pagination: {
-        total: activeResult.pagination.total + archiveResult.pagination.total,
+        total,
         limit,
         offset,
-        hasMore: offset + paginatedItems.length < mergedItems.length,
+        hasMore: offset + paginatedItems.length < total,
       },
     };
-  }
-
-  /**
-   * Export archived logs to JSON
-   */
-  async exportArchivedLogs(dateFrom?: Date, dateTo?: Date): Promise<string> {
-    return this.archiveRepository.exportToJSON(dateFrom, dateTo);
-  }
-
-  /**
-   * Manual trigger for archival (for testing or admin use)
-   */
-  async runManualArchival(): Promise<{ archived: number; deleted: number }> {
-    logger.info('Manual archival triggered');
-
-    const archived = await this.archiveOldEntries();
-    const deleted = await this.deleteExpiredEntries();
-
-    return { archived, deleted };
   }
 }

@@ -1,20 +1,20 @@
+/**
+ * Audit Archive Repository
+ *
+ * Warm-storage data access for archived audit logs with minimal indexes.
+ */
+
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { PaginatedResult } from '@domain/types/repository';
 import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
 
-/**
- * Explicit column list for audit_log_archive table queries
- */
 const AUDIT_ARCHIVE_COLUMNS = `
   id, user_id, username, action, entity_type, entity_id,
   lab_id, details, timestamp, ip_address, user_agent, archived_at
 `.trim();
 
-/**
- * Database row structure for audit_log_archive table
- */
 interface AuditArchiveRow {
   id: string;
   user_id: string;
@@ -30,18 +30,9 @@ interface AuditArchiveRow {
   archived_at: Date | string;
 }
 
-/**
- * Audit Archive Repository
- *
- * Data access layer for archived audit logs (warm storage).
- * Minimal indexes for basic timestamp/user queries only.
- */
 export class AuditArchiveRepository implements IAuditArchiveRepository {
   constructor(private context: PostgresContext) {}
 
-  /**
-   * Save archived entries (bulk insert)
-   */
   async saveArchived(entries: AuditLogEntry[]): Promise<void> {
     if (entries.length === 0) return;
 
@@ -75,9 +66,6 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     logger.info('Archived audit entries', { count: entries.length });
   }
 
-  /**
-   * Query archived logs (limited filters, slower performance)
-   */
   async findArchived(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>> {
     const whereClauses: string[] = [];
     const params: unknown[] = [];
@@ -142,9 +130,68 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     };
   }
 
-  /**
-   * Count archived entries
-   */
+  async findArchivedForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>> {
+    const whereClauses: string[] = ['lab_id = $1'];
+    const params: unknown[] = [labId];
+    let paramIndex = 2;
+
+    if (filters.username) {
+      whereClauses.push(`username = $${paramIndex++}`);
+      params.push(filters.username);
+    }
+
+    if (filters.action) {
+      whereClauses.push(`action = $${paramIndex++}`);
+      params.push(filters.action);
+    }
+
+    if (filters.entityType) {
+      whereClauses.push(`entity_type = $${paramIndex++}`);
+      params.push(filters.entityType);
+    }
+
+    if (filters.dateFrom) {
+      whereClauses.push(`timestamp >= $${paramIndex++}`);
+      params.push(filters.dateFrom);
+    }
+
+    if (filters.dateTo) {
+      whereClauses.push(`timestamp <= $${paramIndex++}`);
+      params.push(filters.dateTo);
+    }
+
+    const whereClause = 'WHERE ' + whereClauses.join(' AND ');
+
+    const countQuery = `SELECT COUNT(*) as total FROM audit_log_archive ${whereClause}`;
+    const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
+    const total = parseInt(countRow?.total || '0', 10);
+
+    const limit = filters.limit || 50;
+    const offset = filters.offset || 0;
+
+    const dataQuery = `
+      SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive
+      ${whereClause}
+      ORDER BY timestamp DESC
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
+
+    const rows = await this.context.queryMany<AuditArchiveRow>(
+      dataQuery,
+      [...params, limit, offset]
+    );
+
+    return {
+      items: rows.map(this.rowToEntry),
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + rows.length < total,
+      },
+    };
+  }
+
   async countArchived(): Promise<number> {
     const row = await this.context.queryOne<{ total: string }>(
       'SELECT COUNT(*) as total FROM audit_log_archive'
@@ -152,9 +199,6 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     return parseInt(row?.total || '0', 10);
   }
 
-  /**
-   * Get oldest archived entry timestamp
-   */
   async getOldestArchivedTimestamp(): Promise<Date | null> {
     const row = await this.context.queryOne<{ oldest: Date | string | null }>(
       'SELECT MIN(timestamp) as oldest FROM audit_log_archive'
@@ -163,9 +207,6 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     return row.oldest instanceof Date ? row.oldest : new Date(row.oldest);
   }
 
-  /**
-   * Delete archived entries older than specified date
-   */
   async deleteOlderThan(date: Date): Promise<number> {
     const result = await this.context.execute(
       'DELETE FROM audit_log_archive WHERE timestamp < $1',
@@ -174,9 +215,6 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     return result.rowCount ?? 0;
   }
 
-  /**
-   * Export archived logs to JSON string
-   */
   async exportToJSON(dateFrom?: Date, dateTo?: Date): Promise<string> {
     const whereClauses: string[] = [];
     const params: unknown[] = [];
@@ -203,9 +241,6 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     return JSON.stringify(entries, null, 2);
   }
 
-  /**
-   * Convert database row to domain object
-   */
   private rowToEntry(row: AuditArchiveRow): AuditLogEntry {
     return {
       id: row.id,

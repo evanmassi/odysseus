@@ -10,6 +10,7 @@ import type { PaginatedResult } from '@domain/types/repository';
 export interface AuditArchiveRepository {
   saveArchived(entries: AuditLogEntry[]): Promise<void>;
   findArchived(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>>;
+  findArchivedForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>>;
   countArchived(): Promise<number>;
 
   /** Used for retention metrics and cleanup scheduling. */
