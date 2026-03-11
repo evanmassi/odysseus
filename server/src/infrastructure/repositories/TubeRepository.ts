@@ -15,7 +15,7 @@ import {
   calculateQueryFuzzyThreshold,
   shouldSkipFuzzyMatching,
   SearchRankTier,
-} from '@infrastructure/database/searchUtils';
+} from '@infrastructure/database/searchQueryPreprocessing';
 import { logger } from '@infrastructure/logging/logger';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 

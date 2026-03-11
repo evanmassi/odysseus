@@ -1,19 +1,9 @@
 /**
- * Search Enhancement Utilities
+ * Search Query Preprocessing
  *
- * Query preprocessing for laboratory sample search:
- * - Normalization (hyphen handling, punctuation)
- * - Lab-specific synonym expansion
- * - Fuzzy matching configuration
- * - Multi-tier ranking
+ * Normalization, synonym expansion, tsquery building, and fuzzy matching for laboratory sample search.
  */
 
-/**
- * Lab-specific synonym dictionary
- *
- * Maps common variations, abbreviations, and alternate terms
- * to their canonical forms for consistent search results.
- */
 const LAB_SYNONYMS: Record<string, string[]> = {
   // Cell type variations
   'ipsc': ['ipsc', 'ipscs', 'induced pluripotent stem cell', 'induced pluripotent stem cells', 'ips cell', 'ips cells'],
@@ -24,7 +14,7 @@ const LAB_SYNONYMS: Record<string, string[]> = {
   'jurkat': ['jurkat', 'jurkat cell', 'jurkat cells'],
   'pbmc': ['pbmc', 'pbmcs', 'peripheral blood mononuclear cell', 'peripheral blood mononuclear cells'],
 
-  // T cell variations (the specific problem case)
+  // T cell variations
   't cell': ['t cell', 't cells', 't-cell', 't-cells', 'tcell', 'tcells', 't lymphocyte', 't lymphocytes'],
   'car t': ['car t', 'car-t', 'cart', 'car t cell', 'car t cells', 'car-t cell', 'car-t cells', 'chimeric antigen receptor t'],
   'cd4': ['cd4', 'cd4+', 'cd4 t cell', 'cd4 t cells', 'cd4+ t cell', 'cd4+ t cells', 'helper t cell', 'helper t cells'],
@@ -82,11 +72,6 @@ const LAB_SYNONYMS: Record<string, string[]> = {
   'stemcell technologies': ['stemcell technologies', 'stemcell tech', 'stem cell technologies'],
 };
 
-/**
- * Reverse lookup map for fast synonym matching
- *
- * Maps each synonym back to its canonical term.
- */
 const SYNONYM_REVERSE_LOOKUP: Map<string, string> = new Map();
 for (const [canonical, synonyms] of Object.entries(LAB_SYNONYMS)) {
   for (const synonym of synonyms) {
@@ -94,18 +79,6 @@ for (const [canonical, synonyms] of Object.entries(LAB_SYNONYMS)) {
   }
 }
 
-/**
- * Normalize a search query for consistent matching
- *
- * Handles:
- * - Hyphen/dash splitting (t-cells -> t cells)
- * - Smart quote normalization
- * - Excessive whitespace
- * - Special character cleanup
- *
- * @param query - Raw user input
- * @returns Normalized query string
- */
 export function normalizeSearchQuery(query: string): string {
   return query
     .replace(/[-–—−]/g, ' ')
@@ -118,8 +91,6 @@ export function normalizeSearchQuery(query: string): string {
 }
 
 /**
- * Generate alphanumeric variants for cell line identifiers
- *
  * Detects letter↔number boundaries and generates forms with/without
  * punctuation. Handles patterns like MCF7, HEK293, A549, CD4, U2OS.
  *
@@ -127,9 +98,6 @@ export function normalizeSearchQuery(query: string): string {
  * "MCF7" → ["mcf7", "mcf-7", "mcf 7"]
  * "HEK293" → ["hek293", "hek-293", "hek 293"]
  * "human" → ["human"] (no boundaries, unchanged)
- *
- * @param term - Single search term
- * @returns Array of variant forms
  */
 export function generateAlphanumericVariants(term: string): string[] {
   const normalized = term.toLowerCase().trim();
@@ -138,32 +106,26 @@ export function generateAlphanumericVariants(term: string): string[] {
   const variants: Set<string> = new Set();
   variants.add(normalized);
 
-  // Detect letter→number or number→letter boundaries
-  // Pattern: sequence of letters followed by sequence of numbers, or vice versa
   const boundaryPattern = /^([a-z]+)(\d+)$|^(\d+)([a-z]+)$/i;
   const match = normalized.match(boundaryPattern);
 
   if (match) {
-    // Extract the two parts (letters and numbers)
-    const part1 = match[1] || match[3]; // letters or numbers
-    const part2 = match[2] || match[4]; // numbers or letters
+    const part1 = match[1] || match[3];
+    const part2 = match[2] || match[4];
 
-    // Generate variants: collapsed, hyphenated, spaced
-    variants.add(`${part1}${part2}`);      // mcf7
-    variants.add(`${part1}-${part2}`);     // mcf-7
-    variants.add(`${part1} ${part2}`);     // mcf 7
+    variants.add(`${part1}${part2}`);
+    variants.add(`${part1}-${part2}`);
+    variants.add(`${part1} ${part2}`);
   }
 
-  // Also handle already-hyphenated input like "MCF-7"
   if (normalized.includes('-')) {
     const collapsed = normalized.replace(/-/g, '');
     const spaced = normalized.replace(/-/g, ' ');
     variants.add(collapsed);
     variants.add(spaced);
-    variants.add(normalized); // keep original
+    variants.add(normalized);
   }
 
-  // Handle already-spaced input like "MCF 7"
   if (normalized.includes(' ') && /^[a-z]+\s+\d+$|^\d+\s+[a-z]+$/i.test(normalized)) {
     const collapsed = normalized.replace(/\s+/g, '');
     const hyphenated = normalized.replace(/\s+/g, '-');
@@ -174,26 +136,17 @@ export function generateAlphanumericVariants(term: string): string[] {
   return Array.from(variants);
 }
 
-/**
- * Expand a single term with synonyms and alphanumeric variants
- *
- * @param term - Single normalized term
- * @returns Array of equivalent terms (synonyms + variants)
- */
 function expandSingleTerm(term: string): string[] {
   const variants: Set<string> = new Set();
 
-  // Add alphanumeric variants (MCF7 → mcf7, mcf-7, mcf 7)
   for (const variant of generateAlphanumericVariants(term)) {
     variants.add(variant);
   }
 
-  // Check for synonym expansion
   const canonical = SYNONYM_REVERSE_LOOKUP.get(term);
   if (canonical && LAB_SYNONYMS[canonical]) {
     for (const synonym of LAB_SYNONYMS[canonical]) {
       variants.add(synonym);
-      // Also generate alphanumeric variants of synonyms
       for (const synVariant of generateAlphanumericVariants(synonym)) {
         variants.add(synVariant);
       }
@@ -204,8 +157,6 @@ function expandSingleTerm(term: string): string[] {
 }
 
 /**
- * Parse query into concept groups for AND/OR logic
- *
  * Each word/phrase in the query is a "concept" that MUST match (AND).
  * Synonyms and variants within a concept are alternatives (OR).
  *
@@ -214,9 +165,6 @@ function expandSingleTerm(term: string): string[] {
  *   ["human", "homo sapiens", ...],           // concept 1: species
  *   ["t cell", "t-cell", "t lymphocyte", ...] // concept 2: cell type
  * ]
- *
- * @param query - Raw search query
- * @returns Array of concept groups, each containing equivalent terms
  */
 export function parseQueryIntoConcepts(query: string): string[][] {
   const normalized = normalizeSearchQuery(query);
@@ -265,7 +213,6 @@ export function parseQueryIntoConcepts(query: string): string[][] {
     }
   }
 
-  // Remaining single words become individual concepts
   for (let i = 0; i < words.length; i++) {
     if (usedIndices.has(i)) continue;
 
@@ -280,13 +227,8 @@ export function parseQueryIntoConcepts(query: string): string[][] {
 }
 
 /**
- * Expand a search query with synonyms (flat list for highlighting)
- *
- * Returns all terms that could match, used for client-side highlighting.
+ * Flat synonym list for client-side highlighting.
  * For search logic, use parseQueryIntoConcepts() instead.
- *
- * @param query - Normalized query string
- * @returns Array of all matching terms (original + synonyms + variants)
  */
 export function expandWithSynonyms(query: string): string[] {
   const concepts = parseQueryIntoConcepts(query);
@@ -301,22 +243,13 @@ export function expandWithSynonyms(query: string): string[] {
   return Array.from(allTerms);
 }
 
-/**
- * Build PostgreSQL tsquery string from concept groups
- *
- * Uses AND between concepts (must match all), OR within concepts (synonyms).
- * This ensures "Human T-cells" only matches items with BOTH human AND t-cell.
- *
- * @param concepts - Array of concept groups from parseQueryIntoConcepts()
- * @returns PostgreSQL tsquery-compatible string
- */
+/** Uses AND between concepts (must match all), OR within concepts (synonyms). */
 export function buildTsQueryFromConcepts(concepts: string[][]): string {
   if (concepts.length === 0) return '';
 
   const conceptQueries: string[] = [];
 
   for (const synonymGroup of concepts) {
-    // Build OR group for this concept's synonyms/variants
     const termQueries: string[] = [];
 
     for (const term of synonymGroup) {
@@ -341,136 +274,60 @@ export function buildTsQueryFromConcepts(concepts: string[][]): string {
   return conceptQueries.join(' & ');
 }
 
-/**
- * Build PostgreSQL tsquery string from flat term list
- *
- * @deprecated Use buildTsQueryFromConcepts() for proper AND/OR logic
- * @param terms - Array of search terms (may include synonyms)
- * @returns PostgreSQL tsquery-compatible string
- */
-export function buildTsQueryString(terms: string[]): string {
-  const processedTerms: string[] = [];
-
-  for (const term of terms) {
-    const words = term.split(/\s+/).filter(w => w.length > 0);
-    const escapedWords = words.map(word => {
-      const escaped = word.replace(/['"\\:&|!()]/g, '');
-      if (!escaped) return null;
-      return `${escaped}:*`;
-    }).filter(Boolean);
-
-    if (escapedWords.length > 0) {
-      processedTerms.push(escapedWords.join(' & '));
-    }
-  }
-
-  return processedTerms.join(' | ');
-}
-
-/**
- * Search result ranking tiers
- *
- * Used to order results by match quality.
- * Higher tier = better match = shown first.
- */
+/** Higher tier = better match = shown first. */
 export enum SearchRankTier {
-  EXACT_MATCH = 10.0,       // Exact field value match
-  TSVECTOR_HIGH = 5.0,      // High tsvector rank (ts_rank > 0.3)
-  TSVECTOR_MEDIUM = 3.0,    // Medium tsvector rank
-  SYNONYM_MATCH = 2.5,      // Match via synonym expansion
-  FUZZY_MATCH = 2.0,        // Trigram similarity match
-  RESEARCHER_NAME = 1.5,    // Researcher name ILIKE match
-  ILIKE_FALLBACK = 1.0,     // Generic ILIKE substring match
-  PARTIAL_MATCH = 0.5,      // Single word partial match
+  EXACT_MATCH = 10.0,
+  TSVECTOR_HIGH = 5.0,
+  TSVECTOR_MEDIUM = 3.0,
+  SYNONYM_MATCH = 2.5,
+  FUZZY_MATCH = 2.0,
+  RESEARCHER_NAME = 1.5,
+  ILIKE_FALLBACK = 1.0,
+  PARTIAL_MATCH = 0.5,
 }
 
 /**
- * Fuzzy matching thresholds based on term length
- *
- * Scales tolerance with word length:
- * - Short words: stricter matching (fewer false positives)
- * - Long words: more tolerance (typos more likely)
- *
- * @param termLength - Length of the search term
- * @returns Minimum similarity threshold (0-1)
+ * Scales tolerance with word length: shorter words match stricter
+ * to avoid false positives, longer words allow more typo tolerance.
  */
 export function getFuzzyThreshold(termLength: number): number {
-  if (termLength <= 2) {
-    // Very short terms: exact match only
-    return 1.0;
-  } else if (termLength <= 4) {
-    // Short terms: strict matching
-    return 0.6;
-  } else if (termLength <= 6) {
-    // Medium terms: moderate tolerance
-    return 0.4;
-  } else {
-    // Long terms: more forgiving
-    return 0.3;
-  }
+  if (termLength <= 2) return 1.0;
+  if (termLength <= 4) return 0.6;
+  if (termLength <= 6) return 0.4;
+  return 0.3;
 }
 
 /**
- * Calculate appropriate similarity threshold for a query
- *
  * Uses the shortest significant word to determine threshold,
  * since that's the most likely source of false positives.
- *
- * @param query - Full search query
- * @returns Similarity threshold for pg_trgm matching
  */
 export function calculateQueryFuzzyThreshold(query: string): number {
   const words = normalizeSearchQuery(query).split(/\s+/).filter(w => w.length > 1);
   if (words.length === 0) return 0.4;
 
-  // Find shortest significant word
   const shortestLength = Math.min(...words.map(w => w.length));
   return getFuzzyThreshold(shortestLength);
 }
 
-/**
- * Check if a term should be excluded from fuzzy matching
- *
- * Some terms (like numbers, single characters) shouldn't
- * have fuzzy matching applied.
- *
- * @param term - Search term to check
- * @returns true if fuzzy matching should be skipped
- */
+const FUZZY_SKIP_WORDS = new Set(['a', 'an', 'the', 'is', 'at', 'in', 'on', 'to', 'of']);
+
 export function shouldSkipFuzzyMatching(term: string): boolean {
-  // Skip single characters
   if (term.length <= 1) return true;
-
-  // Skip pure numbers (lot numbers, concentrations)
   if (/^\d+(\.\d+)?$/.test(term)) return true;
-
-  // Skip very common short words that would match too much
-  const skipWords = new Set(['a', 'an', 'the', 'is', 'at', 'in', 'on', 'to', 'of']);
-  if (skipWords.has(term.toLowerCase())) return true;
+  if (FUZZY_SKIP_WORDS.has(term.toLowerCase())) return true;
 
   return false;
 }
 
-/**
- * Build SQL for fuzzy matching layer using pg_trgm
- *
- * Creates a similarity-based search that catches typos
- * and near-matches the tsvector layer might miss.
- *
- * @param searchColumns - Columns to apply fuzzy matching to
- * @param paramIndex - Current parameter index (mutated)
- * @returns Object with SQL fragment and threshold value
- */
+/** Catches typos and near-matches the tsvector layer might miss. */
 export function buildFuzzySql(
   searchColumns: string[],
   threshold: number
 ): { conditions: string[]; rankExpression: string } {
-  // Build OR conditions for each column with similarity
   const conditions = searchColumns.map(
     col => `similarity(COALESCE(${col}, ''), $1) > ${threshold}`
   );
 
-  // Build rank expression as max similarity across columns
   const similarities = searchColumns.map(
     col => `similarity(COALESCE(${col}, ''), $1)`
   );
@@ -479,34 +336,3 @@ export function buildFuzzySql(
   return { conditions, rankExpression };
 }
 
-/**
- * Export synonym dictionary for testing/debugging
- */
-export function getSynonymDictionary(): Record<string, string[]> {
-  return { ...LAB_SYNONYMS };
-}
-
-/**
- * Add a custom synonym mapping at runtime
- * Useful for lab-specific terms not in the default dictionary
- *
- * @param canonical - The canonical term
- * @param synonyms - Array of synonyms
- */
-export function addCustomSynonym(canonical: string, synonyms: string[]): void {
-  const normalizedCanonical = canonical.toLowerCase();
-
-  // Add or merge with existing
-  if (LAB_SYNONYMS[normalizedCanonical]) {
-    const existing = new Set(LAB_SYNONYMS[normalizedCanonical]);
-    synonyms.forEach(s => existing.add(s.toLowerCase()));
-    LAB_SYNONYMS[normalizedCanonical] = Array.from(existing);
-  } else {
-    LAB_SYNONYMS[normalizedCanonical] = [normalizedCanonical, ...synonyms.map(s => s.toLowerCase())];
-  }
-
-  // Update reverse lookup
-  for (const synonym of LAB_SYNONYMS[normalizedCanonical]) {
-    SYNONYM_REVERSE_LOOKUP.set(synonym.toLowerCase(), normalizedCanonical);
-  }
-}
