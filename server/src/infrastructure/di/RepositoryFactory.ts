@@ -68,8 +68,7 @@ export class RepositoryFactory {
 
   getResearcherRepository(): ResearcherRepository {
     if (!this.researcherRepository) {
-      const personRepo = this.getPersonRepository();
-      this.researcherRepository = new ResearcherRepositoryImpl(this.postgresContext, personRepo);
+      this.researcherRepository = new ResearcherRepositoryImpl(this.postgresContext);
     }
     return this.researcherRepository;
   }
