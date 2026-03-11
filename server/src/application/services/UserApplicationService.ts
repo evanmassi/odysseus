@@ -1,17 +1,25 @@
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+/**
+ * User Management Service
+ *
+ * Orchestrates user CRUD, authentication, registration, and approval workflows.
+ */
+
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { User } from '@domain/entities/User';
 import { Researcher } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
 import { UserRole } from '@domain/value-objects/UserRole';
-import { AccessControlService } from '@domain/services/AccessControlService';
-import { CreateUserRequest, UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest, UserDto } from '@application/dto/UserDto';
-import { RegisterWithResearcherRequest, PasswordValidator } from '@odysseus/shared-schemas';
+import type { AccessControlService } from '@domain/services/AccessControlService';
+import { UserDto } from '@application/dto/UserDto';
+import type { CreateUserRequest, UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
+import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
+import { PasswordValidator } from '@odysseus/shared-schemas';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -21,7 +29,6 @@ import type { EventBus } from '@application/contracts/EventBus';
 import {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
-  UserLoggedOutEvent,
   UserApprovedEvent,
   UserRejectedEvent,
   UserDeactivatedEvent,
@@ -34,12 +41,6 @@ export type EnrichedPublicUser = ReturnType<User['toPublicData']> & {
   lastName?: string;
 };
 
-/**
- * UserApplicationService - User and authentication use case orchestration
- *
- * Coordinates user management, authentication, and authorization.
- * No business logic - pure orchestration.
- */
 export class UserApplicationService {
   constructor(
     private userRepository: UserRepository,
@@ -53,18 +54,13 @@ export class UserApplicationService {
     private userSessionRepository?: UserSessionRepository
   ) {}
 
-  /**
-   * Create new user
-   */
   async createUser(request: CreateUserRequest, adminApiKey?: string): Promise<UserResponse> {
-    // Check if this is the first user (auto-admin)
     const isFirstUser = await this.userRepository.isEmpty();
     let targetRole: 'system_admin' | 'lab_admin' | 'user' = 'user';
 
     if (isFirstUser) {
       targetRole = 'lab_admin';
     } else {
-      // Subsequent users need admin authorization
       if (!adminApiKey) {
         throw new PermissionError('Admin authorization required to create users');
       }
@@ -78,49 +74,41 @@ export class UserApplicationService {
       targetRole = request.role || 'user';
     }
 
-    // Validate unique username
     if (await this.userRepository.usernameExists(request.username)) {
       throw new ValidationError('Username already exists');
     }
 
-    // Validate unique API key
     if (await this.userRepository.apiKeyExists(request.apiKey)) {
       throw new ValidationError('API key already exists');
     }
 
-    // Create user entity
     const user = User.create(request.username, request.apiKey, isFirstUser);
 
-    // Save to repository
     await this.userRepository.save(user);
 
     return UserDto.toResponse(user);
   }
 
   /**
-   * Register new user with password and approval workflow
-   *
-   * First user: Auto-approved as admin
-   * Subsequent users: Status set to pending (requires admin approval)
+   * First user: auto-approved as admin.
+   * Subsequent users: pending (requires admin approval).
    */
   async registerWithPassword(request: RegisterRequest): Promise<AuthResponse> {
     const isFirstUser = await this.userRepository.isEmpty();
     const targetRole = isFirstUser ? 'admin' : (request.role || 'user');
     const status = isFirstUser ? 'approved' : 'pending';
 
-    // Validate unique username
     const existingUser = await this.userRepository.findByUsername(request.username);
     if (existingUser) {
       throw new ValidationError('Username already exists');
     }
 
-    // Create user with password and approval status
     const user = User.createWithPassword(
       request.username,
       request.password,
       UserRole.create(targetRole),
       undefined, // No researcher link
-      status     // First user = approved, subsequent = pending
+      status
     );
 
     await this.userRepository.save(user);
@@ -128,21 +116,11 @@ export class UserApplicationService {
     return UserDto.toAuthResponse(user);
   }
 
-  /**
-   * Login with username OR email and password
-   *
-   * Validates credentials and checks approval status before issuing tokens.
-   * Only approved users can login.
-   * Accepts either username or email as the identifier.
-   */
+  /** Accepts username or email as the identifier. */
   async login(request: PasswordLoginRequest): Promise<AuthResponse> {
-    // Normalize input (trim whitespace)
     const input = request.username.trim();
-
-    // Determine if input is email or username
     const isEmail = input.includes('@');
 
-    // Find user by email or username
     const user = isEmail
       ? await this.userRepository.findByEmail(input)
       : await this.userRepository.findByUsername(input);
@@ -171,16 +149,12 @@ export class UserApplicationService {
       throw new PermissionError('Account is not approved for access');
     }
 
-    // Update activity
     user.recordActivity();
     await this.userRepository.save(user);
 
     return UserDto.toAuthResponse(user);
   }
 
-  /**
-   * Check if this is first-time setup
-   */
   async isFirstTimeSetup(): Promise<{ isEmpty: boolean; needsSystemAdmin: boolean }> {
     const isEmpty = await this.userRepository.isEmpty();
     const systemAdminCount = await this.userRepository.countByRole('system_admin');
@@ -243,9 +217,6 @@ export class UserApplicationService {
     });
   }
 
-  /**
-   * Get user by ID
-   */
   async getUserById(id: string, requesterApiKey: string): Promise<UserResponse> {
     const requester = await this.getUserByApiKey(requesterApiKey);
     const user = await this.getUserOrThrow(id);
@@ -258,9 +229,6 @@ export class UserApplicationService {
     return UserDto.toResponse(user);
   }
 
-  /**
-   * Update user role
-   */
   async updateUserRole(userId: string, request: UpdateUserRoleRequest, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
     const targetUser = await this.getUserOrThrow(userId);
@@ -273,11 +241,8 @@ export class UserApplicationService {
       throw new PermissionError('Cannot change your own role', { userId: admin.id });
     }
 
-    if (targetUser.isAdmin() && request.role === 'user' && targetUser.labId) {
-      const adminCount = await this.userRepository.countByRoleInLab('lab_admin', targetUser.labId);
-      if (adminCount <= 1) {
-        throw new ValidationError('Cannot remove the last admin user', { adminCount });
-      }
+    if (request.role === 'user') {
+      await this.ensureNotLastAdmin(targetUser, 'demote');
     }
 
     targetUser.changeRole(request.role, admin);
@@ -286,15 +251,9 @@ export class UserApplicationService {
   }
 
   /**
-   * Delete user
-   *
    * Unlinks researcher profile but preserves it for tube history.
    * Cleans up orphaned Person if no other entity references it.
-   *
-   * Resource Assignment Behavior:
-   * - Users with assigned resources (racks/boxes) CANNOT be deleted
-   * - Admin must unassign all resources before deletion
-   * - This prevents orphaned resource assignments
+   * Rejects deletion if user has assigned racks/boxes.
    */
   async deleteUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
@@ -303,17 +262,11 @@ export class UserApplicationService {
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
-    // Prevent admin from deleting themselves
     if (admin.id === targetUser.id) {
       throw new PermissionError('Cannot delete yourself', { userId: admin.id });
     }
 
-    if (targetUser.isAdmin() && targetUser.labId) {
-      const adminCount = await this.userRepository.countByRoleInLab('lab_admin', targetUser.labId);
-      if (adminCount <= 1) {
-        throw new ValidationError('Cannot delete the last admin user', { adminCount });
-      }
-    }
+    await this.ensureNotLastAdmin(targetUser, 'delete');
 
     if (admin.isLabAdmin() && !admin.isSystemAdmin() && admin.labId !== targetUser.labId) {
       throw new PermissionError('Cannot manage users outside your lab', {
@@ -331,7 +284,6 @@ export class UserApplicationService {
         let assignedResourceCount = 0;
         const assignedResources: string[] = [];
 
-        // Check all racks and boxes for assignments to this user
         for (const tank of configData.tanks) {
           for (const rack of tank.racks) {
             if (rack.assignedUserId === targetUser.id) {
@@ -360,19 +312,16 @@ export class UserApplicationService {
       }
     }
 
-    // Capture personId before unlinking for cleanup
     const personId = targetUser.personId;
 
-    // Unlink researcher profile (preserves researcher for tube history)
+    // Preserves researcher for tube history
     if (targetUser.hasResearcherProfile()) {
       targetUser.unlinkResearcher();
       await this.userRepository.save(targetUser);
     }
 
-    // Delete the user account (login access revoked)
     await this.userRepository.delete(userId);
 
-    // Clean up orphaned Person if no Researcher references it
     if (personId && this.personRepository && this.researcherRepository) {
       const researcherWithPerson = await this.researcherRepository.findByPersonId(personId);
       if (!researcherWithPerson) {
@@ -381,21 +330,11 @@ export class UserApplicationService {
     }
   }
 
-  /**
-   * Get current user info
-   */
   async getCurrentUser(apiKey: string): Promise<UserResponse> {
     const user = await this.getUserByApiKey(apiKey);
     return UserDto.toResponse(user);
   }
 
-  // OAuth 2.0 Note: updateActivity() method removed
-  // User activity now tracked implicitly through token refresh patterns
-  // No need for explicit database activity updates
-
-  /**
-   * Helper: Get authenticated user
-   */
   private rejectIfDemoLab(admin: User): void {
     if (admin.isDemo) {
       throw new PermissionError('User management is restricted in the demo environment');
@@ -418,18 +357,58 @@ export class UserApplicationService {
     return user;
   }
 
+  private async ensureNotLastAdmin(user: User, action: string): Promise<void> {
+    if (user.isAdmin() && user.labId) {
+      const adminCount = await this.userRepository.countByRoleInLab('lab_admin', user.labId);
+      if (adminCount <= 1) {
+        throw new ValidationError(`Cannot ${action} the last admin user`, { adminCount });
+      }
+    }
+  }
+
+  private async disableUser(
+    userId: string,
+    adminApiKey: string,
+    action: 'deactivate' | 'suspend',
+    expectedLabId?: string
+  ): Promise<void> {
+    const admin = await this.getUserByApiKey(adminApiKey);
+    await this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
+
+    if (admin.id === userId) {
+      throw new PermissionError(`Cannot ${action} yourself`, { userId: admin.id });
+    }
+
+    const user = await this.getUserOrThrow(userId);
+
+    if (expectedLabId && user.labId !== expectedLabId) {
+      throw new ValidationError('User does not belong to the specified lab');
+    }
+
+    if (action === 'deactivate') {
+      user.deactivate(admin);
+    } else {
+      user.suspend(admin);
+    }
+    await this.userRepository.save(user);
+
+    if (this.userSessionRepository) {
+      await this.userSessionRepository.revokeAllSessions(user.id);
+    }
+
+    if (this.eventBus) {
+      const Event = action === 'deactivate' ? UserDeactivatedEvent : UserSuspendedEvent;
+      await this.eventBus.publish(new Event(
+        user.id,
+        user.username,
+        admin.username,
+        user.labId
+      ));
+    }
+  }
+
   /**
-   * Register user with researcher profile and approval workflow
-   *
-   * Creates both User and Researcher entities atomically.
-   * Auto-generates username from researcher name (firstname.lastname).
-   * Links them via User.researcherId foreign key.
-   *
-   * First user: Auto-approved as admin (first-time setup)
-   * Subsequent users: Status set to pending (requires admin approval)
-   *
-   * @param request - Registration data (password, researcher info - no username)
-   * @returns Created user with linked researcher
    * @throws ValidationError if researcher name exists or password invalid
    */
   async registerWithResearcher(request: RegisterWithResearcherRequest & { inviteCode?: string }, createResearcher: boolean = true): Promise<User> {
@@ -554,33 +533,21 @@ export class UserApplicationService {
   }
 
   /**
-   * Generate unique username from researcher name
-   *
-   * Algorithm:
-   * 1. Try firstname.lastname (e.g., "sarah.johnson")
-   * 2. If taken, try firstname.lastname.2, firstname.lastname.3, etc.
-   *
-   * Always includes full first and last name for admin clarity.
-   *
-   * @param firstName - Researcher first name
-   * @param lastName - Researcher last name
-   * @returns Unique username (guaranteed to not exist in database)
+   * Tries firstname.lastname, then firstname.lastname.2, .3, etc.
+   * Falls back to nanoid suffix if 100 sequential candidates are taken.
    */
   private async generateUsername(firstName: string, lastName: string): Promise<string> {
-    // Sanitize names: lowercase, remove special characters, trim
     const sanitize = (name: string) =>
       name.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
 
     const first = sanitize(firstName);
     const last = sanitize(lastName);
 
-    // Try firstname.lastname
     let candidate = `${first}.${last}`;
     if (!(await this.userRepository.usernameExists(candidate))) {
       return candidate;
     }
 
-    // Try firstname.lastname.number with incrementing counter
     let counter = 2;
     while (counter < 100) {
       candidate = `${first}.${last}.${counter}`;
@@ -590,14 +557,10 @@ export class UserApplicationService {
       counter++;
     }
 
-    // Fallback: use nanoid for guaranteed uniqueness (should never reach here)
     return `${first}.${last}.${nanoid(6)}`;
   }
 
-  /**
-   * Validate password against configured security policy
-   * Uses shared PasswordValidator for consistent validation across client/server
-   */
+  /** Uses shared PasswordValidator for consistent validation across client/server. */
   private async validatePasswordPolicy(password: string): Promise<void> {
     if (!this.storageRepository) {
       throw new Error('StorageRepository is required for password validation');
@@ -612,18 +575,6 @@ export class UserApplicationService {
     }
   }
 
-  /**
-   * Approve pending user (admin only)
-   *
-   * Changes user status from 'pending' to 'approved', allowing login.
-   * Only admins can approve users.
-   *
-   * @param userId - ID of user to approve
-   * @param adminApiKey - Admin's API key for authorization
-   * @throws PermissionError if requester is not admin
-   * @throws NotFoundError if user not found
-   * @throws ValidationError if user is not in pending status
-   */
   async approveUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
     await this.accessControlService.requireCanManageUsers(admin);
@@ -656,18 +607,6 @@ export class UserApplicationService {
     }
   }
 
-  /**
-   * Reject pending user (admin only)
-   *
-   * Changes user status from 'pending' to 'rejected', blocking login.
-   * Rejected users cannot login but remain in database for audit trail.
-   *
-   * @param userId - ID of user to reject
-   * @param adminApiKey - Admin's API key for authorization
-   * @throws PermissionError if requester is not admin
-   * @throws NotFoundError if user not found
-   * @throws ValidationError if user is not in pending status
-   */
   async rejectUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
     await this.accessControlService.requireCanManageUsers(admin);
@@ -677,11 +616,10 @@ export class UserApplicationService {
 
     const username = user.username;
 
-    // Reject user (domain method enforces business rules)
     user.reject(admin);
     await this.userRepository.save(user);
 
-    // Publish event to trigger cleanup of linked researcher/person
+    // Triggers cleanup of linked researcher/person
     if (this.eventBus) {
       await this.eventBus.publish(new UserRejectedEvent(
         userId,
@@ -693,79 +631,13 @@ export class UserApplicationService {
   }
 
   async deactivateUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
-
-    if (admin.id === userId) {
-      throw new PermissionError('Cannot deactivate yourself', { userId: admin.id });
-    }
-
-    const user = await this.getUserOrThrow(userId);
-
-    if (expectedLabId && user.labId !== expectedLabId) {
-      throw new ValidationError('User does not belong to the specified lab');
-    }
-
-    user.deactivate(admin);
-    await this.userRepository.save(user);
-
-    if (this.userSessionRepository) {
-      await this.userSessionRepository.revokeAllSessions(user.id);
-    }
-
-    if (this.eventBus) {
-      await this.eventBus.publish(new UserDeactivatedEvent(
-        user.id,
-        user.username,
-        admin.username,
-        user.labId
-      ));
-    }
+    return this.disableUser(userId, adminApiKey, 'deactivate', expectedLabId);
   }
 
   async suspendUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
-
-    if (admin.id === userId) {
-      throw new PermissionError('Cannot suspend yourself', { userId: admin.id });
-    }
-
-    const user = await this.getUserOrThrow(userId);
-
-    if (expectedLabId && user.labId !== expectedLabId) {
-      throw new ValidationError('User does not belong to the specified lab');
-    }
-
-    user.suspend(admin);
-    await this.userRepository.save(user);
-
-    if (this.userSessionRepository) {
-      await this.userSessionRepository.revokeAllSessions(user.id);
-    }
-
-    if (this.eventBus) {
-      await this.eventBus.publish(new UserSuspendedEvent(
-        user.id,
-        user.username,
-        admin.username,
-        user.labId
-      ));
-    }
+    return this.disableUser(userId, adminApiKey, 'suspend', expectedLabId);
   }
 
-  /**
-   * Get all pending users (admin only)
-   *
-   * Returns list of users awaiting admin approval.
-   * Used by admin panel "Pending Approvals" tab.
-   *
-   * @param adminApiKey - Admin's API key for authorization
-   * @returns Array of pending users
-   * @throws PermissionError if requester is not admin
-   */
   async getPendingUsers(adminApiKey: string): Promise<UserResponse[]> {
     const admin = await this.getUserByApiKey(adminApiKey);
     await this.accessControlService.requireCanManageUsers(admin);
@@ -780,17 +652,7 @@ export class UserApplicationService {
   }
 
   /**
-   * Link existing researcher profile to user account (admin only)
-   *
-   * Allows admins to manually associate a researcher profile with a user account.
-   * Useful for users who registered without creating a researcher profile,
-   * or for linking to existing researcher records.
-   *
-   * @param userId - User ID to link researcher to
-   * @param researcherId - Researcher ID to link
-   * @param adminApiKey - Admin's API key for authorization
-   * @throws NotFoundError if user or researcher not found
-   * @throws PermissionError if requester is not admin
+   * For users who registered without a researcher profile.
    * @throws ValidationError if user already has a linked researcher
    */
   async linkResearcherToUser(userId: string, researcherId: string, adminApiKey: string): Promise<void> {
@@ -816,8 +678,7 @@ export class UserApplicationService {
       });
     }
 
-    // Link researcher to user using User entity's internal state
-    // We need to use the fromData pattern to update researcherId
+    // TODO: User entity lacks a linkResearcher() method; fromData workaround
     const updatedUser = User.fromData({
       ...user.toData(),
       researcherId: researcherId
@@ -825,7 +686,6 @@ export class UserApplicationService {
 
     await this.userRepository.save(updatedUser);
 
-    // Get researcher name for audit
     if (this.personRepository && this.eventBus) {
       const person = await this.personRepository.findById(researcher.personId);
       const researcherName = person ? `${person.firstName} ${person.lastName}` : researcherId;
@@ -842,15 +702,7 @@ export class UserApplicationService {
   }
 
   /**
-   * Unlink researcher profile from user account (admin only)
-   *
-   * Removes the researcher link from a user account while preserving
-   * the researcher record for tube history.
-   *
-   * @param userId - User ID to unlink researcher from
-   * @param adminApiKey - Admin's API key for authorization
-   * @throws NotFoundError if user not found
-   * @throws PermissionError if requester is not admin
+   * Preserves the researcher record for tube history.
    * @throws ValidationError if user has no linked researcher
    */
   async unlinkResearcherFromUser(userId: string, adminApiKey: string): Promise<void> {
@@ -879,7 +731,6 @@ export class UserApplicationService {
     user.unlinkResearcher();
     await this.userRepository.save(user);
 
-    // Publish event
     if (this.eventBus && oldResearcherId) {
       await this.eventBus.publish(new UserUnlinkedFromResearcherEvent(
         userId,
