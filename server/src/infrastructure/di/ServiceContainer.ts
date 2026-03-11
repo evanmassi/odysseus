@@ -18,8 +18,8 @@ import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandH
 import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler, ValidateInviteCodeQueryHandler } from '@application/commands/InviteCodeCommands';
 
 // CQRS Query Handlers
-import { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
-import { GetCurrentStorageQueryHandler, GetStorageForUserQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler } from '@application/queries/StorageQueries';
+import { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import { GetCurrentStorageQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler } from '@application/queries/StorageQueries';
 
 // Event Bus
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
@@ -142,12 +142,10 @@ export class ServiceContainer {
   // CQRS Query Handlers - User Domain
   private checkFirstTimeHandler?: CheckFirstTimeSetupQueryHandler;
   private getUserByIdHandler?: GetUserByIdQueryHandler;
-  private getAllUsersHandler?: GetAllUsersQueryHandler;
   private getUserStatsHandler?: GetUserStatisticsQueryHandler;
   
   // CQRS Query Handlers - Storage Domain
   private getCurrentStorageHandler?: GetCurrentStorageQueryHandler;
-  private getStorageForUserHandler?: GetStorageForUserQueryHandler;
   private getStorageHistoryHandler?: GetStorageHistoryQueryHandler;
   private getStorageByVersionHandler?: GetStorageByVersionQueryHandler;
   private checkStorageHealthHandler?: CheckStorageHealthQueryHandler;
@@ -850,16 +848,6 @@ export class ServiceContainer {
     return this.getUserByIdHandler;
   }
 
-  getGetAllUsersHandler(): GetAllUsersQueryHandler {
-    if (!this.getAllUsersHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.getAllUsersHandler = new GetAllUsersQueryHandler(
-        repositories.users
-      );
-    }
-    return this.getAllUsersHandler;
-  }
-
   getGetUserStatsHandler(): GetUserStatisticsQueryHandler {
     if (!this.getUserStatsHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -880,16 +868,6 @@ export class ServiceContainer {
       );
     }
     return this.getCurrentStorageHandler;
-  }
-
-  getGetStorageForUserHandler(): GetStorageForUserQueryHandler {
-    if (!this.getStorageForUserHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.getStorageForUserHandler = new GetStorageForUserQueryHandler(
-        repositories.storage
-      );
-    }
-    return this.getStorageForUserHandler;
   }
 
   getGetStorageHistoryHandler(): GetStorageHistoryQueryHandler {
@@ -940,7 +918,6 @@ export class ServiceContainer {
         resetPasswordWithTokenHandler: this.getResetPasswordWithTokenHandler(),
         checkFirstTimeHandler: this.getCheckFirstTimeHandler(),
         getUserByIdHandler: this.getGetUserByIdHandler(),
-        getAllUsersHandler: this.getGetAllUsersHandler(),
         getUserStatsHandler: this.getGetUserStatsHandler(),
         sessionService: this.getSessionService(),
         userApplicationService: this.getUserApplicationService(),
@@ -992,7 +969,6 @@ export class ServiceContainer {
     if (!this.storageController) {
       this.storageController = new StorageController({
         getCurrentStorageHandler: this.getGetCurrentStorageHandler(),
-        getStorageForUserHandler: this.getGetStorageForUserHandler(),
         getStorageHistoryHandler: this.getGetStorageHistoryHandler(),
         getStorageByVersionHandler: this.getGetStorageByVersionHandler(),
         checkStorageHealthHandler: this.getGetCheckConfigurationHealthHandler(),

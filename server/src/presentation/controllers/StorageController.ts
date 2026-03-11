@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { logger } from '@infrastructure/logging/logger';
 import {
   GetCurrentStorageQueryHandler,
-  GetStorageForUserQueryHandler,
   GetStorageHistoryQueryHandler,
   GetStorageByVersionQueryHandler,
   CheckStorageHealthQueryHandler
@@ -82,7 +81,6 @@ interface ImportStorageResponse {
 export interface StorageControllerDeps {
   // Query handlers
   getCurrentStorageHandler: GetCurrentStorageQueryHandler;
-  getStorageForUserHandler: GetStorageForUserQueryHandler;
   getStorageHistoryHandler: GetStorageHistoryQueryHandler;
   getStorageByVersionHandler: GetStorageByVersionQueryHandler;
   checkStorageHealthHandler: CheckStorageHealthQueryHandler;
@@ -119,7 +117,6 @@ export interface StorageControllerDeps {
 
 export class StorageController extends BaseController {
   private getCurrentStorageHandler: GetCurrentStorageQueryHandler;
-  private getStorageForUserHandler: GetStorageForUserQueryHandler;
   private getStorageHistoryHandler: GetStorageHistoryQueryHandler;
   private getStorageByVersionHandler: GetStorageByVersionQueryHandler;
   private checkStorageHealthHandler: CheckStorageHealthQueryHandler;
@@ -152,7 +149,6 @@ export class StorageController extends BaseController {
   constructor(deps: StorageControllerDeps) {
     super();
     this.getCurrentStorageHandler = deps.getCurrentStorageHandler;
-    this.getStorageForUserHandler = deps.getStorageForUserHandler;
     this.getStorageHistoryHandler = deps.getStorageHistoryHandler;
     this.getStorageByVersionHandler = deps.getStorageByVersionHandler;
     this.checkStorageHealthHandler = deps.checkStorageHealthHandler;
@@ -208,7 +204,7 @@ export class StorageController extends BaseController {
         return;
       }
 
-      const configuration = await this.getStorageForUserHandler.handle({ labId: user.labId, user });
+      const configuration = await this.getCurrentStorageHandler.handle({ labId: user.labId });
 
       // Use DTO to transform domain entity to API response format
       const configurationResponse = StorageDto.toResponse(configuration);

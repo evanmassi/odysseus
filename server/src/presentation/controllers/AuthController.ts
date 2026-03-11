@@ -26,7 +26,6 @@ import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHand
 // CQRS Queries
 import { CheckFirstTimeSetupQuery, CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
 import { GetUserByIdQuery, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
-import { GetAllUsersQuery, GetAllUsersQueryHandler } from '@application/queries/UserQueries';
 import { GetUserStatisticsQuery, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 
 import { UserRole } from '@domain/value-objects/UserRole';
@@ -64,7 +63,6 @@ export interface AuthControllerDeps {
   // Query handlers
   checkFirstTimeHandler: CheckFirstTimeSetupQueryHandler;
   getUserByIdHandler: GetUserByIdQueryHandler;
-  getAllUsersHandler: GetAllUsersQueryHandler;
   getUserStatsHandler: GetUserStatisticsQueryHandler;
 
   // Services
@@ -100,7 +98,6 @@ export class AuthController {
   private resetPasswordWithTokenHandler: ResetPasswordWithTokenCommandHandler;
   private checkFirstTimeHandler: CheckFirstTimeSetupQueryHandler;
   private getUserByIdHandler: GetUserByIdQueryHandler;
-  private getAllUsersHandler: GetAllUsersQueryHandler;
   private getUserStatsHandler: GetUserStatisticsQueryHandler;
   private sessionService: SessionService;
   private userApplicationService: UserApplicationService;
@@ -127,7 +124,6 @@ export class AuthController {
     this.resetPasswordWithTokenHandler = deps.resetPasswordWithTokenHandler;
     this.checkFirstTimeHandler = deps.checkFirstTimeHandler;
     this.getUserByIdHandler = deps.getUserByIdHandler;
-    this.getAllUsersHandler = deps.getAllUsersHandler;
     this.getUserStatsHandler = deps.getUserStatsHandler;
     this.sessionService = deps.sessionService;
     this.userApplicationService = deps.userApplicationService;
