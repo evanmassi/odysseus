@@ -12,7 +12,7 @@ import type {
   ShareTubeAccessRequest,
   RevokeTubeAccessRequest
 } from '@odysseus/shared-schemas';
-import { ErrorDto } from '@application/dto/ErrorDto';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
@@ -36,7 +36,7 @@ export class TubeLockController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success(result));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to lock tubes', req.requestId);
     }
@@ -57,7 +57,7 @@ export class TubeLockController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success(result));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to unlock tubes', req.requestId);
     }
@@ -79,7 +79,7 @@ export class TubeLockController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success(result));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to share tube access', req.requestId);
     }
@@ -101,7 +101,7 @@ export class TubeLockController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success(result));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to revoke tube access', req.requestId);
     }

@@ -7,7 +7,7 @@
 import { Request, Response } from 'express';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { CreateResearcherRequest } from '@application/dto/ResearcherDto';
-import { ErrorDto } from '@application/dto/ErrorDto';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
@@ -31,13 +31,13 @@ export class ResearcherController extends BaseController {
       if (includeAdminData) {
         const userApiKey = this.extractApiKey(req);
         const researchers = await this.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
-        res.json(ErrorDto.success({ researchers }));
+        res.json(ResponseBuilder.success({ researchers }));
       } else if (visibleOnly) {
         const researchers = await this.researcherApplicationService.getVisibleResearchers(labId);
-        res.json(ErrorDto.success(researchers));
+        res.json(ResponseBuilder.success(researchers));
       } else {
         const researchers = await this.researcherApplicationService.getAllResearchers(labId);
-        res.json(ErrorDto.success(researchers));
+        res.json(ResponseBuilder.success(researchers));
       }
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researchers', req.requestId);
@@ -58,7 +58,7 @@ export class ResearcherController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success({ researchers }));
+      res.json(ResponseBuilder.success({ researchers }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researchers with metadata', req.requestId);
     }
@@ -78,7 +78,7 @@ export class ResearcherController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success({ researchers }));
+      res.json(ResponseBuilder.success({ researchers }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get unlinked researchers', req.requestId);
     }
@@ -91,7 +91,7 @@ export class ResearcherController extends BaseController {
 
       const researcher = await this.researcherApplicationService.getResearcherById(id);
 
-      res.json(ErrorDto.success(researcher));
+      res.json(ResponseBuilder.success(researcher));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researcher', req.requestId);
     }
@@ -113,7 +113,7 @@ export class ResearcherController extends BaseController {
         requestId: req.requestId
       });
 
-      res.status(201).json(ErrorDto.success(researcher));
+      res.status(201).json(ResponseBuilder.success(researcher));
     } catch (error) {
       handleControllerError(error, res, 'Failed to create researcher', req.requestId);
     }
@@ -136,7 +136,7 @@ export class ResearcherController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success(researcher));
+      res.json(ResponseBuilder.success(researcher));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update researcher', req.requestId);
     }
@@ -156,7 +156,7 @@ export class ResearcherController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success({ deleted: true }));
+      res.json(ResponseBuilder.success({ deleted: true }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete researcher', req.requestId);
     }
@@ -177,7 +177,7 @@ export class ResearcherController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success(researcher));
+      res.json(ResponseBuilder.success(researcher));
     } catch (error) {
       handleControllerError(error, res, 'Failed to deactivate researcher', req.requestId);
     }
@@ -198,7 +198,7 @@ export class ResearcherController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success(researcher));
+      res.json(ResponseBuilder.success(researcher));
     } catch (error) {
       handleControllerError(error, res, 'Failed to activate researcher', req.requestId);
     }
@@ -211,7 +211,7 @@ export class ResearcherController extends BaseController {
 
       const stats = await this.researcherApplicationService.getResearcherStats(userApiKey);
       
-      res.json(ErrorDto.success(stats));
+      res.json(ResponseBuilder.success(stats));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researcher stats', req.requestId);
     }
@@ -223,14 +223,13 @@ export class ResearcherController extends BaseController {
       const { query } = req.query;
 
       if (!query || typeof query !== 'string') {
-        const errorResponse = ErrorDto.customError('Search query is required', 400, 'MISSING_QUERY');
-        res.status(errorResponse.status).json(errorResponse.response);
+        res.status(400).json(ResponseBuilder.error('MISSING_QUERY', 'Search query is required'));
         return;
       }
 
       const researchers = await this.researcherApplicationService.searchResearchers(query);
 
-      res.json(ErrorDto.success(researchers));
+      res.json(ResponseBuilder.success(researchers));
     } catch (error) {
       handleControllerError(error, res, 'Failed to search researchers', req.requestId);
     }
@@ -243,7 +242,7 @@ export class ResearcherController extends BaseController {
 
       const result = await this.researcherApplicationService.getResearcherTubeCount(id);
 
-      res.json(ErrorDto.success(result));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researcher tube count', req.requestId);
     }

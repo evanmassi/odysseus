@@ -21,10 +21,10 @@ export class AdminConfigController {
 
   async getSecurityConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const securityConfig = await this.deps.configRepository.getSecurityConfig();
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         config: securityConfig
       });
       res.status(200).json(response);
@@ -39,7 +39,7 @@ export class AdminConfigController {
 
   async updateSecurityConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const adminUser = req.user;
 
       if (!adminUser) {
@@ -65,7 +65,7 @@ export class AdminConfigController {
         changes: Object.keys(updates)
       });
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         config: updatedConfig
       });
       res.status(200).json(response);
@@ -76,7 +76,7 @@ export class AdminConfigController {
 
   async getMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const labId = req.user?.labId;
       if (!labId) {
         res.status(400).json(ResponseBuilder.error('LAB_REQUIRED', 'Lab context required for metrics'));
@@ -84,7 +84,7 @@ export class AdminConfigController {
       }
       const metrics = await this.deps.configRepository.getSystemMetrics(labId);
 
-      const response = ResponseBuilder.withTiming(startTime, metrics);
+      const response = ResponseBuilder.success(metrics);
       res.status(200).json(response);
 
       logger.debug('System metrics retrieved', {
@@ -97,11 +97,11 @@ export class AdminConfigController {
 
   async getUserStatistics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const query = new GetUserStatisticsQuery();
       const stats = await this.deps.getUserStatsHandler.handle(query);
 
-      const response = ResponseBuilder.withTiming(startTime, { statistics: stats });
+      const response = ResponseBuilder.success({ statistics: stats });
       res.status(200).json(response);
     } catch (error) {
       next(error);

@@ -7,7 +7,7 @@
 import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequest } from '@application/dto/TubeDto';
-import { ErrorDto } from '@application/dto/ErrorDto';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
@@ -41,7 +41,7 @@ export class TubeController extends BaseController {
 
         // Use 207 Multi-Status for partial success, 201 for full success
         const statusCode = result.success ? 201 : 207;
-        res.status(statusCode).json(ErrorDto.success({
+        res.status(statusCode).json(ResponseBuilder.success({
           success: result.success,
           created: result.created,
           failed: result.failed
@@ -57,7 +57,7 @@ export class TubeController extends BaseController {
           requestId: req.requestId
         });
 
-        res.status(201).json(ErrorDto.success(tube));
+        res.status(201).json(ResponseBuilder.success(tube));
       }
     } catch (error) {
       handleControllerError(error, res, 'Failed to create tube(s)', req.requestId);
@@ -72,7 +72,7 @@ export class TubeController extends BaseController {
       
       const tube = await this.tubeApplicationService.getTubeById(id, authenticatedUser);
       
-      res.json(ErrorDto.success(tube));
+      res.json(ResponseBuilder.success(tube));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get tube', req.requestId);
     }
@@ -86,7 +86,7 @@ export class TubeController extends BaseController {
       
       const tubes = await this.tubeApplicationService.getAllTubes(authenticatedUser, searchRequest);
       
-      res.json(ErrorDto.success(tubes));
+      res.json(ResponseBuilder.success(tubes));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get tubes', req.requestId);
     }
@@ -107,7 +107,7 @@ export class TubeController extends BaseController {
         requestId: req.requestId
       });
       
-      res.json(ErrorDto.success(tube));
+      res.json(ResponseBuilder.success(tube));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update tube', req.requestId);
     }
@@ -127,7 +127,7 @@ export class TubeController extends BaseController {
         requestId: req.requestId
       });
       
-      res.json(ErrorDto.success({ deleted: true }));
+      res.json(ResponseBuilder.success({ deleted: true }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete tube', req.requestId);
     }
@@ -148,7 +148,7 @@ export class TubeController extends BaseController {
         requestId: req.requestId
       });
       
-      res.json(ErrorDto.success(result));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to bulk update tubes', req.requestId);
     }
@@ -169,7 +169,7 @@ export class TubeController extends BaseController {
         requestId: req.requestId
       });
 
-      res.json(ErrorDto.success(result));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to bulk delete tubes', req.requestId);
     }
@@ -188,7 +188,7 @@ export class TubeController extends BaseController {
         authenticatedUser
       );
       
-      res.json(ErrorDto.success(tubes));
+      res.json(ResponseBuilder.success(tubes));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get tubes by location', req.requestId);
     }
@@ -201,8 +201,7 @@ export class TubeController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
 
       if (!query || typeof query !== 'string') {
-        const errorResponse = ErrorDto.customError('Search query is required', 400, 'MISSING_QUERY');
-        res.status(errorResponse.status).json(errorResponse.response);
+        res.status(400).json(ResponseBuilder.error('MISSING_QUERY', 'Search query is required'));
         return;
       }
 
@@ -215,7 +214,7 @@ export class TubeController extends BaseController {
         authenticatedUser
       );
 
-      res.json(ErrorDto.success(tubes));
+      res.json(ResponseBuilder.success(tubes));
     } catch (error) {
       handleControllerError(error, res, 'Failed to search tubes', req.requestId);
     }
@@ -228,7 +227,7 @@ export class TubeController extends BaseController {
 
       const stats = await this.tubeApplicationService.getStats(authenticatedUser);
 
-      res.json(ErrorDto.success(stats));
+      res.json(ResponseBuilder.success(stats));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get tube statistics', req.requestId);
     }

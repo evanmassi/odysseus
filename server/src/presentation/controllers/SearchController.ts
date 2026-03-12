@@ -6,7 +6,7 @@
 
 import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
-import { ErrorDto } from '@application/dto/ErrorDto';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import type { TubeResponse } from '@application/dto/TubeDto';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
@@ -83,10 +83,7 @@ export class SearchController extends BaseController {
         }
       };
 
-      res.json({
-        success: true,
-        data: result
-      });
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       logger.error('Search failed:', error);
       handleControllerError(error, res, 'Failed to perform advanced search');
@@ -100,8 +97,7 @@ export class SearchController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
 
       if (!query || typeof query !== 'string') {
-        const errorResponse = ErrorDto.customError('Query parameter "q" is required', 400, 'MISSING_QUERY');
-        res.status(errorResponse.status).json(errorResponse.response);
+        res.status(400).json(ResponseBuilder.error('MISSING_QUERY', 'Query parameter "q" is required'));
         return;
       }
 
@@ -136,8 +132,7 @@ export class SearchController extends BaseController {
   }
 
   private buildSearchResponse(tubes: TubeResponse[], query: string, limit: number, offset: number) {
-    return {
-      success: true,
+    return ResponseBuilder.success({
       data: tubes,
       pagination: {
         total: tubes.length,
@@ -150,7 +145,7 @@ export class SearchController extends BaseController {
         searchTime: Date.now(),
         totalMatches: tubes.length
       }
-    };
+    });
   }
 
   /** Groups tubes by identical properties including box location */

@@ -53,19 +53,16 @@ export class PublicAuthController {
 
   async checkFirstTime(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const query = new CheckFirstTimeSetupQuery();
       const result = await this.deps.checkFirstTimeHandler.handle(query);
 
       logger.info('First-time setup check completed', { isFirstTime: result.isFirstTime });
 
-      res.status(200).json({
-        success: true,
-        data: {
-          isFirstTime: result.isFirstTime,
-          needsSystemAdmin: result.needsSystemAdmin
-        }
-      });
+      res.status(200).json(ResponseBuilder.success({
+        isFirstTime: result.isFirstTime,
+        needsSystemAdmin: result.needsSystemAdmin
+      }));
     } catch (error) {
       next(error);
     }
@@ -74,7 +71,7 @@ export class PublicAuthController {
   /** One-time system admin creation. */
   async setupSystemAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { username, password, email, firstName, lastName, setupKey, department, position } = req.body;
 
       const command: CreateSystemAdminCommand = { username, password, email, firstName, lastName, setupKey, department, position };
@@ -86,7 +83,7 @@ export class PublicAuthController {
       const ipAddress = req.ip || req.socket.remoteAddress;
       const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         user: user.toPublicData(),
         tokens: authResult.tokens,
       });
@@ -98,7 +95,7 @@ export class PublicAuthController {
 
   async getPasswordRequirements(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const securityConfig = await this.deps.configRepository.getSecurityConfig();
 
       const passwordRequirements = {
@@ -109,10 +106,7 @@ export class PublicAuthController {
 
       logger.info('Password requirements retrieved');
 
-      res.status(200).json({
-        success: true,
-        data: passwordRequirements
-      });
+      res.status(200).json(ResponseBuilder.success(passwordRequirements));
     } catch (error) {
       next(error);
     }
@@ -120,7 +114,7 @@ export class PublicAuthController {
 
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { username, password, role = 'admin' } = req.body;
 
       const command: CreateUserCommand = {
@@ -142,7 +136,7 @@ export class PublicAuthController {
       const ipAddress = req.ip || req.socket.remoteAddress;
       const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         user: user.toPublicData(),
         tokens: authResult.tokens
       });
@@ -158,7 +152,7 @@ export class PublicAuthController {
    */
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { username, password } = req.body;
 
       const command: LoginCommand = { username, password };
@@ -203,7 +197,7 @@ export class PublicAuthController {
           }
         };
 
-        const response = ResponseBuilder.withTiming(startTime, passwordChangeResponse);
+        const response = ResponseBuilder.success(passwordChangeResponse);
         res.status(200).json(response);
         return;
       }
@@ -218,7 +212,7 @@ export class PublicAuthController {
       const ipAddress = req.ip || req.socket.remoteAddress;
       const enhancedResult = await this.deps.sessionService.createTokenPair(result.user, userAgent, ipAddress);
 
-      const response = ResponseBuilder.withTiming(startTime, enhancedResult);
+      const response = ResponseBuilder.success(enhancedResult);
       res.status(200).json(response);
     } catch (error) {
       await recordFailedLogin(req);
@@ -228,7 +222,7 @@ export class PublicAuthController {
 
   async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
@@ -239,7 +233,7 @@ export class PublicAuthController {
       try {
         const refreshResult = await this.deps.sessionService.refreshAccessToken(refreshToken);
 
-        const response = ResponseBuilder.withTiming(startTime, refreshResult);
+        const response = ResponseBuilder.success(refreshResult);
         res.status(200).json(response);
 
         logger.info('Access token refreshed successfully');
@@ -259,7 +253,7 @@ export class PublicAuthController {
    */
   async registerWithResearcher(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
 
       const validatedData = registerWithResearcherSchema.parse(req.body);
       const inviteCode = req.body.inviteCode as string | undefined;
@@ -300,7 +294,7 @@ export class PublicAuthController {
         const ipAddress = req.ip || req.socket.remoteAddress;
         const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
-        const response = ResponseBuilder.withTiming(startTime, {
+        const response = ResponseBuilder.success({
           user: user.toPublicData(),
           tokens: authResult.tokens,
           status: 'approved',
@@ -311,7 +305,7 @@ export class PublicAuthController {
         return;
       }
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         user: user.toPublicData(),
         status: 'pending',
         message: 'Account created. Awaiting administrator approval.'
@@ -328,10 +322,7 @@ export class PublicAuthController {
       const { token } = req.body;
 
       if (!token) {
-        res.status(400).json({
-          success: false,
-          error: 'Verification token is required'
-        });
+        res.status(400).json(ResponseBuilder.error('MISSING_TOKEN', 'Verification token is required'));
         return;
       }
 
@@ -346,11 +337,7 @@ export class PublicAuthController {
         });
       }
 
-      res.status(200).json({
-        success: true,
-        message: 'Email verified successfully. You can now login.',
-        data: { emailVerified: true }
-      });
+      res.status(200).json(ResponseBuilder.success({ emailVerified: true }));
     } catch (error) {
       next(error);
     }
@@ -361,10 +348,7 @@ export class PublicAuthController {
       const { usernameOrEmail } = req.body;
 
       if (!usernameOrEmail) {
-        res.status(400).json({
-          success: false,
-          message: 'Username or email is required'
-        });
+        res.status(400).json(ResponseBuilder.error('MISSING_FIELD', 'Username or email is required'));
         return;
       }
 
@@ -374,10 +358,9 @@ export class PublicAuthController {
 
       if (!user) {
         // Opaque response prevents user enumeration
-        res.status(200).json({
-          success: true,
+        res.status(200).json(ResponseBuilder.success({
           message: 'If an account exists with that information, a verification email has been sent.'
-        });
+        }));
         return;
       }
 
@@ -389,22 +372,20 @@ export class PublicAuthController {
         usernameOrEmail
       });
 
-      res.status(200).json({
-        success: true,
+      res.status(200).json(ResponseBuilder.success({
         message: 'Verification email sent. Please check your inbox.'
-      });
+      }));
     } catch (error) {
       logger.error('Error in public resend verification', { error });
-      res.status(200).json({
-        success: true,
+      res.status(200).json(ResponseBuilder.success({
         message: 'If an account exists with that information, a verification email has been sent.'
-      });
+      }));
     }
   }
 
   async resetPasswordWithToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { token, newPassword } = req.body;
 
       if (!token || !newPassword) {
@@ -419,7 +400,7 @@ export class PublicAuthController {
 
       logger.info('Password reset completed with token');
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'Password reset successfully. You can now login with your new password.'
       });
@@ -436,7 +417,7 @@ export class PublicAuthController {
    */
   async forceChangePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
 
       const parseResult = forceChangePasswordRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
@@ -479,7 +460,7 @@ export class PublicAuthController {
       const ipAddress = req.ip || req.socket.remoteAddress;
       const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         ...authResult,
         message: 'Password changed successfully'
       });
@@ -499,12 +480,7 @@ export class PublicAuthController {
       const authHeader = req.headers.authorization;
 
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(200).json({
-          success: true,
-          data: {
-            isAuthenticated: false
-          }
-        });
+        res.status(200).json(ResponseBuilder.success({ isAuthenticated: false }));
         return;
       }
 
@@ -513,13 +489,10 @@ export class PublicAuthController {
       const result = await this.deps.sessionService.validateSessionWithActivity(token, { updateActivity: false });
 
       if (!result.success) {
-        res.status(200).json({
-          success: true,
-          data: {
-            isAuthenticated: false,
-            reason: result.code
-          }
-        });
+        res.status(200).json(ResponseBuilder.success({
+          isAuthenticated: false,
+          reason: result.code
+        }));
         return;
       }
 
@@ -527,13 +500,10 @@ export class PublicAuthController {
       const config = await this.deps.configRepository.getSecurityConfig();
 
       if (!session) {
-        res.status(200).json({
-          success: true,
-          data: {
-            isAuthenticated: false,
-            reason: 'SESSION_NOT_FOUND'
-          }
-        });
+        res.status(200).json(ResponseBuilder.success({
+          isAuthenticated: false,
+          reason: 'SESSION_NOT_FOUND'
+        }));
         return;
       }
 
@@ -546,16 +516,13 @@ export class PublicAuthController {
       const timeUntilAbsoluteTimeoutMs = Math.max(0, (session.createdAt.getTime() + absoluteTimeoutMs) - now);
       const showWarning = timeUntilIdleTimeoutMs <= warningMs && timeUntilIdleTimeoutMs > 0;
 
-      res.status(200).json({
-        success: true,
-        data: {
-          isAuthenticated: true,
-          timeUntilIdleTimeoutMs,
-          timeUntilAbsoluteTimeoutMs,
-          showWarning,
-          idleWarningMinutes: config.idleWarningMinutes
-        }
-      });
+      res.status(200).json(ResponseBuilder.success({
+        isAuthenticated: true,
+        timeUntilIdleTimeoutMs,
+        timeUntilAbsoluteTimeoutMs,
+        showWarning,
+        idleWarningMinutes: config.idleWarningMinutes
+      }));
     } catch (error) {
       logger.error('Session info error', { error });
       next(error);

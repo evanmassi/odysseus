@@ -73,10 +73,7 @@ export class AuthController {
       }
 
       if (user.isDemo) {
-        res.status(403).json({
-          success: false,
-          error: 'Password change is not available in demo mode'
-        });
+        res.status(403).json(ResponseBuilder.forbidden('Password change is not available in demo mode'));
         return;
       }
 
@@ -174,13 +171,10 @@ export class AuthController {
         });
       }
 
-      res.status(200).json({
-        success: true,
+      res.status(200).json(ResponseBuilder.success({
         message: 'Verification email sent. Check your inbox.',
-        data: {
-          expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
-        }
-      });
+        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+      }));
     } catch (error) {
       next(error);
     }
@@ -203,13 +197,10 @@ export class AuthController {
         email = person?.email || null;
       }
 
-      res.status(200).json({
-        success: true,
-        data: {
-          emailVerified: req.user.emailVerified,
-          email
-        }
-      });
+      res.status(200).json(ResponseBuilder.success({
+        emailVerified: req.user.emailVerified,
+        email
+      }));
     } catch (error) {
       next(error);
     }

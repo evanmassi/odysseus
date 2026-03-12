@@ -1,11 +1,16 @@
 /**
  * Controller Error Handler
  *
- * Centralizes error handling for all controllers with type-safe unknown handling.
+ * Single entry point for mapping caught errors to HTTP responses.
+ * Domain errors map to appropriate status codes; unknown errors become 500s.
  */
 
 import { Response } from 'express';
-import { ErrorDto } from '@application/dto/ErrorDto';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+import { DomainError } from '@domain/errors/DomainError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { PermissionError } from '@domain/errors/PermissionError';
 import { logger } from '@infrastructure/logging/logger';
 
 function isZodError(value: unknown): value is { name: 'ZodError'; errors: unknown[] } {
@@ -34,16 +39,29 @@ export function handleControllerError(
   });
 
   if (isZodError(error)) {
-    res.status(400).json({
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Invalid request data',
-        details: error.errors
-      }
-    });
+    res.status(400).json(ResponseBuilder.validationError('Invalid request data', error.errors));
     return;
   }
 
-  const errorResponse = ErrorDto.fromDomainError(err);
-  res.status(errorResponse.status).json(errorResponse.response);
+  if (err instanceof ValidationError) {
+    res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', err.message, err.context || {}));
+    return;
+  }
+
+  if (err instanceof NotFoundError) {
+    res.status(404).json(ResponseBuilder.error('NOT_FOUND', err.message, err.context || {}));
+    return;
+  }
+
+  if (err instanceof PermissionError) {
+    res.status(403).json(ResponseBuilder.error('PERMISSION_DENIED', err.message, err.context || {}));
+    return;
+  }
+
+  if (err instanceof DomainError) {
+    res.status(400).json(ResponseBuilder.error('DOMAIN_ERROR', err.message, err.context || {}));
+    return;
+  }
+
+  res.status(500).json(ResponseBuilder.internalError());
 }

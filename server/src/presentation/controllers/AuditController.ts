@@ -32,7 +32,7 @@ export class AuditController {
   /** GET /api/admin/audit */
   async getAuditLog(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const filters = this.parseAuditFilters(req.query);
 
       const user = req.user;
@@ -42,7 +42,7 @@ export class AuditController {
         ? await this.auditService.getAuditLogForLab(filters, user.labId!)
         : await this.auditService.getAuditLog(filters);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         entries: result.items,
         pagination: result.pagination,
       });
@@ -63,7 +63,7 @@ export class AuditController {
   /** GET /api/admin/audit/entity/:entityType/:entityId */
   async getEntityHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { entityType, entityId } = req.params;
 
       if (!entityType || !entityId) {
@@ -73,7 +73,7 @@ export class AuditController {
 
       const entries = await this.auditService.getEntityHistory(entityId, entityType);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         entries,
         entityType,
         entityId,
@@ -95,11 +95,11 @@ export class AuditController {
   /** GET /api/admin/audit/statistics */
   async getStatistics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
 
       const stats = await this.auditService.getStatistics();
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         statistics: stats,
       });
 
@@ -121,11 +121,11 @@ export class AuditController {
         return;
       }
 
-      const startTime = Date.now();
+
 
       const metrics = await this.retentionService.getRetentionMetrics();
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         metrics,
       });
 
@@ -147,11 +147,11 @@ export class AuditController {
         return;
       }
 
-      const startTime = Date.now();
+
 
       const policy = this.retentionService.getRetentionPolicy();
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         policy,
       });
 
@@ -173,7 +173,7 @@ export class AuditController {
         return;
       }
 
-      const startTime = Date.now();
+
 
       logger.info('Manual archival triggered', {
         requestedBy: req.user?.username,
@@ -181,7 +181,7 @@ export class AuditController {
 
       const result = await this.retentionService.runManualArchival();
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         archived: result.archived,
         deleted: result.deleted,
         message: `Successfully archived ${result.archived} entries and deleted ${result.deleted} expired entries`,
@@ -236,7 +236,7 @@ export class AuditController {
 
   async getLabAuditLog(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { labId } = req.params;
       const filters = this.parseAuditFilters(req.query);
       const includeArchive = req.query.includeArchive === 'true';
@@ -245,7 +245,7 @@ export class AuditController {
         ? await this.retentionService.queryAllLogsForLab(filters, labId, true)
         : await this.auditService.getAuditLogForLab(filters, labId);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         entries: result.items,
         pagination: result.pagination,
         includeArchive,
@@ -266,7 +266,7 @@ export class AuditController {
   /** GET /api/admin/audit/search */
   async searchAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const filters = this.parseAuditFilters(req.query);
       const includeArchive = req.query.includeArchive === 'true';
 
@@ -277,7 +277,7 @@ export class AuditController {
         ? await this.retentionService.queryAllLogsForLab(filters, user.labId!, includeArchive)
         : await this.retentionService.queryAllLogs(filters, includeArchive);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         entries: result.items,
         pagination: result.pagination,
         includeArchive,

@@ -1,108 +1,69 @@
 /**
  * Standardized API Response Builder
  *
- * Static factory methods for constructing consistent response objects.
+ * Produces the canonical response shapes that match the client's
+ * successEnvelopeSchema and errorEnvelopeSchema in shared-schemas.
  */
 
-import { randomUUID } from 'crypto';
-import type {
-  ApiResponse,
-  ApiResponseMeta,
-} from '@presentation/types/apiResponseTypes';
+export interface SuccessResponse<T = unknown> {
+  success: true;
+  data: T;
+}
+
+export interface ErrorResponse {
+  success: false;
+  error: string;
+  code?: string;
+  details?: unknown;
+  timestamp: string;
+}
 
 export class ResponseBuilder {
-  private static readonly API_VERSION = '1.0.0';
-
-  static success<T>(
-    data: T,
-    meta?: Partial<ApiResponseMeta>
-  ): ApiResponse<T> {
+  static success<T>(data: T): SuccessResponse<T> {
     return {
       success: true,
       data,
-      meta: {
-        timestamp: new Date().toISOString(),
-        requestId: randomUUID(),
-        version: ResponseBuilder.API_VERSION,
-        ...meta
-      }
     };
   }
 
   static error(
     code: string,
     message: string,
-    details?: unknown,
-    field?: string,
-    meta?: Partial<ApiResponseMeta>
-  ): ApiResponse {
+    details?: unknown
+  ): ErrorResponse {
     return {
       success: false,
-      error: {
-        code,
-        message,
-        details,
-        field
-      },
-      meta: {
-        timestamp: new Date().toISOString(),
-        requestId: randomUUID(),
-        version: ResponseBuilder.API_VERSION,
-        ...meta
-      }
+      error: message,
+      code,
+      details,
+      timestamp: new Date().toISOString(),
     };
   }
 
-  static withTiming<T>(
-    startTime: number,
-    data: T,
-    meta?: Partial<ApiResponseMeta>
-  ): ApiResponse<T> {
-    const executionTime = Date.now() - startTime;
-
-    return ResponseBuilder.success(data, {
-      ...meta,
-      executionTime
-    });
+  static validationError(message: string, details?: unknown): ErrorResponse {
+    return ResponseBuilder.error('VALIDATION_ERROR', message, details);
   }
 
-  static validationError(
-    field: string,
-    message: string,
-    value?: unknown
-  ): ApiResponse {
-    return ResponseBuilder.error(
-      'VALIDATION_FAILED',
-      message,
-      { value },
-      field
-    );
-  }
-
-  static unauthorized(message: string = 'Authentication required'): ApiResponse {
+  static unauthorized(message: string = 'Authentication required'): ErrorResponse {
     return ResponseBuilder.error('UNAUTHORIZED', message);
   }
 
-  static forbidden(message: string = 'Access forbidden'): ApiResponse {
+  static forbidden(message: string = 'Access forbidden'): ErrorResponse {
     return ResponseBuilder.error('FORBIDDEN', message);
   }
 
-  static notFound(resource: string, identifier?: string): ApiResponse {
-    const message = identifier
+  static notFound(resource: string, identifier?: string): ErrorResponse {
+    const msg = identifier
       ? `${resource} not found: ${identifier}`
       : `${resource} not found`;
-
-    return ResponseBuilder.error('NOT_FOUND', message);
+    return ResponseBuilder.error('NOT_FOUND', msg);
   }
 
-  static conflict(message: string, details?: unknown): ApiResponse {
+  static conflict(message: string, details?: unknown): ErrorResponse {
     return ResponseBuilder.error('CONFLICT', message, details);
   }
 
-  static internalError(
-    message: string = 'Internal server error',
-    details?: unknown
-  ): ApiResponse {
+  static internalError(message: string = 'Internal server error', details?: unknown): ErrorResponse {
     return ResponseBuilder.error('INTERNAL_SERVER_ERROR', message, details);
   }
 }

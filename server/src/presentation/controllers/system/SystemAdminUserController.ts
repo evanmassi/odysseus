@@ -19,7 +19,7 @@ export class SystemAdminUserController {
 
   async activateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -29,7 +29,7 @@ export class SystemAdminUserController {
 
       await this.deps.userApplicationService.approveUser(userId, adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'User activated successfully'
       });
@@ -42,7 +42,7 @@ export class SystemAdminUserController {
 
   async deactivateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { labId, userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -52,7 +52,7 @@ export class SystemAdminUserController {
 
       await this.deps.userApplicationService.deactivateUser(userId, adminApiKey, labId);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'User deactivated successfully'
       });
@@ -65,7 +65,7 @@ export class SystemAdminUserController {
 
   async suspendUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { labId, userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -75,7 +75,7 @@ export class SystemAdminUserController {
 
       await this.deps.userApplicationService.suspendUser(userId, adminApiKey, labId);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'User suspended successfully'
       });
@@ -88,7 +88,7 @@ export class SystemAdminUserController {
 
   async deleteUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -98,7 +98,7 @@ export class SystemAdminUserController {
 
       await this.deps.userApplicationService.deleteUser(userId, adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'User deleted successfully'
       });

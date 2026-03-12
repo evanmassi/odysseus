@@ -33,7 +33,7 @@ export class AdminUserController {
 
   async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const labId = req.user?.labId;
       if (!labId) {
         res.status(403).json(ResponseBuilder.error('LAB_REQUIRED', 'Lab context required'));
@@ -42,7 +42,7 @@ export class AdminUserController {
 
       const enrichedUsers = await this.deps.userApplicationService.getEnrichedLabUsers(labId);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         users: enrichedUsers
       });
       res.status(200).json(response);
@@ -123,7 +123,7 @@ export class AdminUserController {
 
   async getPendingUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const adminApiKey = req.user?.apiKey;
 
       if (!adminApiKey) {
@@ -132,7 +132,7 @@ export class AdminUserController {
 
       const pendingUsers = await this.deps.userApplicationService.getPendingUsers(adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         users: pendingUsers
       });
 
@@ -149,7 +149,7 @@ export class AdminUserController {
 
   async approveUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -159,7 +159,7 @@ export class AdminUserController {
 
       await this.deps.userApplicationService.approveUser(userId, adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'User approved successfully'
       });
@@ -177,7 +177,7 @@ export class AdminUserController {
 
   async rejectUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -187,7 +187,7 @@ export class AdminUserController {
 
       await this.deps.userApplicationService.rejectUser(userId, adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'User rejected successfully'
       });
@@ -205,7 +205,7 @@ export class AdminUserController {
 
   async deactivateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -215,7 +215,7 @@ export class AdminUserController {
 
       await this.deps.userApplicationService.deactivateUser(userId, adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'User deactivated successfully'
       });
@@ -228,7 +228,7 @@ export class AdminUserController {
 
   async activateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -238,7 +238,7 @@ export class AdminUserController {
 
       await this.deps.userApplicationService.approveUser(userId, adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'User activated successfully'
       });
@@ -254,7 +254,7 @@ export class AdminUserController {
    */
   async linkResearcherToUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const { researcherId, newResearcher } = req.body;
       const adminApiKey = req.user?.apiKey;
@@ -283,7 +283,7 @@ export class AdminUserController {
 
       await this.deps.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         researcherId: targetResearcherId,
         message: 'Researcher linked to user successfully'
@@ -304,7 +304,7 @@ export class AdminUserController {
   /** Preserves researcher record for tube history while removing user link. */
   async unlinkResearcherFromUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -314,7 +314,7 @@ export class AdminUserController {
 
       await this.deps.userApplicationService.unlinkResearcherFromUser(userId, adminApiKey);
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'Researcher unlinked from user successfully'
       });
@@ -336,7 +336,7 @@ export class AdminUserController {
    */
   async adminResetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const { newPassword, requirePasswordChange = true } = req.body;
       const adminUser = req.user;
@@ -359,7 +359,7 @@ export class AdminUserController {
         requirePasswordChange
       });
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         success: true,
         message: 'Password reset successfully'
       });
@@ -373,7 +373,7 @@ export class AdminUserController {
   /** Generates 15-minute one-time reset link for user to set own password. */
   async generatePasswordResetToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const startTime = Date.now();
+
       const { userId } = req.params;
       const adminUser = req.user;
 
@@ -392,7 +392,7 @@ export class AdminUserController {
         targetUserId: userId
       });
 
-      const response = ResponseBuilder.withTiming(startTime, {
+      const response = ResponseBuilder.success({
         resetUrl: result.resetUrl,
         expiresAt: result.expiresAt.toISOString(),
         message: 'Password reset token generated. Share this link with the user.'

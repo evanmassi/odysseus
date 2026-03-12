@@ -42,10 +42,7 @@ export class PersonController extends BaseController {
       const user = this.getAuthenticatedUser(req);
 
       if (user.isDemo) {
-        res.status(403).json({
-          success: false,
-          error: 'Profile changes are not available in demo mode'
-        });
+        res.status(403).json(ResponseBuilder.forbidden('Profile changes are not available in demo mode'));
         return;
       }
 

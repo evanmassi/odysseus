@@ -8,7 +8,7 @@ import { Request, Response } from 'express';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { ErrorDto } from '@application/dto/ErrorDto';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import type { LookupCategory } from '@domain/entities/LookupValue';
@@ -38,7 +38,7 @@ export class LookupValueController extends BaseController {
       const labId = this.extractLabId(req);
       const category = req.params.category as LookupCategory;
       const values = await this.lookupValueService.getActiveByCategory(labId, category);
-      res.json(ErrorDto.success(values));
+      res.json(ResponseBuilder.success(values));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get active lookup values', req.requestId);
     }
@@ -50,7 +50,7 @@ export class LookupValueController extends BaseController {
       const labId = this.extractLabId(req);
       const category = req.params.category as LookupCategory;
       const values = await this.lookupValueService.getAllByCategory(labId, category);
-      res.json(ErrorDto.success(values));
+      res.json(ResponseBuilder.success(values));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get all lookup values', req.requestId);
     }
@@ -63,7 +63,7 @@ export class LookupValueController extends BaseController {
       const labId = this.extractLabId(req);
       const { category, value } = req.body;
       const created = await this.lookupValueService.create(labId, category, value);
-      res.status(201).json(ErrorDto.success(created));
+      res.status(201).json(ResponseBuilder.success(created));
     } catch (error) {
       handleControllerError(error, res, 'Failed to create lookup value', req.requestId);
     }
@@ -77,7 +77,7 @@ export class LookupValueController extends BaseController {
       const { id } = req.params;
       const { newValue } = req.body;
       const updated = await this.lookupValueService.rename(labId, id, newValue);
-      res.json(ErrorDto.success(updated));
+      res.json(ResponseBuilder.success(updated));
     } catch (error) {
       handleControllerError(error, res, 'Failed to rename lookup value', req.requestId);
     }
@@ -90,7 +90,7 @@ export class LookupValueController extends BaseController {
       const labId = this.extractLabId(req);
       const { id } = req.params;
       await this.lookupValueService.delete(labId, id);
-      res.json(ErrorDto.success({ deleted: true }));
+      res.json(ResponseBuilder.success({ deleted: true }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete lookup value', req.requestId);
     }
