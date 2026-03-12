@@ -13,9 +13,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "moduleResolution": "node",
+"moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
       "@domain/*": ["src/domain/*"],
