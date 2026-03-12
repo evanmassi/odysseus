@@ -1,3 +1,9 @@
+/**
+ * Service Container
+ *
+ * CQRS-based dependency injection container with lazy singleton initialization.
+ */
+
 import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -7,7 +13,7 @@ import { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
 import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
-// CQRS CQRS Command Handlers - Storage Management
+// CQRS Command Handlers - Storage Management
 import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
 import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
 import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
@@ -58,8 +64,6 @@ import { PresenceService } from '@application/services/PresenceService';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { ValidationService } from '@domain/services/ValidationService';
-import { StorageChangeService } from '@domain/services/StorageChangeService';
-
 // Infrastructure services
 import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
 import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
@@ -75,12 +79,6 @@ import { SessionService } from '@application/contracts/SessionService';
 import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { EmailService } from '@domain/services/EmailService';
 
-/**
- * ServiceContainer - CQRS-based Dependency injection container
- * 
- * Manages all CQRS handlers, controllers, and infrastructure dependencies.
- * Clean separation of concerns with proper dependency injection.
- */
 export class ServiceContainer {
   private repositoryFactory: RepositoryFactory;
   private configurationService: ConfigurationService;
@@ -111,7 +109,7 @@ export class ServiceContainer {
   private updateUserSettingsHandler?: UpdateUserSettingsCommandHandler;
   private getUserSettingsHandler?: GetUserSettingsQueryHandler;
 
-  // CQRS Command Handlers - Storage Management (new)
+  // CQRS Command Handlers - Storage Management
   private addTankHandler?: AddTankCommandHandler;
   private updateTankHandler?: UpdateTankCommandHandler;
   private deleteTankHandler?: DeleteTankCommandHandler;
@@ -431,10 +429,6 @@ export class ServiceContainer {
     return this.importStorageHandler;
   }
 
-  getStorageChangeService(): StorageChangeService {
-    return new StorageChangeService();
-  }
-
   getUpdateBoxPositionDisplayHandler(): UpdateBoxPositionDisplayCommandHandler {
     if (!this.updateBoxPositionDisplayHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -492,7 +486,7 @@ export class ServiceContainer {
     return this.getUserSettingsHandler;
   }
 
-  // STORAGE MANAGEMENT COMMAND HANDLERS (new CQRS endpoints)
+  // STORAGE MANAGEMENT COMMAND HANDLERS
 
   getAddTankHandler(): AddTankCommandHandler {
     if (!this.addTankHandler) {
@@ -1165,7 +1159,7 @@ export class ServiceContainer {
     return this.researcherApprovalEventHandler;
   }
 
-  // LEGACY SERVICES (for non-migrated controllers)
+  // DOMAIN SERVICES
 
   getTubePositionService(): TubePositionService {
     if (!this.tubePositionService) {
@@ -1254,7 +1248,7 @@ export class ServiceContainer {
     return this.userApplicationService;
   }
 
-  // LEGACY CONTROLLERS (to be migrated)
+  // CONTROLLERS
 
   getTubeController(): TubeController {
     if (!this.tubeController) {
@@ -1303,15 +1297,4 @@ export class ServiceContainer {
     return this.authMiddleware;
   }
 
-  // CONTROLLER REGISTRY (for legacy route system)
-
-  getControllers() {
-    return {
-      tubes: this.getTubeController(),
-      auth: this.getAuthController(),
-      researchers: this.getResearcherController(),
-      configurations: this.getStorageController(),
-      person: this.getPersonController()
-    };
-  }
 }
