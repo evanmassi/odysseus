@@ -9,9 +9,10 @@ import { DomainEvent } from '@domain/events/DomainEvent';
 export class VerificationEmailSentEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
-    public readonly email: string
+    public readonly email: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -33,9 +34,10 @@ export class VerificationEmailSentEvent extends DomainEvent {
 export class EmailVerifiedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
-    public readonly email: string
+    public readonly email: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -57,9 +59,10 @@ export class EmailVerifiedEvent extends DomainEvent {
 export class VerificationEmailResentEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
-    public readonly email: string
+    public readonly email: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {

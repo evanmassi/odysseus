@@ -367,7 +367,8 @@ export class DeleteUserCommandHandler {
         command.userId,
         username,
         racksAffected,
-        boxesAffected
+        boxesAffected,
+        user.labId!
       );
       await this.eventBus.publish(cascadeEvent);
     }

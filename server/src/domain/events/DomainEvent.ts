@@ -10,7 +10,7 @@ export abstract class DomainEvent {
   public readonly eventId: string;
   public readonly occurredOn: Date;
   public readonly version: number;
-  public labId?: string;
+  public readonly labId?: string;
 
   constructor(version: number = 1, labId?: string) {
     this.eventId = randomUUID();

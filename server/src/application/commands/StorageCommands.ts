@@ -466,9 +466,9 @@ export class UpdateResourceLabelCommandHandler {
           command.rackId,
           rackName,
           oldLabel,
-          newLabel
+          newLabel,
+          command.labId
         );
-        event.labId = command.labId;
         await this.eventBus.publish(event);
       } else {
         const event = new BoxLabelUpdatedEvent(
@@ -480,9 +480,9 @@ export class UpdateResourceLabelCommandHandler {
           command.boxId!,
           boxName,
           oldLabel,
-          newLabel
+          newLabel,
+          command.labId
         );
-        event.labId = command.labId;
         await this.eventBus.publish(event);
       }
     }

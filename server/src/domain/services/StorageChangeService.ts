@@ -42,7 +42,7 @@ export interface ConfigurationChangeSummary {
 }
 
 export class StorageChangeService {
-  detectChanges(oldConfig: Storage, newConfig: Storage, userId: string): DomainEvent[] {
+  detectChanges(oldConfig: Storage, newConfig: Storage, userId: string, labId: string): DomainEvent[] {
     const events: DomainEvent[] = [];
     const summary: ConfigurationChangeSummary = {
       tanksAdded: 0,
@@ -61,7 +61,8 @@ export class StorageChangeService {
       events.push(new LabNameChangedEvent(
         userId,
         oldConfig.systemSettings.labName,
-        newConfig.systemSettings.labName
+        newConfig.systemSettings.labName,
+        labId
       ));
       summary.labNameChanged = true;
     }
@@ -76,7 +77,7 @@ export class StorageChangeService {
     // Detect added tanks
     for (const newTank of newTanks) {
       if (!oldTankMap.has(newTank.id)) {
-        events.push(new TankAddedEvent(userId, newTank.id, newTank.name));
+        events.push(new TankAddedEvent(userId, newTank.id, newTank.name, labId));
         summary.tanksAdded++;
       }
     }
@@ -84,7 +85,7 @@ export class StorageChangeService {
     // Detect deleted tanks
     for (const oldTank of oldTanks) {
       if (!newTankMap.has(oldTank.id)) {
-        events.push(new TankDeletedEvent(userId, oldTank.id, oldTank.name));
+        events.push(new TankDeletedEvent(userId, oldTank.id, oldTank.name, labId));
         summary.tanksDeleted++;
       }
     }
@@ -120,19 +121,19 @@ export class StorageChangeService {
         }
 
         if (tankChanges.length > 0) {
-          events.push(new TankUpdatedEvent(userId, newTank.id, newTank.name, tankChanges));
+          events.push(new TankUpdatedEvent(userId, newTank.id, newTank.name, tankChanges, labId));
           summary.tanksUpdated++;
         }
 
         // Detect rack-level changes within this tank
-        const rackEvents = this.detectRackChanges(oldTank.racks, newTank.racks, newTank.id, newTank.name, userId, summary);
+        const rackEvents = this.detectRackChanges(oldTank.racks, newTank.racks, newTank.id, newTank.name, userId, summary, labId);
         events.push(...rackEvents);
       }
     }
 
     // Add summary event if any changes detected
     if (events.length > 0) {
-      events.push(new StorageUpdatedEvent(userId, summary));
+      events.push(new StorageUpdatedEvent(userId, summary, labId));
     }
 
     return events;
@@ -144,7 +145,8 @@ export class StorageChangeService {
     tankId: string,
     tankName: string,
     userId: string,
-    summary: ConfigurationChangeSummary
+    summary: ConfigurationChangeSummary,
+    labId: string
   ): DomainEvent[] {
     const events: DomainEvent[] = [];
 
@@ -154,7 +156,7 @@ export class StorageChangeService {
     // Detect added racks
     for (const newRack of newRacks) {
       if (!oldRackMap.has(newRack.id)) {
-        events.push(new RackAddedEvent(userId, tankId, tankName, newRack.id, newRack.name));
+        events.push(new RackAddedEvent(userId, tankId, tankName, newRack.id, newRack.name, labId));
         summary.racksAdded++;
       }
     }
@@ -162,7 +164,7 @@ export class StorageChangeService {
     // Detect deleted racks
     for (const oldRack of oldRacks) {
       if (!newRackMap.has(oldRack.id)) {
-        events.push(new RackDeletedEvent(userId, tankId, tankName, oldRack.id, oldRack.name));
+        events.push(new RackDeletedEvent(userId, tankId, tankName, oldRack.id, oldRack.name, labId));
         summary.racksDeleted++;
       }
     }
@@ -190,18 +192,18 @@ export class StorageChangeService {
         }
 
         if (rackChanges.length > 0) {
-          events.push(new RackUpdatedEvent(userId, tankId, tankName, newRack.id, newRack.name, rackChanges));
+          events.push(new RackUpdatedEvent(userId, tankId, tankName, newRack.id, newRack.name, rackChanges, labId));
           summary.racksUpdated++;
         }
 
         // Detect assignedUserId changes
         const assignmentEvents = this.detectRackAssignmentChanges(
-          oldRack, newRack, tankId, tankName, userId
+          oldRack, newRack, tankId, tankName, userId, labId
         );
         events.push(...assignmentEvents);
 
         // Detect box-level changes within this rack
-        const boxEvents = this.detectBoxChanges(oldRack.boxes, newRack.boxes, tankId, tankName, newRack.id, newRack.name, userId, summary);
+        const boxEvents = this.detectBoxChanges(oldRack.boxes, newRack.boxes, tankId, tankName, newRack.id, newRack.name, userId, summary, labId);
         events.push(...boxEvents);
       }
     }
@@ -214,7 +216,8 @@ export class StorageChangeService {
     newRack: Rack,
     tankId: string,
     tankName: string,
-    userId: string
+    userId: string,
+    labId: string
   ): DomainEvent[] {
     const events: DomainEvent[] = [];
     const oldAssigned = oldRack.assignedUserId;
@@ -229,22 +232,22 @@ export class StorageChangeService {
     if (oldAssigned && !newAssigned) {
       events.push(new RackUnassignedEvent(
         userId, tankId, tankName, newRack.id, newRack.name,
-        oldAssigned, '' // Username not available here, will be resolved by client
+        oldAssigned, '', labId
       ));
     }
     // Rack was assigned (didn't have user, now does)
     else if (!oldAssigned && newAssigned) {
       events.push(new RackAssignedEvent(
         userId, tankId, tankName, newRack.id, newRack.name,
-        newAssigned, '' // Username not available here, will be resolved by client
+        newAssigned, '', labId
       ));
     }
     // Rack was reassigned (different user)
     else if (oldAssigned && newAssigned && oldAssigned !== newAssigned) {
       events.push(new RackReassignedEvent(
         userId, tankId, tankName, newRack.id, newRack.name,
-        oldAssigned, '', // Previous username
-        newAssigned, ''  // New username
+        oldAssigned, '',
+        newAssigned, '', labId
       ));
     }
 
@@ -259,7 +262,8 @@ export class StorageChangeService {
     rackId: string,
     rackName: string,
     userId: string,
-    summary: ConfigurationChangeSummary
+    summary: ConfigurationChangeSummary,
+    labId: string
   ): DomainEvent[] {
     const events: DomainEvent[] = [];
 
@@ -269,7 +273,7 @@ export class StorageChangeService {
     // Detect added boxes
     for (const newBox of newBoxes) {
       if (!oldBoxMap.has(newBox.name)) {
-        events.push(new BoxAddedEvent(userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name));
+        events.push(new BoxAddedEvent(userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name, labId));
         summary.boxesAdded++;
       }
     }
@@ -277,7 +281,7 @@ export class StorageChangeService {
     // Detect deleted boxes
     for (const oldBox of oldBoxes) {
       if (!newBoxMap.has(oldBox.name)) {
-        events.push(new BoxDeletedEvent(userId, tankId, tankName, rackId, rackName, oldBox.name, oldBox.name));
+        events.push(new BoxDeletedEvent(userId, tankId, tankName, rackId, rackName, oldBox.name, oldBox.name, labId));
         summary.boxesDeleted++;
       }
     }
@@ -314,13 +318,13 @@ export class StorageChangeService {
         }
 
         if (boxChanges.length > 0) {
-          events.push(new BoxUpdatedEvent(userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name, boxChanges));
+          events.push(new BoxUpdatedEvent(userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name, boxChanges, labId));
           summary.boxesUpdated++;
         }
 
         // Detect assignedUserId changes
         const assignmentEvents = this.detectBoxAssignmentChanges(
-          oldBox, newBox, tankId, tankName, rackId, rackName, userId
+          oldBox, newBox, tankId, tankName, rackId, rackName, userId, labId
         );
         events.push(...assignmentEvents);
       }
@@ -336,7 +340,8 @@ export class StorageChangeService {
     tankName: string,
     rackId: string,
     rackName: string,
-    userId: string
+    userId: string,
+    labId: string
   ): DomainEvent[] {
     const events: DomainEvent[] = [];
     const oldAssigned = oldBox.assignedUserId;
@@ -351,22 +356,22 @@ export class StorageChangeService {
     if (oldAssigned && !newAssigned) {
       events.push(new BoxUnassignedEvent(
         userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name,
-        oldAssigned, '' // Username not available here, will be resolved by client
+        oldAssigned, '', labId
       ));
     }
     // Box was assigned (didn't have user, now does)
     else if (!oldAssigned && newAssigned) {
       events.push(new BoxAssignedEvent(
         userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name,
-        newAssigned, '' // Username not available here, will be resolved by client
+        newAssigned, '', labId
       ));
     }
     // Box was reassigned (different user)
     else if (oldAssigned && newAssigned && oldAssigned !== newAssigned) {
       events.push(new BoxReassignedEvent(
         userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name,
-        oldAssigned, '', // Previous username
-        newAssigned, ''  // New username
+        oldAssigned, '',
+        newAssigned, '', labId
       ));
     }
 

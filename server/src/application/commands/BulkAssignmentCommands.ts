@@ -99,9 +99,9 @@ export class BulkUnassignResourcesCommandHandler {
       command.fromUserId,
       fromUser.username,
       racksAffected,
-      boxesAffected
+      boxesAffected,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
 
     return { racksAffected, boxesAffected };
@@ -186,9 +186,9 @@ export class BulkReassignResourcesCommandHandler {
       command.toUserId,
       toUser.username,
       racksAffected,
-      boxesAffected
+      boxesAffected,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
 
     return { racksAffected, boxesAffected };

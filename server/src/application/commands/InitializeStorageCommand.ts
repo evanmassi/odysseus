@@ -135,7 +135,8 @@ export class InitializeStorageCommandHandler {
         boxesUpdated: 0,
         boxesDeleted: 0,
         labNameChanged: true
-      }
+      },
+      command.labId
     ));
   }
 }

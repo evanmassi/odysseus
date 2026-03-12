@@ -120,7 +120,8 @@ export class AddRacksCommandHandler {
         command.tankId,
         tank.name,
         rackIdStr,
-        rackName
+        rackName,
+        command.labId
       ));
     }
 
@@ -135,7 +136,6 @@ export class AddRacksCommandHandler {
     currentConfig.applyPersistedVersion(newVersion);
 
     for (const event of events) {
-      event.labId = command.labId;
       await this.eventBus.publish(event);
     }
 
@@ -219,9 +219,9 @@ export class UpdateRackCommandHandler {
       tank.name,
       command.rackId,
       configData.tanks[tankIndex].racks[rackIndex].name,
-      changes
+      changes,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
   }
 }
@@ -259,9 +259,9 @@ export class DeleteRackCommandHandler {
       command.tankId,
       tankName,
       command.rackId,
-      rackName
+      rackName,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
   }
 }
@@ -355,9 +355,9 @@ export class AssignRackCommandHandler {
         previousUserId,
         previousUsername,
         command.assignedUserId,
-        assignedUser!.username
+        assignedUser!.username,
+        command.labId
       );
-      event.labId = command.labId;
       await this.eventBus.publish(event);
     } else if (command.assignedUserId) {
       const event = new RackAssignedEvent(
@@ -367,9 +367,9 @@ export class AssignRackCommandHandler {
         command.rackId,
         rack.name,
         command.assignedUserId,
-        assignedUser!.username
+        assignedUser!.username,
+        command.labId
       );
-      event.labId = command.labId;
       await this.eventBus.publish(event);
     } else {
       const event = new RackUnassignedEvent(
@@ -379,9 +379,9 @@ export class AssignRackCommandHandler {
         command.rackId,
         rack.name,
         previousUserId!,
-        previousUsername
+        previousUsername,
+        command.labId
       );
-      event.labId = command.labId;
       await this.eventBus.publish(event);
     }
   }

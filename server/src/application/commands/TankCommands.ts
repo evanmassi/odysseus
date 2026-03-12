@@ -91,9 +91,9 @@ export class AddTankCommandHandler {
     const event = new TankAddedEvent(
       command.userId,
       tankId,
-      command.name
+      command.name,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
 
     return { tankId };
@@ -167,9 +167,9 @@ export class UpdateTankCommandHandler {
       command.userId,
       command.tankId,
       configData.tanks[tankIndex].name,
-      changes
+      changes,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
   }
 }
@@ -204,9 +204,9 @@ export class DeleteTankCommandHandler {
     const event = new TankDeletedEvent(
       command.userId,
       command.tankId,
-      tankName
+      tankName,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
   }
 }

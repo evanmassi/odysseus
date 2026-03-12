@@ -140,7 +140,8 @@ export class AddBoxesCommandHandler {
         command.rackId,
         rack.name,
         boxName,
-        boxName
+        boxName,
+        command.labId
       ));
 
       letterIndex++;
@@ -157,7 +158,6 @@ export class AddBoxesCommandHandler {
     currentConfig.applyPersistedVersion(newVersion);
 
     for (const event of events) {
-      event.labId = command.labId;
       await this.eventBus.publish(event);
     }
 
@@ -264,9 +264,9 @@ export class UpdateBoxCommandHandler {
       rack.name,
       boxIdUpper,
       boxData.name,
-      changes
+      changes,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
   }
 }
@@ -308,9 +308,9 @@ export class DeleteBoxCommandHandler {
       command.rackId,
       rackName,
       command.boxId.toUpperCase(),
-      boxName
+      boxName,
+      command.labId
     );
-    event.labId = command.labId;
     await this.eventBus.publish(event);
   }
 }
@@ -411,9 +411,9 @@ export class AssignBoxCommandHandler {
         previousUserId,
         previousUsername,
         command.assignedUserId,
-        assignedUser!.username
+        assignedUser!.username,
+        command.labId
       );
-      event.labId = command.labId;
       await this.eventBus.publish(event);
     } else if (command.assignedUserId) {
       const event = new BoxAssignedEvent(
@@ -425,9 +425,9 @@ export class AssignBoxCommandHandler {
         boxIdUpper,
         box.name,
         command.assignedUserId,
-        assignedUser!.username
+        assignedUser!.username,
+        command.labId
       );
-      event.labId = command.labId;
       await this.eventBus.publish(event);
     } else {
       const event = new BoxUnassignedEvent(
@@ -439,9 +439,9 @@ export class AssignBoxCommandHandler {
         boxIdUpper,
         box.name,
         previousUserId!,
-        previousUsername
+        previousUsername,
+        command.labId
       );
-      event.labId = command.labId;
       await this.eventBus.publish(event);
     }
   }

@@ -65,7 +65,7 @@ export class SendVerificationEmailCommandHandler {
       user.username
     );
 
-    const event = new VerificationEmailSentEvent(user.id, person.email);
+    const event = new VerificationEmailSentEvent(user.id, person.email, user.labId);
     await this.eventBus.publish(event);
   }
 }
@@ -89,7 +89,7 @@ export class VerifyEmailCommandHandler {
     const person = user.personId ? await this.personRepository.findById(user.personId) : null;
     const email = person?.email || 'unknown';
 
-    const event = new EmailVerifiedEvent(user.id, email);
+    const event = new EmailVerifiedEvent(user.id, email, user.labId);
     await this.eventBus.publish(event);
 
     return user;
@@ -136,7 +136,7 @@ export class ResendVerificationEmailCommandHandler {
       user.username
     );
 
-    const event = new VerificationEmailResentEvent(user.id, person.email);
+    const event = new VerificationEmailResentEvent(user.id, person.email, user.labId);
     await this.eventBus.publish(event);
   }
 }

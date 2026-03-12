@@ -21,9 +21,10 @@ export class StorageUpdatedEvent extends DomainEvent {
       boxesUpdated: number;
       boxesDeleted: number;
       labNameChanged: boolean;
-    }
+    },
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -40,9 +41,10 @@ export class TankUpdatedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string,
-    public readonly changes: FieldChange[]
+    public readonly changes: FieldChange[],
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -58,9 +60,10 @@ export class TankAddedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly tankId: string,
-    public readonly tankName: string
+    public readonly tankName: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -76,9 +79,10 @@ export class TankDeletedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly tankId: string,
-    public readonly tankName: string
+    public readonly tankName: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -96,9 +100,10 @@ export class RackAddedEvent extends DomainEvent {
     public readonly tankId: string,
     public readonly tankName: string,
     public readonly rackId: string,
-    public readonly rackName: string
+    public readonly rackName: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -116,9 +121,10 @@ export class RackDeletedEvent extends DomainEvent {
     public readonly tankId: string,
     public readonly tankName: string,
     public readonly rackId: string,
-    public readonly rackName: string
+    public readonly rackName: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -137,9 +143,10 @@ export class RackUpdatedEvent extends DomainEvent {
     public readonly tankName: string,
     public readonly rackId: string,
     public readonly rackName: string,
-    public readonly changes: FieldChange[]
+    public readonly changes: FieldChange[],
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -159,9 +166,10 @@ export class BoxAddedEvent extends DomainEvent {
     public readonly rackId: string,
     public readonly rackName: string,
     public readonly boxId: string,
-    public readonly boxName: string
+    public readonly boxName: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -181,9 +189,10 @@ export class BoxDeletedEvent extends DomainEvent {
     public readonly rackId: string,
     public readonly rackName: string,
     public readonly boxId: string,
-    public readonly boxName: string
+    public readonly boxName: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -204,9 +213,10 @@ export class BoxUpdatedEvent extends DomainEvent {
     public readonly rackName: string,
     public readonly boxId: string,
     public readonly boxName: string,
-    public readonly changes: FieldChange[]
+    public readonly changes: FieldChange[],
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -222,9 +232,10 @@ export class LabNameChangedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly oldName: string,
-    public readonly newName: string
+    public readonly newName: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -244,9 +255,10 @@ export class RackAssignedEvent extends DomainEvent {
     public readonly rackId: string,
     public readonly rackName: string,
     public readonly assignedUserId: string,
-    public readonly assignedUsername: string
+    public readonly assignedUsername: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -266,9 +278,10 @@ export class RackUnassignedEvent extends DomainEvent {
     public readonly rackId: string,
     public readonly rackName: string,
     public readonly previousUserId: string,
-    public readonly previousUsername: string
+    public readonly previousUsername: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -290,9 +303,10 @@ export class RackReassignedEvent extends DomainEvent {
     public readonly previousUserId: string,
     public readonly previousUsername: string,
     public readonly newUserId: string,
-    public readonly newUsername: string
+    public readonly newUsername: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -314,9 +328,10 @@ export class BoxAssignedEvent extends DomainEvent {
     public readonly boxId: string,
     public readonly boxName: string,
     public readonly assignedUserId: string,
-    public readonly assignedUsername: string
+    public readonly assignedUsername: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -338,9 +353,10 @@ export class BoxUnassignedEvent extends DomainEvent {
     public readonly boxId: string,
     public readonly boxName: string,
     public readonly previousUserId: string,
-    public readonly previousUsername: string
+    public readonly previousUsername: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -364,9 +380,10 @@ export class BoxReassignedEvent extends DomainEvent {
     public readonly previousUserId: string,
     public readonly previousUsername: string,
     public readonly newUserId: string,
-    public readonly newUsername: string
+    public readonly newUsername: string,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -386,9 +403,10 @@ export class RackLabelUpdatedEvent extends DomainEvent {
     public readonly rackId: string,
     public readonly rackName: string,
     public readonly oldLabel: string | undefined,
-    public readonly newLabel: string | undefined
+    public readonly newLabel: string | undefined,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -410,9 +428,10 @@ export class BoxLabelUpdatedEvent extends DomainEvent {
     public readonly boxId: string,
     public readonly boxName: string,
     public readonly oldLabel: string | undefined,
-    public readonly newLabel: string | undefined
+    public readonly newLabel: string | undefined,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -430,9 +449,10 @@ export class BulkResourcesUnassignedEvent extends DomainEvent {
     public readonly fromUserId: string,
     public readonly fromUsername: string,
     public readonly racksAffected: number,
-    public readonly boxesAffected: number
+    public readonly boxesAffected: number,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -452,9 +472,10 @@ export class BulkResourcesReassignedEvent extends DomainEvent {
     public readonly toUserId: string,
     public readonly toUsername: string,
     public readonly racksAffected: number,
-    public readonly boxesAffected: number
+    public readonly boxesAffected: number,
+    labId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {

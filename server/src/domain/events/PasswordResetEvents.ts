@@ -10,9 +10,10 @@ export class PasswordResetByAdminEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly adminUserId: string,
-    public readonly requirePasswordChange: boolean
+    public readonly requirePasswordChange: boolean,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -36,9 +37,10 @@ export class PasswordResetTokenGeneratedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly adminUserId: string,
-    public readonly expiresAt: Date
+    public readonly expiresAt: Date,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -60,9 +62,10 @@ export class PasswordResetTokenGeneratedEvent extends DomainEvent {
 
 export class PasswordResetCompletedEvent extends DomainEvent {
   constructor(
-    public readonly userId: string
+    public readonly userId: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
