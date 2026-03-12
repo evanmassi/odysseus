@@ -1,3 +1,9 @@
+/**
+ * Researcher Controller
+ *
+ * HTTP handlers for researcher profile CRUD and metadata queries.
+ */
+
 import { Request, Response } from 'express';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { CreateResearcherRequest } from '@application/dto/ResearcherDto';
@@ -5,23 +11,15 @@ import { ErrorDto } from '@application/dto/ErrorDto';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
-
-/**
- * ResearcherController - HTTP request/response handling for researchers
- * 
- * Pure presentation layer - handles HTTP concerns only.
- * Delegates all business logic to application service.
- */
 export class ResearcherController extends BaseController {
   constructor(private researcherApplicationService: ResearcherApplicationService) {
     super();
   }
 
   /**
-   * Get all researchers
    * GET /api/researchers
-   * GET /api/researchers?admin=true (includes metadata: tubeCount, linkedUserId, linkedUsername)
-   * GET /api/researchers?visible=true (only approved AND active - for dropdowns)
+   * GET /api/researchers?admin=true (includes tubeCount, linkedUserId, linkedUsername)
+   * GET /api/researchers?visible=true (only approved AND active)
    */
   async getAllResearchers(req: Request, res: Response): Promise<void> {
     try {
@@ -31,9 +29,7 @@ export class ResearcherController extends BaseController {
       const labId = this.extractLabId(req);
 
       if (includeAdminData) {
-        // Admin data requires authentication
         const userApiKey = this.extractApiKey(req);
-        // Returns AdminResearcher[] with metadata
         const researchers = await this.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
         res.json(ErrorDto.success({ researchers }));
       } else if (visibleOnly) {
@@ -48,11 +44,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Get all researchers with admin metadata (tube counts, linked users)
-   * GET /admin/researchers
-   * Admin-only endpoint for researcher management
-   */
+  /** GET /api/admin/researchers (tube counts, linked users) */
   async getResearchersWithMetadata(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -72,11 +64,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Get unlinked researchers (not associated with any user account)
-   * GET /admin/researchers/unlinked
-   * Admin-only endpoint for user-researcher linking interface
-   */
+  /** GET /api/admin/researchers/unlinked (for user-researcher linking UI) */
   async getUnlinkedResearchers(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -96,10 +84,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Get researcher by ID
-   * GET /api/researchers/:id
-   */
+  /** GET /api/researchers/:id */
   async getResearcherById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -112,10 +97,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Create new researcher
-   * POST /api/researchers
-   */
+  /** POST /api/researchers */
   async createResearcher(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -137,10 +119,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Update researcher
-   * PUT /api/researchers/:id
-   */
+  /** PUT /api/researchers/:id */
   async updateResearcher(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -163,10 +142,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Delete researcher
-   * DELETE /api/researchers/:id
-   */
+  /** DELETE /api/researchers/:id */
   async deleteResearcher(req: Request, res: Response): Promise<void> {
     try {
       const { researcherId } = req.params;
@@ -175,7 +151,7 @@ export class ResearcherController extends BaseController {
       await this.researcherApplicationService.deleteResearcher(researcherId, userApiKey);
 
       logger.debug('Researcher deleted', {
-        researcherId: researcherId,
+        researcherId,
         user: req.user?.username,
         requestId: req.requestId
       });
@@ -186,10 +162,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Deactivate researcher
-   * PUT /api/researchers/:id/deactivate
-   */
+  /** PUT /api/researchers/:id/deactivate */
   async deactivateResearcher(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -210,10 +183,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Activate researcher
-   * PUT /api/researchers/:id/activate
-   */
+  /** PUT /api/researchers/:id/activate */
   async activateResearcher(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -234,10 +204,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Get researcher statistics
-   * GET /api/researchers/stats
-   */
+  /** GET /api/researchers/stats */
   async getResearcherStats(req: Request, res: Response): Promise<void> {
     try {
       const userApiKey = this.extractApiKey(req);
@@ -250,10 +217,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Search researchers by name
-   * GET /api/researchers/search
-   */
+  /** GET /api/researchers/search */
   async searchResearchers(req: Request, res: Response): Promise<void> {
     try {
       const { query } = req.query;
@@ -272,10 +236,7 @@ export class ResearcherController extends BaseController {
     }
   }
 
-  /**
-   * Get tube count for a researcher
-   * GET /api/researchers/:id/tubes/count
-   */
+  /** GET /api/researchers/:id/tubes/count */
   async getResearcherTubeCount(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
