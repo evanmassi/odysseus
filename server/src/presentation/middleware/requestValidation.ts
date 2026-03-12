@@ -1,161 +1,83 @@
 /**
- * Validation middleware for request validation
- * Provides clean error responses and prevents invalid data from reaching handlers
+ * Request Validation Middleware
+ *
+ * Zod-based validation for request body, params, and query parameters.
  */
+
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { logger } from '@infrastructure/logging/logger';
 
-export interface ValidationError {
+interface ValidationError {
   field: string;
   message: string;
   received?: unknown;
 }
 
-/**
- * Generic validation middleware factory
- * Creates middleware that validates request body against a Zod schema
- */
-export const validateBody = (schema: z.ZodSchema) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    try {
-      const result = schema.safeParse(req.body);
-      
-      if (!result.success) {
-        const errors: ValidationError[] = result.error.issues.map((issue) => ({
-          field: issue.path.join('.'),
-          message: issue.message,
-          received: 'received' in issue ? issue.received : undefined
-        }));
+type RequestSource = 'body' | 'params' | 'query';
 
-        logger.warn('Validation failed:', {
-          endpoint: req.path,
-          method: req.method,
-          errors: errors,
-          body: req.body
-        });
-        
-        res.status(400).json({
-          error: 'Validation failed',
-          message: 'One or more fields contain invalid data',
-          details: errors
-        });
-        return;
-      }
-      
-      // Replace req.body with parsed/validated data
-      req.body = result.data;
-      next();
-    } catch (error) {
-      logger.error('Validation middleware error:', error);
-      res.status(500).json({
-        error: 'Internal validation error',
-        message: 'An error occurred while validating your request'
-      });
-    }
-  };
+const SOURCE_CONFIG: Record<RequestSource, { errorLabel: string; errorMessage: string }> = {
+  body: { errorLabel: 'Validation failed', errorMessage: 'One or more fields contain invalid data' },
+  params: { errorLabel: 'Invalid parameters', errorMessage: 'One or more URL parameters are invalid' },
+  query: { errorLabel: 'Invalid query parameters', errorMessage: 'One or more query parameters are invalid' }
 };
 
-/**
- * Validate request parameters
- */
-export const validateParams = (schema: z.ZodSchema) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    try {
-      const result = schema.safeParse(req.params);
-      
-      if (!result.success) {
-        const errors: ValidationError[] = result.error.issues.map((issue) => ({
-          field: issue.path.join('.'),
-          message: issue.message,
-          received: 'received' in issue ? issue.received : undefined
-        }));
+function createValidator(source: RequestSource) {
+  const config = SOURCE_CONFIG[source];
 
-        logger.warn('Parameter validation failed:', {
-          endpoint: req.path,
-          method: req.method,
-          errors: errors,
-          params: req.params
+  return (schema: z.ZodSchema) => {
+    return (req: Request, res: Response, next: NextFunction): void => {
+      try {
+        const result = schema.safeParse(req[source]);
+
+        if (!result.success) {
+          const errors: ValidationError[] = result.error.issues.map((issue) => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+            received: 'received' in issue ? issue.received : undefined
+          }));
+
+          logger.warn(`${config.errorLabel}:`, {
+            endpoint: req.path,
+            method: req.method,
+            errors,
+            [source]: req[source]
+          });
+
+          res.status(400).json({
+            error: config.errorLabel,
+            message: config.errorMessage,
+            details: errors
+          });
+          return;
+        }
+
+        // Express types don't support middleware type narrowing
+        (req as any)[source] = result.data;
+        next();
+      } catch (error) {
+        logger.error(`${config.errorLabel} middleware error:`, error);
+        res.status(500).json({
+          error: 'Internal validation error',
+          message: 'An error occurred while validating your request'
         });
-        
-        res.status(400).json({
-          error: 'Invalid parameters',
-          message: 'One or more URL parameters are invalid',
-          details: errors
-        });
-        return;
       }
-      
-      // Assign validated data (Express types don't support middleware type narrowing)
-      req.params = result.data as any;
-      next();
-    } catch (error) {
-      logger.error('Parameter validation middleware error:', error);
-      res.status(500).json({
-        error: 'Internal validation error',
-        message: 'An error occurred while validating your request'
-      });
-    }
+    };
   };
-};
+}
 
-/**
- * Validate query parameters
- */
-export const validateQuery = (schema: z.ZodSchema) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    try {
-      const result = schema.safeParse(req.query);
-      
-      if (!result.success) {
-        const errors: ValidationError[] = result.error.issues.map((issue) => ({
-          field: issue.path.join('.'),
-          message: issue.message,
-          received: 'received' in issue ? issue.received : undefined
-        }));
+export const validateBody = createValidator('body');
+export const validateParams = createValidator('params');
+export const validateQuery = createValidator('query');
 
-        logger.warn('Query validation failed:', {
-          endpoint: req.path,
-          method: req.method,
-          errors: errors,
-          query: req.query
-        });
-        
-        res.status(400).json({
-          error: 'Invalid query parameters',
-          message: 'One or more query parameters are invalid',
-          details: errors
-        });
-        return;
-      }
-      
-      // Assign validated data (Express types don't support middleware type narrowing)
-      req.query = result.data as any;
-      next();
-    } catch (error) {
-      logger.error('Query validation middleware error:', error);
-      res.status(500).json({
-        error: 'Internal validation error',
-        message: 'An error occurred while validating your request'
-      });
-    }
-  };
-};
-
-// Business logic validation moved to domain layer
-// Position validation now handled by TubePositionService in domain layer
-
-/**
- * Sanitize string inputs to prevent XSS and injection attacks
- */
+/** Strips HTML tags and script blocks from all string values in the request body */
 export const sanitizeStrings = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const sanitizeValue = (value: unknown): unknown => {
       if (typeof value === 'string') {
-        // Remove potentially dangerous HTML/JS
         return value
           .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-          .replace(/<[^>]*>/g, '') // Remove HTML tags
+          .replace(/<[^>]*>/g, '')
           .trim();
       }
 
