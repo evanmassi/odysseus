@@ -10,7 +10,7 @@ import type {
   ApiResponse,
   ApiResponseMeta,
   PaginationMeta
-} from '@presentation/types/apiResponse';
+} from '@presentation/types/apiResponseTypes';
 
 export class ResponseBuilder {
   private static readonly API_VERSION = '1.0.0';

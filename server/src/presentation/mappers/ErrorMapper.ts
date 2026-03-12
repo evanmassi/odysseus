@@ -6,7 +6,7 @@
  */
 
 import { ResponseBuilder } from '@presentation/utils/ResponseBuilder';
-import type { ApiResponse } from '@presentation/types/apiResponse';
+import type { ApiResponse } from '@presentation/types/apiResponseTypes';
 import { DomainError } from '@domain/errors/DomainError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
