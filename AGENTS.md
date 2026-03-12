@@ -311,6 +311,75 @@ function canUserMoveTube(tube: Tube, user: User): boolean
 
 ---
 
+## Anti-Patterns (Learned from Audit)
+
+These are recurring problems found across **every layer** of the codebase. Follow these rules to avoid creating technical debt.
+
+### No Speculative Code
+
+Only implement what is needed **right now** by a real caller. This applies everywhere — repository methods, service methods, controller endpoints, query keys, event handlers. Never create stubs, placeholder methods, or "future use" code. If nothing calls it today, don't write it.
+
+```typescript
+// ❌ WRONG - Repository method "for later"
+async findByDateRange(start: Date, end: Date): Promise<Tube[]> {
+  return []; // TODO: implement
+}
+
+// ❌ WRONG - Controller stub
+async getSuggestions(req: Request, res: Response): Promise<void> {
+  res.json({ success: true, data: [] });
+}
+
+// ❌ WRONG - Query key for an endpoint that doesn't exist yet
+suggestions: (query: string) => [...queryKeys.search.all, 'suggestions', query] as const,
+
+// ✅ CORRECT - Don't write any of the above until the feature is being built
+```
+
+### No Parallel Systems
+
+When infrastructure exists for a concern, use it. Never create a second way to do the same thing — parallel systems drift apart and produce inconsistent behavior.
+
+| Concern | Use this | Not this |
+|---------|----------|----------|
+| Config access | `ConfigurationService` | Direct `process.env` reads |
+| Controller auth | `BaseController` helpers (`this.extractUserId(req)`, `this.extractLabId(req)`, `this.getAuthenticatedUser(req)`) | Raw `req.user` access |
+| Success responses | `ResponseBuilder.success(data)` | Raw `{ success: true, data }` objects |
+| Error handling | `handleControllerError` from `@presentation/utils/errorHandler` | Per-controller `handleError` methods |
+
+### No Convenience Wrappers
+
+Don't add getters or helpers that just forward to a sub-object. They create a second access path that has to be maintained and eventually deprecated.
+
+```typescript
+// ❌ WRONG - Convenience getter on entity
+get tankId(): string { return this.location.tankId; }
+
+// ✅ CORRECT - Callers access the sub-object directly
+tube.location.tankId
+```
+
+### Constructor Deps Pattern
+
+When a class takes a deps interface with many fields, store the deps object directly. Don't manually copy each field to a private property.
+
+```typescript
+// ❌ WRONG - 20+ lines of boilerplate
+private userRepo: UserRepository;
+private tubeRepo: TubeRepository;
+constructor(deps: ServiceDeps) {
+  this.userRepo = deps.userRepo;
+  this.tubeRepo = deps.tubeRepo;
+  // ... 18 more
+}
+
+// ✅ CORRECT - Single field
+constructor(private deps: ServiceDeps) {}
+// Access via this.deps.userRepo
+```
+
+---
+
 ## Security
 
 - JWT tokens with refresh token rotation

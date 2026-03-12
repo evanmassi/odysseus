@@ -77,14 +77,6 @@ export class ResourceRouteModule implements RouteModule {
       this.tubeController.getStats.bind(this.tubeController)
     );
 
-    router.get('/tubes/rack/:rackId/box/:boxId', 
-      validateParams(z.object({ 
-        rackId: z.string(), 
-        boxId: z.string() 
-      })),
-      this.tubeController.getTubesByRackAndBox.bind(this.tubeController)
-    );
-
     router.get('/tubes/:id', 
       validateParams(z.object({ id: z.string().min(1) })),
       this.tubeController.getTubeById.bind(this.tubeController)

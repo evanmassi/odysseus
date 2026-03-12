@@ -1,3 +1,9 @@
+/**
+ * Tube Management Controller
+ *
+ * HTTP handlers for tube CRUD, bulk operations, location queries, and search.
+ */
+
 import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequest } from '@application/dto/TubeDto';
@@ -5,20 +11,12 @@ import { ErrorDto } from '@application/dto/ErrorDto';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
-
-/**
- * TubeController - HTTP request/response handling for tubes
- *
- * Pure presentation layer - handles HTTP concerns only.
- * Delegates all business logic to application service.
- */
 export class TubeController extends BaseController {
   constructor(private tubeApplicationService: TubeApplicationService) {
     super();
   }
 
   /**
-   * Create new tube(s)
    * POST /api/tubes
    *
    * Accepts both single object and array:
@@ -28,12 +26,9 @@ export class TubeController extends BaseController {
   async createTube(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
-
-      // Handle both single object and array
       const isArray = Array.isArray(req.body);
 
       if (isArray) {
-        // Bulk creation - array of CreateTubeRequest
         const createRequests: CreateTubeRequest[] = req.body;
         const result = await this.tubeApplicationService.createTubes(createRequests, authenticatedUser);
 
@@ -52,7 +47,6 @@ export class TubeController extends BaseController {
           failed: result.failed
         }));
       } else {
-        // Single creation - CreateTubeRequest object
         const createRequest: CreateTubeRequest = req.body;
         const tube = await this.tubeApplicationService.createTube(createRequest, authenticatedUser);
 
@@ -70,10 +64,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Get tube by ID
-   * GET /api/tubes/:id
-   */
+  /** GET /api/tubes/:id */
   async getTubeById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -87,10 +78,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Get all tubes with optional filtering
-   * GET /api/tubes
-   */
+  /** GET /api/tubes */
   async getAllTubes(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
@@ -104,10 +92,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Update tube
-   * PUT /api/tubes/:id
-   */
+  /** PUT /api/tubes/:id */
   async updateTube(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -128,10 +113,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Delete tube
-   * DELETE /api/tubes/:id
-   */
+  /** DELETE /api/tubes/:id */
   async deleteTube(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -151,10 +133,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Bulk update tubes
-   * POST /api/tubes/bulk-update
-   */
+  /** POST /api/tubes/bulk-update */
   async bulkUpdateTubes(req: Request, res: Response): Promise<void> {
     try {
       const bulkRequest: BulkUpdateRequest = req.body;
@@ -175,10 +154,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Bulk delete tubes
-   * POST /api/tubes/bulk-delete
-   */
+  /** POST /api/tubes/bulk-delete */
   async bulkDeleteTubes(req: Request, res: Response): Promise<void> {
     try {
       const { tubeIds } = req.body;
@@ -199,10 +175,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Get tubes by complete location
-   * GET /api/tubes/location?tankId=X&rackId=Y&boxId=Z
-   */
+  /** GET /api/tubes/location?tankId=X&rackId=Y&boxId=Z */
   async getTubesByLocation(req: Request, res: Response): Promise<void> {
     try {
       const { tankId, rackId, boxId } = req.query as { tankId: string, rackId: string, boxId: string };
@@ -221,32 +194,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Get tubes by rack and box
-   * GET /api/tubes/rack/:rackId/box/:boxId
-   * @deprecated Use /location endpoint instead
-   */
-  async getTubesByRackAndBox(req: Request, res: Response): Promise<void> {
-    try {
-      const { rackId, boxId } = req.params;
-      const authenticatedUser = this.getAuthenticatedUser(req);
-
-      const tubes = await this.tubeApplicationService.getTubesByRackAndBox(
-        rackId,
-        boxId,
-        authenticatedUser
-      );
-
-      res.json(ErrorDto.success(tubes));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get tubes by location', req.requestId);
-    }
-  }
-
-  /**
-   * Search tubes with text query
-   * GET /api/tubes/search
-   */
+  /** GET /api/tubes/search */
   async searchTubes(req: Request, res: Response): Promise<void> {
     try {
       const { query, limit, offset } = req.query;
@@ -260,7 +208,7 @@ export class TubeController extends BaseController {
 
       const tubes = await this.tubeApplicationService.searchTubes(
         {
-          query: query as string,
+          query,
           limit: limit ? parseInt(limit as string) : undefined,
           offset: offset ? parseInt(offset as string) : undefined
         },
@@ -273,10 +221,7 @@ export class TubeController extends BaseController {
     }
   }
 
-  /**
-   * Get tube statistics
-   * GET /api/tubes/stats
-   */
+  /** GET /api/tubes/stats */
   async getStats(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
@@ -289,19 +234,13 @@ export class TubeController extends BaseController {
     }
   }
 
-
-  /** Valid sort fields for tube search */
   private static readonly VALID_SORT_FIELDS = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
 
-  /** Type guard for valid sort field values */
   private isValidSortField(value: unknown): value is TubeSearchRequest['sortBy'] {
     return typeof value === 'string' &&
       (TubeController.VALID_SORT_FIELDS as readonly string[]).includes(value);
   }
 
-  /**
-   * Helper: Parse search query parameters
-   */
   private parseSearchQuery(query: Request['query']): TubeSearchRequest | undefined {
     if (!query || Object.keys(query).length === 0) {
       return undefined;
