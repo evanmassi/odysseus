@@ -9,14 +9,8 @@
 export interface PasswordService {
   hash(plainPassword: string): Promise<string>;
 
-  verify(plainPassword: string, hashedPassword: string): Promise<boolean>;
+  verify(plainPassword: string, storedHash: string, salt?: string): Promise<boolean>;
 
-  /** Reads current SecurityConfig to enforce dynamic password policies. */
-  validateStrength(password: string): Promise<PasswordValidationResult>;
-}
-
-export interface PasswordValidationResult {
-  isValid: boolean;
-  errors: string[];
-  score?: number; // 0-4, where 4 is strongest
+  /** Returns true if the stored hash should be re-hashed with the current algorithm. */
+  needsUpgrade(storedHash: string, salt?: string): boolean;
 }

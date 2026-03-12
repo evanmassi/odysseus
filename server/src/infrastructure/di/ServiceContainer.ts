@@ -229,11 +229,7 @@ export class ServiceContainer {
 
   getPasswordService(): PasswordService {
     if (!this.passwordService) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.passwordService = new BcryptPasswordService(
-        repositories.storage,
-        12 // 12 salt rounds
-      );
+      this.passwordService = new BcryptPasswordService();
     }
     return this.passwordService;
   }
