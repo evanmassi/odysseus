@@ -2,8 +2,6 @@
  * Base Controller
  *
  * Shared auth extraction helpers for all controllers.
- * Eliminates duplicated getAuthenticatedUser/extractUserId/extractApiKey
- * methods that were copy-pasted across 6+ controllers.
  */
 
 import { Request } from 'express';
@@ -11,7 +9,6 @@ import type { User } from '@domain/entities/User';
 
 export abstract class BaseController {
 
-  /** Extract the full authenticated User object from the request */
   protected getAuthenticatedUser(req: Request): User {
     const user = req.user;
     if (!user) {
@@ -20,7 +17,6 @@ export abstract class BaseController {
     return user;
   }
 
-  /** Extract just the user ID string from the request */
   protected extractUserId(req: Request): string {
     const user = req.user;
     if (!user?.id) {
@@ -29,7 +25,6 @@ export abstract class BaseController {
     return user.id;
   }
 
-  /** Extract the lab ID from the authenticated user (required — throws if missing) */
   protected extractLabId(req: Request): string {
     const user = req.user;
     if (!user?.labId) {
@@ -38,17 +33,11 @@ export abstract class BaseController {
     return user.labId;
   }
 
-  /** Extract the API key from the request (required — throws if missing) */
   protected extractApiKey(req: Request): string {
     const user = req.user;
     if (!user?.apiKey) {
       throw new Error('Authentication required');
     }
     return user.apiKey;
-  }
-
-  /** Extract the API key from the request (optional — returns undefined if missing) */
-  protected extractOptionalApiKey(req: Request): string | undefined {
-    return req.user?.apiKey;
   }
 }
