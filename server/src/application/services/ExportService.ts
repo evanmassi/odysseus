@@ -81,7 +81,8 @@ export class ExportService {
     private userRepository: UserRepository,
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository,
-    private storageRepository: StorageRepository
+    private storageRepository: StorageRepository,
+    private appVersion: string
   ) {}
 
   async exportTubes(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
@@ -264,7 +265,7 @@ export class ExportService {
 
     return {
       exportedAt: new Date().toISOString(),
-      version: process.env.npm_package_version ?? '1.0.0',
+      version: this.appVersion,
       configuration: configuration ? {
         version: configuration.version,
         systemSettings: configuration.systemSettings,

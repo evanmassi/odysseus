@@ -13,7 +13,8 @@ export class RouteRegistry {
   private modules: RouteModule[] = [];
 
   constructor(
-    private app: Application
+    private app: Application,
+    private isDevelopment: boolean
   ) {}
 
   registerModule(module: RouteModule): void {
@@ -67,7 +68,6 @@ export class RouteRegistry {
         return next(error);
       }
 
-      const isDevelopment = process.env.NODE_ENV === 'development';
       const errorObj = error as Record<string, unknown>;
       const statusCode = typeof errorObj.statusCode === 'number' ? errorObj.statusCode
         : typeof errorObj.status === 'number' ? errorObj.status : 500;
@@ -81,7 +81,7 @@ export class RouteRegistry {
         code: errorCode,
         details: context,
         timestamp: new Date().toISOString(),
-        ...(isDevelopment && { stack: err.stack })
+        ...(this.isDevelopment && { stack: err.stack })
       });
     });
   }

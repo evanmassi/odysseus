@@ -13,6 +13,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
+import { EnvironmentConfigurationService } from '@infrastructure/services/EnvironmentConfigurationService';
 import { logger } from '@infrastructure/logging/logger';
 import { sanitizeStrings } from '@presentation/middleware/requestValidation';
 import { requestIdMiddleware } from '@presentation/middleware/requestId';
@@ -38,12 +39,14 @@ class OdysseusServer {
   private app: express.Application;
   private server: Server;
   private io!: SocketIOServer;
+  private configurationService: EnvironmentConfigurationService;
   private repositoryFactory!: RepositoryFactory;
   private serviceContainer!: ServiceContainer;
 
   constructor() {
     this.app = express();
     this.server = createServer(this.app);
+    this.configurationService = new EnvironmentConfigurationService();
     this.setupSocket();
     this.setupDatabase();
     this.setupServices();
@@ -86,11 +89,12 @@ class OdysseusServer {
   }
 
   private setupDatabase(): void {
-    this.repositoryFactory = new RepositoryFactory();
+    const { url, ssl, maxConnections } = this.configurationService.get('database');
+    this.repositoryFactory = new RepositoryFactory({ connectionString: url, ssl, maxConnections });
   }
 
   private setupServices(): void {
-    this.serviceContainer = new ServiceContainer(this.repositoryFactory);
+    this.serviceContainer = new ServiceContainer(this.repositoryFactory, this.configurationService);
     this.serviceContainer.setSocketIO(this.io);
 
     // Must be registered before connection handlers
@@ -108,7 +112,7 @@ class OdysseusServer {
   private setupMiddleware(): void {
     this.app.use(helmet());
     this.app.use(cors({
-      origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:5173'],
+      origin: this.configurationService.get('server').allowedOrigins,
       credentials: true
     }));
     this.app.use(express.json());
@@ -123,7 +127,7 @@ class OdysseusServer {
   }
 
   private setupRoutes(): void {
-    const registry = new RouteRegistry(this.app);
+    const registry = new RouteRegistry(this.app, this.configurationService.isDevelopment());
     const publicAuthController = this.serviceContainer.getPublicAuthController();
     const authController = this.serviceContainer.getAuthController();
     const adminUserController = this.serviceContainer.getAdminUserController();
@@ -145,7 +149,13 @@ class OdysseusServer {
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const storageRepository = this.repositoryFactory.getStorageRepository();
 
-    registry.registerModule(new PublicRouteModule(publicAuthController, inviteCodeController, storageRepository));
+    registry.registerModule(new PublicRouteModule(
+      publicAuthController,
+      inviteCodeController,
+      storageRepository,
+      this.configurationService.get('app').version,
+      this.configurationService.get('server').environment
+    ));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, storageRepository));
     registry.registerModule(new AdminRouteModule(adminUserController, adminConfigController, researcherController, auditController, exportController, lookupValueController, inviteCodeController, authMiddleware));
     registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, adminConfigController, systemAdminUserController, storageController, auditController, authMiddleware));
@@ -167,7 +177,7 @@ class OdysseusServer {
     try {
       await this.repositoryFactory.initialize();
 
-      const port = process.env.PORT || 3001;
+      const port = this.configurationService.get('server').port;
       this.server.listen(port, async () => {
         const isHealthy = await this.repositoryFactory.isHealthy();
         logger.info(`Server started on port ${port}`, {

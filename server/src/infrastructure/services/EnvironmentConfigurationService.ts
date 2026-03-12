@@ -1,20 +1,25 @@
 /**
- * Application Configuration
+ * Environment-Based Configuration
  *
- * Zod-validated configuration loaded from environment variables at startup.
+ * Loads and validates all application config from process.env at startup.
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { z } from 'zod';
-import { logger } from '@infrastructure/logging/logger';
+import { ConfigurationService, Configuration } from '@application/contracts/ConfigurationService';
 
 const ConfigurationSchema = z.object({
   server: z.object({
     port: z.number().int().min(1).max(65535),
     host: z.string().default('localhost'),
     environment: z.enum(['development', 'production', 'test']),
+    allowedOrigins: z.array(z.string()),
   }),
   database: z.object({
     type: z.literal('postgresql'),
+    url: z.string(),
+    ssl: z.boolean(),
     maxConnections: z.number().int().min(1).default(10),
   }),
   jwt: z.object({
@@ -29,18 +34,20 @@ const ConfigurationSchema = z.object({
     enableConsole: z.boolean().default(true),
     enableFile: z.boolean().default(false),
   }),
+  email: z.object({
+    verificationBaseUrl: z.string(),
+    resetPasswordBaseUrl: z.string(),
+  }),
+  security: z.object({
+    systemAdminSetupKey: z.string().optional(),
+  }),
+  app: z.object({
+    version: z.string(),
+    isElectron: z.boolean(),
+  }),
 });
 
-export type Configuration = z.infer<typeof ConfigurationSchema>;
-
-export interface ConfigurationService {
-  get<K extends keyof Configuration>(key: K): Configuration[K];
-  getAll(): Configuration;
-  isDevelopment(): boolean;
-  isProduction(): boolean;
-}
-
-export class ConfigurationService implements ConfigurationService {
+export class EnvironmentConfigurationService implements ConfigurationService {
   private readonly config: Configuration;
 
   constructor() {
@@ -71,9 +78,14 @@ export class ConfigurationService implements ConfigurationService {
         port: parseInt(process.env.PORT || '3001', 10),
         host: process.env.HOST || 'localhost',
         environment,
+        allowedOrigins: process.env.ALLOWED_ORIGINS
+          ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
+          : ['http://localhost:3000', 'http://localhost:5173'],
       },
       database: {
         type: 'postgresql',
+        url: process.env.DATABASE_URL,
+        ssl: environment === 'production',
         maxConnections: parseInt(process.env.DATABASE_MAX_CONNECTIONS || '10', 10),
       },
       jwt: {
@@ -88,6 +100,17 @@ export class ConfigurationService implements ConfigurationService {
                (environment === 'development' ? 'debug' : 'info'),
         enableConsole: process.env.LOG_CONSOLE !== 'false',
         enableFile: process.env.LOG_FILE === 'true',
+      },
+      email: {
+        verificationBaseUrl: process.env.VERIFICATION_BASE_URL || 'http://localhost:3000/verify-email',
+        resetPasswordBaseUrl: process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password',
+      },
+      security: {
+        systemAdminSetupKey: process.env.SYSTEM_ADMIN_SETUP_KEY || undefined,
+      },
+      app: {
+        version: this.readPackageVersion(),
+        isElectron: process.env.ELECTRON_APP === 'true',
       },
     };
 
@@ -105,8 +128,18 @@ export class ConfigurationService implements ConfigurationService {
     // Fixed secret so dev sessions survive server restarts
     const devSecret = 'odysseus-development-jwt-secret-key-for-local-testing-only-not-secure-for-production';
 
-    logger.warn('Using fixed development JWT secret. Set JWT_SECRET environment variable for production.');
+    console.warn('Using fixed development JWT secret. Set JWT_SECRET environment variable for production.');
 
     return devSecret;
+  }
+
+  private readPackageVersion(): string {
+    try {
+      const packagePath = path.resolve(__dirname, '..', '..', '..', 'package.json');
+      const raw = fs.readFileSync(packagePath, 'utf-8');
+      return JSON.parse(raw).version || '1.0.0';
+    } catch {
+      return '1.0.0';
+    }
   }
 }

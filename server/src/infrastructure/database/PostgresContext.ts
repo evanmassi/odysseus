@@ -8,17 +8,21 @@ import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { logger } from '@infrastructure/logging/logger';
 import { runMigrations } from './migrations/migrationRunner';
 
+export interface DatabaseConnectionConfig {
+  connectionString: string;
+  ssl: boolean;
+  maxConnections: number;
+}
+
 export class PostgresContext {
   private pool: Pool;
   private initialized: boolean = false;
 
-  constructor() {
+  constructor(config: DatabaseConnectionConfig) {
     this.pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production'
-        ? { rejectUnauthorized: false }
-        : false,
-      max: 20,
+      connectionString: config.connectionString,
+      ssl: config.ssl ? { rejectUnauthorized: false } : false,
+      max: config.maxConnections,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
     });

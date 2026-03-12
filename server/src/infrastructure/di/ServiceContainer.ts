@@ -72,7 +72,7 @@ import { ValidationService } from '@domain/services/ValidationService';
 import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
 import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
 import { ExpressAuthMiddleware } from '@infrastructure/security/ExpressAuthMiddleware';
-import { ConfigurationService } from '@infrastructure/services/ConfigurationService';
+import { ConfigurationService } from '@application/contracts/ConfigurationService';
 import { ConsoleEmailService } from '@infrastructure/services/ConsoleEmailService';
 import { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
 import { AuditArchivalJob } from '@infrastructure/jobs/AuditArchivalJob';
@@ -211,9 +211,9 @@ export class ServiceContainer {
   // Socket.IO server instance
   private socketIO?: SocketIOServer;
 
-  constructor(repositoryFactory: RepositoryFactory) {
+  constructor(repositoryFactory: RepositoryFactory, configurationService: ConfigurationService) {
     this.repositoryFactory = repositoryFactory;
-    this.configurationService = new ConfigurationService();
+    this.configurationService = configurationService;
   }
 
   // EVENT BUS
@@ -251,8 +251,9 @@ export class ServiceContainer {
 
   getEmailService(): EmailService {
     if (!this.emailService) {
-      const verificationBaseUrl = process.env.VERIFICATION_BASE_URL || 'http://localhost:3000/verify-email';
-      this.emailService = new ConsoleEmailService(verificationBaseUrl);
+      this.emailService = new ConsoleEmailService(
+        this.configurationService.get('email').verificationBaseUrl
+      );
     }
     return this.emailService;
   }
@@ -381,7 +382,7 @@ export class ServiceContainer {
       this.generatePasswordResetTokenHandler = new GeneratePasswordResetTokenCommandHandler(
         repositories.users,
         this.getEventBus(),
-        process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password'
+        this.configurationService.get('email').resetPasswordBaseUrl
       );
     }
     return this.generatePasswordResetTokenHandler;
@@ -730,7 +731,7 @@ export class ServiceContainer {
         this.getEventBus(),
         repositories.persons,
         this.getPasswordService(),
-        process.env.SYSTEM_ADMIN_SETUP_KEY
+        this.configurationService.get('security').systemAdminSetupKey
       );
     }
     return this.createSystemAdminHandler;
@@ -1123,7 +1124,8 @@ export class ServiceContainer {
         repositories.users,
         repositories.researchers,
         repositories.persons,
-        repositories.storage
+        repositories.storage,
+        this.configurationService.get('app').version
       );
     }
     return this.exportService;

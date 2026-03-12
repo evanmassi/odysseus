@@ -24,7 +24,9 @@ export class PublicRouteModule implements RouteModule {
   constructor(
     private readonly publicAuthController: PublicAuthController,
     private readonly inviteCodeController: InviteCodeController,
-    storageRepository: StorageRepository
+    storageRepository: StorageRepository,
+    private readonly appVersion: string,
+    private readonly environment: string
   ) {
     this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
@@ -138,7 +140,7 @@ export class PublicRouteModule implements RouteModule {
           status: 'OK',
           timestamp: new Date().toISOString(),
           service: 'odysseus-api',
-          version: process.env.npm_package_version ?? '1.0.0'
+          version: this.appVersion
         }
       });
     });
@@ -147,8 +149,8 @@ export class PublicRouteModule implements RouteModule {
       res.json({
         success: true,
         data: {
-          version: process.env.npm_package_version ?? '1.0.0',
-          environment: process.env.NODE_ENV ?? 'development',
+          version: this.appVersion,
+          environment: this.environment,
           nodeVersion: process.version,
           platform: process.platform
         }

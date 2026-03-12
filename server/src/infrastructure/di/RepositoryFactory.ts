@@ -4,7 +4,7 @@
  * Lazy-singleton wiring for all repository implementations against PostgreSQL.
  */
 
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { PostgresContext, DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
 import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
 import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
@@ -43,8 +43,8 @@ export class RepositoryFactory {
   private labRepository?: LabRepository;
   private inviteCodeRepository?: InviteCodeRepository;
 
-  constructor() {
-    this.postgresContext = new PostgresContext();
+  constructor(databaseConfig: DatabaseConnectionConfig) {
+    this.postgresContext = new PostgresContext(databaseConfig);
   }
 
   async initialize(): Promise<void> {
