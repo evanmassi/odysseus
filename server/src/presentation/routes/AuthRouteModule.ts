@@ -1,8 +1,7 @@
 /**
- * Auth Route Module
+ * Authenticated Route Module
  *
- * Handles authentication-related routes that require valid authentication.
- * These are for session management and user profile operations.
+ * Routes requiring a valid session — session management, password, and email verification.
  */
 
 import { Router, RequestHandler } from 'express';
@@ -20,7 +19,6 @@ export class AuthRouteModule implements RouteModule {
     private readonly authMiddleware: AuthMiddleware,
     storageRepository: StorageRepository
   ) {
-    // Create rate limit middleware with injected repository
     this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
 
@@ -67,7 +65,5 @@ export class AuthRouteModule implements RouteModule {
     router.get('/verification-status',
       this.authController.getVerificationStatus.bind(this.authController)
     );
-
-    // Note: User management routes moved to UserRouteModule
   }
 }
