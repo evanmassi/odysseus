@@ -17,6 +17,15 @@ import { logger } from '@infrastructure/logging/logger';
 import { sanitizeStrings } from '@presentation/middleware/requestValidation';
 import { requestIdMiddleware } from '@presentation/middleware/requestId';
 import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth';
+import { RouteRegistry } from '@presentation/routes/RouteRegistry';
+import { PublicRouteModule } from '@presentation/routes/PublicRouteModule';
+import { AuthRouteModule } from '@presentation/routes/AuthRouteModule';
+import { AdminRouteModule } from '@presentation/routes/AdminRouteModule';
+import { ResourceRouteModule } from '@presentation/routes/ResourceRouteModule';
+import { StorageRouteModule } from '@presentation/routes/StorageRouteModule';
+import { SearchRouteModule } from '@presentation/routes/SearchRouteModule';
+import { UserRouteModule } from '@presentation/routes/UserRouteModule';
+import { SystemAdminRouteModule } from '@presentation/routes/SystemAdminRouteModule';
 
 // Resolve from project root (works for both tsx and compiled dist)
 const serverRoot = path.resolve(__dirname, '..');
@@ -114,8 +123,6 @@ class OdysseusServer {
   }
 
   private setupRoutes(): void {
-    const { RouteRegistry, PublicRouteModule, AuthRouteModule, AdminRouteModule, ResourceRouteModule, StorageRouteModule, SearchRouteModule, UserRouteModule, SystemAdminRouteModule } = require('./presentation/routes');
-
     const registry = new RouteRegistry(this.app);
     const publicAuthController = this.serviceContainer.getPublicAuthController();
     const authController = this.serviceContainer.getAuthController();

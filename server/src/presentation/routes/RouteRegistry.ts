@@ -4,7 +4,7 @@
  * Central orchestrator for route module registration, middleware, and global error handling.
  */
 
-import { Express, Router, Request, Response, NextFunction } from 'express';
+import { Application, Router, Request, Response, NextFunction } from 'express';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { logger } from '@infrastructure/logging/logger';
@@ -13,7 +13,7 @@ export class RouteRegistry {
   private modules: RouteModule[] = [];
 
   constructor(
-    private app: Express
+    private app: Application
   ) {}
 
   registerModule(module: RouteModule): void {
