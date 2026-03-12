@@ -6,7 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { BaseController } from './BaseController';
-import { ResponseBuilder } from '@presentation/utils/ResponseBuilder';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
 import type { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
 import type { LabRepository } from '@domain/repositories/LabRepository';

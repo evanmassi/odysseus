@@ -6,7 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { ResponseBuilder } from '@presentation/utils/ResponseBuilder';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { ErrorMapper } from '@presentation/mappers/ErrorMapper';
 import { logger } from '@infrastructure/logging/logger';
 import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';

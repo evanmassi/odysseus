@@ -7,7 +7,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { ResponseBuilder } from '@presentation/utils/ResponseBuilder';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { AuditService } from '@application/services/AuditService';
 import { AuditRetentionService } from '@application/services/AuditRetentionService';
 import type { AuditLogFilters } from '@odysseus/shared-schemas';
