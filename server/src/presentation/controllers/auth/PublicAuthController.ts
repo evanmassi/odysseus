@@ -4,9 +4,10 @@
  * Unauthenticated endpoints — login, registration, password reset, email verification, first-time setup.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
 import type { SessionService } from '@application/contracts/SessionService';
@@ -52,7 +53,7 @@ export interface PublicAuthControllerDeps {
 export class PublicAuthController {
   constructor(private deps: PublicAuthControllerDeps) {}
 
-  async checkFirstTime(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async checkFirstTime(req: Request, res: Response): Promise<void> {
     try {
 
       const query = new CheckFirstTimeSetupQuery();
@@ -65,12 +66,12 @@ export class PublicAuthController {
         needsSystemAdmin: result.needsSystemAdmin
       }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to check first time setup');
     }
   }
 
   /** One-time system admin creation. */
-  async setupSystemAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async setupSystemAdmin(req: Request, res: Response): Promise<void> {
     try {
 
       const { username, password, email, firstName, lastName, setupKey, department, position } = req.body;
@@ -90,11 +91,11 @@ export class PublicAuthController {
       });
       res.status(201).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to setup system admin');
     }
   }
 
-  async getPasswordRequirements(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getPasswordRequirements(req: Request, res: Response): Promise<void> {
     try {
 
       const securityConfig = await this.deps.configRepository.getSecurityConfig();
@@ -109,11 +110,11 @@ export class PublicAuthController {
 
       res.status(200).json(ResponseBuilder.success(passwordRequirements));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get password requirements');
     }
   }
 
-  async register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async register(req: Request, res: Response): Promise<void> {
     try {
 
       const { username, password, role = 'admin' } = req.body;
@@ -143,7 +144,7 @@ export class PublicAuthController {
       });
       res.status(201).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to register');
     }
   }
 
@@ -151,7 +152,7 @@ export class PublicAuthController {
    * If requirePasswordChange is set, returns a temporary token
    * for the force-change-password endpoint instead of full login tokens.
    */
-  async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async login(req: Request, res: Response): Promise<void> {
     try {
 
       const { username, password } = req.body;
@@ -217,11 +218,11 @@ export class PublicAuthController {
       res.status(200).json(response);
     } catch (error) {
       await recordFailedLogin(req);
-      next(error);
+      handleControllerError(error, res, 'Failed to login');
     }
   }
 
-  async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async refreshToken(req: Request, res: Response): Promise<void> {
     try {
 
       const { refreshToken } = req.body;
@@ -244,7 +245,7 @@ export class PublicAuthController {
       }
 
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to refresh token');
     }
   }
 
@@ -252,7 +253,7 @@ export class PublicAuthController {
    * Creates User and Researcher atomically. First user gets tokens
    * for immediate login; subsequent users return pending status.
    */
-  async registerWithResearcher(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async registerWithResearcher(req: Request, res: Response): Promise<void> {
     try {
 
 
@@ -314,11 +315,11 @@ export class PublicAuthController {
 
       res.status(201).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to register with researcher');
     }
   }
 
-  async verifyEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async verifyEmail(req: Request, res: Response): Promise<void> {
     try {
       const { token } = req.body;
 
@@ -340,11 +341,11 @@ export class PublicAuthController {
 
       res.status(200).json(ResponseBuilder.success({ emailVerified: true }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to verify email');
     }
   }
 
-  async resendVerificationPublic(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async resendVerificationPublic(req: Request, res: Response): Promise<void> {
     try {
       const { usernameOrEmail } = req.body;
 
@@ -384,7 +385,7 @@ export class PublicAuthController {
     }
   }
 
-  async resetPasswordWithToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async resetPasswordWithToken(req: Request, res: Response): Promise<void> {
     try {
 
       const { token, newPassword } = req.body;
@@ -408,7 +409,7 @@ export class PublicAuthController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to reset password');
     }
   }
 
@@ -416,7 +417,7 @@ export class PublicAuthController {
    * Called when login returns requirePasswordChange=true.
    * Uses temporary token from login response; returns full login tokens on success.
    */
-  async forceChangePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async forceChangePassword(req: Request, res: Response): Promise<void> {
     try {
 
 
@@ -468,7 +469,7 @@ export class PublicAuthController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to force change password');
     }
   }
 
@@ -476,7 +477,7 @@ export class PublicAuthController {
    * Public endpoint — handles its own validation with updateActivity: false
    * to prevent polling from extending the session.
    */
-  async getSessionInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getSessionInfo(req: Request, res: Response): Promise<void> {
     try {
       const authHeader = req.headers.authorization;
 
@@ -525,8 +526,7 @@ export class PublicAuthController {
         idleWarningMinutes: config.idleWarningMinutes
       }));
     } catch (error) {
-      logger.error('Session info error', { error });
-      next(error);
+      handleControllerError(error, res, 'Failed to get session info');
     }
   }
 }

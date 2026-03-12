@@ -5,8 +5,9 @@
  * password change, and email verification status.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
@@ -25,12 +26,13 @@ export interface AuthControllerDeps {
 export class AuthController {
   constructor(private deps: AuthControllerDeps) {}
 
-  async verifySession(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async verifySession(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user;
 
       if (!user) {
-        return next(new Error('User not found in request context'));
+        handleControllerError(new Error('User not found in request context'), res, 'Failed to verify session');
+        return;
       }
 
       logger.debug('Session verified', {
@@ -43,16 +45,17 @@ export class AuthController {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to verify session');
     }
   }
 
-  async getCurrentUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getCurrentUser(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user;
 
       if (!user) {
-        return next(new Error('User not found in request context'));
+        handleControllerError(new Error('User not found in request context'), res, 'Failed to get current user');
+        return;
       }
 
       const response = ResponseBuilder.success({
@@ -61,15 +64,16 @@ export class AuthController {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get current user');
     }
   }
 
-  async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async changePassword(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user;
       if (!user) {
-        return next(new Error('User not found in request context'));
+        handleControllerError(new Error('User not found in request context'), res, 'Failed to change password');
+        return;
       }
 
       if (user.isDemo) {
@@ -97,15 +101,16 @@ export class AuthController {
       const response = ResponseBuilder.success({ message: 'Password changed successfully' });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to change password');
     }
   }
 
-  async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async logout(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user;
       if (!user) {
-        return next(new Error('User not found in request context'));
+        handleControllerError(new Error('User not found in request context'), res, 'Failed to logout');
+        return;
       }
 
       await this.deps.eventBus.publish(new UserLoggedOutEvent(
@@ -122,7 +127,7 @@ export class AuthController {
       const response = ResponseBuilder.success({ message: 'Logged out successfully' });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to logout');
     }
   }
 
@@ -130,11 +135,12 @@ export class AuthController {
    * Called by client "Stay Logged In" action. Auth middleware
    * updates lastUsedAt via validateSessionWithActivity.
    */
-  async heartbeat(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async heartbeat(req: Request, res: Response): Promise<void> {
     try {
       const user = req.user;
       if (!user) {
-        return next(new Error('User not found in request context'));
+        handleControllerError(new Error('User not found in request context'), res, 'Failed to process heartbeat');
+        return;
       }
 
       logger.debug('Session heartbeat received', {
@@ -149,12 +155,12 @@ export class AuthController {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to process heartbeat');
     }
   }
 
   /** Deprecated — use public endpoint. */
-  async resendVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async resendVerification(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
         throw new PermissionError('Authentication required');
@@ -176,11 +182,11 @@ export class AuthController {
         expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
       }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to resend verification');
     }
   }
 
-  async getVerificationStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getVerificationStatus(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
         throw new PermissionError('Authentication required');
@@ -202,7 +208,7 @@ export class AuthController {
         email
       }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get verification status');
     }
   }
 }

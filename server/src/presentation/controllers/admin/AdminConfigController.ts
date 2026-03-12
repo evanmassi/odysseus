@@ -4,10 +4,11 @@
  * Security settings, system metrics, and user statistics for lab and system admins.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { logger } from '@infrastructure/logging/logger';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { GetUserStatisticsQuery, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { SecurityConfig } from '@odysseus/shared-schemas';
@@ -20,7 +21,7 @@ export interface AdminConfigControllerDeps {
 export class AdminConfigController {
   constructor(private deps: AdminConfigControllerDeps) {}
 
-  async getSecurityConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getSecurityConfig(req: Request, res: Response): Promise<void> {
     try {
 
       const securityConfig = await this.deps.configRepository.getSecurityConfig();
@@ -34,17 +35,18 @@ export class AdminConfigController {
         requestedBy: req.user?.username
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get security config');
     }
   }
 
-  async updateSecurityConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async updateSecurityConfig(req: Request, res: Response): Promise<void> {
     try {
 
       const adminUser = req.user;
 
       if (!adminUser) {
-        return next(new Error('Admin user not found in request context'));
+        handleControllerError(new Error('Admin user not found in request context'), res, 'Failed to update security config');
+        return;
       }
 
       if (adminUser.isDemo) {
@@ -71,11 +73,11 @@ export class AdminConfigController {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to update security config');
     }
   }
 
-  async getMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getMetrics(req: Request, res: Response): Promise<void> {
     try {
 
       const labId = req.user?.labId;
@@ -92,11 +94,11 @@ export class AdminConfigController {
         requestedBy: req.user?.username
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get metrics');
     }
   }
 
-  async getUserStatistics(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getUserStatistics(req: Request, res: Response): Promise<void> {
     try {
 
       const query = new GetUserStatisticsQuery();
@@ -105,7 +107,7 @@ export class AdminConfigController {
       const response = ResponseBuilder.success({ statistics: stats });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get user statistics');
     }
   }
 }

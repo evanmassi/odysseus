@@ -5,8 +5,9 @@
  * within a specific lab context. Requires system_admin role.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
 
@@ -17,7 +18,7 @@ export interface SystemAdminUserControllerDeps {
 export class SystemAdminUserController {
   constructor(private deps: SystemAdminUserControllerDeps) {}
 
-  async activateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async activateUserForLab(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -36,11 +37,11 @@ export class SystemAdminUserController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to activate user');
     }
   }
 
-  async deactivateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deactivateUserForLab(req: Request, res: Response): Promise<void> {
     try {
 
       const { labId, userId } = req.params;
@@ -59,11 +60,11 @@ export class SystemAdminUserController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to deactivate user');
     }
   }
 
-  async suspendUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async suspendUserForLab(req: Request, res: Response): Promise<void> {
     try {
 
       const { labId, userId } = req.params;
@@ -82,11 +83,11 @@ export class SystemAdminUserController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to suspend user');
     }
   }
 
-  async deleteUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deleteUserForLab(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -105,7 +106,7 @@ export class SystemAdminUserController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to delete user');
     }
   }
 }

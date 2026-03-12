@@ -4,8 +4,9 @@
  * System admin endpoints for lab tenant management.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { BaseController } from './BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
@@ -38,7 +39,7 @@ export class LabController extends BaseController {
     super();
   }
 
-  async listLabs(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async listLabs(req: Request, res: Response): Promise<void> {
     try {
       const labs = await this.deps.labRepository.findAll();
 
@@ -56,11 +57,11 @@ export class LabController extends BaseController {
         })),
       }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to list labs');
     }
   }
 
-  async createLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async createLab(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const { name, isDemo } = req.body;
@@ -72,11 +73,11 @@ export class LabController extends BaseController {
 
       logger.info('Lab created', { labId: result.labId, createdBy: userId });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to create lab');
     }
   }
 
-  async updateLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async updateLab(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = req.params.id;
@@ -89,11 +90,11 @@ export class LabController extends BaseController {
 
       logger.info('Lab updated', { labId, updatedBy: userId });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to update lab');
     }
   }
 
-  async deactivateLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deactivateLab(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = req.params.id;
@@ -104,11 +105,11 @@ export class LabController extends BaseController {
 
       logger.info('Lab deactivated', { labId, deactivatedBy: userId });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to deactivate lab');
     }
   }
 
-  async getLabDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getLabDetails(req: Request, res: Response): Promise<void> {
     try {
       const labId = req.params.labId;
       const lab = await this.deps.labRepository.findById(labId);
@@ -186,11 +187,11 @@ export class LabController extends BaseController {
         isSeeded: config?.hasAnySeededResources() ?? false,
       }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get lab details');
     }
   }
 
-  async activateLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async activateLab(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = req.params.id;
@@ -201,11 +202,11 @@ export class LabController extends BaseController {
 
       logger.info('Lab activated', { labId, activatedBy: userId });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to activate lab');
     }
   }
 
-  async getOverview(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getOverview(req: Request, res: Response): Promise<void> {
     try {
       const [labs, allUsers] = await Promise.all([
         this.deps.labRepository.findAll(),
@@ -264,11 +265,11 @@ export class LabController extends BaseController {
         labStats,
       }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get overview');
     }
   }
 
-  async getDemoLimits(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getDemoLimits(req: Request, res: Response): Promise<void> {
     try {
       const labId = req.params.labId;
       const lab = await this.deps.labRepository.findById(labId);
@@ -281,11 +282,11 @@ export class LabController extends BaseController {
         limits: lab.demoLimits ?? DEMO_LIMITS_DEFAULTS,
       }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get demo limits');
     }
   }
 
-  async updateDemoLimits(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async updateDemoLimits(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = req.params.labId;
@@ -300,7 +301,7 @@ export class LabController extends BaseController {
 
       logger.info('Demo limits updated', { labId, updatedBy: userId });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to update demo limits');
     }
   }
 

@@ -4,9 +4,10 @@
  * HTTP handlers for session listing and revocation.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -22,7 +23,7 @@ export class UserSessionController extends BaseController {
   }
 
   /** GET /api/users/me/sessions */
-  async getUserSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getUserSessions(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
       const sessions = await this.deps.userSessionRepository.findActiveSessionsByUserId(user.id);
@@ -43,12 +44,12 @@ export class UserSessionController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success(sessionData));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get user sessions');
     }
   }
 
   /** DELETE /api/users/me/sessions/:id */
-  async revokeSession(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async revokeSession(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
       const sessionId = req.params.id;
@@ -75,12 +76,12 @@ export class UserSessionController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success({ message: 'Session revoked successfully' }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to revoke session');
     }
   }
 
   /** DELETE /api/users/me/sessions/all */
-  async revokeAllOtherSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async revokeAllOtherSessions(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
       const currentSessionId = req.sessionId;
@@ -99,7 +100,7 @@ export class UserSessionController extends BaseController {
         revokedCount
       }));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to revoke sessions');
     }
   }
 }

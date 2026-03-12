@@ -4,11 +4,12 @@
  * HTTP endpoints for audit log access, retention management, and archival.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { AuditService } from '@application/services/AuditService';
 import { AuditRetentionService } from '@application/services/AuditRetentionService';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import type { AuditLogFilters } from '@odysseus/shared-schemas';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -33,7 +34,7 @@ export class AuditController {
   }
 
   /** GET /api/admin/audit */
-  async getAuditLog(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getAuditLog(req: Request, res: Response): Promise<void> {
     try {
 
       const filters = this.parseAuditFilters(req.query);
@@ -59,12 +60,12 @@ export class AuditController {
         resultCount: result.items.length,
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get audit log');
     }
   }
 
   /** GET /api/admin/audit/entity/:entityType/:entityId */
-  async getEntityHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getEntityHistory(req: Request, res: Response): Promise<void> {
     try {
 
       const { entityType, entityId } = req.params;
@@ -91,12 +92,12 @@ export class AuditController {
         entryCount: entries.length,
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get entity history');
     }
   }
 
   /** GET /api/admin/audit/statistics */
-  async getStatistics(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getStatistics(req: Request, res: Response): Promise<void> {
     try {
 
 
@@ -112,12 +113,12 @@ export class AuditController {
         requestedBy: req.user?.username,
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get audit statistics');
     }
   }
 
   /** GET /api/admin/audit/retention/metrics */
-  async getRetentionMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getRetentionMetrics(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
         res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Retention metrics require system admin access'));
@@ -138,12 +139,12 @@ export class AuditController {
         requestedBy: req.user?.username,
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get retention metrics');
     }
   }
 
   /** GET /api/admin/audit/retention/policy */
-  async getRetentionPolicy(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getRetentionPolicy(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
         res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Retention policy requires system admin access'));
@@ -164,12 +165,12 @@ export class AuditController {
         requestedBy: req.user?.username,
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get retention policy');
     }
   }
 
   /** POST /api/admin/audit/retention/archive */
-  async runManualArchival(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async runManualArchival(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
         res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Manual archival requires system admin access'));
@@ -198,16 +199,12 @@ export class AuditController {
         deleted: result.deleted,
       });
     } catch (error) {
-      logger.error('Manual archival failed', {
-        error: error instanceof Error ? error.message : String(error),
-        requestedBy: req.user?.username,
-      });
-      next(error);
+      handleControllerError(error, res, 'Failed to run manual archival');
     }
   }
 
   /** GET /api/admin/audit/retention/export */
-  async exportArchivedLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async exportArchivedLogs(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
         res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Export requires system admin access'));
@@ -229,15 +226,11 @@ export class AuditController {
         dateTo: dateTo?.toISOString(),
       });
     } catch (error) {
-      logger.error('Archive export failed', {
-        error: error instanceof Error ? error.message : String(error),
-        requestedBy: req.user?.username,
-      });
-      next(error);
+      handleControllerError(error, res, 'Failed to export archived logs');
     }
   }
 
-  async getLabAuditLog(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getLabAuditLog(req: Request, res: Response): Promise<void> {
     try {
 
       const { labId } = req.params;
@@ -262,12 +255,12 @@ export class AuditController {
         resultCount: result.items.length,
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get lab audit log');
     }
   }
 
   /** GET /api/admin/audit/search */
-  async searchAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async searchAuditLogs(req: Request, res: Response): Promise<void> {
     try {
 
       const filters = this.parseAuditFilters(req.query);
@@ -296,7 +289,7 @@ export class AuditController {
         resultCount: result.items.length,
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to search audit logs');
     }
   }
 }

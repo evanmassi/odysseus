@@ -4,10 +4,11 @@
  * Lab admin endpoints — user CRUD, approval workflow, role changes, researcher linking, password resets.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { logger } from '@infrastructure/logging/logger';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import {
   ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
   DeleteUserCommand, DeleteUserCommandHandler,
@@ -32,7 +33,7 @@ export interface AdminUserControllerDeps {
 export class AdminUserController {
   constructor(private deps: AdminUserControllerDeps) {}
 
-  async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
 
       const labId = req.user?.labId;
@@ -48,11 +49,11 @@ export class AdminUserController {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get users');
     }
   }
 
-  async getUserById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getUserById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const query = new GetUserByIdQuery(id);
@@ -63,18 +64,18 @@ export class AdminUserController {
       });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get user');
     }
   }
 
-  async updateUserRole(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async updateUserRole(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { role } = req.body;
       const adminUser = req.user;
 
       if (!adminUser) {
-        return next(new Error('Admin user not found in request context'));
+        handleControllerError(new Error('Admin user not found in request context'), res, 'Failed to update user role'); return;
       }
 
       const command: ChangeUserRoleCommand = {
@@ -94,17 +95,17 @@ export class AdminUserController {
       const response = ResponseBuilder.success({ message: 'User role updated successfully' });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to update user role');
     }
   }
 
-  async deleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const adminUser = req.user;
 
       if (!adminUser) {
-        return next(new Error('Admin user not found in request context'));
+        handleControllerError(new Error('Admin user not found in request context'), res, 'Failed to delete user'); return;
       }
 
       const command: DeleteUserCommand = { userId: id, initiatedBy: adminUser.id };
@@ -118,11 +119,11 @@ export class AdminUserController {
       const response = ResponseBuilder.success({ message: 'User deleted successfully' });
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to delete user');
     }
   }
 
-  async getPendingUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getPendingUsers(req: Request, res: Response): Promise<void> {
     try {
 
       const adminApiKey = req.user?.apiKey;
@@ -144,11 +145,11 @@ export class AdminUserController {
         requestedBy: req.user?.username
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get pending users');
     }
   }
 
-  async approveUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async approveUser(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -172,11 +173,11 @@ export class AdminUserController {
         approvedBy: req.user?.username
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to approve user');
     }
   }
 
-  async rejectUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async rejectUser(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -200,11 +201,11 @@ export class AdminUserController {
         rejectedBy: req.user?.username
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to reject user');
     }
   }
 
-  async deactivateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deactivateUser(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -223,11 +224,11 @@ export class AdminUserController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to deactivate user');
     }
   }
 
-  async activateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async activateUser(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -246,14 +247,14 @@ export class AdminUserController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to activate user');
     }
   }
 
   /**
    * Links existing researcher (researcherId) or creates new one (newResearcher).
    */
-  async linkResearcherToUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async linkResearcherToUser(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -298,12 +299,12 @@ export class AdminUserController {
         linkedBy: req.user?.username
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to link researcher');
     }
   }
 
   /** Preserves researcher record for tube history while removing user link. */
-  async unlinkResearcherFromUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async unlinkResearcherFromUser(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -327,7 +328,7 @@ export class AdminUserController {
         unlinkedBy: req.user?.username
       });
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to unlink researcher');
     }
   }
 
@@ -335,7 +336,7 @@ export class AdminUserController {
    * Use when admin needs immediate access restoration.
    * requirePasswordChange=true forces user to set own password on next login.
    */
-  async adminResetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async adminResetPassword(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -367,12 +368,12 @@ export class AdminUserController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to reset password');
     }
   }
 
   /** Generates 15-minute one-time reset link for user to set own password. */
-  async generatePasswordResetToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async generatePasswordResetToken(req: Request, res: Response): Promise<void> {
     try {
 
       const { userId } = req.params;
@@ -401,7 +402,7 @@ export class AdminUserController {
 
       res.status(200).json(response);
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to generate reset token');
     }
   }
 }

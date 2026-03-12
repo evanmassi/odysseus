@@ -4,8 +4,9 @@
  * Handles profile management for the authenticated user.
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { BaseController } from '@presentation/controllers/BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { logger } from '@infrastructure/logging/logger';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
@@ -26,7 +27,7 @@ export class PersonController extends BaseController {
   }
 
   /** GET /api/users/me/profile */
-  async getMyProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getMyProfile(req: Request, res: Response): Promise<void> {
     try {
       const person = await this.getPersonForCurrentUser(req);
 
@@ -34,12 +35,12 @@ export class PersonController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success(this.toPersonResponse(person)));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to get profile');
     }
   }
 
   /** PUT /api/users/me/profile */
-  async updateMyProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async updateMyProfile(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
 
@@ -105,7 +106,7 @@ export class PersonController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success(this.toPersonResponse(person)));
     } catch (error) {
-      next(error);
+      handleControllerError(error, res, 'Failed to update profile');
     }
   }
 
