@@ -1,8 +1,7 @@
 /**
  * Resource Route Module
  *
- * Handles business resource routes (Tubes, Researchers).
- * These routes require authentication and operate on domain resources.
+ * Authenticated routes for tubes, researchers, and lookup values.
  */
 
 import { Router, RequestHandler } from 'express';
@@ -40,7 +39,6 @@ export class ResourceRouteModule implements RouteModule {
     private authMiddleware: AuthMiddleware,
     storageRepository: StorageRepository
   ) {
-    // Create rate limit middleware with injected repository
     this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
 
@@ -63,7 +61,6 @@ export class ResourceRouteModule implements RouteModule {
       this.tubeController.getAllTubes.bind(this.tubeController)
     );
 
-    // Standardized location endpoint
     router.get('/tubes/location', 
       validateQuery(LocationQuerySchema),
       this.tubeController.getTubesByLocation.bind(this.tubeController)
