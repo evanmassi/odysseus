@@ -2,12 +2,6 @@
  * Socket Authentication Middleware
  *
  * Authenticates Socket.IO connections using existing JWT tokens.
- * Attaches userId and username to socket instance for use in handlers.
- *
- * Design:
- * - Uses existing JwtSessionService for token validation
- * - Unauthenticated connections allowed (backward compatibility)
- * - Authentication failures logged but don't reject connection
  */
 
 import type { Socket } from 'socket.io';
@@ -15,7 +9,6 @@ import type { ExtendedError } from 'socket.io/dist/namespace';
 import type { SessionService } from '@application/contracts/SessionService';
 import { logger } from '@infrastructure/logging/logger';
 
-// Extend Socket interface with authenticated user info
 declare module 'socket.io' {
   interface Socket {
     userId?: string;
@@ -24,10 +17,6 @@ declare module 'socket.io' {
   }
 }
 
-/**
- * Creates Socket.IO authentication middleware
- * Uses existing SessionService (JwtSessionService) from ServiceContainer
- */
 export function createSocketAuthMiddleware(
   sessionService: SessionService
 ): (socket: Socket, next: (err?: ExtendedError) => void) => void {
@@ -37,12 +26,10 @@ export function createSocketAuthMiddleware(
 
       if (!token) {
         // Allow unauthenticated connections (they just won't have presence)
-        // This maintains backward compatibility
         logger.debug('Socket connected without auth token', { socketId: socket.id });
         return next();
       }
 
-      // Validate token using existing service
       const validation = await sessionService.validateSession(token);
 
       if (validation?.user) {
@@ -65,7 +52,7 @@ export function createSocketAuthMiddleware(
         error: error instanceof Error ? error.message : String(error),
         socketId: socket.id
       });
-      // Don't reject - allow connection but without auth
+      // Don't reject — allow connection but without auth
       next();
     }
   };
