@@ -1,9 +1,7 @@
 /**
  * Audit Controller
  *
- * Provides HTTP endpoints for audit log access.
- * Admin-only access to full audit log.
- * Users can access their own activity.
+ * HTTP endpoints for audit log access, retention management, and archival.
  */
 
 import { Request, Response, NextFunction } from 'express';
@@ -19,33 +17,23 @@ export class AuditController {
     private retentionService: AuditRetentionService
   ) {}
 
-  /**
-   * Get full audit log with advanced filtering (admin only)
-   * GET /api/admin/audit
-   *
-   * Query parameters:
-   * - limit: Number of entries per page (default: 50)
-   * - offset: Pagination offset (default: 0)
-   * - userId: Filter by user ID
-   * - action: Filter by action type
-   * - entityType: Filter by entity type
-   * - dateFrom: Filter by start date
-   * - dateTo: Filter by end date
-   */
+  private parseAuditFilters(query: Request['query']): AuditLogFilters {
+    return {
+      limit: query.limit ? parseInt(query.limit as string) : 50,
+      offset: query.offset ? parseInt(query.offset as string) : 0,
+      username: query.username as string | undefined,
+      action: query.action as string | undefined,
+      entityType: query.entityType as string | undefined,
+      dateFrom: query.dateFrom as string | undefined,
+      dateTo: query.dateTo as string | undefined,
+    };
+  }
+
+  /** GET /api/admin/audit */
   async getAuditLog(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
-
-      // Parse query parameters
-      const filters: AuditLogFilters = {
-        limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
-        username: req.query.username as string | undefined,
-        action: req.query.action as string | undefined,
-        entityType: req.query.entityType as string | undefined,
-        dateFrom: req.query.dateFrom as string | undefined,
-        dateTo: req.query.dateTo as string | undefined,
-      };
+      const filters = this.parseAuditFilters(req.query);
 
       const user = req.user;
       const isLabScoped = user && !user.isSystemAdmin() && user.labId;
@@ -72,12 +60,7 @@ export class AuditController {
     }
   }
 
-  /**
-   * Get audit history for a specific entity (admin only)
-   * GET /api/admin/audit/entity/:entityType/:entityId
-   *
-   * Returns complete history for a tube, user, or other entity.
-   */
+  /** GET /api/admin/audit/entity/:entityType/:entityId */
   async getEntityHistory(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -109,53 +92,7 @@ export class AuditController {
     }
   }
 
-  /**
-   * Get current user's activity log
-   * GET /api/users/me/activity
-   *
-   * Users can view their own actions.
-   */
-  async getMyActivity(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const startTime = Date.now();
-      const user = req.user;
-
-      if (!user) {
-        res.status(401).json(ResponseBuilder.error('UNAUTHORIZED', 'Authentication required'));
-        return;
-      }
-
-      // Parse query parameters for pagination
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-      const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-
-      const entries = await this.auditService.getUserActivity(user.id, {
-        limit,
-        offset,
-      });
-
-      const response = ResponseBuilder.withTiming(startTime, {
-        entries,
-      });
-
-      res.status(200).json(response);
-
-      logger.debug('User activity retrieved', {
-        userId: user.id,
-        username: user.username,
-        entryCount: entries.length,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Get audit statistics (admin only)
-   * GET /api/admin/audit/statistics
-   *
-   * Returns counts and metrics for dashboard.
-   */
+  /** GET /api/admin/audit/statistics */
   async getStatistics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -176,12 +113,7 @@ export class AuditController {
     }
   }
 
-  /**
-   * Get retention metrics (admin only)
-   * GET /api/admin/audit/retention/metrics
-   *
-   * Returns retention metrics including active/archive table stats.
-   */
+  /** GET /api/admin/audit/retention/metrics */
   async getRetentionMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
@@ -207,12 +139,7 @@ export class AuditController {
     }
   }
 
-  /**
-   * Get retention policy (admin only)
-   * GET /api/admin/audit/retention/policy
-   *
-   * Returns current retention policy configuration.
-   */
+  /** GET /api/admin/audit/retention/policy */
   async getRetentionPolicy(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
@@ -238,12 +165,7 @@ export class AuditController {
     }
   }
 
-  /**
-   * Manually trigger archival process (admin only)
-   * POST /api/admin/audit/retention/archive
-   *
-   * Triggers manual archival of old logs and deletion of expired logs.
-   */
+  /** POST /api/admin/audit/retention/archive */
   async runManualArchival(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
@@ -281,16 +203,7 @@ export class AuditController {
     }
   }
 
-  /**
-   * Export archived logs (admin only)
-   * GET /api/admin/audit/retention/export
-   *
-   * Query parameters:
-   * - dateFrom: Optional start date filter
-   * - dateTo: Optional end date filter
-   *
-   * Returns JSON export of archived logs.
-   */
+  /** GET /api/admin/audit/retention/export */
   async exportArchivedLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
@@ -325,17 +238,7 @@ export class AuditController {
     try {
       const startTime = Date.now();
       const { labId } = req.params;
-
-      const filters: AuditLogFilters = {
-        limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
-        username: req.query.username as string | undefined,
-        action: req.query.action as string | undefined,
-        entityType: req.query.entityType as string | undefined,
-        dateFrom: req.query.dateFrom as string | undefined,
-        dateTo: req.query.dateTo as string | undefined,
-      };
-
+      const filters = this.parseAuditFilters(req.query);
       const includeArchive = req.query.includeArchive === 'true';
 
       const result = includeArchive
@@ -360,28 +263,11 @@ export class AuditController {
     }
   }
 
-  /**
-   * Query logs with archive option (admin only)
-   * GET /api/admin/audit/search
-   *
-   * Query parameters: Same as getAuditLog, plus:
-   * - includeArchive: true/false to include archived logs
-   */
+  /** GET /api/admin/audit/search */
   async searchAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
-
-      // Parse query parameters
-      const filters: AuditLogFilters = {
-        limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
-        username: req.query.username as string | undefined,
-        action: req.query.action as string | undefined,
-        entityType: req.query.entityType as string | undefined,
-        dateFrom: req.query.dateFrom as string | undefined,
-        dateTo: req.query.dateTo as string | undefined,
-      };
-
+      const filters = this.parseAuditFilters(req.query);
       const includeArchive = req.query.includeArchive === 'true';
 
       const user = req.user;
