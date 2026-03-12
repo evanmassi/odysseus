@@ -220,14 +220,14 @@ export class LabController extends BaseController {
       }
 
       const labIds = labs.map(lab => lab.id);
-      const [tubeCountMap, configs] = await Promise.all([
+      const [tubeCountMap, configMap] = await Promise.all([
         this.deps.tubeRepository.countByLabIds(labIds),
-        Promise.all(labs.map(lab => this.deps.storageRepository.getForLab(lab.id))),
+        this.deps.storageRepository.getForLabs(labIds),
       ]);
 
-      const labStats = labs.map((lab, i) => {
+      const labStats = labs.map((lab) => {
         const userEntry = usersByLab.get(lab.id) ?? { total: 0, admins: 0 };
-        const { tankCount, rackCount, boxCount } = this.countStorage(configs[i]);
+        const { tankCount, rackCount, boxCount } = this.countStorage(configMap.get(lab.id) ?? null);
         return {
           labId: lab.id,
           labName: lab.name,

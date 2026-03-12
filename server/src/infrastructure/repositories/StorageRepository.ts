@@ -44,6 +44,23 @@ export class StorageRepository implements IStorageRepository {
     }
   }
 
+  async getForLabs(labIds: string[]): Promise<Map<string, Storage>> {
+    if (labIds.length === 0) return new Map();
+    try {
+      const placeholders = labIds.map((_, i) => `$${i + 1}`).join(', ');
+      const rows = await this.context.queryMany<{ lab_id: string; config_json: ConfigurationJson; version: number }>(`
+        SELECT lab_id, config_json, version
+        FROM storage_current
+        WHERE lab_id IN (${placeholders})
+      `, labIds);
+      return new Map(rows.map(r => [r.lab_id, Storage.fromData({ ...r.config_json, version: r.version })]));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to get configurations for labs:', { labIds, message: errorMessage });
+      throw new ValidationError(`Database error retrieving configurations: ${errorMessage}`);
+    }
+  }
+
   async ensureDefaultForLab(labId: string): Promise<Storage> {
     const existing = await this.getForLab(labId);
     if (existing) {

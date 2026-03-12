@@ -11,6 +11,7 @@ import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 export interface StorageRepository {
 
   getForLab(labId: string): Promise<Storage | null>;
+  getForLabs(labIds: string[]): Promise<Map<string, Storage>>;
   ensureDefaultForLab(labId: string): Promise<Storage>;
 
   getByVersion(labId: string, version: number): Promise<Storage | null>;

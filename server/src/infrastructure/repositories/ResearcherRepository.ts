@@ -134,14 +134,12 @@ export class ResearcherRepository implements IResearcherRepository {
       [limit]
     );
 
-    const results = [];
-    for (const row of rows) {
-      const researcher = await this.findById(row.researcher_id);
-      if (researcher) {
-        results.push({ researcher, tubeCount: parseInt(row.tube_count, 10) });
-      }
-    }
-    return results;
+    const ids = rows.map(r => r.researcher_id);
+    const researchers = await this.findByIds(ids);
+    const researcherMap = new Map(researchers.map(r => [r.id, r]));
+    return rows
+      .filter(row => researcherMap.has(row.researcher_id))
+      .map(row => ({ researcher: researcherMap.get(row.researcher_id)!, tubeCount: parseInt(row.tube_count, 10) }));
   }
 
   async getTubeCountByResearcher(researcherId: string): Promise<number> {
