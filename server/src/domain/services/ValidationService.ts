@@ -126,10 +126,10 @@ export class ValidationService {
     // 2. Location validation (if location is being changed)
     if (this.isLocationBeingChanged(tube, updates)) {
       const newLocation = Location.create(
-        updates.location?.tankId ?? tube.tankId,
-        updates.location?.rackId ?? tube.rackId,
-        updates.location?.boxId ?? tube.boxId,
-        updates.location?.position ?? tube.position
+        updates.location?.tankId ?? tube.location.tankId,
+        updates.location?.rackId ?? tube.location.rackId,
+        updates.location?.boxId ?? tube.location.boxId,
+        updates.location?.position ?? tube.location.position
       );
       
       const positionValidation = await this.tubePositionService.canPlaceTubeAt(newLocation, user.labId ?? '', tube.id);
@@ -145,7 +145,7 @@ export class ValidationService {
     // 3. Sample data validation (if sample data is being changed)
     if (this.isSampleDataBeingChanged(updates)) {
       try {
-        const currentSampleData = tube.sampleData.toData();
+        const currentSampleData = tube.sample.toData();
         const newSampleData = { ...currentSampleData, ...updates.sample };
         
         SampleData.create({

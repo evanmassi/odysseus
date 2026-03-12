@@ -103,10 +103,10 @@ export class ExportService {
 
     const exportData: TubeExportRow[] = tubes.map(tube => ({
       id: tube.id,
-      tankId: tube.tankId,
-      rackId: tube.rackId,
-      boxId: tube.boxId,
-      position: tube.position,
+      tankId: tube.location.tankId,
+      rackId: tube.location.rackId,
+      boxId: tube.location.boxId,
+      position: tube.location.position,
       researcherId: tube.researcherId ?? '',
       researcherName: tube.researcherId ? (researcherNameMap.get(tube.researcherId) ?? '') : '',
       cellType: tube.sample.cellType ?? '',

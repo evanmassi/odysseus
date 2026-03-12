@@ -343,12 +343,12 @@ describe('Tube', () => {
   describe('deprecated getters', () => {
     it('should provide backward-compatible accessors', () => {
       const tube = createTestTube({ sample: { cellType: 'HeLa', notes: 'test' } });
-      expect(tube.tankId).toBe('T1');
-      expect(tube.rackId).toBe('R1');
-      expect(tube.boxId).toBe('A');
-      expect(tube.position).toBe(1);
-      expect(tube.cellType).toBe('HeLa');
-      expect(tube.notes).toBe('test');
+      expect(tube.location.tankId).toBe('T1');
+      expect(tube.location.rackId).toBe('R1');
+      expect(tube.location.boxId).toBe('A');
+      expect(tube.location.position).toBe(1);
+      expect(tube.sample.cellType).toBe('HeLa');
+      expect(tube.sample.notes).toBe('test');
     });
   });
 

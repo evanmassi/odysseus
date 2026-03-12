@@ -170,7 +170,7 @@ export class TubeApplicationService {
     const createdEvent = new TubeCreatedEvent(
       tube.id,
       tube.location,
-      tube.sampleData,
+      tube.sample,
       authenticatedUser.id,
       authenticatedUser.labId!
     );
@@ -439,16 +439,16 @@ export class TubeApplicationService {
     );
     
     if (hasLocationUpdate && request.location) {
-      const newTankId = request.location.tankId || existingTube.tankId;
-      const newRackId = request.location.rackId || existingTube.rackId;
-      const newBoxId = request.location.boxId || existingTube.boxId;
-      const newPosition = request.location.position !== undefined ? request.location.position : existingTube.position;
+      const newTankId = request.location.tankId || existingTube.location.tankId;
+      const newRackId = request.location.rackId || existingTube.location.rackId;
+      const newBoxId = request.location.boxId || existingTube.location.boxId;
+      const newPosition = request.location.position !== undefined ? request.location.position : existingTube.location.position;
 
       const positionChanged = (
-        newTankId !== existingTube.tankId ||
-        newRackId !== existingTube.rackId ||
-        newBoxId !== existingTube.boxId ||
-        newPosition !== existingTube.position
+        newTankId !== existingTube.location.tankId ||
+        newRackId !== existingTube.location.rackId ||
+        newBoxId !== existingTube.location.boxId ||
+        newPosition !== existingTube.location.position
       );
 
       if (positionChanged) {
@@ -500,7 +500,7 @@ export class TubeApplicationService {
     }
 
     const oldLocation = existingTube.location;
-    const oldSampleData = existingTube.sampleData;
+    const oldSampleData = existingTube.sample;
 
     const updateData = TubeDto.fromUpdateRequest(request);
 
@@ -530,7 +530,7 @@ export class TubeApplicationService {
       oldLocation,
       updatedTube.location,
       oldSampleData,
-      updatedTube.sampleData,
+      updatedTube.sample,
       authenticatedUser.id,
       authenticatedUser.labId!
     );
@@ -576,7 +576,7 @@ export class TubeApplicationService {
       tube.id,
       tube.location,
       authenticatedUser.id,
-      tube.sampleData,
+      tube.sample,
       authenticatedUser.labId!
     );
     await this.eventBus.publish(deletedEvent);
@@ -688,7 +688,7 @@ export class TubeApplicationService {
           tube.id,
           tube.location,
           authenticatedUser.id,
-          tube.sampleData,
+          tube.sample,
           authenticatedUser.labId!
         );
         await this.eventBus.publish(tubeDeletedEvent);

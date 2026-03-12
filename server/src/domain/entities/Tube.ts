@@ -480,11 +480,6 @@ export class Tube {
     return this._sample; 
   }
 
-  /** @deprecated Use tube.sample instead */
-  get sampleData(): SampleData {
-    return this._sample; 
-  }
-
   get researcherId(): string | undefined {
     return this._researcherId;
   }
@@ -527,70 +522,4 @@ export class Tube {
     return [...this._sharedWithUserIds];
   }
 
-  // DEPRECATED GETTERS
-
-  /** @deprecated Use tube.location.tankId instead */
-  get tankId(): string {
-    return this._location.tankId; 
-  }
-
-  /** @deprecated Use tube.location.rackId instead */
-  get rackId(): string {
-    return this._location.rackId; 
-  }
-
-  /** @deprecated Use tube.location.boxId instead */
-  get boxId(): string {
-    return this._location.boxId; 
-  }
-
-  /** @deprecated Use tube.location.position instead */
-  get position(): number {
-    return this._location.position; 
-  }
-
-  /** @deprecated Use tube.sample.cellType instead */
-  get cellType(): string | undefined {
-    return this._sample.cellType; 
-  }
-
-  /** @deprecated Use tube.sample.donorInternalId instead */
-  get donorInternalId(): string | undefined {
-    return this._sample.donorInternalId; 
-  }
-
-  /** @deprecated Use tube.sample.donorSourceId instead */
-  get donorSourceId(): string | undefined {
-    return this._sample.donorSourceId; 
-  }
-
-  /** @deprecated Use tube.sample.concentration instead */
-  get concentration(): number | undefined {
-    return this._sample.concentration; 
-  }
-
-  /** @deprecated Use tube.sample.concentrationUnit instead */
-  get concentrationUnit(): 'c/v' | 'c/mL' | undefined {
-    return this._sample.concentrationUnit; 
-  }
-
-  /** @deprecated Use tube.sample.date instead */
-  get date(): string | undefined {
-    return this._sample.date;
-  }
-
-  /** @deprecated Use tube.sample.cultureCondition instead */
-  get cultureCondition(): string | undefined {
-    return this._sample.cultureCondition;
-  }
-
-  /** @deprecated Use tube.sample.lotNumber instead */
-  get lotNumber(): string | undefined {
-    return this._sample.lotNumber;
-  }
-
-  /** @deprecated Use tube.sample.notes instead */
-  get notes(): string | undefined {
-    return this._sample.notes;
-  }
 }

@@ -104,7 +104,7 @@ export class TubePositionService {
         result.conflictingTube = existingTube;
         result.errors.push(
           `Position ${location.toString()} is already occupied by tube ${existingTube.id}` +
-          (existingTube.cellType ? ` (${existingTube.cellType})` : '') +
+          (existingTube.sample.cellType ? ` (${existingTube.sample.cellType})` : '') +
           (existingTube.researcherId ? ` - researcher:${existingTube.researcherId}` : '')        );
       }
     } catch (error) {
@@ -195,9 +195,9 @@ export class TubePositionService {
       const allTubesInBox = await this.tubeRepository.findByRackAndBox(location.rackId, location.boxId, labId);
 
       const nearbyTubes = allTubesInBox.filter(tube => {
-        const distance = Math.abs(tube.position - location.position);
+        const distance = Math.abs(tube.location.position - location.position);
         // Within 10 positions — a single box row in most grid configurations
-        return distance <= 10 && tube.tankId === location.tankId;
+        return distance <= 10 && tube.location.tankId === location.tankId;
       });
 
       return nearbyTubes;
@@ -209,13 +209,13 @@ export class TubePositionService {
   async getBoxStatistics(tankId: string, rackId: string, boxId: string, labId: string): Promise<BoxStatistics> {
     try {
       const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId, labId);
-      const boxTubes = tubes.filter(tube => tube.tankId === tankId);
+      const boxTubes = tubes.filter(tube => tube.location.tankId === tankId);
       const maxPosition = await this.storageRepository.getMaxPosition(labId, tankId, rackId, boxId);
 
       const researchers = new Set(boxTubes.map(tube => tube.researcherId).filter(r => r));
-      const cellTypes = new Set(boxTubes.map(tube => tube.cellType).filter(ct => ct));
+      const cellTypes = new Set(boxTubes.map(tube => tube.sample.cellType).filter(ct => ct));
 
-      const occupiedPositions = boxTubes.map(tube => tube.position);
+      const occupiedPositions = boxTubes.map(tube => tube.location.position);
       const availablePositions = [];
       for (let i = 1; i <= maxPosition; i++) {
         if (!occupiedPositions.includes(i)) {
@@ -257,13 +257,13 @@ export class TubePositionService {
       if (researcher) {
         const researcherTubes = await this.tubeRepository.findByResearcher(researcher, labId);
         const sameBoxTubes = researcherTubes.filter(tube =>
-          tube.tankId === tankId &&
-          tube.rackId === rackId &&
-          tube.boxId === boxId
+          tube.location.tankId === tankId &&
+          tube.location.rackId === rackId &&
+          tube.location.boxId === boxId
         );
 
         if (sameBoxTubes.length > 0) {
-          const researcherPositions = sameBoxTubes.map(tube => tube.position);
+          const researcherPositions = sameBoxTubes.map(tube => tube.location.position);
           const avgPosition = researcherPositions.reduce((a, b) => a + b, 0) / researcherPositions.length;
 
           optimalPosition = stats.availablePositions.reduce((closest, current) =>

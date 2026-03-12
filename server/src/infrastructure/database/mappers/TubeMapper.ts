@@ -49,7 +49,7 @@ export class TubeMapper {
 
   static toRow(tube: Tube): TubeRow {
     const location = tube.location;
-    const sampleData = tube.sampleData;
+    const sampleData = tube.sample;
 
     const sharedWithUserIds = tube.sharedWithUserIds;
     const sharedJson = sharedWithUserIds.length > 0 ? JSON.stringify(sharedWithUserIds) : undefined;

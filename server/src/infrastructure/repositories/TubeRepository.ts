@@ -116,10 +116,10 @@ export class TubeRepository implements ITubeRepository {
       if (isPositionConstraintError(error)) {
         throw new ValidationError('Position already occupied', {
           code: 'POSITION_OCCUPIED',
-          tankId: tube.tankId,
-          rackId: tube.rackId,
-          boxId: tube.boxId,
-          position: tube.position
+          tankId: tube.location.tankId,
+          rackId: tube.location.rackId,
+          boxId: tube.location.boxId,
+          position: tube.location.position
         });
       }
       throw error;
@@ -183,10 +183,10 @@ export class TubeRepository implements ITubeRepository {
       if (isPositionConstraintError(error)) {
         throw new ValidationError('Position already occupied', {
           code: 'POSITION_OCCUPIED',
-          tankId: tube.tankId,
-          rackId: tube.rackId,
-          boxId: tube.boxId,
-          position: tube.position
+          tankId: tube.location.tankId,
+          rackId: tube.location.rackId,
+          boxId: tube.location.boxId,
+          position: tube.location.position
         });
       }
       throw error;
