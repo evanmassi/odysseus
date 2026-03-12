@@ -1,3 +1,9 @@
+/**
+ * Odysseus Server
+ *
+ * Application entry point — bootstraps Express, Socket.IO, database, and route modules.
+ */
+
 import express from 'express';
 import { createServer, Server } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -12,7 +18,6 @@ import { sanitizeStrings } from '@presentation/middleware/requestValidation';
 import { requestIdMiddleware } from '@presentation/middleware/requestId';
 import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth';
 
-// Load environment variables from appropriate file
 // Resolve from project root (works for both tsx and compiled dist)
 const serverRoot = path.resolve(__dirname, '..');
 const envFile = process.env.NODE_ENV === 'production'
@@ -45,21 +50,17 @@ class OdysseusServer {
         methods: ["GET", "POST"]
       },
 
-      // Production-grade timing configuration
-      pingTimeout: 60000,    // 60 seconds (increased from 5s default)
-      pingInterval: 25000,   // 25 seconds (keep default)
+      pingTimeout: 60000,
+      pingInterval: 25000,
 
-      // Connection recovery for brief disconnections
       connectionStateRecovery: {
         maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
       },
 
-      // Transport configuration with fallback
       transports: ['websocket', 'polling'],
 
-      // Performance tuning
-      perMessageDeflate: false, // Disable compression for low latency
-      httpCompression: false,   // Disable HTTP compression
+      perMessageDeflate: false, // Low latency over bandwidth savings
+      httpCompression: false,
     });
 
     this.io.on('connection', (socket) => {
@@ -80,46 +81,32 @@ class OdysseusServer {
   }
 
   private setupServices(): void {
-    // Initialize service container with dependency injection
     this.serviceContainer = new ServiceContainer(this.repositoryFactory);
-
-    // Pass Socket.IO instance to service container
     this.serviceContainer.setSocketIO(this.io);
 
-    // Register socket authentication middleware (must be before connection handlers)
+    // Must be registered before connection handlers
     const sessionService = this.serviceContainer.getSessionService();
     this.io.use(createSocketAuthMiddleware(sessionService));
 
-    // Initialize event handlers for audit logging, real-time updates, and approval workflows
+    // Side-effect initialization — registers event bus subscribers
     this.serviceContainer.getAuditEventHandler();
     this.serviceContainer.getSocketEventHandler();
     this.serviceContainer.getResearcherApprovalEventHandler();
 
-    // Start scheduled jobs
     this.serviceContainer.getAuditArchivalJob().start();
   }
 
   private setupMiddleware(): void {
-    // Security
     this.app.use(helmet());
-    
-    // CORS
     this.app.use(cors({
       origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:5173'],
       credentials: true
     }));
-
-    // Body parsing
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
-
-    // Input sanitization (applies to all routes)
     this.app.use(sanitizeStrings);
-
-    // Request ID for traceability
     this.app.use(requestIdMiddleware);
 
-    // Logging
     this.app.use((req, res, next) => {
       logger.info(`${req.method} ${req.path}`, { requestId: req.requestId });
       next();
@@ -127,14 +114,14 @@ class OdysseusServer {
   }
 
   private setupRoutes(): void {
-    // Initialize modular route system
     const { RouteRegistry, PublicRouteModule, AuthRouteModule, AdminRouteModule, ResourceRouteModule, StorageRouteModule, SearchRouteModule, UserRouteModule, SystemAdminRouteModule } = require('./presentation/routes');
 
     const registry = new RouteRegistry(this.app);
     const authController = this.serviceContainer.getAuthController();
     const tubeController = this.serviceContainer.getTubeController();
+    const tubeLockController = this.serviceContainer.getTubeLockController();
     const researcherController = this.serviceContainer.getResearcherController();
-    const configurationController = this.serviceContainer.getStorageController();
+    const storageController = this.serviceContainer.getStorageController();
     const searchController = this.serviceContainer.getSearchController();
     const userController = this.serviceContainer.getUserController();
     const personController = this.serviceContainer.getPersonController();
@@ -147,32 +134,20 @@ class OdysseusServer {
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const storageRepository = this.repositoryFactory.getStorageRepository();
 
-    // Register all route modules
     registry.registerModule(new PublicRouteModule(authController, inviteCodeController, storageRepository));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, storageRepository));
     registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, exportController, lookupValueController, inviteCodeController, authMiddleware));
-    registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, authController, configurationController, auditController, authMiddleware));
-    const tubeLockController = this.serviceContainer.getTubeLockController();
+    registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, authController, storageController, auditController, authMiddleware));
     registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, storageRepository));
-    registry.registerModule(new StorageRouteModule(configurationController, authMiddleware));
+    registry.registerModule(new StorageRouteModule(storageController, authMiddleware));
     registry.registerModule(new SearchRouteModule(searchController, authMiddleware, storageRepository));
     registry.registerModule(new UserRouteModule(userController, personController, sessionController, authMiddleware));
 
-    // Apply all routes
     registry.applyRoutes();
 
   }
 
   private setupErrorHandling(): void {
-    this.app.use((error: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      logger.error('Server error:', error);
-      const message = error instanceof Error ? error.message : undefined;
-      res.status(500).json({
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? message : undefined
-      });
-    });
-
     process.on('SIGTERM', this.shutdown.bind(this));
     process.on('SIGINT', this.shutdown.bind(this));
   }
@@ -210,6 +185,5 @@ class OdysseusServer {
   }
 }
 
-// Start main server
 const server = new OdysseusServer();
 server.start().catch((error) => logger.error('Server startup failed:', { error }));
