@@ -7,7 +7,7 @@ import type {
   RevokeTubeAccessRequest
 } from '@odysseus/shared-schemas';
 import { ErrorDto } from '@application/dto/ErrorDto';
-import { handleControllerError } from '@presentation/utils/ErrorHandler';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
 

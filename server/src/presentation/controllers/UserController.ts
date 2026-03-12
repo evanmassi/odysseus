@@ -3,7 +3,7 @@ import { UpdateUserSettingsCommandHandler } from '@application/commands/UserComm
 import { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { handleControllerError } from '@presentation/utils/ErrorHandler';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import { userSettingsSchema, userLookupRequestSchema } from '@odysseus/shared-schemas';
 import { BaseController } from '@presentation/controllers/BaseController';
 
