@@ -1,3 +1,9 @@
+/**
+ * Tube Locking Controller
+ *
+ * HTTP handlers for tube lock/unlock and access sharing operations.
+ */
+
 import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import type {
@@ -10,22 +16,12 @@ import { ErrorDto } from '@application/dto/ErrorDto';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
-
-/**
- * TubeLockController - HTTP request/response handling for tube locking
- *
- * Pure presentation layer - handles HTTP concerns only.
- * Delegates all business logic to application service.
- */
 export class TubeLockController extends BaseController {
   constructor(private tubeApplicationService: TubeApplicationService) {
     super();
   }
 
-  /**
-   * Lock tubes
-   * POST /api/tubes/lock
-   */
+  /** POST /api/tubes/lock */
   async lockTubes(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
@@ -46,10 +42,7 @@ export class TubeLockController extends BaseController {
     }
   }
 
-  /**
-   * Unlock tubes
-   * POST /api/tubes/unlock
-   */
+  /** POST /api/tubes/unlock */
   async unlockTubes(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
@@ -70,10 +63,7 @@ export class TubeLockController extends BaseController {
     }
   }
 
-  /**
-   * Share tube access
-   * POST /api/tubes/share-access
-   */
+  /** POST /api/tubes/share-access */
   async shareTubeAccess(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
@@ -95,10 +85,7 @@ export class TubeLockController extends BaseController {
     }
   }
 
-  /**
-   * Revoke tube access
-   * POST /api/tubes/revoke-access
-   */
+  /** POST /api/tubes/revoke-access */
   async revokeTubeAccess(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
