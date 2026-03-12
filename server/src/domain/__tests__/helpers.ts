@@ -8,9 +8,11 @@ import { User } from '@domain/entities/User';
 import { Tube } from '@domain/entities/Tube';
 import { UserRole } from '@domain/value-objects/UserRole';
 
+export const TEST_PASSWORD_HASH = '$2b$12$fakehashfortestingonly000000000000000000000000000000000';
+
 export function createTestUser(overrides: {
   username?: string;
-  password?: string;
+  passwordHash?: string;
   role?: UserRole;
   status?: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
   labId?: string;
@@ -18,7 +20,7 @@ export function createTestUser(overrides: {
 } = {}): User {
   return User.createWithPassword(
     overrides.username ?? 'testuser',
-    overrides.password ?? 'testpass1234',
+    overrides.passwordHash ?? TEST_PASSWORD_HASH,
     overrides.role ?? UserRole.user(),
     overrides.researcherId,
     undefined,

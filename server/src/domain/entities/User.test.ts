@@ -6,7 +6,7 @@
 
 import { User } from './User';
 import { UserRole } from '@domain/value-objects/UserRole';
-import { createTestUser, createTestAdmin, createTestSystemAdmin } from '@domain/__tests__/helpers';
+import { createTestUser, createTestAdmin, createTestSystemAdmin, TEST_PASSWORD_HASH } from '@domain/__tests__/helpers';
 
 describe('User', () => {
   describe('factory methods', () => {
@@ -40,7 +40,7 @@ describe('User', () => {
       it('should create user with password hash', () => {
         const user = createTestUser();
         expect(user.hasPassword()).toBe(true);
-        expect(user.validatePassword('testpass1234')).toBe(true);
+        expect(user.passwordHash).toBe(TEST_PASSWORD_HASH);
       });
 
       it('should set the requested role', () => {
@@ -72,37 +72,32 @@ describe('User', () => {
   });
 
   describe('password management', () => {
-    it('should validate correct password', () => {
-      const user = createTestUser({ password: 'secret1234' });
-      expect(user.validatePassword('secret1234')).toBe(true);
-    });
-
-    it('should reject wrong password', () => {
-      const user = createTestUser({ password: 'secret1234' });
-      expect(user.validatePassword('wrongpassword')).toBe(false);
-    });
-
-    it('should reject empty password on validate', () => {
+    it('should report hasPassword when hash is set', () => {
       const user = createTestUser();
-      expect(user.validatePassword('')).toBe(false);
+      expect(user.hasPassword()).toBe(true);
     });
 
     it('should report no password when not set', () => {
       const user = User.create('test', 'api_' + 'x'.repeat(32));
       expect(user.hasPassword()).toBe(false);
-      expect(user.validatePassword('anything')).toBe(false);
     });
 
-    it('should throw for password shorter than 4 chars', () => {
-      expect(() => createTestUser({ password: 'abc' })).toThrow('Password must be at least 4 characters');
-    });
+    it('should store hash and clear salt via setPasswordHash', () => {
+      const user = User.fromData({
+        id: 'user_1',
+        username: 'test',
+        apiKey: 'api_' + 'x'.repeat(32),
+        role: 'user',
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        passwordHash: 'legacyhash',
+        salt: 'legacysalt',
+      });
+      expect(user.salt).toBe('legacysalt');
 
-    it('should throw for password longer than 128 chars', () => {
-      expect(() => createTestUser({ password: 'x'.repeat(129) })).toThrow('Password cannot exceed 128 characters');
-    });
-
-    it('should throw for empty password', () => {
-      expect(() => createTestUser({ password: '' })).toThrow('Password is required');
+      user.setPasswordHash('$2b$12$newbcrypthash');
+      expect(user.passwordHash).toBe('$2b$12$newbcrypthash');
+      expect(user.salt).toBeUndefined();
     });
   });
 
@@ -472,57 +467,60 @@ describe('User', () => {
 
   describe('password reset', () => {
     it('should generate and reset with token', () => {
-      const user = createTestUser({ password: 'oldpass1234' });
+      const user = createTestUser();
       const token = user.generatePasswordResetToken();
       expect(typeof token).toBe('string');
       expect(token.length).toBe(64);
 
-      user.resetPasswordWithToken(token, 'newpass1234');
-      expect(user.validatePassword('newpass1234')).toBe(true);
-      expect(user.validatePassword('oldpass1234')).toBe(false);
+      const newHash = '$2b$12$resethash';
+      user.resetPasswordWithToken(token, newHash);
+      expect(user.passwordHash).toBe(newHash);
+      expect(user.salt).toBeUndefined();
     });
 
     it('should reject wrong reset token', () => {
       const user = createTestUser();
       user.generatePasswordResetToken();
-      expect(() => user.resetPasswordWithToken('wrongtoken', 'newpass1234')).toThrow();
+      expect(() => user.resetPasswordWithToken('wrongtoken', '$2b$12$hash')).toThrow();
     });
 
     it('should reject expired reset token', () => {
       const user = createTestUser();
       user.generatePasswordResetToken();
       (user as any)._passwordResetExpiry = new Date(Date.now() - 1000);
-      expect(() => user.resetPasswordWithToken('anytoken', 'newpass1234')).toThrow('Password reset token expired');
+      expect(() => user.resetPasswordWithToken('anytoken', '$2b$12$hash')).toThrow('Password reset token expired');
     });
 
     it('should clear requirePasswordChange after reset', () => {
       const user = createTestUser();
-      user.adminResetPassword('temppass1', true);
+      user.adminResetPassword('$2b$12$temphash', true);
       expect(user.isPasswordChangeRequired()).toBe(true);
 
       const token = user.generatePasswordResetToken();
-      user.resetPasswordWithToken(token, 'userpass1');
+      user.resetPasswordWithToken(token, '$2b$12$userhash');
       expect(user.isPasswordChangeRequired()).toBe(false);
     });
 
     it('should reject reset without token', () => {
       const user = createTestUser();
-      expect(() => user.resetPasswordWithToken('token', 'newpass1234')).toThrow('No password reset token found');
+      expect(() => user.resetPasswordWithToken('token', '$2b$12$hash')).toThrow('No password reset token found');
     });
   });
 
   describe('admin password reset', () => {
-    it('should set password and require change flag', () => {
+    it('should set password hash and require change flag', () => {
       const user = createTestUser();
-      user.adminResetPassword('temppass1234', true);
-      expect(user.validatePassword('temppass1234')).toBe(true);
+      const hash = '$2b$12$adminresethash';
+      user.adminResetPassword(hash, true);
+      expect(user.passwordHash).toBe(hash);
+      expect(user.salt).toBeUndefined();
       expect(user.isPasswordChangeRequired()).toBe(true);
     });
 
     it('should clear existing reset tokens', () => {
       const user = createTestUser();
       user.generatePasswordResetToken();
-      user.adminResetPassword('temppass1234');
+      user.adminResetPassword('$2b$12$adminresethash');
       expect(user.passwordResetToken).toBeUndefined();
     });
   });
@@ -530,7 +528,7 @@ describe('User', () => {
   describe('markPasswordChanged', () => {
     it('should clear requirePasswordChange', () => {
       const user = createTestUser();
-      user.adminResetPassword('temp1234', true);
+      user.adminResetPassword('$2b$12$temphash', true);
       expect(user.isPasswordChangeRequired()).toBe(true);
       user.markPasswordChanged();
       expect(user.isPasswordChangeRequired()).toBe(false);
@@ -718,10 +716,11 @@ describe('User', () => {
       expect(updated.id).toBe(user.id);
     });
 
-    it('should preserve password through settings update', () => {
-      const user = createTestUser({ password: 'mypass123' });
+    it('should preserve password hash through settings update', () => {
+      const user = createTestUser();
       const updated = user.updateSettings(user.settings);
-      expect(updated.validatePassword('mypass123')).toBe(true);
+      expect(updated.hasPassword()).toBe(true);
+      expect(updated.passwordHash).toBe(TEST_PASSWORD_HASH);
     });
   });
 });
