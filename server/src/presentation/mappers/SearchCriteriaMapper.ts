@@ -1,22 +1,13 @@
+/**
+ * Search Criteria Mapper
+ *
+ * Maps HTTP search filters to domain-layer TubeSearchCriteria.
+ */
+
 import { SearchFilters } from '@odysseus/shared-schemas';
 import type { TubeSearchCriteria } from '@domain/types/repository';
 
-/**
- * SearchCriteriaMapper
- *
- * Maps presentation layer filters (SearchFilters from HTTP request)
- * to domain layer criteria (TubeSearchCriteria for repository).
- *
- * Centralized here to prevent duplication across controllers.
- */
 export class SearchCriteriaMapper {
-  /**
-   * Map SearchFilters (API request) to TubeSearchCriteria (domain)
-   *
-   * @param filters - Filters from HTTP request body (validated by Zod)
-   * @param baseOptions - Additional search options (query, limit, offset, sorting)
-   * @returns TubeSearchCriteria for repository
-   */
   static toTubeSearchCriteria(
     filters?: SearchFilters,
     baseOptions?: {
@@ -55,31 +46,6 @@ export class SearchCriteriaMapper {
     };
   }
 
-  /**
-   * Extract only filter-related fields (excludes pagination/sorting)
-   * Useful for logging or analytics
-   */
-  static extractFiltersOnly(criteria: TubeSearchCriteria): Partial<TubeSearchCriteria> {
-    return {
-      tankIds: criteria.tankIds,
-      rackIds: criteria.rackIds,
-      boxIds: criteria.boxIds,
-      cellTypes: criteria.cellTypes,
-      species: criteria.species,
-      sources: criteria.sources,
-      lotNumbers: criteria.lotNumbers,
-      donorInternalIds: criteria.donorInternalIds,
-      donorSourceIds: criteria.donorSourceIds,
-      cultureConditions: criteria.cultureConditions,
-      researcherIds: criteria.researcherIds,
-      dateFrom: criteria.dateFrom,
-      dateTo: criteria.dateTo
-    };
-  }
-
-  /**
-   * Count active filters (for analytics/logging)
-   */
   static countActiveFilters(criteria: TubeSearchCriteria): number {
     let count = 0;
 
