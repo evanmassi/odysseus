@@ -9,17 +9,20 @@ import { UpdateUserSettingsCommandHandler } from '@application/commands/UserComm
 import { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { userSettingsSchema, userLookupRequestSchema } from '@odysseus/shared-schemas';
 import { BaseController } from '@presentation/controllers/BaseController';
 import type { User } from '@domain/entities/User';
+export interface UserControllerDeps {
+  updateUserSettingsHandler: UpdateUserSettingsCommandHandler;
+  getUserSettingsHandler: GetUserSettingsQueryHandler;
+  userRepository: UserRepository;
+  personRepository: PersonRepository;
+}
+
 export class UserController extends BaseController {
-  constructor(
-    private updateUserSettingsHandler: UpdateUserSettingsCommandHandler,
-    private getUserSettingsHandler: GetUserSettingsQueryHandler,
-    private userRepository: UserRepository,
-    private personRepository: PersonRepository
-  ) {
+  constructor(private deps: UserControllerDeps) {
     super();
   }
 
@@ -27,12 +30,9 @@ export class UserController extends BaseController {
   async getCurrentUserSettings(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
-      const settings = await this.getUserSettingsHandler.handle({ userId });
+      const settings = await this.deps.getUserSettingsHandler.handle({ userId });
 
-      res.json({
-        success: true,
-        settings,
-      });
+      res.json(ResponseBuilder.success({ settings }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get user settings');
     }
@@ -44,16 +44,12 @@ export class UserController extends BaseController {
       const userId = this.extractUserId(req);
       const settings = userSettingsSchema.parse(req.body.settings);
 
-      const updatedUser = await this.updateUserSettingsHandler.handle({
+      const updatedUser = await this.deps.updateUserSettingsHandler.handle({
         userId,
         settings,
       });
 
-      res.json({
-        success: true,
-        settings: updatedUser.settings,
-        message: 'User settings updated successfully',
-      });
+      res.json(ResponseBuilder.success({ settings: updatedUser.settings }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update user settings');
     }
@@ -63,10 +59,10 @@ export class UserController extends BaseController {
   async lookupUsers(req: Request, res: Response): Promise<void> {
     try {
       const { userIds } = userLookupRequestSchema.parse(req.body);
-      const users = await this.userRepository.findByIds(userIds);
+      const users = await this.deps.userRepository.findByIds(userIds);
       const displayUsers = await this.toDisplayUsers(users);
 
-      res.json({ success: true, users: displayUsers });
+      res.json(ResponseBuilder.success({ users: displayUsers }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to lookup users');
     }
@@ -76,11 +72,11 @@ export class UserController extends BaseController {
   async listActiveUsers(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
-      const allUsers = await this.userRepository.findByStatus('approved');
+      const allUsers = await this.deps.userRepository.findByStatus('approved');
       const users = allUsers.filter(u => u.labId === authenticatedUser.labId);
       const displayUsers = await this.toDisplayUsers(users);
 
-      res.json({ success: true, users: displayUsers });
+      res.json(ResponseBuilder.success({ users: displayUsers }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to list active users');
     }
@@ -91,7 +87,7 @@ export class UserController extends BaseController {
       .map(u => u.toPublicData().personId)
       .filter((id): id is string => id != null);
 
-    const persons = await this.personRepository.findByIds(personIds);
+    const persons = await this.deps.personRepository.findByIds(personIds);
     const personMap = new Map(persons.map(p => [p.id, p]));
 
     return users.map(user => {

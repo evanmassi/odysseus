@@ -16,8 +16,12 @@ import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
+export interface TubeLockControllerDeps {
+  tubeApplicationService: TubeApplicationService;
+}
+
 export class TubeLockController extends BaseController {
-  constructor(private tubeApplicationService: TubeApplicationService) {
+  constructor(private deps: TubeLockControllerDeps) {
     super();
   }
 
@@ -27,7 +31,7 @@ export class TubeLockController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const lockRequest: LockTubesRequest = req.body;
 
-      const result = await this.tubeApplicationService.lockTubes(lockRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.lockTubes(lockRequest, authenticatedUser);
 
       logger.debug('Tubes locked', {
         locked: result.locked.length,
@@ -48,7 +52,7 @@ export class TubeLockController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const unlockRequest: UnlockTubesRequest = req.body;
 
-      const result = await this.tubeApplicationService.unlockTubes(unlockRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.unlockTubes(unlockRequest, authenticatedUser);
 
       logger.debug('Tubes unlocked', {
         unlocked: result.unlocked.length,
@@ -69,7 +73,7 @@ export class TubeLockController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const shareRequest: ShareTubeAccessRequest = req.body;
 
-      const result = await this.tubeApplicationService.shareTubeAccess(shareRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.shareTubeAccess(shareRequest, authenticatedUser);
 
       logger.debug('Tube access shared', {
         shared: result.shared.length,
@@ -91,7 +95,7 @@ export class TubeLockController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const revokeRequest: RevokeTubeAccessRequest = req.body;
 
-      const result = await this.tubeApplicationService.revokeTubeAccess(revokeRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.revokeTubeAccess(revokeRequest, authenticatedUser);
 
       logger.debug('Tube access revoked', {
         revoked: result.revoked.length,

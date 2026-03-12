@@ -11,11 +11,13 @@ import { AuditRetentionService } from '@application/services/AuditRetentionServi
 import type { AuditLogFilters } from '@odysseus/shared-schemas';
 import { logger } from '@infrastructure/logging/logger';
 
+export interface AuditControllerDeps {
+  auditService: AuditService;
+  retentionService: AuditRetentionService;
+}
+
 export class AuditController {
-  constructor(
-    private auditService: AuditService,
-    private retentionService: AuditRetentionService
-  ) {}
+  constructor(private deps: AuditControllerDeps) {}
 
   private parseAuditFilters(query: Request['query']): AuditLogFilters {
     return {
@@ -39,8 +41,8 @@ export class AuditController {
       const isLabScoped = user && !user.isSystemAdmin() && user.labId;
 
       const result = isLabScoped
-        ? await this.auditService.getAuditLogForLab(filters, user.labId!)
-        : await this.auditService.getAuditLog(filters);
+        ? await this.deps.auditService.getAuditLogForLab(filters, user.labId!)
+        : await this.deps.auditService.getAuditLog(filters);
 
       const response = ResponseBuilder.success({
         entries: result.items,
@@ -71,7 +73,7 @@ export class AuditController {
         return;
       }
 
-      const entries = await this.auditService.getEntityHistory(entityId, entityType);
+      const entries = await this.deps.auditService.getEntityHistory(entityId, entityType);
 
       const response = ResponseBuilder.success({
         entries,
@@ -97,7 +99,7 @@ export class AuditController {
     try {
 
 
-      const stats = await this.auditService.getStatistics();
+      const stats = await this.deps.auditService.getStatistics();
 
       const response = ResponseBuilder.success({
         statistics: stats,
@@ -123,7 +125,7 @@ export class AuditController {
 
 
 
-      const metrics = await this.retentionService.getRetentionMetrics();
+      const metrics = await this.deps.retentionService.getRetentionMetrics();
 
       const response = ResponseBuilder.success({
         metrics,
@@ -149,7 +151,7 @@ export class AuditController {
 
 
 
-      const policy = this.retentionService.getRetentionPolicy();
+      const policy = this.deps.retentionService.getRetentionPolicy();
 
       const response = ResponseBuilder.success({
         policy,
@@ -179,7 +181,7 @@ export class AuditController {
         requestedBy: req.user?.username,
       });
 
-      const result = await this.retentionService.runManualArchival();
+      const result = await this.deps.retentionService.runManualArchival();
 
       const response = ResponseBuilder.success({
         archived: result.archived,
@@ -214,7 +216,7 @@ export class AuditController {
       const dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined;
       const dateTo = req.query.dateTo ? new Date(req.query.dateTo as string) : undefined;
 
-      const jsonExport = await this.retentionService.exportArchivedLogs(dateFrom, dateTo);
+      const jsonExport = await this.deps.retentionService.exportArchivedLogs(dateFrom, dateTo);
 
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', 'attachment; filename=audit-archive-export.json');
@@ -242,8 +244,8 @@ export class AuditController {
       const includeArchive = req.query.includeArchive === 'true';
 
       const result = includeArchive
-        ? await this.retentionService.queryAllLogsForLab(filters, labId, true)
-        : await this.auditService.getAuditLogForLab(filters, labId);
+        ? await this.deps.retentionService.queryAllLogsForLab(filters, labId, true)
+        : await this.deps.auditService.getAuditLogForLab(filters, labId);
 
       const response = ResponseBuilder.success({
         entries: result.items,
@@ -274,8 +276,8 @@ export class AuditController {
       const isLabScoped = user && !user.isSystemAdmin() && user.labId;
 
       const result = isLabScoped
-        ? await this.retentionService.queryAllLogsForLab(filters, user.labId!, includeArchive)
-        : await this.retentionService.queryAllLogs(filters, includeArchive);
+        ? await this.deps.retentionService.queryAllLogsForLab(filters, user.labId!, includeArchive)
+        : await this.deps.retentionService.queryAllLogs(filters, includeArchive);
 
       const response = ResponseBuilder.success({
         entries: result.items,

@@ -13,11 +13,13 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import type { LookupCategory } from '@domain/entities/LookupValue';
 
+export interface LookupValueControllerDeps {
+  lookupValueService: LookupValueApplicationService;
+  storageRepository: StorageRepository;
+}
+
 export class LookupValueController extends BaseController {
-  constructor(
-    private lookupValueService: LookupValueApplicationService,
-    private storageRepository: StorageRepository
-  ) {
+  constructor(private deps: LookupValueControllerDeps) {
     super();
   }
 
@@ -26,7 +28,7 @@ export class LookupValueController extends BaseController {
     if (user.isSystemAdmin()) return;
     if (!user.isDemo) return;
 
-    const config = await this.storageRepository.getForLab(this.extractLabId(req));
+    const config = await this.deps.storageRepository.getForLab(this.extractLabId(req));
     if (config?.hasAnySeededResources()) {
       throw new ValidationError('Catalog is locked in seeded demo mode');
     }
@@ -37,7 +39,7 @@ export class LookupValueController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const category = req.params.category as LookupCategory;
-      const values = await this.lookupValueService.getActiveByCategory(labId, category);
+      const values = await this.deps.lookupValueService.getActiveByCategory(labId, category);
       res.json(ResponseBuilder.success(values));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get active lookup values', req.requestId);
@@ -49,7 +51,7 @@ export class LookupValueController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const category = req.params.category as LookupCategory;
-      const values = await this.lookupValueService.getAllByCategory(labId, category);
+      const values = await this.deps.lookupValueService.getAllByCategory(labId, category);
       res.json(ResponseBuilder.success(values));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get all lookup values', req.requestId);
@@ -62,7 +64,7 @@ export class LookupValueController extends BaseController {
       await this.rejectIfSeededDemo(req);
       const labId = this.extractLabId(req);
       const { category, value } = req.body;
-      const created = await this.lookupValueService.create(labId, category, value);
+      const created = await this.deps.lookupValueService.create(labId, category, value);
       res.status(201).json(ResponseBuilder.success(created));
     } catch (error) {
       handleControllerError(error, res, 'Failed to create lookup value', req.requestId);
@@ -76,7 +78,7 @@ export class LookupValueController extends BaseController {
       const labId = this.extractLabId(req);
       const { id } = req.params;
       const { newValue } = req.body;
-      const updated = await this.lookupValueService.rename(labId, id, newValue);
+      const updated = await this.deps.lookupValueService.rename(labId, id, newValue);
       res.json(ResponseBuilder.success(updated));
     } catch (error) {
       handleControllerError(error, res, 'Failed to rename lookup value', req.requestId);
@@ -89,7 +91,7 @@ export class LookupValueController extends BaseController {
       await this.rejectIfSeededDemo(req);
       const labId = this.extractLabId(req);
       const { id } = req.params;
-      await this.lookupValueService.delete(labId, id);
+      await this.deps.lookupValueService.delete(labId, id);
       res.json(ResponseBuilder.success({ deleted: true }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete lookup value', req.requestId);

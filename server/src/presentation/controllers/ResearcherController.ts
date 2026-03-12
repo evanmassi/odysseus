@@ -11,8 +11,12 @@ import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
+export interface ResearcherControllerDeps {
+  researcherApplicationService: ResearcherApplicationService;
+}
+
 export class ResearcherController extends BaseController {
-  constructor(private researcherApplicationService: ResearcherApplicationService) {
+  constructor(private deps: ResearcherControllerDeps) {
     super();
   }
 
@@ -30,13 +34,13 @@ export class ResearcherController extends BaseController {
 
       if (includeAdminData) {
         const userApiKey = this.extractApiKey(req);
-        const researchers = await this.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
+        const researchers = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
         res.json(ResponseBuilder.success({ researchers }));
       } else if (visibleOnly) {
-        const researchers = await this.researcherApplicationService.getVisibleResearchers(labId);
+        const researchers = await this.deps.researcherApplicationService.getVisibleResearchers(labId);
         res.json(ResponseBuilder.success(researchers));
       } else {
-        const researchers = await this.researcherApplicationService.getAllResearchers(labId);
+        const researchers = await this.deps.researcherApplicationService.getAllResearchers(labId);
         res.json(ResponseBuilder.success(researchers));
       }
     } catch (error) {
@@ -50,7 +54,7 @@ export class ResearcherController extends BaseController {
       const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
 
-      const researchers = await this.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
+      const researchers = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
 
       logger.debug('Retrieved researchers with metadata', {
         count: researchers.length,
@@ -70,7 +74,7 @@ export class ResearcherController extends BaseController {
       const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
 
-      const researchers = await this.researcherApplicationService.getUnlinkedResearchers(labId, userApiKey);
+      const researchers = await this.deps.researcherApplicationService.getUnlinkedResearchers(labId, userApiKey);
 
       logger.debug('Retrieved unlinked researchers', {
         count: researchers.length,
@@ -89,7 +93,7 @@ export class ResearcherController extends BaseController {
     try {
       const { id } = req.params;
 
-      const researcher = await this.researcherApplicationService.getResearcherById(id);
+      const researcher = await this.deps.researcherApplicationService.getResearcherById(id);
 
       res.json(ResponseBuilder.success(researcher));
     } catch (error) {
@@ -104,7 +108,7 @@ export class ResearcherController extends BaseController {
       const createRequest: CreateResearcherRequest = req.body;
       const userApiKey = this.extractApiKey(req);
 
-      const researcher = await this.researcherApplicationService.createResearcher(labId, createRequest, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.createResearcher(labId, createRequest, userApiKey);
 
       logger.debug('Researcher created', {
         researcherId: researcher.id,
@@ -126,7 +130,7 @@ export class ResearcherController extends BaseController {
       const updates = req.body;
       const userApiKey = this.extractApiKey(req);
 
-      const researcher = await this.researcherApplicationService.updateResearcher(id, updates, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.updateResearcher(id, updates, userApiKey);
 
       logger.debug('Researcher updated', {
         researcherId: researcher.id,
@@ -148,7 +152,7 @@ export class ResearcherController extends BaseController {
       const { researcherId } = req.params;
       const userApiKey = this.extractApiKey(req);
 
-      await this.researcherApplicationService.deleteResearcher(researcherId, userApiKey);
+      await this.deps.researcherApplicationService.deleteResearcher(researcherId, userApiKey);
 
       logger.debug('Researcher deleted', {
         researcherId,
@@ -168,7 +172,7 @@ export class ResearcherController extends BaseController {
       const { id } = req.params;
       const userApiKey = this.extractApiKey(req);
 
-      const researcher = await this.researcherApplicationService.deactivateResearcher(id, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.deactivateResearcher(id, userApiKey);
 
       logger.debug('Researcher deactivated', {
         researcherId: researcher.id,
@@ -189,7 +193,7 @@ export class ResearcherController extends BaseController {
       const { id } = req.params;
       const userApiKey = this.extractApiKey(req);
 
-      const researcher = await this.researcherApplicationService.activateResearcher(id, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.activateResearcher(id, userApiKey);
 
       logger.debug('Researcher activated', {
         researcherId: researcher.id,
@@ -209,7 +213,7 @@ export class ResearcherController extends BaseController {
     try {
       const userApiKey = this.extractApiKey(req);
 
-      const stats = await this.researcherApplicationService.getResearcherStats(userApiKey);
+      const stats = await this.deps.researcherApplicationService.getResearcherStats(userApiKey);
       
       res.json(ResponseBuilder.success(stats));
     } catch (error) {
@@ -227,7 +231,7 @@ export class ResearcherController extends BaseController {
         return;
       }
 
-      const researchers = await this.researcherApplicationService.searchResearchers(query);
+      const researchers = await this.deps.researcherApplicationService.searchResearchers(query);
 
       res.json(ResponseBuilder.success(researchers));
     } catch (error) {
@@ -240,7 +244,7 @@ export class ResearcherController extends BaseController {
     try {
       const { id } = req.params;
 
-      const result = await this.researcherApplicationService.getResearcherTubeCount(id);
+      const result = await this.deps.researcherApplicationService.getResearcherTubeCount(id);
 
       res.json(ResponseBuilder.success(result));
     } catch (error) {

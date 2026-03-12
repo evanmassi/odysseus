@@ -12,13 +12,15 @@ import type { ValidateInviteCodeQueryHandler } from '@application/queries/Invite
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { logger } from '@infrastructure/logging/logger';
 
+export interface InviteCodeControllerDeps {
+  createInviteCodeHandler: CreateInviteCodeCommandHandler;
+  deactivateInviteCodeHandler: DeactivateInviteCodeCommandHandler;
+  validateInviteCodeHandler: ValidateInviteCodeQueryHandler;
+  inviteCodeRepository: InviteCodeRepository;
+}
+
 export class InviteCodeController extends BaseController {
-  constructor(
-    private createInviteCodeHandler: CreateInviteCodeCommandHandler,
-    private deactivateInviteCodeHandler: DeactivateInviteCodeCommandHandler,
-    private validateInviteCodeHandler: ValidateInviteCodeQueryHandler,
-    private inviteCodeRepository: InviteCodeRepository
-  ) {
+  constructor(private deps: InviteCodeControllerDeps) {
     super();
   }
 
@@ -44,7 +46,7 @@ export class InviteCodeController extends BaseController {
 
   private async listCodes(labId: string, res: Response, next: NextFunction): Promise<void> {
     try {
-      const codes = await this.inviteCodeRepository.findByLabId(labId);
+      const codes = await this.deps.inviteCodeRepository.findByLabId(labId);
       res.status(200).json(ResponseBuilder.success({
         inviteCodes: codes.map(c => c.toData()),
       }));
@@ -58,7 +60,7 @@ export class InviteCodeController extends BaseController {
       const userId = this.extractUserId(req);
       const { role, maxUses, expiresAt } = req.body;
 
-      const result = await this.createInviteCodeHandler.handle({
+      const result = await this.deps.createInviteCodeHandler.handle({
         userId, labId, role, maxUses, expiresAt,
       });
 
@@ -74,7 +76,7 @@ export class InviteCodeController extends BaseController {
       const userId = this.extractUserId(req);
       const codeId = req.params.id;
 
-      await this.deactivateInviteCodeHandler.handle({ userId, codeId });
+      await this.deps.deactivateInviteCodeHandler.handle({ userId, codeId });
 
       res.status(200).json(ResponseBuilder.success({ deactivated: true }));
 
@@ -89,7 +91,7 @@ export class InviteCodeController extends BaseController {
     try {
       const { code } = req.body;
 
-      const result = await this.validateInviteCodeHandler.handle({ code });
+      const result = await this.deps.validateInviteCodeHandler.handle({ code });
 
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {

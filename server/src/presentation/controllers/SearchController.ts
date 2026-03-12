@@ -21,8 +21,12 @@ interface GroupedResult {
   totalCount: number;
 }
 
+export interface SearchControllerDeps {
+  tubeApplicationService: TubeApplicationService;
+}
+
 export class SearchController extends BaseController {
-  constructor(private tubeApplicationService: TubeApplicationService) {
+  constructor(private deps: SearchControllerDeps) {
     super();
   }
 
@@ -56,7 +60,7 @@ export class SearchController extends BaseController {
         offset: searchCriteria.offset,
       });
 
-      const searchResult = await this.tubeApplicationService.searchTubesWithHighlighting(
+      const searchResult = await this.deps.tubeApplicationService.searchTubesWithHighlighting(
         searchCriteria,
         authenticatedUser
       );
@@ -102,7 +106,7 @@ export class SearchController extends BaseController {
       }
 
       const parsedLimit = limit ? parseInt(limit as string) : 20;
-      const tubes = await this.tubeApplicationService.searchTubes(
+      const tubes = await this.deps.tubeApplicationService.searchTubes(
         { query, limit: parsedLimit },
         authenticatedUser
       );
@@ -120,7 +124,7 @@ export class SearchController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
 
       const fieldQuery = exact ? `${field}:"${value}"` : `${field}:${value}`;
-      const tubes = await this.tubeApplicationService.searchTubes(
+      const tubes = await this.deps.tubeApplicationService.searchTubes(
         { query: fieldQuery, limit, offset },
         authenticatedUser
       );

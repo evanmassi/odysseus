@@ -15,11 +15,13 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { InvalidCredentialsError } from '@domain/errors/UserErrors';
 import type { Person } from '@domain/entities/Person';
 
+export interface PersonControllerDeps {
+  personRepository: PersonRepository;
+  userRepository: UserRepository;
+}
+
 export class PersonController extends BaseController {
-  constructor(
-    private personRepository: PersonRepository,
-    private userRepository: UserRepository
-  ) {
+  constructor(private deps: PersonControllerDeps) {
     super();
   }
 
@@ -53,7 +55,7 @@ export class PersonController extends BaseController {
         throw new ValidationError('Current password is required to update profile');
       }
 
-      const fullUser = await this.userRepository.findById(user.id);
+      const fullUser = await this.deps.userRepository.findById(user.id);
       if (!fullUser) {
         throw new NotFoundError('User not found');
       }
@@ -84,7 +86,7 @@ export class PersonController extends BaseController {
           throw new ValidationError('Email cannot be empty');
         }
 
-        const existingPerson = await this.personRepository.findByEmail(email);
+        const existingPerson = await this.deps.personRepository.findByEmail(email);
         if (existingPerson && existingPerson.id !== person.id) {
           throw new ValidationError('Email is already in use');
         }
@@ -92,7 +94,7 @@ export class PersonController extends BaseController {
         person.updateEmail(email);
       }
 
-      await this.personRepository.save(person);
+      await this.deps.personRepository.save(person);
 
       logger.debug('Profile updated', {
         userId: user.id,
@@ -114,7 +116,7 @@ export class PersonController extends BaseController {
       throw new NotFoundError('User does not have a linked person profile');
     }
 
-    const person = await this.personRepository.findById(user.personId);
+    const person = await this.deps.personRepository.findById(user.personId);
     if (!person) {
       throw new NotFoundError('Person profile not found');
     }

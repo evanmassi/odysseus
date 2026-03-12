@@ -11,8 +11,12 @@ import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
+export interface TubeControllerDeps {
+  tubeApplicationService: TubeApplicationService;
+}
+
 export class TubeController extends BaseController {
-  constructor(private tubeApplicationService: TubeApplicationService) {
+  constructor(private deps: TubeControllerDeps) {
     super();
   }
 
@@ -30,7 +34,7 @@ export class TubeController extends BaseController {
 
       if (isArray) {
         const createRequests: CreateTubeRequest[] = req.body;
-        const result = await this.tubeApplicationService.createTubes(createRequests, authenticatedUser);
+        const result = await this.deps.tubeApplicationService.createTubes(createRequests, authenticatedUser);
 
         logger.debug('Bulk tubes created', {
           created: result.created.length,
@@ -48,7 +52,7 @@ export class TubeController extends BaseController {
         }));
       } else {
         const createRequest: CreateTubeRequest = req.body;
-        const tube = await this.tubeApplicationService.createTube(createRequest, authenticatedUser);
+        const tube = await this.deps.tubeApplicationService.createTube(createRequest, authenticatedUser);
 
         logger.debug('Tube created', {
           tubeId: tube.id,
@@ -70,7 +74,7 @@ export class TubeController extends BaseController {
       const { id } = req.params;
       const authenticatedUser = this.getAuthenticatedUser(req);
       
-      const tube = await this.tubeApplicationService.getTubeById(id, authenticatedUser);
+      const tube = await this.deps.tubeApplicationService.getTubeById(id, authenticatedUser);
       
       res.json(ResponseBuilder.success(tube));
     } catch (error) {
@@ -84,7 +88,7 @@ export class TubeController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
       const searchRequest = this.parseSearchQuery(req.query);
       
-      const tubes = await this.tubeApplicationService.getAllTubes(authenticatedUser, searchRequest);
+      const tubes = await this.deps.tubeApplicationService.getAllTubes(authenticatedUser, searchRequest);
       
       res.json(ResponseBuilder.success(tubes));
     } catch (error) {
@@ -99,7 +103,7 @@ export class TubeController extends BaseController {
       const updateRequest: UpdateTubeRequest = req.body;
       const authenticatedUser = this.getAuthenticatedUser(req);
       
-      const tube = await this.tubeApplicationService.updateTube(id, updateRequest, authenticatedUser);
+      const tube = await this.deps.tubeApplicationService.updateTube(id, updateRequest, authenticatedUser);
       
       logger.debug('Tube updated', {
         tubeId: tube.id,
@@ -119,7 +123,7 @@ export class TubeController extends BaseController {
       const { id } = req.params;
       const authenticatedUser = this.getAuthenticatedUser(req);
       
-      await this.tubeApplicationService.deleteTube(id, authenticatedUser);
+      await this.deps.tubeApplicationService.deleteTube(id, authenticatedUser);
       
       logger.debug('Tube deleted', {
         tubeId: id,
@@ -139,7 +143,7 @@ export class TubeController extends BaseController {
       const bulkRequest: BulkUpdateRequest = req.body;
       const authenticatedUser = this.getAuthenticatedUser(req);
       
-      const result = await this.tubeApplicationService.bulkUpdateTubes(bulkRequest, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.bulkUpdateTubes(bulkRequest, authenticatedUser);
       
       logger.debug('Bulk tube update completed', {
         updated: result.updated,
@@ -160,7 +164,7 @@ export class TubeController extends BaseController {
       const { tubeIds } = req.body;
       const authenticatedUser = this.getAuthenticatedUser(req);
 
-      const result = await this.tubeApplicationService.bulkDeleteTubes(tubeIds, authenticatedUser);
+      const result = await this.deps.tubeApplicationService.bulkDeleteTubes(tubeIds, authenticatedUser);
 
       logger.debug('Bulk tube delete completed', {
         deleted: result.deleted.length,
@@ -181,7 +185,7 @@ export class TubeController extends BaseController {
       const { tankId, rackId, boxId } = req.query as { tankId: string, rackId: string, boxId: string };
       const authenticatedUser = this.getAuthenticatedUser(req);
       
-      const tubes = await this.tubeApplicationService.getTubesByLocation(
+      const tubes = await this.deps.tubeApplicationService.getTubesByLocation(
         tankId,
         rackId, 
         boxId, 
@@ -205,7 +209,7 @@ export class TubeController extends BaseController {
         return;
       }
 
-      const tubes = await this.tubeApplicationService.searchTubes(
+      const tubes = await this.deps.tubeApplicationService.searchTubes(
         {
           query,
           limit: limit ? parseInt(limit as string) : undefined,
@@ -225,7 +229,7 @@ export class TubeController extends BaseController {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
 
-      const stats = await this.tubeApplicationService.getStats(authenticatedUser);
+      const stats = await this.deps.tubeApplicationService.getStats(authenticatedUser);
 
       res.json(ResponseBuilder.success(stats));
     } catch (error) {

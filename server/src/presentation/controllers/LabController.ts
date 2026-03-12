@@ -18,31 +18,33 @@ import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
 import { logger } from '@infrastructure/logging/logger';
 
+export interface LabControllerDeps {
+  createLabHandler: CreateLabCommandHandler;
+  updateLabHandler: UpdateLabCommandHandler;
+  deactivateLabHandler: DeactivateLabCommandHandler;
+  activateLabHandler: ActivateLabCommandHandler;
+  updateDemoLimitsHandler: UpdateDemoLimitsCommandHandler;
+  labRepository: LabRepository;
+  userRepository: UserRepository;
+  tubeRepository: TubeRepository;
+  storageRepository: StorageRepository;
+  researcherRepository: ResearcherRepository;
+  personRepository: PersonRepository;
+}
+
 export class LabController extends BaseController {
-  constructor(
-    private createLabHandler: CreateLabCommandHandler,
-    private updateLabHandler: UpdateLabCommandHandler,
-    private deactivateLabHandler: DeactivateLabCommandHandler,
-    private activateLabHandler: ActivateLabCommandHandler,
-    private updateDemoLimitsHandler: UpdateDemoLimitsCommandHandler,
-    private labRepository: LabRepository,
-    private userRepository: UserRepository,
-    private tubeRepository: TubeRepository,
-    private storageRepository: StorageRepository,
-    private researcherRepository: ResearcherRepository,
-    private personRepository: PersonRepository
-  ) {
+  constructor(private deps: LabControllerDeps) {
     super();
   }
 
   async listLabs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const labs = await this.labRepository.findAll();
+      const labs = await this.deps.labRepository.findAll();
 
       const demoLab = labs.find(lab => lab.isDemo);
       let demoIsSeeded = false;
       if (demoLab) {
-        const config = await this.storageRepository.getForLab(demoLab.id);
+        const config = await this.deps.storageRepository.getForLab(demoLab.id);
         demoIsSeeded = config?.hasAnySeededResources() ?? false;
       }
 
@@ -62,8 +64,8 @@ export class LabController extends BaseController {
       const userId = this.extractUserId(req);
       const { name, isDemo } = req.body;
 
-      const result = await this.createLabHandler.handle({ userId, name, isDemo });
-      const lab = await this.labRepository.findById(result.labId);
+      const result = await this.deps.createLabHandler.handle({ userId, name, isDemo });
+      const lab = await this.deps.labRepository.findById(result.labId);
 
       res.status(201).json(ResponseBuilder.success({ lab: lab?.toData() }));
 
@@ -79,8 +81,8 @@ export class LabController extends BaseController {
       const labId = req.params.id;
       const { name } = req.body;
 
-      await this.updateLabHandler.handle({ userId, labId, name });
-      const lab = await this.labRepository.findById(labId);
+      await this.deps.updateLabHandler.handle({ userId, labId, name });
+      const lab = await this.deps.labRepository.findById(labId);
 
       res.status(200).json(ResponseBuilder.success({ lab: lab?.toData() }));
 
@@ -95,7 +97,7 @@ export class LabController extends BaseController {
       const userId = this.extractUserId(req);
       const labId = req.params.id;
 
-      await this.deactivateLabHandler.handle({ userId, labId });
+      await this.deps.deactivateLabHandler.handle({ userId, labId });
 
       res.status(200).json(ResponseBuilder.success({ labId, deactivated: true }));
 
@@ -108,23 +110,23 @@ export class LabController extends BaseController {
   async getLabDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const labId = req.params.labId;
-      const lab = await this.labRepository.findById(labId);
+      const lab = await this.deps.labRepository.findById(labId);
       if (!lab) {
         res.status(404).json(ResponseBuilder.error('NOT_FOUND', 'Lab not found'));
         return;
       }
 
       const [users, researchers, tubeCount, config] = await Promise.all([
-        this.userRepository.findByLabId(labId),
-        this.researcherRepository.findByLabId(labId),
-        this.tubeRepository.countByLabId(labId),
-        this.storageRepository.getForLab(labId),
+        this.deps.userRepository.findByLabId(labId),
+        this.deps.researcherRepository.findByLabId(labId),
+        this.deps.tubeRepository.countByLabId(labId),
+        this.deps.storageRepository.getForLab(labId),
       ]);
 
       const userPersonIds = users.map(u => u.personId).filter((id): id is string => !!id);
       const researcherPersonIds = researchers.map(r => r.personId);
       const allPersonIds = [...new Set([...userPersonIds, ...researcherPersonIds])];
-      const persons = allPersonIds.length > 0 ? await this.personRepository.findByIds(allPersonIds) : [];
+      const persons = allPersonIds.length > 0 ? await this.deps.personRepository.findByIds(allPersonIds) : [];
       const personMap = new Map(persons.map(p => [p.id, p]));
 
       const researcherMap = new Map(researchers.map(r => [r.id, r]));
@@ -132,7 +134,7 @@ export class LabController extends BaseController {
       const tubeCounts = await Promise.all(
         researchers.map(async r => ({
           researcherId: r.id,
-          count: await this.researcherRepository.getTubeCountByResearcher(r.id),
+          count: await this.deps.researcherRepository.getTubeCountByResearcher(r.id),
         }))
       );
       const tubeCountMap = new Map(tubeCounts.map(tc => [tc.researcherId, tc.count]));
@@ -192,7 +194,7 @@ export class LabController extends BaseController {
       const userId = this.extractUserId(req);
       const labId = req.params.id;
 
-      await this.activateLabHandler.handle({ userId, labId });
+      await this.deps.activateLabHandler.handle({ userId, labId });
 
       res.status(200).json(ResponseBuilder.success({ labId, activated: true }));
 
@@ -205,8 +207,8 @@ export class LabController extends BaseController {
   async getOverview(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const [labs, allUsers] = await Promise.all([
-        this.labRepository.findAll(),
-        this.userRepository.findAllWithLastActivity(),
+        this.deps.labRepository.findAll(),
+        this.deps.userRepository.findAllWithLastActivity(),
       ]);
 
       const usersByLab = new Map<string, { total: number; admins: number }>();
@@ -220,8 +222,8 @@ export class LabController extends BaseController {
       }
 
       const [tubeCounts, configs] = await Promise.all([
-        Promise.all(labs.map(lab => this.tubeRepository.countByLabId(lab.id))),
-        Promise.all(labs.map(lab => this.storageRepository.getForLab(lab.id))),
+        Promise.all(labs.map(lab => this.deps.tubeRepository.countByLabId(lab.id))),
+        Promise.all(labs.map(lab => this.deps.storageRepository.getForLab(lab.id))),
       ]);
 
       const labStats = labs.map((lab, i) => {
@@ -268,7 +270,7 @@ export class LabController extends BaseController {
   async getDemoLimits(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const labId = req.params.labId;
-      const lab = await this.labRepository.findById(labId);
+      const lab = await this.deps.labRepository.findById(labId);
       if (!lab) {
         res.status(404).json(ResponseBuilder.error('NOT_FOUND', 'Lab not found'));
         return;
@@ -287,7 +289,7 @@ export class LabController extends BaseController {
       const userId = this.extractUserId(req);
       const labId = req.params.labId;
 
-      const limits = await this.updateDemoLimitsHandler.handle({
+      const limits = await this.deps.updateDemoLimitsHandler.handle({
         userId,
         labId,
         limits: req.body,

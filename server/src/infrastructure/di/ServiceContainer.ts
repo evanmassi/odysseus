@@ -961,31 +961,31 @@ export class ServiceContainer {
 
   getLabController(): LabController {
     if (!this.labController) {
-      this.labController = new LabController(
-        this.getCreateLabHandler(),
-        this.getUpdateLabHandler(),
-        this.getDeactivateLabHandler(),
-        this.getActivateLabHandler(),
-        this.getUpdateDemoLimitsHandler(),
-        this.repositoryFactory.getLabRepository(),
-        this.repositoryFactory.getUserRepository(),
-        this.repositoryFactory.getTubeRepository(),
-        this.repositoryFactory.getStorageRepository(),
-        this.repositoryFactory.getResearcherRepository(),
-        this.repositoryFactory.getPersonRepository()
-      );
+      this.labController = new LabController({
+        createLabHandler: this.getCreateLabHandler(),
+        updateLabHandler: this.getUpdateLabHandler(),
+        deactivateLabHandler: this.getDeactivateLabHandler(),
+        activateLabHandler: this.getActivateLabHandler(),
+        updateDemoLimitsHandler: this.getUpdateDemoLimitsHandler(),
+        labRepository: this.repositoryFactory.getLabRepository(),
+        userRepository: this.repositoryFactory.getUserRepository(),
+        tubeRepository: this.repositoryFactory.getTubeRepository(),
+        storageRepository: this.repositoryFactory.getStorageRepository(),
+        researcherRepository: this.repositoryFactory.getResearcherRepository(),
+        personRepository: this.repositoryFactory.getPersonRepository(),
+      });
     }
     return this.labController;
   }
 
   getInviteCodeController(): InviteCodeController {
     if (!this.inviteCodeController) {
-      this.inviteCodeController = new InviteCodeController(
-        this.getCreateInviteCodeHandler(),
-        this.getDeactivateInviteCodeHandler(),
-        this.getValidateInviteCodeHandler(),
-        this.repositoryFactory.getInviteCodeRepository()
-      );
+      this.inviteCodeController = new InviteCodeController({
+        createInviteCodeHandler: this.getCreateInviteCodeHandler(),
+        deactivateInviteCodeHandler: this.getDeactivateInviteCodeHandler(),
+        validateInviteCodeHandler: this.getValidateInviteCodeHandler(),
+        inviteCodeRepository: this.repositoryFactory.getInviteCodeRepository(),
+      });
     }
     return this.inviteCodeController;
   }
@@ -1028,31 +1028,31 @@ export class ServiceContainer {
 
   getUserController(): UserController {
     if (!this.userController) {
-      this.userController = new UserController(
-        this.getUpdateUserSettingsHandler(),
-        this.getGetUserSettingsHandler(),
-        this.repositoryFactory.getUserRepository(),
-        this.repositoryFactory.getPersonRepository()
-      );
+      this.userController = new UserController({
+        updateUserSettingsHandler: this.getUpdateUserSettingsHandler(),
+        getUserSettingsHandler: this.getGetUserSettingsHandler(),
+        userRepository: this.repositoryFactory.getUserRepository(),
+        personRepository: this.repositoryFactory.getPersonRepository(),
+      });
     }
     return this.userController;
   }
 
   getPersonController(): PersonController {
     if (!this.personController) {
-      this.personController = new PersonController(
-        this.repositoryFactory.getPersonRepository(),
-        this.repositoryFactory.getUserRepository()
-      );
+      this.personController = new PersonController({
+        personRepository: this.repositoryFactory.getPersonRepository(),
+        userRepository: this.repositoryFactory.getUserRepository(),
+      });
     }
     return this.personController;
   }
 
   getUserSessionController(): UserSessionController {
     if (!this.userSessionController) {
-      this.userSessionController = new UserSessionController(
-        this.repositoryFactory.getUserSessionRepository()
-      );
+      this.userSessionController = new UserSessionController({
+        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+      });
     }
     return this.userSessionController;
   }
@@ -1101,10 +1101,10 @@ export class ServiceContainer {
 
   getAuditController(): AuditController {
     if (!this.auditController) {
-      this.auditController = new AuditController(
-        this.getAuditService(),
-        this.getAuditRetentionService()
-      );
+      this.auditController = new AuditController({
+        auditService: this.getAuditService(),
+        retentionService: this.getAuditRetentionService(),
+      });
     }
     return this.auditController;
   }
@@ -1125,9 +1125,9 @@ export class ServiceContainer {
 
   getExportController(): ExportController {
     if (!this.exportController) {
-      this.exportController = new ExportController(
-        this.getExportService()
-      );
+      this.exportController = new ExportController({
+        exportService: this.getExportService(),
+      });
     }
     return this.exportController;
   }
@@ -1145,10 +1145,10 @@ export class ServiceContainer {
   getLookupValueController(): LookupValueController {
     if (!this.lookupValueController) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.lookupValueController = new LookupValueController(
-        this.getLookupValueApplicationService(),
-        repositories.storage
-      );
+      this.lookupValueController = new LookupValueController({
+        lookupValueService: this.getLookupValueApplicationService(),
+        storageRepository: repositories.storage,
+      });
     }
     return this.lookupValueController;
   }
@@ -1296,36 +1296,36 @@ export class ServiceContainer {
 
   getTubeController(): TubeController {
     if (!this.tubeController) {
-      this.tubeController = new TubeController(
-        this.getTubeApplicationService()
-      );
+      this.tubeController = new TubeController({
+        tubeApplicationService: this.getTubeApplicationService(),
+      });
     }
     return this.tubeController;
   }
 
   getTubeLockController(): TubeLockController {
     if (!this.tubeLockController) {
-      this.tubeLockController = new TubeLockController(
-        this.getTubeApplicationService()
-      );
+      this.tubeLockController = new TubeLockController({
+        tubeApplicationService: this.getTubeApplicationService(),
+      });
     }
     return this.tubeLockController;
   }
 
   getResearcherController(): ResearcherController {
     if (!this.researcherController) {
-      this.researcherController = new ResearcherController(
-        this.getResearcherApplicationService()
-      );
+      this.researcherController = new ResearcherController({
+        researcherApplicationService: this.getResearcherApplicationService(),
+      });
     }
     return this.researcherController;
   }
 
   getSearchController(): SearchController {
     if (!this.searchController) {
-      this.searchController = new SearchController(
-        this.getTubeApplicationService()
-      );
+      this.searchController = new SearchController({
+        tubeApplicationService: this.getTubeApplicationService(),
+      });
     }
     return this.searchController;
   }

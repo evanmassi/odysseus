@@ -12,8 +12,12 @@ import { UserSessionRepository } from '@domain/repositories/UserSessionRepositor
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 
+export interface UserSessionControllerDeps {
+  userSessionRepository: UserSessionRepository;
+}
+
 export class UserSessionController extends BaseController {
-  constructor(private userSessionRepository: UserSessionRepository) {
+  constructor(private deps: UserSessionControllerDeps) {
     super();
   }
 
@@ -21,7 +25,7 @@ export class UserSessionController extends BaseController {
   async getUserSessions(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
-      const sessions = await this.userSessionRepository.findActiveSessionsByUserId(user.id);
+      const sessions = await this.deps.userSessionRepository.findActiveSessionsByUserId(user.id);
       const currentSessionId = req.sessionId;
 
       const sessionData = sessions.map(session => ({
@@ -53,7 +57,7 @@ export class UserSessionController extends BaseController {
         throw new PermissionError('Cannot revoke your current session. Use logout instead.');
       }
 
-      const session = await this.userSessionRepository.findById(sessionId);
+      const session = await this.deps.userSessionRepository.findById(sessionId);
       if (!session) {
         throw new NotFoundError('Session not found');
       }
@@ -62,7 +66,7 @@ export class UserSessionController extends BaseController {
         throw new PermissionError('You can only revoke your own sessions');
       }
 
-      const revoked = await this.userSessionRepository.revokeSession(sessionId);
+      const revoked = await this.deps.userSessionRepository.revokeSession(sessionId);
       if (!revoked) {
         throw new NotFoundError('Session not found or already revoked');
       }
@@ -81,12 +85,12 @@ export class UserSessionController extends BaseController {
       const user = this.getAuthenticatedUser(req);
       const currentSessionId = req.sessionId;
 
-      const sessions = await this.userSessionRepository.findActiveSessionsByUserId(user.id);
+      const sessions = await this.deps.userSessionRepository.findActiveSessionsByUserId(user.id);
       const otherSessionIds = sessions
         .filter(s => s.id !== currentSessionId)
         .map(s => s.id);
 
-      const revokedCount = await this.userSessionRepository.batchRevoke(otherSessionIds);
+      const revokedCount = await this.deps.userSessionRepository.batchRevoke(otherSessionIds);
 
       logger.debug('All other sessions revoked', { userId: user.id, revokedCount, requestId: req.requestId });
 

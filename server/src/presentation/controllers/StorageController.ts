@@ -5,7 +5,6 @@
  */
 
 import { Request, Response } from 'express';
-import { logger } from '@infrastructure/logging/logger';
 import {
   GetCurrentStorageQueryHandler,
   GetStorageHistoryQueryHandler,
@@ -48,39 +47,23 @@ import {
 } from '@application/commands/DemoSeedCommands';
 import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
 import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
 import { StorageDto } from '@application/dto/StorageDto';
 import { BaseController } from '@presentation/controllers/BaseController';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+import { handleControllerError } from '@presentation/utils/errorHandler';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 
-interface ImportStorageResponse {
-  success: boolean;
-  warnings: string[];
-  message: string;
-  configuration?: {
-    version: number;
-    lastUpdated: Date;
-  };
-}
-
 export interface StorageControllerDeps {
-  // Query handlers
   getCurrentStorageHandler: GetCurrentStorageQueryHandler;
   getStorageHistoryHandler: GetStorageHistoryQueryHandler;
   getStorageByVersionHandler: GetStorageByVersionQueryHandler;
   checkStorageHealthHandler: CheckStorageHealthQueryHandler;
-
-  // System-wide configuration handlers
   updateSystemStorageHandler: UpdateSystemStorageCommandHandler;
   resetStorageHandler: ResetStorageToDefaultCommandHandler;
   importStorageHandler: ImportStorageCommandHandler;
   updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
   updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler;
   updateResourceLabelHandler: UpdateResourceLabelCommandHandler;
-
-  // Atomic resource handlers
   addTankHandler: AddTankCommandHandler;
   updateTankHandler: UpdateTankCommandHandler;
   deleteTankHandler: DeleteTankCommandHandler;
@@ -102,93 +85,31 @@ export interface StorageControllerDeps {
 }
 
 export class StorageController extends BaseController {
-  private getCurrentStorageHandler: GetCurrentStorageQueryHandler;
-  private getStorageHistoryHandler: GetStorageHistoryQueryHandler;
-  private getStorageByVersionHandler: GetStorageByVersionQueryHandler;
-  private checkStorageHealthHandler: CheckStorageHealthQueryHandler;
-  private updateSystemStorageHandler: UpdateSystemStorageCommandHandler;
-  private resetStorageHandler: ResetStorageToDefaultCommandHandler;
-  private importStorageHandler: ImportStorageCommandHandler;
-  private updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
-  private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler;
-  private updateResourceLabelHandler: UpdateResourceLabelCommandHandler;
-  private addTankHandler: AddTankCommandHandler;
-  private updateTankHandler: UpdateTankCommandHandler;
-  private deleteTankHandler: DeleteTankCommandHandler;
-  private resetDemoDataHandler: ResetDemoDataCommandHandler;
-  private addRacksHandler: AddRacksCommandHandler;
-  private updateRackHandler: UpdateRackCommandHandler;
-  private deleteRackHandler: DeleteRackCommandHandler;
-  private assignRackHandler: AssignRackCommandHandler;
-  private addBoxesHandler: AddBoxesCommandHandler;
-  private updateBoxHandler: UpdateBoxCommandHandler;
-  private deleteBoxHandler: DeleteBoxCommandHandler;
-  private assignBoxHandler: AssignBoxCommandHandler;
-  private bulkUnassignHandler: BulkUnassignResourcesCommandHandler;
-  private bulkReassignHandler: BulkReassignResourcesCommandHandler;
-  private seedDemoHandler: SeedDemoCommandHandler;
-  private unseedDemoHandler: UnseedDemoCommandHandler;
-  private initializeConfigHandler: InitializeStorageCommandHandler;
-  private labRepository: LabRepository;
-
-  constructor(deps: StorageControllerDeps) {
+  constructor(private deps: StorageControllerDeps) {
     super();
-    this.getCurrentStorageHandler = deps.getCurrentStorageHandler;
-    this.getStorageHistoryHandler = deps.getStorageHistoryHandler;
-    this.getStorageByVersionHandler = deps.getStorageByVersionHandler;
-    this.checkStorageHealthHandler = deps.checkStorageHealthHandler;
-    this.updateSystemStorageHandler = deps.updateSystemStorageHandler;
-    this.resetStorageHandler = deps.resetStorageHandler;
-    this.importStorageHandler = deps.importStorageHandler;
-    this.updateBoxPositionDisplayHandler = deps.updateBoxPositionDisplayHandler;
-    this.updateLabDefaultPositionDisplayHandler = deps.updateLabDefaultPositionDisplayHandler;
-    this.updateResourceLabelHandler = deps.updateResourceLabelHandler;
-    this.addTankHandler = deps.addTankHandler;
-    this.updateTankHandler = deps.updateTankHandler;
-    this.deleteTankHandler = deps.deleteTankHandler;
-    this.resetDemoDataHandler = deps.resetDemoDataHandler;
-    this.addRacksHandler = deps.addRacksHandler;
-    this.updateRackHandler = deps.updateRackHandler;
-    this.deleteRackHandler = deps.deleteRackHandler;
-    this.assignRackHandler = deps.assignRackHandler;
-    this.addBoxesHandler = deps.addBoxesHandler;
-    this.updateBoxHandler = deps.updateBoxHandler;
-    this.deleteBoxHandler = deps.deleteBoxHandler;
-    this.assignBoxHandler = deps.assignBoxHandler;
-    this.bulkUnassignHandler = deps.bulkUnassignHandler;
-    this.bulkReassignHandler = deps.bulkReassignHandler;
-    this.seedDemoHandler = deps.seedDemoHandler;
-    this.unseedDemoHandler = deps.unseedDemoHandler;
-    this.initializeConfigHandler = deps.initializeConfigHandler;
-    this.labRepository = deps.labRepository;
   }
 
   // QUERY ENDPOINTS
 
-  /** GET /api/storage — demo users see only demo tanks; real users see only real tanks */
+  /** GET /api/storage */
   async getCurrentStorage(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
       const labId = this.extractLabId(req);
 
-      const configuration = await this.getCurrentStorageHandler.handle({ labId });
-
+      const configuration = await this.deps.getCurrentStorageHandler.handle({ labId });
       const configurationResponse = StorageDto.toResponse(configuration);
 
       if (user.isDemo) {
-        const lab = await this.labRepository.findById(labId);
+        const lab = await this.deps.labRepository.findById(labId);
         if (lab?.demoLimits) {
           configurationResponse.configuration.currentLab.demoLimits = lab.demoLimits;
         }
       }
 
-      res.json({
-        success: true,
-        data: configurationResponse
-      });
-
+      res.json(ResponseBuilder.success(configurationResponse));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get current configuration');
+      handleControllerError(error, res, 'Failed to get current configuration');
     }
   }
 
@@ -196,29 +117,19 @@ export class StorageController extends BaseController {
   async getStorageHistory(req: Request, res: Response): Promise<void> {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
-
       const labId = this.extractLabId(req);
-      const history = await this.getStorageHistoryHandler.handle({
-        labId,
-        limit
-      });
+      const history = await this.deps.getStorageHistoryHandler.handle({ labId, limit });
 
-      const response = {
+      res.json(ResponseBuilder.success({
         configurations: history.map(config => ({
           version: config.version,
           lastUpdated: config.timestamp,
           systemSettings: config.storage.systemSettings
         })),
-        pagination: {
-          limit,
-          total: history.length
-        }
-      };
-
-      res.json(response);
-      
+        pagination: { limit, total: history.length }
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get configuration history');
+      handleControllerError(error, res, 'Failed to get configuration history');
     }
   }
 
@@ -226,50 +137,38 @@ export class StorageController extends BaseController {
   async getStorageByVersion(req: Request, res: Response): Promise<void> {
     try {
       const version = parseInt(req.params.version);
-      
+
       if (isNaN(version) || version < 1) {
-        res.status(400).json({ 
-          error: 'Invalid version number. Must be a positive integer.' 
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'Invalid version number. Must be a positive integer.'));
         return;
       }
-      
+
       const labId = this.extractLabId(req);
-      const configuration = await this.getStorageByVersionHandler.handle({
-        labId,
-        version
-      });
-      
-      const response = {
+      const configuration = await this.deps.getStorageByVersionHandler.handle({ labId, version });
+
+      res.json(ResponseBuilder.success({
         version: configuration.version,
         lastUpdated: configuration.updatedAt,
         systemSettings: configuration.systemSettings,
         equipment: configuration.equipment
-      };
-
-      res.json(response);
-      
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get configuration version');
+      handleControllerError(error, res, 'Failed to get configuration version');
     }
   }
 
-  /** GET /api/storage/version — lightweight endpoint for cache validation */
+  /** GET /api/storage/version */
   async getStorageVersion(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const configuration = await this.getCurrentStorageHandler.handle({ labId });
+      const configuration = await this.deps.getCurrentStorageHandler.handle({ labId });
 
-      res.json({
-        success: true,
-        data: {
-          version: configuration.version,
-          updatedAt: configuration.updatedAt
-        }
-      });
-
+      res.json(ResponseBuilder.success({
+        version: configuration.version,
+        updatedAt: configuration.updatedAt
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get configuration version');
+      handleControllerError(error, res, 'Failed to get configuration version');
     }
   }
 
@@ -277,17 +176,16 @@ export class StorageController extends BaseController {
   async checkStorageHealth(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const health = await this.checkStorageHealthHandler.handle({ labId });
-      
-      res.json({
+      const health = await this.deps.checkStorageHealthHandler.handle({ labId });
+
+      res.json(ResponseBuilder.success({
         status: health.isHealthy ? 'healthy' : 'unhealthy',
         version: health.version,
         lastUpdated: health.lastUpdated,
         issues: health.issues
-      });
-      
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to check configuration health');
+      handleControllerError(error, res, 'Failed to check configuration health');
     }
   }
 
@@ -299,20 +197,17 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const labId = this.extractLabId(req);
 
-      const updatedStorage = await this.updateSystemStorageHandler.handle({
-        userId,
-        labId,
-        systemSettings: req.body
+      const updatedStorage = await this.deps.updateSystemStorageHandler.handle({
+        userId, labId, systemSettings: req.body
       });
-      
-      res.json({
+
+      res.json(ResponseBuilder.success({
         version: updatedStorage.version,
         lastUpdated: updatedStorage.updatedAt,
         systemSettings: updatedStorage.systemSettings
-      });
-      
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update system configuration');
+      handleControllerError(error, res, 'Failed to update system configuration');
     }
   }
 
@@ -324,26 +219,21 @@ export class StorageController extends BaseController {
       const confirmationToken = req.body.confirmationToken;
 
       if (!confirmationToken) {
-        res.status(400).json({
-          error: 'Confirmation token required for configuration reset'
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'Confirmation token required for configuration reset'));
         return;
       }
 
-      const defaultStorage = await this.resetStorageHandler.handle({
-        userId,
-        labId,
-        confirmationToken
+      const defaultStorage = await this.deps.resetStorageHandler.handle({
+        userId, labId, confirmationToken
       });
-      
-      res.json({
+
+      res.json(ResponseBuilder.success({
         message: 'Storage reset to defaults successfully',
         version: defaultStorage.version,
         lastUpdated: defaultStorage.updatedAt
-      });
-      
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to reset configuration');
+      handleControllerError(error, res, 'Failed to reset configuration');
     }
   }
 
@@ -354,41 +244,33 @@ export class StorageController extends BaseController {
       const labId = this.extractLabId(req);
       const validateOnly = req.query.validateOnly === 'true';
 
-      const result = await this.importStorageHandler.handle({
-        userId,
-        labId,
-        configurationData: req.body,
-        validateOnly
+      const result = await this.deps.importStorageHandler.handle({
+        userId, labId, configurationData: req.body, validateOnly
       });
-      
+
       if (!result.isValid) {
-        res.status(400).json({
-          error: 'Storage import validation failed',
-          errors: result.errors,
-          warnings: result.warnings
-        });
+        res.status(400).json(ResponseBuilder.error(
+          'VALIDATION_ERROR',
+          'Storage import validation failed',
+          { errors: result.errors, warnings: result.warnings }
+        ));
         return;
       }
-      
-      const response: ImportStorageResponse = {
-        success: true,
+
+      res.json(ResponseBuilder.success({
         warnings: result.warnings,
         message: validateOnly
           ? 'Storage validation successful'
-          : 'Storage imported successfully'
-      };
-
-      if (result.configuration) {
-        response.configuration = {
-          version: result.configuration.version,
-          lastUpdated: result.configuration.updatedAt
-        };
-      }
-
-      res.json(response);
-      
+          : 'Storage imported successfully',
+        ...(result.configuration && {
+          configuration: {
+            version: result.configuration.version,
+            lastUpdated: result.configuration.updatedAt
+          }
+        })
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to import configuration');
+      handleControllerError(error, res, 'Failed to import configuration');
     }
   }
 
@@ -399,35 +281,23 @@ export class StorageController extends BaseController {
       const { tankId, rackId, boxId, positionDisplay } = req.body;
 
       if (!tankId || !rackId || !boxId) {
-        res.status(400).json({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'tankId, rackId, and boxId are required'
-          }
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'tankId, rackId, and boxId are required'));
         return;
       }
 
       const labId = this.extractLabId(req);
 
-      const updatedStorage = await this.updateBoxPositionDisplayHandler.handle({
-        userId,
-        labId,
-        tankId,
-        rackId,
-        boxId,
-        positionDisplay: positionDisplay || null
+      const updatedStorage = await this.deps.updateBoxPositionDisplayHandler.handle({
+        userId, labId, tankId, rackId, boxId, positionDisplay: positionDisplay || null
       });
 
-      res.json({
-        success: true,
+      res.json(ResponseBuilder.success({
         message: `Position display updated for box ${boxId}`,
         version: updatedStorage.version,
         lastUpdated: updatedStorage.updatedAt
-      });
-
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update box position display');
+      handleControllerError(error, res, 'Failed to update box position display');
     }
   }
 
@@ -438,23 +308,19 @@ export class StorageController extends BaseController {
       const labId = this.extractLabId(req);
       const { positionDisplay } = req.body;
 
-      const updatedStorage = await this.updateLabDefaultPositionDisplayHandler.handle({
-        userId,
-        labId,
-        positionDisplay: positionDisplay || null
+      const updatedStorage = await this.deps.updateLabDefaultPositionDisplayHandler.handle({
+        userId, labId, positionDisplay: positionDisplay || null
       });
 
-      res.json({
-        success: true,
+      res.json(ResponseBuilder.success({
         message: positionDisplay
           ? `Lab default position display updated to ${positionDisplay.format}`
           : 'Lab default position display cleared',
         version: updatedStorage.version,
         lastUpdated: updatedStorage.updatedAt
-      });
-
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update lab default position display');
+      handleControllerError(error, res, 'Failed to update lab default position display');
     }
   }
 
@@ -470,64 +336,40 @@ export class StorageController extends BaseController {
       const { resourceType, tankId, rackId, boxId, customLabel } = req.body;
 
       if (!resourceType || !['rack', 'box'].includes(resourceType)) {
-        res.status(400).json({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'resourceType must be "rack" or "box"'
-          }
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'resourceType must be "rack" or "box"'));
         return;
       }
 
       if (!tankId || !rackId) {
-        res.status(400).json({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'tankId and rackId are required'
-          }
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'tankId and rackId are required'));
         return;
       }
 
       if (resourceType === 'box' && !boxId) {
-        res.status(400).json({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'boxId is required for box label updates'
-          }
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'boxId is required for box label updates'));
         return;
       }
 
       const labId = this.extractLabId(req);
 
-      const updatedStorage = await this.updateResourceLabelHandler.handle({
-        userId,
-        labId,
-        resourceType,
-        tankId,
-        rackId,
-        boxId,
-        customLabel
+      const updatedStorage = await this.deps.updateResourceLabelHandler.handle({
+        userId, labId, resourceType, tankId, rackId, boxId, customLabel
       });
 
-      res.json({
-        success: true,
+      res.json(ResponseBuilder.success({
         message: `Label updated for ${resourceType} ${resourceType === 'box' ? boxId : rackId}`,
         version: updatedStorage.version,
         lastUpdated: updatedStorage.updatedAt
-      });
-
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update resource label');
+      handleControllerError(error, res, 'Failed to update resource label');
     }
   }
 
   /** GET /api/storage/position-display-presets */
   async getPositionDisplayPresets(req: Request, res: Response): Promise<void> {
     try {
-      res.json({
-        success: true,
+      res.json(ResponseBuilder.success({
         presets: {
           numeric: POSITION_DISPLAY_PRESETS.NUMERIC,
           alphanumericStandard: POSITION_DISPLAY_PRESETS.ALPHANUMERIC_STANDARD,
@@ -538,10 +380,9 @@ export class StorageController extends BaseController {
           alphanumericStandard: 'Alphanumeric row-column format (A1-I9)',
           alphanumericReverse: 'Alphanumeric column-row format (1A-9I)'
         }
-      });
-
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get position display presets');
+      handleControllerError(error, res, 'Failed to get position display presets');
     }
   }
 
@@ -554,23 +395,16 @@ export class StorageController extends BaseController {
       const { name, location } = req.body;
 
       if (!name) {
-        res.status(400).json({
-          error: { code: 'INVALID_REQUEST', message: 'name is required' }
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'name is required'));
         return;
       }
 
       const labId = this.extractLabId(req);
+      const result = await this.deps.addTankHandler.handle({ userId, labId, name, location });
 
-      const result = await this.addTankHandler.handle({ userId, labId, name, location });
-
-      res.status(201).json({
-        success: true,
-        data: { success: true, tankId: result.tankId },
-        message: `Tank '${name}' created`
-      });
+      res.status(201).json(ResponseBuilder.success({ tankId: result.tankId }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to add tank');
+      handleControllerError(error, res, 'Failed to add tank');
     }
   }
 
@@ -580,18 +414,13 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const tankId = req.params.tankId;
       const { name, location, isActive } = req.body;
-
       const labId = this.extractLabId(req);
 
-      await this.updateTankHandler.handle({ userId, labId, tankId, name, location, isActive });
+      await this.deps.updateTankHandler.handle({ userId, labId, tankId, name, location, isActive });
 
-      res.json({
-        success: true,
-        data: { success: true },
-        message: `Tank '${tankId}' updated`
-      });
+      res.json(ResponseBuilder.success({ message: `Tank '${tankId}' updated` }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update tank');
+      handleControllerError(error, res, 'Failed to update tank');
     }
   }
 
@@ -602,15 +431,11 @@ export class StorageController extends BaseController {
       const labId = this.extractLabId(req);
       const tankId = req.params.tankId;
 
-      await this.deleteTankHandler.handle({ userId, labId, tankId });
+      await this.deps.deleteTankHandler.handle({ userId, labId, tankId });
 
-      res.json({
-        success: true,
-        data: { success: true },
-        message: `Tank '${tankId}' deleted`
-      });
+      res.json(ResponseBuilder.success({ message: `Tank '${tankId}' deleted` }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to delete tank');
+      handleControllerError(error, res, 'Failed to delete tank');
     }
   }
 
@@ -622,18 +447,13 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const tankId = req.params.tankId;
       const { count = 1 } = req.body;
-
       const labId = this.extractLabId(req);
 
-      const result = await this.addRacksHandler.handle({ userId, labId, tankId, count });
+      const result = await this.deps.addRacksHandler.handle({ userId, labId, tankId, count });
 
-      res.status(201).json({
-        success: true,
-        data: { success: true, rackIds: result.rackIds },
-        message: `${result.rackIds.length} rack(s) created`
-      });
+      res.status(201).json(ResponseBuilder.success({ rackIds: result.rackIds }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to add rack(s)');
+      handleControllerError(error, res, 'Failed to add rack(s)');
     }
   }
 
@@ -643,18 +463,13 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { tankId, rackId } = req.params;
       const { name, capacity, isActive } = req.body;
-
       const labId = this.extractLabId(req);
 
-      await this.updateRackHandler.handle({ userId, labId, tankId, rackId, name, capacity, isActive });
+      await this.deps.updateRackHandler.handle({ userId, labId, tankId, rackId, name, capacity, isActive });
 
-      res.json({
-        success: true,
-        data: { success: true },
-        message: `Rack '${rackId}' updated`
-      });
+      res.json(ResponseBuilder.success({ message: `Rack '${rackId}' updated` }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update rack');
+      handleControllerError(error, res, 'Failed to update rack');
     }
   }
 
@@ -665,15 +480,11 @@ export class StorageController extends BaseController {
       const labId = this.extractLabId(req);
       const { tankId, rackId } = req.params;
 
-      await this.deleteRackHandler.handle({ userId, labId, tankId, rackId });
+      await this.deps.deleteRackHandler.handle({ userId, labId, tankId, rackId });
 
-      res.json({
-        success: true,
-        data: { success: true },
-        message: `Rack '${rackId}' deleted`
-      });
+      res.json(ResponseBuilder.success({ message: `Rack '${rackId}' deleted` }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to delete rack');
+      handleControllerError(error, res, 'Failed to delete rack');
     }
   }
 
@@ -683,26 +494,19 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { tankId, rackId } = req.params;
       const { assignedUserId } = req.body;
-
       const labId = this.extractLabId(req);
 
-      await this.assignRackHandler.handle({
-        userId,
-        labId,
-        tankId,
-        rackId,
-        assignedUserId: assignedUserId ?? null
+      await this.deps.assignRackHandler.handle({
+        userId, labId, tankId, rackId, assignedUserId: assignedUserId ?? null
       });
 
-      res.json({
-        success: true,
-        data: { success: true },
+      res.json(ResponseBuilder.success({
         message: assignedUserId
           ? `Rack '${rackId}' assigned to user`
           : `Rack '${rackId}' unassigned`
-      });
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to assign rack');
+      handleControllerError(error, res, 'Failed to assign rack');
     }
   }
 
@@ -714,18 +518,13 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { tankId, rackId } = req.params;
       const { count = 1 } = req.body;
-
       const labId = this.extractLabId(req);
 
-      const result = await this.addBoxesHandler.handle({ userId, labId, tankId, rackId, count });
+      const result = await this.deps.addBoxesHandler.handle({ userId, labId, tankId, rackId, count });
 
-      res.status(201).json({
-        success: true,
-        data: { success: true, boxIds: result.boxIds },
-        message: `${result.boxIds.length} box(es) created`
-      });
+      res.status(201).json(ResponseBuilder.success({ boxIds: result.boxIds }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to add box(es)');
+      handleControllerError(error, res, 'Failed to add box(es)');
     }
   }
 
@@ -735,28 +534,15 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { tankId, rackId, boxId } = req.params;
       const { name, gridConfig, positionDisplay, isActive } = req.body;
-
       const labId = this.extractLabId(req);
 
-      await this.updateBoxHandler.handle({
-        userId,
-        labId,
-        tankId,
-        rackId,
-        boxId,
-        name,
-        gridConfig,
-        positionDisplay,
-        isActive
+      await this.deps.updateBoxHandler.handle({
+        userId, labId, tankId, rackId, boxId, name, gridConfig, positionDisplay, isActive
       });
 
-      res.json({
-        success: true,
-        data: { success: true },
-        message: `Box '${boxId}' updated`
-      });
+      res.json(ResponseBuilder.success({ message: `Box '${boxId}' updated` }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update box');
+      handleControllerError(error, res, 'Failed to update box');
     }
   }
 
@@ -767,15 +553,11 @@ export class StorageController extends BaseController {
       const labId = this.extractLabId(req);
       const { tankId, rackId, boxId } = req.params;
 
-      await this.deleteBoxHandler.handle({ userId, labId, tankId, rackId, boxId });
+      await this.deps.deleteBoxHandler.handle({ userId, labId, tankId, rackId, boxId });
 
-      res.json({
-        success: true,
-        data: { success: true },
-        message: `Box '${boxId}' deleted`
-      });
+      res.json(ResponseBuilder.success({ message: `Box '${boxId}' deleted` }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to delete box');
+      handleControllerError(error, res, 'Failed to delete box');
     }
   }
 
@@ -785,27 +567,19 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { tankId, rackId, boxId } = req.params;
       const { assignedUserId } = req.body;
-
       const labId = this.extractLabId(req);
 
-      await this.assignBoxHandler.handle({
-        userId,
-        labId,
-        tankId,
-        rackId,
-        boxId,
-        assignedUserId: assignedUserId ?? null
+      await this.deps.assignBoxHandler.handle({
+        userId, labId, tankId, rackId, boxId, assignedUserId: assignedUserId ?? null
       });
 
-      res.json({
-        success: true,
-        data: { success: true },
+      res.json(ResponseBuilder.success({
         message: assignedUserId
           ? `Box '${boxId}' assigned to user`
           : `Box '${boxId}' unassigned`
-      });
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to assign box');
+      handleControllerError(error, res, 'Failed to assign box');
     }
   }
 
@@ -818,26 +592,19 @@ export class StorageController extends BaseController {
       const { fromUserId } = req.body;
 
       if (!fromUserId) {
-        res.status(400).json({
-          error: { code: 'INVALID_REQUEST', message: 'fromUserId is required' }
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'fromUserId is required'));
         return;
       }
 
       const labId = this.extractLabId(req);
+      const result = await this.deps.bulkUnassignHandler.handle({ userId, labId, fromUserId });
 
-      const result = await this.bulkUnassignHandler.handle({ userId, labId, fromUserId });
-
-      res.json({
-        success: true,
-        data: {
-          racksAffected: result.racksAffected,
-          boxesAffected: result.boxesAffected,
-        },
-        message: `Unassigned ${result.racksAffected} rack(s) and ${result.boxesAffected} box(es)`
-      });
+      res.json(ResponseBuilder.success({
+        racksAffected: result.racksAffected,
+        boxesAffected: result.boxesAffected,
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to bulk unassign resources');
+      handleControllerError(error, res, 'Failed to bulk unassign resources');
     }
   }
 
@@ -848,26 +615,19 @@ export class StorageController extends BaseController {
       const { fromUserId, toUserId } = req.body;
 
       if (!fromUserId || !toUserId) {
-        res.status(400).json({
-          error: { code: 'INVALID_REQUEST', message: 'fromUserId and toUserId are required' }
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'fromUserId and toUserId are required'));
         return;
       }
 
       const labId = this.extractLabId(req);
+      const result = await this.deps.bulkReassignHandler.handle({ userId, labId, fromUserId, toUserId });
 
-      const result = await this.bulkReassignHandler.handle({ userId, labId, fromUserId, toUserId });
-
-      res.json({
-        success: true,
-        data: {
-          racksAffected: result.racksAffected,
-          boxesAffected: result.boxesAffected,
-        },
-        message: `Reassigned ${result.racksAffected} rack(s) and ${result.boxesAffected} box(es)`
-      });
+      res.json(ResponseBuilder.success({
+        racksAffected: result.racksAffected,
+        boxesAffected: result.boxesAffected,
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to bulk reassign resources');
+      handleControllerError(error, res, 'Failed to bulk reassign resources');
     }
   }
 
@@ -880,75 +640,22 @@ export class StorageController extends BaseController {
       const { labName, tankCount, racksPerTank, boxesPerRack } = req.body;
 
       if (!labName) {
-        res.status(400).json({
-          error: { code: 'INVALID_REQUEST', message: 'labName is required' }
-        });
+        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'labName is required'));
         return;
       }
 
       const labId = this.extractLabId(req);
 
-      await this.initializeConfigHandler.handle({
-        userId,
-        labId,
-        labName,
-        tankCount,
-        racksPerTank,
-        boxesPerRack
+      await this.deps.initializeConfigHandler.handle({
+        userId, labId, labName, tankCount, racksPerTank, boxesPerRack
       });
 
-      res.status(201).json({
-        success: true,
-        data: { success: true },
+      res.status(201).json(ResponseBuilder.success({
         message: `Storage initialized for lab '${labName}'`
-      });
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to initialize configuration');
+      handleControllerError(error, res, 'Failed to initialize configuration');
     }
-  }
-
-  // UTILITY METHODS
-
-  private handleError(error: unknown, res: Response, fallbackMessage: string): void {
-    logger.error('Storage API error:', { error });
-
-    if (error instanceof PermissionError) {
-      res.status(403).json({
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: error.message
-        }
-      });
-      return;
-    }
-
-    if (error instanceof ValidationError) {
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: error.message
-        }
-      });
-      return;
-    }
-
-    if (error instanceof NotFoundError) {
-      res.status(404).json({
-        error: {
-          code: 'NOT_FOUND',
-          message: error.message
-        }
-      });
-      return;
-    }
-
-    // Generic server error
-    res.status(500).json({
-      error: {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: fallbackMessage
-      }
-    });
   }
 
   // SYSTEM ADMIN WRAPPERS (labId from URL params)
@@ -958,14 +665,14 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { labId } = req.params;
 
-      const result = await this.resetDemoDataHandler.handle({ userId, labId });
+      const result = await this.deps.resetDemoDataHandler.handle({ userId, labId });
 
-      res.json({
-        success: true,
-        data: { message: 'Demo data reset successfully', deletedTubes: result.deletedTubes }
-      });
+      res.json(ResponseBuilder.success({
+        message: 'Demo data reset successfully',
+        deletedTubes: result.deletedTubes
+      }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to reset demo data');
+      handleControllerError(error, res, 'Failed to reset demo data');
     }
   }
 
@@ -974,11 +681,11 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { labId } = req.params;
 
-      const result = await this.seedDemoHandler.handle({ userId, labId });
+      const result = await this.deps.seedDemoHandler.handle({ userId, labId });
 
-      res.json({ success: true, data: result });
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
-      this.handleError(error, res, 'Failed to seed demo lab');
+      handleControllerError(error, res, 'Failed to seed demo lab');
     }
   }
 
@@ -987,11 +694,11 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { labId } = req.params;
 
-      const result = await this.unseedDemoHandler.handle({ userId, labId });
+      const result = await this.deps.unseedDemoHandler.handle({ userId, labId });
 
-      res.json({ success: true, data: result });
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
-      this.handleError(error, res, 'Failed to unseed demo lab');
+      handleControllerError(error, res, 'Failed to unseed demo lab');
     }
   }
 }

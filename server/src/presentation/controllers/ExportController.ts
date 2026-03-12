@@ -6,33 +6,36 @@
 
 import { Request, Response } from 'express';
 import { ExportService } from '@application/services/ExportService';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { BaseController } from '@presentation/controllers/BaseController';
-import { logger } from '@infrastructure/logging/logger';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+
+export interface ExportControllerDeps {
+  exportService: ExportService;
+}
 
 export class ExportController extends BaseController {
-  constructor(private exportService: ExportService) {
+  constructor(private deps: ExportControllerDeps) {
     super();
   }
 
   /** GET /api/admin/export/tubes */
   async exportTubes(req: Request, res: Response): Promise<void> {
     await this.handleExport(req, res, 'tubes', (labId, format) =>
-      this.exportService.exportTubes(labId, format)
+      this.deps.exportService.exportTubes(labId, format)
     );
   }
 
   /** GET /api/admin/export/users */
   async exportUsers(req: Request, res: Response): Promise<void> {
     await this.handleExport(req, res, 'users', (labId, format) =>
-      this.exportService.exportUsers(labId, format)
+      this.deps.exportService.exportUsers(labId, format)
     );
   }
 
   /** GET /api/admin/export/researchers */
   async exportResearchers(req: Request, res: Response): Promise<void> {
     await this.handleExport(req, res, 'researchers', (labId, format) =>
-      this.exportService.exportResearchers(labId, format)
+      this.deps.exportService.exportResearchers(labId, format)
     );
   }
 
@@ -40,10 +43,10 @@ export class ExportController extends BaseController {
   async exportSystemBackup(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const data = await this.exportService.exportSystemBackup(labId);
+      const data = await this.deps.exportService.exportSystemBackup(labId);
       this.sendJsonExport(res, data, 'system-backup');
     } catch (error) {
-      this.handleError(res, error, 'Failed to export system backup');
+      handleControllerError(error, res, 'Failed to export system backup');
     }
   }
 
@@ -64,7 +67,7 @@ export class ExportController extends BaseController {
         this.sendCsvExport(res, data as string, type);
       }
     } catch (error) {
-      this.handleError(res, error, `Failed to export ${type}`);
+      handleControllerError(error, res, `Failed to export ${type}`);
     }
   }
 
@@ -92,8 +95,4 @@ export class ExportController extends BaseController {
     res.json(data);
   }
 
-  private handleError(res: Response, error: unknown, fallbackMessage: string): void {
-    logger.error('Export error:', { error, message: fallbackMessage });
-    res.status(500).json(ResponseBuilder.error('EXPORT_ERROR', fallbackMessage));
-  }
 }
