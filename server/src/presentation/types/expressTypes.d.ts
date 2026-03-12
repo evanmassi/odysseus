@@ -1,8 +1,7 @@
 /**
- * Express Request type extension
+ * Express Request Type Extensions
  *
- * Augments Express Request with authenticated user context.
- * Properties are added by ExpressAuthMiddleware after successful authentication.
+ * Augments Express Request with properties added by middleware.
  */
 
 import { User } from '@domain/entities/User';
@@ -13,6 +12,7 @@ declare global {
       sessionId?: string;
       rateLimitIdentifier?: string;
       rateLimitService?: import('@application/services/RateLimitingService').RateLimitingService;
+      requestId: string;
     }
   }
 }
