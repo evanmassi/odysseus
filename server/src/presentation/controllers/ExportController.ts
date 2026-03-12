@@ -2,83 +2,44 @@
  * Export Controller
  *
  * Handles HTTP requests for data export operations.
- * Admin-only endpoints for exporting tubes, users, researchers, and system backup.
  */
 
 import { Request, Response } from 'express';
 import { ExportService } from '@application/services/ExportService';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+import { BaseController } from '@presentation/controllers/BaseController';
 import { logger } from '@infrastructure/logging/logger';
 
-export class ExportController {
-  constructor(private exportService: ExportService) {}
+export class ExportController extends BaseController {
+  constructor(private exportService: ExportService) {
+    super();
+  }
 
-  /**
-   * GET /api/admin/export/tubes
-   * Export all tubes in CSV or JSON format
-   */
+  /** GET /api/admin/export/tubes */
   async exportTubes(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = req.user!.labId!;
-      const format = this.parseFormat(req.query.format);
-      const data = await this.exportService.exportTubes(labId, format);
-
-      if (format === 'json') {
-        this.sendJsonExport(res, data as object[], 'tubes');
-      } else {
-        this.sendCsvExport(res, data as string, 'tubes');
-      }
-    } catch (error) {
-      this.handleError(res, error, 'Failed to export tubes');
-    }
+    await this.handleExport(req, res, 'tubes', (labId, format) =>
+      this.exportService.exportTubes(labId, format)
+    );
   }
 
-  /**
-   * GET /api/admin/export/users
-   * Export all users in CSV or JSON format (excludes sensitive data)
-   */
+  /** GET /api/admin/export/users */
   async exportUsers(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = req.user!.labId!;
-      const format = this.parseFormat(req.query.format);
-      const data = await this.exportService.exportUsers(labId, format);
-
-      if (format === 'json') {
-        this.sendJsonExport(res, data as object[], 'users');
-      } else {
-        this.sendCsvExport(res, data as string, 'users');
-      }
-    } catch (error) {
-      this.handleError(res, error, 'Failed to export users');
-    }
+    await this.handleExport(req, res, 'users', (labId, format) =>
+      this.exportService.exportUsers(labId, format)
+    );
   }
 
-  /**
-   * GET /api/admin/export/researchers
-   * Export all researchers in CSV or JSON format
-   */
+  /** GET /api/admin/export/researchers */
   async exportResearchers(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = req.user!.labId!;
-      const format = this.parseFormat(req.query.format);
-      const data = await this.exportService.exportResearchers(labId, format);
-
-      if (format === 'json') {
-        this.sendJsonExport(res, data as object[], 'researchers');
-      } else {
-        this.sendCsvExport(res, data as string, 'researchers');
-      }
-    } catch (error) {
-      this.handleError(res, error, 'Failed to export researchers');
-    }
+    await this.handleExport(req, res, 'researchers', (labId, format) =>
+      this.exportService.exportResearchers(labId, format)
+    );
   }
 
-  /**
-   * GET /api/admin/export/system-backup
-   * Export system configuration and settings (JSON only)
-   */
+  /** GET /api/admin/export/system-backup */
   async exportSystemBackup(req: Request, res: Response): Promise<void> {
     try {
-      const labId = req.user!.labId!;
+      const labId = this.extractLabId(req);
       const data = await this.exportService.exportSystemBackup(labId);
       this.sendJsonExport(res, data, 'system-backup');
     } catch (error) {
@@ -86,56 +47,53 @@ export class ExportController {
     }
   }
 
-  /**
-   * Parse format query parameter, default to CSV
-   */
+  private async handleExport(
+    req: Request,
+    res: Response,
+    type: string,
+    fetchData: (labId: string, format: 'csv' | 'json') => Promise<string | object[]>
+  ): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const format = this.parseFormat(req.query.format);
+      const data = await fetchData(labId, format);
+
+      if (format === 'json') {
+        this.sendJsonExport(res, data as object[], type);
+      } else {
+        this.sendCsvExport(res, data as string, type);
+      }
+    } catch (error) {
+      this.handleError(res, error, `Failed to export ${type}`);
+    }
+  }
+
   private parseFormat(format: unknown): 'csv' | 'json' {
     if (format === 'json') return 'json';
     return 'csv';
   }
 
-  /**
-   * Generate filename with timestamp
-   */
   private generateFilename(type: string, extension: string): string {
     const date = new Date().toISOString().split('T')[0];
     return `odysseus-${type}-${date}.${extension}`;
   }
 
-  /**
-   * Send CSV response with appropriate headers
-   */
   private sendCsvExport(res: Response, data: string, type: string): void {
     const filename = this.generateFilename(type, 'csv');
-
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(data);
   }
 
-  /**
-   * Send JSON response with appropriate headers for download
-   */
   private sendJsonExport(res: Response, data: object | object[], type: string): void {
     const filename = this.generateFilename(type, 'json');
-
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.json(data);
   }
 
-  /**
-   * Handle errors consistently
-   */
   private handleError(res: Response, error: unknown, fallbackMessage: string): void {
     logger.error('Export error:', { error, message: fallbackMessage });
-
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'EXPORT_ERROR',
-        message: fallbackMessage
-      }
-    });
+    res.status(500).json(ResponseBuilder.error('EXPORT_ERROR', fallbackMessage));
   }
 }
