@@ -125,7 +125,7 @@ export class UserApplicationService {
       ? await this.userRepository.findByEmail(input)
       : await this.userRepository.findByUsername(input);
 
-    if (!user || !user.validatePassword(request.password)) {
+    if (!user) {
       throw new PermissionError('Invalid credentials');
     }
 

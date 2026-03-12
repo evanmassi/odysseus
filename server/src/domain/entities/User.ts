@@ -148,7 +148,7 @@ export class User {
 
   static createWithPassword(
     username: string,
-    password: string,
+    passwordHash: string,
     role: UserRole,
     researcherId?: string,
     personId?: string,
@@ -172,7 +172,7 @@ export class User {
       labId,
     });
 
-    user.setPassword(password);
+    user._passwordHash = passwordHash;
     return user;
   }
 
@@ -241,7 +241,7 @@ export class User {
       labId: data.labId,
     });
 
-    if (data.passwordHash && data.salt) {
+    if (data.passwordHash) {
       user._passwordHash = data.passwordHash;
       user._salt = data.salt;
     }
@@ -294,54 +294,19 @@ export class User {
     }
   }
 
-  // Absolute minimum for security — policy enforcement (min length, complexity) is in the application layer
-  private validatePasswordStrength(password: string): void {
-    if (!password || password.trim().length === 0) {
-      throw new ValidationError('Password is required');
-    }
-    if (password.length < 4) {
-      throw new ValidationError('Password must be at least 4 characters long');
-    }
-    if (password.length > 128) {
-      throw new ValidationError('Password cannot exceed 128 characters');
-    }
-  }
-
-  private hashAndStorePassword(plainPassword: string): void {
-    this._salt = crypto.randomBytes(16).toString('hex');
-    this._passwordHash = crypto.pbkdf2Sync(plainPassword, this._salt, 10000, 64, 'sha512').toString('hex');
-  }
-
   recordActivity(): void {
     this._lastActivity = new Date();
   }
 
-  /**
-   * Policy validation (min length, strong password, special chars) is handled
-   * by the application layer using configurable security settings.
-   * This method only performs basic validation and hashing.
-   */
-  setPassword(plainPassword: string): void {
-    this.validatePasswordStrength(plainPassword);
-    this.hashAndStorePassword(plainPassword);
+  /** Stores a pre-computed hash from PasswordService. Clears legacy salt. */
+  setPasswordHash(hash: string): void {
+    this._passwordHash = hash;
+    this._salt = undefined;
     this.recordActivity();
   }
 
-  validatePassword(plainPassword: string): boolean {
-    if (!this._passwordHash || !this._salt) {
-      return false;
-    }
-    
-    if (!plainPassword) {
-      return false;
-    }
-    
-    const hash = crypto.pbkdf2Sync(plainPassword, this._salt, 10000, 64, 'sha512').toString('hex');
-    return this._passwordHash === hash;
-  }
-
   hasPassword(): boolean {
-    return !!this._passwordHash && !!this._salt;
+    return !!this._passwordHash;
   }
 
   changeRole(newRole: 'system_admin' | 'lab_admin' | 'user', performedBy: User): void {
@@ -718,10 +683,9 @@ export class User {
     return this._lastVerificationEmailSent < fiveMinutesAgo;
   }
 
-  /** Bypasses current password check. @throws ValidationError if password too weak */
-  adminResetPassword(plainPassword: string, requireChange: boolean = true): void {
-    this.validatePasswordStrength(plainPassword);
-    this.hashAndStorePassword(plainPassword);
+  adminResetPassword(passwordHash: string, requireChange: boolean = true): void {
+    this._passwordHash = passwordHash;
+    this._salt = undefined;
 
     this._requirePasswordChange = requireChange;
     this._lastPasswordChange = new Date();
@@ -744,8 +708,8 @@ export class User {
     return token;
   }
 
-  /** @throws ValidationError if token invalid/expired or password too weak */
-  resetPasswordWithToken(token: string, newPassword: string): void {
+  /** @throws ValidationError if token invalid or expired */
+  resetPasswordWithToken(token: string, passwordHash: string): void {
     if (!this._passwordResetToken) {
       throw new ValidationError('No password reset token found');
     }
@@ -764,8 +728,8 @@ export class User {
       throw new ValidationError('Invalid password reset token');
     }
 
-    this.validatePasswordStrength(newPassword);
-    this.hashAndStorePassword(newPassword);
+    this._passwordHash = passwordHash;
+    this._salt = undefined;
 
     this._passwordResetToken = undefined;
     this._passwordResetExpiry = undefined;

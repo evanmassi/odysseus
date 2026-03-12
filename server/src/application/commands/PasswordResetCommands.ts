@@ -7,10 +7,13 @@
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { EventBus } from '@application/contracts/EventBus';
+import { PasswordService } from '@application/contracts/PasswordService';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PasswordResetByAdminEvent, PasswordResetTokenGeneratedEvent, PasswordResetCompletedEvent } from '@domain/events/PasswordResetEvents';
 import { requireUser, requireAdmin } from '@application/guards/UserGuards';
+import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { logger } from '@infrastructure/logging/logger';
 
 // COMMAND INTERFACES
@@ -39,14 +42,19 @@ export class AdminResetPasswordCommandHandler {
     private userRepository: UserRepository,
     private eventBus: EventBus,
     private refreshTokenRepository: RefreshTokenRepository,
-    private userSessionRepository: UserSessionRepository
+    private userSessionRepository: UserSessionRepository,
+    private passwordService: PasswordService,
+    private storageRepository: StorageRepository
   ) {}
 
   async handle(command: AdminResetPasswordCommand): Promise<void> {
     const admin = await requireAdmin(this.userRepository, command.adminUserId);
     const targetUser = await requireUser(this.userRepository, command.targetUserId);
 
-    targetUser.adminResetPassword(command.newPassword, command.requirePasswordChange);
+    await validatePasswordPolicy(this.storageRepository, command.newPassword);
+    const passwordHash = await this.passwordService.hash(command.newPassword);
+
+    targetUser.adminResetPassword(passwordHash, command.requirePasswordChange);
     await this.userRepository.save(targetUser);
 
     const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(targetUser.id);
@@ -116,7 +124,9 @@ export class ResetPasswordWithTokenCommandHandler {
     private userRepository: UserRepository,
     private eventBus: EventBus,
     private refreshTokenRepository: RefreshTokenRepository,
-    private userSessionRepository: UserSessionRepository
+    private userSessionRepository: UserSessionRepository,
+    private passwordService: PasswordService,
+    private storageRepository: StorageRepository
   ) {}
 
   async handle(command: ResetPasswordWithTokenCommand): Promise<void> {
@@ -125,7 +135,10 @@ export class ResetPasswordWithTokenCommandHandler {
       throw new ValidationError('Invalid or expired password reset token');
     }
 
-    user.resetPasswordWithToken(command.token, command.newPassword);
+    await validatePasswordPolicy(this.storageRepository, command.newPassword);
+    const passwordHash = await this.passwordService.hash(command.newPassword);
+
+    user.resetPasswordWithToken(command.token, passwordHash);
     await this.userRepository.save(user);
 
     const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(user.id);

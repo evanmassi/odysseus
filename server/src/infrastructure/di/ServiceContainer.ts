@@ -265,7 +265,8 @@ export class ServiceContainer {
       this.createUserHandler = new CreateUserCommandHandler(
         repositories.users,
         this.getEventBus(),
-        repositories.storage
+        repositories.storage,
+        this.getPasswordService()
       );
     }
     return this.createUserHandler;
@@ -277,6 +278,7 @@ export class ServiceContainer {
       this.loginHandler = new LoginCommandHandler(
         repositories.users,
         this.getEventBus(),
+        this.getPasswordService(),
         repositories.labs
       );
     }
@@ -290,7 +292,8 @@ export class ServiceContainer {
         repositories.users,
         this.getEventBus(),
         repositories.storage,
-        repositories.userSessions
+        repositories.userSessions,
+        this.getPasswordService()
       );
     }
     return this.changePasswordHandler;
@@ -364,7 +367,9 @@ export class ServiceContainer {
         repositories.users,
         this.getEventBus(),
         repositories.refreshTokens,
-        repositories.userSessions
+        repositories.userSessions,
+        this.getPasswordService(),
+        repositories.storage
       );
     }
     return this.adminResetPasswordHandler;
@@ -389,7 +394,9 @@ export class ServiceContainer {
         repositories.users,
         this.getEventBus(),
         repositories.refreshTokens,
-        repositories.userSessions
+        repositories.userSessions,
+        this.getPasswordService(),
+        repositories.storage
       );
     }
     return this.resetPasswordWithTokenHandler;
@@ -722,6 +729,7 @@ export class ServiceContainer {
         repositories.storage,
         this.getEventBus(),
         repositories.persons,
+        this.getPasswordService(),
         process.env.SYSTEM_ADMIN_SETUP_KEY
       );
     }
@@ -904,6 +912,7 @@ export class ServiceContainer {
         personRepository: this.repositoryFactory.getPersonRepository(),
         userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
         userRepository: this.repositoryFactory.getUserRepository(),
+        passwordService: this.getPasswordService(),
       });
     }
     return this.publicAuthController;
@@ -1039,6 +1048,7 @@ export class ServiceContainer {
       this.personController = new PersonController({
         personRepository: this.repositoryFactory.getPersonRepository(),
         userRepository: this.repositoryFactory.getUserRepository(),
+        passwordService: this.getPasswordService(),
       });
     }
     return this.personController;

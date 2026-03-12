@@ -11,6 +11,7 @@ import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
 import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
 import type { SessionService } from '@application/contracts/SessionService';
+import type { PasswordService } from '@application/contracts/PasswordService';
 import {
   CreateUserCommand, CreateUserCommandHandler,
   CreateSystemAdminCommand, CreateSystemAdminCommandHandler,
@@ -48,6 +49,7 @@ export interface PublicAuthControllerDeps {
   personRepository: PersonRepository;
   userSessionRepository: UserSessionRepository;
   userRepository: UserRepository;
+  passwordService: PasswordService;
 }
 
 export class PublicAuthController {
@@ -449,7 +451,8 @@ export class PublicAuthController {
         return;
       }
 
-      user.setPassword(newPassword);
+      const passwordHash = await this.deps.passwordService.hash(newPassword);
+      user.setPasswordHash(passwordHash);
       user.markPasswordChanged();
       await this.deps.userRepository.save(user);
 

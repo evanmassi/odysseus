@@ -15,10 +15,12 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { InvalidCredentialsError } from '@domain/errors/UserErrors';
 import type { Person } from '@domain/entities/Person';
+import type { PasswordService } from '@application/contracts/PasswordService';
 
 export interface PersonControllerDeps {
   personRepository: PersonRepository;
   userRepository: UserRepository;
+  passwordService: PasswordService;
 }
 
 export class PersonController extends BaseController {
@@ -61,8 +63,19 @@ export class PersonController extends BaseController {
         throw new NotFoundError('User not found');
       }
 
-      if (!fullUser.validatePassword(currentPassword)) {
+      if (!fullUser.hasPassword()) {
         throw new InvalidCredentialsError('Current password is incorrect');
+      }
+      const isValid = await this.deps.passwordService.verify(currentPassword, fullUser.passwordHash!, fullUser.salt);
+      if (!isValid) {
+        throw new InvalidCredentialsError('Current password is incorrect');
+      }
+
+      // Lazy migration: re-hash PBKDF2 passwords to bcrypt
+      if (this.deps.passwordService.needsUpgrade(fullUser.passwordHash!, fullUser.salt)) {
+        const newHash = await this.deps.passwordService.hash(currentPassword);
+        fullUser.setPasswordHash(newHash);
+        await this.deps.userRepository.save(fullUser);
       }
 
       if (firstName !== undefined && !firstName.trim()) {

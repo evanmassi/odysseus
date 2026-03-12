@@ -15,6 +15,7 @@ import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { Person } from '@domain/entities/Person';
 import { logger } from '@infrastructure/logging/logger';
 import { EventBus } from '@application/contracts/EventBus';
+import { PasswordService } from '@application/contracts/PasswordService';
 import {
   UserCreatedEvent,
   UserPasswordChangedEvent,
@@ -89,6 +90,7 @@ export class CreateUserCommandHandler {
     private userRepository: UserRepository,
     private eventBus: EventBus,
     private storageRepository: StorageRepository,
+    private passwordService: PasswordService,
     private inviteCodeRepository?: InviteCodeRepository
   ) {}
 
@@ -99,6 +101,7 @@ export class CreateUserCommandHandler {
     }
 
     await validatePasswordPolicy(this.storageRepository, command.password);
+    const passwordHash = await this.passwordService.hash(command.password);
 
     let labId: string | undefined;
     let resolvedRole = command.role;
@@ -131,7 +134,7 @@ export class CreateUserCommandHandler {
     const status = autoApprove ? 'approved' : 'pending';
     const user = User.createWithPassword(
       command.username,
-      command.password,
+      passwordHash,
       resolvedRole,
       undefined,
       undefined,
@@ -154,6 +157,7 @@ export class CreateSystemAdminCommandHandler {
     private storageRepository: StorageRepository,
     private eventBus: EventBus,
     private personRepository: PersonRepository,
+    private passwordService: PasswordService,
     private setupKey?: string
   ) {}
 
@@ -180,13 +184,14 @@ export class CreateSystemAdminCommandHandler {
     }
 
     await validatePasswordPolicy(this.storageRepository, command.password);
+    const passwordHash = await this.passwordService.hash(command.password);
 
     const person = Person.create(command.firstName, command.lastName, command.email, command.position, command.department);
     await this.personRepository.save(person);
 
     const user = User.createWithPassword(
       command.username,
-      command.password,
+      passwordHash,
       UserRole.systemAdmin(),
       undefined,
       person.id,
@@ -207,7 +212,8 @@ export class ChangeUserPasswordCommandHandler {
     private userRepository: UserRepository,
     private eventBus: EventBus,
     private storageRepository: StorageRepository,
-    private userSessionRepository: UserSessionRepository
+    private userSessionRepository: UserSessionRepository,
+    private passwordService: PasswordService
   ) {}
 
   async handle(command: ChangeUserPasswordCommand): Promise<void> {
@@ -216,14 +222,18 @@ export class ChangeUserPasswordCommandHandler {
       throw new UserNotFoundError(command.userId);
     }
 
-    const isCurrentPasswordValid = user.validatePassword(command.currentPassword);
+    if (!user.hasPassword()) {
+      throw new InvalidCredentialsError('Current password is incorrect');
+    }
+    const isCurrentPasswordValid = await this.passwordService.verify(command.currentPassword, user.passwordHash!, user.salt);
     if (!isCurrentPasswordValid) {
       throw new InvalidCredentialsError('Current password is incorrect');
     }
 
     await validatePasswordPolicy(this.storageRepository, command.newPassword);
+    const newHash = await this.passwordService.hash(command.newPassword);
 
-    user.setPassword(command.newPassword);
+    user.setPasswordHash(newHash);
     await this.userRepository.save(user);
 
     // Changing password revokes all other sessions for security
@@ -385,6 +395,7 @@ export class LoginCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private eventBus: EventBus,
+    private passwordService: PasswordService,
     private labRepository?: LabRepository
   ) {}
 
@@ -395,13 +406,20 @@ export class LoginCommandHandler {
       user = await this.userRepository.findByEmail(command.username);
     }
 
-    if (!user) {
+    if (!user || !user.hasPassword()) {
       throw new InvalidCredentialsError('Invalid username or password');
     }
 
-    const isPasswordValid = user.validatePassword(command.password);
+    const isPasswordValid = await this.passwordService.verify(command.password, user.passwordHash!, user.salt);
     if (!isPasswordValid) {
       throw new InvalidCredentialsError('Invalid username or password');
+    }
+
+    // Lazy migration: re-hash PBKDF2 passwords to bcrypt on successful login
+    if (this.passwordService.needsUpgrade(user.passwordHash!, user.salt)) {
+      const newHash = await this.passwordService.hash(command.password);
+      user.setPasswordHash(newHash);
+      await this.userRepository.save(user);
     }
 
     // Check admin approval status FIRST (gates access before email verification)
