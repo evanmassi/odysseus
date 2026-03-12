@@ -27,7 +27,7 @@ import {
   UnlockTubesHttpSchema,
   ShareTubeAccessHttpSchema,
   RevokeTubeAccessHttpSchema
-} from '@presentation/validation/schemas';
+} from '@presentation/validation/httpValidationSchemas';
 
 export class ResourceRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
