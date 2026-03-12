@@ -9,7 +9,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ResponseBuilder } from '@presentation/utils/ResponseBuilder';
 import { ErrorMapper } from '@presentation/mappers/ErrorMapper';
 import { logger } from '@infrastructure/logging/logger';
-import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/loginRateLimiting';
+import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
 import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
 

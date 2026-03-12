@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { SearchController } from '@presentation/controllers/SearchController';
 import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
+import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';

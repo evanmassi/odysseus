@@ -12,7 +12,7 @@ declare global {
       user?: User;
       sessionId?: string;
       rateLimitIdentifier?: string;
-      rateLimitService?: import('@domain/services/RateLimitingService').RateLimitingService;
+      rateLimitService?: import('@application/services/RateLimitingService').RateLimitingService;
     }
   }
 }

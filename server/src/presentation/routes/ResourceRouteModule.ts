@@ -13,7 +13,7 @@ import { TubeLockController } from '@presentation/controllers/TubeLockController
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
 import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
+import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import {

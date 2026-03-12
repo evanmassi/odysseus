@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
+import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody } from '@presentation/middleware/requestValidation';
 import {
