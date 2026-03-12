@@ -1,8 +1,7 @@
 /**
  * Auth Controller
- * 
- * Clean presentation layer that uses CQRS command/query handlers.
- * Handles HTTP concerns only and delegates to command/query handlers.
+ *
+ * HTTP handlers for authentication, user management, and security configuration.
  */
 
 import { Request, Response, NextFunction } from 'express';
@@ -11,22 +10,18 @@ import { logger } from '@infrastructure/logging/logger';
 import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
 import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
-
-// CQRS Commands
 import type { SessionService } from '@application/contracts/SessionService';
-import { CreateUserCommand, CreateUserCommandHandler } from '@application/commands/UserCommands';
-import { CreateSystemAdminCommand, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
-import { LoginCommand, LoginCommandHandler } from '@application/commands/UserCommands';
-import { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
-import { ChangeUserRoleCommand, ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
-import { DeleteUserCommand, DeleteUserCommandHandler } from '@application/commands/UserCommands';
+import {
+  CreateUserCommand, CreateUserCommandHandler,
+  CreateSystemAdminCommand, CreateSystemAdminCommandHandler,
+  LoginCommand, LoginCommandHandler,
+  ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler,
+  ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
+  DeleteUserCommand, DeleteUserCommandHandler
+} from '@application/commands/UserCommands';
 import { SendVerificationEmailCommand, SendVerificationEmailCommandHandler, VerifyEmailCommand, VerifyEmailCommandHandler, ResendVerificationEmailCommand, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
-
-// CQRS Queries
-import { CheckFirstTimeSetupQuery, CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
-import { GetUserByIdQuery, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
-import { GetUserStatisticsQuery, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import { CheckFirstTimeSetupQuery, CheckFirstTimeSetupQueryHandler, GetUserByIdQuery, GetUserByIdQueryHandler, GetUserStatisticsQuery, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 
 import { UserRole } from '@domain/value-objects/UserRole';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -47,7 +42,6 @@ import {
 } from '@odysseus/shared-schemas';
 
 export interface AuthControllerDeps {
-  // Command handlers
   createUserHandler: CreateUserCommandHandler;
   loginHandler: LoginCommandHandler;
   changePasswordHandler: ChangeUserPasswordCommandHandler;
@@ -59,28 +53,18 @@ export interface AuthControllerDeps {
   adminResetPasswordHandler: AdminResetPasswordCommandHandler;
   generatePasswordResetTokenHandler: GeneratePasswordResetTokenCommandHandler;
   resetPasswordWithTokenHandler: ResetPasswordWithTokenCommandHandler;
-
-  // Query handlers
   checkFirstTimeHandler: CheckFirstTimeSetupQueryHandler;
   getUserByIdHandler: GetUserByIdQueryHandler;
   getUserStatsHandler: GetUserStatisticsQueryHandler;
-
-  // Services
   sessionService: SessionService;
   userApplicationService: UserApplicationService;
   researcherApplicationService: ResearcherApplicationService;
-
-  // Repositories
   configRepository: StorageRepository;
   researcherRepository: ResearcherRepository;
   personRepository: PersonRepository;
   userSessionRepository: UserSessionRepository;
   userRepository: UserRepository;
-
-  // Event bus
   eventBus: EventBus;
-
-  // System admin setup
   createSystemAdminHandler: CreateSystemAdminCommandHandler;
 }
 
@@ -139,10 +123,7 @@ export class AuthController {
 
   // PUBLIC ENDPOINTS (No auth required)
 
-  /**
-   * Check if this is first-time setup
-   * GET /api/public/auth/first-time
-   */
+  /** GET /api/public/auth/first-time */
   async checkFirstTime(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -188,16 +169,12 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get password requirements (public - for registration form)
-   * GET /api/public/auth/password-requirements
-   */
+  /** GET /api/public/auth/password-requirements */
   async getPasswordRequirements(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
       const securityConfig = await this.configRepository.getSecurityConfig();
 
-      // Return only password validation fields (not sensitive security config)
       const passwordRequirements = {
         passwordMinLength: securityConfig.passwordMinLength,
         requireStrongPasswords: securityConfig.requireStrongPasswords,
@@ -215,10 +192,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Register new user (first-time setup)
-   * POST /api/public/auth/register
-   */
+  /** POST /api/public/auth/register */
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -239,11 +213,8 @@ export class AuthController {
         role: user.role.value
       });
 
-      // Extract device info from request
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.socket.remoteAddress;
-
-      // Create token pair for immediate authentication (OAuth 2.0 standard)
       const authResult = await this.sessionService.createTokenPair(user, userAgent, ipAddress);
 
       const response = ResponseBuilder.withTiming(startTime, {
@@ -257,14 +228,10 @@ export class AuthController {
   }
 
   /**
-   * Login with credentials
    * POST /api/public/auth/login
    *
-   * Validates credentials and checks approval status.
-   * Only approved users can login.
-   *
-   * If requirePasswordChange is set (admin reset password flow),
-   * returns a temporary token for the force-change-password endpoint.
+   * If requirePasswordChange is set, returns a temporary token
+   * for the force-change-password endpoint instead of full login tokens.
    */
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -294,18 +261,14 @@ export class AuthController {
         throw new PermissionError('Account is not approved for access');
       }
 
-      // Clear rate limit attempts on successful login
       recordSuccessfulLogin(req);
 
-      // Handle force password change flow
-      // User credentials are valid but they must change password before full login
       if (result.requirePasswordChange) {
         logger.info('User requires password change', {
           userId: result.user.id,
           username: result.user.username
         });
 
-        // Generate short-lived temp token (5 min) for password change only
         const tempToken = this.sessionService.createPasswordChangeTempToken(result.user);
 
         const passwordChangeResponse: PasswordChangeRequiredResponse = {
@@ -328,26 +291,19 @@ export class AuthController {
         status: result.user.status
       });
 
-      // Extract device info from request
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.socket.remoteAddress;
-
-      // Enhanced response with token pair (backward compatible)
       const enhancedResult = await this.sessionService.createTokenPair(result.user, userAgent, ipAddress);
 
       const response = ResponseBuilder.withTiming(startTime, enhancedResult);
       res.status(200).json(response);
     } catch (error) {
-      // Record failed login attempt for rate limiting
       await recordFailedLogin(req);
       next(error);
     }
   }
 
-  /**
-   * Refresh access token using refresh token
-   * POST /api/public/auth/refresh
-   */
+  /** POST /api/public/auth/refresh */
   async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -367,7 +323,6 @@ export class AuthController {
         logger.info('Access token refreshed successfully');
         
       } catch (error) {
-        // Refresh token invalid, expired, or revoked
         res.status(401).json(ResponseBuilder.error('INVALID_REFRESH_TOKEN', 'Invalid or expired refresh token'));
       }
       
@@ -378,10 +333,7 @@ export class AuthController {
 
   // AUTHENTICATED ENDPOINTS
 
-  /**
-   * Verify current session
-   * GET /api/auth/verify
-   */
+  /** GET /api/auth/verify */
   async verifySession(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = req.user;
@@ -404,10 +356,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get current user profile
-   * GET /api/auth/me
-   */
+  /** GET /api/auth/me */
   async getCurrentUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = req.user;
@@ -426,10 +375,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Change current user's password
-   * POST /api/auth/change-password
-   */
+  /** POST /api/auth/change-password */
   async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = req.user;
@@ -437,7 +383,6 @@ export class AuthController {
         return next(new Error('User not found in request context'));
       }
 
-      // Demo users cannot change their password
       if (user.isDemo) {
         res.status(403).json({
           success: false,
@@ -470,10 +415,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Logout (placeholder for session invalidation)
-   * POST /api/auth/logout
-   */
+  /** POST /api/auth/logout */
   async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = req.user;
@@ -481,7 +423,6 @@ export class AuthController {
         return next(new Error('User not found in request context'));
       }
 
-      // Publish logout event
       await this.eventBus.publish(new UserLoggedOutEvent(
         user.id,
         user.username,
@@ -501,11 +442,10 @@ export class AuthController {
   }
 
   /**
-   * Heartbeat - extend session by recording activity
    * POST /api/auth/heartbeat
    *
-   * Called by client when user clicks "Stay Logged In" on warning modal.
-   * Goes through auth middleware which updates lastUsedAt via validateSessionWithActivity.
+   * Called by client "Stay Logged In" action. Auth middleware
+   * updates lastUsedAt via validateSessionWithActivity.
    */
   async heartbeat(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -531,17 +471,10 @@ export class AuthController {
   }
 
   /**
-   * Get session info for idle timeout warning
    * GET /api/public/auth/session-info
    *
-   * PUBLIC ENDPOINT - handles its own validation with updateActivity: false
-   * This prevents polling from extending the session (which would defeat idle timeout).
-   *
-   * Returns:
-   * - isAuthenticated: Whether session is valid
-   * - timeUntilIdleTimeoutMs: Milliseconds until idle timeout
-   * - timeUntilAbsoluteTimeoutMs: Milliseconds until absolute timeout
-   * - showWarning: Whether to show the warning modal
+   * Public endpoint — handles its own validation with updateActivity: false
+   * to prevent polling from extending the session.
    */
   async getSessionInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -559,7 +492,6 @@ export class AuthController {
 
       const token = authHeader.substring(7);
 
-      // Validate WITHOUT updating activity (this is just a status check)
       const result = await this.sessionService.validateSessionWithActivity(token, { updateActivity: false });
 
       if (!result.success) {
@@ -573,7 +505,6 @@ export class AuthController {
         return;
       }
 
-      // Get session and security config for timing info
       const session = await this.userSessionRepository.findById(result.sessionId);
       const config = await this.configRepository.getSecurityConfig();
 
@@ -615,12 +546,7 @@ export class AuthController {
 
   // ADMIN ENDPOINTS
 
-  /**
-   * Get all users (admin only)
-   * GET /api/admin/users
-   *
-   * Returns users enriched with linked researcher information
-   */
+  /** GET /api/admin/users */
   async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -641,10 +567,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get user by ID (admin only)
-   * GET /api/admin/users/:id
-   */
+  /** GET /api/admin/users/:id */
   async getUserById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
@@ -660,10 +583,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Update user role (admin only)
-   * PUT /api/admin/users/:id/role
-   */
+  /** PUT /api/admin/users/:id/role */
   async updateUserRole(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
@@ -695,10 +615,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Delete user (admin only)
-   * DELETE /api/admin/users/:id
-   */
+  /** DELETE /api/admin/users/:id */
   async deleteUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params;
@@ -723,10 +640,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get user statistics (admin only)
-   * GET /api/admin/stats/users
-   */
+  /** GET /api/admin/stats/users */
   async getUserStatistics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -742,10 +656,7 @@ export class AuthController {
 
   // ADMIN SECURITY & CONFIGURATION ENDPOINTS
 
-  /**
-   * Get security configuration (admin only)
-   * GET /api/admin/security-config
-   */
+  /** GET /api/admin/security-config */
   async getSecurityConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -764,10 +675,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Update security configuration (admin only)
-   * PUT /api/admin/security-config
-   */
+  /** PUT /api/admin/security-config */
   async updateSecurityConfig(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -805,10 +713,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get system metrics (admin only)
-   * GET /api/admin/metrics
-   */
+  /** GET /api/admin/metrics */
   async getMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -834,13 +739,10 @@ export class AuthController {
   // USER-RESEARCHER REGISTRATION & APPROVAL WORKFLOW
 
   /**
-   * Register with researcher profile (new user flow with approval workflow)
    * POST /api/public/auth/register-with-researcher
    *
-   * Creates both User and Researcher entities atomically.
-   * Response varies based on user status:
-   * - First user (admin): Returns tokens for immediate login
-   * - Subsequent users (pending): Returns user data without tokens (awaiting approval)
+   * Creates User and Researcher atomically. First user gets tokens
+   * for immediate login; subsequent users return pending status.
    */
   async registerWithResearcher(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -862,9 +764,7 @@ export class AuthController {
         role: user.role.isAdmin() ? 'admin' : 'user'
       });
 
-      // Send verification email for all users with email addresses
-      // (First user will be auto-verified, but still gets the email for record keeping)
-      // Get email from Person entity
+      // First user is auto-verified but still gets the email for record keeping
       if (user.personId) {
         const person = await this.personRepository.findById(user.personId);
         if (person && person.email) {
@@ -878,12 +778,10 @@ export class AuthController {
               email: person.email,
               error: emailError instanceof Error ? emailError.message : String(emailError)
             });
-            // Don't fail registration if email sending fails - user is still created
           }
         }
       }
 
-      // First user (admin): Immediately authenticated
       if (user.isApproved()) {
         const userAgent = req.headers['user-agent'];
         const ipAddress = req.ip || req.socket.remoteAddress;
@@ -900,7 +798,6 @@ export class AuthController {
         return;
       }
 
-      // Subsequent users (pending): No tokens, awaiting approval
       const response = ResponseBuilder.withTiming(startTime, {
         user: user.toPublicData(),
         status: 'pending',
@@ -913,12 +810,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get all pending users (admin only)
-   * GET /api/admin/users/pending
-   *
-   * Returns list of users awaiting admin approval.
-   */
+  /** GET /api/admin/users/pending */
   async getPendingUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -945,12 +837,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Approve pending user (admin only)
-   * POST /api/admin/users/:userId/approve
-   *
-   * Changes user status from 'pending' to 'approved', allowing login.
-   */
+  /** POST /api/admin/users/:userId/approve */
   async approveUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -979,12 +866,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Reject pending user (admin only)
-   * POST /api/admin/users/:userId/reject
-   *
-   * Changes user status from 'pending' to 'rejected', blocking login.
-   */
+  /** POST /api/admin/users/:userId/reject */
   async rejectUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
@@ -1060,14 +942,9 @@ export class AuthController {
   }
 
   /**
-   * Link researcher to user (admin only)
    * POST /api/admin/users/:userId/link-researcher
-   * Body: { researcherId?: string, newResearcher?: CreateResearcherProfile }
    *
-   * Associates a researcher profile with a user account.
-   * Supports two modes:
-   * 1. Link existing researcher (provide researcherId)
-   * 2. Create new researcher and link (provide newResearcher)
+   * Links existing researcher (researcherId) or creates new one (newResearcher).
    */
   async linkResearcherToUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -1082,7 +959,6 @@ export class AuthController {
 
       let targetResearcherId = researcherId;
 
-      // If newResearcher provided, create it first
       if (newResearcher) {
         const created = await this.researcherApplicationService.createResearcher(
           req.user!.labId!,
@@ -1099,7 +975,6 @@ export class AuthController {
         });
       }
 
-      // Link researcher to user
       await this.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminApiKey);
 
       const response = ResponseBuilder.withTiming(startTime, {
@@ -1121,11 +996,9 @@ export class AuthController {
   }
 
   /**
-   * Unlink researcher from user (admin only)
    * POST /api/admin/users/:userId/unlink-researcher
    *
-   * Removes researcher profile link from user account while preserving researcher record.
-   * Used when user should no longer have researcher privileges but tubes must preserve history.
+   * Preserves researcher record for tube history while removing user link.
    */
   async unlinkResearcherFromUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -1157,10 +1030,7 @@ export class AuthController {
 
   // EMAIL VERIFICATION ENDPOINTS
 
-  /**
-   * Verify email with token (public endpoint)
-   * POST /api/public/auth/verify-email
-   */
+  /** POST /api/public/auth/verify-email */
   async verifyEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { token } = req.body;
@@ -1176,7 +1046,6 @@ export class AuthController {
       const command: VerifyEmailCommand = { token };
       const user = await this.verifyEmailHandler.handle(command);
 
-      // Get email from Person entity for logging
       if (user.personId) {
         const person = await this.personRepository.findById(user.personId);
         logger.info('Email verified successfully', {
@@ -1195,11 +1064,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Resend verification email (public endpoint - no auth required)
-   * POST /api/public/auth/resend-verification
-   * Accepts username or email to identify the user
-   */
+  /** POST /api/public/auth/resend-verification */
   async resendVerificationPublic(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { usernameOrEmail } = req.body;
@@ -1212,13 +1077,12 @@ export class AuthController {
         return;
       }
 
-      // Find user by username or email
       const userByUsername = await this.userApplicationService.getUserByUsername(usernameOrEmail);
       const userByEmail = userByUsername ? null : await this.userApplicationService.getUserByEmail(usernameOrEmail);
       const user = userByUsername || userByEmail;
 
       if (!user) {
-        // Don't reveal if user exists (security)
+        // Opaque response prevents user enumeration
         res.status(200).json({
           success: true,
           message: 'If an account exists with that information, a verification email has been sent.'
@@ -1239,7 +1103,6 @@ export class AuthController {
         message: 'Verification email sent. Please check your inbox.'
       });
     } catch (error) {
-      // Don't expose detailed errors to prevent user enumeration
       logger.error('Error in public resend verification', { error });
       res.status(200).json({
         success: true,
@@ -1248,10 +1111,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Resend verification email (protected endpoint - deprecated, use public endpoint)
-   * POST /api/auth/resend-verification
-   */
+  /** POST /api/auth/resend-verification (deprecated — use public endpoint) */
   async resendVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -1261,7 +1121,6 @@ export class AuthController {
       const command = { userId: req.user.id };
       await this.resendVerificationHandler.handle(command);
 
-      // Get email from Person entity for logging
       if (req.user.personId) {
         const person = await this.personRepository.findById(req.user.personId);
         logger.info('Verification email resent', {
@@ -1282,10 +1141,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get email verification status (protected endpoint)
-   * GET /api/auth/verification-status
-   */
+  /** GET /api/auth/verification-status */
   async getVerificationStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user) {
@@ -1297,7 +1153,6 @@ export class AuthController {
         emailVerified: req.user.emailVerified
       });
 
-      // Get email from Person entity
       let email: string | null = null;
       if (req.user.personId) {
         const person = await this.personRepository.findById(req.user.personId);
@@ -1319,11 +1174,10 @@ export class AuthController {
   // PASSWORD RESET ENDPOINTS
 
   /**
-   * Admin directly resets user password (admin only)
    * POST /api/admin/users/:userId/reset-password
    *
-   * Use when: Admin needs immediate access restoration (locked account, forgotten password)
-   * Security: requirePasswordChange=true forces user to set own password on next login
+   * Use when admin needs immediate access restoration.
+   * requirePasswordChange=true forces user to set own password on next login.
    */
   async adminResetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -1362,11 +1216,9 @@ export class AuthController {
   }
 
   /**
-   * Admin generates password reset token (admin only)
    * POST /api/admin/users/:userId/generate-reset-token
    *
-   * Use when: User prefers to set own password (15-minute one-time link)
-   * Delivery: Admin shares link manually (no email dependency)
+   * Generates 15-minute one-time reset link for user to set own password.
    */
   async generatePasswordResetToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -1402,11 +1254,9 @@ export class AuthController {
   }
 
   /**
-   * User resets password with token (public endpoint)
    * POST /api/public/auth/reset-password
    *
-   * Public endpoint - no authentication required (token is the authentication)
-   * Token expires after 15 minutes or one-time use
+   * Token serves as authentication; expires after 15 minutes or one-time use.
    */
   async resetPasswordWithToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -1437,18 +1287,15 @@ export class AuthController {
   }
 
   /**
-   * Force change password (public endpoint)
    * POST /api/public/auth/force-change-password
    *
-   * Called when user logs in with requirePasswordChange=true.
-   * Uses temporary token from login response to authenticate.
-   * After successful password change, returns full login tokens.
+   * Called when login returns requirePasswordChange=true.
+   * Uses temporary token from login response; returns full login tokens on success.
    */
   async forceChangePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
 
-      // Validate request body
       const parseResult = forceChangePasswordRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
         res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', parseResult.error.issues[0].message));
@@ -1457,21 +1304,18 @@ export class AuthController {
 
       const { tempToken, newPassword } = parseResult.data;
 
-      // Verify temp token
       const tokenData = await this.sessionService.verifyPasswordChangeTempToken(tempToken);
       if (!tokenData) {
         res.status(401).json(ResponseBuilder.error('INVALID_TOKEN', 'Password change link has expired or is invalid'));
         return;
       }
 
-      // Get user from repository
       const user = await this.userRepository.findById(tokenData.userId);
       if (!user) {
         res.status(404).json(ResponseBuilder.error('USER_NOT_FOUND', 'User not found'));
         return;
       }
 
-      // Validate password against security policy
       const securityConfig = await this.configRepository.getSecurityConfig();
       try {
         PasswordValidator.enforce(newPassword, securityConfig);
@@ -1480,7 +1324,6 @@ export class AuthController {
         return;
       }
 
-      // Update password and clear requirePasswordChange flag
       user.setPassword(newPassword);
       user.markPasswordChanged();
       await this.userRepository.save(user);
@@ -1490,7 +1333,6 @@ export class AuthController {
         username: user.username
       });
 
-      // Now complete full login - create token pair
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip || req.socket.remoteAddress;
       const authResult = await this.sessionService.createTokenPair(user, userAgent, ipAddress);
