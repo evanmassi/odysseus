@@ -11,7 +11,7 @@ import { SearchController } from '@presentation/controllers/SearchController';
 import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
+import { validateBody, validateQuery } from '@presentation/middleware/requestValidation';
 import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
 
 export class SearchRouteModule implements RouteModule {
@@ -22,7 +22,6 @@ export class SearchRouteModule implements RouteModule {
     private readonly authMiddleware: AuthMiddleware,
     storageRepository: StorageRepository
   ) {
-    // Create rate limit middleware with injected repository
     this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
 
@@ -38,13 +37,11 @@ export class SearchRouteModule implements RouteModule {
   }
 
   configure(router: Router): void {
-    // Advanced search - Use shared schema for consistency
     router.post('/tubes/advanced',
       validateBody(AdvancedSearchOptionsSchema),
       this.searchController.advancedSearch.bind(this.searchController)
     );
 
-    // Quick search
     router.get('/quick',
       validateQuery(z.object({
         q: z.string().min(1),
@@ -53,7 +50,6 @@ export class SearchRouteModule implements RouteModule {
       this.searchController.quickSearch.bind(this.searchController)
     );
 
-    // Field search
     router.post('/field',
       validateBody(z.object({
         field: z.string().min(1),
@@ -63,43 +59,6 @@ export class SearchRouteModule implements RouteModule {
         offset: z.number().min(0).optional(),
       })),
       this.searchController.fieldSearch.bind(this.searchController)
-    );
-
-    // Search suggestions
-    router.get('/suggestions',
-      validateQuery(z.object({
-        q: z.string().min(1),
-        field: z.string().optional(),
-      })),
-      this.searchController.getSuggestions.bind(this.searchController)
-    );
-
-    // Saved searches
-    router.get('/saved',
-      this.searchController.getSavedSearches.bind(this.searchController)
-    );
-
-    router.post('/save',
-      validateBody(z.object({
-        name: z.string().min(1),
-        searchOptions: z.object({
-          query: z.string().optional(),
-          filters: z.any().optional(),
-        }),
-      })),
-      this.searchController.saveSearch.bind(this.searchController)
-    );
-
-    router.delete('/saved/:searchId',
-      validateParams(z.object({
-        searchId: z.string().min(1),
-      })),
-      this.searchController.deleteSavedSearch.bind(this.searchController)
-    );
-
-    // Filter options
-    router.get('/filter-options',
-      this.searchController.getFilterOptions.bind(this.searchController)
     );
   }
 }

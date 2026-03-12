@@ -87,10 +87,6 @@ export const queryKeys = {
       [...queryKeys.search.tubes(), 'quick', query, limit] as const,
     fieldSearch: (field: string, value: string, options?: AdvancedSearchOptions) =>
       [...queryKeys.search.tubes(), 'field', field, value, options] as const,
-    suggestions: (query: string, field?: string) =>
-      [...queryKeys.search.all, 'suggestions', query, field] as const,
-    savedSearches: () => [...queryKeys.search.all, 'saved'] as const,
-    filterOptions: () => [...queryKeys.search.all, 'filter-options'] as const,
     results: (query: string, filters?: SearchFilters) =>
       [...queryKeys.search.all, 'results', query, filters] as const,
   },
