@@ -1,3 +1,9 @@
+/**
+ * User Settings and Lookup Controller
+ *
+ * HTTP handlers for user settings CRUD and user display-info lookups.
+ */
+
 import { Request, Response } from 'express';
 import { UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
 import { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
@@ -6,12 +12,7 @@ import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { userSettingsSchema, userLookupRequestSchema } from '@odysseus/shared-schemas';
 import { BaseController } from '@presentation/controllers/BaseController';
-
-/**
- * User Controller
- *
- * Handles user-related HTTP requests (settings, profile, lookup, etc.)
- */
+import type { User } from '@domain/entities/User';
 export class UserController extends BaseController {
   constructor(
     private updateUserSettingsHandler: UpdateUserSettingsCommandHandler,
@@ -22,14 +23,10 @@ export class UserController extends BaseController {
     super();
   }
 
-  /**
-   * GET /api/users/me/settings
-   * Get current user's settings
-   */
+  /** GET /api/users/me/settings */
   async getCurrentUserSettings(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
-
       const settings = await this.getUserSettingsHandler.handle({ userId });
 
       res.json({
@@ -41,15 +38,10 @@ export class UserController extends BaseController {
     }
   }
 
-  /**
-   * PUT /api/users/me/settings
-   * Update current user's settings
-   */
+  /** PUT /api/users/me/settings */
   async updateCurrentUserSettings(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
-
-      // Validate settings with Zod
       const settings = userSettingsSchema.parse(req.body.settings);
 
       const updatedUser = await this.updateUserSettingsHandler.handle({
@@ -67,42 +59,12 @@ export class UserController extends BaseController {
     }
   }
 
-  /**
-   * POST /api/users/lookup
-   * Look up display info for a list of user IDs
-   * Access: Any authenticated user
-   *
-   * Uses batch queries to avoid N+1 performance issues.
-   */
+  /** POST /api/users/lookup — uses batch queries to avoid N+1 */
   async lookupUsers(req: Request, res: Response): Promise<void> {
     try {
       const { userIds } = userLookupRequestSchema.parse(req.body);
-
-      // Batch fetch all users
       const users = await this.userRepository.findByIds(userIds);
-
-      // Collect all personIds that need to be fetched
-      const personIds = users
-        .map(u => u.toPublicData().personId)
-        .filter((id): id is string => id != null);
-
-      // Batch fetch all persons in one query
-      const persons = await this.personRepository.findByIds(personIds);
-      const personMap = new Map(persons.map(p => [p.id, p]));
-
-      // Build response with person names
-      const displayUsers = users.map(user => {
-        const publicData = user.toPublicData();
-        const person = publicData.personId ? personMap.get(publicData.personId) : null;
-
-        return {
-          id: publicData.id,
-          username: publicData.username,
-          firstName: person?.firstName,
-          lastName: person?.lastName,
-          hasResearcher: user.hasResearcherProfile(),
-        };
-      });
+      const displayUsers = await this.toDisplayUsers(users);
 
       res.json({ success: true, users: displayUsers });
     } catch (error) {
@@ -110,48 +72,40 @@ export class UserController extends BaseController {
     }
   }
 
-  /**
-   * GET /api/users/list
-   * Get all active, approved users for sharing/assignment
-   * Access: Any authenticated user
-   *
-   * Returns minimal display info for user selection dropdowns.
-   */
+  /** GET /api/users/list — minimal display info for user selection dropdowns */
   async listActiveUsers(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
-
       const allUsers = await this.userRepository.findByStatus('approved');
-
       const users = allUsers.filter(u => u.labId === authenticatedUser.labId);
-
-      // Collect all personIds for batch lookup
-      const personIds = users
-        .map(u => u.toPublicData().personId)
-        .filter((id): id is string => id != null);
-
-      // Batch fetch all persons
-      const persons = await this.personRepository.findByIds(personIds);
-      const personMap = new Map(persons.map(p => [p.id, p]));
-
-      // Build response with minimal display info
-      const displayUsers = users.map(user => {
-        const publicData = user.toPublicData();
-        const person = publicData.personId ? personMap.get(publicData.personId) : null;
-
-        return {
-          id: publicData.id,
-          username: publicData.username,
-          firstName: person?.firstName,
-          lastName: person?.lastName,
-          hasResearcher: user.hasResearcherProfile(),
-        };
-      });
+      const displayUsers = await this.toDisplayUsers(users);
 
       res.json({ success: true, users: displayUsers });
     } catch (error) {
       handleControllerError(error, res, 'Failed to list active users');
     }
+  }
+
+  private async toDisplayUsers(users: User[]) {
+    const personIds = users
+      .map(u => u.toPublicData().personId)
+      .filter((id): id is string => id != null);
+
+    const persons = await this.personRepository.findByIds(personIds);
+    const personMap = new Map(persons.map(p => [p.id, p]));
+
+    return users.map(user => {
+      const publicData = user.toPublicData();
+      const person = publicData.personId ? personMap.get(publicData.personId) : null;
+
+      return {
+        id: publicData.id,
+        username: publicData.username,
+        firstName: person?.firstName,
+        lastName: person?.lastName,
+        hasResearcher: user.hasResearcherProfile(),
+      };
+    });
   }
 
 }
