@@ -37,6 +37,7 @@ export interface TubeRepository {
   // BUSINESS QUERIES
 
   countByLabId(labId: string): Promise<number>;
+  countByLabIds(labIds: string[]): Promise<Map<string, number>>;
   countByResearcher(researcher: string, labId: string): Promise<number>;
   countByTank(tankId: string, labId: string): Promise<number>;
   countByRack(tankId: string, rackId: string, labId: string): Promise<number>;

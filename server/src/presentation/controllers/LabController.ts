@@ -219,8 +219,9 @@ export class LabController extends BaseController {
         }
       }
 
-      const [tubeCounts, configs] = await Promise.all([
-        Promise.all(labs.map(lab => this.deps.tubeRepository.countByLabId(lab.id))),
+      const labIds = labs.map(lab => lab.id);
+      const [tubeCountMap, configs] = await Promise.all([
+        this.deps.tubeRepository.countByLabIds(labIds),
         Promise.all(labs.map(lab => this.deps.storageRepository.getForLab(lab.id))),
       ]);
 
@@ -232,14 +233,15 @@ export class LabController extends BaseController {
           labName: lab.name,
           adminCount: userEntry.admins,
           userCount: userEntry.total,
-          tubeCount: tubeCounts[i],
+          tubeCount: tubeCountMap.get(lab.id) ?? 0,
           tankCount,
           rackCount,
           boxCount,
         };
       });
 
-      const totalTubes = tubeCounts.reduce((sum, count) => sum + count, 0);
+      let totalTubes = 0;
+      for (const count of tubeCountMap.values()) totalTubes += count;
       const activeLabs = labs.filter(l => l.isActive).length;
       const inactiveLabs = labs.length - activeLabs;
       const pendingApprovals = allUsers.filter(u => u.isPending()).length;

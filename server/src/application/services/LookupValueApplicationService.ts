@@ -20,13 +20,12 @@ export class LookupValueApplicationService {
 
   async getAllByCategory(labId: string, category: LookupCategory): Promise<Array<ReturnType<LookupValue['toData']> & { tubeCount: number }>> {
     const values = await this.lookupValueRepository.findByCategory(category, labId);
-    const results = await Promise.all(
-      values.map(async (v) => {
-        const tubeCount = await this.lookupValueRepository.countTubesUsingValue(category, v.value, labId);
-        return { ...v.toData(), tubeCount };
-      })
+    const tubeCountMap = await this.lookupValueRepository.countTubesUsingValues(
+      category,
+      values.map(v => v.value),
+      labId
     );
-    return results;
+    return values.map(v => ({ ...v.toData(), tubeCount: tubeCountMap.get(v.value) ?? 0 }));
   }
 
   async create(labId: string, category: LookupCategory, value: string): Promise<ReturnType<LookupValue['toData']>> {

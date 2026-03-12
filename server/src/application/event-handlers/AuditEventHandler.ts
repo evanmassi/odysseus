@@ -383,12 +383,10 @@ export class AuditEventHandler {
   // TUBE LOCK EVENT HANDLERS
 
   private async resolveUsernames(userIds: string[]): Promise<Array<{ userId: string; username: string }>> {
-    const resolved: Array<{ userId: string; username: string }> = [];
-    for (const userId of userIds) {
-      const { username } = await this.resolveUser(userId);
-      resolved.push({ userId, username });
-    }
-    return resolved;
+    if (userIds.length === 0) return [];
+    const users = await this.userRepository.findByIds(userIds);
+    const userMap = new Map(users.map(u => [u.id, u.username]));
+    return userIds.map(id => ({ userId: id, username: userMap.get(id) ?? id }));
   }
 
   private async handleTubesLocked(event: TubesLockedEvent): Promise<void> {

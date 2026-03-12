@@ -14,5 +14,6 @@ export interface LookupValueRepository {
   save(entity: LookupValue): Promise<void>;
   delete(id: string): Promise<boolean>;
   countTubesUsingValue(category: LookupCategory, value: string, labId: string): Promise<number>;
+  countTubesUsingValues(category: LookupCategory, values: string[], labId: string): Promise<Map<string, number>>;
   renameTubeValues(category: LookupCategory, oldValue: string, newValue: string, labId: string): Promise<number>;
 }

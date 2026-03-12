@@ -283,6 +283,16 @@ export class TubeRepository implements ITubeRepository {
     return result ? parseInt(result.count, 10) : 0;
   }
 
+  async countByLabIds(labIds: string[]): Promise<Map<string, number>> {
+    if (labIds.length === 0) return new Map();
+    const placeholders = labIds.map((_, i) => `$${i + 1}`).join(', ');
+    const rows = await this.context.queryMany<{ lab_id: string; count: string }>(
+      `SELECT lab_id, COUNT(*) as count FROM tubes WHERE lab_id IN (${placeholders}) GROUP BY lab_id`,
+      labIds
+    );
+    return new Map(rows.map(r => [r.lab_id, parseInt(r.count, 10)]));
+  }
+
   async countByResearcher(researcher: string, labId: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1 AND lab_id = $2',
