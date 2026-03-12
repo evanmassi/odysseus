@@ -1,8 +1,7 @@
 /**
  * Public Route Module
  *
- * Handles routes that don't require authentication.
- * These are publicly accessible endpoints.
+ * Unauthenticated routes — login, registration, password reset, health check.
  */
 
 import { Router, RequestHandler } from 'express';
@@ -27,7 +26,6 @@ export class PublicRouteModule implements RouteModule {
     private readonly inviteCodeController: InviteCodeController,
     storageRepository: StorageRepository
   ) {
-    // Create rate limit middleware with injected repository
     this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
   }
 
@@ -38,7 +36,6 @@ export class PublicRouteModule implements RouteModule {
   getMiddleware(): RequestHandler[] {
     return [
       this.rateLimitMiddleware,
-      // Note: No auth middleware for public routes
     ];
   }
 
@@ -48,12 +45,10 @@ export class PublicRouteModule implements RouteModule {
       this.authController.checkFirstTime.bind(this.authController)
     );
 
-    // Password requirements (for registration form)
     router.get('/auth/password-requirements',
       this.authController.getPasswordRequirements.bind(this.authController)
     );
 
-    // Registration endpoint (first-time setup)
     router.post('/auth/register', 
       validateBody(z.object({
         username: z.string().min(1).max(50),
@@ -63,7 +58,6 @@ export class PublicRouteModule implements RouteModule {
       this.authController.register.bind(this.authController)
     );
 
-    // Login endpoint
     router.post('/auth/login',
       validateBody(z.object({
         username: z.string().min(1),
@@ -72,7 +66,6 @@ export class PublicRouteModule implements RouteModule {
       this.authController.login.bind(this.authController)
     );
 
-    // Register with researcher profile (new user flow with approval workflow)
     router.post('/auth/register-with-researcher',
       validateBody(registerWithResearcherSchema),
       this.authController.registerWithResearcher.bind(this.authController)
@@ -86,7 +79,6 @@ export class PublicRouteModule implements RouteModule {
       this.authController.refreshToken.bind(this.authController)
     );
 
-    // Email verification (public - anyone with token can verify)
     router.post('/auth/verify-email',
       validateBody(z.object({
         token: z.string().min(32)
@@ -94,7 +86,6 @@ export class PublicRouteModule implements RouteModule {
       this.authController.verifyEmail.bind(this.authController)
     );
 
-    // Resend verification email (public - no auth required)
     router.post('/auth/resend-verification',
       validateBody(z.object({
         usernameOrEmail: z.string().min(1)
@@ -102,7 +93,6 @@ export class PublicRouteModule implements RouteModule {
       this.authController.resendVerificationPublic.bind(this.authController)
     );
 
-    // Password reset with token (public - anyone with token can reset)
     router.post('/auth/reset-password',
       validateBody(resetPasswordWithTokenRequestSchema),
       this.authController.resetPasswordWithToken.bind(this.authController)
@@ -122,13 +112,11 @@ export class PublicRouteModule implements RouteModule {
       this.authController.getSessionInfo.bind(this.authController)
     );
 
-    // Invite code validation (for registration flow)
     router.post('/invite-codes/validate',
       validateBody(z.object({ code: z.string().min(1) })),
       this.inviteCodeController.validate.bind(this.inviteCodeController)
     );
 
-    // One-time system admin setup
     router.post('/auth/setup-system-admin',
       validateBody(z.object({
         username: z.string().min(1).max(50),
@@ -143,7 +131,6 @@ export class PublicRouteModule implements RouteModule {
       this.authController.setupSystemAdmin.bind(this.authController)
     );
 
-    // Health check (moved from main routes)
     router.get('/health', async (req, res) => {
       res.json({
         success: true,
@@ -156,7 +143,6 @@ export class PublicRouteModule implements RouteModule {
       });
     });
 
-    // Version info endpoint
     router.get('/version', async (req, res) => {
       res.json({
         success: true,
