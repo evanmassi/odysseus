@@ -1,3 +1,9 @@
+/**
+ * Storage Management Controller
+ *
+ * HTTP handlers for storage configuration, tank/rack/box CRUD, and bulk assignment operations.
+ */
+
 import { Request, Response } from 'express';
 import { logger } from '@infrastructure/logging/logger';
 import {
@@ -45,12 +51,10 @@ import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
-import { ConflictError } from '@domain/errors/ConflictError';
 import { StorageDto } from '@application/dto/StorageDto';
 import { BaseController } from '@presentation/controllers/BaseController';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 
-/** Response shape for configuration import endpoint */
 interface ImportStorageResponse {
   success: boolean;
   warnings: string[];
@@ -61,22 +65,6 @@ interface ImportStorageResponse {
   };
 }
 
-/**
- * Storage Controller - CQRS-based storage management
- *
- * Handles HTTP requests for system configuration operations.
- * Delegates business logic to CQRS command/query handlers.
- *
- * Routes:
- * - GET /api/storage - Get current configuration
- * - PUT /api/storage/system - Update system settings
- * - PUT /api/storage/equipment - Update equipment configuration
- * - GET /api/storage/history - Get configuration history
- * - GET /api/storage/version/:version - Get specific version
- * - POST /api/storage/reset - Reset to defaults
- * - POST /api/storage/import - Import configuration
- * - GET /api/storage/health - Storage health check
- */
 export interface StorageControllerDeps {
   // Query handlers
   getCurrentStorageHandler: GetCurrentStorageQueryHandler;
@@ -177,36 +165,18 @@ export class StorageController extends BaseController {
 
   // QUERY ENDPOINTS
 
-  /**
-   * GET /api/storage
-   * Get current system configuration filtered by user's demo status.
-   * Demo users see only demo tanks; real users see only real tanks.
-   */
+  /** GET /api/storage — demo users see only demo tanks; real users see only real tanks */
   async getCurrentStorage(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user;
+      const user = this.getAuthenticatedUser(req);
+      const labId = this.extractLabId(req);
 
-      if (!user) {
-        throw new Error('Authentication required');
-      }
+      const configuration = await this.getCurrentStorageHandler.handle({ labId });
 
-      if (!user.labId) {
-        res.status(400).json({
-          success: false,
-          error: 'No lab context',
-          code: 'NO_LAB_CONTEXT',
-          message: 'User is not associated with a lab. System admins must select a lab first.',
-        });
-        return;
-      }
-
-      const configuration = await this.getCurrentStorageHandler.handle({ labId: user.labId });
-
-      // Use DTO to transform domain entity to API response format
       const configurationResponse = StorageDto.toResponse(configuration);
 
       if (user.isDemo) {
-        const lab = await this.labRepository.findById(user.labId);
+        const lab = await this.labRepository.findById(labId);
         if (lab?.demoLimits) {
           configurationResponse.configuration.currentLab.demoLimits = lab.demoLimits;
         }
@@ -222,10 +192,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * GET /api/storage/history
-   * Get configuration history with pagination
-   */
+  /** GET /api/storage/history */
   async getStorageHistory(req: Request, res: Response): Promise<void> {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
@@ -255,10 +222,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * GET /api/storage/version/:version
-   * Get specific configuration version
-   */
+  /** GET /api/storage/version/:version */
   async getStorageByVersion(req: Request, res: Response): Promise<void> {
     try {
       const version = parseInt(req.params.version);
@@ -290,10 +254,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * GET /api/storage/version
-   * Get current configuration version (lightweight endpoint for cache validation)
-   */
+  /** GET /api/storage/version — lightweight endpoint for cache validation */
   async getStorageVersion(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -312,10 +273,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * GET /api/storage/health
-   * Check configuration system health
-   */
+  /** GET /api/storage/health */
   async checkStorageHealth(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -335,10 +293,7 @@ export class StorageController extends BaseController {
 
   // COMMAND ENDPOINTS
 
-  /**
-   * PUT /api/storage/system
-   * Update system configuration settings
-   */
+  /** PUT /api/storage/system */
   async updateSystemStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -361,10 +316,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * POST /api/storage/reset
-   * Reset configuration to factory defaults
-   */
+  /** POST /api/storage/reset */
   async resetStorageToDefault(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -395,10 +347,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * POST /api/storage/import
-   * Import configuration from JSON data
-   */
+  /** POST /api/storage/import */
   async importStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -443,10 +392,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * PUT /api/storage/box-position-display
-   * Update position display configuration for a specific box
-   */
+  /** PUT /api/storage/box-position-display */
   async updateBoxPositionDisplay(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -485,10 +431,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * PUT /api/storage/lab-position-display
-   * Update lab-wide default position display format
-   */
+  /** PUT /api/storage/lab-position-display */
   async updateLabDefaultPositionDisplay(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -517,11 +460,9 @@ export class StorageController extends BaseController {
 
   /**
    * PUT /api/storage/resource-label
-   * Update custom label for a rack or box
    *
-   * This endpoint uses fine-grained permissions (canEditResource) rather than
-   * admin-only config management permissions, allowing resource owners to
-   * set their own labels.
+   * Uses fine-grained permissions (canEditResource) rather than admin-only config
+   * management permissions, allowing resource owners to set their own labels.
    */
   async updateResourceLabel(req: Request, res: Response): Promise<void> {
     try {
@@ -582,13 +523,9 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * GET /api/storage/position-display-presets
-   * Get available position display format presets
-   */
+  /** GET /api/storage/position-display-presets */
   async getPositionDisplayPresets(req: Request, res: Response): Promise<void> {
     try {
-      // Return presets from shared-schemas
       res.json({
         success: true,
         presets: {
@@ -608,12 +545,9 @@ export class StorageController extends BaseController {
     }
   }
 
-  // CQRS TANK ENDPOINTS
+  // TANK ENDPOINTS
 
-  /**
-   * POST /api/storage/tanks
-   * Add a new tank
-   */
+  /** POST /api/storage/tanks */
   async addTank(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -640,10 +574,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * PUT /api/storage/tanks/:tankId
-   * Update a tank
-   */
+  /** PUT /api/storage/tanks/:tankId */
   async updateTank(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -664,10 +595,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * DELETE /api/storage/tanks/:tankId
-   * Delete a tank
-   */
+  /** DELETE /api/storage/tanks/:tankId */
   async deleteTank(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -686,12 +614,9 @@ export class StorageController extends BaseController {
     }
   }
 
-  // CQRS RACK ENDPOINTS
+  // RACK ENDPOINTS
 
-  /**
-   * POST /api/storage/tanks/:tankId/racks
-   * Add rack(s) to a tank
-   */
+  /** POST /api/storage/tanks/:tankId/racks */
   async addRacks(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -712,10 +637,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * PUT /api/storage/tanks/:tankId/racks/:rackId
-   * Update a rack
-   */
+  /** PUT /api/storage/tanks/:tankId/racks/:rackId */
   async updateRack(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -736,10 +658,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * DELETE /api/storage/tanks/:tankId/racks/:rackId
-   * Delete a rack
-   */
+  /** DELETE /api/storage/tanks/:tankId/racks/:rackId */
   async deleteRack(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -758,10 +677,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * PUT /api/storage/tanks/:tankId/racks/:rackId/assign
-   * Assign or unassign a rack
-   */
+  /** PUT /api/storage/tanks/:tankId/racks/:rackId/assign */
   async assignRack(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -790,12 +706,9 @@ export class StorageController extends BaseController {
     }
   }
 
-  // CQRS BOX ENDPOINTS
+  // BOX ENDPOINTS
 
-  /**
-   * POST /api/storage/tanks/:tankId/racks/:rackId/boxes
-   * Add box(es) to a rack
-   */
+  /** POST /api/storage/tanks/:tankId/racks/:rackId/boxes */
   async addBoxes(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -816,10 +729,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId
-   * Update a box
-   */
+  /** PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId */
   async updateBox(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -850,10 +760,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * DELETE /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId
-   * Delete a box
-   */
+  /** DELETE /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId */
   async deleteBox(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -872,10 +779,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId/assign
-   * Assign or unassign a box
-   */
+  /** PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId/assign */
   async assignBox(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -907,10 +811,7 @@ export class StorageController extends BaseController {
 
   // BULK ASSIGNMENT ENDPOINTS
 
-  /**
-   * POST /api/storage/bulk-unassign
-   * Unassign all resources from a user
-   */
+  /** POST /api/storage/bulk-unassign */
   async bulkUnassignResources(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -940,10 +841,7 @@ export class StorageController extends BaseController {
     }
   }
 
-  /**
-   * POST /api/storage/bulk-reassign
-   * Reassign all resources from one user to another
-   */
+  /** POST /api/storage/bulk-reassign */
   async bulkReassignResources(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -975,10 +873,7 @@ export class StorageController extends BaseController {
 
   // INITIALIZE ENDPOINT
 
-  /**
-   * POST /api/storage/initialize
-   * Initialize configuration for fresh install
-   */
+  /** POST /api/storage/initialize */
   async initializeStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -991,17 +886,7 @@ export class StorageController extends BaseController {
         return;
       }
 
-      if (!req.user?.labId) {
-        res.status(400).json({
-          success: false,
-          error: 'No lab context',
-          code: 'NO_LAB_CONTEXT',
-          message: 'User is not associated with a lab.',
-        });
-        return;
-      }
-
-      const labId = req.user.labId;
+      const labId = this.extractLabId(req);
 
       await this.initializeConfigHandler.handle({
         userId,
@@ -1024,20 +909,6 @@ export class StorageController extends BaseController {
 
   // UTILITY METHODS
 
-  /**
-   * Extract user ID from authenticated request
-   */
-  protected override extractUserId(req: Request): string {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new ValidationError('User authentication required');
-    }
-    return userId;
-  }
-
-  /**
-   * Centralized error handling
-   */
   private handleError(error: unknown, res: Response, fallbackMessage: string): void {
     logger.error('Storage API error:', { error });
 
@@ -1066,18 +937,6 @@ export class StorageController extends BaseController {
         error: {
           code: 'NOT_FOUND',
           message: error.message
-        }
-      });
-      return;
-    }
-
-    if (error instanceof ConflictError) {
-      res.status(409).json({
-        error: {
-          code: 'CONFLICT_ERROR',
-          message: error.message,
-          currentVersion: error.currentVersion,
-          expectedVersion: error.expectedVersion
         }
       });
       return;
