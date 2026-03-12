@@ -1,11 +1,10 @@
 /**
  * Admin Route Module
  *
- * Handles administrative routes that require admin privileges.
- * These routes are for user management, system configuration, and admin tools.
+ * Routes requiring admin privileges — user management, security config, audit, exports.
  */
 
-import { Router, RequestHandler, Request, Response } from 'express';
+import { Router, RequestHandler } from 'express';
 import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
@@ -42,7 +41,7 @@ export class AdminRouteModule implements RouteModule {
   getMiddleware(): RequestHandler[] {
     return [
       this.authMiddleware.authenticate,
-      this.authMiddleware.requireAdmin // Admin-only middleware
+      this.authMiddleware.requireAdmin
     ];
   }
 
@@ -128,17 +127,15 @@ export class AdminRouteModule implements RouteModule {
 
     // RESEARCHER MANAGEMENT ENDPOINTS
 
-    // Get unlinked researchers (for user linking interface) - must come before /researchers
+    // Must come before /researchers to avoid route collision
     router.get('/researchers/unlinked',
       this.researcherController.getUnlinkedResearchers.bind(this.researcherController)
     );
 
-    // Get researchers with admin metadata (tube counts, linked users)
     router.get('/researchers',
       this.researcherController.getResearchersWithMetadata.bind(this.researcherController)
     );
 
-    // Delete researcher (safe deletion only - no tubes, no linked user)
     router.delete('/researchers/:researcherId',
       validateParams(z.object({ researcherId: z.string() })),
       this.researcherController.deleteResearcher.bind(this.researcherController)
@@ -151,7 +148,7 @@ export class AdminRouteModule implements RouteModule {
     );
 
     router.put('/security-config',
-      validateBody(updateSecurityConfigSchema), // Validate with proper schema
+      validateBody(updateSecurityConfigSchema),
       this.authController.updateSecurityConfig.bind(this.authController)
     );
 
@@ -167,12 +164,11 @@ export class AdminRouteModule implements RouteModule {
 
     // AUDIT LOG ENDPOINTS
 
-    // Get audit statistics (for dashboard)
     router.get('/audit/statistics',
       this.auditController.getStatistics.bind(this.auditController)
     );
 
-    // Get entity history (must come before general audit route to avoid collision)
+    // Must come before /audit to avoid route collision
     router.get('/audit/entity/:entityType/:entityId',
       validateParams(z.object({
         entityType: z.string(),
@@ -181,42 +177,30 @@ export class AdminRouteModule implements RouteModule {
       this.auditController.getEntityHistory.bind(this.auditController)
     );
 
-    // Get full audit log with filtering
     router.get('/audit',
       this.auditController.getAuditLog.bind(this.auditController)
     );
 
     // AUDIT RETENTION ENDPOINTS
 
-    // Get retention metrics
     router.get('/audit/retention/metrics',
       this.auditController.getRetentionMetrics.bind(this.auditController)
     );
 
-    // Get retention policy
     router.get('/audit/retention/policy',
       this.auditController.getRetentionPolicy.bind(this.auditController)
     );
 
-    // Export archived logs
     router.get('/audit/retention/export',
       this.auditController.exportArchivedLogs.bind(this.auditController)
     );
 
-    // Manually trigger archival
     router.post('/audit/retention/archive',
       this.auditController.runManualArchival.bind(this.auditController)
     );
 
-    // Search audit logs with archive option
     router.get('/audit/search',
       this.auditController.searchAuditLogs.bind(this.auditController)
-    );
-
-    // DATABASE MANAGEMENT
-
-    router.get('/database/status',
-      this.getDatabaseStatus.bind(this)
     );
 
     // DATA EXPORT ENDPOINTS
@@ -279,16 +263,5 @@ export class AdminRouteModule implements RouteModule {
       validateParams(z.object({ id: z.string() })),
       this.inviteCodeController.deactivate.bind(this.inviteCodeController)
     );
-  }
-
-  private async getDatabaseStatus(_req: Request, res: Response): Promise<void> {
-    res.json({
-      success: true,
-      data: {
-        type: 'PostgreSQL',
-        status: 'connected',
-        timestamp: new Date().toISOString()
-      }
-    });
   }
 }
