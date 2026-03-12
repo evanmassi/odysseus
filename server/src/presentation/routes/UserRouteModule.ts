@@ -141,11 +141,4 @@ export class UserRouteModule implements RouteModule {
       this.userController.listActiveUsers.bind(this.userController)
     );
   }
-
-  /**
-   * Get route count for monitoring
-   */
-  getRouteCount(): number {
-    return 9; // Total number of routes configured
-  }
 }
