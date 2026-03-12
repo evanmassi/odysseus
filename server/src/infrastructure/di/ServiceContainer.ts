@@ -45,7 +45,7 @@ import { StorageController } from '@presentation/controllers/StorageController';
 import { SearchController } from '@presentation/controllers/SearchController';
 import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
-import { SessionController } from '@presentation/controllers/SessionController';
+import { UserSessionController } from '@presentation/controllers/UserSessionController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
@@ -159,7 +159,7 @@ export class ServiceContainer {
   private searchController?: SearchController;
   private userController?: UserController;
   private personController?: PersonController;
-  private sessionController?: SessionController;
+  private userSessionController?: UserSessionController;
   private auditController?: AuditController;
   private exportController?: ExportController;
   private lookupValueController?: LookupValueController;
@@ -1004,13 +1004,13 @@ export class ServiceContainer {
     return this.personController;
   }
 
-  getSessionController(): SessionController {
-    if (!this.sessionController) {
-      this.sessionController = new SessionController(
+  getUserSessionController(): UserSessionController {
+    if (!this.userSessionController) {
+      this.userSessionController = new UserSessionController(
         this.repositoryFactory.getUserSessionRepository()
       );
     }
-    return this.sessionController;
+    return this.userSessionController;
   }
 
   getAuditService(): AuditService {

@@ -1,7 +1,7 @@
 import { Router, RequestHandler } from 'express';
 import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
-import { SessionController } from '@presentation/controllers/SessionController';
+import { UserSessionController } from '@presentation/controllers/UserSessionController';
 import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { validateBody } from '@presentation/middleware/requestValidation';
@@ -17,7 +17,7 @@ export class UserRouteModule implements RouteModule {
   constructor(
     private userController: UserController,
     private personController: PersonController,
-    private sessionController: SessionController,
+    private sessionController: UserSessionController,
     private authMiddleware: AuthMiddleware
   ) {}
 

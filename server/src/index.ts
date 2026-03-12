@@ -138,7 +138,7 @@ class OdysseusServer {
     const searchController = this.serviceContainer.getSearchController();
     const userController = this.serviceContainer.getUserController();
     const personController = this.serviceContainer.getPersonController();
-    const sessionController = this.serviceContainer.getSessionController();
+    const sessionController = this.serviceContainer.getUserSessionController();
     const auditController = this.serviceContainer.getAuditController();
     const exportController = this.serviceContainer.getExportController();
     const lookupValueController = this.serviceContainer.getLookupValueController();
