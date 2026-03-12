@@ -110,7 +110,7 @@ export class LabController extends BaseController {
       const labId = req.params.labId;
       const lab = await this.labRepository.findById(labId);
       if (!lab) {
-        res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Lab not found' } });
+        res.status(404).json(ResponseBuilder.error('NOT_FOUND', 'Lab not found'));
         return;
       }
 
@@ -141,17 +141,7 @@ export class LabController extends BaseController {
         users.filter(u => u.researcherId).map(u => [u.researcherId!, u])
       );
 
-      let tankCount = 0, rackCount = 0, boxCount = 0;
-      if (config) {
-        const configData = config.toData();
-        tankCount = configData.tanks.length;
-        for (const tank of configData.tanks) {
-          rackCount += tank.racks.length;
-          for (const rack of tank.racks) {
-            boxCount += rack.boxes.length;
-          }
-        }
-      }
+      const storageCounts = this.countStorage(config);
 
       res.status(200).json(ResponseBuilder.success({
         lab: lab.toData(),
@@ -189,7 +179,7 @@ export class LabController extends BaseController {
         }),
         researcherCount: researchers.length,
         tubeCount,
-        storageSummary: { tankCount, rackCount, boxCount },
+        storageSummary: storageCounts,
         isSeeded: config?.hasAnySeededResources() ?? false,
       }));
     } catch (error) {
@@ -236,17 +226,7 @@ export class LabController extends BaseController {
 
       const labStats = labs.map((lab, i) => {
         const userEntry = usersByLab.get(lab.id) ?? { total: 0, admins: 0 };
-        let tankCount = 0, rackCount = 0, boxCount = 0;
-        if (configs[i]) {
-          const configData = configs[i].toData();
-          tankCount = configData.tanks.length;
-          for (const tank of configData.tanks) {
-            rackCount += tank.racks.length;
-            for (const rack of tank.racks) {
-              boxCount += rack.boxes.length;
-            }
-          }
-        }
+        const { tankCount, rackCount, boxCount } = this.countStorage(configs[i]);
         return {
           labId: lab.id,
           labName: lab.name,
@@ -290,7 +270,7 @@ export class LabController extends BaseController {
       const labId = req.params.labId;
       const lab = await this.labRepository.findById(labId);
       if (!lab) {
-        res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Lab not found' } });
+        res.status(404).json(ResponseBuilder.error('NOT_FOUND', 'Lab not found'));
         return;
       }
 
@@ -319,5 +299,18 @@ export class LabController extends BaseController {
     } catch (error) {
       next(error);
     }
+  }
+
+  private countStorage(config: { toData(): { tanks: { racks: { boxes: unknown[] }[] }[] } } | null | undefined): { tankCount: number; rackCount: number; boxCount: number } {
+    if (!config) return { tankCount: 0, rackCount: 0, boxCount: 0 };
+    const data = config.toData();
+    let rackCount = 0, boxCount = 0;
+    for (const tank of data.tanks) {
+      rackCount += tank.racks.length;
+      for (const rack of tank.racks) {
+        boxCount += rack.boxes.length;
+      }
+    }
+    return { tankCount: data.tanks.length, rackCount, boxCount };
   }
 }
