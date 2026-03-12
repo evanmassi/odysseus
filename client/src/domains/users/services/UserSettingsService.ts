@@ -5,7 +5,6 @@
  */
 import {
   type UserSettings,
-  type UserSettingsResponse,
   type PositionDisplayPreference,
   type ThemePreference,
 } from '@odysseus/shared-schemas';
@@ -14,20 +13,26 @@ import { httpClient } from '@infra/api/HttpClient';
 
 export class UserSettingsService {
   async getUserSettings(): Promise<UserSettings> {
-    const response = await httpClient.get<UserSettingsResponse>('/users/me/settings');
+    const response = await httpClient.get<{
+      success: boolean;
+      data: { settings: UserSettings };
+    }>('/users/me/settings');
 
-    if (response.data.success && response.data.settings) {
-      return response.data.settings;
+    if (response.data.success && response.data.data.settings) {
+      return response.data.data.settings;
     }
 
     throw new Error('Failed to get user settings');
   }
 
   async updateUserSettings(settings: UserSettings): Promise<UserSettings> {
-    const response = await httpClient.put<UserSettingsResponse>('/users/me/settings', { settings });
+    const response = await httpClient.put<{
+      success: boolean;
+      data: { settings: UserSettings };
+    }>('/users/me/settings', { settings });
 
-    if (response.data.success && response.data.settings) {
-      return response.data.settings;
+    if (response.data.success && response.data.data.settings) {
+      return response.data.data.settings;
     }
 
     throw new Error('Failed to update user settings');

@@ -133,13 +133,9 @@ export class LabController extends BaseController {
 
       const researcherMap = new Map(researchers.map(r => [r.id, r]));
 
-      const tubeCounts = await Promise.all(
-        researchers.map(async r => ({
-          researcherId: r.id,
-          count: await this.deps.researcherRepository.getTubeCountByResearcher(r.id),
-        }))
+      const tubeCountMap = await this.deps.researcherRepository.getTubeCountsByResearcherIds(
+        researchers.map(r => r.id)
       );
-      const tubeCountMap = new Map(tubeCounts.map(tc => [tc.researcherId, tc.count]));
 
       const userByResearcherId = new Map(
         users.filter(u => u.researcherId).map(u => [u.researcherId!, u])

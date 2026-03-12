@@ -13,19 +13,19 @@ export class UserLookupService {
 
     const response = await httpClient.post<{
       success: boolean;
-      users: UserDisplayInfo[];
+      data: { users: UserDisplayInfo[] };
     }>('/users/lookup', { userIds });
 
-    return response.data.users;
+    return response.data.data.users;
   }
 
   async listActiveUsers(): Promise<UserDisplayInfo[]> {
     const response = await httpClient.get<{
       success: boolean;
-      users: UserDisplayInfo[];
+      data: { users: UserDisplayInfo[] };
     }>('/users/list');
 
-    return response.data.users;
+    return response.data.data.users;
   }
 }
 
