@@ -37,7 +37,11 @@ import { ResearcherApprovalEventHandler } from '@application/event-handlers/Rese
 import type { Server as SocketIOServer } from 'socket.io';
 
 // Controllers
-import { AuthController } from '@presentation/controllers/AuthController';
+import { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
+import { AuthController } from '@presentation/controllers/auth/AuthController';
+import { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
+import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
+import { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import { TubeController } from '@presentation/controllers/TubeController';
 import { TubeLockController } from '@presentation/controllers/TubeLockController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
@@ -151,7 +155,11 @@ export class ServiceContainer {
   private resetDemoDataHandler?: ResetDemoDataCommandHandler;
 
   // Controllers
+  private publicAuthController?: PublicAuthController;
   private authController?: AuthController;
+  private adminUserController?: AdminUserController;
+  private adminConfigController?: AdminConfigController;
+  private systemAdminUserController?: SystemAdminUserController;
   private tubeController?: TubeController;
   private tubeLockController?: TubeLockController;
   private researcherController?: ResearcherController;
@@ -883,36 +891,72 @@ export class ServiceContainer {
 
   // CONTROLLERS (CQRS-BASED)
 
-  getAuthController(): AuthController {
-    if (!this.authController) {
-      this.authController = new AuthController({
+  getPublicAuthController(): PublicAuthController {
+    if (!this.publicAuthController) {
+      this.publicAuthController = new PublicAuthController({
         createUserHandler: this.getCreateUserHandler(),
         loginHandler: this.getLoginHandler(),
-        changePasswordHandler: this.getChangePasswordHandler(),
-        changeRoleHandler: this.getChangeRoleHandler(),
-        deleteUserHandler: this.getDeleteUserHandler(),
+        createSystemAdminHandler: this.getCreateSystemAdminHandler(),
+        checkFirstTimeHandler: this.getCheckFirstTimeHandler(),
         sendVerificationEmailHandler: this.getSendVerificationEmailHandler(),
         verifyEmailHandler: this.getVerifyEmailHandler(),
         resendVerificationHandler: this.getResendVerificationHandler(),
-        adminResetPasswordHandler: this.getAdminResetPasswordHandler(),
-        generatePasswordResetTokenHandler: this.getGeneratePasswordResetTokenHandler(),
         resetPasswordWithTokenHandler: this.getResetPasswordWithTokenHandler(),
-        checkFirstTimeHandler: this.getCheckFirstTimeHandler(),
-        getUserByIdHandler: this.getGetUserByIdHandler(),
-        getUserStatsHandler: this.getGetUserStatsHandler(),
         sessionService: this.getSessionService(),
         userApplicationService: this.getUserApplicationService(),
-        researcherApplicationService: this.getResearcherApplicationService(),
         configRepository: this.repositoryFactory.getStorageRepository(),
-        researcherRepository: this.repositoryFactory.getResearcherRepository(),
         personRepository: this.repositoryFactory.getPersonRepository(),
         userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
         userRepository: this.repositoryFactory.getUserRepository(),
+      });
+    }
+    return this.publicAuthController;
+  }
+
+  getAuthController(): AuthController {
+    if (!this.authController) {
+      this.authController = new AuthController({
+        changePasswordHandler: this.getChangePasswordHandler(),
+        resendVerificationHandler: this.getResendVerificationHandler(),
+        personRepository: this.repositoryFactory.getPersonRepository(),
         eventBus: this.getEventBus(),
-        createSystemAdminHandler: this.getCreateSystemAdminHandler(),
       });
     }
     return this.authController;
+  }
+
+  getAdminUserController(): AdminUserController {
+    if (!this.adminUserController) {
+      this.adminUserController = new AdminUserController({
+        changeRoleHandler: this.getChangeRoleHandler(),
+        deleteUserHandler: this.getDeleteUserHandler(),
+        adminResetPasswordHandler: this.getAdminResetPasswordHandler(),
+        generatePasswordResetTokenHandler: this.getGeneratePasswordResetTokenHandler(),
+        getUserByIdHandler: this.getGetUserByIdHandler(),
+        userApplicationService: this.getUserApplicationService(),
+        researcherApplicationService: this.getResearcherApplicationService(),
+      });
+    }
+    return this.adminUserController;
+  }
+
+  getAdminConfigController(): AdminConfigController {
+    if (!this.adminConfigController) {
+      this.adminConfigController = new AdminConfigController({
+        getUserStatsHandler: this.getGetUserStatsHandler(),
+        configRepository: this.repositoryFactory.getStorageRepository(),
+      });
+    }
+    return this.adminConfigController;
+  }
+
+  getSystemAdminUserController(): SystemAdminUserController {
+    if (!this.systemAdminUserController) {
+      this.systemAdminUserController = new SystemAdminUserController({
+        userApplicationService: this.getUserApplicationService(),
+      });
+    }
+    return this.systemAdminUserController;
   }
 
   getLabController(): LabController {

@@ -7,7 +7,7 @@
 import { Router, RequestHandler } from 'express';
 import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
-import { AuthController } from '@presentation/controllers/AuthController';
+import { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -22,7 +22,7 @@ export class PublicRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
 
   constructor(
-    private readonly authController: AuthController,
+    private readonly publicAuthController: PublicAuthController,
     private readonly inviteCodeController: InviteCodeController,
     storageRepository: StorageRepository
   ) {
@@ -42,20 +42,20 @@ export class PublicRouteModule implements RouteModule {
   configure(router: Router): void {
     // System status endpoints
     router.get('/auth/first-time',
-      this.authController.checkFirstTime.bind(this.authController)
+      this.publicAuthController.checkFirstTime.bind(this.publicAuthController)
     );
 
     router.get('/auth/password-requirements',
-      this.authController.getPasswordRequirements.bind(this.authController)
+      this.publicAuthController.getPasswordRequirements.bind(this.publicAuthController)
     );
 
-    router.post('/auth/register', 
+    router.post('/auth/register',
       validateBody(z.object({
         username: z.string().min(1).max(50),
         password: z.string().min(8).max(128),
         role: z.enum(['admin', 'user']).optional()
       })),
-      this.authController.register.bind(this.authController)
+      this.publicAuthController.register.bind(this.publicAuthController)
     );
 
     router.post('/auth/login',
@@ -63,12 +63,12 @@ export class PublicRouteModule implements RouteModule {
         username: z.string().min(1),
         password: z.string().min(1)
       })),
-      this.authController.login.bind(this.authController)
+      this.publicAuthController.login.bind(this.publicAuthController)
     );
 
     router.post('/auth/register-with-researcher',
       validateBody(registerWithResearcherSchema),
-      this.authController.registerWithResearcher.bind(this.authController)
+      this.publicAuthController.registerWithResearcher.bind(this.publicAuthController)
     );
 
     // Token refresh endpoint (OAuth 2.0 standard)
@@ -76,40 +76,40 @@ export class PublicRouteModule implements RouteModule {
       validateBody(z.object({
         refreshToken: z.string().min(1)
       })),
-      this.authController.refreshToken.bind(this.authController)
+      this.publicAuthController.refreshToken.bind(this.publicAuthController)
     );
 
     router.post('/auth/verify-email',
       validateBody(z.object({
         token: z.string().min(32)
       })),
-      this.authController.verifyEmail.bind(this.authController)
+      this.publicAuthController.verifyEmail.bind(this.publicAuthController)
     );
 
     router.post('/auth/resend-verification',
       validateBody(z.object({
         usernameOrEmail: z.string().min(1)
       })),
-      this.authController.resendVerificationPublic.bind(this.authController)
+      this.publicAuthController.resendVerificationPublic.bind(this.publicAuthController)
     );
 
     router.post('/auth/reset-password',
       validateBody(resetPasswordWithTokenRequestSchema),
-      this.authController.resetPasswordWithToken.bind(this.authController)
+      this.publicAuthController.resetPasswordWithToken.bind(this.publicAuthController)
     );
 
     // Force change password (public - user has temp token from login response)
     // Used when user logs in with requirePasswordChange=true (admin reset flow)
     router.post('/auth/force-change-password',
       validateBody(forceChangePasswordRequestSchema),
-      this.authController.forceChangePassword.bind(this.authController)
+      this.publicAuthController.forceChangePassword.bind(this.publicAuthController)
     );
 
     // Session info for idle timeout warning
     // PUBLIC ENDPOINT - handles own auth with updateActivity: false
     // This prevents polling from extending the session (which would defeat idle timeout)
     router.get('/auth/session-info',
-      this.authController.getSessionInfo.bind(this.authController)
+      this.publicAuthController.getSessionInfo.bind(this.publicAuthController)
     );
 
     router.post('/invite-codes/validate',
@@ -128,7 +128,7 @@ export class PublicRouteModule implements RouteModule {
         department: z.string().max(100).optional(),
         position: z.string().max(100).optional(),
       })),
-      this.authController.setupSystemAdmin.bind(this.authController)
+      this.publicAuthController.setupSystemAdmin.bind(this.publicAuthController)
     );
 
     router.get('/health', async (req, res) => {

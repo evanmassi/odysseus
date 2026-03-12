@@ -1,0 +1,111 @@
+/**
+ * System Admin User Controller
+ *
+ * Cross-lab user management — activate, deactivate, suspend, and delete users
+ * within a specific lab context. Requires system_admin role.
+ */
+
+import { Request, Response, NextFunction } from 'express';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+import { UserApplicationService } from '@application/services/UserApplicationService';
+import { PermissionError } from '@domain/errors/PermissionError';
+
+export interface SystemAdminUserControllerDeps {
+  userApplicationService: UserApplicationService;
+}
+
+export class SystemAdminUserController {
+  constructor(private deps: SystemAdminUserControllerDeps) {}
+
+  async activateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.deps.userApplicationService.approveUser(userId, adminApiKey);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User activated successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deactivateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { labId, userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.deps.userApplicationService.deactivateUser(userId, adminApiKey, labId);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User deactivated successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async suspendUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { labId, userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.deps.userApplicationService.suspendUser(userId, adminApiKey, labId);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User suspended successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.deps.userApplicationService.deleteUser(userId, adminApiKey);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User deleted successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+}

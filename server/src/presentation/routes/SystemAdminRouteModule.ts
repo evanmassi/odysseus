@@ -10,7 +10,8 @@ import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { LabController } from '@presentation/controllers/LabController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { AuthController } from '@presentation/controllers/AuthController';
+import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
+import { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import { StorageController } from '@presentation/controllers/StorageController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
@@ -21,7 +22,8 @@ export class SystemAdminRouteModule implements RouteModule {
   constructor(
     private readonly labController: LabController,
     private readonly inviteCodeController: InviteCodeController,
-    private readonly authController: AuthController,
+    private readonly adminConfigController: AdminConfigController,
+    private readonly systemAdminUserController: SystemAdminUserController,
     private readonly configurationController: StorageController,
     private readonly auditController: AuditController,
     private readonly authMiddleware: AuthMiddleware
@@ -93,12 +95,12 @@ export class SystemAdminRouteModule implements RouteModule {
     // GLOBAL SECURITY SETTINGS
 
     router.get('/security-config',
-      this.authController.getSecurityConfig.bind(this.authController)
+      this.adminConfigController.getSecurityConfig.bind(this.adminConfigController)
     );
 
     router.put('/security-config',
       validateBody(updateSecurityConfigSchema),
-      this.authController.updateSecurityConfig.bind(this.authController)
+      this.adminConfigController.updateSecurityConfig.bind(this.adminConfigController)
     );
 
     // CROSS-LAB OVERVIEW
@@ -146,22 +148,22 @@ export class SystemAdminRouteModule implements RouteModule {
 
     router.post('/labs/:labId/users/:userId/activate',
       validateParams(z.object({ labId: z.string(), userId: z.string() })),
-      this.authController.activateUserForLab.bind(this.authController)
+      this.systemAdminUserController.activateUserForLab.bind(this.systemAdminUserController)
     );
 
     router.post('/labs/:labId/users/:userId/deactivate',
       validateParams(z.object({ labId: z.string(), userId: z.string() })),
-      this.authController.deactivateUserForLab.bind(this.authController)
+      this.systemAdminUserController.deactivateUserForLab.bind(this.systemAdminUserController)
     );
 
     router.post('/labs/:labId/users/:userId/suspend',
       validateParams(z.object({ labId: z.string(), userId: z.string() })),
-      this.authController.suspendUserForLab.bind(this.authController)
+      this.systemAdminUserController.suspendUserForLab.bind(this.systemAdminUserController)
     );
 
     router.delete('/labs/:labId/users/:userId',
       validateParams(z.object({ labId: z.string(), userId: z.string() })),
-      this.authController.deleteUserForLab.bind(this.authController)
+      this.systemAdminUserController.deleteUserForLab.bind(this.systemAdminUserController)
     );
   }
 }

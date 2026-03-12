@@ -7,7 +7,8 @@
 import { Router, RequestHandler } from 'express';
 import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
-import { AuthController } from '@presentation/controllers/AuthController';
+import { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
+import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
@@ -25,7 +26,8 @@ import {
 
 export class AdminRouteModule implements RouteModule {
   constructor(
-    private readonly authController: AuthController,
+    private readonly adminUserController: AdminUserController,
+    private readonly adminConfigController: AdminConfigController,
     private readonly researcherController: ResearcherController,
     private readonly auditController: AuditController,
     private readonly exportController: ExportController,
@@ -49,33 +51,33 @@ export class AdminRouteModule implements RouteModule {
     // USER MANAGEMENT ENDPOINTS
 
     router.get('/users',
-      this.authController.getAllUsers.bind(this.authController)
+      this.adminUserController.getAllUsers.bind(this.adminUserController)
     );
 
     // USER APPROVAL ENDPOINTS (must come before /users/:id to avoid route collision)
 
     router.get('/users/pending',
-      this.authController.getPendingUsers.bind(this.authController)
+      this.adminUserController.getPendingUsers.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/approve',
       validateParams(z.object({ userId: z.string() })),
-      this.authController.approveUser.bind(this.authController)
+      this.adminUserController.approveUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/reject',
       validateParams(z.object({ userId: z.string() })),
-      this.authController.rejectUser.bind(this.authController)
+      this.adminUserController.rejectUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/deactivate',
       validateParams(z.object({ userId: z.string() })),
-      this.authController.deactivateUser.bind(this.authController)
+      this.adminUserController.deactivateUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/activate',
       validateParams(z.object({ userId: z.string() })),
-      this.authController.activateUser.bind(this.authController)
+      this.adminUserController.activateUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/link-researcher',
@@ -86,30 +88,30 @@ export class AdminRouteModule implements RouteModule {
       }).refine(data => data.researcherId || data.newResearcher, {
         message: 'Must provide either researcherId or newResearcher'
       })),
-      this.authController.linkResearcherToUser.bind(this.authController)
+      this.adminUserController.linkResearcherToUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/unlink-researcher',
       validateParams(z.object({ userId: z.string() })),
-      this.authController.unlinkResearcherFromUser.bind(this.authController)
+      this.adminUserController.unlinkResearcherFromUser.bind(this.adminUserController)
     );
 
     // USER CRUD ENDPOINTS (parameterized routes come after specific routes)
 
     router.get('/users/:id',
       validateParams(z.object({ id: z.string() })),
-      this.authController.getUserById.bind(this.authController)
+      this.adminUserController.getUserById.bind(this.adminUserController)
     );
 
     router.put('/users/:id/role',
       validateParams(z.object({ id: z.string() })),
       validateBody(z.object({ role: z.enum(['lab_admin', 'user']) })),
-      this.authController.updateUserRole.bind(this.authController)
+      this.adminUserController.updateUserRole.bind(this.adminUserController)
     );
 
     router.delete('/users/:id',
       validateParams(z.object({ id: z.string() })),
-      this.authController.deleteUser.bind(this.authController)
+      this.adminUserController.deleteUser.bind(this.adminUserController)
     );
 
     // PASSWORD RESET ENDPOINTS (admin-initiated)
@@ -117,12 +119,12 @@ export class AdminRouteModule implements RouteModule {
     router.post('/users/:userId/reset-password',
       validateParams(z.object({ userId: z.string() })),
       validateBody(adminResetPasswordRequestSchema),
-      this.authController.adminResetPassword.bind(this.authController)
+      this.adminUserController.adminResetPassword.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/generate-reset-token',
       validateParams(z.object({ userId: z.string() })),
-      this.authController.generatePasswordResetToken.bind(this.authController)
+      this.adminUserController.generatePasswordResetToken.bind(this.adminUserController)
     );
 
     // RESEARCHER MANAGEMENT ENDPOINTS
@@ -144,22 +146,22 @@ export class AdminRouteModule implements RouteModule {
     // SECURITY & CONFIGURATION ENDPOINTS
 
     router.get('/security-config',
-      this.authController.getSecurityConfig.bind(this.authController)
+      this.adminConfigController.getSecurityConfig.bind(this.adminConfigController)
     );
 
     router.put('/security-config',
       validateBody(updateSecurityConfigSchema),
-      this.authController.updateSecurityConfig.bind(this.authController)
+      this.adminConfigController.updateSecurityConfig.bind(this.adminConfigController)
     );
 
     // METRICS & MONITORING ENDPOINTS
 
     router.get('/metrics',
-      this.authController.getMetrics.bind(this.authController)
+      this.adminConfigController.getMetrics.bind(this.adminConfigController)
     );
 
     router.get('/stats/users',
-      this.authController.getUserStatistics.bind(this.authController)
+      this.adminConfigController.getUserStatistics.bind(this.adminConfigController)
     );
 
     // AUDIT LOG ENDPOINTS
