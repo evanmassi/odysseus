@@ -1,5 +1,11 @@
+/**
+ * User Repository
+ *
+ * PostgreSQL implementation of user data access with hashed token matching.
+ */
+
 import { UserRepository as IUserRepository } from '@domain/repositories/UserRepository';
-import type { UserRepositoryStats, UserSearchCriteria } from '@domain/types/repository';
+import type { UserSearchCriteria } from '@domain/types/repository';
 import { User } from '@domain/entities/User';
 import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -7,9 +13,6 @@ import { isEmailConstraintError } from '@infrastructure/database/DatabaseErrors'
 import { UserMapper, UserRow } from '@infrastructure/database/mappers/UserMapper';
 import * as crypto from 'crypto';
 
-/**
- * Explicit column list for users table queries
- */
 const USER_COLUMNS = `
   u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,
   u.email_verified, u.email_verification_token, u.email_verification_expiry, u.last_verification_email_sent,
@@ -19,11 +22,6 @@ const USER_COLUMNS = `
 
 const USER_FROM = `users u LEFT JOIN labs l ON u.lab_id = l.id`;
 
-/**
- * UserRepository - User authentication data access
- *
- * Handles all user persistence operations.
- */
 export class UserRepository implements IUserRepository {
 
   constructor(private context: PostgresContext) {}
@@ -81,51 +79,11 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByVerificationToken(token: string): Promise<User | null> {
-    const now = new Date();
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.email_verification_token IS NOT NULL AND u.email_verification_expiry > $1`,
-      [now]
-    );
-
-    for (const row of rows) {
-      const user = UserMapper.fromRow(row);
-      try {
-        const [salt, storedHash] = user.emailVerificationToken!.split(':');
-        const providedHash = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
-
-        if (providedHash === storedHash) {
-          return user;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    return null;
+    return this.findByHashedToken(token, 'email_verification_token', 'email_verification_expiry', 'emailVerificationToken');
   }
 
   async findByPasswordResetToken(token: string): Promise<User | null> {
-    const now = new Date();
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.password_reset_token IS NOT NULL AND u.password_reset_expiry > $1`,
-      [now]
-    );
-
-    for (const row of rows) {
-      const user = UserMapper.fromRow(row);
-      try {
-        const [salt, storedHash] = user.passwordResetToken!.split(':');
-        const providedHash = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
-
-        if (providedHash === storedHash) {
-          return user;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    return null;
+    return this.findByHashedToken(token, 'password_reset_token', 'password_reset_expiry', 'passwordResetToken');
   }
 
   async findAll(): Promise<User[]> {
@@ -192,7 +150,6 @@ export class UserRepository implements IUserRepository {
         row.lab_id
       ]);
     } catch (error) {
-      // Translate database-specific errors to domain errors
       if (isEmailConstraintError(error)) {
         throw new EmailAlreadyExistsError();
       }
@@ -208,53 +165,31 @@ export class UserRepository implements IUserRepository {
   // AUTHENTICATION OPERATIONS
 
   async apiKeyExists(apiKey: string): Promise<boolean> {
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM users WHERE api_key = $1',
+    const result = await this.context.queryOne<{ exists: boolean }>(
+      'SELECT EXISTS(SELECT 1 FROM users WHERE api_key = $1) as exists',
       [apiKey]
     );
-    return parseInt(result?.count || '0', 10) > 0;
+    return result?.exists ?? false;
   }
 
   async usernameExists(username: string): Promise<boolean> {
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM users WHERE username = $1',
+    const result = await this.context.queryOne<{ exists: boolean }>(
+      'SELECT EXISTS(SELECT 1 FROM users WHERE username = $1) as exists',
       [username]
     );
-    return parseInt(result?.count || '0', 10) > 0;
+    return result?.exists ?? false;
   }
 
   async emailExists(email: string): Promise<boolean> {
     const normalizedEmail = email.toLowerCase().trim();
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM users u INNER JOIN persons p ON u.person_id = p.id WHERE LOWER(p.email) = $1',
+    const result = await this.context.queryOne<{ exists: boolean }>(
+      'SELECT EXISTS(SELECT 1 FROM users u INNER JOIN persons p ON u.person_id = p.id WHERE LOWER(p.email) = $1) as exists',
       [normalizedEmail]
     );
-    return parseInt(result?.count || '0', 10) > 0;
+    return result?.exists ?? false;
   }
 
   // ROLE-BASED OPERATIONS
-
-  async findAdmins(): Promise<User[]> {
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.role IN ('system_admin', 'lab_admin') ORDER BY u.created_at`
-    );
-    return UserMapper.fromRows(rows);
-  }
-
-  async findRegularUsers(): Promise<User[]> {
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.role = 'user' ORDER BY u.created_at`
-    );
-    return UserMapper.fromRows(rows);
-  }
-
-  async findByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<User[]> {
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.role = $1 ORDER BY u.created_at`,
-      [role]
-    );
-    return UserMapper.fromRows(rows);
-  }
 
   async isAdmin(apiKey: string): Promise<boolean> {
     const result = await this.context.queryOne<{ role: string }>(
@@ -273,10 +208,10 @@ export class UserRepository implements IUserRepository {
   }
 
   async isEmpty(): Promise<boolean> {
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM users'
+    const result = await this.context.queryOne<{ exists: boolean }>(
+      'SELECT EXISTS(SELECT 1 FROM users) as exists'
     );
-    return parseInt(result?.count || '0', 10) === 0;
+    return !(result?.exists ?? false);
   }
 
   async findByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<User[]> {
@@ -295,40 +230,6 @@ export class UserRepository implements IUserRepository {
       [newRole, userId]
     );
     return (result.rowCount ?? 0) > 0;
-  }
-
-  async findByCreationDateRange(startDate: Date, endDate: Date): Promise<User[]> {
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.created_at >= $1 AND u.created_at <= $2 ORDER BY u.created_at`,
-      [startDate, endDate]
-    );
-    return UserMapper.fromRows(rows);
-  }
-
-  // SECURITY OPERATIONS (stubs for future implementation)
-
-  async recordFailedLogin(_apiKey: string): Promise<void> {
-    // For future implementation
-  }
-
-  async resetFailedLogins(_apiKey: string): Promise<void> {
-    // For future implementation
-  }
-
-  async lockUser(_apiKey: string, _lockDurationMinutes: number): Promise<void> {
-    // For future implementation
-  }
-
-  async isLocked(_apiKey: string): Promise<boolean> {
-    return false;
-  }
-
-  async unlockUser(_apiKey: string): Promise<void> {
-    // For future implementation
-  }
-
-  async findLocked(): Promise<User[]> {
-    return [];
   }
 
   // BUSINESS QUERIES
@@ -399,53 +300,6 @@ export class UserRepository implements IUserRepository {
     return columnMap[sortBy] || 'created_at';
   }
 
-  // REPORTING
-
-  async getStats(): Promise<UserRepositoryStats> {
-    const totalUsers = await this.count();
-    const adminCount = await this.count() - await this.countByRole('user');
-    const regularUserCount = await this.countByRole('user');
-
-    // Activity stats - using total count as fallback since activity is session-based
-    const activeCount = totalUsers;
-
-    const oldestUserRow = await this.context.queryOne<{ id: string; username: string; created_at: Date | string }>(
-      'SELECT id, username, created_at FROM users ORDER BY created_at ASC LIMIT 1'
-    );
-    const newestUserRow = await this.context.queryOne<{ id: string; username: string; created_at: Date | string }>(
-      'SELECT id, username, created_at FROM users ORDER BY created_at DESC LIMIT 1'
-    );
-
-    return {
-      totalUsers,
-      adminCount,
-      regularUserCount,
-      activeUsers: {
-        last24Hours: activeCount,
-        lastWeek: activeCount,
-        lastMonth: activeCount
-      },
-      inactiveUsers: 0,
-      lockedUsers: 0,
-      averageSessionsPerUser: 0,
-      oldestUser: oldestUserRow ? {
-        id: oldestUserRow.id,
-        username: oldestUserRow.username,
-        createdAt: oldestUserRow.created_at instanceof Date
-          ? oldestUserRow.created_at
-          : new Date(oldestUserRow.created_at)
-      } : undefined,
-      mostRecentUser: newestUserRow ? {
-        id: newestUserRow.id,
-        username: newestUserRow.username,
-        createdAt: newestUserRow.created_at instanceof Date
-          ? newestUserRow.created_at
-          : new Date(newestUserRow.created_at)
-      } : undefined,
-      mostActiveUser: undefined
-    };
-  }
-
   // LAB-SCOPED OPERATIONS
 
   async findByLabId(labId: string): Promise<User[]> {
@@ -474,18 +328,42 @@ export class UserRepository implements IUserRepository {
     return parseInt(result?.count || '0', 10);
   }
 
-  async isLabEmpty(labId: string): Promise<boolean> {
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM users WHERE lab_id = $1',
-      [labId]
-    );
-    return parseInt(result?.count || '0', 10) === 0;
-  }
-
   // MAINTENANCE OPERATIONS
 
   async isHealthy(): Promise<boolean> {
     return this.context.isHealthy();
+  }
+
+  // PRIVATE HELPERS
+
+  /** Loads all non-expired rows for a hashed token column and compares via PBKDF2. */
+  private async findByHashedToken(
+    token: string,
+    tokenColumn: string,
+    expiryColumn: string,
+    userField: 'emailVerificationToken' | 'passwordResetToken'
+  ): Promise<User | null> {
+    const now = new Date();
+    const rows = await this.context.queryMany<UserRow>(
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.${tokenColumn} IS NOT NULL AND u.${expiryColumn} > $1`,
+      [now]
+    );
+
+    for (const row of rows) {
+      const user = UserMapper.fromRow(row);
+      try {
+        const [salt, storedHash] = user[userField]!.split(':');
+        const providedHash = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+
+        if (providedHash === storedHash) {
+          return user;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return null;
   }
 
 }

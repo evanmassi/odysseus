@@ -1,12 +1,11 @@
 /**
  * User Repository Interface
  *
- * Data access contract for user accounts, authentication, and security operations.
+ * Data access contract for user accounts and authentication.
  */
 
 import { User } from '@domain/entities/User';
 import type { UserSearchCriteria } from '@domain/types/repository/searchCriteriaTypes';
-import type { UserRepositoryStats } from '@domain/types/repository/statsTypes';
 
 export interface UserRepository {
 
@@ -42,9 +41,6 @@ export interface UserRepository {
 
   // ROLE-BASED OPERATIONS
 
-  findAdmins(): Promise<User[]>;
-  findRegularUsers(): Promise<User[]>;
-  findByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<User[]>;
   isAdmin(apiKey: string): Promise<boolean>;
   countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number>;
   isEmpty(): Promise<boolean>;
@@ -55,30 +51,15 @@ export interface UserRepository {
   findByLabId(labId: string): Promise<User[]>;
   findByStatusInLab(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended', labId: string): Promise<User[]>;
   countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number>;
-  isLabEmpty(labId: string): Promise<boolean>;
 
   // USER MANAGEMENT OPERATIONS
 
   updateRole(userId: string, newRole: 'system_admin' | 'lab_admin' | 'user'): Promise<boolean>;
-  findByCreationDateRange(startDate: Date, endDate: Date): Promise<User[]>;
-
-  // SECURITY OPERATIONS
-
-  recordFailedLogin(apiKey: string): Promise<void>;
-  resetFailedLogins(apiKey: string): Promise<void>;
-  lockUser(apiKey: string, lockDurationMinutes: number): Promise<void>;
-  isLocked(apiKey: string): Promise<boolean>;
-  unlockUser(apiKey: string): Promise<void>;
-  findLocked(): Promise<User[]>;
 
   // BUSINESS QUERIES
 
   count(): Promise<number>;
   search(criteria: UserSearchCriteria): Promise<User[]>;
-
-  // REPORTING
-
-  getStats(): Promise<UserRepositoryStats>;
 
   // MAINTENANCE OPERATIONS
 
