@@ -5,6 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { logger } from '@infrastructure/logging/logger';
 import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
@@ -226,7 +227,7 @@ export class PublicAuthController {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        res.status(400).json(ResponseBuilder.error('MISSING_REFRESH_TOKEN', 'Refresh token is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.MISSING_TOKEN, 'Refresh token is required'));
         return;
       }
 
@@ -239,7 +240,7 @@ export class PublicAuthController {
         logger.info('Access token refreshed successfully');
 
       } catch (error) {
-        res.status(401).json(ResponseBuilder.error('INVALID_REFRESH_TOKEN', 'Invalid or expired refresh token'));
+        res.status(401).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_TOKEN, 'Invalid or expired refresh token'));
       }
 
     } catch (error) {
@@ -322,7 +323,7 @@ export class PublicAuthController {
       const { token } = req.body;
 
       if (!token) {
-        res.status(400).json(ResponseBuilder.error('MISSING_TOKEN', 'Verification token is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.MISSING_TOKEN, 'Verification token is required'));
         return;
       }
 
@@ -348,7 +349,7 @@ export class PublicAuthController {
       const { usernameOrEmail } = req.body;
 
       if (!usernameOrEmail) {
-        res.status(400).json(ResponseBuilder.error('MISSING_FIELD', 'Username or email is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Username or email is required'));
         return;
       }
 
@@ -389,7 +390,7 @@ export class PublicAuthController {
       const { token, newPassword } = req.body;
 
       if (!token || !newPassword) {
-        res.status(400).json(ResponseBuilder.error('MISSING_FIELDS', 'Token and new password are required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Token and new password are required'));
         return;
       }
 
@@ -421,7 +422,7 @@ export class PublicAuthController {
 
       const parseResult = forceChangePasswordRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
-        res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', parseResult.error.issues[0].message));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, parseResult.error.issues[0].message));
         return;
       }
 
@@ -429,13 +430,13 @@ export class PublicAuthController {
 
       const tokenData = await this.deps.sessionService.verifyPasswordChangeTempToken(tempToken);
       if (!tokenData) {
-        res.status(401).json(ResponseBuilder.error('INVALID_TOKEN', 'Password change link has expired or is invalid'));
+        res.status(401).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_TOKEN, 'Password change link has expired or is invalid'));
         return;
       }
 
       const user = await this.deps.userRepository.findById(tokenData.userId);
       if (!user) {
-        res.status(404).json(ResponseBuilder.error('USER_NOT_FOUND', 'User not found'));
+        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'User not found'));
         return;
       }
 
@@ -443,7 +444,7 @@ export class PublicAuthController {
       try {
         PasswordValidator.enforce(newPassword, securityConfig);
       } catch (error) {
-        res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', (error as Error).message));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, (error as Error).message));
         return;
       }
 

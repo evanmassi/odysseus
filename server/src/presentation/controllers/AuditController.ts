@@ -5,6 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { AuditService } from '@application/services/AuditService';
 import { AuditRetentionService } from '@application/services/AuditRetentionService';
@@ -69,7 +70,7 @@ export class AuditController {
       const { entityType, entityId } = req.params;
 
       if (!entityType || !entityId) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'entityType and entityId are required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'entityType and entityId are required'));
         return;
       }
 
@@ -119,7 +120,7 @@ export class AuditController {
   async getRetentionMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
-        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Retention metrics require system admin access'));
+        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Retention metrics require system admin access'));
         return;
       }
 
@@ -145,7 +146,7 @@ export class AuditController {
   async getRetentionPolicy(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
-        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Retention policy requires system admin access'));
+        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Retention policy requires system admin access'));
         return;
       }
 
@@ -171,7 +172,7 @@ export class AuditController {
   async runManualArchival(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
-        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Manual archival requires system admin access'));
+        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Manual archival requires system admin access'));
         return;
       }
 
@@ -209,7 +210,7 @@ export class AuditController {
   async exportArchivedLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!req.user?.isSystemAdmin()) {
-        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Export requires system admin access'));
+        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Export requires system admin access'));
         return;
       }
 

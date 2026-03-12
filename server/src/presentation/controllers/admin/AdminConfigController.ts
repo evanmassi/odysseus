@@ -5,6 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { logger } from '@infrastructure/logging/logger';
 import { GetUserStatisticsQuery, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
@@ -47,14 +48,14 @@ export class AdminConfigController {
       }
 
       if (adminUser.isDemo) {
-        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Security configuration changes are restricted in the demo environment'));
+        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Security configuration changes are restricted in the demo environment'));
         return;
       }
 
       const updates: Partial<SecurityConfig> = req.body;
 
       if (!updates || typeof updates !== 'object') {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'Request body must be an object'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'Request body must be an object'));
         return;
       }
 
@@ -79,7 +80,7 @@ export class AdminConfigController {
 
       const labId = req.user?.labId;
       if (!labId) {
-        res.status(400).json(ResponseBuilder.error('LAB_REQUIRED', 'Lab context required for metrics'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required for metrics'));
         return;
       }
       const metrics = await this.deps.configRepository.getSystemMetrics(labId);

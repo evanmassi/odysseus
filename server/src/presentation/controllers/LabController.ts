@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { BaseController } from './BaseController';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
 import type { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
@@ -112,7 +113,7 @@ export class LabController extends BaseController {
       const labId = req.params.labId;
       const lab = await this.deps.labRepository.findById(labId);
       if (!lab) {
-        res.status(404).json(ResponseBuilder.error('NOT_FOUND', 'Lab not found'));
+        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Lab not found'));
         return;
       }
 
@@ -272,7 +273,7 @@ export class LabController extends BaseController {
       const labId = req.params.labId;
       const lab = await this.deps.labRepository.findById(labId);
       if (!lab) {
-        res.status(404).json(ResponseBuilder.error('NOT_FOUND', 'Lab not found'));
+        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'Lab not found'));
         return;
       }
 

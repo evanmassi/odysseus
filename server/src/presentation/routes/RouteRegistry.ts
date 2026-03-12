@@ -6,6 +6,7 @@
 
 import { Express, Router, Request, Response, NextFunction } from 'express';
 import { RouteModule } from '@presentation/routes/RouteModule';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { logger } from '@infrastructure/logging/logger';
 
 export class RouteRegistry {
@@ -70,7 +71,7 @@ export class RouteRegistry {
       const errorObj = error as Record<string, unknown>;
       const statusCode = typeof errorObj.statusCode === 'number' ? errorObj.statusCode
         : typeof errorObj.status === 'number' ? errorObj.status : 500;
-      const errorCode = typeof errorObj.code === 'string' ? errorObj.code : 'INTERNAL_SERVER_ERROR';
+      const errorCode = typeof errorObj.code === 'string' ? errorObj.code : API_ERROR_CODES.INTERNAL_SERVER_ERROR;
       const context = errorObj.context as Record<string, unknown> | undefined;
 
       // Send standardized error response (flat structure matching errorEnvelopeSchema)

@@ -6,6 +6,7 @@
 
 import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import type { TubeResponse } from '@application/dto/TubeDto';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -101,7 +102,7 @@ export class SearchController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
 
       if (!query || typeof query !== 'string') {
-        res.status(400).json(ResponseBuilder.error('MISSING_QUERY', 'Query parameter "q" is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Query parameter "q" is required'));
         return;
       }
 

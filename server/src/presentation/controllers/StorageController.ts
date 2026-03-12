@@ -46,7 +46,7 @@ import {
   UnseedDemoCommandHandler
 } from '@application/commands/DemoSeedCommands';
 import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
-import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
+import { POSITION_DISPLAY_PRESETS, API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { StorageDto } from '@application/dto/StorageDto';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -139,7 +139,7 @@ export class StorageController extends BaseController {
       const version = parseInt(req.params.version);
 
       if (isNaN(version) || version < 1) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'Invalid version number. Must be a positive integer.'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'Invalid version number. Must be a positive integer.'));
         return;
       }
 
@@ -219,7 +219,7 @@ export class StorageController extends BaseController {
       const confirmationToken = req.body.confirmationToken;
 
       if (!confirmationToken) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'Confirmation token required for configuration reset'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'Confirmation token required for configuration reset'));
         return;
       }
 
@@ -250,7 +250,7 @@ export class StorageController extends BaseController {
 
       if (!result.isValid) {
         res.status(400).json(ResponseBuilder.error(
-          'VALIDATION_ERROR',
+          API_ERROR_CODES.VALIDATION_FAILED,
           'Storage import validation failed',
           { errors: result.errors, warnings: result.warnings }
         ));
@@ -281,7 +281,7 @@ export class StorageController extends BaseController {
       const { tankId, rackId, boxId, positionDisplay } = req.body;
 
       if (!tankId || !rackId || !boxId) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'tankId, rackId, and boxId are required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'tankId, rackId, and boxId are required'));
         return;
       }
 
@@ -336,17 +336,17 @@ export class StorageController extends BaseController {
       const { resourceType, tankId, rackId, boxId, customLabel } = req.body;
 
       if (!resourceType || !['rack', 'box'].includes(resourceType)) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'resourceType must be "rack" or "box"'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'resourceType must be "rack" or "box"'));
         return;
       }
 
       if (!tankId || !rackId) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'tankId and rackId are required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'tankId and rackId are required'));
         return;
       }
 
       if (resourceType === 'box' && !boxId) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'boxId is required for box label updates'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'boxId is required for box label updates'));
         return;
       }
 
@@ -395,7 +395,7 @@ export class StorageController extends BaseController {
       const { name, location } = req.body;
 
       if (!name) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'name is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'name is required'));
         return;
       }
 
@@ -592,7 +592,7 @@ export class StorageController extends BaseController {
       const { fromUserId } = req.body;
 
       if (!fromUserId) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'fromUserId is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'fromUserId is required'));
         return;
       }
 
@@ -615,7 +615,7 @@ export class StorageController extends BaseController {
       const { fromUserId, toUserId } = req.body;
 
       if (!fromUserId || !toUserId) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'fromUserId and toUserId are required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'fromUserId and toUserId are required'));
         return;
       }
 
@@ -640,7 +640,7 @@ export class StorageController extends BaseController {
       const { labName, tankCount, racksPerTank, boxesPerRack } = req.body;
 
       if (!labName) {
-        res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'labName is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'labName is required'));
         return;
       }
 

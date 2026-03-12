@@ -7,6 +7,7 @@
 import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequest } from '@application/dto/TubeDto';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
@@ -205,7 +206,7 @@ export class TubeController extends BaseController {
       const authenticatedUser = this.getAuthenticatedUser(req);
 
       if (!query || typeof query !== 'string') {
-        res.status(400).json(ResponseBuilder.error('MISSING_QUERY', 'Search query is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Search query is required'));
         return;
       }
 

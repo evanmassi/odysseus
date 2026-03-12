@@ -5,6 +5,8 @@
  * successEnvelopeSchema and errorEnvelopeSchema in shared-schemas.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 export interface SuccessResponse<T = unknown> {
   success: true;
   data: T;
@@ -41,29 +43,29 @@ export class ResponseBuilder {
   }
 
   static validationError(message: string, details?: unknown): ErrorResponse {
-    return ResponseBuilder.error('VALIDATION_ERROR', message, details);
+    return ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, message, details);
   }
 
   static unauthorized(message: string = 'Authentication required'): ErrorResponse {
-    return ResponseBuilder.error('UNAUTHORIZED', message);
+    return ResponseBuilder.error(API_ERROR_CODES.UNAUTHORIZED, message);
   }
 
   static forbidden(message: string = 'Access forbidden'): ErrorResponse {
-    return ResponseBuilder.error('FORBIDDEN', message);
+    return ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, message);
   }
 
   static notFound(resource: string, identifier?: string): ErrorResponse {
     const msg = identifier
       ? `${resource} not found: ${identifier}`
       : `${resource} not found`;
-    return ResponseBuilder.error('NOT_FOUND', msg);
+    return ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, msg);
   }
 
   static conflict(message: string, details?: unknown): ErrorResponse {
-    return ResponseBuilder.error('CONFLICT', message, details);
+    return ResponseBuilder.error(API_ERROR_CODES.DATA_CONFLICT, message, details);
   }
 
   static internalError(message: string = 'Internal server error', details?: unknown): ErrorResponse {
-    return ResponseBuilder.error('INTERNAL_SERVER_ERROR', message, details);
+    return ResponseBuilder.error(API_ERROR_CODES.INTERNAL_SERVER_ERROR, message, details);
   }
 }

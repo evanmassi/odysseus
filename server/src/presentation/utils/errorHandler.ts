@@ -6,6 +6,7 @@
  */
 
 import { Response } from 'express';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { DomainError } from '@domain/errors/DomainError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -39,27 +40,27 @@ export function handleControllerError(
   });
 
   if (isZodError(error)) {
-    res.status(400).json(ResponseBuilder.validationError('Invalid request data', error.errors));
+    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, 'Invalid request data', error.errors));
     return;
   }
 
   if (err instanceof ValidationError) {
-    res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', err.message, err.context || {}));
+    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, err.message, err.context || {}));
     return;
   }
 
   if (err instanceof NotFoundError) {
-    res.status(404).json(ResponseBuilder.error('NOT_FOUND', err.message, err.context || {}));
+    res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, err.message, err.context || {}));
     return;
   }
 
   if (err instanceof PermissionError) {
-    res.status(403).json(ResponseBuilder.error('PERMISSION_DENIED', err.message, err.context || {}));
+    res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, err.message, err.context || {}));
     return;
   }
 
   if (err instanceof DomainError) {
-    res.status(400).json(ResponseBuilder.error('DOMAIN_ERROR', err.message, err.context || {}));
+    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.BUSINESS_RULE_VIOLATION, err.message, err.context || {}));
     return;
   }
 

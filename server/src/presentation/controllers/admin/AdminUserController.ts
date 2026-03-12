@@ -5,6 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { logger } from '@infrastructure/logging/logger';
 import {
@@ -36,7 +37,7 @@ export class AdminUserController {
 
       const labId = req.user?.labId;
       if (!labId) {
-        res.status(403).json(ResponseBuilder.error('LAB_REQUIRED', 'Lab context required'));
+        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required'));
         return;
       }
 

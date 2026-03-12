@@ -7,6 +7,7 @@
 import { Request, Response } from 'express';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { CreateResearcherRequest } from '@application/dto/ResearcherDto';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { logger } from '@infrastructure/logging/logger';
@@ -227,7 +228,7 @@ export class ResearcherController extends BaseController {
       const { query } = req.query;
 
       if (!query || typeof query !== 'string') {
-        res.status(400).json(ResponseBuilder.error('MISSING_QUERY', 'Search query is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Search query is required'));
         return;
       }
 
