@@ -67,7 +67,8 @@ export class PostgresContext {
         is_active BOOLEAN NOT NULL DEFAULT TRUE,
         is_demo BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        demo_limits JSONB
       )
     `);
 
@@ -114,7 +115,7 @@ export class PostgresContext {
         researcher_id TEXT,
         person_id TEXT,
         lab_id TEXT REFERENCES labs(id),
-        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'deactivated', 'suspended')),
         email_verified BOOLEAN NOT NULL DEFAULT FALSE,
         email_verification_token TEXT,
         email_verification_expiry TIMESTAMPTZ,
@@ -160,7 +161,7 @@ export class PostgresContext {
         lock_note TEXT,
         locked_at TIMESTAMPTZ,
         shared_with_user_ids TEXT,
-        UNIQUE(tank_id, rack_id, box_id, position),
+        CONSTRAINT tubes_lab_location_unique UNIQUE(lab_id, tank_id, rack_id, box_id, position),
         FOREIGN KEY (researcher_id) REFERENCES researchers(id),
         FOREIGN KEY (locked_by) REFERENCES users(id)
       )
@@ -222,7 +223,7 @@ export class PostgresContext {
       CREATE TABLE IF NOT EXISTS lookup_values (
         id TEXT PRIMARY KEY,
         category TEXT NOT NULL CHECK (category IN ('species', 'source', 'media')),
-        lab_id TEXT REFERENCES labs(id),
+        lab_id TEXT NOT NULL REFERENCES labs(id),
         value TEXT NOT NULL,
         sort_order INTEGER DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
