@@ -121,7 +121,13 @@ export {
 export {
   successEnvelopeSchema,
   errorEnvelopeSchema,
+  messageResponseSchema,
+  emptyResponseSchema,
+  versionInfoSchema,
   ApiError,
+  type MessageResponse,
+  type EmptyResponse,
+  type VersionInfo,
 } from './infrastructure/transportSchemas';
 
 // Storage

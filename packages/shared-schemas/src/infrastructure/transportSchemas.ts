@@ -1,10 +1,12 @@
 /**
- * Server Transport Envelopes
+ * Transport and Base Response Schemas
  *
- * Zod schemas for API response validation and normalized error class for API failures.
+ * API envelope schemas, shared response base schemas, and normalized error class.
  */
 
 import { z } from 'zod';
+
+// Envelope schemas
 
 // Maps to ErrorDto.success
 export const successEnvelopeSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
@@ -24,6 +26,27 @@ export const errorEnvelopeSchema = z.object({
   details: z.unknown().optional(),
   timestamp: z.string().datetime()
 });
+
+// Base response schemas
+
+export const messageResponseSchema = z.object({
+  message: z.string(),
+});
+
+export type MessageResponse = z.infer<typeof messageResponseSchema>;
+
+export const emptyResponseSchema = z.object({});
+
+export type EmptyResponse = z.infer<typeof emptyResponseSchema>;
+
+export const versionInfoSchema = z.object({
+  version: z.string(),
+  environment: z.string(),
+  nodeVersion: z.string(),
+  platform: z.string(),
+});
+
+export type VersionInfo = z.infer<typeof versionInfoSchema>;
 
 export class ApiError extends Error {
   constructor(
