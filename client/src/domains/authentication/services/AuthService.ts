@@ -19,13 +19,12 @@ import {
   type RegisterWithResearcherResponse,
   type PasswordChangeRequiredResponse,
   type VerificationStatusResponse,
+  type UserRole,
 } from '@odysseus/shared-schemas';
 
 import { queryClient } from '@app/cache/queryClient';
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
-
-import type { UserRole } from '../types';
 
 export function isPasswordChangeRequired(
   response: LoginResponse

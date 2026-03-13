@@ -6,6 +6,7 @@
 
 import { useState, lazy, useEffect, useRef, useCallback } from 'react';
 
+import { isAdminRole } from '@odysseus/shared-schemas';
 import {
   LogOut,
   UserRound,
@@ -526,11 +527,7 @@ export function AppHeader({
                   {/* User Settings */}
                   <HamburgerMenuItem
                     icon={Settings}
-                    label={
-                      user?.role === 'lab_admin' || user?.role === 'system_admin'
-                        ? 'User Settings'
-                        : 'Settings'
-                    }
+                    label={isAdminRole(user?.role) ? 'User Settings' : 'Settings'}
                     onClick={() => {
                       setShowUserSettings(true);
                       closeMenu();
@@ -552,7 +549,7 @@ export function AppHeader({
                   )}
 
                   {/* Admin Settings - Only show to lab_admin and system_admin */}
-                  {(user?.role === 'lab_admin' || user?.role === 'system_admin') && (
+                  {isAdminRole(user?.role) && (
                     <HamburgerMenuItem
                       icon={ShieldUser}
                       label="Admin Settings"

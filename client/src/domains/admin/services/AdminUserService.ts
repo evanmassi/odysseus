@@ -13,7 +13,7 @@ import {
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
-import type { AdminUser } from '@odysseus/shared-schemas';
+import type { AdminUser, UserRole } from '@odysseus/shared-schemas';
 
 export class AdminUserService {
   async getUsers(): Promise<AdminUser[]> {
@@ -26,7 +26,7 @@ export class AdminUserService {
     }
   }
 
-  async updateUserRole(userId: string, newRole: 'lab_admin' | 'user'): Promise<void> {
+  async updateUserRole(userId: string, newRole: UserRole): Promise<void> {
     try {
       await httpClient.putData(
         `/admin/users/${userId}/role`,

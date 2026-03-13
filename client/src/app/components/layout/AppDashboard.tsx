@@ -6,7 +6,7 @@
 
 import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
 
-import { formatResourceDisplayName } from '@odysseus/shared-schemas';
+import { formatResourceDisplayName, isAdminRole } from '@odysseus/shared-schemas';
 import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -205,7 +205,7 @@ function LabDashboard() {
     [modalService.tubeEditorModal.positions]
   );
 
-  const isAdmin = user?.role === 'lab_admin' || user?.role === 'system_admin';
+  const isAdmin = isAdminRole(user?.role);
 
   const { isViewOnlySpace, spaceOwnerId, isCommonSpace, isOwnSpace } = useMemo(() => {
     if (!user)
@@ -398,8 +398,7 @@ function LabDashboard() {
   const selectionAnalysis = useGridSelectionAnalysis(selectedPositions, tubes);
 
   // Users without a researcher profile can only browse (admins always have full access)
-  const hasResearcherProfile =
-    user?.role === 'lab_admin' || user?.role === 'system_admin' || !!user?.researcherId;
+  const hasResearcherProfile = isAdminRole(user?.role) || !!user?.researcherId;
 
   const gridController = useGridController({
     tankId: currentTank,

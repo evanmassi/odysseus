@@ -8,7 +8,7 @@ import { UserRole } from '@domain/value-objects/UserRole';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
-import { type UserSettings, DEFAULT_USER_SETTINGS } from '@odysseus/shared-schemas';
+import { type UserSettings, type UserStatus, DEFAULT_USER_SETTINGS } from '@odysseus/shared-schemas';
 import { generateId } from '@domain/utils/generateId';
 import * as crypto from 'crypto';
 
@@ -21,7 +21,7 @@ interface UserConstructorProps {
   lastActivity: Date;
   researcherId?: string;
   personId?: string;
-  status?: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
+  status?: UserStatus;
   emailVerified?: boolean;
   emailVerificationToken?: string;
   emailVerificationExpiry?: Date | string;
@@ -57,7 +57,7 @@ export class User {
   private _lastActivity: Date;
   private _researcherId?: string;
   private _personId?: string;
-  private _status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
+  private _status: UserStatus;
   private readonly _labId?: string;
 
   private constructor(props: UserConstructorProps) {
@@ -152,7 +152,7 @@ export class User {
     role: UserRole,
     researcherId?: string,
     personId?: string,
-    status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended' = 'pending',
+    status: UserStatus = 'pending',
     labId?: string
   ): User {
     const now = new Date();
@@ -187,7 +187,7 @@ export class User {
     salt?: string;
     researcherId?: string;
     personId?: string;
-    status?: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
+    status?: UserStatus;
     emailVerified?: number;
     emailVerificationToken?: string;
     emailVerificationExpiry?: string;
@@ -533,7 +533,7 @@ export class User {
     lastActivity: string;
     researcherId?: string;
     personId?: string;
-    status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
+    status: UserStatus;
     settings: UserSettings;
     labId?: string;
   } {
@@ -558,7 +558,7 @@ export class User {
     role: 'system_admin' | 'lab_admin' | 'user';
     createdAt: string;
     lastActivity: string;
-    status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
+    status: UserStatus;
     isDemo: boolean;
     researcherId?: string;
     personId?: string;
@@ -597,7 +597,7 @@ export class User {
   get lastActivity(): Date { return new Date(this._lastActivity); }
   get researcherId(): string | undefined { return this._researcherId; }
   get personId(): string | undefined { return this._personId; }
-  get status(): 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended' { return this._status; }
+  get status(): UserStatus { return this._status; }
 
   // PASSWORD
 

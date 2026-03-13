@@ -7,4 +7,3 @@
 export { AuthGateway } from './ui/components/gateway/AuthGateway';
 export { AuthRegistrationModal } from './ui/components/gateway/AuthRegistrationModal';
 export { useAuthStore } from './stores/authStore';
-export * from './types';

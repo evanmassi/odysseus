@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { USER_ROLES, USER_STATUSES } from '../auth/authSchemas';
 import { demoLimitsSchema } from '../demo/demoSchemas';
 
 export const labDataSchema = z.object({
@@ -64,8 +65,8 @@ export const labDetailsUserSchema = z.object({
   lastName: z.string().nullable(),
   username: z.string(),
   email: z.string().nullable(),
-  role: z.enum(['system_admin', 'lab_admin', 'user']),
-  status: z.enum(['pending', 'approved', 'rejected', 'deactivated', 'suspended']),
+  role: z.enum(USER_ROLES),
+  status: z.enum(USER_STATUSES),
   isDemo: z.boolean(),
   lastActivity: z.string(),
   researcher: z.object({

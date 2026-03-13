@@ -41,11 +41,15 @@ import { adminUserService } from '../../../../services/AdminUserService';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
-import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
+import type {
+  AdminUser,
+  CreateResearcherProfile,
+  AdminResearcher,
+  UserRole,
+} from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
-// Role dropdown options (lab_admin can only assign user/lab_admin within their lab)
-const ROLE_OPTIONS = [
+const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: 'user', label: 'User' },
   { value: 'lab_admin', label: 'Lab Admin' },
 ];
@@ -99,7 +103,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: 'lab_admin' | 'user') => {
+  const updateUserRole = async (userId: string, newRole: UserRole) => {
     setUpdating(userId);
     try {
       await adminUserService.updateUserRole(userId, newRole);
@@ -341,7 +345,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                 value={user.role ?? 'user'}
                 onChange={newValue => {
                   if (newValue && typeof newValue === 'string') {
-                    void updateUserRole(user.id, newValue as 'lab_admin' | 'user');
+                    void updateUserRole(user.id, newValue as UserRole);
                   }
                 }}
                 options={ROLE_OPTIONS}

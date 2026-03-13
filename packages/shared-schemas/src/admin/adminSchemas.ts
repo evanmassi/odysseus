@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { USER_ROLES, USER_STATUSES } from '../auth/authSchemas';
 import { adminResearcherSchema } from '../researchers/researcherSchemas';
 import { inviteCodeDataSchema } from '../labs/labSchemas';
 
@@ -66,7 +67,7 @@ export const adminUserSchema = z.object({
   username: z.string(),
   email: z.string().email().optional(),
   emailVerified: z.boolean().optional(),
-  role: z.enum(['system_admin', 'lab_admin', 'user']),
+  role: z.enum(USER_ROLES),
   labId: z.string().optional(),
   personId: z.string().nullable(),
   researcherId: z.string().nullable(),
@@ -74,7 +75,7 @@ export const adminUserSchema = z.object({
   lastActivity: dateOrString.optional(),
   isActive: z.boolean().default(true),
   isDemo: z.boolean().default(false),
-  status: z.enum(['pending', 'approved', 'rejected', 'deactivated', 'suspended']).default('approved'),
+  status: z.enum(USER_STATUSES).default('approved'),
   requirePasswordChange: z.boolean().optional().default(false),
   firstName: z.string().optional(),
   lastName: z.string().optional(),

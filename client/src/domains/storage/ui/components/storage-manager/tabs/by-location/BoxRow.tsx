@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 
-import { formatResourceDisplayName } from '@odysseus/shared-schemas';
+import { formatResourceDisplayName, isAdminRole } from '@odysseus/shared-schemas';
 import { Edit3, Lock, Tag, Trash2 } from 'lucide-react';
 
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
@@ -123,7 +123,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
 
         {canManageStorage && !locked && (
           <div className="flex items-center gap-1 flex-shrink-0">
-            {(currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin') && (
+            {isAdminRole(currentUser?.role) && (
               <AssignmentDropdown
                 value={box.assignedUserId}
                 users={users}

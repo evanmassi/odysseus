@@ -7,6 +7,8 @@
 
 import { useMemo, useCallback } from 'react';
 
+import { isAdminRole } from '@odysseus/shared-schemas';
+
 import type { TubeData } from '@odysseus/shared-schemas';
 
 interface ContainerInfo {
@@ -41,10 +43,7 @@ interface UseTubeAccessControlResult {
 export function useTubeAccessControl(
   currentUser: { id: string; role?: string } | null | undefined
 ): UseTubeAccessControlResult {
-  const isAdmin = useMemo(
-    () => currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin',
-    [currentUser?.role]
-  );
+  const isAdmin = useMemo(() => isAdminRole(currentUser?.role), [currentUser?.role]);
   const userId = currentUser?.id;
 
   const canLockTube = useCallback(

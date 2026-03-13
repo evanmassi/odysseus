@@ -5,6 +5,8 @@
  */
 import { useMemo } from 'react';
 
+import { isAdminRole } from '@odysseus/shared-schemas';
+
 import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
 
 interface UseStoragePermissionsResult {
@@ -34,7 +36,7 @@ export function useStoragePermissions(
 
         if (isDemo && resource.isSeeded) return false;
 
-        if (currentUser.role === 'lab_admin' || currentUser.role === 'system_admin') return true;
+        if (isAdminRole(currentUser.role)) return true;
 
         // null = explicitly unassigned/common - anyone can edit
         if (resource.assignedUserId === null) return true;

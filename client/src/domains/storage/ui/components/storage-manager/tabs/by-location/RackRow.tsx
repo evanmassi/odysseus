@@ -6,7 +6,11 @@
 
 import { useMemo } from 'react';
 
-import { EQUIPMENT_DEFAULTS, formatResourceDisplayName } from '@odysseus/shared-schemas';
+import {
+  EQUIPMENT_DEFAULTS,
+  formatResourceDisplayName,
+  isAdminRole,
+} from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Edit3, Lock, Plus, Tag, Trash2 } from 'lucide-react';
 
@@ -147,7 +151,7 @@ export function RackRow({
 
           {canManageStorage && !locked && (
             <div className="flex items-center gap-1 flex-shrink-0">
-              {(currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin') && (
+              {isAdminRole(currentUser?.role) && (
                 <AssignmentDropdown
                   value={rack.assignedUserId}
                   users={users}

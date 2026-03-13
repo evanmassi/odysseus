@@ -7,6 +7,15 @@
 import { z } from 'zod';
 import { passwordChangeRequiredResponseSchema } from './passwordResetSchemas';
 
+export const USER_ROLES = ['system_admin', 'lab_admin', 'user'] as const;
+export const USER_STATUSES = ['pending', 'approved', 'rejected', 'deactivated', 'suspended'] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+export type UserStatus = (typeof USER_STATUSES)[number];
+
+export function isAdminRole(role?: string): role is 'system_admin' | 'lab_admin' {
+  return role === 'system_admin' || role === 'lab_admin';
+}
+
 const passwordField = z.string()
   .min(4, 'Password must be at least 4 characters')
   .max(128, 'Password cannot exceed 128 characters');
@@ -158,10 +167,10 @@ export type TokenPair = z.infer<typeof tokenPairSchema>;
 export const publicUserDataSchema = z.object({
   id: z.string(),
   username: z.string(),
-  role: z.enum(['system_admin', 'lab_admin', 'user']),
+  role: z.enum(USER_ROLES),
   createdAt: z.string(),
   lastActivity: z.string(),
-  status: z.enum(['pending', 'approved', 'rejected', 'deactivated', 'suspended']),
+  status: z.enum(USER_STATUSES),
   isDemo: z.boolean(),
   researcherId: z.string().optional(),
   personId: z.string().optional(),
@@ -188,7 +197,7 @@ export type LoginResponse = z.infer<typeof loginResponseSchema>;
 export const registerWithResearcherResponseSchema = z.object({
   user: publicUserDataSchema,
   tokens: tokenPairSchema.optional(),
-  status: z.enum(['approved', 'pending']),
+  status: z.enum(['approved', 'pending'] as const),
   message: z.string(),
 });
 
