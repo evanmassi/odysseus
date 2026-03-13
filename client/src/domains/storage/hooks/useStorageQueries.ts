@@ -25,15 +25,3 @@ export const useLoadStorageQuery = (config?: { enabled?: boolean; staleTime?: nu
     refetchOnWindowFocus: false,
   });
 };
-
-export const useStorageExistsQuery = (config?: { enabled?: boolean; staleTime?: number }) => {
-  return useQuery({
-    queryKey: queryKeys.storage.exists(),
-    queryFn: () => StorageService.checkConfigurationExists(),
-    enabled: config?.enabled ?? true,
-    staleTime: config?.staleTime ?? 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
-};

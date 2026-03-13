@@ -405,7 +405,6 @@ export class PublicAuthController {
       logger.info('Password reset completed with token');
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'Password reset successfully. You can now login with your new password.'
       });
 

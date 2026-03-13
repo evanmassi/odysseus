@@ -369,7 +369,6 @@ export const useInitializeConfigurationMutation = () => {
 
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.exists() });
       notifications.success('Lab configuration initialized successfully');
     },
 

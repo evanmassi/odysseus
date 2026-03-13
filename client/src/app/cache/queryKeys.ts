@@ -118,7 +118,6 @@ export const queryKeys = {
   storage: {
     all: ['storage'] as const,
     data: () => [...queryKeys.storage.all, 'data'] as const,
-    exists: () => [...queryKeys.storage.all, 'exists'] as const,
     positionDisplayPresets: () => [...queryKeys.storage.all, 'positionDisplayPresets'] as const,
   },
 } as const;

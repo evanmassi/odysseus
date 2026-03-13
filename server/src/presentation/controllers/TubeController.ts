@@ -45,9 +45,8 @@ export class TubeController extends BaseController {
         });
 
         // Use 207 Multi-Status for partial success, 201 for full success
-        const statusCode = result.success ? 201 : 207;
+        const statusCode = result.failed.length === 0 ? 201 : 207;
         res.status(statusCode).json(ResponseBuilder.success({
-          success: result.success,
           created: result.created,
           failed: result.failed
         }));

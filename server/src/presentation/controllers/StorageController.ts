@@ -371,14 +371,14 @@ export class StorageController extends BaseController {
     try {
       res.json(ResponseBuilder.success({
         presets: {
-          numeric: POSITION_DISPLAY_PRESETS.NUMERIC,
-          alphanumericStandard: POSITION_DISPLAY_PRESETS.ALPHANUMERIC_STANDARD,
-          alphanumericReverse: POSITION_DISPLAY_PRESETS.ALPHANUMERIC_REVERSE
+          NUMERIC: POSITION_DISPLAY_PRESETS.NUMERIC,
+          ALPHANUMERIC_STANDARD: POSITION_DISPLAY_PRESETS.ALPHANUMERIC_STANDARD,
+          ALPHANUMERIC_REVERSE: POSITION_DISPLAY_PRESETS.ALPHANUMERIC_REVERSE
         },
         description: {
-          numeric: 'Simple numeric labeling (1-81)',
-          alphanumericStandard: 'Alphanumeric row-column format (A1-I9)',
-          alphanumericReverse: 'Alphanumeric column-row format (1A-9I)'
+          NUMERIC: 'Simple numeric labeling (1-81)',
+          ALPHANUMERIC_STANDARD: 'Alphanumeric row-column format (A1-I9)',
+          ALPHANUMERIC_REVERSE: 'Alphanumeric column-row format (1A-9I)'
         }
       }));
     } catch (error) {

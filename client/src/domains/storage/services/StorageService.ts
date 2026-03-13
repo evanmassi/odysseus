@@ -40,19 +40,6 @@ export class StorageService {
     }
   }
 
-  // Returns false on any error — used during bootstrap to detect first-time setup
-  static async checkConfigurationExists(): Promise<boolean> {
-    try {
-      const { exists } = await httpClient.getData(
-        '/storage/exists',
-        z.object({ exists: z.boolean() })
-      );
-      return exists;
-    } catch (error) {
-      return false;
-    }
-  }
-
   static async getPositionDisplayPresets(): Promise<{
     presets: typeof POSITION_DISPLAY_PRESETS;
     description: Record<string, string>;

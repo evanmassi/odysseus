@@ -183,7 +183,6 @@ export class TubeApplicationService {
     requests: CreateTubeRequest[],
     authenticatedUser: User
   ): Promise<{
-    success: boolean;
     created: TubeResponse[];
     failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
   }> {
@@ -258,7 +257,7 @@ export class TubeApplicationService {
       (req, index, error) => ({ index, request: req, error })
     );
 
-    return { success: failed.length === 0, created, failed };
+    return { created, failed };
   }
 
   async getTubeById(id: string, authenticatedUser: User): Promise<TubeResponse> {
@@ -586,7 +585,6 @@ export class TubeApplicationService {
     request: BulkUpdateRequest,
     authenticatedUser: User
   ): Promise<{
-    success: boolean;
     updated: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
@@ -618,14 +616,13 @@ export class TubeApplicationService {
       await this.eventBus.publish(bulkUpdateEvent);
     }
 
-    return { success: failed.length === 0, updated, failed };
+    return { updated, failed };
   }
 
   async bulkDeleteTubes(
     tubeIds: string[],
     authenticatedUser: User
   ): Promise<{
-    success: boolean;
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
@@ -695,7 +692,7 @@ export class TubeApplicationService {
       }
     }
 
-    return { success: failed.length === 0, deleted: validatedIds, failed };
+    return { deleted: validatedIds, failed };
   }
 
   async lockTubes(

@@ -8,7 +8,7 @@
 export { useStorageData, getStorageDataFromCache } from './useStorageData';
 
 // Query hooks
-export { useLoadStorageQuery, useStorageExistsQuery } from './useStorageQueries';
+export { useLoadStorageQuery } from './useStorageQueries';
 
 // Sync hooks
 export { useStorageSync } from './useStorageSync';
