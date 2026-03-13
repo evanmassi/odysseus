@@ -142,15 +142,13 @@ export const verificationStatusResponseSchema = z.object({
 
 export type VerificationStatusResponse = z.infer<typeof verificationStatusResponseSchema>;
 
-const dateOrString = z.union([z.string().datetime(), z.date()]);
-
 export const tokenPairSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string(),
-  accessTokenExpiry: dateOrString,
-  refreshTokenExpiry: dateOrString,
+  accessTokenExpiry: z.coerce.date(),
+  refreshTokenExpiry: z.coerce.date(),
   tokenType: z.literal('Bearer'),
-  lastActivityTime: dateOrString,
+  lastActivityTime: z.coerce.date(),
   sessionTimeoutMinutes: z.number().int().optional(),
   idleWarningMinutes: z.number().int().optional(),
 });

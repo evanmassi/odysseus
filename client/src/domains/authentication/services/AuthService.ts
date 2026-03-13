@@ -14,6 +14,10 @@ import {
   firstTimeResponseSchema,
   verifyEmailResponseSchema,
   messageResponseSchema,
+  type AuthResponse,
+  type LoginResponse,
+  type RegisterWithResearcherResponse,
+  type PasswordChangeRequiredResponse,
   type VerificationStatusResponse,
 } from '@odysseus/shared-schemas';
 
@@ -22,13 +26,12 @@ import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
 import type { UserRole } from '../types';
-import type {
-  AuthResponse,
-  RegisterWithResearcherResponse,
-  LoginResponse,
-  PasswordChangeRequiredResponse,
-} from '../types/apiTypes';
-export { isPasswordChangeRequired } from '../types/apiTypes';
+
+export function isPasswordChangeRequired(
+  response: LoginResponse
+): response is PasswordChangeRequiredResponse {
+  return 'requirePasswordChange' in response && response.requirePasswordChange === true;
+}
 
 export interface RegisterRequest {
   username: string;
@@ -50,8 +53,7 @@ export interface PasswordRequirements {
 export class AuthService {
   /** Used only during first-time setup — bypasses approval workflow. */
   async register(request: RegisterRequest): Promise<AuthResponse> {
-    const data = await httpClient.postData('/public/auth/register', request, authResponseSchema);
-    return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
+    return await httpClient.postData('/public/auth/register', request, authResponseSchema);
   }
 
   /**
@@ -61,46 +63,29 @@ export class AuthService {
   async registerWithResearcher(
     request: RegisterWithResearcherRequest
   ): Promise<RegisterWithResearcherResponse> {
-    const data = await httpClient.postData(
+    return await httpClient.postData(
       '/public/auth/register-with-researcher',
       request,
       registerWithResearcherResponseSchema
     );
-    return {
-      user: data.user,
-      tokens: data.tokens,
-      status: data.status,
-      message: data.message,
-    } as unknown as RegisterWithResearcherResponse;
   }
 
   /** Returns PasswordChangeRequiredResponse when a forced reset is pending. */
   async login(request: LoginRequest): Promise<LoginResponse> {
-    const data = await httpClient.postData('/public/auth/login', request, loginResponseSchema);
-
-    if ('requirePasswordChange' in data && data.requirePasswordChange) {
-      return data as unknown as PasswordChangeRequiredResponse;
-    }
-
-    return {
-      user: data.user,
-      tokens: (data as { tokens: unknown }).tokens,
-    } as unknown as AuthResponse;
+    return await httpClient.postData('/public/auth/login', request, loginResponseSchema);
   }
 
   /** Called when login returns requirePasswordChange=true. */
   async forceChangePassword(tempToken: string, newPassword: string): Promise<AuthResponse> {
-    const data = await httpClient.postData(
+    return await httpClient.postData(
       '/public/auth/force-change-password',
       { tempToken, newPassword },
       authResponseSchema
     );
-    return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
   }
 
   async verifySession(): Promise<AuthResponse> {
-    const data = await httpClient.getData('/auth/verify', authResponseSchema);
-    return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
+    return await httpClient.getData('/auth/verify', authResponseSchema);
   }
 
   async checkFirstTime(): Promise<{ isFirstTime: boolean; needsSystemAdmin: boolean }> {
@@ -139,12 +124,7 @@ export class AuthService {
     department?: string;
     position?: string;
   }): Promise<AuthResponse> {
-    const result = await httpClient.postData(
-      '/public/auth/setup-system-admin',
-      data,
-      authResponseSchema
-    );
-    return { user: result.user, tokens: result.tokens } as unknown as AuthResponse;
+    return await httpClient.postData('/public/auth/setup-system-admin', data, authResponseSchema);
   }
 
   async getPasswordRequirements(): Promise<PasswordRequirements> {

@@ -64,7 +64,10 @@ const mockUser = {
   id: 'user-1',
   username: 'testuser',
   role: 'user' as const,
+  createdAt: new Date().toISOString(),
   lastActivity: new Date().toISOString(),
+  status: 'approved' as const,
+  isDemo: false,
 };
 
 const mockTokens: TokenPair = {
@@ -73,6 +76,7 @@ const mockTokens: TokenPair = {
   accessTokenExpiry: new Date(Date.now() + 30 * 60 * 1000),
   refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   tokenType: 'Bearer',
+  lastActivityTime: new Date(),
 };
 
 const mockLoginResponse = {

@@ -15,6 +15,7 @@ export interface TokenPair {
   accessTokenExpiry: Date;
   refreshTokenExpiry: Date;
   tokenType: 'Bearer';
+  lastActivityTime: Date;
   sessionTimeoutMinutes?: number; // From SecurityConfig
   idleWarningMinutes?: number; // From SecurityConfig
 }

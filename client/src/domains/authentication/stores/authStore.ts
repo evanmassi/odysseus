@@ -18,10 +18,12 @@ import { env } from '@shared/config';
 
 import { authService, isPasswordChangeRequired } from '../services/AuthService';
 
-import type { User } from '../types';
-import type { PasswordChangeRequiredResponse } from '../types/apiTypes';
 import type { AuthDebugInfo } from '../types/debugTypes';
-import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
+import type {
+  PublicUserData,
+  PasswordChangeRequiredResponse,
+  RegisterWithResearcherRequest,
+} from '@odysseus/shared-schemas';
 import type { TokenPair, SessionStatus } from '@shared/types/sessionTypes';
 
 /** Structured result from login for explicit error handling */
@@ -32,7 +34,7 @@ export type LoginResult =
 
 interface AuthState {
   // Core session data
-  user: User | null;
+  user: PublicUserData | null;
   tokens: TokenPair | null;
   sessionStatus: SessionStatus;
 
@@ -69,7 +71,7 @@ interface AuthActions {
   initializeFromStorage: () => void;
 
   // Internal state management
-  setAuthData: (user: User, tokens: TokenPair) => void;
+  setAuthData: (user: PublicUserData, tokens: TokenPair) => void;
   clearAuth: (reason?: 'idle_timeout' | 'token_expired' | 'manual_logout') => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -459,7 +461,7 @@ export const useAuthStore = create<AuthStore>()(
 
       // INTERNAL STATE MANAGEMENT
 
-      setAuthData: (user: User, tokens: TokenPair) => {
+      setAuthData: (user: PublicUserData, tokens: TokenPair) => {
         set({
           user,
           tokens,
