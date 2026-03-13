@@ -221,6 +221,12 @@ export {
   type SystemMetrics,
   type SecurityConfigData,
   type AdminUsersList,
+  adminResearchersListSchema,
+  inviteCodesListSchema,
+  inviteCodeDataResponseSchema,
+  type AdminResearchersList,
+  type InviteCodesList,
+  type InviteCodeDataResponse,
   auditLogEntrySchema,
   auditLogFiltersSchema,
   auditStatisticsSchema,
@@ -240,7 +246,13 @@ export {
   type AuditSearchResponse,
   type AuditLogData,
   entityHistoryResponseSchema,
+  auditStatisticsDataSchema,
+  retentionMetricsDataSchema,
+  retentionPolicyDataSchema,
   type EntityHistoryResponse,
+  type AuditStatisticsData,
+  type RetentionMetricsData,
+  type RetentionPolicyData,
 } from './admin';
 
 // Authentication
@@ -310,6 +322,12 @@ export {
   type LabDetailsResearcher,
   systemOverviewSchema,
   type SystemOverview,
+  labsListSchema,
+  labDataResponseSchema,
+  demoLimitsDataSchema,
+  type LabsList,
+  type LabDataResponse,
+  type DemoLimitsData,
 } from './labs/labSchemas';
 
 // Users

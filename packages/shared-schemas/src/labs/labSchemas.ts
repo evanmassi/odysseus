@@ -138,3 +138,23 @@ export const createInviteCodeRequestSchema = z.object({
 });
 
 export type CreateInviteCodeRequest = z.infer<typeof createInviteCodeRequestSchema>;
+
+// Response data schemas
+
+export const labsListSchema = z.object({
+  labs: z.array(labDataSchema),
+});
+
+export type LabsList = z.infer<typeof labsListSchema>;
+
+export const labDataResponseSchema = z.object({
+  lab: labDataSchema,
+});
+
+export type LabDataResponse = z.infer<typeof labDataResponseSchema>;
+
+export const demoLimitsDataSchema = z.object({
+  limits: demoLimitsSchema,
+});
+
+export type DemoLimitsData = z.infer<typeof demoLimitsDataSchema>;
