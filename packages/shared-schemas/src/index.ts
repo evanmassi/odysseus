@@ -366,6 +366,15 @@ export {
   type SeedDemoResponse,
 } from './demo/demoSchemas';
 
+// Events
+export {
+  tubeEventSchemas,
+  researcherEventSchemas,
+  configurationEventSchemas,
+  userEventSchemas,
+  presenceEventSchemas,
+} from './events';
+
 // Persons
 export {
   personSchema,
