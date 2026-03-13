@@ -85,7 +85,9 @@ export class ExportService {
     private appVersion: string
   ) {}
 
-  async exportTubes(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
+  async exportTubes(labId: string, format: 'csv'): Promise<string>;
+  async exportTubes(labId: string, format: 'json'): Promise<TubeExportRow[]>;
+  async exportTubes(labId: string, format: 'csv' | 'json'): Promise<string | TubeExportRow[]> {
     logger.info('[ExportService] Exporting tubes', { format, labId });
 
     const tubes = await this.tubeRepository.findAllByLabId(labId);
@@ -161,7 +163,9 @@ export class ExportService {
     ]);
   }
 
-  async exportUsers(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
+  async exportUsers(labId: string, format: 'csv'): Promise<string>;
+  async exportUsers(labId: string, format: 'json'): Promise<UserExportRow[]>;
+  async exportUsers(labId: string, format: 'csv' | 'json'): Promise<string | UserExportRow[]> {
     logger.info('[ExportService] Exporting users', { format, labId });
 
     const users = await this.userRepository.findByLabId(labId);
@@ -202,7 +206,9 @@ export class ExportService {
     ]);
   }
 
-  async exportResearchers(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
+  async exportResearchers(labId: string, format: 'csv'): Promise<string>;
+  async exportResearchers(labId: string, format: 'json'): Promise<ResearcherExportRow[]>;
+  async exportResearchers(labId: string, format: 'csv' | 'json'): Promise<string | ResearcherExportRow[]> {
     logger.info('[ExportService] Exporting researchers', { format, labId });
 
     const researchers = await this.researcherRepository.findByLabId(labId);
