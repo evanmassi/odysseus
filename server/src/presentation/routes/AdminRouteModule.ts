@@ -5,7 +5,6 @@
  */
 
 import { Router, RequestHandler } from 'express';
-import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
 import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
@@ -18,11 +17,20 @@ import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import {
   updateSecurityConfigSchema,
-  createResearcherProfileSchema,
   adminResetPasswordRequestSchema,
   createLookupValueRequestSchema,
   renameLookupValueRequestSchema
 } from '@odysseus/shared-schemas';
+import {
+  IdParams,
+  UserIdParams,
+  ResearcherIdParams,
+  CategoryParams,
+  EntityHistoryParams,
+  UpdateRoleBodySchema,
+  LinkResearcherBodySchema,
+  CreateInviteCodeBodySchema
+} from '@presentation/validation/httpValidationSchemas';
 
 export class AdminRouteModule implements RouteModule {
   constructor(
@@ -61,69 +69,64 @@ export class AdminRouteModule implements RouteModule {
     );
 
     router.post('/users/:userId/approve',
-      validateParams(z.object({ userId: z.string() })),
+      validateParams(UserIdParams),
       this.adminUserController.approveUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/reject',
-      validateParams(z.object({ userId: z.string() })),
+      validateParams(UserIdParams),
       this.adminUserController.rejectUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/deactivate',
-      validateParams(z.object({ userId: z.string() })),
+      validateParams(UserIdParams),
       this.adminUserController.deactivateUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/activate',
-      validateParams(z.object({ userId: z.string() })),
+      validateParams(UserIdParams),
       this.adminUserController.activateUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/link-researcher',
-      validateParams(z.object({ userId: z.string() })),
-      validateBody(z.object({
-        researcherId: z.string().optional(),
-        newResearcher: createResearcherProfileSchema.optional()
-      }).refine(data => data.researcherId || data.newResearcher, {
-        message: 'Must provide either researcherId or newResearcher'
-      })),
+      validateParams(UserIdParams),
+      validateBody(LinkResearcherBodySchema),
       this.adminUserController.linkResearcherToUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/unlink-researcher',
-      validateParams(z.object({ userId: z.string() })),
+      validateParams(UserIdParams),
       this.adminUserController.unlinkResearcherFromUser.bind(this.adminUserController)
     );
 
     // USER CRUD ENDPOINTS (parameterized routes come after specific routes)
 
     router.get('/users/:id',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.adminUserController.getUserById.bind(this.adminUserController)
     );
 
     router.put('/users/:id/role',
-      validateParams(z.object({ id: z.string() })),
-      validateBody(z.object({ role: z.enum(['lab_admin', 'user']) })),
+      validateParams(IdParams),
+      validateBody(UpdateRoleBodySchema),
       this.adminUserController.updateUserRole.bind(this.adminUserController)
     );
 
     router.delete('/users/:id',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.adminUserController.deleteUser.bind(this.adminUserController)
     );
 
     // PASSWORD RESET ENDPOINTS (admin-initiated)
 
     router.post('/users/:userId/reset-password',
-      validateParams(z.object({ userId: z.string() })),
+      validateParams(UserIdParams),
       validateBody(adminResetPasswordRequestSchema),
       this.adminUserController.adminResetPassword.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/generate-reset-token',
-      validateParams(z.object({ userId: z.string() })),
+      validateParams(UserIdParams),
       this.adminUserController.generatePasswordResetToken.bind(this.adminUserController)
     );
 
@@ -139,7 +142,7 @@ export class AdminRouteModule implements RouteModule {
     );
 
     router.delete('/researchers/:researcherId',
-      validateParams(z.object({ researcherId: z.string() })),
+      validateParams(ResearcherIdParams),
       this.researcherController.deleteResearcher.bind(this.researcherController)
     );
 
@@ -172,10 +175,7 @@ export class AdminRouteModule implements RouteModule {
 
     // Must come before /audit to avoid route collision
     router.get('/audit/entity/:entityType/:entityId',
-      validateParams(z.object({
-        entityType: z.string(),
-        entityId: z.string()
-      })),
+      validateParams(EntityHistoryParams),
       this.auditController.getEntityHistory.bind(this.auditController)
     );
 
@@ -226,7 +226,7 @@ export class AdminRouteModule implements RouteModule {
     // LOOKUP VALUE MANAGEMENT (admin catalog)
 
     router.get('/lookups/:category',
-      validateParams(z.object({ category: z.string() })),
+      validateParams(CategoryParams),
       this.lookupValueController.getAllValues.bind(this.lookupValueController)
     );
 
@@ -236,13 +236,13 @@ export class AdminRouteModule implements RouteModule {
     );
 
     router.put('/lookups/:id/rename',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       validateBody(renameLookupValueRequestSchema),
       this.lookupValueController.renameValue.bind(this.lookupValueController)
     );
 
     router.delete('/lookups/:id',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.lookupValueController.deleteValue.bind(this.lookupValueController)
     );
 
@@ -253,16 +253,12 @@ export class AdminRouteModule implements RouteModule {
     );
 
     router.post('/invite-codes',
-      validateBody(z.object({
-        role: z.enum(['lab_admin', 'user']).optional(),
-        maxUses: z.number().int().positive().optional(),
-        expiresAt: z.string().optional(),
-      })),
+      validateBody(CreateInviteCodeBodySchema),
       this.inviteCodeController.createForCurrentLab.bind(this.inviteCodeController)
     );
 
     router.delete('/invite-codes/:id',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.inviteCodeController.deactivate.bind(this.inviteCodeController)
     );
   }

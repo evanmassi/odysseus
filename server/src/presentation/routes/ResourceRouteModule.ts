@@ -5,7 +5,6 @@
  */
 
 import { Router, RequestHandler } from 'express';
-import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { TubeController } from '@presentation/controllers/TubeController';
 import { TubeLockController } from '@presentation/controllers/TubeLockController';
@@ -16,6 +15,8 @@ import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMid
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import {
+  IdParams,
+  CategoryParams,
   CreateTubeHttpSchema,
   UpdateTubeHttpSchema,
   CreateResearcherHttpSchema,
@@ -55,13 +56,13 @@ export class ResourceRouteModule implements RouteModule {
 
   configure(router: Router): void {
     // TUBE ROUTES
-    
+
     // Read operations
-    router.get('/tubes', 
+    router.get('/tubes',
       this.tubeController.getAllTubes.bind(this.tubeController)
     );
 
-    router.get('/tubes/location', 
+    router.get('/tubes/location',
       validateQuery(LocationQuerySchema),
       this.tubeController.getTubesByLocation.bind(this.tubeController)
     );
@@ -74,25 +75,25 @@ export class ResourceRouteModule implements RouteModule {
       this.tubeController.getStats.bind(this.tubeController)
     );
 
-    router.get('/tubes/:id', 
-      validateParams(z.object({ id: z.string().min(1) })),
+    router.get('/tubes/:id',
+      validateParams(IdParams),
       this.tubeController.getTubeById.bind(this.tubeController)
     );
 
     // Write operations
-    router.post('/tubes', 
+    router.post('/tubes',
       validateBody(CreateTubeHttpSchema),
       this.tubeController.createTube.bind(this.tubeController)
     );
 
-    router.put('/tubes/:id', 
-      validateParams(z.object({ id: z.string().min(1) })),
+    router.put('/tubes/:id',
+      validateParams(IdParams),
       validateBody(UpdateTubeHttpSchema),
       this.tubeController.updateTube.bind(this.tubeController)
     );
 
-    router.delete('/tubes/:id', 
-      validateParams(z.object({ id: z.string().min(1) })),
+    router.delete('/tubes/:id',
+      validateParams(IdParams),
       this.tubeController.deleteTube.bind(this.tubeController)
     );
 
@@ -130,26 +131,26 @@ export class ResourceRouteModule implements RouteModule {
 
     // RESEARCHER ROUTES
 
-    // Read operations  
-    router.get('/researchers', 
+    // Read operations
+    router.get('/researchers',
       this.researcherController.getAllResearchers.bind(this.researcherController)
     );
 
-    router.get('/researchers/search', 
+    router.get('/researchers/search',
       this.researcherController.searchResearchers.bind(this.researcherController)
     );
 
-    router.get('/researchers/stats', 
+    router.get('/researchers/stats',
       this.researcherController.getResearcherStats.bind(this.researcherController)
     );
 
     router.get('/researchers/:id',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.researcherController.getResearcherById.bind(this.researcherController)
     );
 
     router.get('/researchers/:id/tubes/count',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.researcherController.getResearcherTubeCount.bind(this.researcherController)
     );
 
@@ -159,30 +160,30 @@ export class ResourceRouteModule implements RouteModule {
       this.researcherController.createResearcher.bind(this.researcherController)
     );
 
-    router.put('/researchers/:id', 
-      validateParams(z.object({ id: z.string() })),
+    router.put('/researchers/:id',
+      validateParams(IdParams),
       this.researcherController.updateResearcher.bind(this.researcherController)
     );
 
     router.put('/researchers/:id/activate',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.researcherController.activateResearcher.bind(this.researcherController)
     );
 
     router.put('/researchers/:id/deactivate',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.researcherController.deactivateResearcher.bind(this.researcherController)
     );
 
     router.delete('/researchers/:id',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.researcherController.deleteResearcher.bind(this.researcherController)
     );
 
     // LOOKUP VALUE ROUTES (for form dropdowns)
 
     router.get('/lookups/:category',
-      validateParams(z.object({ category: z.string() })),
+      validateParams(CategoryParams),
       this.lookupValueController.getActiveValues.bind(this.lookupValueController)
     );
   }

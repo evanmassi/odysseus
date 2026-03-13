@@ -6,7 +6,6 @@
  */
 
 import { Router, RequestHandler } from 'express';
-import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { LabController } from '@presentation/controllers/LabController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
@@ -17,6 +16,14 @@ import { AuditController } from '@presentation/controllers/AuditController';
 import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import { updateSecurityConfigSchema, updateDemoLimitsSchema } from '@odysseus/shared-schemas';
+import {
+  IdParams,
+  LabIdParams,
+  LabUserParams,
+  CreateLabBodySchema,
+  UpdateLabBodySchema,
+  CreateInviteCodeBodySchema
+} from '@presentation/validation/httpValidationSchemas';
 
 export class SystemAdminRouteModule implements RouteModule {
   constructor(
@@ -48,47 +55,43 @@ export class SystemAdminRouteModule implements RouteModule {
     );
 
     router.post('/labs',
-      validateBody(z.object({ name: z.string().min(1).max(200), isDemo: z.boolean().optional() })),
+      validateBody(CreateLabBodySchema),
       this.labController.createLab.bind(this.labController)
     );
 
     router.put('/labs/:id',
-      validateParams(z.object({ id: z.string() })),
-      validateBody(z.object({ name: z.string().min(1).max(200) })),
+      validateParams(IdParams),
+      validateBody(UpdateLabBodySchema),
       this.labController.updateLab.bind(this.labController)
     );
 
     router.post('/labs/:id/deactivate',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.labController.deactivateLab.bind(this.labController)
     );
 
     router.post('/labs/:id/activate',
-      validateParams(z.object({ id: z.string() })),
+      validateParams(IdParams),
       this.labController.activateLab.bind(this.labController)
     );
 
     // LAB DETAILS
 
     router.get('/labs/:labId/details',
-      validateParams(z.object({ labId: z.string() })),
+      validateParams(LabIdParams),
       this.labController.getLabDetails.bind(this.labController)
     );
 
     // INVITE CODES (system admin can manage any lab's codes)
 
     router.get('/labs/:labId/invite-codes',
-      validateParams(z.object({ labId: z.string() })),
+      validateParams(LabIdParams),
       this.inviteCodeController.listForLab.bind(this.inviteCodeController)
     );
 
     router.post('/labs/:labId/invite-codes',
-      validateParams(z.object({ labId: z.string() })),
-      validateBody(z.object({
-        role: z.enum(['lab_admin', 'user']).optional(),
-        maxUses: z.number().int().positive().optional(),
-        expiresAt: z.string().optional(),
-      })),
+      validateParams(LabIdParams),
+      validateBody(CreateInviteCodeBodySchema),
       this.inviteCodeController.create.bind(this.inviteCodeController)
     );
 
@@ -112,27 +115,27 @@ export class SystemAdminRouteModule implements RouteModule {
     // DEMO MANAGEMENT (system admin, explicit labId)
 
     router.post('/labs/:labId/demo/reset',
-      validateParams(z.object({ labId: z.string() })),
+      validateParams(LabIdParams),
       this.configurationController.resetDemoDataForLab.bind(this.configurationController)
     );
 
     router.post('/labs/:labId/demo/seed',
-      validateParams(z.object({ labId: z.string() })),
+      validateParams(LabIdParams),
       this.configurationController.seedDemoLab.bind(this.configurationController)
     );
 
     router.post('/labs/:labId/demo/unseed',
-      validateParams(z.object({ labId: z.string() })),
+      validateParams(LabIdParams),
       this.configurationController.unseedDemoLab.bind(this.configurationController)
     );
 
     router.get('/labs/:labId/demo/limits',
-      validateParams(z.object({ labId: z.string() })),
+      validateParams(LabIdParams),
       this.labController.getDemoLimits.bind(this.labController)
     );
 
     router.put('/labs/:labId/demo/limits',
-      validateParams(z.object({ labId: z.string() })),
+      validateParams(LabIdParams),
       validateBody(updateDemoLimitsSchema),
       this.labController.updateDemoLimits.bind(this.labController)
     );
@@ -140,29 +143,29 @@ export class SystemAdminRouteModule implements RouteModule {
     // LAB AUDIT LOG
 
     router.get('/labs/:labId/audit',
-      validateParams(z.object({ labId: z.string() })),
+      validateParams(LabIdParams),
       this.auditController.getLabAuditLog.bind(this.auditController)
     );
 
     // CROSS-LAB USER MANAGEMENT
 
     router.post('/labs/:labId/users/:userId/activate',
-      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      validateParams(LabUserParams),
       this.systemAdminUserController.activateUserForLab.bind(this.systemAdminUserController)
     );
 
     router.post('/labs/:labId/users/:userId/deactivate',
-      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      validateParams(LabUserParams),
       this.systemAdminUserController.deactivateUserForLab.bind(this.systemAdminUserController)
     );
 
     router.post('/labs/:labId/users/:userId/suspend',
-      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      validateParams(LabUserParams),
       this.systemAdminUserController.suspendUserForLab.bind(this.systemAdminUserController)
     );
 
     router.delete('/labs/:labId/users/:userId',
-      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      validateParams(LabUserParams),
       this.systemAdminUserController.deleteUserForLab.bind(this.systemAdminUserController)
     );
   }

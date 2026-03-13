@@ -5,7 +5,6 @@
  */
 
 import { Router, RequestHandler } from 'express';
-import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { SearchController } from '@presentation/controllers/SearchController';
 import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
@@ -13,6 +12,10 @@ import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMid
 import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateQuery } from '@presentation/middleware/requestValidation';
 import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
+import {
+  QuickSearchQuerySchema,
+  FieldSearchBodySchema
+} from '@presentation/validation/httpValidationSchemas';
 
 export class SearchRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
@@ -43,21 +46,12 @@ export class SearchRouteModule implements RouteModule {
     );
 
     router.get('/quick',
-      validateQuery(z.object({
-        q: z.string().min(1),
-        limit: z.string().optional(),
-      })),
+      validateQuery(QuickSearchQuerySchema),
       this.searchController.quickSearch.bind(this.searchController)
     );
 
     router.post('/field',
-      validateBody(z.object({
-        field: z.string().min(1),
-        value: z.string().min(1),
-        exact: z.boolean().optional(),
-        limit: z.number().min(1).max(1000).optional(),
-        offset: z.number().min(0).optional(),
-      })),
+      validateBody(FieldSearchBodySchema),
       this.searchController.fieldSearch.bind(this.searchController)
     );
   }

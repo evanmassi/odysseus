@@ -1,7 +1,7 @@
 /**
  * HTTP Input Validation Schemas
  *
- * Uses shared schemas from @odysseus/shared-schemas to avoid duplication.
+ * Centralizes all request validation so route modules stay pure routing.
  */
 import { z } from 'zod';
 import {
@@ -15,6 +15,18 @@ import {
   revokeTubeAccessRequestSchema
 } from '@odysseus/shared-schemas';
 
+// Shared param schemas
+
+export const IdParams = z.object({ id: z.string().min(1) });
+export const UserIdParams = z.object({ userId: z.string().min(1) });
+export const LabIdParams = z.object({ labId: z.string().min(1) });
+export const LabUserParams = z.object({ labId: z.string().min(1), userId: z.string().min(1) });
+export const ResearcherIdParams = z.object({ researcherId: z.string().min(1) });
+export const CategoryParams = z.object({ category: z.string().min(1) });
+export const EntityHistoryParams = z.object({ entityType: z.string().min(1), entityId: z.string().min(1) });
+
+// Tube schemas
+
 // Supports both single tube creation and bulk paste operations (copy/cut)
 export const CreateTubeHttpSchema = z.union([
   createTubeRequestSchema,
@@ -22,7 +34,6 @@ export const CreateTubeHttpSchema = z.union([
 ]);
 
 export const UpdateTubeHttpSchema = updateTubeRequestSchema;
-
 export const CreateResearcherHttpSchema = createResearcherProfileSchema;
 
 // Omits position from shared location schema
@@ -43,3 +54,88 @@ export const LockTubesHttpSchema = lockTubesRequestSchema;
 export const UnlockTubesHttpSchema = unlockTubesRequestSchema;
 export const ShareTubeAccessHttpSchema = shareTubeAccessRequestSchema;
 export const RevokeTubeAccessHttpSchema = revokeTubeAccessRequestSchema;
+
+// Auth schemas
+
+export const RegisterBodySchema = z.object({
+  username: z.string().min(1).max(50),
+  password: z.string().min(8).max(128),
+  role: z.enum(['admin', 'user']).optional(),
+});
+
+export const LoginBodySchema = z.object({
+  username: z.string().min(1),
+  password: z.string().min(1),
+});
+
+export const RefreshTokenBodySchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+export const VerifyEmailBodySchema = z.object({
+  token: z.string().min(32),
+});
+
+export const ResendVerificationBodySchema = z.object({
+  usernameOrEmail: z.string().min(1),
+});
+
+export const ValidateInviteCodeBodySchema = z.object({
+  code: z.string().min(1),
+});
+
+export const SetupSystemAdminBodySchema = z.object({
+  username: z.string().min(1).max(50),
+  password: z.string().min(8).max(128),
+  email: z.string().email(),
+  firstName: z.string().min(1).max(50),
+  lastName: z.string().min(1).max(50),
+  setupKey: z.string().optional(),
+  department: z.string().max(100).optional(),
+  position: z.string().max(100).optional(),
+});
+
+// Admin schemas
+
+export const UpdateRoleBodySchema = z.object({
+  role: z.enum(['lab_admin', 'user']),
+});
+
+export const LinkResearcherBodySchema = z.object({
+  researcherId: z.string().optional(),
+  newResearcher: createResearcherProfileSchema.optional(),
+}).refine(data => data.researcherId || data.newResearcher, {
+  message: 'Must provide either researcherId or newResearcher',
+});
+
+export const CreateInviteCodeBodySchema = z.object({
+  role: z.enum(['lab_admin', 'user']).optional(),
+  maxUses: z.number().int().positive().optional(),
+  expiresAt: z.string().optional(),
+});
+
+// Lab management schemas
+
+export const CreateLabBodySchema = z.object({
+  name: z.string().min(1).max(200),
+  isDemo: z.boolean().optional(),
+});
+
+export const UpdateLabBodySchema = z.object({
+  name: z.string().min(1).max(200),
+});
+
+// Search schemas
+
+export const QuickSearchQuerySchema = z.object({
+  q: z.string().min(1),
+  limit: z.string().optional(),
+});
+
+export const FieldSearchBodySchema = z.object({
+  field: z.string().min(1),
+  value: z.string().min(1),
+  exact: z.boolean().optional(),
+  limit: z.number().min(1).max(1000).optional(),
+  offset: z.number().min(0).optional(),
+});

@@ -5,7 +5,6 @@
  */
 
 import { Router, RequestHandler } from 'express';
-import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
@@ -17,6 +16,15 @@ import {
   resetPasswordWithTokenRequestSchema,
   forceChangePasswordRequestSchema
 } from '@odysseus/shared-schemas';
+import {
+  RegisterBodySchema,
+  LoginBodySchema,
+  RefreshTokenBodySchema,
+  VerifyEmailBodySchema,
+  ResendVerificationBodySchema,
+  ValidateInviteCodeBodySchema,
+  SetupSystemAdminBodySchema
+} from '@presentation/validation/httpValidationSchemas';
 
 export class PublicRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
@@ -52,19 +60,12 @@ export class PublicRouteModule implements RouteModule {
     );
 
     router.post('/auth/register',
-      validateBody(z.object({
-        username: z.string().min(1).max(50),
-        password: z.string().min(8).max(128),
-        role: z.enum(['admin', 'user']).optional()
-      })),
+      validateBody(RegisterBodySchema),
       this.publicAuthController.register.bind(this.publicAuthController)
     );
 
     router.post('/auth/login',
-      validateBody(z.object({
-        username: z.string().min(1),
-        password: z.string().min(1)
-      })),
+      validateBody(LoginBodySchema),
       this.publicAuthController.login.bind(this.publicAuthController)
     );
 
@@ -75,23 +76,17 @@ export class PublicRouteModule implements RouteModule {
 
     // Token refresh endpoint (OAuth 2.0 standard)
     router.post('/auth/refresh',
-      validateBody(z.object({
-        refreshToken: z.string().min(1)
-      })),
+      validateBody(RefreshTokenBodySchema),
       this.publicAuthController.refreshToken.bind(this.publicAuthController)
     );
 
     router.post('/auth/verify-email',
-      validateBody(z.object({
-        token: z.string().min(32)
-      })),
+      validateBody(VerifyEmailBodySchema),
       this.publicAuthController.verifyEmail.bind(this.publicAuthController)
     );
 
     router.post('/auth/resend-verification',
-      validateBody(z.object({
-        usernameOrEmail: z.string().min(1)
-      })),
+      validateBody(ResendVerificationBodySchema),
       this.publicAuthController.resendVerificationPublic.bind(this.publicAuthController)
     );
 
@@ -115,21 +110,12 @@ export class PublicRouteModule implements RouteModule {
     );
 
     router.post('/invite-codes/validate',
-      validateBody(z.object({ code: z.string().min(1) })),
+      validateBody(ValidateInviteCodeBodySchema),
       this.inviteCodeController.validate.bind(this.inviteCodeController)
     );
 
     router.post('/auth/setup-system-admin',
-      validateBody(z.object({
-        username: z.string().min(1).max(50),
-        password: z.string().min(8).max(128),
-        email: z.string().email(),
-        firstName: z.string().min(1).max(50),
-        lastName: z.string().min(1).max(50),
-        setupKey: z.string().optional(),
-        department: z.string().max(100).optional(),
-        position: z.string().max(100).optional(),
-      })),
+      validateBody(SetupSystemAdminBodySchema),
       this.publicAuthController.setupSystemAdmin.bind(this.publicAuthController)
     );
 
