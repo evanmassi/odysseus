@@ -18,6 +18,7 @@ export interface LogActionParams {
   action: string;
   entityType: string;
   entityId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- audit details carry arbitrary metadata from any domain event
   details: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;

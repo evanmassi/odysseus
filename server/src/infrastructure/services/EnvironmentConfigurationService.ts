@@ -45,7 +45,6 @@ const ConfigurationSchema = z.object({
   }),
   app: z.object({
     version: z.string(),
-    isElectron: z.boolean(),
   }),
 });
 
@@ -125,7 +124,6 @@ export class EnvironmentConfigurationService implements ConfigurationService {
       },
       app: {
         version: this.readPackageVersion(),
-        isElectron: process.env.ELECTRON_APP === 'true',
       },
     };
 

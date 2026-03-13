@@ -38,7 +38,6 @@ export interface Configuration {
   };
   app: {
     version: string;
-    isElectron: boolean;
   };
 }
 

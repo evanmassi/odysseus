@@ -1,19 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-// Mock Electron APIs
-const mockElectron = {
-  ipcRenderer: {
-    invoke: vi.fn(),
-    send: vi.fn(),
-    on: vi.fn(),
-    removeAllListeners: vi.fn(),
-  },
-};
-
-// @ts-ignore
-window.electron = mockElectron;
-
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

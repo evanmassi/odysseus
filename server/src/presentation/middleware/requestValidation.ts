@@ -54,7 +54,7 @@ function createValidator(source: RequestSource) {
           return;
         }
 
-        // Express types don't support middleware type narrowing
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Express types don't support dynamic property assignment
         (req as any)[source] = result.data;
         next();
       } catch (error) {

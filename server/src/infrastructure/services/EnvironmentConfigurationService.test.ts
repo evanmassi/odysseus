@@ -38,7 +38,6 @@ describe('EnvironmentConfigurationService', () => {
     delete process.env.VERIFICATION_BASE_URL;
     delete process.env.RESET_PASSWORD_BASE_URL;
     delete process.env.SYSTEM_ADMIN_SETUP_KEY;
-    delete process.env.ELECTRON_APP;
   });
 
   afterAll(() => {
@@ -105,7 +104,6 @@ describe('EnvironmentConfigurationService', () => {
 
       expect(typeof app.version).toBe('string');
       expect(app.version.length).toBeGreaterThan(0);
-      expect(app.isElectron).toBe(false);
     });
   });
 
@@ -153,11 +151,6 @@ describe('EnvironmentConfigurationService', () => {
         JWT_SECRET: 'a'.repeat(64),
       });
       expect(service.get('logging').level).toBe('info');
-    });
-
-    it('should set isElectron when ELECTRON_APP is true', () => {
-      const service = createService({ ELECTRON_APP: 'true' });
-      expect(service.get('app').isElectron).toBe(true);
     });
 
     it('should pass through system admin setup key', () => {
