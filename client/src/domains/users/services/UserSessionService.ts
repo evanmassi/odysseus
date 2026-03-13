@@ -8,7 +8,6 @@ import {
   revokeAllResponseSchema,
   type ActiveSession,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 export type { ActiveSession } from '@odysseus/shared-schemas';
 
@@ -18,7 +17,7 @@ export class UserSessionService {
   private static readonly BASE_PATH = '/users/me/sessions';
 
   static async getMySessions(): Promise<ActiveSession[]> {
-    return await httpClient.getData(this.BASE_PATH, z.array(activeSessionSchema));
+    return await httpClient.getArray(this.BASE_PATH, activeSessionSchema);
   }
 
   /** @throws Error if attempting to revoke current session */
