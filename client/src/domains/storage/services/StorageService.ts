@@ -1,5 +1,12 @@
-import { StorageResponseSchema, positionDisplayConfigSchema } from '@odysseus/shared-schemas';
-import { z } from 'zod';
+import {
+  StorageResponseSchema,
+  addTankResponseSchema,
+  addRacksResponseSchema,
+  addBoxesResponseSchema,
+  bulkOperationResponseSchema,
+  positionDisplayPresetsResponseSchema,
+  messageResponseSchema,
+} from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
@@ -11,16 +18,6 @@ import type {
   POSITION_DISPLAY_PRESETS,
   GridConfiguration,
 } from '@odysseus/shared-schemas';
-
-// Response schemas for CQRS operations
-const AddTankResponseSchema = z.object({ success: z.boolean(), tankId: z.string() });
-const AddRacksResponseSchema = z.object({ success: z.boolean(), rackIds: z.array(z.string()) });
-const AddBoxesResponseSchema = z.object({ success: z.boolean(), boxIds: z.array(z.string()) });
-const BulkOperationResponseSchema = z.object({
-  racksAffected: z.number(),
-  boxesAffected: z.number(),
-});
-const SuccessResponseSchema = z.object({ success: z.boolean() });
 
 /**
  * Storage Configuration API
@@ -45,19 +42,9 @@ export class StorageService {
     description: Record<string, string>;
   }> {
     try {
-      const responseSchema = z.object({
-        success: z.boolean(),
-        presets: z.object({
-          NUMERIC: positionDisplayConfigSchema,
-          ALPHANUMERIC_STANDARD: positionDisplayConfigSchema,
-          ALPHANUMERIC_REVERSE: positionDisplayConfigSchema,
-        }),
-        description: z.record(z.string(), z.string()),
-      });
-
       const response = await httpClient.getData(
         '/storage/position-display-presets',
-        responseSchema
+        positionDisplayPresetsResponseSchema
       );
 
       return {
@@ -146,7 +133,7 @@ export class StorageService {
       const response = await httpClient.postData(
         '/storage/tanks',
         { name, location },
-        AddTankResponseSchema
+        addTankResponseSchema
       );
       return { tankId: response.tankId };
     } catch (error) {
@@ -195,7 +182,7 @@ export class StorageService {
       const response = await httpClient.postData(
         `/storage/tanks/${tankId}/racks`,
         { count },
-        AddRacksResponseSchema
+        addRacksResponseSchema
       );
       return { rackIds: response.rackIds };
     } catch (error) {
@@ -271,7 +258,7 @@ export class StorageService {
       const response = await httpClient.postData(
         `/storage/tanks/${tankId}/racks/${rackId}/boxes`,
         { count },
-        AddBoxesResponseSchema
+        addBoxesResponseSchema
       );
       return { boxIds: response.boxIds };
     } catch (error) {
@@ -357,7 +344,7 @@ export class StorageService {
       const response = await httpClient.postData(
         '/storage/bulk-unassign',
         { fromUserId },
-        BulkOperationResponseSchema
+        bulkOperationResponseSchema
       );
       return { racksAffected: response.racksAffected, boxesAffected: response.boxesAffected };
     } catch (error) {
@@ -377,7 +364,7 @@ export class StorageService {
       const response = await httpClient.postData(
         '/storage/bulk-reassign',
         { fromUserId, toUserId },
-        BulkOperationResponseSchema
+        bulkOperationResponseSchema
       );
       return { racksAffected: response.racksAffected, boxesAffected: response.boxesAffected };
     } catch (error) {
@@ -400,7 +387,7 @@ export class StorageService {
       await httpClient.postData(
         '/storage/initialize',
         { labName, tankCount, racksPerTank },
-        SuccessResponseSchema
+        messageResponseSchema
       );
     } catch (error) {
       logger.error('StorageService initialize configuration failed', { error });

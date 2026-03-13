@@ -16,7 +16,7 @@ import type {
   CreateInviteCodeRequest,
   DemoLimits,
   SeedDemoResponse,
-  UnseedDemoResponse,
+  MessageResponse,
 } from '@odysseus/shared-schemas';
 
 export function useCreateLabMutation() {
@@ -181,7 +181,7 @@ export function useSeedDemoMutation() {
 export function useUnseedDemoMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<UnseedDemoResponse, Error, string>({
+  return useMutation<MessageResponse, Error, string>({
     mutationFn: (labId: string) => labService.unseedDemo(labId),
     onSuccess: (_data, labId) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });

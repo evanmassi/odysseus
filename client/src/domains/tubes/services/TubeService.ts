@@ -17,6 +17,9 @@ import {
   type BatchUnlockResult,
   type ShareAccessResult,
   type RevokeAccessResult,
+  type BulkDeleteResponse,
+  type PasteTubesResponse,
+  type BulkUpdateResponse,
   tubeDataSchema,
   createTubeRequestSchema,
   updateTubeRequestSchema,
@@ -24,8 +27,10 @@ import {
   batchUnlockResultSchema,
   shareAccessResultSchema,
   revokeAccessResultSchema,
+  bulkDeleteResponseSchema,
+  pasteTubesResponseSchema,
+  bulkUpdateResponseSchema,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 import { httpClient } from '@infra/api';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
@@ -86,19 +91,11 @@ export class TubeService {
     await httpClient.deleteData(`${this.BASE_PATH}/${id}`);
   }
 
-  static async bulkDeleteTubes(tubeIds: string[]): Promise<{
-    success: boolean;
-    deleted: string[];
-    failed: Array<{ id: string; error: string }>;
-  }> {
+  static async bulkDeleteTubes(tubeIds: string[]): Promise<BulkDeleteResponse> {
     return await httpClient.postData(
       `${this.BASE_PATH}/bulk-delete`,
       { tubeIds },
-      z.object({
-        success: z.boolean(),
-        deleted: z.array(z.string()),
-        failed: z.array(z.object({ id: z.string(), error: z.string() })),
-      })
+      bulkDeleteResponseSchema
     );
   }
 
@@ -114,33 +111,17 @@ export class TubeService {
     );
   }
 
-  static async pasteTubes(tubes: CreateTubeRequest[]): Promise<{
-    success: boolean;
-    created: TubeData[];
-    failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
-  }> {
+  static async pasteTubes(tubes: CreateTubeRequest[]): Promise<PasteTubesResponse> {
     const normalizedTubes = tubes.map(tube => this.normalizeTubeDates(tube));
     const validatedRequests = normalizedTubes.map(tube => createTubeRequestSchema.parse(tube));
 
-    return await httpClient.postData(
-      this.BASE_PATH,
-      validatedRequests,
-      z.object({
-        success: z.boolean(),
-        created: z.array(tubeDataSchema),
-        failed: z.array(
-          z.object({ index: z.number(), request: createTubeRequestSchema, error: z.string() })
-        ),
-      })
-    );
+    return await httpClient.postData(this.BASE_PATH, validatedRequests, pasteTubesResponseSchema);
   }
 
   /** Uses server-side bulk endpoint for proper audit logging. */
-  static async bulkUpdateTubes(updates: Array<{ id: string; data: UpdateTubeRequest }>): Promise<{
-    success: boolean;
-    updated: string[];
-    failed: Array<{ id: string; error: string }>;
-  }> {
+  static async bulkUpdateTubes(
+    updates: Array<{ id: string; data: UpdateTubeRequest }>
+  ): Promise<BulkUpdateResponse> {
     const normalizedUpdates = updates.map(update => ({
       id: update.id,
       updates: this.normalizeTubeDates(update.data),
@@ -149,11 +130,7 @@ export class TubeService {
     return await httpClient.postData(
       `${this.BASE_PATH}/bulk-update`,
       { updates: normalizedUpdates },
-      z.object({
-        success: z.boolean(),
-        updated: z.array(z.string()),
-        failed: z.array(z.object({ id: z.string(), error: z.string() })),
-      })
+      bulkUpdateResponseSchema
     );
   }
 

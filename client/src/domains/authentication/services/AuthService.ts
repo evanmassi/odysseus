@@ -11,9 +11,11 @@ import {
   passwordRequirementsResponseSchema,
   verificationStatusResponseSchema,
   validateInviteCodeResponseSchema,
+  firstTimeResponseSchema,
+  verifyEmailResponseSchema,
+  messageResponseSchema,
   type VerificationStatusResponse,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 import { queryClient } from '@app/cache/queryClient';
 import { httpClient } from '@infra/api';
@@ -44,24 +46,6 @@ export interface PasswordRequirements {
   requireStrongPasswords: boolean;
   passwordRequireSpecialChars: boolean;
 }
-
-const firstTimeResponseSchema = z.object({
-  isFirstTime: z.boolean(),
-  needsSystemAdmin: z.boolean().optional(),
-});
-
-const verifyEmailResponseSchema = z.object({
-  emailVerified: z.boolean(),
-});
-
-const messageResponseSchema = z.object({
-  message: z.string(),
-});
-
-const resetPasswordResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-});
 
 export class AuthService {
   /** Used only during first-time setup — bypasses approval workflow. */
@@ -200,7 +184,7 @@ export class AuthService {
     await httpClient.postData(
       '/public/auth/reset-password',
       { token, newPassword },
-      resetPasswordResponseSchema
+      messageResponseSchema
     );
   }
 

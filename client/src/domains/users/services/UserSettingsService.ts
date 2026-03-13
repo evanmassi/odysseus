@@ -4,21 +4,17 @@
  * Handles user preferences and settings management.
  */
 import {
-  userSettingsSchema,
+  userSettingsDataSchema,
   type UserSettings,
   type PositionDisplayPreference,
   type ThemePreference,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 import { httpClient } from '@infra/api';
 
 export class UserSettingsService {
   async getUserSettings(): Promise<UserSettings> {
-    const data = await httpClient.getData(
-      '/users/me/settings',
-      z.object({ settings: userSettingsSchema })
-    );
+    const data = await httpClient.getData('/users/me/settings', userSettingsDataSchema);
     return data.settings;
   }
 
@@ -26,7 +22,7 @@ export class UserSettingsService {
     const data = await httpClient.putData(
       '/users/me/settings',
       { settings },
-      z.object({ settings: userSettingsSchema })
+      userSettingsDataSchema
     );
     return data.settings;
   }

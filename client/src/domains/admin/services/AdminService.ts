@@ -5,13 +5,14 @@
  */
 
 import {
-  securityConfigSchema,
   systemMetricsSchema,
   lookupValueWithCountSchema,
   lookupValueSchema,
-  inviteCodeDataSchema,
+  securityConfigDataSchema,
+  inviteCodesListSchema,
+  inviteCodeDataResponseSchema,
+  versionInfoSchema,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
@@ -39,10 +40,7 @@ export class AdminService {
 
   async getSecurityConfig(): Promise<SecurityConfig> {
     try {
-      const data = await httpClient.getData(
-        '/admin/security-config',
-        z.object({ config: securityConfigSchema })
-      );
+      const data = await httpClient.getData('/admin/security-config', securityConfigDataSchema);
       return data.config;
     } catch (error) {
       logger.error('Failed to get security config', { error });
@@ -52,11 +50,7 @@ export class AdminService {
 
   async updateSecurityConfig(config: UpdateSecurityConfig): Promise<void> {
     try {
-      await httpClient.putData(
-        '/admin/security-config',
-        config,
-        z.object({ config: securityConfigSchema })
-      );
+      await httpClient.putData('/admin/security-config', config, securityConfigDataSchema);
     } catch (error) {
       logger.error('Failed to update security config', { error });
       throw error;
@@ -70,15 +64,7 @@ export class AdminService {
     platform: string;
   }> {
     try {
-      return await httpClient.getData(
-        '/public/version',
-        z.object({
-          version: z.string(),
-          environment: z.string(),
-          nodeVersion: z.string(),
-          platform: z.string(),
-        })
-      );
+      return await httpClient.getData('/public/version', versionInfoSchema);
     } catch (error) {
       logger.error('Failed to get version info', { error });
       throw error;
@@ -127,10 +113,7 @@ export class AdminService {
 
   async getInviteCodes(): Promise<InviteCodeData[]> {
     try {
-      const data = await httpClient.getData(
-        '/admin/invite-codes',
-        z.object({ inviteCodes: z.array(inviteCodeDataSchema) })
-      );
+      const data = await httpClient.getData('/admin/invite-codes', inviteCodesListSchema);
       return data.inviteCodes;
     } catch (error) {
       logger.error('Failed to get invite codes', { error });
@@ -143,7 +126,7 @@ export class AdminService {
       const result = await httpClient.postData(
         '/admin/invite-codes',
         data,
-        z.object({ inviteCode: inviteCodeDataSchema })
+        inviteCodeDataResponseSchema
       );
       return result.inviteCode;
     } catch (error) {
@@ -166,11 +149,7 @@ export class AdminService {
    */
   async updateSecurityConfigAsSystemAdmin(config: UpdateSecurityConfig): Promise<void> {
     try {
-      await httpClient.putData(
-        '/system/security-config',
-        config,
-        z.object({ config: securityConfigSchema })
-      );
+      await httpClient.putData('/system/security-config', config, securityConfigDataSchema);
     } catch (error) {
       logger.error('Failed to update security config (system)', { error });
       throw error;

@@ -3,31 +3,16 @@
  *
  * Handles listing and revoking user sessions.
  */
+import {
+  activeSessionSchema,
+  revokeAllResponseSchema,
+  type ActiveSession,
+} from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
+export type { ActiveSession } from '@odysseus/shared-schemas';
+
 import { httpClient } from '@infra/api';
-
-/**
- * Active session data returned from GET /api/users/me/sessions.
- * Subset of UserSession with isCurrentSession flag.
- */
-const activeSessionSchema = z.object({
-  id: z.string(),
-  deviceInfo: z.string().optional(),
-  ipAddress: z.string().optional(),
-  userAgent: z.string().optional(),
-  createdAt: z.date(),
-  lastUsedAt: z.date(),
-  expiresAt: z.date(),
-  isCurrentSession: z.boolean(),
-});
-
-export type ActiveSession = z.infer<typeof activeSessionSchema>;
-
-const revokeAllResponseSchema = z.object({
-  message: z.string(),
-  revokedCount: z.number(),
-});
 
 export class UserSessionService {
   private static readonly BASE_PATH = '/users/me/sessions';

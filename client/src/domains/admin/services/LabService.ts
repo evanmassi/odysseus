@@ -5,16 +5,17 @@
  */
 
 import {
-  labDataSchema,
   labDetailsSchema,
-  inviteCodeDataSchema,
-  demoLimitsSchema,
   seedDemoResponseSchema,
-  unseedDemoResponseSchema,
   auditSearchResponseSchema,
   systemOverviewSchema,
+  messageResponseSchema,
+  labsListSchema,
+  labDataResponseSchema,
+  inviteCodesListSchema,
+  inviteCodeDataResponseSchema,
+  demoLimitsDataSchema,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
@@ -28,7 +29,7 @@ import type {
   LabDetails,
   DemoLimits,
   SeedDemoResponse,
-  UnseedDemoResponse,
+  MessageResponse,
   AuditLogEntry,
   AuditLogFilters,
   SystemOverview,
@@ -37,10 +38,7 @@ import type {
 export class LabService {
   async getLabs(): Promise<LabData[]> {
     try {
-      const data = await httpClient.getData(
-        '/system/labs',
-        z.object({ labs: z.array(labDataSchema) })
-      );
+      const data = await httpClient.getData('/system/labs', labsListSchema);
       return data.labs;
     } catch (error) {
       logger.error('Failed to get labs', { error });
@@ -53,7 +51,7 @@ export class LabService {
       const data = await httpClient.postData(
         '/system/labs',
         { name, ...(isDemo && { isDemo }) },
-        z.object({ lab: labDataSchema })
+        labDataResponseSchema
       );
       return data.lab;
     } catch (error) {
@@ -64,11 +62,7 @@ export class LabService {
 
   async updateLab(id: string, name: string): Promise<LabData> {
     try {
-      const data = await httpClient.putData(
-        `/system/labs/${id}`,
-        { name },
-        z.object({ lab: labDataSchema })
-      );
+      const data = await httpClient.putData(`/system/labs/${id}`, { name }, labDataResponseSchema);
       return data.lab;
     } catch (error) {
       logger.error('Failed to update lab', { id, error });
@@ -107,7 +101,7 @@ export class LabService {
     try {
       const data = await httpClient.getData(
         `/system/labs/${labId}/invite-codes`,
-        z.object({ inviteCodes: z.array(inviteCodeDataSchema) })
+        inviteCodesListSchema
       );
       return data.inviteCodes;
     } catch (error) {
@@ -121,7 +115,7 @@ export class LabService {
       const result = await httpClient.postData(
         `/system/labs/${labId}/invite-codes`,
         data,
-        z.object({ inviteCode: inviteCodeDataSchema })
+        inviteCodeDataResponseSchema
       );
       return result.inviteCode;
     } catch (error) {
@@ -152,12 +146,12 @@ export class LabService {
     }
   }
 
-  async unseedDemo(labId: string): Promise<UnseedDemoResponse> {
+  async unseedDemo(labId: string): Promise<MessageResponse> {
     try {
       return await httpClient.postData(
         `/system/labs/${labId}/demo/unseed`,
         undefined,
-        unseedDemoResponseSchema
+        messageResponseSchema
       );
     } catch (error) {
       logger.error('Failed to unseed demo lab', { labId, error });
@@ -169,7 +163,7 @@ export class LabService {
     try {
       const data = await httpClient.getData(
         `/system/labs/${labId}/demo/limits`,
-        z.object({ limits: demoLimitsSchema })
+        demoLimitsDataSchema
       );
       return data.limits;
     } catch (error) {
@@ -183,7 +177,7 @@ export class LabService {
       const data = await httpClient.putData(
         `/system/labs/${labId}/demo/limits`,
         limits,
-        z.object({ limits: demoLimitsSchema })
+        demoLimitsDataSchema
       );
       return data.limits;
     } catch (error) {

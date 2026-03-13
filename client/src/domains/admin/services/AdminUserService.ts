@@ -4,8 +4,11 @@
  * User management operations for lab administrators.
  */
 
-import { adminUserSchema } from '@odysseus/shared-schemas';
-import { z } from 'zod';
+import {
+  adminUsersListSchema,
+  emptyResponseSchema,
+  generatePasswordResetTokenResponseSchema,
+} from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
@@ -15,10 +18,7 @@ import type { AdminUser } from '@odysseus/shared-schemas';
 export class AdminUserService {
   async getUsers(): Promise<AdminUser[]> {
     try {
-      const data = await httpClient.getData(
-        '/admin/users',
-        z.object({ users: z.array(adminUserSchema) })
-      );
+      const data = await httpClient.getData('/admin/users', adminUsersListSchema);
       return data.users;
     } catch (error) {
       logger.error('Failed to get users', { error });
@@ -28,7 +28,11 @@ export class AdminUserService {
 
   async updateUserRole(userId: string, newRole: 'lab_admin' | 'user'): Promise<void> {
     try {
-      await httpClient.putData(`/admin/users/${userId}/role`, { role: newRole }, z.object({}));
+      await httpClient.putData(
+        `/admin/users/${userId}/role`,
+        { role: newRole },
+        emptyResponseSchema
+      );
     } catch (error) {
       logger.error('Failed to update user role', { userId, error });
       throw error;
@@ -46,10 +50,7 @@ export class AdminUserService {
 
   async getPendingUsers(): Promise<AdminUser[]> {
     try {
-      const data = await httpClient.getData(
-        '/admin/users/pending',
-        z.object({ users: z.array(adminUserSchema) })
-      );
+      const data = await httpClient.getData('/admin/users/pending', adminUsersListSchema);
       return data.users;
     } catch (error) {
       logger.error('Failed to get pending users', { error });
@@ -138,7 +139,7 @@ export class AdminUserService {
       return await httpClient.postData(
         `/admin/users/${userId}/generate-reset-token`,
         undefined,
-        z.object({ resetUrl: z.string(), expiresAt: z.string(), message: z.string() })
+        generatePasswordResetTokenResponseSchema
       );
     } catch (error) {
       logger.error('Failed to generate password reset token for user', { userId, error });

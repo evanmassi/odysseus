@@ -6,10 +6,10 @@
 
 import {
   adminResearcherSchema,
+  adminResearchersListSchema,
   type AdminResearcher,
   type CreateResearcherProfile,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
@@ -17,10 +17,7 @@ import { logger } from '@infra/logger';
 export class AdminResearcherService {
   async getResearchers(): Promise<AdminResearcher[]> {
     try {
-      const data = await httpClient.getData(
-        '/admin/researchers',
-        z.object({ researchers: z.array(adminResearcherSchema) })
-      );
+      const data = await httpClient.getData('/admin/researchers', adminResearchersListSchema);
       return data.researchers;
     } catch (error) {
       logger.error('Failed to get researchers', { error });
@@ -60,7 +57,7 @@ export class AdminResearcherService {
     try {
       const data = await httpClient.getData(
         '/admin/researchers/unlinked',
-        z.object({ researchers: z.array(adminResearcherSchema) })
+        adminResearchersListSchema
       );
       return data.researchers;
     } catch (error) {

@@ -5,12 +5,12 @@
  */
 
 import {
-  auditStatisticsSchema,
   auditSearchResponseSchema,
-  retentionMetricsSchema,
-  retentionPolicySchema,
   auditArchiveResponseSchema,
-  auditLogEntrySchema,
+  auditStatisticsDataSchema,
+  retentionMetricsDataSchema,
+  retentionPolicyDataSchema,
+  entityHistoryResponseSchema,
   type AuditStatistics,
   type AuditSearchResponse,
   type RetentionMetrics,
@@ -19,7 +19,6 @@ import {
   type AuditLogEntry,
   type AuditLogFilters,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
@@ -29,10 +28,7 @@ import { buildAuditFilterParams } from '../utils/auditLogFilterParams';
 export class AuditService {
   async getAuditStatistics(): Promise<AuditStatistics> {
     try {
-      const data = await httpClient.getData(
-        '/admin/audit/statistics',
-        z.object({ statistics: auditStatisticsSchema })
-      );
+      const data = await httpClient.getData('/admin/audit/statistics', auditStatisticsDataSchema);
       return data.statistics;
     } catch (error) {
       logger.error('Failed to get audit statistics', { error });
@@ -44,11 +40,7 @@ export class AuditService {
     try {
       const data = await httpClient.getData(
         `/admin/audit/entity/${entityType}/${entityId}`,
-        z.object({
-          entries: z.array(auditLogEntrySchema),
-          entityType: z.string(),
-          entityId: z.string(),
-        })
+        entityHistoryResponseSchema
       );
       return data.entries;
     } catch (error) {
@@ -78,7 +70,7 @@ export class AuditService {
     try {
       const data = await httpClient.getData(
         '/admin/audit/retention/metrics',
-        z.object({ metrics: retentionMetricsSchema })
+        retentionMetricsDataSchema
       );
       return data.metrics;
     } catch (error) {
@@ -91,7 +83,7 @@ export class AuditService {
     try {
       const data = await httpClient.getData(
         '/admin/audit/retention/policy',
-        z.object({ policy: retentionPolicySchema })
+        retentionPolicyDataSchema
       );
       return data.policy;
     } catch (error) {
