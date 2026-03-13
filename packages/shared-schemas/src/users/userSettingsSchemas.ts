@@ -31,9 +31,8 @@ export const updateUserSettingsRequestSchema = z.object({
 
 export type UpdateUserSettingsRequest = z.infer<typeof updateUserSettingsRequestSchema>;
 
-export const userSettingsResponseSchema = z.object({
-  success: z.boolean(),
+export const userSettingsDataSchema = z.object({
   settings: userSettingsSchema,
 });
 
-export type UserSettingsResponse = z.infer<typeof userSettingsResponseSchema>;
+export type UserSettingsData = z.infer<typeof userSettingsDataSchema>;

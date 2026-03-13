@@ -22,10 +22,8 @@ export const userDisplayInfoSchema = z.object({
 
 export type UserDisplayInfo = z.infer<typeof userDisplayInfoSchema>;
 
-// Active users list response (public endpoint - any authenticated user)
-export const activeUsersListResponseSchema = z.object({
-  success: z.boolean(),
+export const usersLookupListSchema = z.object({
   users: z.array(userDisplayInfoSchema),
 });
 
-export type ActiveUsersListResponse = z.infer<typeof activeUsersListResponseSchema>;
+export type UsersLookupList = z.infer<typeof usersLookupListSchema>;

@@ -21,7 +21,6 @@ export const demoLimitsSchema = z.object({
 export const updateDemoLimitsSchema = demoLimitsSchema.partial();
 
 export const seedDemoResponseSchema = z.object({
-  success: z.boolean(),
   message: z.string(),
   seededCount: z.object({
     tanks: z.number(),
@@ -30,12 +29,6 @@ export const seedDemoResponseSchema = z.object({
   }),
 }).strict();
 
-export const unseedDemoResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-}).strict();
-
 export type DemoLimits = z.infer<typeof demoLimitsSchema>;
 export type UpdateDemoLimits = z.infer<typeof updateDemoLimitsSchema>;
 export type SeedDemoResponse = z.infer<typeof seedDemoResponseSchema>;
-export type UnseedDemoResponse = z.infer<typeof unseedDemoResponseSchema>;

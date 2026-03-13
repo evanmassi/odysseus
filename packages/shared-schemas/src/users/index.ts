@@ -1,26 +1,31 @@
 /**
  * Users Barrel
  *
- * User settings, preferences, and lookup schemas.
+ * User settings, preferences, lookup, and session schemas.
  */
 
 export {
   userSettingsSchema,
   updateUserSettingsRequestSchema,
-  userSettingsResponseSchema,
+  userSettingsDataSchema,
   themePreferenceSchema,
   DEFAULT_USER_SETTINGS,
   type UserSettings,
   type UpdateUserSettingsRequest,
-  type UserSettingsResponse,
+  type UserSettingsData,
   type ThemePreference,
 } from './userSettingsSchemas';
 
 export {
   userLookupRequestSchema,
   userDisplayInfoSchema,
-  activeUsersListResponseSchema,
+  usersLookupListSchema,
   type UserLookupRequest,
   type UserDisplayInfo,
-  type ActiveUsersListResponse,
+  type UsersLookupList,
 } from './userLookupSchemas';
+
+export {
+  userSessionSchema,
+  type UserSession,
+} from './userSessionSchemas';
