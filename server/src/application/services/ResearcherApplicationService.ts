@@ -136,7 +136,7 @@ export class ResearcherApplicationService {
     if (existingUser?.personId) {
       const existingPerson = await this.personRepository.findById(existingUser.personId);
       if (existingPerson) {
-        this.ensureNoExistingResearcher(existingPerson.id, normalizedEmail);
+        await this.ensureNoExistingResearcher(existingPerson.id, normalizedEmail);
 
         const researcher = Researcher.create(existingPerson.id, { labId });
         await this.researcherRepository.save(researcher);
@@ -149,7 +149,7 @@ export class ResearcherApplicationService {
     // Check for orphaned Person (safety net — shouldn't happen with cleanup)
     const orphanedPerson = await this.personRepository.findByEmail(normalizedEmail);
     if (orphanedPerson) {
-      this.ensureNoExistingResearcher(orphanedPerson.id, normalizedEmail);
+      await this.ensureNoExistingResearcher(orphanedPerson.id, normalizedEmail);
 
       orphanedPerson.updateProfile(
         request.firstName.trim(),

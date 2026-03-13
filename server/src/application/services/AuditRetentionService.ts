@@ -53,13 +53,12 @@ export class AuditRetentionService {
 
     let totalArchived = 0;
 
-    while (true) {
-      const entries = await this.auditRepository.findOlderThan(
-        cutoffDate,
-        AUDIT_RETENTION_CONFIG.archivalBatchSize
-      );
+    let entries = await this.auditRepository.findOlderThan(
+      cutoffDate,
+      AUDIT_RETENTION_CONFIG.archivalBatchSize
+    );
 
-      if (entries.length === 0) break;
+    while (entries.length > 0) {
 
       await this.archiveRepository.saveArchived(entries);
 
@@ -74,6 +73,11 @@ export class AuditRetentionService {
       });
 
       if (entries.length < AUDIT_RETENTION_CONFIG.archivalBatchSize) break;
+
+      entries = await this.auditRepository.findOlderThan(
+        cutoffDate,
+        AUDIT_RETENTION_CONFIG.archivalBatchSize
+      );
     }
 
     logger.info('Audit log archival completed', { totalArchived });

@@ -273,7 +273,7 @@ export class User {
       throw new ValidationError('Username cannot exceed 100 characters');
     }
 
-    const usernamePattern = /^[a-zA-Z0-9_\-\.@]+$/;
+    const usernamePattern = /^[a-zA-Z0-9_\-.@]+$/;
     if (!usernamePattern.test(this._username)) {
       throw new ValidationError('Username can only contain letters, numbers, underscores, hyphens, dots, and @ symbols');
     }

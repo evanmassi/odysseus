@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import { demoLimitsSchema } from '../demo/demoSchemas';
-import { positionDisplayConfigSchema, POSITION_DISPLAY_PRESETS } from './positionSchemas';
+import { positionDisplayConfigSchema } from './positionSchemas';
 
 // Minimal server representation; client computes derived values.
 export const GridConfigurationSchema = z.object({

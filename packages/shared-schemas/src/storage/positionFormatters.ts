@@ -4,7 +4,7 @@
  * Converts between integer database positions and configurable display labels for box grids.
  */
 
-import type { PositionDisplayConfig, AlphanumericConfig } from './positionSchemas';
+import type { PositionDisplayConfig } from './positionSchemas';
 
 /**
  * @returns Formatted label ("23" or "C5" depending on config)

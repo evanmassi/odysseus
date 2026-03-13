@@ -143,6 +143,7 @@ export class EnvironmentConfigurationService implements ConfigurationService {
     // Fixed secret so dev sessions survive server restarts
     const devSecret = 'odysseus-development-jwt-secret-key-for-local-testing-only-not-secure-for-production';
 
+    // eslint-disable-next-line no-console -- runs before logger is initialized
     console.warn('Using fixed development JWT secret. Set JWT_SECRET environment variable for production.');
 
     return devSecret;

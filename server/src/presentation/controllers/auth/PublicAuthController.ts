@@ -283,7 +283,7 @@ export class PublicAuthController {
       // First user is auto-verified but still gets the email for record keeping
       if (user.personId) {
         const person = await this.deps.personRepository.findById(user.personId);
-        if (person && person.email) {
+        if (person?.email) {
           try {
             const sendCommand = { userId: user.id };
             await this.deps.sendVerificationEmailHandler.handle(sendCommand);

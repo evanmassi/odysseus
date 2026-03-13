@@ -11,7 +11,7 @@ module.exports = {
     'plugin:import/typescript',
     'prettier',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  ignorePatterns: ['dist', '.eslintrc.cjs', '**/*.test.ts', '**/*.spec.ts', '**/__tests__/**'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
@@ -92,6 +92,7 @@ module.exports = {
     ],
     'import/no-unresolved': 'error',
     'import/no-cycle': 'error',
+    'import/no-named-as-default-member': 'off',
 
     'no-console': 'error',
     'no-debugger': 'error',

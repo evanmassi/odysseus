@@ -47,16 +47,17 @@ export class CreateInviteCodeCommandHandler {
 
     const role = command.role ?? 'user';
 
-    if (user.isSystemAdmin()) {
-    } else if (user.isLabAdmin()) {
-      if (user.labId !== command.labId) {
-        throw new PermissionError('Lab admins can only create invite codes for their own lab', { userId: command.userId });
+    if (!user.isSystemAdmin()) {
+      if (user.isLabAdmin()) {
+        if (user.labId !== command.labId) {
+          throw new PermissionError('Lab admins can only create invite codes for their own lab', { userId: command.userId });
+        }
+        if (role === 'lab_admin') {
+          throw new PermissionError('Only system admins can create lab_admin invite codes', { userId: command.userId });
+        }
+      } else {
+        throw new PermissionError('Only admins can create invite codes', { userId: command.userId });
       }
-      if (role === 'lab_admin') {
-        throw new PermissionError('Only system admins can create lab_admin invite codes', { userId: command.userId });
-      }
-    } else {
-      throw new PermissionError('Only admins can create invite codes', { userId: command.userId });
     }
 
     const lab = await this.labRepository.findById(command.labId);
@@ -114,13 +115,14 @@ export class DeactivateInviteCodeCommandHandler {
       throw NotFoundError.forEntity('InviteCode', command.codeId);
     }
 
-    if (user.isSystemAdmin()) {
-    } else if (user.isLabAdmin()) {
-      if (user.labId !== inviteCode.labId) {
-        throw new PermissionError('Lab admins can only manage invite codes for their own lab', { userId: command.userId });
+    if (!user.isSystemAdmin()) {
+      if (user.isLabAdmin()) {
+        if (user.labId !== inviteCode.labId) {
+          throw new PermissionError('Lab admins can only manage invite codes for their own lab', { userId: command.userId });
+        }
+      } else {
+        throw new PermissionError('Only admins can manage invite codes', { userId: command.userId });
       }
-    } else {
-      throw new PermissionError('Only admins can manage invite codes', { userId: command.userId });
     }
 
     if (!inviteCode.isActive) {
