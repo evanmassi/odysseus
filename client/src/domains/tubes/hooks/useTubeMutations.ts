@@ -404,7 +404,7 @@ export const useBulkUpdateTubesMutation = (
       }));
 
       return {
-        success: result.success,
+        success: result.failed.length === 0,
         totalProcessed: tubeIds.length,
         successCount: result.updated.length,
         successful: result.updated.length,
@@ -466,7 +466,7 @@ export const useBulkDeleteTubesMutation = (
       }));
 
       return {
-        success: result.success,
+        success: result.failed.length === 0,
         totalProcessed: tubeIds.length,
         successCount: successfulIds.length,
         successful: successfulIds.length,
@@ -514,7 +514,6 @@ export const useBulkDeleteTubesMutation = (
 };
 
 export type PasteTubesResult = {
-  success: boolean;
   created: TubeData[];
   failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
 };
