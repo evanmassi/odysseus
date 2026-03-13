@@ -127,3 +127,41 @@ export type GlobalSettings = z.infer<typeof GlobalSettingsSchema>;
 export type SystemConfiguration = z.infer<typeof SystemConfigurationSchema>;
 export type StorageResponse = z.infer<typeof StorageResponseSchema>;
 export type SaveStorageRequest = z.infer<typeof SaveStorageRequestSchema>;
+
+// Response schemas
+
+export const addTankResponseSchema = z.object({
+  tankId: z.string(),
+});
+
+export type AddTankResponse = z.infer<typeof addTankResponseSchema>;
+
+export const addRacksResponseSchema = z.object({
+  rackIds: z.array(z.string()),
+});
+
+export type AddRacksResponse = z.infer<typeof addRacksResponseSchema>;
+
+export const addBoxesResponseSchema = z.object({
+  boxIds: z.array(z.string()),
+});
+
+export type AddBoxesResponse = z.infer<typeof addBoxesResponseSchema>;
+
+export const bulkOperationResponseSchema = z.object({
+  racksAffected: z.number(),
+  boxesAffected: z.number(),
+});
+
+export type BulkOperationResponse = z.infer<typeof bulkOperationResponseSchema>;
+
+export const positionDisplayPresetsResponseSchema = z.object({
+  presets: z.object({
+    NUMERIC: positionDisplayConfigSchema,
+    ALPHANUMERIC_STANDARD: positionDisplayConfigSchema,
+    ALPHANUMERIC_REVERSE: positionDisplayConfigSchema,
+  }),
+  description: z.record(z.string(), z.string()),
+});
+
+export type PositionDisplayPresetsResponse = z.infer<typeof positionDisplayPresetsResponseSchema>;

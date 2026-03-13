@@ -270,3 +270,30 @@ export type UpdateTubeFormInput = z.input<typeof updateTubeRequestSchema>;
 export const validateTubePosition = (position: number): boolean => {
   return position >= 1 && position <= EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX;
 };
+
+// Response schemas
+
+export const bulkDeleteResponseSchema = z.object({
+  deleted: z.array(z.string()),
+  failed: z.array(z.object({ id: z.string(), error: z.string() })),
+});
+
+export type BulkDeleteResponse = z.infer<typeof bulkDeleteResponseSchema>;
+
+export const pasteTubesResponseSchema = z.object({
+  created: z.array(tubeDataSchema),
+  failed: z.array(z.object({
+    index: z.number(),
+    request: createTubeRequestSchema,
+    error: z.string(),
+  })),
+});
+
+export type PasteTubesResponse = z.infer<typeof pasteTubesResponseSchema>;
+
+export const bulkUpdateResponseSchema = z.object({
+  updated: z.array(z.string()),
+  failed: z.array(z.object({ id: z.string(), error: z.string() })),
+});
+
+export type BulkUpdateResponse = z.infer<typeof bulkUpdateResponseSchema>;

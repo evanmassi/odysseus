@@ -34,7 +34,8 @@ export type AdminResetPasswordRequest = z.infer<typeof adminResetPasswordRequest
  */
 export const generatePasswordResetTokenResponseSchema = z.object({
   resetUrl: z.string().url(),
-  expiresAt: z.string().datetime()
+  expiresAt: z.string().datetime(),
+  message: z.string(),
 });
 
 export type GeneratePasswordResetTokenResponse = z.infer<typeof generatePasswordResetTokenResponseSchema>;

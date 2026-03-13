@@ -31,6 +31,10 @@ export {
   type LoginResponse,
   type RegisterWithResearcherResponse,
   type PasswordRequirementsResponse,
+  firstTimeResponseSchema,
+  verifyEmailResponseSchema,
+  type FirstTimeResponse,
+  type VerifyEmailResponse,
 } from './authSchemas';
 
 export {

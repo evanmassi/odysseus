@@ -104,3 +104,11 @@ export const auditLogDataSchema = z.object({
 });
 
 export type AuditLogData = z.infer<typeof auditLogDataSchema>;
+
+export const entityHistoryResponseSchema = z.object({
+  entries: z.array(auditLogEntrySchema),
+  entityType: z.string(),
+  entityId: z.string(),
+});
+
+export type EntityHistoryResponse = z.infer<typeof entityHistoryResponseSchema>;

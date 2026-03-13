@@ -203,3 +203,18 @@ export const passwordRequirementsResponseSchema = z.object({
 });
 
 export type PasswordRequirementsResponse = z.infer<typeof passwordRequirementsResponseSchema>;
+
+// Response schemas
+
+export const firstTimeResponseSchema = z.object({
+  isFirstTime: z.boolean(),
+  needsSystemAdmin: z.boolean().optional(),
+});
+
+export type FirstTimeResponse = z.infer<typeof firstTimeResponseSchema>;
+
+export const verifyEmailResponseSchema = z.object({
+  emailVerified: z.boolean(),
+});
+
+export type VerifyEmailResponse = z.infer<typeof verifyEmailResponseSchema>;

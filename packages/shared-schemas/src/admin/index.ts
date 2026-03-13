@@ -39,4 +39,6 @@ export {
   type Pagination,
   type AuditSearchResponse,
   type AuditLogData,
+  entityHistoryResponseSchema,
+  type EntityHistoryResponse,
 } from './auditSchemas';

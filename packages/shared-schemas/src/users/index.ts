@@ -27,5 +27,9 @@ export {
 
 export {
   userSessionSchema,
+  activeSessionSchema,
+  revokeAllResponseSchema,
   type UserSession,
+  type ActiveSession,
+  type RevokeAllResponse,
 } from './userSessionSchemas';

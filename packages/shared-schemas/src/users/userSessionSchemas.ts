@@ -21,3 +21,25 @@ export const userSessionSchema = z.object({
 });
 
 export type UserSession = z.infer<typeof userSessionSchema>;
+
+// Response schemas
+
+export const activeSessionSchema = z.object({
+  id: z.string(),
+  deviceInfo: z.string().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+  createdAt: z.date(),
+  lastUsedAt: z.date(),
+  expiresAt: z.date(),
+  isCurrentSession: z.boolean(),
+});
+
+export type ActiveSession = z.infer<typeof activeSessionSchema>;
+
+export const revokeAllResponseSchema = z.object({
+  message: z.string(),
+  revokedCount: z.number(),
+});
+
+export type RevokeAllResponse = z.infer<typeof revokeAllResponseSchema>;

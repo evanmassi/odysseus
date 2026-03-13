@@ -27,6 +27,16 @@ export {
   type SystemConfiguration,
   type StorageResponse,
   type SaveStorageRequest,
+  addTankResponseSchema,
+  addRacksResponseSchema,
+  addBoxesResponseSchema,
+  bulkOperationResponseSchema,
+  positionDisplayPresetsResponseSchema,
+  type AddTankResponse,
+  type AddRacksResponse,
+  type AddBoxesResponse,
+  type BulkOperationResponse,
+  type PositionDisplayPresetsResponse,
 } from './storageSchemas';
 
 export {

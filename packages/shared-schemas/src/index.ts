@@ -66,6 +66,12 @@ export {
   type BatchUnlockResult,
   type ShareAccessResult,
   type RevokeAccessResult,
+  bulkDeleteResponseSchema,
+  pasteTubesResponseSchema,
+  bulkUpdateResponseSchema,
+  type BulkDeleteResponse,
+  type PasteTubesResponse,
+  type BulkUpdateResponse,
 } from './tubes';
 
 // Lookups
@@ -173,6 +179,16 @@ export {
   labelToPosition,
   isValidPositionLabel,
   generatePositionLabels,
+  addTankResponseSchema,
+  addRacksResponseSchema,
+  addBoxesResponseSchema,
+  bulkOperationResponseSchema,
+  positionDisplayPresetsResponseSchema,
+  type AddTankResponse,
+  type AddRacksResponse,
+  type AddBoxesResponse,
+  type BulkOperationResponse,
+  type PositionDisplayPresetsResponse,
 } from './storage';
 
 // API Constants
@@ -223,6 +239,8 @@ export {
   type Pagination,
   type AuditSearchResponse,
   type AuditLogData,
+  entityHistoryResponseSchema,
+  type EntityHistoryResponse,
 } from './admin';
 
 // Authentication
@@ -267,6 +285,10 @@ export {
   type LoginResponse,
   type RegisterWithResearcherResponse,
   type PasswordRequirementsResponse,
+  firstTimeResponseSchema,
+  verifyEmailResponseSchema,
+  type FirstTimeResponse,
+  type VerifyEmailResponse,
 } from './auth';
 
 // Labs
@@ -308,7 +330,11 @@ export {
   type UserDisplayInfo,
   type UsersLookupList,
   userSessionSchema,
+  activeSessionSchema,
+  revokeAllResponseSchema,
   type UserSession,
+  type ActiveSession,
+  type RevokeAllResponse,
 } from './users';
 
 // Demo

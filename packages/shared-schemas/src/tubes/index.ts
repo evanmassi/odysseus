@@ -31,6 +31,12 @@ export {
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
   validateTubePosition,
+  bulkDeleteResponseSchema,
+  pasteTubesResponseSchema,
+  bulkUpdateResponseSchema,
+  type BulkDeleteResponse,
+  type PasteTubesResponse,
+  type BulkUpdateResponse,
 } from './tubeSchemas';
 
 export {
