@@ -45,13 +45,6 @@ export interface PasswordRequirements {
   passwordRequireSpecialChars: boolean;
 }
 
-function rethrow(error: unknown, fallback: string): never {
-  if (error && typeof error === 'object' && 'message' in error) {
-    throw new Error((error as Error).message);
-  }
-  throw new Error(fallback);
-}
-
 const firstTimeResponseSchema = z.object({
   isFirstTime: z.boolean(),
   needsSystemAdmin: z.boolean().optional(),
@@ -71,98 +64,61 @@ const resetPasswordResponseSchema = z.object({
 });
 
 export class AuthService {
-  /**
-   * Register new user (first-time setup)
-   */
+  /** Used only during first-time setup — bypasses approval workflow. */
   async register(request: RegisterRequest): Promise<AuthResponse> {
-    try {
-      const data = await httpClient.postData('/public/auth/register', request, authResponseSchema);
-      return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
-    } catch (error) {
-      rethrow(error, 'Registration failed');
-    }
+    const data = await httpClient.postData('/public/auth/register', request, authResponseSchema);
+    return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
   }
 
   /**
-   * Register user with researcher profile and approval workflow
-   *
-   * First user: Auto-approved as admin (returns tokens)
-   * Subsequent users: Pending approval (no tokens)
+   * First user: auto-approved as admin (returns tokens).
+   * Subsequent users: pending approval (no tokens).
    */
   async registerWithResearcher(
     request: RegisterWithResearcherRequest
   ): Promise<RegisterWithResearcherResponse> {
-    try {
-      const data = await httpClient.postData(
-        '/public/auth/register-with-researcher',
-        request,
-        registerWithResearcherResponseSchema
-      );
-      return {
-        user: data.user,
-        tokens: data.tokens,
-        status: data.status,
-        message: data.message,
-      } as unknown as RegisterWithResearcherResponse;
-    } catch (error) {
-      rethrow(error, 'Registration failed');
-    }
+    const data = await httpClient.postData(
+      '/public/auth/register-with-researcher',
+      request,
+      registerWithResearcherResponseSchema
+    );
+    return {
+      user: data.user,
+      tokens: data.tokens,
+      status: data.status,
+      message: data.message,
+    } as unknown as RegisterWithResearcherResponse;
   }
 
-  /**
-   * Login with username and password
-   *
-   * Returns either:
-   * - AuthResponse: Normal login with tokens
-   * - PasswordChangeRequiredResponse: User must change password first
-   */
+  /** Returns PasswordChangeRequiredResponse when a forced reset is pending. */
   async login(request: LoginRequest): Promise<LoginResponse> {
-    try {
-      const data = await httpClient.postData('/public/auth/login', request, loginResponseSchema);
+    const data = await httpClient.postData('/public/auth/login', request, loginResponseSchema);
 
-      if ('requirePasswordChange' in data && data.requirePasswordChange) {
-        return data as unknown as PasswordChangeRequiredResponse;
-      }
-
-      return {
-        user: data.user,
-        tokens: (data as { tokens: unknown }).tokens,
-      } as unknown as AuthResponse;
-    } catch (error) {
-      rethrow(error, 'Login failed');
+    if ('requirePasswordChange' in data && data.requirePasswordChange) {
+      return data as unknown as PasswordChangeRequiredResponse;
     }
+
+    return {
+      user: data.user,
+      tokens: (data as { tokens: unknown }).tokens,
+    } as unknown as AuthResponse;
   }
 
-  /**
-   * Force change password using temp token from login
-   *
-   * Called when login returns requirePasswordChange=true.
-   * After successful password change, returns normal auth response.
-   */
+  /** Called when login returns requirePasswordChange=true. */
   async forceChangePassword(tempToken: string, newPassword: string): Promise<AuthResponse> {
-    try {
-      const data = await httpClient.postData(
-        '/public/auth/force-change-password',
-        { tempToken, newPassword },
-        authResponseSchema
-      );
-      return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
-    } catch (error) {
-      rethrow(error, 'Password change failed');
-    }
+    const data = await httpClient.postData(
+      '/public/auth/force-change-password',
+      { tempToken, newPassword },
+      authResponseSchema
+    );
+    return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
   }
 
-  /**
-   * Verify current session
-   */
   async verifySession(): Promise<AuthResponse> {
     const data = await httpClient.getData('/auth/verify', authResponseSchema);
     return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
   }
 
-  /**
-   * Check if this is first-time setup
-   */
   async checkFirstTime(): Promise<{ isFirstTime: boolean; needsSystemAdmin: boolean }> {
     try {
       const data = await httpClient.getData('/public/auth/first-time', firstTimeResponseSchema);
@@ -176,9 +132,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Validate an invite code (public endpoint for registration flow)
-   */
   async validateInviteCode(code: string): Promise<{ valid: boolean; labName?: string }> {
     try {
       return await httpClient.postData(
@@ -192,9 +145,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * One-time system admin account creation
-   */
   async setupSystemAdmin(data: {
     username: string;
     password: string;
@@ -205,21 +155,14 @@ export class AuthService {
     department?: string;
     position?: string;
   }): Promise<AuthResponse> {
-    try {
-      const result = await httpClient.postData(
-        '/public/auth/setup-system-admin',
-        data,
-        authResponseSchema
-      );
-      return { user: result.user, tokens: result.tokens } as unknown as AuthResponse;
-    } catch (error) {
-      rethrow(error, 'System admin setup failed');
-    }
+    const result = await httpClient.postData(
+      '/public/auth/setup-system-admin',
+      data,
+      authResponseSchema
+    );
+    return { user: result.user, tokens: result.tokens } as unknown as AuthResponse;
   }
 
-  /**
-   * Get password requirements (for registration form validation)
-   */
   async getPasswordRequirements(): Promise<PasswordRequirements> {
     try {
       return await httpClient.getData(
@@ -236,64 +179,29 @@ export class AuthService {
     }
   }
 
-  /**
-   * Verify email with token from verification link
-   * Public endpoint - no authentication required
-   */
   async verifyEmail(token: string): Promise<void> {
-    try {
-      await httpClient.postData('/public/auth/verify-email', { token }, verifyEmailResponseSchema);
-    } catch (error) {
-      rethrow(error, 'Email verification failed');
-    }
+    await httpClient.postData('/public/auth/verify-email', { token }, verifyEmailResponseSchema);
   }
 
-  /**
-   * Resend verification email (public endpoint - no authentication required)
-   * Rate limited - 5 minute cooldown between requests
-   */
+  // Rate limited — 5 minute cooldown between requests
   async resendVerificationEmail(usernameOrEmail: string): Promise<void> {
-    try {
-      await httpClient.postData(
-        '/public/auth/resend-verification',
-        { usernameOrEmail },
-        messageResponseSchema
-      );
-    } catch (error) {
-      rethrow(error, 'Failed to resend verification email');
-    }
+    await httpClient.postData(
+      '/public/auth/resend-verification',
+      { usernameOrEmail },
+      messageResponseSchema
+    );
   }
 
-  /**
-   * Get email verification status for authenticated user
-   */
   async getVerificationStatus(): Promise<VerificationStatusResponse> {
-    try {
-      return await httpClient.getData(
-        '/auth/verification-status',
-        verificationStatusResponseSchema
-      );
-    } catch (error) {
-      rethrow(error, 'Failed to get verification status');
-    }
+    return await httpClient.getData('/auth/verification-status', verificationStatusResponseSchema);
   }
 
-  /**
-   * Reset password using token (public endpoint - no auth required)
-   */
   async resetPasswordWithToken(token: string, newPassword: string): Promise<void> {
-    try {
-      await httpClient.postData(
-        '/public/auth/reset-password',
-        {
-          token,
-          newPassword,
-        },
-        resetPasswordResponseSchema
-      );
-    } catch (error) {
-      rethrow(error, 'Failed to reset password');
-    }
+    await httpClient.postData(
+      '/public/auth/reset-password',
+      { token, newPassword },
+      resetPasswordResponseSchema
+    );
   }
 
   async logout(): Promise<void> {
