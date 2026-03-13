@@ -25,6 +25,7 @@ import {
   shareAccessResultSchema,
   revokeAccessResultSchema,
 } from '@odysseus/shared-schemas';
+import { z } from 'zod';
 
 import { httpClient } from '@infra/api';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
@@ -90,16 +91,15 @@ export class TubeService {
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
-    const response = await httpClient.post<{
-      success: boolean;
-      data: {
-        success: boolean;
-        deleted: string[];
-        failed: Array<{ id: string; error: string }>;
-      };
-    }>(`${this.BASE_PATH}/bulk-delete`, { tubeIds });
-
-    return response.data.data;
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk-delete`,
+      { tubeIds },
+      z.object({
+        success: z.boolean(),
+        deleted: z.array(z.string()),
+        failed: z.array(z.object({ id: z.string(), error: z.string() })),
+      })
+    );
   }
 
   static async fetchTubesByLocation(
@@ -122,16 +122,17 @@ export class TubeService {
     const normalizedTubes = tubes.map(tube => this.normalizeTubeDates(tube));
     const validatedRequests = normalizedTubes.map(tube => createTubeRequestSchema.parse(tube));
 
-    const response = await httpClient.post<{
-      success: boolean;
-      data: {
-        success: boolean;
-        created: TubeData[];
-        failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
-      };
-    }>(this.BASE_PATH, validatedRequests);
-
-    return response.data.data;
+    return await httpClient.postData(
+      this.BASE_PATH,
+      validatedRequests,
+      z.object({
+        success: z.boolean(),
+        created: z.array(tubeDataSchema),
+        failed: z.array(
+          z.object({ index: z.number(), request: createTubeRequestSchema, error: z.string() })
+        ),
+      })
+    );
   }
 
   /** Uses server-side bulk endpoint for proper audit logging. */
@@ -145,16 +146,15 @@ export class TubeService {
       updates: this.normalizeTubeDates(update.data),
     }));
 
-    const response = await httpClient.post<{
-      success: boolean;
-      data: {
-        success: boolean;
-        updated: string[];
-        failed: Array<{ id: string; error: string }>;
-      };
-    }>(`${this.BASE_PATH}/bulk-update`, { updates: normalizedUpdates });
-
-    return response.data.data;
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk-update`,
+      { updates: normalizedUpdates },
+      z.object({
+        success: z.boolean(),
+        updated: z.array(z.string()),
+        failed: z.array(z.object({ id: z.string(), error: z.string() })),
+      })
+    );
   }
 
   // Tube locking
