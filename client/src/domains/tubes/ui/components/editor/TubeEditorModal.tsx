@@ -33,7 +33,7 @@ import {
 } from '@domains/tubes/hooks/useTubeMutations';
 import { parsePositionKey, type PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { useUserSettings } from '@domains/users';
-import { isOfflineError } from '@infra/api/HttpClient';
+import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { AlertBanner, Button, Checkbox } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';

@@ -9,7 +9,7 @@ import {
   type ThemePreference,
 } from '@odysseus/shared-schemas';
 
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 
 export class UserSettingsService {
   async getUserSettings(): Promise<UserSettings> {

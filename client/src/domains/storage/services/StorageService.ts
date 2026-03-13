@@ -1,7 +1,7 @@
 import { StorageResponseSchema, positionDisplayConfigSchema } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 import { InfrastructureError } from '@shared/errors';
 

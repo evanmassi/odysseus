@@ -4,7 +4,7 @@
  * System configuration, metrics, lookup values, and invite code management.
  */
 
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
 import type {

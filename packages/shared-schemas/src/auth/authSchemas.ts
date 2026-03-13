@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { passwordChangeRequiredResponseSchema } from './passwordResetSchemas';
 
 const passwordField = z.string()
   .min(4, 'Password must be at least 4 characters')
@@ -140,3 +141,65 @@ export const verificationStatusResponseSchema = z.object({
 });
 
 export type VerificationStatusResponse = z.infer<typeof verificationStatusResponseSchema>;
+
+const dateOrString = z.union([z.string().datetime(), z.date()]);
+
+export const tokenPairSchema = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string(),
+  accessTokenExpiry: dateOrString,
+  refreshTokenExpiry: dateOrString,
+  tokenType: z.literal('Bearer'),
+  lastActivityTime: dateOrString,
+  sessionTimeoutMinutes: z.number().int().optional(),
+  idleWarningMinutes: z.number().int().optional(),
+});
+
+export type TokenPair = z.infer<typeof tokenPairSchema>;
+
+export const publicUserDataSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  role: z.enum(['system_admin', 'lab_admin', 'user']),
+  createdAt: z.string(),
+  lastActivity: z.string(),
+  status: z.enum(['pending', 'approved', 'rejected', 'deactivated', 'suspended']),
+  isDemo: z.boolean(),
+  researcherId: z.string().optional(),
+  personId: z.string().optional(),
+  labId: z.string().optional(),
+});
+
+export type PublicUserData = z.infer<typeof publicUserDataSchema>;
+
+export const authResponseSchema = z.object({
+  user: publicUserDataSchema,
+  sessionToken: z.string(),
+  tokens: tokenPairSchema,
+});
+
+export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+export const loginResponseSchema = z.union([
+  authResponseSchema,
+  passwordChangeRequiredResponseSchema,
+]);
+
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+
+export const registerWithResearcherResponseSchema = z.object({
+  user: publicUserDataSchema,
+  tokens: tokenPairSchema.optional(),
+  status: z.enum(['approved', 'pending']),
+  message: z.string(),
+});
+
+export type RegisterWithResearcherResponse = z.infer<typeof registerWithResearcherResponseSchema>;
+
+export const passwordRequirementsResponseSchema = z.object({
+  passwordMinLength: z.number().int(),
+  requireStrongPasswords: z.boolean(),
+  passwordRequireSpecialChars: z.boolean(),
+});
+
+export type PasswordRequirementsResponse = z.infer<typeof passwordRequirementsResponseSchema>;

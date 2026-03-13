@@ -37,9 +37,8 @@ vi.mock('../services/AuthService', () => ({
   isPasswordChangeRequired: vi.fn(() => false),
 }));
 
-vi.mock('../../../infrastructure/api/httpClient', () => ({
-  httpClient: {},
-  configureHttpClientWithSessionService: vi.fn(),
+vi.mock('../../../infrastructure/api', () => ({
+  httpClient: { setTokenProvider: vi.fn() },
 }));
 
 vi.mock('@app/services/SessionService', () => ({

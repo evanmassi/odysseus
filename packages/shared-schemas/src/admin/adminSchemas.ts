@@ -135,6 +135,66 @@ export const userSessionSchema = z.object({
 
 export type UserSession = z.infer<typeof userSessionSchema>;
 
+export const auditStatisticsSchema = z.object({
+  total: z.number().int().min(0),
+  today: z.number().int().min(0),
+  thisWeek: z.number().int().min(0),
+});
+
+export type AuditStatistics = z.infer<typeof auditStatisticsSchema>;
+
+export const retentionMetricsSchema = z.object({
+  activeTable: z.object({
+    count: z.number().int().min(0),
+    oldestEntry: dateOrString.nullable(),
+    newestEntry: dateOrString.nullable(),
+    retentionDays: z.number().int(),
+  }),
+  archiveTable: z.object({
+    count: z.number().int().min(0),
+    oldestEntry: dateOrString.nullable(),
+    retentionDays: z.number().int(),
+  }),
+  nextArchivalDate: dateOrString.nullable(),
+  performanceWarning: z.boolean(),
+});
+
+export type RetentionMetrics = z.infer<typeof retentionMetricsSchema>;
+
+export const retentionPolicySchema = z.object({
+  activeRetentionDays: z.number().int(),
+  totalRetentionDays: z.number().int(),
+  archiveRetentionDays: z.number().int(),
+  enableAutoArchival: z.boolean(),
+  activeTableWarningThreshold: z.number().int(),
+});
+
+export type RetentionPolicy = z.infer<typeof retentionPolicySchema>;
+
+export const auditArchiveResponseSchema = z.object({
+  archived: z.number().int().min(0),
+  deleted: z.number().int().min(0),
+  message: z.string(),
+});
+
+export type AuditArchiveResponse = z.infer<typeof auditArchiveResponseSchema>;
+
+export const paginationSchema = z.object({
+  total: z.number().int().min(0),
+  limit: z.number().int().min(1),
+  offset: z.number().int().min(0),
+  hasMore: z.boolean(),
+});
+
+export type Pagination = z.infer<typeof paginationSchema>;
+
+export const auditSearchResponseSchema = z.object({
+  entries: z.array(auditLogEntrySchema),
+  pagination: paginationSchema,
+});
+
+export type AuditSearchResponse = z.infer<typeof auditSearchResponseSchema>;
+
 // API Response Schemas
 
 export const securityConfigResponseSchema = z.object({
@@ -161,12 +221,7 @@ export type SystemMetricsResponse = z.infer<typeof systemMetricsResponseSchema>;
 export const auditLogResponseSchema = z.object({
   success: z.boolean(),
   entries: z.array(auditLogEntrySchema),
-  pagination: z.object({
-    total: z.number().int().min(0),
-    limit: z.number().int().min(1),
-    offset: z.number().int().min(0),
-    hasMore: z.boolean(),
-  }),
+  pagination: paginationSchema,
 });
 
 export type AuditLogResponse = z.infer<typeof auditLogResponseSchema>;

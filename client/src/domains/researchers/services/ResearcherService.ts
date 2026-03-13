@@ -16,7 +16,7 @@ import {
   updateResearcherProfileSchema,
 } from '@odysseus/shared-schemas';
 
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 
 export class ResearcherService {
   private static readonly BASE_PATH = '/researchers';

@@ -209,6 +209,18 @@ export {
   type AdminUsersResponse,
   type SystemMetricsResponse,
   type AuditLogResponse,
+  auditStatisticsSchema,
+  retentionMetricsSchema,
+  retentionPolicySchema,
+  auditArchiveResponseSchema,
+  paginationSchema,
+  auditSearchResponseSchema,
+  type AuditStatistics,
+  type RetentionMetrics,
+  type RetentionPolicy,
+  type AuditArchiveResponse,
+  type Pagination,
+  type AuditSearchResponse,
 } from './admin/adminSchemas';
 
 // Authentication
@@ -241,6 +253,18 @@ export {
   type ResetPasswordWithTokenRequest,
   type ForceChangePasswordRequest,
   type PasswordChangeRequiredResponse,
+  tokenPairSchema,
+  publicUserDataSchema,
+  authResponseSchema,
+  loginResponseSchema,
+  registerWithResearcherResponseSchema,
+  passwordRequirementsResponseSchema,
+  type TokenPair,
+  type PublicUserData,
+  type AuthResponse,
+  type LoginResponse,
+  type RegisterWithResearcherResponse,
+  type PasswordRequirementsResponse,
 } from './auth';
 
 // Labs

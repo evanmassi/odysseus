@@ -19,6 +19,18 @@ export {
   type SystemAdminSetupRequest,
   type ValidateInviteCodeRequest,
   type ValidateInviteCodeResponse,
+  tokenPairSchema,
+  publicUserDataSchema,
+  authResponseSchema,
+  loginResponseSchema,
+  registerWithResearcherResponseSchema,
+  passwordRequirementsResponseSchema,
+  type TokenPair,
+  type PublicUserData,
+  type AuthResponse,
+  type LoginResponse,
+  type RegisterWithResearcherResponse,
+  type PasswordRequirementsResponse,
 } from './authSchemas';
 
 export {

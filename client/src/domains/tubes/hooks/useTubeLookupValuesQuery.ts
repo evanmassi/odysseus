@@ -7,7 +7,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 
 import type { LookupCategory, LookupValue } from '@odysseus/shared-schemas';
 

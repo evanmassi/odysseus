@@ -4,7 +4,7 @@
  * System admin lab management and cross-lab invite code operations.
  */
 
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
 import { buildAuditFilterParams } from '../utils/auditLogFilterParams';

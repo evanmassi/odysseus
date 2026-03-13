@@ -4,7 +4,7 @@
  * User management operations for lab administrators.
  */
 
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
 import type { AdminUser, GeneratePasswordResetTokenResponse } from '@odysseus/shared-schemas';

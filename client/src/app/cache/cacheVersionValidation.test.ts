@@ -4,7 +4,7 @@
  * Covers version match/mismatch, missing cache, missing session, and network error paths.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock dependencies before imports
 vi.mock('@infra/logger', () => ({
@@ -15,18 +15,18 @@ vi.mock('@infra/logger', () => ({
   },
 }));
 
-vi.mock('../queryClient', () => ({
+vi.mock('./queryClient', () => ({
   queryClient: {
     getQueryData: vi.fn(),
     removeQueries: vi.fn(),
   },
 }));
 
-vi.mock('../queryKeys', () => ({
+vi.mock('./queryKeys', () => ({
   queryKeys: {
     storage: {
       all: ['storage'],
-      storage: () => ['storage', 'data'],
+      data: () => ['storage', 'data'],
     },
     tubes: {
       all: ['tubes'],
@@ -56,10 +56,6 @@ Object.defineProperty(global, 'localStorage', {
 describe('validateCacheVersion', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe('when no access token provided', () => {

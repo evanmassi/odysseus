@@ -9,7 +9,7 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { queryClient } from '@app/cache/queryClient';
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
 import type { UserRole } from '../types';

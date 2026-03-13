@@ -6,7 +6,7 @@
 
 import { SearchResultSchema, AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
 
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 import { InfrastructureError } from '@shared/errors';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 

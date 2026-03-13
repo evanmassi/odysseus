@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 
 /**
  * Active session data returned from GET /api/users/me/sessions.

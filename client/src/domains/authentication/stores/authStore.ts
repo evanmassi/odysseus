@@ -11,8 +11,8 @@ import { persist } from 'zustand/middleware';
 import { clearAllCaches } from '@app/cache/queryClient';
 import { SessionService, LocalStorageSessionStorage } from '@app/services/SessionService';
 import { modalStore } from '@app/stores/modalStore';
+import { httpClient } from '@infra/api';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
-import { configureHttpClientWithSessionService } from '@infra/api/HttpClient';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 
@@ -106,7 +106,7 @@ const sessionManager = new SessionService(
   }
 );
 
-configureHttpClientWithSessionService(sessionManager);
+httpClient.setTokenProvider(sessionManager);
 
 export const useAuthStore = create<AuthStore>()(
   persist(

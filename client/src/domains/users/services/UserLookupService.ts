@@ -3,7 +3,7 @@
  *
  * Provides user display info lookup for any authenticated user.
  */
-import { httpClient } from '@infra/api/HttpClient';
+import { httpClient } from '@infra/api';
 
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
