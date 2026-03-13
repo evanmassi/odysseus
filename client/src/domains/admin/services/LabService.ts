@@ -4,6 +4,18 @@
  * System admin lab management and cross-lab invite code operations.
  */
 
+import {
+  labDataSchema,
+  labDetailsSchema,
+  inviteCodeDataSchema,
+  demoLimitsSchema,
+  seedDemoResponseSchema,
+  unseedDemoResponseSchema,
+  auditSearchResponseSchema,
+  systemOverviewSchema,
+} from '@odysseus/shared-schemas';
+import { z } from 'zod';
+
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
@@ -25,11 +37,11 @@ import type {
 export class LabService {
   async getLabs(): Promise<LabData[]> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: { labs: LabData[] };
-      }>('/system/labs');
-      return response.data.data.labs;
+      const data = await httpClient.getData(
+        '/system/labs',
+        z.object({ labs: z.array(labDataSchema) })
+      );
+      return data.labs;
     } catch (error) {
       logger.error('Failed to get labs', { error });
       throw error;
@@ -38,11 +50,12 @@ export class LabService {
 
   async createLab(name: string, isDemo?: boolean): Promise<LabData> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        data: { lab: LabData };
-      }>('/system/labs', { name, ...(isDemo && { isDemo }) });
-      return response.data.data.lab;
+      const data = await httpClient.postData(
+        '/system/labs',
+        { name, ...(isDemo && { isDemo }) },
+        z.object({ lab: labDataSchema })
+      );
+      return data.lab;
     } catch (error) {
       logger.error('Failed to create lab', { error });
       throw error;
@@ -51,11 +64,12 @@ export class LabService {
 
   async updateLab(id: string, name: string): Promise<LabData> {
     try {
-      const response = await httpClient.put<{
-        success: boolean;
-        data: { lab: LabData };
-      }>(`/system/labs/${id}`, { name });
-      return response.data.data.lab;
+      const data = await httpClient.putData(
+        `/system/labs/${id}`,
+        { name },
+        z.object({ lab: labDataSchema })
+      );
+      return data.lab;
     } catch (error) {
       logger.error('Failed to update lab', { id, error });
       throw error;
@@ -73,11 +87,7 @@ export class LabService {
 
   async getLabDetails(labId: string): Promise<LabDetails> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: LabDetails;
-      }>(`/system/labs/${labId}/details`);
-      return response.data.data;
+      return await httpClient.getData(`/system/labs/${labId}/details`, labDetailsSchema);
     } catch (error) {
       logger.error('Failed to get lab details', { labId, error });
       throw error;
@@ -95,11 +105,11 @@ export class LabService {
 
   async getLabInviteCodes(labId: string): Promise<InviteCodeData[]> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: { inviteCodes: InviteCodeData[] };
-      }>(`/system/labs/${labId}/invite-codes`);
-      return response.data.data.inviteCodes;
+      const data = await httpClient.getData(
+        `/system/labs/${labId}/invite-codes`,
+        z.object({ inviteCodes: z.array(inviteCodeDataSchema) })
+      );
+      return data.inviteCodes;
     } catch (error) {
       logger.error('Failed to get lab invite codes', { labId, error });
       throw error;
@@ -108,11 +118,12 @@ export class LabService {
 
   async createLabInviteCode(labId: string, data: CreateInviteCodeRequest): Promise<InviteCodeData> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        data: { inviteCode: InviteCodeData };
-      }>(`/system/labs/${labId}/invite-codes`, data);
-      return response.data.data.inviteCode;
+      const result = await httpClient.postData(
+        `/system/labs/${labId}/invite-codes`,
+        data,
+        z.object({ inviteCode: inviteCodeDataSchema })
+      );
+      return result.inviteCode;
     } catch (error) {
       logger.error('Failed to create lab invite code', { labId, error });
       throw error;
@@ -130,11 +141,11 @@ export class LabService {
 
   async seedDemo(labId: string): Promise<SeedDemoResponse> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        data: SeedDemoResponse;
-      }>(`/system/labs/${labId}/demo/seed`);
-      return response.data.data;
+      return await httpClient.postData(
+        `/system/labs/${labId}/demo/seed`,
+        undefined,
+        seedDemoResponseSchema
+      );
     } catch (error) {
       logger.error('Failed to seed demo lab', { labId, error });
       throw error;
@@ -143,11 +154,11 @@ export class LabService {
 
   async unseedDemo(labId: string): Promise<UnseedDemoResponse> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        data: UnseedDemoResponse;
-      }>(`/system/labs/${labId}/demo/unseed`);
-      return response.data.data;
+      return await httpClient.postData(
+        `/system/labs/${labId}/demo/unseed`,
+        undefined,
+        unseedDemoResponseSchema
+      );
     } catch (error) {
       logger.error('Failed to unseed demo lab', { labId, error });
       throw error;
@@ -156,11 +167,11 @@ export class LabService {
 
   async getDemoLimits(labId: string): Promise<DemoLimits> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: { limits: DemoLimits };
-      }>(`/system/labs/${labId}/demo/limits`);
-      return response.data.data.limits;
+      const data = await httpClient.getData(
+        `/system/labs/${labId}/demo/limits`,
+        z.object({ limits: demoLimitsSchema })
+      );
+      return data.limits;
     } catch (error) {
       logger.error('Failed to get demo limits', { labId, error });
       throw error;
@@ -169,11 +180,12 @@ export class LabService {
 
   async updateDemoLimits(labId: string, limits: Partial<DemoLimits>): Promise<DemoLimits> {
     try {
-      const response = await httpClient.put<{
-        success: boolean;
-        data: { limits: DemoLimits };
-      }>(`/system/labs/${labId}/demo/limits`, limits);
-      return response.data.data.limits;
+      const data = await httpClient.putData(
+        `/system/labs/${labId}/demo/limits`,
+        limits,
+        z.object({ limits: demoLimitsSchema })
+      );
+      return data.limits;
     } catch (error) {
       logger.error('Failed to update demo limits', { labId, error });
       throw error;
@@ -209,7 +221,7 @@ export class LabService {
 
   async deleteUser(labId: string, userId: string): Promise<void> {
     try {
-      await httpClient.delete(`/system/labs/${labId}/users/${userId}`);
+      await httpClient.deleteData(`/system/labs/${labId}/users/${userId}`);
     } catch (error) {
       logger.error('Failed to delete user', { labId, userId, error });
       throw error;
@@ -229,14 +241,10 @@ export class LabService {
       params.append('includeArchive', includeArchive.toString());
 
       const query = params.toString() ? `?${params.toString()}` : '';
-      const response = await httpClient.get<{
-        success: boolean;
-        data: {
-          entries: AuditLogEntry[];
-          pagination: { total: number; limit: number; offset: number; hasMore: boolean };
-        };
-      }>(`/system/labs/${labId}/audit${query}`);
-      return response.data.data;
+      return await httpClient.getData(
+        `/system/labs/${labId}/audit${query}`,
+        auditSearchResponseSchema
+      );
     } catch (error) {
       logger.error('Failed to get lab audit log', { labId, error });
       throw error;
@@ -245,10 +253,7 @@ export class LabService {
 
   async getSystemOverview(): Promise<SystemOverview> {
     try {
-      const response = await httpClient.get<{ success: boolean; data: SystemOverview }>(
-        '/system/overview'
-      );
-      return response.data.data;
+      return await httpClient.getData('/system/overview', systemOverviewSchema);
     } catch (error) {
       logger.error('Failed to get system overview', { error });
       throw error;

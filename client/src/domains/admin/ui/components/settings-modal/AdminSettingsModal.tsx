@@ -89,17 +89,12 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   const loadConfiguration = async () => {
     try {
-      const response = await adminService.getSecurityConfig();
-
-      if (response.success && response.config) {
-        // Merge with defaults to ensure all fields are present
-        const loadedConfig = { ...DEFAULT_SECURITY_CONFIG, ...response.config };
-        setConfig(loadedConfig);
-        setOriginalConfig(loadedConfig);
-      }
+      const config = await adminService.getSecurityConfig();
+      const loadedConfig = { ...DEFAULT_SECURITY_CONFIG, ...config };
+      setConfig(loadedConfig);
+      setOriginalConfig(loadedConfig);
     } catch (error) {
       logger.error('Failed to load configuration', { error });
-      // Keep defaults on error
       setConfig(DEFAULT_SECURITY_CONFIG);
       setOriginalConfig(DEFAULT_SECURITY_CONFIG);
     }
@@ -107,16 +102,8 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   const loadUsers = async () => {
     try {
-      const response = await adminUserService.getUsers();
-
-      if (response.success && Array.isArray(response.users)) {
-        setUsers(sortByName(response.users));
-      } else {
-        setUsers([]);
-        logger.warn(
-          'Failed to load users: API returned unsuccessful response or invalid data format'
-        );
-      }
+      const users = await adminUserService.getUsers();
+      setUsers(sortByName(users));
     } catch (error) {
       logger.error('Failed to load users', { error });
       setUsers([]);
@@ -125,11 +112,8 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   const loadSystemStats = async () => {
     try {
-      const response = await adminService.getMetrics();
-
-      if (response.success && response.data) {
-        setSystemStats(response.data);
-      }
+      const metrics = await adminService.getMetrics();
+      setSystemStats(metrics);
     } catch (error) {
       logger.error('Failed to load system stats', { error });
       setSystemStats({
@@ -153,17 +137,15 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
     setSaving(true);
     try {
-      const response = isSystemAdmin
-        ? await adminService.updateSecurityConfigAsSystemAdmin(changes)
-        : await adminService.updateSecurityConfig(changes);
-
-      if (response.success) {
-        notifications.success('Security configuration updated successfully');
-        setOriginalConfig(config);
-        onClose();
+      if (isSystemAdmin) {
+        await adminService.updateSecurityConfigAsSystemAdmin(changes);
       } else {
-        notifications.error('Failed to update security configuration');
+        await adminService.updateSecurityConfig(changes);
       }
+
+      notifications.success('Security configuration updated successfully');
+      setOriginalConfig(config);
+      onClose();
     } catch (error) {
       logger.error('Failed to save configuration', { error });
       notifications.error('Failed to update security configuration');

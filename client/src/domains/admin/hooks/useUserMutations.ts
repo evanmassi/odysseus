@@ -14,11 +14,7 @@ export function useDeactivateUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId: string) => {
-      const response = await adminUserService.deactivateUser(userId);
-      if (!response.success) throw new Error('Failed to deactivate user');
-      return response;
-    },
+    mutationFn: (userId: string) => adminUserService.deactivateUser(userId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
     },
@@ -32,11 +28,7 @@ export function useActivateUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId: string) => {
-      const response = await adminUserService.activateUser(userId);
-      if (!response.success) throw new Error('Failed to activate user');
-      return response;
-    },
+    mutationFn: (userId: string) => adminUserService.activateUser(userId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
     },
@@ -50,15 +42,7 @@ export function useDeleteUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId: string) => {
-      const response = await adminUserService.deleteUser(userId);
-
-      if (!response.success) {
-        throw new Error('Failed to delete user');
-      }
-
-      return response;
-    },
+    mutationFn: (userId: string) => adminUserService.deleteUser(userId),
 
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });

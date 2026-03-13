@@ -4,138 +4,107 @@
  * User management operations for lab administrators.
  */
 
+import { adminUserSchema } from '@odysseus/shared-schemas';
+import { z } from 'zod';
+
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
-import type { AdminUser, GeneratePasswordResetTokenResponse } from '@odysseus/shared-schemas';
+import type { AdminUser } from '@odysseus/shared-schemas';
 
 export class AdminUserService {
-  async getUsers(): Promise<{ success: boolean; users: AdminUser[] }> {
+  async getUsers(): Promise<AdminUser[]> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: { users: AdminUser[] };
-        meta?: { timing: number };
-      }>('/admin/users');
-
-      return {
-        success: response.data.success,
-        users: response.data.data.users,
-      };
+      const data = await httpClient.getData(
+        '/admin/users',
+        z.object({ users: z.array(adminUserSchema) })
+      );
+      return data.users;
     } catch (error) {
       logger.error('Failed to get users', { error });
       throw error;
     }
   }
 
-  async updateUserRole(
-    userId: string,
-    newRole: 'lab_admin' | 'user'
-  ): Promise<{ success: boolean }> {
+  async updateUserRole(userId: string, newRole: 'lab_admin' | 'user'): Promise<void> {
     try {
-      const response = await httpClient.put<{ success: boolean }>(`/admin/users/${userId}/role`, {
-        role: newRole,
-      });
-      return response.data;
+      await httpClient.putData(`/admin/users/${userId}/role`, { role: newRole }, z.object({}));
     } catch (error) {
       logger.error('Failed to update user role', { userId, error });
       throw error;
     }
   }
 
-  async deleteUser(userId: string): Promise<{ success: boolean }> {
+  async deleteUser(userId: string): Promise<void> {
     try {
-      const response = await httpClient.delete<{ success: boolean }>(`/admin/users/${userId}`);
-      return response.data;
+      await httpClient.deleteData(`/admin/users/${userId}`);
     } catch (error) {
       logger.error('Failed to delete user', { userId, error });
       throw error;
     }
   }
 
-  async getPendingUsers(): Promise<{ success: boolean; users: AdminUser[] }> {
+  async getPendingUsers(): Promise<AdminUser[]> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: { users: AdminUser[] };
-        meta?: { timing: number };
-      }>('/admin/users/pending');
-
-      return {
-        success: response.data.success,
-        users: response.data.data.users,
-      };
+      const data = await httpClient.getData(
+        '/admin/users/pending',
+        z.object({ users: z.array(adminUserSchema) })
+      );
+      return data.users;
     } catch (error) {
       logger.error('Failed to get pending users', { error });
       throw error;
     }
   }
 
-  async approveUser(userId: string): Promise<{ success: boolean }> {
+  async approveUser(userId: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean }>(
-        `/admin/users/${userId}/approve`
-      );
-      return response.data;
+      await httpClient.post(`/admin/users/${userId}/approve`);
     } catch (error) {
       logger.error('Failed to approve user', { userId, error });
       throw error;
     }
   }
 
-  async rejectUser(userId: string): Promise<{ success: boolean }> {
+  async rejectUser(userId: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean }>(`/admin/users/${userId}/reject`);
-      return response.data;
+      await httpClient.post(`/admin/users/${userId}/reject`);
     } catch (error) {
       logger.error('Failed to reject user', { userId, error });
       throw error;
     }
   }
 
-  async deactivateUser(userId: string): Promise<{ success: boolean }> {
+  async deactivateUser(userId: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean }>(
-        `/admin/users/${userId}/deactivate`
-      );
-      return response.data;
+      await httpClient.post(`/admin/users/${userId}/deactivate`);
     } catch (error) {
       logger.error('Failed to deactivate user', { userId, error });
       throw error;
     }
   }
 
-  async activateUser(userId: string): Promise<{ success: boolean }> {
+  async activateUser(userId: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean }>(
-        `/admin/users/${userId}/activate`
-      );
-      return response.data;
+      await httpClient.post(`/admin/users/${userId}/activate`);
     } catch (error) {
       logger.error('Failed to activate user', { userId, error });
       throw error;
     }
   }
 
-  async linkResearcherToUser(userId: string, researcherId: string): Promise<{ success: boolean }> {
+  async linkResearcherToUser(userId: string, researcherId: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean }>(
-        `/admin/users/${userId}/link-researcher`,
-        { researcherId }
-      );
-      return response.data;
+      await httpClient.post(`/admin/users/${userId}/link-researcher`, { researcherId });
     } catch (error) {
       logger.error('Failed to link researcher to user', { userId, error });
       throw error;
     }
   }
 
-  async unlinkResearcherFromUser(userId: string): Promise<{ success: boolean }> {
+  async unlinkResearcherFromUser(userId: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean }>(
-        `/admin/users/${userId}/unlink-researcher`
-      );
-      return response.data;
+      await httpClient.post(`/admin/users/${userId}/unlink-researcher`);
     } catch (error) {
       logger.error('Failed to unlink researcher from user', { userId, error });
       throw error;
@@ -146,16 +115,12 @@ export class AdminUserService {
     userId: string,
     newPassword: string,
     requirePasswordChange: boolean = true
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<void> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        message: string;
-      }>(`/admin/users/${userId}/reset-password`, {
+      await httpClient.post(`/admin/users/${userId}/reset-password`, {
         newPassword,
         requirePasswordChange,
       });
-      return response.data;
     } catch (error) {
       logger.error('Failed to reset password for user', { userId, error });
       throw error;
@@ -168,20 +133,13 @@ export class AdminUserService {
    */
   async generatePasswordResetToken(
     userId: string
-  ): Promise<{ success: boolean; message: string } & GeneratePasswordResetTokenResponse> {
+  ): Promise<{ resetUrl: string; expiresAt: string; message: string }> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        data: GeneratePasswordResetTokenResponse & { message: string };
-        meta?: { timing: number };
-      }>(`/admin/users/${userId}/generate-reset-token`);
-
-      return {
-        success: response.data.success,
-        resetUrl: response.data.data.resetUrl,
-        expiresAt: response.data.data.expiresAt,
-        message: response.data.data.message,
-      };
+      return await httpClient.postData(
+        `/admin/users/${userId}/generate-reset-token`,
+        undefined,
+        z.object({ resetUrl: z.string(), expiresAt: z.string(), message: z.string() })
+      );
     } catch (error) {
       logger.error('Failed to generate password reset token for user', { userId, error });
       throw error;

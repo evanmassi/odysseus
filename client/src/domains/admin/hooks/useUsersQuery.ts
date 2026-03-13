@@ -19,10 +19,7 @@ export function useUsersQuery(options?: {
 }) {
   return useQuery({
     queryKey: queryKeys.admin.users(),
-    queryFn: async (): Promise<AdminUser[]> => {
-      const result = await adminUserService.getUsers();
-      return result.users;
-    },
+    queryFn: () => adminUserService.getUsers(),
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,
     refetchOnMount: false,

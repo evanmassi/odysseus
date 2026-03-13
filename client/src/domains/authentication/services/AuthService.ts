@@ -5,8 +5,15 @@
  */
 import {
   type RegisterWithResearcherRequest,
+  authResponseSchema,
+  loginResponseSchema,
+  registerWithResearcherResponseSchema,
+  passwordRequirementsResponseSchema,
+  verificationStatusResponseSchema,
+  validateInviteCodeResponseSchema,
   type VerificationStatusResponse,
 } from '@odysseus/shared-schemas';
+import { z } from 'zod';
 
 import { queryClient } from '@app/cache/queryClient';
 import { httpClient } from '@infra/api';
@@ -45,27 +52,32 @@ function rethrow(error: unknown, fallback: string): never {
   throw new Error(fallback);
 }
 
+const firstTimeResponseSchema = z.object({
+  isFirstTime: z.boolean(),
+  needsSystemAdmin: z.boolean().optional(),
+});
+
+const verifyEmailResponseSchema = z.object({
+  emailVerified: z.boolean(),
+});
+
+const messageResponseSchema = z.object({
+  message: z.string(),
+});
+
+const resetPasswordResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
+
 export class AuthService {
   /**
    * Register new user (first-time setup)
    */
   async register(request: RegisterRequest): Promise<AuthResponse> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(
-        '/public/auth/register',
-        request
-      );
-
-      if (response.data.success && response.data.data) {
-        const responseData = response.data.data;
-
-        return {
-          user: responseData.user,
-          tokens: responseData.tokens,
-        };
-      }
-
-      throw new Error('Registration failed');
+      const data = await httpClient.postData('/public/auth/register', request, authResponseSchema);
+      return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
     } catch (error) {
       rethrow(error, 'Registration failed');
     }
@@ -81,23 +93,17 @@ export class AuthService {
     request: RegisterWithResearcherRequest
   ): Promise<RegisterWithResearcherResponse> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        data: RegisterWithResearcherResponse;
-      }>('/public/auth/register-with-researcher', request);
-
-      if (response.data.success && response.data.data) {
-        const responseData = response.data.data;
-
-        return {
-          user: responseData.user,
-          tokens: responseData.tokens,
-          status: responseData.status,
-          message: responseData.message,
-        };
-      }
-
-      throw new Error('Registration failed');
+      const data = await httpClient.postData(
+        '/public/auth/register-with-researcher',
+        request,
+        registerWithResearcherResponseSchema
+      );
+      return {
+        user: data.user,
+        tokens: data.tokens,
+        status: data.status,
+        message: data.message,
+      } as unknown as RegisterWithResearcherResponse;
     } catch (error) {
       rethrow(error, 'Registration failed');
     }
@@ -112,26 +118,16 @@ export class AuthService {
    */
   async login(request: LoginRequest): Promise<LoginResponse> {
     try {
-      // HttpClient automatically transforms dates using existing responseTransformers
-      const response = await httpClient.post<{ success: boolean; data: LoginResponse }>(
-        '/public/auth/login',
-        request
-      );
+      const data = await httpClient.postData('/public/auth/login', request, loginResponseSchema);
 
-      if (response.data.success && response.data.data) {
-        const responseData = response.data.data;
-
-        if ('requirePasswordChange' in responseData && responseData.requirePasswordChange) {
-          return responseData as PasswordChangeRequiredResponse;
-        }
-
-        return {
-          user: (responseData as AuthResponse).user,
-          tokens: (responseData as AuthResponse).tokens,
-        };
+      if ('requirePasswordChange' in data && data.requirePasswordChange) {
+        return data as unknown as PasswordChangeRequiredResponse;
       }
 
-      throw new Error('Login failed');
+      return {
+        user: data.user,
+        tokens: (data as { tokens: unknown }).tokens,
+      } as unknown as AuthResponse;
     } catch (error) {
       rethrow(error, 'Login failed');
     }
@@ -145,16 +141,12 @@ export class AuthService {
    */
   async forceChangePassword(tempToken: string, newPassword: string): Promise<AuthResponse> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(
+      const data = await httpClient.postData(
         '/public/auth/force-change-password',
-        { tempToken, newPassword }
+        { tempToken, newPassword },
+        authResponseSchema
       );
-
-      if (response.data.success && response.data.data) {
-        return response.data.data;
-      }
-
-      throw new Error('Password change failed');
+      return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
     } catch (error) {
       rethrow(error, 'Password change failed');
     }
@@ -164,14 +156,8 @@ export class AuthService {
    * Verify current session
    */
   async verifySession(): Promise<AuthResponse> {
-    const response = await httpClient.get<{ success: boolean; data: AuthResponse }>('/auth/verify');
-
-    if (response.data.success && response.data.data) {
-      return response.data.data;
-    }
-
-    // SessionService will handle token cleanup on error
-    throw new Error('Session verification failed');
+    const data = await httpClient.getData('/auth/verify', authResponseSchema);
+    return { user: data.user, tokens: data.tokens } as unknown as AuthResponse;
   }
 
   /**
@@ -179,19 +165,11 @@ export class AuthService {
    */
   async checkFirstTime(): Promise<{ isFirstTime: boolean; needsSystemAdmin: boolean }> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: { isFirstTime: boolean; needsSystemAdmin: boolean };
-      }>('/public/auth/first-time');
-
-      if (response.data.success && response.data.data) {
-        return {
-          isFirstTime: response.data.data.isFirstTime,
-          needsSystemAdmin: response.data.data.needsSystemAdmin ?? false,
-        };
-      }
-
-      return { isFirstTime: false, needsSystemAdmin: false };
+      const data = await httpClient.getData('/public/auth/first-time', firstTimeResponseSchema);
+      return {
+        isFirstTime: data.isFirstTime,
+        needsSystemAdmin: data.needsSystemAdmin ?? false,
+      };
     } catch (error) {
       logger.error('Failed to check first-time setup', { error });
       return { isFirstTime: false, needsSystemAdmin: false };
@@ -203,16 +181,11 @@ export class AuthService {
    */
   async validateInviteCode(code: string): Promise<{ valid: boolean; labName?: string }> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        data: { valid: boolean; labName?: string };
-      }>('/public/invite-codes/validate', { code });
-
-      if (response.data.success && response.data.data) {
-        return response.data.data;
-      }
-
-      return { valid: false };
+      return await httpClient.postData(
+        '/public/invite-codes/validate',
+        { code },
+        validateInviteCodeResponseSchema
+      );
     } catch (error) {
       logger.error('Failed to validate invite code', { error });
       return { valid: false };
@@ -233,16 +206,12 @@ export class AuthService {
     position?: string;
   }): Promise<AuthResponse> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(
+      const result = await httpClient.postData(
         '/public/auth/setup-system-admin',
-        data
+        data,
+        authResponseSchema
       );
-
-      if (response.data.success && response.data.data) {
-        return response.data.data;
-      }
-
-      throw new Error('System admin setup failed');
+      return { user: result.user, tokens: result.tokens } as unknown as AuthResponse;
     } catch (error) {
       rethrow(error, 'System admin setup failed');
     }
@@ -253,19 +222,10 @@ export class AuthService {
    */
   async getPasswordRequirements(): Promise<PasswordRequirements> {
     try {
-      const response = await httpClient.get<{ success: boolean; data: PasswordRequirements }>(
-        '/public/auth/password-requirements'
+      return await httpClient.getData(
+        '/public/auth/password-requirements',
+        passwordRequirementsResponseSchema
       );
-
-      if (response.data.success && response.data.data) {
-        return response.data.data;
-      }
-
-      return {
-        passwordMinLength: 8,
-        requireStrongPasswords: false,
-        passwordRequireSpecialChars: false,
-      };
     } catch (error) {
       logger.error('Failed to get password requirements', { error });
       return {
@@ -282,14 +242,7 @@ export class AuthService {
    */
   async verifyEmail(token: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean; message: string }>(
-        '/public/auth/verify-email',
-        { token }
-      );
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Email verification failed');
-      }
+      await httpClient.postData('/public/auth/verify-email', { token }, verifyEmailResponseSchema);
     } catch (error) {
       rethrow(error, 'Email verification failed');
     }
@@ -301,14 +254,11 @@ export class AuthService {
    */
   async resendVerificationEmail(usernameOrEmail: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean; message: string }>(
+      await httpClient.postData(
         '/public/auth/resend-verification',
-        { usernameOrEmail }
+        { usernameOrEmail },
+        messageResponseSchema
       );
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to resend verification email');
-      }
     } catch (error) {
       rethrow(error, 'Failed to resend verification email');
     }
@@ -319,10 +269,10 @@ export class AuthService {
    */
   async getVerificationStatus(): Promise<VerificationStatusResponse> {
     try {
-      const response = await httpClient.get<VerificationStatusResponse>(
-        '/auth/verification-status'
+      return await httpClient.getData(
+        '/auth/verification-status',
+        verificationStatusResponseSchema
       );
-      return response.data;
     } catch (error) {
       rethrow(error, 'Failed to get verification status');
     }
@@ -333,10 +283,14 @@ export class AuthService {
    */
   async resetPasswordWithToken(token: string, newPassword: string): Promise<void> {
     try {
-      await httpClient.post('/public/auth/reset-password', {
-        token,
-        newPassword,
-      });
+      await httpClient.postData(
+        '/public/auth/reset-password',
+        {
+          token,
+          newPassword,
+        },
+        resetPasswordResponseSchema
+      );
     } catch (error) {
       rethrow(error, 'Failed to reset password');
     }

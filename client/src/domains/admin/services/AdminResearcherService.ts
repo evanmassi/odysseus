@@ -4,25 +4,24 @@
  * Researcher lifecycle management for lab administrators.
  */
 
+import {
+  adminResearcherSchema,
+  type AdminResearcher,
+  type CreateResearcherProfile,
+} from '@odysseus/shared-schemas';
+import { z } from 'zod';
+
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
-import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
-
 export class AdminResearcherService {
-  async getResearchers(): Promise<{ success: boolean; researchers: AdminResearcher[] }> {
+  async getResearchers(): Promise<AdminResearcher[]> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: {
-          researchers: AdminResearcher[];
-        };
-      }>('/admin/researchers');
-
-      return {
-        success: response.data.success,
-        researchers: response.data.data.researchers,
-      };
+      const data = await httpClient.getData(
+        '/admin/researchers',
+        z.object({ researchers: z.array(adminResearcherSchema) })
+      );
+      return data.researchers;
     } catch (error) {
       logger.error('Failed to get researchers', { error });
       throw error;
@@ -30,53 +29,40 @@ export class AdminResearcherService {
   }
 
   /** Safe deactivation only — requires zero tubes AND no linked user. */
-  async deactivateResearcher(researcherId: string): Promise<{ success: boolean }> {
+  async deactivateResearcher(researcherId: string): Promise<void> {
     try {
-      const response = await httpClient.put<{ success: boolean }>(
-        `/researchers/${researcherId}/deactivate`
-      );
-      return response.data;
+      await httpClient.put(`/researchers/${researcherId}/deactivate`);
     } catch (error) {
       logger.error('Failed to deactivate researcher', { researcherId, error });
       throw error;
     }
   }
 
-  async activateResearcher(researcherId: string): Promise<{ success: boolean }> {
+  async activateResearcher(researcherId: string): Promise<void> {
     try {
-      const response = await httpClient.put<{ success: boolean }>(
-        `/researchers/${researcherId}/activate`
-      );
-      return response.data;
+      await httpClient.put(`/researchers/${researcherId}/activate`);
     } catch (error) {
       logger.error('Failed to activate researcher', { researcherId, error });
       throw error;
     }
   }
 
-  async deleteResearcher(researcherId: string): Promise<{ success: boolean }> {
+  async deleteResearcher(researcherId: string): Promise<void> {
     try {
-      const response = await httpClient.delete<{ success: boolean }>(
-        `/admin/researchers/${researcherId}`
-      );
-      return response.data;
+      await httpClient.deleteData(`/admin/researchers/${researcherId}`);
     } catch (error) {
       logger.error('Failed to delete researcher', { researcherId, error });
       throw error;
     }
   }
 
-  async getUnlinkedResearchers(): Promise<{ success: boolean; researchers: AdminResearcher[] }> {
+  async getUnlinkedResearchers(): Promise<AdminResearcher[]> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: { researchers: AdminResearcher[] };
-      }>('/admin/researchers/unlinked');
-
-      return {
-        success: response.data.success,
-        researchers: response.data.data.researchers,
-      };
+      const data = await httpClient.getData(
+        '/admin/researchers/unlinked',
+        z.object({ researchers: z.array(adminResearcherSchema) })
+      );
+      return data.researchers;
     } catch (error) {
       logger.error('Failed to get unlinked researchers', { error });
       throw error;
@@ -86,32 +72,20 @@ export class AdminResearcherService {
   async createAndLinkResearcher(
     userId: string,
     researcherData: CreateResearcherProfile
-  ): Promise<{ success: boolean }> {
+  ): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean }>(
-        `/admin/users/${userId}/link-researcher`,
-        { newResearcher: researcherData }
-      );
-      return response.data;
+      await httpClient.post(`/admin/users/${userId}/link-researcher`, {
+        newResearcher: researcherData,
+      });
     } catch (error) {
       logger.error('Failed to create and link researcher', { error });
       throw error;
     }
   }
 
-  async createResearcher(
-    data: CreateResearcherProfile
-  ): Promise<{ success: boolean; researcher: AdminResearcher }> {
+  async createResearcher(data: CreateResearcherProfile): Promise<AdminResearcher> {
     try {
-      const response = await httpClient.post<{
-        success: boolean;
-        data: AdminResearcher;
-      }>('/researchers', data);
-
-      return {
-        success: response.data.success,
-        researcher: response.data.data,
-      };
+      return await httpClient.postData('/researchers', data, adminResearcherSchema);
     } catch (error) {
       logger.error('Failed to create researcher', { error });
       throw error;

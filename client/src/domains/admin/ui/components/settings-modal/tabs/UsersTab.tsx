@@ -92,10 +92,8 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
 
   const loadPendingUsers = async () => {
     try {
-      const response = await adminUserService.getPendingUsers();
-      if (response.success) {
-        setPendingUsers(response.users);
-      }
+      const users = await adminUserService.getPendingUsers();
+      setPendingUsers(users);
     } catch (error) {
       logger.error('Failed to load pending users', { error });
     }
@@ -104,14 +102,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const updateUserRole = async (userId: string, newRole: 'lab_admin' | 'user') => {
     setUpdating(userId);
     try {
-      const response = await adminUserService.updateUserRole(userId, newRole);
-
-      if (response.success) {
-        notifications.success(`User role updated to ${newRole}`);
-        onUserUpdate(); // Refresh user list
-      } else {
-        notifications.error('Failed to update user role');
-      }
+      await adminUserService.updateUserRole(userId, newRole);
+      notifications.success(`User role updated to ${newRole}`);
+      onUserUpdate();
     } catch (error) {
       logger.error('Failed to update user role', { error });
       const message = error instanceof Error ? error.message : 'Failed to update user role';
@@ -142,17 +135,11 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const approveUser = async (userId: string, username: string) => {
     setProcessingApproval(userId);
     try {
-      const response = await adminUserService.approveUser(userId);
-
-      if (response.success) {
-        notifications.success(`User "${username}" approved successfully`);
-        await loadPendingUsers();
-        onUserUpdate();
-        // Invalidate researchers cache - approving user also approves linked researcher
-        void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      } else {
-        notifications.error('Failed to approve user');
-      }
+      await adminUserService.approveUser(userId);
+      notifications.success(`User "${username}" approved successfully`);
+      await loadPendingUsers();
+      onUserUpdate();
+      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
     } catch (error) {
       logger.error('Failed to approve user', { error });
       notifications.error('Failed to approve user');
@@ -168,17 +155,11 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const executeRejectUser = async (userId: string, username: string) => {
     setProcessingApproval(userId);
     try {
-      const response = await adminUserService.rejectUser(userId);
-
-      if (response.success) {
-        notifications.success(`User "${username}" rejected`);
-        setConfirmDialog(null);
-        await loadPendingUsers();
-        onUserUpdate();
-      } else {
-        notifications.error('Failed to reject user');
-        setConfirmDialog(null);
-      }
+      await adminUserService.rejectUser(userId);
+      notifications.success(`User "${username}" rejected`);
+      setConfirmDialog(null);
+      await loadPendingUsers();
+      onUserUpdate();
     } catch (error) {
       logger.error('Failed to reject user', { error });
       notifications.error('Failed to reject user');
@@ -221,16 +202,10 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const executeUnlinkResearcher = async (userId: string, username: string) => {
     setUpdating(userId);
     try {
-      const response = await adminUserService.unlinkResearcherFromUser(userId);
-
-      if (response.success) {
-        notifications.success(`Researcher unlinked from "${username}"`);
-        setConfirmDialog(null);
-        onUserUpdate();
-      } else {
-        notifications.error('Failed to unlink researcher');
-        setConfirmDialog(null);
-      }
+      await adminUserService.unlinkResearcherFromUser(userId);
+      notifications.success(`Researcher unlinked from "${username}"`);
+      setConfirmDialog(null);
+      onUserUpdate();
     } catch (error) {
       logger.error('Failed to unlink researcher', { error });
       notifications.error('Failed to unlink researcher');
@@ -244,10 +219,8 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     setResearcherModalData(user);
     setIsResearcherModalOpen(true);
     try {
-      const response = await adminResearcherService.getUnlinkedResearchers();
-      if (response.success) {
-        setUnlinkedResearchers(response.researchers);
-      }
+      const researchers = await adminResearcherService.getUnlinkedResearchers();
+      setUnlinkedResearchers(researchers);
     } catch (error) {
       logger.error('Failed to load unlinked researchers', { error });
       notifications.error('Failed to load available researchers');

@@ -54,10 +54,8 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
   useEffect(() => {
     async function fetchVersionInfo() {
       try {
-        const response = await adminService.getVersionInfo();
-        if (response.success) {
-          setVersionInfo(response.data);
-        }
+        const versionData = await adminService.getVersionInfo();
+        setVersionInfo(versionData);
       } catch (error) {
         logger.error('Failed to fetch version info', { error });
       }

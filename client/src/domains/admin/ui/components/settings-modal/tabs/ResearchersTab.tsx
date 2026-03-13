@@ -89,10 +89,8 @@ export function ResearchersTab({
   const loadResearchers = async () => {
     setLoading(true);
     try {
-      const response = await adminResearcherService.getResearchers();
-      if (response.success) {
-        setResearchers(sortByName(response.researchers));
-      }
+      const researchers = await adminResearcherService.getResearchers();
+      setResearchers(sortByName(researchers));
     } catch (error) {
       logger.error('Failed to load researchers', { error });
       notifications.error('Failed to load researchers');
@@ -174,17 +172,11 @@ export function ResearchersTab({
   const executeDeleteResearcher = async (researcherId: string, researcherName: string) => {
     setDeleting(researcherId);
     try {
-      const response = await adminResearcherService.deleteResearcher(researcherId);
-
-      if (response.success) {
-        notifications.success(`Researcher "${researcherName}" deleted successfully`);
-        setConfirmDialog(null);
-        await loadResearchers();
-        onResearcherUpdate?.();
-      } else {
-        notifications.error('Failed to delete researcher');
-        setConfirmDialog(null);
-      }
+      await adminResearcherService.deleteResearcher(researcherId);
+      notifications.success(`Researcher "${researcherName}" deleted successfully`);
+      setConfirmDialog(null);
+      await loadResearchers();
+      onResearcherUpdate?.();
     } catch (error: unknown) {
       logger.error('Failed to delete researcher', { error });
 

@@ -21,7 +21,7 @@ import { auditService } from '@domains/admin/services/AuditService';
 import { logger } from '@infra/logger';
 import { Button } from '@shared/ui';
 
-import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/auditTypes';
+import type { RetentionMetrics, RetentionPolicy } from '@odysseus/shared-schemas';
 
 const STATUS_CONFIG = {
   healthy: {
@@ -77,8 +77,8 @@ export function AuditRetentionSettings({
         auditService.getRetentionPolicy(),
       ]);
 
-      setMetrics(metricsResult.data);
-      setPolicy(policyResult.data);
+      setMetrics(metricsResult);
+      setPolicy(policyResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load retention data');
       logger.error('Failed to load retention data', { err });
@@ -99,8 +99,8 @@ export function AuditRetentionSettings({
 
       const result = await auditService.runManualArchival();
       setArchiveResult({
-        archived: result.data.archived,
-        deleted: result.data.deleted,
+        archived: result.archived,
+        deleted: result.deleted,
       });
 
       // Reload metrics after archival

@@ -4,38 +4,31 @@
  * Handles user preferences and settings management.
  */
 import {
+  userSettingsSchema,
   type UserSettings,
   type PositionDisplayPreference,
   type ThemePreference,
 } from '@odysseus/shared-schemas';
+import { z } from 'zod';
 
 import { httpClient } from '@infra/api';
 
 export class UserSettingsService {
   async getUserSettings(): Promise<UserSettings> {
-    const response = await httpClient.get<{
-      success: boolean;
-      data: { settings: UserSettings };
-    }>('/users/me/settings');
-
-    if (response.data.success && response.data.data.settings) {
-      return response.data.data.settings;
-    }
-
-    throw new Error('Failed to get user settings');
+    const data = await httpClient.getData(
+      '/users/me/settings',
+      z.object({ settings: userSettingsSchema })
+    );
+    return data.settings;
   }
 
   async updateUserSettings(settings: UserSettings): Promise<UserSettings> {
-    const response = await httpClient.put<{
-      success: boolean;
-      data: { settings: UserSettings };
-    }>('/users/me/settings', { settings });
-
-    if (response.data.success && response.data.data.settings) {
-      return response.data.data.settings;
-    }
-
-    throw new Error('Failed to update user settings');
+    const data = await httpClient.putData(
+      '/users/me/settings',
+      { settings },
+      z.object({ settings: userSettingsSchema })
+    );
+    return data.settings;
   }
 
   async updatePositionDisplayPreference(
