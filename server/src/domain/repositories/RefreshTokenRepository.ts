@@ -4,7 +4,7 @@
  * Data access contract for OAuth 2.0 refresh token lifecycle.
  */
 
-import { RefreshToken } from '@domain/entities/RefreshToken';
+import type { RefreshToken } from '@domain/entities/RefreshToken';
 
 export interface RefreshTokenRepository {
 

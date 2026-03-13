@@ -5,10 +5,12 @@
  * Uses SessionService for session validation with timeout enforcement.
  */
 
-import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { SessionService } from '@application/contracts/SessionService';
+
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { SessionService } from '@application/contracts/SessionService';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
 function errorResponse(
   res: Response,

@@ -5,10 +5,12 @@
  * Runs per-lab in independent transactions. Idempotent: skips labs whose IDs already start with `tank_`.
  */
 
-import { Pool } from 'pg';
+
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
+
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
 
 export const migration012: Migration = {
   id: 12,

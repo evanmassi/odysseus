@@ -5,11 +5,11 @@
  */
 
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
+import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
+import type { SharedServices } from '@infrastructure/di/SharedServices';
+import { SearchController } from '@presentation/controllers/SearchController';
 import { TubeController } from '@presentation/controllers/TubeController';
 import { TubeLockController } from '@presentation/controllers/TubeLockController';
-import { SearchController } from '@presentation/controllers/SearchController';
-import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
-import { SharedServices } from '@infrastructure/di/SharedServices';
 
 export class TubeModule {
   private tubeApplicationService?: TubeApplicationService;

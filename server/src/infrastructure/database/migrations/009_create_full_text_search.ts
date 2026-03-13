@@ -4,8 +4,9 @@
  * Adds tsvector column, trigram indexes, search trigger, and rebuilds all search vectors.
  */
 
-import { Pool } from 'pg';
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
+
 
 export const migration009: Migration = {
   id: 9,

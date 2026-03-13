@@ -4,10 +4,11 @@
  * Data access for person identity records (name, email, department).
  */
 
-import { PersonRepository as IPersonRepository } from '@domain/repositories/PersonRepository';
-import { Person } from '@domain/entities/Person';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { PersonMapper, PersonRow } from '@infrastructure/database/mappers/PersonMapper';
+import type { Person } from '@domain/entities/Person';
+import type { PersonRepository as IPersonRepository } from '@domain/repositories/PersonRepository';
+import type { PersonRow } from '@infrastructure/database/mappers/PersonMapper';
+import { PersonMapper } from '@infrastructure/database/mappers/PersonMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const PERSON_COLUMNS = `
   id, first_name, last_name, email, position, department, created_at, updated_at

@@ -4,14 +4,17 @@
  * Endpoints for invite code lifecycle management.
  */
 
-import { Request, Response } from 'express';
-import { BaseController } from './BaseController';
-import { handleControllerError } from '@presentation/utils/errorHandler';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
 import type { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
 import type { ValidateInviteCodeQueryHandler } from '@application/queries/InviteCodeQueries';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { logger } from '@infrastructure/logging/logger';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import { BaseController } from './BaseController';
+
+import type { Request, Response } from 'express';
 
 export interface InviteCodeControllerDeps {
   createInviteCodeHandler: CreateInviteCodeCommandHandler;

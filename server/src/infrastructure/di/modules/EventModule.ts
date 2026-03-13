@@ -4,13 +4,14 @@
  * Lazy-singleton wiring for socket event handlers and presence tracking.
  */
 
-import type { Server as SocketIOServer } from 'socket.io';
-import { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
 import { ResearcherApprovalEventHandler } from '@application/event-handlers/ResearcherApprovalEventHandler';
+import { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
 import { PresenceService } from '@application/services/PresenceService';
-import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
-import { SharedServices } from '@infrastructure/di/SharedServices';
+import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
+import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { Server as SocketIOServer } from 'socket.io';
 
 export class EventModule {
   private socketIO?: SocketIOServer;

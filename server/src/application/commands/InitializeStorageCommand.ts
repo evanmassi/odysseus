@@ -4,17 +4,18 @@
  * Creates default storage layout for fresh installs.
  */
 
-import { Storage } from '@domain/entities/Storage';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { EventBus } from '@application/contracts/EventBus';
-import { requireUser } from '@application/guards/UserGuards';
-import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
+
+import type { EventBus } from '@application/contracts/EventBus';
+import { requireUser } from '@application/guards/UserGuards';
+import { Storage } from '@domain/entities/Storage';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import { StorageUpdatedEvent } from '@domain/events/StorageEvents';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 import { generateId } from '@domain/utils/generateId';
+import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 
 // COMMAND INTERFACE
 

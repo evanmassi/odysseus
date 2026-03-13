@@ -5,9 +5,11 @@
  * Non-fatal: logs errors but does not crash startup (preserves existing behavior).
  */
 
-import { Pool } from 'pg';
+
 import { logger } from '@infrastructure/logging/logger';
+
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
 
 export const migration015: Migration = {
   id: 15,

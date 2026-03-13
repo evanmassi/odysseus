@@ -4,8 +4,9 @@
  * Renames legacy `configuration_*` tables, indexes, and constraints to `storage_*`.
  */
 
-import { Pool } from 'pg';
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
+
 
 export const migration002: Migration = {
   id: 2,

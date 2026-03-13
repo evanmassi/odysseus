@@ -4,14 +4,16 @@
  * HTTP handlers for session listing and revocation.
  */
 
-import { Request, Response } from 'express';
-import { BaseController } from '@presentation/controllers/BaseController';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
-import { logger } from '@infrastructure/logging/logger';
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { logger } from '@infrastructure/logging/logger';
+import { BaseController } from '@presentation/controllers/BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 
 export interface UserSessionControllerDeps {
   userSessionRepository: UserSessionRepository;

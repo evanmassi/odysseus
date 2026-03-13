@@ -4,19 +4,20 @@
  * Lazy-singleton wiring for auth handlers, controllers, and middleware.
  */
 
-import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdminCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler } from '@application/commands/UserCommands';
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
-import { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
-import { UserApplicationService } from '@application/services/UserApplicationService';
-import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
-import { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
-import { AuthController } from '@presentation/controllers/auth/AuthController';
-import { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
+import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
+import type { ChangeUserRoleCommandHandler, DeleteUserCommandHandler } from '@application/commands/UserCommands';
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
+import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
+import type { UserApplicationService } from '@application/services/UserApplicationService';
+import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
+import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { ExpressAuthMiddleware } from '@infrastructure/security/ExpressAuthMiddleware';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
-import { SharedServices } from '@infrastructure/di/SharedServices';
+import { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
+import { AuthController } from '@presentation/controllers/auth/AuthController';
+import { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 
 interface AuthCrossModuleDeps {
   getCheckFirstTimeHandler: () => CheckFirstTimeSetupQueryHandler;

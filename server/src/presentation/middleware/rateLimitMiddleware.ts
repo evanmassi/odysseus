@@ -4,10 +4,12 @@
  * Express middleware that enforces login rate limits via RateLimitingService.
  */
 
-import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
+
 import { RateLimitingService } from '@application/services/RateLimitingService';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
 export function createRateLimitMiddleware(
   storageRepository: StorageRepository

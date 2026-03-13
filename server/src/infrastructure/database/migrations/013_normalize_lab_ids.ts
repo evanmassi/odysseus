@@ -5,10 +5,12 @@
  * Idempotent: skips if no `lab_default` row exists.
  */
 
-import { Pool } from 'pg';
+
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
+
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
 
 export const migration013: Migration = {
   id: 13,

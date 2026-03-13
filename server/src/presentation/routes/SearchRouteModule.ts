@@ -4,18 +4,21 @@
  * Handles search-related routes with proper authentication.
  */
 
-import { Router, RequestHandler } from 'express';
-import { RouteModule } from '@presentation/routes/RouteModule';
-import { SearchController } from '@presentation/controllers/SearchController';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { validateBody, validateQuery } from '@presentation/middleware/requestValidation';
 import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
+
+
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { SearchController } from '@presentation/controllers/SearchController';
+import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
+import { validateBody, validateQuery } from '@presentation/middleware/requestValidation';
+import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   QuickSearchQuerySchema,
   FieldSearchBodySchema
 } from '@presentation/validation/httpValidationSchemas';
+
+import type { Router, RequestHandler } from 'express';
 
 export class SearchRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;

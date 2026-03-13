@@ -6,9 +6,9 @@
 
 import { LookupValue } from '@domain/entities/LookupValue';
 import type { LookupCategory } from '@domain/entities/LookupValue';
-import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
-import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 
 export class LookupValueApplicationService {
   constructor(private lookupValueRepository: LookupValueRepository) {}

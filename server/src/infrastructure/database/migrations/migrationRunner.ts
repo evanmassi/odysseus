@@ -5,9 +5,12 @@
  * Uses advisory locking to prevent concurrent runs during parallel deploys.
  */
 
-import { Pool } from 'pg';
+
 import { logger } from '@infrastructure/logging/logger';
+
 import { ALL_MIGRATIONS } from './index';
+
+import type { Pool } from 'pg';
 
 export interface Migration {
   id: number;

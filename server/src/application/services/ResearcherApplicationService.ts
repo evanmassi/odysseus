@@ -5,20 +5,20 @@
  * profile data (name, email, position, department) lives in the Person entity.
  */
 
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import type { AccessControlService } from '@domain/services/AccessControlService';
-import { Researcher } from '@domain/entities/Researcher';
-import { User } from '@domain/entities/User';
-import { Person } from '@domain/entities/Person';
+import type { EventBus } from '@application/contracts/EventBus';
 import { ResearcherDto } from '@application/dto/ResearcherDto';
 import type { CreateResearcherRequest, ResearcherResponse } from '@application/dto/ResearcherDto';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { PermissionError } from '@domain/errors/PermissionError';
 import type { AuditChange } from '@application/types/auditTypes';
-import type { EventBus } from '@application/contracts/EventBus';
+import { Person } from '@domain/entities/Person';
+import { Researcher } from '@domain/entities/Researcher';
+import type { User } from '@domain/entities/User';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { AccessControlService } from '@domain/services/AccessControlService';
+import { PermissionError } from '@domain/errors/PermissionError';
 import {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,

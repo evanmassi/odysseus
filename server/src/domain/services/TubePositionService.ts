@@ -4,13 +4,13 @@
  * Validates tube placement against equipment configuration, position conflicts, and business rules.
  */
 
-import { Location } from '@domain/value-objects/Location';
-import { Tube } from '@domain/entities/Tube';
-import { Storage } from '@domain/entities/Storage';
-import { TubeRepository } from '@domain/repositories/TubeRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { Storage } from '@domain/entities/Storage';
+import type { Tube } from '@domain/entities/Tube';
 import { ValidationError } from '@domain/errors/ValidationError';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { PositionConflict, PositionValidation, PositionValidationWithWarnings, PositionValidationResult, BoxStatistics } from '@domain/types/services';
+import { Location } from '@domain/value-objects/Location';
 
 export class TubePositionService {
 

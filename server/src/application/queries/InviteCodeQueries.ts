@@ -4,8 +4,8 @@
  * Read-only operations for invite code validation during registration.
  */
 
-import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
+import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 
 // QUERY INTERFACES
 

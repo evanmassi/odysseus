@@ -4,35 +4,40 @@
  * Unauthenticated endpoints — login, registration, password reset, email verification, first-time setup.
  */
 
-import { Request, Response } from 'express';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
-import { logger } from '@infrastructure/logging/logger';
-import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
-import type { SessionService } from '@application/contracts/SessionService';
-import type { PasswordService } from '@application/contracts/PasswordService';
-import {
-  CreateUserCommand, CreateUserCommandHandler,
-  CreateSystemAdminCommand, CreateSystemAdminCommandHandler,
-  LoginCommand, LoginCommandHandler,
-} from '@application/commands/UserCommands';
-import { SendVerificationEmailCommandHandler, VerifyEmailCommand, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
-import { ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
-import { CheckFirstTimeSetupQuery, CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
-import { UserRole } from '@domain/value-objects/UserRole';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { UserApplicationService } from '@application/services/UserApplicationService';
-import { PermissionError } from '@domain/errors/PermissionError';
 import {
   registerWithResearcherSchema,
   forceChangePasswordRequestSchema,
   type PasswordChangeRequiredResponse,
   PasswordValidator
 } from '@odysseus/shared-schemas';
+
+
+import type { SendVerificationEmailCommandHandler, VerifyEmailCommand, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
+import type { ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
+import type {
+  CreateUserCommand, CreateUserCommandHandler,
+  CreateSystemAdminCommand, CreateSystemAdminCommandHandler,
+  LoginCommand, LoginCommandHandler,
+} from '@application/commands/UserCommands';
+import type { PasswordService } from '@application/contracts/PasswordService';
+import type { SessionService } from '@application/contracts/SessionService';
+import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
+import { CheckFirstTimeSetupQuery } from '@application/queries/UserQueries';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserApplicationService } from '@application/services/UserApplicationService';
+import { PermissionError } from '@domain/errors/PermissionError';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import { UserRole } from '@domain/value-objects/UserRole';
+import { logger } from '@infrastructure/logging/logger';
+import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
+
 
 export interface PublicAuthControllerDeps {
   createUserHandler: CreateUserCommandHandler;

@@ -4,14 +4,17 @@
  * HTTP handlers for tube CRUD, bulk operations, location queries, and search.
  */
 
-import { Request, Response } from 'express';
-import { TubeApplicationService } from '@application/services/TubeApplicationService';
-import { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequest } from '@application/dto/TubeDto';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
+
+
+import type { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequest } from '@application/dto/TubeDto';
+import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 export interface TubeControllerDeps {
   tubeApplicationService: TubeApplicationService;
 }

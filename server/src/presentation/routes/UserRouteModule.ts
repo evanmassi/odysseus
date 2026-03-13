@@ -4,14 +4,17 @@
  * Authenticated routes for user settings, profile, sessions, and user lookups.
  */
 
-import { Router, RequestHandler } from 'express';
-import { UserController } from '@presentation/controllers/UserController';
-import { PersonController } from '@presentation/controllers/PersonController';
-import { UserSessionController } from '@presentation/controllers/UserSessionController';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { RouteModule } from '@presentation/routes/RouteModule';
-import { validateBody } from '@presentation/middleware/requestValidation';
 import { userLookupRequestSchema } from '@odysseus/shared-schemas';
+
+
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { PersonController } from '@presentation/controllers/PersonController';
+import type { UserController } from '@presentation/controllers/UserController';
+import type { UserSessionController } from '@presentation/controllers/UserSessionController';
+import { validateBody } from '@presentation/middleware/requestValidation';
+import type { RouteModule } from '@presentation/routes/RouteModule';
+
+import type { Router, RequestHandler } from 'express';
 
 export class UserRouteModule implements RouteModule {
   constructor(

@@ -4,21 +4,25 @@
  * Lab admin endpoints — user CRUD, approval workflow, role changes, researcher linking, password resets.
  */
 
-import { Request, Response } from 'express';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { logger } from '@infrastructure/logging/logger';
-import { handleControllerError } from '@presentation/utils/errorHandler';
-import {
+
+
+import type { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler } from '@application/commands/PasswordResetCommands';
+import type {
   ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
   DeleteUserCommand, DeleteUserCommandHandler,
 } from '@application/commands/UserCommands';
-import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler } from '@application/commands/PasswordResetCommands';
-import { GetUserByIdQuery, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
-import { UserRole } from '@domain/value-objects/UserRole';
-import { UserApplicationService } from '@application/services/UserApplicationService';
-import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
+import type { GetUserByIdQueryHandler } from '@application/queries/UserQueries';
+import { GetUserByIdQuery } from '@application/queries/UserQueries';
+import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
+import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { UserRole } from '@domain/value-objects/UserRole';
+import { logger } from '@infrastructure/logging/logger';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 
 export interface AdminUserControllerDeps {
   changeRoleHandler: ChangeUserRoleCommandHandler;

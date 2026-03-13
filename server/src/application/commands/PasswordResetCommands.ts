@@ -4,16 +4,16 @@
  * Admin-initiated password reset — supports direct reset and token-based reset flows.
  */
 
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { EventBus } from '@application/contracts/EventBus';
-import { PasswordService } from '@application/contracts/PasswordService';
+import type { EventBus } from '@application/contracts/EventBus';
+import type { PasswordService } from '@application/contracts/PasswordService';
+import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
+import { requireUser, requireAdmin } from '@application/guards/UserGuards';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PasswordResetByAdminEvent, PasswordResetTokenGeneratedEvent, PasswordResetCompletedEvent } from '@domain/events/PasswordResetEvents';
-import { requireUser, requireAdmin } from '@application/guards/UserGuards';
-import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
+import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { logger } from '@infrastructure/logging/logger';
 
 // COMMAND INTERFACES

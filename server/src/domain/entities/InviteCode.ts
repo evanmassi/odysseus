@@ -4,9 +4,10 @@
  * Grants new users access to a specific lab during registration.
  */
 
+import * as crypto from 'crypto';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
-import * as crypto from 'crypto';
 
 export type DeactivationReason = 'used' | 'expired' | 'manual';
 

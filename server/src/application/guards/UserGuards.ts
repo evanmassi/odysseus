@@ -4,10 +4,10 @@
  * Precondition checks for command handlers that require a valid user or role.
  */
 
-import { User } from '@domain/entities/User';
-import { UserRepository } from '@domain/repositories/UserRepository';
+import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 
 export async function requireUser(userRepository: UserRepository, userId: string): Promise<User> {
   const user = await userRepository.findById(userId);

@@ -4,18 +4,19 @@
  * Unauthenticated routes — login, registration, password reset, health check.
  */
 
-import { Router, RequestHandler } from 'express';
-import { RouteModule } from '@presentation/routes/RouteModule';
-import { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
-import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { validateBody } from '@presentation/middleware/requestValidation';
 import {
   registerWithResearcherSchema,
   resetPasswordWithTokenRequestSchema,
   forceChangePasswordRequestSchema
 } from '@odysseus/shared-schemas';
+
+
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
+import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
+import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
+import { validateBody } from '@presentation/middleware/requestValidation';
+import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   RegisterBodySchema,
   LoginBodySchema,
@@ -25,6 +26,8 @@ import {
   ValidateInviteCodeBodySchema,
   SetupSystemAdminBodySchema
 } from '@presentation/validation/httpValidationSchemas';
+
+import type { Router, RequestHandler } from 'express';
 
 export class PublicRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;

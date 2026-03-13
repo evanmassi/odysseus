@@ -5,13 +5,13 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
+import type { Person } from '@domain/entities/Person';
+import type { Researcher } from '@domain/entities/Researcher';
+import { ResearcherApprovedEvent } from '@domain/events/ResearcherEvents';
+import type { UserApprovedEvent, UserRejectedEvent } from '@domain/events/UserEvents';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import { UserApprovedEvent, UserRejectedEvent } from '@domain/events/UserEvents';
-import { ResearcherApprovedEvent } from '@domain/events/ResearcherEvents';
-import type { Researcher } from '@domain/entities/Researcher';
-import type { Person } from '@domain/entities/Person';
 import { logger } from '@infrastructure/logging/logger';
 
 export class ResearcherApprovalEventHandler {

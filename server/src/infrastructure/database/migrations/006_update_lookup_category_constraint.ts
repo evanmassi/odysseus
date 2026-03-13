@@ -4,8 +4,9 @@
  * Replaces the `lookup_values` category CHECK constraint to include `'media'`.
  */
 
-import { Pool } from 'pg';
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
+
 
 export const migration006: Migration = {
   id: 6,

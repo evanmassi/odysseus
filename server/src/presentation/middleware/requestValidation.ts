@@ -4,9 +4,11 @@
  * Zod-based validation for request body, params, and query parameters.
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { z } from 'zod';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { Request, Response, NextFunction } from 'express';
+import type { z } from 'zod';
+
 
 interface ValidationError {
   field: string;

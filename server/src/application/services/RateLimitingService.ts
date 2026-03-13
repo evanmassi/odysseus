@@ -4,7 +4,7 @@
  * In-memory tracking of login attempts with configurable lockout enforcement.
  */
 
-import { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import { logger } from '@infrastructure/logging/logger';
 
 interface RateLimitAttempt {

@@ -6,15 +6,15 @@
 
 import { ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
 import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
-import { UserApplicationService } from '@application/services/UserApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
-import { UserController } from '@presentation/controllers/UserController';
+import { UserApplicationService } from '@application/services/UserApplicationService';
+import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
+import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { PersonController } from '@presentation/controllers/PersonController';
-import { UserSessionController } from '@presentation/controllers/UserSessionController';
-import { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
-import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
-import { SharedServices } from '@infrastructure/di/SharedServices';
+import { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
+import { UserController } from '@presentation/controllers/UserController';
+import { UserSessionController } from '@presentation/controllers/UserSessionController';
 
 export class UserModule {
   private changeRoleHandler?: ChangeUserRoleCommandHandler;

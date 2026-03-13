@@ -4,7 +4,7 @@
  * Data access contract for person identity records.
  */
 
-import { Person } from '@domain/entities/Person';
+import type { Person } from '@domain/entities/Person';
 
 export interface PersonRepository {
   findById(id: string): Promise<Person | null>;

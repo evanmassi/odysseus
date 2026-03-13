@@ -4,8 +4,8 @@
  * Interface for session management — token creation, validation, and revocation.
  */
 
-import { User } from '@domain/entities/User';
 import type { EnhancedLoginResponse, RefreshTokenResponse } from '@application/types/tokenTypes';
+import type { User } from '@domain/entities/User';
 
 export interface SessionValidationResult {
   user: User;

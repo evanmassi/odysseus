@@ -5,14 +5,17 @@
  * Domain errors map to appropriate status codes; unknown errors become 500s.
  */
 
-import { Response } from 'express';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+
 import { DomainError } from '@domain/errors/DomainError';
-import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import { logger } from '@infrastructure/logging/logger';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Response } from 'express';
 
 function isZodError(value: unknown): value is { name: 'ZodError'; errors: unknown[] } {
   return (

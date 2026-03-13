@@ -4,18 +4,20 @@
  * HTTP handlers for tube lock/unlock and access sharing operations.
  */
 
-import { Request, Response } from 'express';
-import { TubeApplicationService } from '@application/services/TubeApplicationService';
+
+import type { TubeApplicationService } from '@application/services/TubeApplicationService';
+import { logger } from '@infrastructure/logging/logger';
+import { BaseController } from '@presentation/controllers/BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
 import type {
   LockTubesRequest,
   UnlockTubesRequest,
   ShareTubeAccessRequest,
   RevokeTubeAccessRequest
 } from '@odysseus/shared-schemas';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
-import { logger } from '@infrastructure/logging/logger';
-import { BaseController } from '@presentation/controllers/BaseController';
+import type { Request, Response } from 'express';
 export interface TubeLockControllerDeps {
   tubeApplicationService: TubeApplicationService;
 }

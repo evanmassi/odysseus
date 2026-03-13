@@ -5,21 +5,21 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
-import { AuditService } from '@application/services/AuditService';
-import {
-  TubeCreatedEvent,
-  TubeUpdatedEvent,
-  TubeLocationChangedEvent,
-  TubeDeletedEvent,
-  BulkTubesUpdatedEvent,
-} from '@domain/events/TubeEvents';
-import {
-  TubesLockedEvent,
-  TubesUnlockedEvent,
-  TubeAccessSharedEvent,
-  TubeAccessRevokedEvent,
-} from '@domain/events/TubeLockEvents';
-import {
+import type { AuditService } from '@application/services/AuditService';
+import type {
+  LabCreatedEvent,
+  InviteCodeCreatedEvent,
+  InviteCodeUsedEvent
+} from '@domain/events/LabEvents';
+import type {
+  ResearcherCreatedEvent,
+  ResearcherUpdatedEvent,
+  ResearcherDeactivatedEvent,
+  ResearcherReactivatedEvent,
+  ResearcherDeletedEvent,
+  ResearcherApprovedEvent
+} from '@domain/events/ResearcherEvents';
+import type {
   TankUpdatedEvent,
   TankAddedEvent,
   TankDeletedEvent,
@@ -41,7 +41,20 @@ import {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from '@domain/events/StorageEvents';
-import {
+import type {
+  TubeCreatedEvent,
+  TubeUpdatedEvent,
+  TubeLocationChangedEvent,
+  TubeDeletedEvent,
+  BulkTubesUpdatedEvent,
+} from '@domain/events/TubeEvents';
+import type {
+  TubesLockedEvent,
+  TubesUnlockedEvent,
+  TubeAccessSharedEvent,
+  TubeAccessRevokedEvent,
+} from '@domain/events/TubeLockEvents';
+import type {
   UserCreatedEvent,
   UserPasswordChangedEvent,
   UserRoleChangedEvent,
@@ -56,23 +69,10 @@ import {
   UserReactivatedEvent,
   UserRejectedEvent
 } from '@domain/events/UserEvents';
-import {
-  ResearcherCreatedEvent,
-  ResearcherUpdatedEvent,
-  ResearcherDeactivatedEvent,
-  ResearcherReactivatedEvent,
-  ResearcherDeletedEvent,
-  ResearcherApprovedEvent
-} from '@domain/events/ResearcherEvents';
-import {
-  LabCreatedEvent,
-  InviteCodeCreatedEvent,
-  InviteCodeUsedEvent
-} from '@domain/events/LabEvents';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { Location } from '@domain/value-objects/Location';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
+import type { Location } from '@domain/value-objects/Location';
 import { logger } from '@infrastructure/logging/logger';
 
 export class AuditEventHandler {

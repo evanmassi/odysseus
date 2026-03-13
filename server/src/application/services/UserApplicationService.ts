@@ -4,28 +4,34 @@
  * Orchestrates user CRUD, authentication, registration, and approval workflows.
  */
 
-import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import { PasswordValidator } from '@odysseus/shared-schemas';
+import { nanoid } from 'nanoid';
+
+import type { EventBus } from '@application/contracts/EventBus';
+import { UserDto } from '@application/dto/UserDto';
+import { Person } from '@domain/entities/Person';
+import { Researcher } from '@domain/entities/Researcher';
+import { User } from '@domain/entities/User';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { User } from '@domain/entities/User';
-import { Researcher } from '@domain/entities/Researcher';
-import { Person } from '@domain/entities/Person';
-import { UserRole } from '@domain/value-objects/UserRole';
 import type { AccessControlService } from '@domain/services/AccessControlService';
-import { UserDto } from '@application/dto/UserDto';
-import type { CreateUserRequest, UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
+import { UserRole } from '@domain/value-objects/UserRole';
+import type { UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
+
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
-import { PasswordValidator } from '@odysseus/shared-schemas';
+
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
-import { nanoid } from 'nanoid';
-import type { EventBus } from '@application/contracts/EventBus';
+
+
 import {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
@@ -53,41 +59,6 @@ export class UserApplicationService {
     private labRepository?: LabRepository,
     private userSessionRepository?: UserSessionRepository
   ) {}
-
-  async createUser(request: CreateUserRequest, adminApiKey?: string): Promise<UserResponse> {
-    const isFirstUser = await this.userRepository.isEmpty();
-    let targetRole: 'system_admin' | 'lab_admin' | 'user' = 'user';
-
-    if (isFirstUser) {
-      targetRole = 'lab_admin';
-    } else {
-      if (!adminApiKey) {
-        throw new PermissionError('Admin authorization required to create users');
-      }
-
-      const admin = await this.userRepository.findByApiKey(adminApiKey);
-      if (!admin) {
-        throw new PermissionError('Invalid admin credentials');
-      }
-
-      await this.accessControlService.requireCanManageUsers(admin);
-      targetRole = request.role || 'user';
-    }
-
-    if (await this.userRepository.usernameExists(request.username)) {
-      throw new ValidationError('Username already exists');
-    }
-
-    if (await this.userRepository.apiKeyExists(request.apiKey)) {
-      throw new ValidationError('API key already exists');
-    }
-
-    const user = User.create(request.username, request.apiKey, isFirstUser);
-
-    await this.userRepository.save(user);
-
-    return UserDto.toResponse(user);
-  }
 
   /**
    * First user: auto-approved as admin.

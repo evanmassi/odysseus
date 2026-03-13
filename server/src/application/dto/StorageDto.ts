@@ -7,9 +7,11 @@
  *   SAVE: client {id: "A", name: "Box A"} → server {name: "A"}
  */
 
-import { Storage } from '@domain/entities/Storage';
-import type { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import { NAMING_PATTERNS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+
+import type { Storage } from '@domain/entities/Storage';
+import type { Tank, Rack, Box } from '@domain/value-objects/Equipment';
+
 import type { StorageResponse } from '@odysseus/shared-schemas';
 
 export class StorageDto {

@@ -4,17 +4,17 @@
  * Batch operations for clearing or transferring user resource assignments.
  */
 
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { EventBus } from '@application/contracts/EventBus';
+import type { EventBus } from '@application/contracts/EventBus';
 import { requireUser } from '@application/guards/UserGuards';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from '@domain/events/StorageEvents';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 
 // COMMAND INTERFACES
 

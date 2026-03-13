@@ -4,29 +4,33 @@
  * Application entry point — bootstraps Express, Socket.IO, database, and route modules.
  */
 
-import express from 'express';
-import { createServer, Server } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
+import { createServer } from 'http';
 import path from 'path';
+
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
+import helmet from 'helmet';
+import { Server as SocketIOServer } from 'socket.io';
+
 import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
-import { EnvironmentConfigurationService } from '@infrastructure/services/EnvironmentConfigurationService';
 import { logger } from '@infrastructure/logging/logger';
-import { sanitizeStrings } from '@presentation/middleware/requestValidation';
+import { EnvironmentConfigurationService } from '@infrastructure/services/EnvironmentConfigurationService';
 import { requestIdMiddleware } from '@presentation/middleware/requestId';
+import { sanitizeStrings } from '@presentation/middleware/requestValidation';
 import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth';
-import { RouteRegistry } from '@presentation/routes/RouteRegistry';
-import { PublicRouteModule } from '@presentation/routes/PublicRouteModule';
-import { AuthRouteModule } from '@presentation/routes/AuthRouteModule';
 import { AdminRouteModule } from '@presentation/routes/AdminRouteModule';
+import { AuthRouteModule } from '@presentation/routes/AuthRouteModule';
+import { PublicRouteModule } from '@presentation/routes/PublicRouteModule';
 import { ResourceRouteModule } from '@presentation/routes/ResourceRouteModule';
-import { StorageRouteModule } from '@presentation/routes/StorageRouteModule';
+import { RouteRegistry } from '@presentation/routes/RouteRegistry';
 import { SearchRouteModule } from '@presentation/routes/SearchRouteModule';
-import { UserRouteModule } from '@presentation/routes/UserRouteModule';
+import { StorageRouteModule } from '@presentation/routes/StorageRouteModule';
 import { SystemAdminRouteModule } from '@presentation/routes/SystemAdminRouteModule';
+import { UserRouteModule } from '@presentation/routes/UserRouteModule';
+
+import type { Server } from 'http';
 
 // Resolve from project root (works for both tsx and compiled dist)
 const serverRoot = path.resolve(__dirname, '..');

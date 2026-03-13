@@ -5,8 +5,9 @@
  * Attaches ID to request object and response header.
  */
 
-import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
+
+import type { Request, Response, NextFunction } from 'express';
 
 export function requestIdMiddleware(req: Request, res: Response, next: NextFunction): void {
   req.requestId = crypto.randomUUID();

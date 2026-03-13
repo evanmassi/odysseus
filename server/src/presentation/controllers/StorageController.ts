@@ -4,14 +4,31 @@
  * HTTP handlers for storage configuration, tank/rack/box CRUD, and bulk assignment operations.
  */
 
-import { Request, Response } from 'express';
-import {
-  GetCurrentStorageQueryHandler,
-  GetStorageHistoryQueryHandler,
-  GetStorageByVersionQueryHandler,
-  CheckStorageHealthQueryHandler
-} from '@application/queries/StorageQueries';
-import {
+import { POSITION_DISPLAY_PRESETS, API_ERROR_CODES } from '@odysseus/shared-schemas';
+
+
+import type {
+  AddBoxesCommandHandler,
+  UpdateBoxCommandHandler,
+  DeleteBoxCommandHandler,
+  AssignBoxCommandHandler
+} from '@application/commands/BoxCommands';
+import type {
+  BulkUnassignResourcesCommandHandler,
+  BulkReassignResourcesCommandHandler
+} from '@application/commands/BulkAssignmentCommands';
+import type {
+  SeedDemoCommandHandler,
+  UnseedDemoCommandHandler
+} from '@application/commands/DemoSeedCommands';
+import type { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
+import type {
+  AddRacksCommandHandler,
+  UpdateRackCommandHandler,
+  DeleteRackCommandHandler,
+  AssignRackCommandHandler
+} from '@application/commands/RackCommands';
+import type {
   UpdateSystemStorageCommandHandler,
   ResetStorageToDefaultCommandHandler,
   ImportStorageCommandHandler,
@@ -19,39 +36,25 @@ import {
   UpdateLabDefaultPositionDisplayCommandHandler,
   UpdateResourceLabelCommandHandler
 } from '@application/commands/StorageCommands';
-import {
+import type {
   AddTankCommandHandler,
   UpdateTankCommandHandler,
   DeleteTankCommandHandler,
   ResetDemoDataCommandHandler
 } from '@application/commands/TankCommands';
-import {
-  AddRacksCommandHandler,
-  UpdateRackCommandHandler,
-  DeleteRackCommandHandler,
-  AssignRackCommandHandler
-} from '@application/commands/RackCommands';
-import {
-  AddBoxesCommandHandler,
-  UpdateBoxCommandHandler,
-  DeleteBoxCommandHandler,
-  AssignBoxCommandHandler
-} from '@application/commands/BoxCommands';
-import {
-  BulkUnassignResourcesCommandHandler,
-  BulkReassignResourcesCommandHandler
-} from '@application/commands/BulkAssignmentCommands';
-import {
-  SeedDemoCommandHandler,
-  UnseedDemoCommandHandler
-} from '@application/commands/DemoSeedCommands';
-import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
-import { POSITION_DISPLAY_PRESETS, API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { StorageDto } from '@application/dto/StorageDto';
-import { BaseController } from '@presentation/controllers/BaseController';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
+import type {
+  GetCurrentStorageQueryHandler,
+  GetStorageHistoryQueryHandler,
+  GetStorageByVersionQueryHandler,
+  CheckStorageHealthQueryHandler
+} from '@application/queries/StorageQueries';
 import type { LabRepository } from '@domain/repositories/LabRepository';
+import { BaseController } from '@presentation/controllers/BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 
 export interface StorageControllerDeps {
   getCurrentStorageHandler: GetCurrentStorageQueryHandler;

@@ -4,7 +4,7 @@
  * Data access contract for registration invite codes.
  */
 
-import { InviteCode } from '@domain/entities/InviteCode';
+import type { InviteCode } from '@domain/entities/InviteCode';
 
 export interface InviteCodeRepository {
   findById(id: string): Promise<InviteCode | null>;

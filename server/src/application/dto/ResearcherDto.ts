@@ -4,8 +4,8 @@
  * Researcher holds research-specific data; profile data (name, email) comes from Person entity.
  */
 
-import { Researcher, ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
-import { Person } from '@domain/entities/Person';
+import type { Person } from '@domain/entities/Person';
+import type { Researcher, ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
 
 export interface CreateResearcherRequest {
   firstName: string;

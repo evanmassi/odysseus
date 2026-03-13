@@ -4,10 +4,11 @@
  * Authenticates Socket.IO connections using existing JWT tokens.
  */
 
-import type { Socket } from 'socket.io';
-import type { ExtendedError } from 'socket.io/dist/namespace';
 import type { SessionService } from '@application/contracts/SessionService';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { Socket } from 'socket.io';
+import type { ExtendedError } from 'socket.io/dist/namespace';
 
 declare module 'socket.io' {
   interface Socket {

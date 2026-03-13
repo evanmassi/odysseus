@@ -4,10 +4,11 @@
  * OAuth 2.0 refresh token persistence with revocation and cleanup support.
  */
 
-import { RefreshTokenRepository as IRefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
-import { RefreshToken } from '@domain/entities/RefreshToken';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { RefreshTokenMapper, RefreshTokenRow } from '@infrastructure/database/mappers/RefreshTokenMapper';
+import type { RefreshToken } from '@domain/entities/RefreshToken';
+import type { RefreshTokenRepository as IRefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
+import type { RefreshTokenRow } from '@infrastructure/database/mappers/RefreshTokenMapper';
+import { RefreshTokenMapper } from '@infrastructure/database/mappers/RefreshTokenMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const REFRESH_TOKEN_COLUMNS = `
   id, user_id, token, expires_at, created_at, last_used_at, is_revoked, user_agent, ip_address

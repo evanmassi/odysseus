@@ -4,23 +4,24 @@
  * Routes requiring admin privileges — user management, security config, audit, exports.
  */
 
-import { Router, RequestHandler } from 'express';
-import { RouteModule } from '@presentation/routes/RouteModule';
-import { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
-import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
-import { ResearcherController } from '@presentation/controllers/ResearcherController';
-import { AuditController } from '@presentation/controllers/AuditController';
-import { ExportController } from '@presentation/controllers/ExportController';
-import { LookupValueController } from '@presentation/controllers/LookupValueController';
-import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import {
   updateSecurityConfigSchema,
   adminResetPasswordRequestSchema,
   createLookupValueRequestSchema,
   renameLookupValueRequestSchema
 } from '@odysseus/shared-schemas';
+
+
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
+import type { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
+import type { AuditController } from '@presentation/controllers/AuditController';
+import type { ExportController } from '@presentation/controllers/ExportController';
+import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
+import type { LookupValueController } from '@presentation/controllers/LookupValueController';
+import type { ResearcherController } from '@presentation/controllers/ResearcherController';
+import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
+import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
   UserIdParams,
@@ -31,6 +32,8 @@ import {
   LinkResearcherBodySchema,
   CreateInviteCodeBodySchema
 } from '@presentation/validation/httpValidationSchemas';
+
+import type { Router, RequestHandler } from 'express';
 
 export class AdminRouteModule implements RouteModule {
   constructor(

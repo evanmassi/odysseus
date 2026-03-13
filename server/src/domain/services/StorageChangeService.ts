@@ -4,10 +4,8 @@
  * Compares two Storage entities and emits domain events for all detected changes.
  */
 
-import { Storage } from '@domain/entities/Storage';
-import { Rack, Box } from '@domain/value-objects/Equipment';
+import type { Storage } from '@domain/entities/Storage';
 import type { DomainEvent } from '@domain/events/DomainEvent';
-import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import {
   StorageUpdatedEvent,
   TankUpdatedEvent,
@@ -27,6 +25,8 @@ import {
   BoxUnassignedEvent,
   BoxReassignedEvent
 } from '@domain/events/StorageEvents';
+import type { FieldChange } from '@domain/types/fieldChangeTypes';
+import type { Rack, Box } from '@domain/value-objects/Equipment';
 
 export interface ConfigurationChangeSummary {
   tanksAdded: number;

@@ -5,6 +5,7 @@
  */
 
 import { Lab } from '@domain/entities/Lab';
+
 import type { DemoLimits } from '@odysseus/shared-schemas';
 
 export interface LabRow {

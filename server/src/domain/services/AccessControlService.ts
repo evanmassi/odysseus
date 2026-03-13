@@ -4,14 +4,14 @@
  * Context-aware permission checks that combine role, ownership, and resource assignment rules.
  */
 
-import { User } from '@domain/entities/User';
-import { Tube } from '@domain/entities/Tube';
-import { Researcher } from '@domain/entities/Researcher';
-import { Location } from '@domain/value-objects/Location';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { Researcher } from '@domain/entities/Researcher';
+import type { Tube } from '@domain/entities/Tube';
+import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
+import type { Location } from '@domain/value-objects/Location';
 
 /**
  * Minimal interface for resource ownership checking.
@@ -104,7 +104,7 @@ export class AccessControlService {
     return this.createAllowedResult();
   }
 
-  async canMoveTube(user: User, tube: Tube, newLocation?: Location): Promise<AccessResult> {
+  async canMoveTube(user: User, tube: Tube, _newLocation?: Location): Promise<AccessResult> {
     const editCheck = await this.canEditTube(user, tube);
     if (!editCheck.allowed) {
       return editCheck;

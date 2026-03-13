@@ -5,16 +5,18 @@
  * password change, and email verification status.
  */
 
-import { Request, Response } from 'express';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
-import { logger } from '@infrastructure/logging/logger';
+
+import type { ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
+import type { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
-import { UserLoggedOutEvent } from '@domain/events/UserEvents';
-import { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
-import { ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { UserLoggedOutEvent } from '@domain/events/UserEvents';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import { logger } from '@infrastructure/logging/logger';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 
 export interface AuthControllerDeps {
   changePasswordHandler: ChangeUserPasswordCommandHandler;

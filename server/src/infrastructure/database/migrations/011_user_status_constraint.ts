@@ -4,8 +4,9 @@
  * Adds `deactivated` and `suspended` to the `users.status` CHECK constraint.
  */
 
-import { Pool } from 'pg';
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
+
 
 export const migration011: Migration = {
   id: 11,

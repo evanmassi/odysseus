@@ -5,8 +5,9 @@
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
-import { Permission } from '@domain/value-objects/Permission';
-import { RolePermissionService, UserRole as UserRoleType } from '@domain/services/RolePermissionService';
+import type { UserRole as UserRoleType } from '@domain/services/RolePermissionService';
+import { RolePermissionService } from '@domain/services/RolePermissionService';
+import type { Permission } from '@domain/value-objects/Permission';
 export class UserRole {
   private static readonly VALID_ROLES = ['system_admin', 'lab_admin', 'user'] as const;
 

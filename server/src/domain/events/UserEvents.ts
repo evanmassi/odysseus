@@ -5,7 +5,7 @@
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
-import { UserRole } from '@domain/value-objects/UserRole';
+import type { UserRole } from '@domain/value-objects/UserRole';
 
 export class UserCreatedEvent extends DomainEvent {
   constructor(

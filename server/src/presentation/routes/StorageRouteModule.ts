@@ -4,10 +4,12 @@
  * Routes for storage configuration, tank/rack/box CRUD, and bulk assignment.
  */
 
-import { Router, RequestHandler } from 'express';
-import { StorageController } from '@presentation/controllers/StorageController';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { RouteModule } from '@presentation/routes/RouteModule';
+
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { StorageController } from '@presentation/controllers/StorageController';
+import type { RouteModule } from '@presentation/routes/RouteModule';
+
+import type { Router, RequestHandler } from 'express';
 
 export class StorageRouteModule implements RouteModule {
 

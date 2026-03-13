@@ -4,13 +4,18 @@
  * Aggregate root for user identity, credentials, roles, and approval workflow.
  */
 
-import { UserRole } from '@domain/value-objects/UserRole';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
-import { type UserSettings, type UserStatus, DEFAULT_USER_SETTINGS } from '@odysseus/shared-schemas';
-import { generateId } from '@domain/utils/generateId';
 import * as crypto from 'crypto';
+
+import { type UserSettings, type UserStatus, DEFAULT_USER_SETTINGS } from '@odysseus/shared-schemas';
+
+import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
+import { UserRole } from '@domain/value-objects/UserRole';
+
+
+
 
 interface UserConstructorProps {
   id: string;

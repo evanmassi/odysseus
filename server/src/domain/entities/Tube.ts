@@ -4,10 +4,10 @@
  * Aggregate root for a physical tube with location, sample data, and locking.
  */
 
-import { Location } from '@domain/value-objects/Location';
-import { SampleData } from '@domain/value-objects/SampleData';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
+import { Location } from '@domain/value-objects/Location';
+import { SampleData } from '@domain/value-objects/SampleData';
 
 export class Tube {
   private constructor(

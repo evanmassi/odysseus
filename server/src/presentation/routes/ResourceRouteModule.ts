@@ -4,16 +4,16 @@
  * Authenticated routes for tubes, researchers, and lookup values.
  */
 
-import { Router, RequestHandler } from 'express';
-import { RouteModule } from '@presentation/routes/RouteModule';
-import { TubeController } from '@presentation/controllers/TubeController';
-import { TubeLockController } from '@presentation/controllers/TubeLockController';
-import { ResearcherController } from '@presentation/controllers/ResearcherController';
-import { LookupValueController } from '@presentation/controllers/LookupValueController';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { LookupValueController } from '@presentation/controllers/LookupValueController';
+import type { ResearcherController } from '@presentation/controllers/ResearcherController';
+import type { TubeController } from '@presentation/controllers/TubeController';
+import type { TubeLockController } from '@presentation/controllers/TubeLockController';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
 import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
+import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
   CategoryParams,
@@ -28,6 +28,8 @@ import {
   ShareTubeAccessHttpSchema,
   RevokeTubeAccessHttpSchema
 } from '@presentation/validation/httpValidationSchemas';
+
+import type { Router, RequestHandler } from 'express';
 
 export class ResourceRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;

@@ -4,10 +4,11 @@
  * Data access for researcher records. JOIN queries use persons table for name-based operations.
  */
 
-import { ResearcherRepository as IResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { Researcher } from '@domain/entities/Researcher';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { ResearcherMapper, ResearcherRow } from '@infrastructure/database/mappers/ResearcherMapper';
+import type { Researcher } from '@domain/entities/Researcher';
+import type { ResearcherRepository as IResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { ResearcherRow } from '@infrastructure/database/mappers/ResearcherMapper';
+import { ResearcherMapper } from '@infrastructure/database/mappers/ResearcherMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const RESEARCHER_COLUMNS = 'id, person_id, active, created_at, approval_status, source, lab_id';
 const RESEARCHER_COLUMNS_JOINED = 'r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source, r.lab_id';

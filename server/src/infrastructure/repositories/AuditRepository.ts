@@ -4,10 +4,11 @@
  * Immutable audit log persistence with indexed access and archival support.
  */
 
-import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { AuditRepository as IAuditRepository } from '@domain/repositories/AuditRepository';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+
+import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 const AUDIT_LOG_COLUMNS = `
   id, user_id, username, action, entity_type, entity_id,

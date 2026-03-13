@@ -4,14 +4,17 @@
  * PostgreSQL implementation of user data access with hashed token matching.
  */
 
-import { UserRepository as IUserRepository } from '@domain/repositories/UserRepository';
-import type { UserSearchCriteria } from '@domain/types/repository';
-import { User } from '@domain/entities/User';
-import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
-import { UserMapper, UserRow } from '@infrastructure/database/mappers/UserMapper';
 import * as crypto from 'crypto';
+
+import type { User } from '@domain/entities/User';
+import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
+import type { UserRepository as IUserRepository } from '@domain/repositories/UserRepository';
+import type { UserSearchCriteria } from '@domain/types/repository';
+import { isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
+import type { UserRow } from '@infrastructure/database/mappers/UserMapper';
+import { UserMapper } from '@infrastructure/database/mappers/UserMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+
 
 const USER_COLUMNS = `
   u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,

@@ -6,9 +6,11 @@
  * This is the first migration that actually runs on prod.
  */
 
-import { Pool } from 'pg';
+
 import { generateId } from '@domain/utils/generateId';
+
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
 
 export const migration010: Migration = {
   id: 10,

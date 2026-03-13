@@ -4,18 +4,20 @@
  * Handles profile management for the authenticated user.
  */
 
-import { Request, Response } from 'express';
+import type { PasswordService } from '@application/contracts/PasswordService';
+import type { Person } from '@domain/entities/Person';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { InvalidCredentialsError } from '@domain/errors/UserErrors';
+import { ValidationError } from '@domain/errors/ValidationError';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import { logger } from '@infrastructure/logging/logger';
+
+
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { logger } from '@infrastructure/logging/logger';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { InvalidCredentialsError } from '@domain/errors/UserErrors';
-import type { Person } from '@domain/entities/Person';
-import type { PasswordService } from '@application/contracts/PasswordService';
+import type { Request, Response } from 'express';
 
 export interface PersonControllerDeps {
   personRepository: PersonRepository;
@@ -54,7 +56,7 @@ export class PersonController extends BaseController {
       const person = await this.getPersonForCurrentUser(req);
       const { firstName, lastName, position, department, email, currentPassword } = req.body;
 
-      if (!currentPassword || !currentPassword.trim()) {
+      if (!currentPassword?.trim()) {
         throw new ValidationError('Current password is required to update profile');
       }
 

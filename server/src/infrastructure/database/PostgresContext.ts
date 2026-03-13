@@ -4,9 +4,13 @@
  * Manages the PostgreSQL connection lifecycle and ensures schema is up-to-date on startup.
  */
 
-import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import { Pool } from 'pg';
+
 import { logger } from '@infrastructure/logging/logger';
+
 import { runMigrations } from './migrations/migrationRunner';
+
+import type { PoolClient, QueryResult, QueryResultRow } from 'pg';
 
 export interface DatabaseConnectionConfig {
   connectionString: string;

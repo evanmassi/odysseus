@@ -4,16 +4,18 @@
  * Manages the equipment hierarchy (tanks → racks → boxes) and system settings.
  */
 
-import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/value-objects/Equipment';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { Location } from '@domain/value-objects/Location';
-import { generateId } from '@domain/utils/generateId';
 import {
   EQUIPMENT_DEFAULTS,
   NAMING_PATTERNS,
   SYSTEM_DEFAULTS,
   type PositionDisplayConfig,
 } from '@odysseus/shared-schemas';
+
+import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
+import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/value-objects/Equipment';
+import type { Location } from '@domain/value-objects/Location';
+
 
 export class Storage {
   private constructor(

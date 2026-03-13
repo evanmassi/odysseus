@@ -5,12 +5,14 @@
  * All guards short-circuit for non-demo users so they're no-ops for real labs.
  */
 
-import { User } from '@domain/entities/User';
-import { Lab } from '@domain/entities/Lab';
-import { Storage } from '@domain/entities/Storage';
+import { DEMO_LIMITS_DEFAULTS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+
+import type { Lab } from '@domain/entities/Lab';
+import type { Storage } from '@domain/entities/Storage';
+import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { DEMO_LIMITS_DEFAULTS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+
 
 export function rejectIfSeeded(
   user: User,

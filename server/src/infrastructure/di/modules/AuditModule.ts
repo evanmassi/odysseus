@@ -5,15 +5,15 @@
  */
 
 import { AuditEventHandler } from '@application/event-handlers/AuditEventHandler';
-import { AuditService } from '@application/services/AuditService';
 import { AuditRetentionService } from '@application/services/AuditRetentionService';
+import { AuditService } from '@application/services/AuditService';
 import { ExportService } from '@application/services/ExportService';
-import { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
+import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
+import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { AuditArchivalJob } from '@infrastructure/jobs/AuditArchivalJob';
+import { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
-import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
-import { SharedServices } from '@infrastructure/di/SharedServices';
 
 export class AuditModule {
   private auditService?: AuditService;

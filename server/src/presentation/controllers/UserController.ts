@@ -4,16 +4,19 @@
  * HTTP handlers for user settings CRUD and user display-info lookups.
  */
 
-import { Request, Response } from 'express';
-import { UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
-import { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
 import { userSettingsSchema, userLookupRequestSchema } from '@odysseus/shared-schemas';
-import { BaseController } from '@presentation/controllers/BaseController';
+
+
+import type { UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
+import type { GetUserSettingsQueryHandler } from '@application/queries/UserQueries';
 import type { User } from '@domain/entities/User';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import { BaseController } from '@presentation/controllers/BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 export interface UserControllerDeps {
   updateUserSettingsHandler: UpdateUserSettingsCommandHandler;
   getUserSettingsHandler: GetUserSettingsQueryHandler;

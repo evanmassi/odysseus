@@ -4,8 +4,10 @@
  * Shared auth extraction helpers for all controllers.
  */
 
-import { Request } from 'express';
 import type { User } from '@domain/entities/User';
+
+import type { Request } from 'express';
+
 
 export abstract class BaseController {
 

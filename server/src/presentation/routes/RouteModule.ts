@@ -4,7 +4,7 @@
  * Interface implemented by all route modules for consistent registration via RouteRegistry.
  */
 
-import { Router, RequestHandler } from 'express';
+import type { Router, RequestHandler } from 'express';
 
 export interface RouteModule {
   configure(router: Router): void;

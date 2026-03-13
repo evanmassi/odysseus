@@ -4,12 +4,14 @@
  * Routes requiring a valid session — session management, password, and email verification.
  */
 
-import { Router, RequestHandler } from 'express';
-import { RouteModule } from '@presentation/routes/RouteModule';
-import { AuthController } from '@presentation/controllers/auth/AuthController';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { AuthController } from '@presentation/controllers/auth/AuthController';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { RouteModule } from '@presentation/routes/RouteModule';
+
+import type { Router, RequestHandler } from 'express';
 
 export class AuthRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;

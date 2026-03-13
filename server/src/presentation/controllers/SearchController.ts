@@ -4,15 +4,18 @@
  * HTTP handlers for tube search operations — advanced, quick, and field-specific.
  */
 
-import { Request, Response } from 'express';
-import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+
 import type { TubeResponse } from '@application/dto/TubeDto';
-import { handleControllerError } from '@presentation/utils/errorHandler';
+import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { logger } from '@infrastructure/logging/logger';
-import { SearchCriteriaMapper } from '@presentation/mappers/SearchCriteriaMapper';
 import { BaseController } from '@presentation/controllers/BaseController';
+import { SearchCriteriaMapper } from '@presentation/mappers/SearchCriteriaMapper';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 
 interface GroupedResult {
   groupKey: string;
@@ -69,7 +72,7 @@ export class SearchController extends BaseController {
       const { tubes, matchedTerms } = searchResult;
 
       const maxGroups = limit || 50;
-      const grouped = shouldGroup ? this.autoGroupTubes(tubes, groupBy).slice(0, maxGroups) : undefined;
+      const grouped = shouldGroup ? this.autoGroupTubes(tubes).slice(0, maxGroups) : undefined;
 
       const result = {
         data: tubes,
@@ -154,7 +157,7 @@ export class SearchController extends BaseController {
   }
 
   /** Groups tubes by identical properties including box location */
-  private autoGroupTubes(tubes: TubeResponse[], explicitGroupBy?: string): GroupedResult[] {
+  private autoGroupTubes(tubes: TubeResponse[]): GroupedResult[] {
     if (tubes.length === 0) {
       return [];
     }
@@ -188,7 +191,7 @@ export class SearchController extends BaseController {
       groups.get(batchKey)!.push(tube);
     }
 
-    const groupedResults = Array.from(groups.entries()).map(([batchKey, groupTubes]) => {
+    const groupedResults = Array.from(groups.entries()).map(([, groupTubes]) => {
       const firstTube = groupTubes[0];
 
       const cellType = firstTube.sample?.cellType || 'Unknown';

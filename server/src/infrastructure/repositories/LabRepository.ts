@@ -4,10 +4,11 @@
  * Data access for lab tenants with upsert support.
  */
 
-import { Lab } from '@domain/entities/Lab';
-import { LabRepository as ILabRepository } from '@domain/repositories/LabRepository';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { LabMapper, LabRow } from '@infrastructure/database/mappers/LabMapper';
+import type { Lab } from '@domain/entities/Lab';
+import type { LabRepository as ILabRepository } from '@domain/repositories/LabRepository';
+import type { LabRow } from '@infrastructure/database/mappers/LabMapper';
+import { LabMapper } from '@infrastructure/database/mappers/LabMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const LAB_COLUMNS = 'id, name, slug, is_active, is_demo, created_at, updated_at, demo_limits';
 

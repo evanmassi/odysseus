@@ -4,14 +4,16 @@
  * HTTP handlers for admin-managed dropdown values (species, source).
  */
 
-import { Request, Response } from 'express';
-import { BaseController } from '@presentation/controllers/BaseController';
-import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { handleControllerError } from '@presentation/utils/errorHandler';
+
+import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import type { LookupCategory } from '@domain/entities/LookupValue';
+import { ValidationError } from '@domain/errors/ValidationError';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import { BaseController } from '@presentation/controllers/BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 
 export interface LookupValueControllerDeps {
   lookupValueService: LookupValueApplicationService;

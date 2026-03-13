@@ -5,9 +5,9 @@
  * For distributed systems, replace with a message queue implementation.
  */
 
+import type { EventBus, EventHandler } from '@application/contracts/EventBus';
 import type { DomainEvent } from '@domain/events/DomainEvent';
 import type { DomainEventMap, DomainEventName } from '@domain/events/DomainEventMap';
-import type { EventBus, EventHandler } from '@application/contracts/EventBus';
 import { logger } from '@infrastructure/logging/logger';
 
 // Runtime can't verify generic types across Map storage

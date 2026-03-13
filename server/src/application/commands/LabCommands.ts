@@ -4,16 +4,16 @@
  * System admin operations for lab tenant management.
  */
 
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { Lab } from '@domain/entities/Lab';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { EventBus } from '@application/contracts/EventBus';
-import { LabCreatedEvent } from '@domain/events/LabEvents';
+import type { EventBus } from '@application/contracts/EventBus';
 import { requireSystemAdmin } from '@application/guards/UserGuards';
+import { Lab } from '@domain/entities/Lab';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import { LabCreatedEvent } from '@domain/events/LabEvents';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 
 // COMMAND INTERFACES
 

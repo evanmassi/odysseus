@@ -5,10 +5,12 @@
  * Idempotent: skips users that already have `person_id`.
  */
 
-import { Pool } from 'pg';
+
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
+
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
 
 export const migration014: Migration = {
   id: 14,

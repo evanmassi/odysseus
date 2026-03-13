@@ -4,26 +4,29 @@
  * Dual-token (access + refresh) session service with configurable timeouts and demo-aware limits.
  */
 
+import { randomUUID } from 'crypto';
+
 import * as jwt from 'jsonwebtoken';
-import { randomUUID, randomBytes } from 'crypto';
-import { User } from '@domain/entities/User';
-import { logger } from '@infrastructure/logging/logger';
-import { RefreshToken } from '@domain/entities/RefreshToken';
-import { UserSession } from '@domain/entities/UserSession';
-import { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/contracts/SessionService';
-import { ConfigurationService } from '@application/contracts/ConfigurationService';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import {
+
+import type { ConfigurationService } from '@application/contracts/ConfigurationService';
+import type { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/contracts/SessionService';
+import type {
   TokenPair,
   RefreshTokenRecord,
   AccessTokenPayload,
   EnhancedLoginResponse,
   RefreshTokenResponse,
 } from '@application/types/tokenTypes';
+import { RefreshToken } from '@domain/entities/RefreshToken';
+import type { User } from '@domain/entities/User';
+import { UserSession } from '@domain/entities/UserSession';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { logger } from '@infrastructure/logging/logger';
+
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
 export interface JwtSessionConfig {
@@ -339,8 +342,6 @@ export class JwtSessionService implements SessionService {
   }
 
   private async createRefreshToken(user: User): Promise<RefreshTokenRecord> {
-    const secureToken = randomBytes(32).toString('hex'); // 256-bit
-
     // Demo users get shorter refresh token expiry
     const expiryDays = user.isDemo
       ? JwtSessionService.DEMO_SESSION_EXPIRY_HOURS / 24

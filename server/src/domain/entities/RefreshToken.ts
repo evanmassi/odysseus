@@ -4,9 +4,10 @@
  * Long-lived token for OAuth 2.0 dual-token authentication with rotation support.
  */
 
+import * as crypto from 'crypto';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
-import * as crypto from 'crypto';
 
 export class RefreshToken {
   private constructor(

@@ -5,19 +5,15 @@
  * Full parent context (tankId + rackId) required since boxId is not globally unique.
  */
 
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { TubeRepository } from '@domain/repositories/TubeRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { User } from '@domain/entities/User';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { EventBus } from '@application/contracts/EventBus';
+import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
+
+import type { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddBoxesLimit } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
-import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
+import type { User } from '@domain/entities/User';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import {
   BoxAddedEvent,
   BoxUpdatedEvent,
@@ -26,7 +22,14 @@ import {
   BoxUnassignedEvent,
   BoxReassignedEvent
 } from '@domain/events/StorageEvents';
+import { LabRepository } from '@domain/repositories/LabRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
+
+import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
+
 
 // COMMAND INTERFACES
 

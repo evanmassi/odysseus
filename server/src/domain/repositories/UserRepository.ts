@@ -4,7 +4,7 @@
  * Data access contract for user accounts and authentication.
  */
 
-import { User } from '@domain/entities/User';
+import type { User } from '@domain/entities/User';
 import type { UserSearchCriteria } from '@domain/types/repository/searchCriteriaTypes';
 
 export interface UserRepository {

@@ -4,17 +4,17 @@
  * Manages invite code lifecycle for lab registration.
  */
 
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { InviteCode } from '@domain/entities/InviteCode';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { EventBus } from '@application/contracts/EventBus';
-import { InviteCodeCreatedEvent } from '@domain/events/LabEvents';
+import type { EventBus } from '@application/contracts/EventBus';
 import { requireUser } from '@application/guards/UserGuards';
+import { InviteCode } from '@domain/entities/InviteCode';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import { InviteCodeCreatedEvent } from '@domain/events/LabEvents';
+import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 
 // COMMAND INTERFACES
 

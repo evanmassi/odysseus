@@ -4,10 +4,10 @@
  * Data access contract for tube sample records and location queries.
  */
 
-import { Tube } from '@domain/entities/Tube';
-import { Location } from '@domain/value-objects/Location';
+import type { Tube } from '@domain/entities/Tube';
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteriaTypes';
 import type { TubeRepositoryStats } from '@domain/types/repository/statsTypes';
+import type { Location } from '@domain/value-objects/Location';
 
 export interface TubeRepository {
 

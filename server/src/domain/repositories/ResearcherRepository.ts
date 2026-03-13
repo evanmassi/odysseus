@@ -4,7 +4,7 @@
  * Data access contract for researcher records and tube assignment queries.
  */
 
-import { Researcher } from '@domain/entities/Researcher';
+import type { Researcher } from '@domain/entities/Researcher';
 
 export interface ResearcherRepository {
 

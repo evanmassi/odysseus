@@ -4,7 +4,7 @@
  * Contract for request authentication and role-gating middleware.
  */
 
-import { RequestHandler } from 'express';
+import type { RequestHandler } from 'express';
 
 export interface AuthMiddleware {
   authenticate: RequestHandler;

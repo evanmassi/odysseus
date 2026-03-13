@@ -4,23 +4,23 @@
  * Atomic operations for tank management with domain event emission.
  */
 
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { TubeRepository } from '@domain/repositories/TubeRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { EventBus } from '@application/contracts/EventBus';
+import type { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddTankLimit } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
-import { generateId } from '@domain/utils/generateId';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import {
   TankAddedEvent,
   TankUpdatedEvent,
   TankDeletedEvent
 } from '@domain/events/StorageEvents';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
+import { generateId } from '@domain/utils/generateId';
 
 // COMMAND INTERFACES
 

@@ -5,11 +5,13 @@
  * within a specific lab context. Requires system_admin role.
  */
 
-import { Request, Response } from 'express';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
-import { UserApplicationService } from '@application/services/UserApplicationService';
+
+import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 
 export interface SystemAdminUserControllerDeps {
   userApplicationService: UserApplicationService;

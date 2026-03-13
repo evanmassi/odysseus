@@ -4,7 +4,8 @@
  * Converts between domain entity and database row for lookup_values table.
  */
 
-import { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
+import type { LookupCategory } from '@domain/entities/LookupValue';
+import { LookupValue } from '@domain/entities/LookupValue';
 
 export interface LookupValueRow {
   id: string;

@@ -4,9 +4,10 @@
  * Shared password policy validation for command handlers.
  */
 
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { ValidationError } from '@domain/errors/ValidationError';
 import { PasswordValidator } from '@odysseus/shared-schemas';
+
+import { ValidationError } from '@domain/errors/ValidationError';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 
 export async function validatePasswordPolicy(
   storageRepository: StorageRepository,

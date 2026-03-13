@@ -4,8 +4,9 @@
  * Immutable value object representing a physical position: Tank → Rack → Box → Position.
  */
 
-import { ValidationError } from '@domain/errors/ValidationError';
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+
+import { ValidationError } from '@domain/errors/ValidationError';
 export class Location {
   private constructor(
     private readonly _tankId: string,

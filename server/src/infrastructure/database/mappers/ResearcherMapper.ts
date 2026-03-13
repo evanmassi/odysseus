@@ -4,7 +4,8 @@
  * Converts between database rows and Researcher domain entities.
  */
 
-import { Researcher, ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
+import type { ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
+import { Researcher } from '@domain/entities/Researcher';
 
 export interface ResearcherRow {
   id: string;

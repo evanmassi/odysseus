@@ -4,8 +4,29 @@
  * Central registry enabling compile-time verification of event handler subscriptions.
  */
 
-import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesUpdatedEvent } from './TubeEvents';
-import type { TubesLockedEvent, TubesUnlockedEvent, TubeAccessSharedEvent, TubeAccessRevokedEvent } from './TubeLockEvents';
+import type {
+  VerificationEmailSentEvent,
+  EmailVerifiedEvent,
+  VerificationEmailResentEvent
+} from './EmailVerificationEvents';
+import type {
+  LabCreatedEvent,
+  InviteCodeCreatedEvent,
+  InviteCodeUsedEvent
+} from './LabEvents';
+import type {
+  PasswordResetByAdminEvent,
+  PasswordResetTokenGeneratedEvent,
+  PasswordResetCompletedEvent
+} from './PasswordResetEvents';
+import type {
+  ResearcherCreatedEvent,
+  ResearcherUpdatedEvent,
+  ResearcherDeactivatedEvent,
+  ResearcherReactivatedEvent,
+  ResearcherDeletedEvent,
+  ResearcherApprovedEvent
+} from './ResearcherEvents';
 import type {
   StorageUpdatedEvent,
   TankUpdatedEvent,
@@ -29,6 +50,8 @@ import type {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from './StorageEvents';
+import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesUpdatedEvent } from './TubeEvents';
+import type { TubesLockedEvent, TubesUnlockedEvent, TubeAccessSharedEvent, TubeAccessRevokedEvent } from './TubeLockEvents';
 import type {
   UserCreatedEvent,
   UserPasswordChangedEvent,
@@ -44,29 +67,6 @@ import type {
   UserSuspendedEvent,
   UserReactivatedEvent
 } from './UserEvents';
-import type {
-  ResearcherCreatedEvent,
-  ResearcherUpdatedEvent,
-  ResearcherDeactivatedEvent,
-  ResearcherReactivatedEvent,
-  ResearcherDeletedEvent,
-  ResearcherApprovedEvent
-} from './ResearcherEvents';
-import type {
-  VerificationEmailSentEvent,
-  EmailVerifiedEvent,
-  VerificationEmailResentEvent
-} from './EmailVerificationEvents';
-import type {
-  PasswordResetByAdminEvent,
-  PasswordResetTokenGeneratedEvent,
-  PasswordResetCompletedEvent
-} from './PasswordResetEvents';
-import type {
-  LabCreatedEvent,
-  InviteCodeCreatedEvent,
-  InviteCodeUsedEvent
-} from './LabEvents';
 
 export interface DomainEventMap {
   // Tube CRUD events

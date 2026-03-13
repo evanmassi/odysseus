@@ -6,8 +6,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+
 import { z } from 'zod';
-import { ConfigurationService, Configuration } from '@application/contracts/ConfigurationService';
+
+import type { ConfigurationService, Configuration } from '@application/contracts/ConfigurationService';
 
 const ConfigurationSchema = z.object({
   server: z.object({

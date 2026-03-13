@@ -4,8 +4,9 @@
  * Demo status moved from `users.is_demo` to `labs.is_demo` as part of multi-tenancy.
  */
 
-import { Pool } from 'pg';
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
+
 
 export const migration007: Migration = {
   id: 7,

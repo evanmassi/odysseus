@@ -4,10 +4,11 @@
  * Data access for registration invite codes with upsert support.
  */
 
-import { InviteCode } from '@domain/entities/InviteCode';
-import { InviteCodeRepository as IInviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { InviteCodeMapper, InviteCodeRow } from '@infrastructure/database/mappers/InviteCodeMapper';
+import type { InviteCode } from '@domain/entities/InviteCode';
+import type { InviteCodeRepository as IInviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { InviteCodeRow } from '@infrastructure/database/mappers/InviteCodeMapper';
+import { InviteCodeMapper } from '@infrastructure/database/mappers/InviteCodeMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const INVITE_CODE_COLUMNS = 'id, lab_id, code, role, created_by, max_uses, use_count, expires_at, is_active, created_at';
 

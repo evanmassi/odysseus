@@ -4,15 +4,17 @@
  * Data access for tube sample records with multi-layer full-text search and location queries.
  */
 
-import { Tube } from '@domain/entities/Tube';
-import { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
-import type { TubeSearchCriteria, TubeSearchResult, TubeRepositoryStats } from '@domain/types/repository';
-import { Location } from '@domain/value-objects/Location';
+import type { Tube } from '@domain/entities/Tube';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { TubeMapper, TubeRow } from '@infrastructure/database/mappers/TubeMapper';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
+import type { TubeSearchCriteria, TubeSearchResult, TubeRepositoryStats } from '@domain/types/repository';
+import type { Location } from '@domain/value-objects/Location';
 import { isPositionConstraintError } from '@infrastructure/database/DatabaseErrors';
+import type { TubeRow } from '@infrastructure/database/mappers/TubeMapper';
+import { TubeMapper } from '@infrastructure/database/mappers/TubeMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import {
   normalizeSearchQuery,
   expandWithSynonyms,
@@ -23,7 +25,6 @@ import {
   SearchRankTier,
 } from '@infrastructure/database/searchQueryPreprocessing';
 import { logger } from '@infrastructure/logging/logger';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
 
 export class TubeRepository implements ITubeRepository {
   constructor(
@@ -586,7 +587,7 @@ export class TubeRepository implements ITubeRepository {
   }
 
   async search(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
-    if (criteria.query && criteria.query.trim()) {
+    if (criteria.query?.trim()) {
       return this.comprehensiveSearch(criteria, labId);
     }
 
@@ -598,7 +599,7 @@ export class TubeRepository implements ITubeRepository {
 
     const matchedTerms: string[] = [];
 
-    if (criteria.query && criteria.query.trim()) {
+    if (criteria.query?.trim()) {
       const rawQuery = criteria.query.trim();
       const normalizedQuery = normalizeSearchQuery(rawQuery);
       const expandedTerms = expandWithSynonyms(normalizedQuery);

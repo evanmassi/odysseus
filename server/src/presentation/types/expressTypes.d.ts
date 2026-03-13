@@ -4,7 +4,7 @@
  * Augments Express Request with properties added by middleware.
  */
 
-import { User } from '@domain/entities/User';
+import type { User } from '@domain/entities/User';
 declare global {
   namespace Express {
     interface Request {

@@ -4,10 +4,11 @@
  * PostgreSQL implementation for admin-managed dropdown values.
  */
 
-import { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
-import { LookupValueRepository as ILookupValueRepository } from '@domain/repositories/LookupValueRepository';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { LookupValueMapper, LookupValueRow } from '@infrastructure/database/mappers/LookupValueMapper';
+import type { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
+import type { LookupValueRepository as ILookupValueRepository } from '@domain/repositories/LookupValueRepository';
+import type { LookupValueRow } from '@infrastructure/database/mappers/LookupValueMapper';
+import { LookupValueMapper } from '@infrastructure/database/mappers/LookupValueMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const LOOKUP_VALUE_COLUMNS = 'id, category, value, sort_order, is_active, created_at, updated_at, lab_id';
 

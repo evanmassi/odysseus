@@ -5,23 +5,23 @@
  * Input validation is handled by Zod middleware; this layer enforces business rules only.
  */
 
+import type { EventBus } from '@application/contracts/EventBus';
+import { TubeDto } from '@application/dto/TubeDto';
+import type { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchRequest, TubeSearchResponse } from '@application/dto/TubeDto';
+import type { Storage } from '@domain/entities/Storage';
+import { Tube } from '@domain/entities/Tube';
+import type { User } from '@domain/entities/User';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { TubeSearchCriteria } from '@domain/types/repository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import { Tube } from '@domain/entities/Tube';
-import type { Storage } from '@domain/entities/Storage';
-import type { User } from '@domain/entities/User';
 import type { TubePositionService } from '@domain/services/TubePositionService';
 import type { AccessControlService } from '@domain/services/AccessControlService';
-import { TubeDto } from '@application/dto/TubeDto';
-import type { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchRequest, TubeSearchResponse } from '@application/dto/TubeDto';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
-import type { EventBus } from '@application/contracts/EventBus';
 import { logger } from '@infrastructure/logging/logger';
 import {
   TubeCreatedEvent,
@@ -36,6 +36,7 @@ import {
   TubeAccessSharedEvent,
   TubeAccessRevokedEvent
 } from '@domain/events/TubeLockEvents';
+
 import type {
   LockTubesRequest,
   UnlockTubesRequest,
@@ -95,8 +96,6 @@ export class TubeApplicationService {
     await this.accessControlService.requireCanCreateTube(authenticatedUser);
 
     const tubeData = TubeDto.fromCreateRequest(request);
-
-    const config = options?.config !== undefined ? options.config : await this.storageRepository.getForLab(authenticatedUser.labId!);
 
     const containerInfo = await this.getContainerInfo(
       authenticatedUser.labId!,

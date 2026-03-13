@@ -4,10 +4,11 @@
  * PostgreSQL implementation of session persistence for concurrent session enforcement.
  */
 
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { UserSession } from '@domain/entities/UserSession';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { UserSessionMapper, UserSessionRow } from '@infrastructure/database/mappers/UserSessionMapper';
+import type { UserSession } from '@domain/entities/UserSession';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import type { UserSessionRow } from '@infrastructure/database/mappers/UserSessionMapper';
+import { UserSessionMapper } from '@infrastructure/database/mappers/UserSessionMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const SESSION_COLUMNS = `
   id, user_id, refresh_token, device_info, ip_address, user_agent,

@@ -4,8 +4,8 @@
  * Shared helpers for creating domain entities in tests with sensible defaults.
  */
 
-import { User } from '@domain/entities/User';
 import { Tube } from '@domain/entities/Tube';
+import { User } from '@domain/entities/User';
 import { UserRole } from '@domain/value-objects/UserRole';
 
 export const TEST_PASSWORD_HASH = '$2b$12$fakehashfortestingonly000000000000000000000000000000000';

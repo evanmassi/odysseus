@@ -6,8 +6,9 @@
  */
 
 import * as cron from 'node-cron';
-import { AuditRetentionService } from '@application/services/AuditRetentionService';
+
 import { AUDIT_RETENTION_CONFIG } from '@application/config/AuditConfig';
+import type { AuditRetentionService } from '@application/services/AuditRetentionService';
 import { logger } from '@infrastructure/logging/logger';
 
 export class AuditArchivalJob {
@@ -37,7 +38,7 @@ export class AuditArchivalJob {
 
   stop(): void {
     if (this.task) {
-      this.task.stop();
+      void this.task.stop();
       this.task = null;
     }
   }

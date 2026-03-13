@@ -5,8 +5,9 @@
  * migration is marked as applied without running (see migrationRunner fingerprint).
  */
 
-import { Pool } from 'pg';
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
+
 
 export const migration001: Migration = {
   id: 1,

@@ -4,8 +4,9 @@
  * Adds `species`, `source`, `catalog_number`, and `passage_number` columns to the `tubes` table.
  */
 
-import { Pool } from 'pg';
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
+
 
 export const migration004: Migration = {
   id: 4,

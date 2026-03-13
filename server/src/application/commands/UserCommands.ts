@@ -4,18 +4,13 @@
  * Account lifecycle operations — registration, login, password changes, role changes, deletion.
  */
 
-import { UserRole } from '@domain/value-objects/UserRole';
-import { User } from '@domain/entities/User';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { EventBus } from '@application/contracts/EventBus';
+import type { PasswordService } from '@application/contracts/PasswordService';
+import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
-import { logger } from '@infrastructure/logging/logger';
-import { EventBus } from '@application/contracts/EventBus';
-import { PasswordService } from '@application/contracts/PasswordService';
+import { User } from '@domain/entities/User';
+import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
+import { BulkResourcesUnassignedEvent } from '@domain/events/StorageEvents';
 import {
   UserCreatedEvent,
   UserPasswordChangedEvent,
@@ -23,13 +18,19 @@ import {
   UserDeletedEvent,
   UserLoggedInEvent
 } from '@domain/events/UserEvents';
-import { BulkResourcesUnassignedEvent } from '@domain/events/StorageEvents';
-import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
+import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
+import { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import { UserRole } from '@domain/value-objects/UserRole';
+import { logger } from '@infrastructure/logging/logger';
 import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
+
 import type { UserSettings } from '@odysseus/shared-schemas';
 
 // COMMAND INTERFACES

@@ -4,14 +4,14 @@
  * Lazy-singleton wiring for lab management, invite codes, and demo limits.
  */
 
-import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
-import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
-import { ValidateInviteCodeQueryHandler } from '@application/queries/InviteCodeQueries';
 import { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
-import { LabController } from '@presentation/controllers/LabController';
+import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
+import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
+import { ValidateInviteCodeQueryHandler } from '@application/queries/InviteCodeQueries';
+import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
+import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
-import { SharedServices } from '@infrastructure/di/SharedServices';
+import { LabController } from '@presentation/controllers/LabController';
 
 export class LabModule {
   private createLabHandler?: CreateLabCommandHandler;

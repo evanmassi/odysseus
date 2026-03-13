@@ -4,13 +4,7 @@
  * Separates domain User entity from HTTP API shape, stripping sensitive fields.
  */
 
-import { User } from '@domain/entities/User';
-
-export interface CreateUserRequest {
-  username: string;
-  apiKey: string;
-  role?: 'system_admin' | 'lab_admin' | 'user';
-}
+import type { User } from '@domain/entities/User';
 
 export interface UpdateUserRoleRequest {
   role: 'system_admin' | 'lab_admin' | 'user';

@@ -4,7 +4,7 @@
  * Data access contract for user sessions. Enforces maxConcurrentSessions security policy.
  */
 
-import { UserSession } from '@domain/entities/UserSession';
+import type { UserSession } from '@domain/entities/UserSession';
 
 export interface UserSessionRepository {
 

@@ -4,10 +4,12 @@
  * Handles HTTP requests for data export operations.
  */
 
-import { Request, Response } from 'express';
-import { ExportService } from '@application/services/ExportService';
+
+import type { ExportService } from '@application/services/ExportService';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
+
+import type { Request, Response } from 'express';
 
 export interface ExportControllerDeps {
   exportService: ExportService;

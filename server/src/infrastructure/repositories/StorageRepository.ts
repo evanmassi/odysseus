@@ -4,17 +4,19 @@
  * Data access for lab-scoped storage equipment configuration with versioning and optimistic locking.
  */
 
-import { StorageRepository as IStorageRepository, StorageHistory, StorageExport, StorageValidationResult } from '@domain/repositories/StorageRepository';
-import { Storage } from '@domain/entities/Storage';
-import { Location } from '@domain/value-objects/Location';
-import { Box } from '@domain/value-objects/Equipment';
-import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { ValidationError } from '@domain/errors/ValidationError';
+
+import { Storage } from '@domain/entities/Storage';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import { ValidationError } from '@domain/errors/ValidationError';
+import type { StorageRepository as IStorageRepository, StorageHistory, StorageExport, StorageValidationResult } from '@domain/repositories/StorageRepository';
+import type { Box } from '@domain/value-objects/Equipment';
+import type { Location } from '@domain/value-objects/Location';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
 type ConfigurationJson = Parameters<typeof Storage.fromData>[0];
 
@@ -333,7 +335,7 @@ export class StorageRepository implements IStorageRepository {
   }
 
   async importStorage(labId: string, configExport: StorageExport): Promise<Storage> {
-    if (!configExport || !configExport.storage) {
+    if (!configExport?.storage) {
       throw new ValidationError('Invalid configuration export provided');
     }
 

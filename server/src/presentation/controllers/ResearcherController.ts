@@ -4,14 +4,17 @@
  * HTTP handlers for researcher profile CRUD and metadata queries.
  */
 
-import { Request, Response } from 'express';
-import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
-import { CreateResearcherRequest } from '@application/dto/ResearcherDto';
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import { handleControllerError } from '@presentation/utils/errorHandler';
+
+
+import type { CreateResearcherRequest } from '@application/dto/ResearcherDto';
+import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import type { Request, Response } from 'express';
 export interface ResearcherControllerDeps {
   researcherApplicationService: ResearcherApplicationService;
 }

@@ -4,8 +4,9 @@
  * Data access contract for lab-scoped storage equipment configuration with versioning.
  */
 
-import { Storage } from '@domain/entities/Storage';
-import { Location } from '@domain/value-objects/Location';
+import type { Storage } from '@domain/entities/Storage';
+import type { Location } from '@domain/value-objects/Location';
+
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
 export interface StorageRepository {

@@ -4,9 +4,10 @@
  * All tenant-scoped data (tubes, researchers, storage) belongs to a lab.
  */
 
+import { DEMO_LIMITS_DEFAULTS, type DemoLimits } from '@odysseus/shared-schemas';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
-import { DEMO_LIMITS_DEFAULTS, type DemoLimits } from '@odysseus/shared-schemas';
 
 export class Lab {
   private constructor(

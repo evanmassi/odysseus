@@ -5,17 +5,18 @@
  * global security settings, and cross-lab overview. Requires system_admin role.
  */
 
-import { Router, RequestHandler } from 'express';
-import { RouteModule } from '@presentation/routes/RouteModule';
-import { LabController } from '@presentation/controllers/LabController';
-import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
-import { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
-import { StorageController } from '@presentation/controllers/StorageController';
-import { AuditController } from '@presentation/controllers/AuditController';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import { updateSecurityConfigSchema, updateDemoLimitsSchema } from '@odysseus/shared-schemas';
+
+
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
+import type { AuditController } from '@presentation/controllers/AuditController';
+import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
+import type { LabController } from '@presentation/controllers/LabController';
+import type { StorageController } from '@presentation/controllers/StorageController';
+import type { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
+import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
+import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
   LabIdParams,
@@ -24,6 +25,8 @@ import {
   UpdateLabBodySchema,
   CreateInviteCodeBodySchema
 } from '@presentation/validation/httpValidationSchemas';
+
+import type { Router, RequestHandler } from 'express';
 
 export class SystemAdminRouteModule implements RouteModule {
   constructor(

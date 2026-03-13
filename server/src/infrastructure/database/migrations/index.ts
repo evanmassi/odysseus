@@ -4,7 +4,6 @@
  * Ordered array of all migrations. The runner executes them sequentially by ID.
  */
 
-import type { Migration } from './migrationRunner';
 import { migration001 } from './001_initial_schema';
 import { migration002 } from './002_rename_configuration_to_storage';
 import { migration003 } from './003_rename_vendor_to_source';
@@ -20,6 +19,8 @@ import { migration012 } from './012_migrate_equipment_ids';
 import { migration013 } from './013_normalize_lab_ids';
 import { migration014 } from './014_ensure_system_admin_person';
 import { migration015 } from './015_insert_default_configuration';
+
+import type { Migration } from './migrationRunner';
 
 export const ALL_MIGRATIONS: Migration[] = [
   migration001,

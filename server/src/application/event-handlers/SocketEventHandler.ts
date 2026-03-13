@@ -5,9 +5,16 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
-import type { Server as SocketIOServer } from 'socket.io';
-import { logger } from '@infrastructure/logging/logger';
-import { PresenceService } from '@application/services/PresenceService';
+import type { PresenceService } from '@application/services/PresenceService';
+import {
+  ResearcherDeactivatedEvent,
+  ResearcherReactivatedEvent
+} from '@domain/events/ResearcherEvents';
+import type {
+  ResearcherCreatedEvent,
+  ResearcherUpdatedEvent,
+  ResearcherDeletedEvent
+} from '@domain/events/ResearcherEvents';
 import type {
   TankUpdatedEvent,
   TankAddedEvent,
@@ -30,14 +37,6 @@ import type {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from '@domain/events/StorageEvents';
-import type {
-  UserApprovedEvent,
-  UserDeletedEvent,
-  UserRoleChangedEvent,
-  UserCreatedEvent,
-  UserLinkedToResearcherEvent,
-  UserUnlinkedFromResearcherEvent
-} from '@domain/events/UserEvents';
 import { TubeLocationChangedEvent } from '@domain/events/TubeEvents';
 import type {
   TubeCreatedEvent,
@@ -51,15 +50,17 @@ import type {
   TubeAccessSharedEvent,
   TubeAccessRevokedEvent
 } from '@domain/events/TubeLockEvents';
-import {
-  ResearcherDeactivatedEvent,
-  ResearcherReactivatedEvent
-} from '@domain/events/ResearcherEvents';
 import type {
-  ResearcherCreatedEvent,
-  ResearcherUpdatedEvent,
-  ResearcherDeletedEvent
-} from '@domain/events/ResearcherEvents';
+  UserApprovedEvent,
+  UserDeletedEvent,
+  UserRoleChangedEvent,
+  UserCreatedEvent,
+  UserLinkedToResearcherEvent,
+  UserUnlinkedFromResearcherEvent
+} from '@domain/events/UserEvents';
+import { logger } from '@infrastructure/logging/logger';
+
+import type { Server as SocketIOServer } from 'socket.io';
 
 export class SocketEventHandler {
   private configTimersByLab = new Map<string, NodeJS.Timeout>();
@@ -95,7 +96,7 @@ export class SocketEventHandler {
 
           if (socket.labId) {
             const labRoom = this.getLabRoomName(socket.labId);
-            socket.join(labRoom);
+            void socket.join(labRoom);
             logger.debug('Socket joined lab room', { socketId: socket.id, room: labRoom, labId: socket.labId });
           }
 

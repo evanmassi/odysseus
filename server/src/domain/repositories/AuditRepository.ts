@@ -4,8 +4,9 @@
  * Immutable audit log contract — no update operations, supports retention policies and archival.
  */
 
-import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
+
+import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export interface AuditRepository {
 

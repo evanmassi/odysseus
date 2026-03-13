@@ -4,7 +4,6 @@
  * Immutable Tank, Rack, and Box definitions with domain validation.
  */
 
-import { ValidationError } from '@domain/errors/ValidationError';
 import {
   EQUIPMENT_DEFAULTS,
   VALIDATION_LIMITS,
@@ -15,6 +14,8 @@ import {
   getDefaultPositionDisplay,
   type PositionDisplayConfig,
 } from '@odysseus/shared-schemas';
+
+import { ValidationError } from '@domain/errors/ValidationError';
 
 export interface CreateTankOptions {
   id: string;

@@ -4,7 +4,7 @@
  * Data access contract for admin-managed dropdown values.
  */
 
-import { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
+import type { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
 
 export interface LookupValueRepository {
   findById(id: string): Promise<LookupValue | null>;

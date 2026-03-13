@@ -4,12 +4,13 @@
  * Pure structure mapping — validation is handled by Zod middleware, business logic by domain entities.
  */
 
-import { Tube } from '@domain/entities/Tube';
 import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type TubeData
 } from '@odysseus/shared-schemas';
+
+import type { Tube } from '@domain/entities/Tube';
 
 export type { CreateTubeRequest, UpdateTubeRequest };
 

@@ -4,18 +4,18 @@
  * Commands for email verification operations.
  */
 
-import { User } from '@domain/entities/User';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { EmailService } from '@domain/services/EmailService';
-import { EventBus } from '@application/contracts/EventBus';
-import { NotFoundError } from '@domain/errors/NotFoundError';
+import type { EventBus } from '@application/contracts/EventBus';
+import type { User } from '@domain/entities/User';
 import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
+import { NotFoundError } from '@domain/errors/NotFoundError';
 import {
   VerificationEmailSentEvent,
   EmailVerifiedEvent,
   VerificationEmailResentEvent
 } from '@domain/events/EmailVerificationEvents';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { EmailService } from '@domain/services/EmailService';
 
 // COMMAND INTERFACES
 

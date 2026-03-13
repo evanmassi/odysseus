@@ -4,8 +4,9 @@
  * Warm-storage contract for archived audit logs (retention compliance, bulk archival, export).
  */
 
-import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { PaginatedResult } from '@domain/types/repository';
+
+import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export interface AuditArchiveRepository {
   saveArchived(entries: AuditLogEntry[]): Promise<void>;

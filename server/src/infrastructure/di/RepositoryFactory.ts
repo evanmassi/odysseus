@@ -4,10 +4,20 @@
  * Lazy-singleton wiring for all repository implementations against PostgreSQL.
  */
 
-import { PostgresContext, DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
+import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
+import { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
-import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
 import { StorageRepository as StorageRepositoryImpl } from '@infrastructure/repositories/StorageRepository';
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
@@ -16,18 +26,8 @@ import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/reposito
 import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
 import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
 import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
-
-import { TubeRepository } from '@domain/repositories/TubeRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
-import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { AuditRepository } from '@domain/repositories/AuditRepository';
-import { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 
 export class RepositoryFactory {
   private postgresContext: PostgresContext;

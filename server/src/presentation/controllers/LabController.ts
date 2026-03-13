@@ -4,21 +4,23 @@
  * System admin endpoints for lab tenant management.
  */
 
-import { Request, Response } from 'express';
-import { BaseController } from './BaseController';
-import { handleControllerError } from '@presentation/utils/errorHandler';
-import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-import { ResponseBuilder } from '@presentation/utils/responseBuilder';
-import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
+import { API_ERROR_CODES , DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
+
 import type { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
+import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
 import type { LabRepository } from '@domain/repositories/LabRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
 import { logger } from '@infrastructure/logging/logger';
+import { handleControllerError } from '@presentation/utils/errorHandler';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
+import { BaseController } from './BaseController';
+
+import type { Request, Response } from 'express';
 
 export interface LabControllerDeps {
   createLabHandler: CreateLabCommandHandler;

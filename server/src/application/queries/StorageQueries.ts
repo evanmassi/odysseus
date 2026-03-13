@@ -4,9 +4,9 @@
  * CQRS queries for lab storage configuration read operations.
  */
 
-import { Storage } from '@domain/entities/Storage';
-import { StorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
+import type { Storage } from '@domain/entities/Storage';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import type { StorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
 
 // STORAGE QUERY CONTRACTS
 

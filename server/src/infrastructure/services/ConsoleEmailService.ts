@@ -4,7 +4,7 @@
  * Logs emails to console when SMTP credentials are not configured.
  */
 
-import { EmailService } from '@domain/services/EmailService';
+import type { EmailService } from '@domain/services/EmailService';
 import { logger } from '@infrastructure/logging/logger';
 export class ConsoleEmailService implements EmailService {
   private verificationBaseUrl: string;

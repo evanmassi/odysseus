@@ -5,21 +5,21 @@
  * lookup values, and demo seeding.
  */
 
-import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
-import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
-import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
 import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
 import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
 import { SeedDemoCommandHandler, UnseedDemoCommandHandler } from '@application/commands/DemoSeedCommands';
 import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
+import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
+import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
+import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
 import { GetCurrentStorageQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler } from '@application/queries/StorageQueries';
-import { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
-import { StorageController } from '@presentation/controllers/StorageController';
+import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
+import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
-import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
-import { SharedServices } from '@infrastructure/di/SharedServices';
+import { StorageController } from '@presentation/controllers/StorageController';
 
 interface StorageCrossModuleDeps {
   getGetUserStatsHandler: () => GetUserStatisticsQueryHandler;

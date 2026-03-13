@@ -5,7 +5,8 @@
  */
 
 import nodemailer from 'nodemailer';
-import { EmailService } from '@domain/services/EmailService';
+
+import type { EmailService } from '@domain/services/EmailService';
 export class NodemailerEmailService implements EmailService {
   private transporter: nodemailer.Transporter;
   private fromAddress: string;
@@ -45,7 +46,7 @@ export class NodemailerEmailService implements EmailService {
     });
   }
 
-  async sendPasswordResetEmail(email: string, token: string): Promise<void> {
+  async sendPasswordResetEmail(_email: string, _token: string): Promise<void> {
     // TODO: Implement password reset email
     throw new Error('Password reset email not yet implemented');
   }

@@ -4,20 +4,10 @@
  * Thin compositor that creates shared services and delegates to domain-specific DI modules.
  */
 
-import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
-import { SharedServices } from '@infrastructure/di/SharedServices';
-import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
-import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
-import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
-import { ConsoleEmailService } from '@infrastructure/services/ConsoleEmailService';
-import { ConfigurationService } from '@application/contracts/ConfigurationService';
-import { PasswordService } from '@application/contracts/PasswordService';
-import { SessionService } from '@application/contracts/SessionService';
-import { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { EmailService } from '@domain/services/EmailService';
-import { TubePositionService } from '@domain/services/TubePositionService';
-import { AccessControlService } from '@domain/services/AccessControlService';
-import { ValidationService } from '@domain/services/ValidationService';
+import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import type { ConfigurationService } from '@application/contracts/ConfigurationService';
+import type { PasswordService } from '@application/contracts/PasswordService';
+import type { SessionService } from '@application/contracts/SessionService';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
 import { AuditModule } from '@infrastructure/di/modules/AuditModule';
 import { TubeModule } from '@infrastructure/di/modules/TubeModule';
@@ -38,26 +28,36 @@ import type { TubeApplicationService } from '@application/services/TubeApplicati
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
-import type { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
+import { AccessControlService } from '@domain/services/AccessControlService';
+import type { EmailService } from '@domain/services/EmailService';
+import { TubePositionService } from '@domain/services/TubePositionService';
+import { ValidationService } from '@domain/services/ValidationService';
+import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
+import type { SharedServices } from '@infrastructure/di/SharedServices';
+import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
 import type { AuditArchivalJob } from '@infrastructure/jobs/AuditArchivalJob';
-import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
-import type { AuthController } from '@presentation/controllers/auth/AuthController';
-import type { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
+import type { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
+import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
+import { ConsoleEmailService } from '@infrastructure/services/ConsoleEmailService';
+import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
+import type { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
+import type { UserSessionController } from '@presentation/controllers/UserSessionController';
+import type { AuditController } from '@presentation/controllers/AuditController';
+import type { AuthController } from '@presentation/controllers/auth/AuthController';
+import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
+import type { ExportController } from '@presentation/controllers/ExportController';
+import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
+import type { LabController } from '@presentation/controllers/LabController';
+import type { LookupValueController } from '@presentation/controllers/LookupValueController';
+import type { PersonController } from '@presentation/controllers/PersonController';
+import type { ResearcherController } from '@presentation/controllers/ResearcherController';
+import type { SearchController } from '@presentation/controllers/SearchController';
+import type { StorageController } from '@presentation/controllers/StorageController';
 import type { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import type { TubeController } from '@presentation/controllers/TubeController';
 import type { TubeLockController } from '@presentation/controllers/TubeLockController';
-import type { ResearcherController } from '@presentation/controllers/ResearcherController';
-import type { StorageController } from '@presentation/controllers/StorageController';
-import type { SearchController } from '@presentation/controllers/SearchController';
 import type { UserController } from '@presentation/controllers/UserController';
-import type { PersonController } from '@presentation/controllers/PersonController';
-import type { UserSessionController } from '@presentation/controllers/UserSessionController';
-import type { AuditController } from '@presentation/controllers/AuditController';
-import type { ExportController } from '@presentation/controllers/ExportController';
-import type { LookupValueController } from '@presentation/controllers/LookupValueController';
-import type { LabController } from '@presentation/controllers/LabController';
-import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 
 export class ServiceContainer {
   private repositoryFactory: RepositoryFactory;

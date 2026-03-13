@@ -4,19 +4,15 @@
  * Manages rack lifecycle within tanks — add, update, delete, and assignment.
  */
 
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { User } from '@domain/entities/User';
-import { Box } from '@domain/value-objects/Equipment';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { EventBus } from '@application/contracts/EventBus';
+import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
+
+import type { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddRacksLimit } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
-import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import { generateId } from '@domain/utils/generateId';
+import type { User } from '@domain/entities/User';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import {
   RackAddedEvent,
   RackUpdatedEvent,
@@ -25,6 +21,11 @@ import {
   RackUnassignedEvent,
   RackReassignedEvent
 } from '@domain/events/StorageEvents';
+import { LabRepository } from '@domain/repositories/LabRepository';
+import { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import { generateId } from '@domain/utils/generateId';
+import { Box } from '@domain/value-objects/Equipment';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
 // COMMAND INTERFACES

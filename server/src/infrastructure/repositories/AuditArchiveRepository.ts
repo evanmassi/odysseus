@@ -4,11 +4,12 @@
  * Warm-storage data access for archived audit logs with minimal indexes.
  */
 
-import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
-import type { PaginatedResult } from '@domain/types/repository';
 import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { PaginatedResult } from '@domain/types/repository';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 const AUDIT_ARCHIVE_COLUMNS = `
   id, user_id, username, action, entity_type, entity_id,

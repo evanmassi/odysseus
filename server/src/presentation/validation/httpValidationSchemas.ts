@@ -3,7 +3,6 @@
  *
  * Centralizes all request validation so route modules stay pure routing.
  */
-import { z } from 'zod';
 import {
   createTubeRequestSchema,
   updateTubeRequestSchema,
@@ -14,6 +13,7 @@ import {
   shareTubeAccessRequestSchema,
   revokeTubeAccessRequestSchema
 } from '@odysseus/shared-schemas';
+import { z } from 'zod';
 
 // Shared param schemas
 

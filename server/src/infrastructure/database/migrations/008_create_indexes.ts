@@ -4,8 +4,9 @@
  * All pre-multi-tenancy indexes. Multi-tenancy indexes are created in migration 010.
  */
 
-import { Pool } from 'pg';
 import type { Migration } from './migrationRunner';
+import type { Pool } from 'pg';
+
 
 export const migration008: Migration = {
   id: 8,

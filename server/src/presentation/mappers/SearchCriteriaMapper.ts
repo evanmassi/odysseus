@@ -4,8 +4,10 @@
  * Maps HTTP search filters to domain-layer TubeSearchCriteria.
  */
 
-import { SearchFilters } from '@odysseus/shared-schemas';
 import type { TubeSearchCriteria } from '@domain/types/repository';
+
+import type { SearchFilters } from '@odysseus/shared-schemas';
+
 
 export class SearchCriteriaMapper {
   static toTubeSearchCriteria(

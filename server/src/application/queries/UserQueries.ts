@@ -4,10 +4,12 @@
  * Queries for user-related read operations in the CQRS pattern.
  */
 
-import { BaseQuery, QueryHandler } from '@application/queries/Query';
-import { User } from '@domain/entities/User';
-import { UserRepository } from '@domain/repositories/UserRepository';
+import type { QueryHandler } from '@application/queries/Query';
+import { BaseQuery } from '@application/queries/Query';
+import type { User } from '@domain/entities/User';
 import { UserNotFoundError } from '@domain/errors/UserErrors';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+
 import type { UserSettings } from '@odysseus/shared-schemas';
 
 // GET USER BY ID QUERY
@@ -49,7 +51,7 @@ export interface FirstTimeSetupResult {
 export class CheckFirstTimeSetupQueryHandler implements QueryHandler<CheckFirstTimeSetupQuery, FirstTimeSetupResult> {
   constructor(private userRepository: UserRepository) {}
 
-  async handle(query: CheckFirstTimeSetupQuery): Promise<FirstTimeSetupResult> {
+  async handle(_query: CheckFirstTimeSetupQuery): Promise<FirstTimeSetupResult> {
     const isEmpty = await this.userRepository.isEmpty();
     const systemAdminCount = await this.userRepository.countByRole('system_admin');
     return { isFirstTime: isEmpty, needsSystemAdmin: systemAdminCount === 0 };
@@ -74,7 +76,7 @@ export interface UserStatistics {
 export class GetUserStatisticsQueryHandler implements QueryHandler<GetUserStatisticsQuery, UserStatistics> {
   constructor(private userRepository: UserRepository) {}
 
-  async handle(query: GetUserStatisticsQuery): Promise<UserStatistics> {
+  async handle(_query: GetUserStatisticsQuery): Promise<UserStatistics> {
     const allUsers = await this.userRepository.findAll();
 
     const totalUsers = allUsers.length;

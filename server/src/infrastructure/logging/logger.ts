@@ -4,10 +4,11 @@
  * Winston-based logger with console output and optional daily-rotated file logging.
  */
 
+import fs from 'fs';
+import path from 'path';
+
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import path from 'path';
-import fs from 'fs';
 
 const logFormat = winston.format.combine(
   winston.format.timestamp(),

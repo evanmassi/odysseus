@@ -5,10 +5,12 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
+
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export interface LogActionParams {
   userId: string;

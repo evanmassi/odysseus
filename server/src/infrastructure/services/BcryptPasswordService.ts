@@ -4,9 +4,11 @@
  * Bcrypt-based PasswordService with transparent PBKDF2 legacy support.
  */
 
-import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { PasswordService } from '@application/contracts/PasswordService';
+
+import * as bcrypt from 'bcrypt';
+
+import type { PasswordService } from '@application/contracts/PasswordService';
 
 const DEFAULT_SALT_ROUNDS = 12;
 const PBKDF2_ITERATIONS = 10000;

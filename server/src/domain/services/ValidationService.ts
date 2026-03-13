@@ -4,21 +4,19 @@
  * Coordinates validation across multiple aggregates for tube, researcher, and storage operations.
  */
 
-import { Tube } from '@domain/entities/Tube';
-import { User } from '@domain/entities/User';
-import { Storage } from '@domain/entities/Storage';
+import type { Storage } from '@domain/entities/Storage';
+import type { Tube } from '@domain/entities/Tube';
+import type { User } from '@domain/entities/User';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { AccessControlService } from '@domain/services/AccessControlService';
+import type { TubePositionService } from '@domain/services/TubePositionService';
+import type { DomainValidationResult, BulkValidationResult , TubeCreationData, TubeUpdateData, TubeBusinessRuleInput } from '@domain/types/services';
 import { Location } from '@domain/value-objects/Location';
 import { SampleData } from '@domain/value-objects/SampleData';
-import { TubeRepository } from '@domain/repositories/TubeRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { TubePositionService } from '@domain/services/TubePositionService';
-import { AccessControlService } from '@domain/services/AccessControlService';
-import type { DomainValidationResult, BulkValidationResult } from '@domain/types/services';
-import type { TubeCreationData, TubeUpdateData, TubeBusinessRuleInput } from '@domain/types/services';
 export class ValidationService {
   
   constructor(

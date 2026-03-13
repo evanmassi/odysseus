@@ -4,12 +4,13 @@
  * Orchestrates audit log archival, expiry, and cross-table querying.
  */
 
-import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
-import type { AuditRepository } from '@domain/repositories/AuditRepository';
-import type { AuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
-import type { PaginatedResult } from '@domain/types/repository';
 import { AUDIT_RETENTION_CONFIG, ARCHIVE_RETENTION_DAYS } from '@application/config/AuditConfig';
+import type { AuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
+import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { PaginatedResult } from '@domain/types/repository';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export interface RetentionMetrics {
   activeTable: {
@@ -185,7 +186,7 @@ export class AuditRetentionService {
   }
 
   private stripPagination(filters: AuditLogFilters): AuditLogFilters {
-    const { limit, offset, ...rest } = filters;
+    const { limit: _limit, offset: _offset, ...rest } = filters;
     return rest;
   }
 

@@ -4,24 +4,25 @@
  * System-wide storage operations — settings, reset, import, position display, and resource labels.
  */
 
-import { Storage } from '@domain/entities/Storage';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { TubeRepository } from '@domain/repositories/TubeRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import { ValidationService } from '@domain/services/ValidationService';
-import { AccessControlService } from '@domain/services/AccessControlService';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { PermissionError } from '@domain/errors/PermissionError';
-import { EventBus } from '@application/contracts/EventBus';
+import type { EventBus } from '@application/contracts/EventBus';
 import { rejectDemoConfigOperation } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
-import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
-import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
-import type { StorageImportData } from '@domain/types/storageTypes';
+import { Storage } from '@domain/entities/Storage';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import {
   RackLabelUpdatedEvent,
   BoxLabelUpdatedEvent
 } from '@domain/events/StorageEvents';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { AccessControlService , ResourceWithOwnership } from '@domain/services/AccessControlService';
+import type { ValidationService } from '@domain/services/ValidationService';
+import type { StorageImportData } from '@domain/types/storageTypes';
+
+import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
+
 
 // COMMAND INTERFACES
 
