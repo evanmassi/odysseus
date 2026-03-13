@@ -7,7 +7,7 @@
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 
-import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
+import type { SessionHttpClient } from '../../infrastructure/api/SessionHttpClient';
 import type { SessionDebugInfo } from '@domains/authentication/types/debugTypes';
 import type {
   TokenPair,
@@ -94,7 +94,7 @@ export class SessionService implements TokenProvider {
   private hasConfirmedAuth: boolean = false;
 
   constructor(
-    private authHttpClient: AuthHttpClient,
+    private sessionHttpClient: SessionHttpClient,
     private storage: SessionStorage,
     onSessionExpired?: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout') => void,
     config?: Partial<SessionConfig>,
@@ -224,7 +224,7 @@ export class SessionService implements TokenProvider {
 
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
-        const response = await this.authHttpClient.post('/public/auth/refresh', {
+        const response = await this.sessionHttpClient.post('/public/auth/refresh', {
           refreshToken: tokens.refreshToken,
         });
 
@@ -431,7 +431,7 @@ export class SessionService implements TokenProvider {
     }
 
     try {
-      const response = await this.authHttpClient.get<SessionInfoApiResponse>(
+      const response = await this.sessionHttpClient.get<SessionInfoApiResponse>(
         '/public/auth/session-info',
         { Authorization: `Bearer ${tokens.accessToken}` }
       );
@@ -502,7 +502,7 @@ export class SessionService implements TokenProvider {
     }
 
     try {
-      const response = await this.authHttpClient.post<HeartbeatApiResponse>(
+      const response = await this.sessionHttpClient.post<HeartbeatApiResponse>(
         '/auth/heartbeat',
         {},
         { Authorization: `Bearer ${tokens.accessToken}` }

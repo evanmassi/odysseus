@@ -12,7 +12,7 @@ import { clearAllCaches } from '@app/cache/queryClient';
 import { SessionService, LocalStorageSessionStorage } from '@app/services/SessionService';
 import { modalStore } from '@app/stores/modalStore';
 import { httpClient } from '@infra/api';
-import { authHttpClient } from '@infra/api/AuthHttpClient';
+import { sessionHttpClient } from '@infra/api/SessionHttpClient';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 
@@ -86,7 +86,7 @@ const sessionStorage = new LocalStorageSessionStorage();
 
 // Callback pattern: SessionService notifies auth store when session expires
 const sessionManager = new SessionService(
-  authHttpClient,
+  sessionHttpClient,
   sessionStorage,
   reason => {
     useAuthStore.getState().clearAuth(reason);

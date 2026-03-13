@@ -56,8 +56,8 @@ vi.mock('@app/stores/modalStore', () => ({
   },
 }));
 
-vi.mock('@infra/api/AuthHttpClient', () => ({
-  authHttpClient: {},
+vi.mock('@infra/api/SessionHttpClient', () => ({
+  sessionHttpClient: {},
 }));
 
 const mockUser = {

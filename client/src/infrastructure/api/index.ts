@@ -2,14 +2,14 @@
  * Infrastructure API Layer
  */
 
-export { baseHttpClient, HttpClient } from './HttpClient';
-export { OfflineWriteError, isOfflineError } from './HttpClient';
-export type { HttpClientConfig, ApiResponse } from './HttpClient';
-export { AuthenticatedHttpClient } from './AuthenticatedHttpClient';
-export { authHttpClient, AuthHttpClient } from './AuthHttpClient';
+export { baseTransport, HttpTransport } from './HttpTransport';
+export { OfflineWriteError, isOfflineError } from './HttpTransport';
+export type { HttpTransportConfig, ApiResponse } from './HttpTransport';
+export { HttpClient } from './HttpClient';
+export { sessionHttpClient, SessionHttpClient } from './SessionHttpClient';
 export { transformApiResponse, ResponseTransformers } from './responseTransformers';
 
-import { AuthenticatedHttpClient } from './AuthenticatedHttpClient';
-import { baseHttpClient } from './HttpClient';
+import { HttpClient } from './HttpClient';
+import { baseTransport } from './HttpTransport';
 
-export const httpClient = new AuthenticatedHttpClient(baseHttpClient);
+export const httpClient = new HttpClient(baseTransport);

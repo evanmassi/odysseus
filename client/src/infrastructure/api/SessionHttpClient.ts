@@ -1,5 +1,5 @@
 /**
- * Authentication HTTP Client
+ * Session HTTP Client
  *
  * Dedicated transport for auth endpoints — no token injection to avoid circular dependency with SessionService.
  */
@@ -8,7 +8,7 @@ import { ApiError } from '@odysseus/shared-schemas';
 
 import { transformApiResponse } from './responseTransformers';
 
-export class AuthHttpClient {
+export class SessionHttpClient {
   private readonly baseURL: string;
   private readonly timeout: number;
 
@@ -97,4 +97,4 @@ export class AuthHttpClient {
   }
 }
 
-export const authHttpClient = new AuthHttpClient();
+export const sessionHttpClient = new SessionHttpClient();

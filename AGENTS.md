@@ -100,7 +100,11 @@ All validation in `@odysseus/shared-schemas`. Always import from here, never def
 import { createTubeRequestSchema, type TubeData } from '@odysseus/shared-schemas';
 ```
 
-**Modules**: tubes, researchers, search, storage, admin, auth, users, persons
+**Modules**: tubes, researchers, search, storage, admin, auth, users, persons, events, infrastructure
+
+**Response schemas live in shared-schemas, not in client services.** Every Zod schema used to validate an HTTP response — whether a data wrapper (`{ users: [...] }`), a standalone response (`{ message: string }`), or an event payload — must be defined in `@odysseus/shared-schemas`. Client service files import these schemas; they never define them inline with `z.object()`. The only valid `zod` import in client code is in `AuthenticatedHttpClient` (the HTTP infrastructure layer).
+
+**`success` belongs exclusively in the response envelope.** The server wraps all responses in `{ success: true, data: <T> }` via `ResponseBuilder.success()`. The client's `AuthenticatedHttpClient` strips this envelope automatically. Data schemas (the `<T>` inside) must never include a `success` field — it would be redundant and create a second source of truth for operation outcome.
 
 ---
 

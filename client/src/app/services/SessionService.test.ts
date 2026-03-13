@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { SessionService } from '@app/services/SessionService';
 
-import type { AuthHttpClient } from '@infra/api/AuthHttpClient';
+import type { SessionHttpClient } from '@infra/api/SessionHttpClient';
 import type { TokenPair, SessionConfig } from '@shared/types/sessionTypes';
 
 // Mock storage matching actual SessionStorage interface
@@ -18,12 +18,12 @@ function createMockStorage() {
   };
 }
 
-// Mock HTTP client matching actual AuthHttpClient interface
+// Mock HTTP client matching actual SessionHttpClient interface
 function createMockHttpClient() {
   return {
     post: vi.fn(),
     get: vi.fn(),
-  } as unknown as AuthHttpClient & {
+  } as unknown as SessionHttpClient & {
     post: ReturnType<typeof vi.fn>;
     get: ReturnType<typeof vi.fn>;
   };
@@ -69,7 +69,7 @@ describe('SessionService', () => {
     mockStorage.getTokens.mockReturnValue(null);
 
     sessionManager = new SessionService(
-      mockHttpClient as unknown as AuthHttpClient,
+      mockHttpClient as unknown as SessionHttpClient,
       mockStorage,
       undefined,
       testConfig
