@@ -130,7 +130,7 @@ export class Permission {
   // UTILITY METHODS
 
   static fromKey(key: string): Permission | null {
-    return Permission.ALL_PERMISSIONS.find(permission => permission.key === key) || null;
+    return Permission.ALL_PERMISSIONS.find(permission => permission.key === key) ?? null;
   }
 
   static getAllCategories(): readonly string[] {

@@ -491,7 +491,7 @@ export class AccessControlService {
   private createAllowedResult(reason?: string, metadata?: Record<string, unknown>): AccessResult {
     return {
       allowed: true,
-      reason: reason || 'Access granted',
+      reason: reason ?? 'Access granted',
       metadata
     };
   }

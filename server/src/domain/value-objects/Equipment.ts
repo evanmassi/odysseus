@@ -282,6 +282,7 @@ export class Box {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
     };
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const positions = options.maxPositions || (gridConfig.rows * gridConfig.cols);
     return new Box(
       options.name,
@@ -349,7 +350,7 @@ export class Box {
    * @returns Display label (e.g., "C5" or "23")
    */
   formatPosition(position: number): string {
-    const config = this._positionDisplay || getDefaultPositionDisplay(
+    const config = this._positionDisplay ?? getDefaultPositionDisplay(
       this._gridConfig.rows,
       this._gridConfig.cols
     );
@@ -365,7 +366,7 @@ export class Box {
    * @throws ValidationError if label is invalid
    */
   parsePositionLabel(label: string): number {
-    const config = this._positionDisplay || getDefaultPositionDisplay(
+    const config = this._positionDisplay ?? getDefaultPositionDisplay(
       this._gridConfig.rows,
       this._gridConfig.cols
     );
@@ -379,7 +380,7 @@ export class Box {
   }
 
   getAllPositionLabels(): string[] {
-    const config = this._positionDisplay || getDefaultPositionDisplay(
+    const config = this._positionDisplay ?? getDefaultPositionDisplay(
       this._gridConfig.rows,
       this._gridConfig.cols
     );
@@ -502,7 +503,7 @@ export class EquipmentConfiguration {
     if (!rack) return null;
 
     const box = rack.boxes.find(b => b.name === boxId.toUpperCase() && b.isActive);
-    return box || null;
+    return box ?? null;
   }
 
   toData(): {

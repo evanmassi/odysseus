@@ -24,12 +24,12 @@ import type { PasswordService } from '@application/contracts/PasswordService';
 import type { SessionService } from '@application/contracts/SessionService';
 import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
 import { CheckFirstTimeSetupQuery } from '@application/queries/UserQueries';
-import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
 import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
@@ -89,7 +89,7 @@ export class PublicAuthController {
       logger.info('System admin created', { userId: user.id, username: user.username });
 
       const userAgent = req.headers['user-agent'];
-      const ipAddress = req.ip || req.socket.remoteAddress;
+      const ipAddress = req.ip ?? req.socket.remoteAddress;
       const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
       const response = ResponseBuilder.success({
@@ -142,7 +142,7 @@ export class PublicAuthController {
       });
 
       const userAgent = req.headers['user-agent'];
-      const ipAddress = req.ip || req.socket.remoteAddress;
+      const ipAddress = req.ip ?? req.socket.remoteAddress;
       const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
       const response = ResponseBuilder.success({
@@ -218,7 +218,7 @@ export class PublicAuthController {
       });
 
       const userAgent = req.headers['user-agent'];
-      const ipAddress = req.ip || req.socket.remoteAddress;
+      const ipAddress = req.ip ?? req.socket.remoteAddress;
       const enhancedResult = await this.deps.sessionService.createTokenPair(result.user, userAgent, ipAddress);
 
       const response = ResponseBuilder.success(enhancedResult);
@@ -300,7 +300,7 @@ export class PublicAuthController {
 
       if (user.isApproved()) {
         const userAgent = req.headers['user-agent'];
-        const ipAddress = req.ip || req.socket.remoteAddress;
+        const ipAddress = req.ip ?? req.socket.remoteAddress;
         const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
         const response = ResponseBuilder.success({
@@ -342,7 +342,7 @@ export class PublicAuthController {
         const person = await this.deps.personRepository.findById(user.personId);
         logger.info('Email verified successfully', {
           userId: user.id,
-          email: person?.email || 'unknown'
+          email: person?.email ?? 'unknown'
         });
       }
 
@@ -363,7 +363,7 @@ export class PublicAuthController {
 
       const userByUsername = await this.deps.userApplicationService.getUserByUsername(usernameOrEmail);
       const userByEmail = userByUsername ? null : await this.deps.userApplicationService.getUserByEmail(usernameOrEmail);
-      const user = userByUsername || userByEmail;
+      const user = userByUsername ?? userByEmail;
 
       if (!user) {
         // Opaque response prevents user enumeration
@@ -466,7 +466,7 @@ export class PublicAuthController {
       });
 
       const userAgent = req.headers['user-agent'];
-      const ipAddress = req.ip || req.socket.remoteAddress;
+      const ipAddress = req.ip ?? req.socket.remoteAddress;
       const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
       const response = ResponseBuilder.success({

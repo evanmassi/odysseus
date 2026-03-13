@@ -21,12 +21,12 @@ import {
   RackUnassignedEvent,
   RackReassignedEvent
 } from '@domain/events/StorageEvents';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
 import { Box } from '@domain/value-objects/Equipment';
-import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
 // COMMAND INTERFACES
 

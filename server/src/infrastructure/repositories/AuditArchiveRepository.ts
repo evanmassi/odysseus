@@ -63,12 +63,12 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
         entry.username,
         entry.action,
         entry.entityType,
-        entry.entityId || null,
-        entry.labId || null,
+        entry.entityId ?? null,
+        entry.labId ?? null,
         entry.details,
         entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
-        entry.ipAddress || null,
-        entry.userAgent || null,
+        entry.ipAddress ?? null,
+        entry.userAgent ?? null,
         archivedAt
       );
     }
@@ -199,8 +199,8 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
     const total = parseCount(countRow);
 
-    const limit = filters.limit || DEFAULT_PAGE_LIMIT;
-    const offset = filters.offset || 0;
+    const limit = filters.limit ?? DEFAULT_PAGE_LIMIT;
+    const offset = filters.offset ?? 0;
 
     const dataQuery = `
       SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive
@@ -228,20 +228,20 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
   private rowToEntry(row: AuditArchiveRow): AuditLogEntry {
     return {
       id: row.id,
-      labId: row.lab_id || undefined,
+      labId: row.lab_id ?? undefined,
       userId: row.user_id,
       username: row.username,
       action: row.action,
       entityType: row.entity_type,
-      entityId: row.entity_id || undefined,
+      entityId: row.entity_id ?? undefined,
       details: row.details,
       timestamp: row.timestamp instanceof Date ? row.timestamp : new Date(row.timestamp),
-      ipAddress: row.ip_address || undefined,
-      userAgent: row.user_agent || undefined,
+      ipAddress: row.ip_address ?? undefined,
+      userAgent: row.user_agent ?? undefined,
     };
   }
 }
 
 function parseCount(row: { total: string } | null): number {
-  return parseInt(row?.total || '0', 10);
+  return parseInt(row?.total ?? '0', 10);
 }

@@ -8,30 +8,28 @@ import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { ConfigurationService } from '@application/contracts/ConfigurationService';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import type { SessionService } from '@application/contracts/SessionService';
-import { EventModule } from '@infrastructure/di/modules/EventModule';
-import { AuditModule } from '@infrastructure/di/modules/AuditModule';
-import { TubeModule } from '@infrastructure/di/modules/TubeModule';
-import { LabModule } from '@infrastructure/di/modules/LabModule';
-import { UserModule } from '@infrastructure/di/modules/UserModule';
-import { StorageModule } from '@infrastructure/di/modules/StorageModule';
-import { AuthModule } from '@infrastructure/di/modules/AuthModule';
-
-import type { Server as SocketIOServer } from 'socket.io';
-import type { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
-import type { ResearcherApprovalEventHandler } from '@application/event-handlers/ResearcherApprovalEventHandler';
 import type { AuditEventHandler } from '@application/event-handlers/AuditEventHandler';
-import type { PresenceService } from '@application/services/PresenceService';
-import type { AuditService } from '@application/services/AuditService';
+import type { ResearcherApprovalEventHandler } from '@application/event-handlers/ResearcherApprovalEventHandler';
+import type { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
 import type { AuditRetentionService } from '@application/services/AuditRetentionService';
+import type { AuditService } from '@application/services/AuditService';
 import type { ExportService } from '@application/services/ExportService';
+import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
+import type { PresenceService } from '@application/services/PresenceService';
+import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
-import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
-import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import type { EmailService } from '@domain/services/EmailService';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { ValidationService } from '@domain/services/ValidationService';
+import { AuditModule } from '@infrastructure/di/modules/AuditModule';
+import { AuthModule } from '@infrastructure/di/modules/AuthModule';
+import { EventModule } from '@infrastructure/di/modules/EventModule';
+import { LabModule } from '@infrastructure/di/modules/LabModule';
+import { StorageModule } from '@infrastructure/di/modules/StorageModule';
+import { TubeModule } from '@infrastructure/di/modules/TubeModule';
+import { UserModule } from '@infrastructure/di/modules/UserModule';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
@@ -42,7 +40,6 @@ import { ConsoleEmailService } from '@infrastructure/services/ConsoleEmailServic
 import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import type { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
-import type { UserSessionController } from '@presentation/controllers/UserSessionController';
 import type { AuditController } from '@presentation/controllers/AuditController';
 import type { AuthController } from '@presentation/controllers/auth/AuthController';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
@@ -58,6 +55,9 @@ import type { SystemAdminUserController } from '@presentation/controllers/system
 import type { TubeController } from '@presentation/controllers/TubeController';
 import type { TubeLockController } from '@presentation/controllers/TubeLockController';
 import type { UserController } from '@presentation/controllers/UserController';
+import type { UserSessionController } from '@presentation/controllers/UserSessionController';
+
+import type { Server as SocketIOServer } from 'socket.io';
 
 export class ServiceContainer {
   private repositoryFactory: RepositoryFactory;

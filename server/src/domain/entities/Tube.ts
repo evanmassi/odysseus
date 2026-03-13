@@ -55,7 +55,7 @@ export class Tube {
     createdByName?: string;
     labId?: string;
   }): Tube {
-    const id = data.id || generateId('tube');
+    const id = data.id ?? generateId('tube');
 
     const location = data.location instanceof Location
       ? data.location
@@ -348,9 +348,11 @@ export class Tube {
       ? this._sample.update(updates.sample)
       : this._sample;
 
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- three-way null/undefined/value logic */
     const newResearcherId = updates.researcherId === null
       ? undefined
       : (updates.researcherId !== undefined ? updates.researcherId : this._researcherId);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     return new Tube(
       this._id,

@@ -134,6 +134,7 @@ export class Storage {
         id: tankData.id,
         name: tankData.name,
         racks,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         maxRacks: tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
         isActive: tankData.isActive,
         location: tankData.location,
@@ -148,7 +149,7 @@ export class Storage {
       equipment,
       systemSettings,
       data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      data.version || 1
+      data.version ?? 1
     );
   }
 
@@ -164,7 +165,7 @@ export class Storage {
     maxBoxes: number | undefined,
     capacity: number | undefined
   ): number {
-    return Math.max(boxCount, maxBoxes || 0, capacity || 0, EQUIPMENT_DEFAULTS.BOXES_PER_RACK);
+    return Math.max(boxCount, maxBoxes ?? 0, capacity ?? 0, EQUIPMENT_DEFAULTS.BOXES_PER_RACK);
   }
 
   addTank(id: string, name: string, maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK): Tank {
@@ -445,7 +446,7 @@ export class Storage {
       name: oldBox.name,
       gridConfig: oldBox.gridConfig,
       maxPositions: oldBox.maxPositions,
-      positionDisplay: positionDisplay === null ? undefined : positionDisplay,
+      positionDisplay: positionDisplay ?? undefined,
       isActive: oldBox.isActive,
       assignedUserId: oldBox.assignedUserId,
       customLabel: oldBox.customLabel,
@@ -702,6 +703,7 @@ export class Storage {
     }
 
     const rack = tank.racks[rackIndex];
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const normalizedLabel = customLabel?.trim() || undefined;
 
     if (resourceType === 'rack') {
@@ -948,6 +950,7 @@ export class Storage {
         id: tankData.id,
         name: tankData.name,
         racks,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         maxRacks: tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
         isActive: tankData.isActive,
         location: tankData.location,
@@ -1213,14 +1216,16 @@ class SystemSettings {
     defaultPositionDisplay?: PositionDisplayConfig | null;
   }): SystemSettings {
     return new SystemSettings(
-      updates.labName !== undefined ? updates.labName : this._labName,
-      updates.defaultResearcher !== undefined ? updates.defaultResearcher : this._defaultResearcher,
-      updates.autoSave !== undefined ? updates.autoSave : this._autoSave,
-      updates.auditTrailEnabled !== undefined ? updates.auditTrailEnabled : this._auditTrailEnabled,
-      updates.syncEnabled !== undefined ? updates.syncEnabled : this._syncEnabled,
+      updates.labName ?? this._labName,
+      updates.defaultResearcher ?? this._defaultResearcher,
+      updates.autoSave ?? this._autoSave,
+      updates.auditTrailEnabled ?? this._auditTrailEnabled,
+      updates.syncEnabled ?? this._syncEnabled,
+      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- three-way null/undefined/value logic */
       updates.defaultPositionDisplay !== undefined
         ? (updates.defaultPositionDisplay === null ? undefined : updates.defaultPositionDisplay)
         : this._defaultPositionDisplay
+      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     );
   }
 

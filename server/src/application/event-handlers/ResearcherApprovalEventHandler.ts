@@ -54,8 +54,8 @@ export class ResearcherApprovalEventHandler {
 
         const approvedEvent = new ResearcherApprovedEvent(
           researcher.id,
-          person?.firstName || 'Unknown',
-          person?.lastName || 'Unknown',
+          person?.firstName ?? 'Unknown',
+          person?.lastName ?? 'Unknown',
           event.userId,
           event.approvedBy,
           event.labId!

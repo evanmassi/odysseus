@@ -202,8 +202,8 @@ export class AuditRetentionService {
         return bTime - aTime;
       });
 
-    const limit = filters.limit || 50;
-    const offset = filters.offset || 0;
+    const limit = filters.limit ?? 50;
+    const offset = filters.offset ?? 0;
     const total = activeResult.pagination.total + archiveResult.pagination.total;
     const paginatedItems = mergedItems.slice(offset, offset + limit);
 

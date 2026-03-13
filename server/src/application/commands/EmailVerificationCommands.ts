@@ -87,7 +87,7 @@ export class VerifyEmailCommandHandler {
     await this.userRepository.save(user);
 
     const person = user.personId ? await this.personRepository.findById(user.personId) : null;
-    const email = person?.email || 'unknown';
+    const email = person?.email ?? 'unknown';
 
     const event = new EmailVerifiedEvent(user.id, email, user.labId);
     await this.eventBus.publish(event);

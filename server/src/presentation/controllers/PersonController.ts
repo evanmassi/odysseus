@@ -12,11 +12,10 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import { logger } from '@infrastructure/logging/logger';
-
-
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
+
 import type { Request, Response } from 'express';
 
 export interface PersonControllerDeps {

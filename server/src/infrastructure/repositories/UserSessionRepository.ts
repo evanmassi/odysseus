@@ -93,7 +93,7 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
          AND expires_at > $2`,
       [userId, now]
     );
-    return parseInt(result?.count || '0', 10);
+    return parseInt(result?.count ?? '0', 10);
   }
 
   async revokeSession(sessionId: string): Promise<boolean> {

@@ -48,22 +48,22 @@ export function handleControllerError(
   }
 
   if (err instanceof ValidationError) {
-    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, err.message, err.context || {}));
+    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, err.message, err.context ?? {}));
     return;
   }
 
   if (err instanceof NotFoundError) {
-    res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, err.message, err.context || {}));
+    res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, err.message, err.context ?? {}));
     return;
   }
 
   if (err instanceof PermissionError) {
-    res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, err.message, err.context || {}));
+    res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, err.message, err.context ?? {}));
     return;
   }
 
   if (err instanceof DomainError) {
-    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.BUSINESS_RULE_VIOLATION, err.message, err.context || {}));
+    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.BUSINESS_RULE_VIOLATION, err.message, err.context ?? {}));
     return;
   }
 

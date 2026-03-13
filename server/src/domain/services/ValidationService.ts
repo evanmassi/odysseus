@@ -300,7 +300,7 @@ export class ValidationService {
       const error = accessResult.errors.find(err => err.startsWith(tubeId));
       result.invalidItems.push({
         id: tubeId,
-        errors: [error || 'Access denied']
+        errors: [error ?? 'Access denied']
       });
     }
 

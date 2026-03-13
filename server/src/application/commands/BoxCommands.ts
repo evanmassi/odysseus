@@ -22,8 +22,8 @@ import {
   BoxUnassignedEvent,
   BoxReassignedEvent
 } from '@domain/events/StorageEvents';
-import { LabRepository } from '@domain/repositories/LabRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
@@ -232,7 +232,7 @@ export class UpdateBoxCommandHandler {
     if (command.positionDisplay !== undefined) {
       const oldDisplay = box.positionDisplay;
       changes.push({ field: 'positionDisplay', oldValue: oldDisplay, newValue: command.positionDisplay });
-      boxData.positionDisplay = command.positionDisplay === null ? undefined : command.positionDisplay;
+      boxData.positionDisplay = command.positionDisplay ?? undefined;
     }
 
     if (command.isActive !== undefined && command.isActive !== box.isActive) {

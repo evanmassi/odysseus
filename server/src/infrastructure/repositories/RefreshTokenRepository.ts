@@ -145,7 +145,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
          AND expires_at > $2`,
       [userId, now]
     );
-    return parseInt(result?.count || '0', 10);
+    return parseInt(result?.count ?? '0', 10);
   }
 
   // Maintenance operations

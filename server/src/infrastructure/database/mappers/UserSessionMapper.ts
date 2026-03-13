@@ -26,9 +26,9 @@ export class UserSessionMapper {
       id: session.id,
       user_id: session.userId,
       refresh_token: session.refreshToken,
-      device_info: session.deviceInfo || null,
-      ip_address: session.ipAddress || null,
-      user_agent: session.userAgent || null,
+      device_info: session.deviceInfo ?? null,
+      ip_address: session.ipAddress ?? null,
+      user_agent: session.userAgent ?? null,
       created_at: session.createdAt,
       last_used_at: session.lastUsedAt,
       expires_at: session.expiresAt,
@@ -45,9 +45,9 @@ export class UserSessionMapper {
       lastUsedAt: row.last_used_at instanceof Date ? row.last_used_at : new Date(row.last_used_at),
       expiresAt: row.expires_at instanceof Date ? row.expires_at : new Date(row.expires_at),
       isActive: row.is_active,
-      deviceInfo: row.device_info || undefined,
-      ipAddress: row.ip_address || undefined,
-      userAgent: row.user_agent || undefined
+      deviceInfo: row.device_info ?? undefined,
+      ipAddress: row.ip_address ?? undefined,
+      userAgent: row.user_agent ?? undefined
     });
   }
 

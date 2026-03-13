@@ -539,9 +539,9 @@ export class TubeRepository implements ITubeRepository {
     }
 
     try {
-      const boxId = criteria.boxId || criteria.boxIds?.[0];
-      const tankId = criteria.tankId || criteria.tankIds?.[0];
-      const rackId = criteria.rackId || criteria.rackIds?.[0];
+      const boxId = criteria.boxId ?? criteria.boxIds?.[0];
+      const tankId = criteria.tankId ?? criteria.tankIds?.[0];
+      const rackId = criteria.rackId ?? criteria.rackIds?.[0];
 
       if (!boxId || !tankId || !rackId) {
         // No box specified - try numeric parsing as fallback
@@ -1029,12 +1029,12 @@ export class TubeRepository implements ITubeRepository {
     const completeCount = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM tubes WHERE cell_type IS NOT NULL AND donor_internal_id IS NOT NULL AND researcher_id IS NOT NULL ${andClause}`, params
     );
-    const completionRate = totalTubes > 0 ? ((parseInt(completeCount?.count || '0', 10)) / totalTubes) * 100 : 0;
+    const completionRate = totalTubes > 0 ? ((parseInt(completeCount?.count ?? '0', 10)) / totalTubes) * 100 : 0;
 
     const expiredCount = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text ${andClause}`, params
     );
-    const expirationRate = totalTubes > 0 ? ((parseInt(expiredCount?.count || '0', 10)) / totalTubes) * 100 : 0;
+    const expirationRate = totalTubes > 0 ? ((parseInt(expiredCount?.count ?? '0', 10)) / totalTubes) * 100 : 0;
 
     return {
       totalTubes,

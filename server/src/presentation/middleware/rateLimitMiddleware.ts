@@ -24,6 +24,7 @@ export function createRateLimitMiddleware(
         return next();
       }
 
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       const identifier = req.ip || req.socket.remoteAddress || 'unknown';
       const blockStatus = await service.isBlocked(identifier);
 

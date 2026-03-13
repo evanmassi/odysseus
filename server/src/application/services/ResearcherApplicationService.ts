@@ -13,12 +13,8 @@ import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
-import { ValidationError } from '@domain/errors/ValidationError';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { AccessControlService } from '@domain/services/AccessControlService';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
@@ -26,6 +22,10 @@ import {
   ResearcherReactivatedEvent,
   ResearcherDeletedEvent
 } from '@domain/events/ResearcherEvents';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { AccessControlService } from '@domain/services/AccessControlService';
 
 export class ResearcherApplicationService {
   constructor(
@@ -211,8 +211,8 @@ export class ResearcherApplicationService {
       person.updateProfile(
         updates.firstName ?? person.firstName,
         updates.lastName ?? person.lastName,
-        updates.position !== undefined ? updates.position : person.position,
-        updates.department !== undefined ? updates.department : person.department
+        updates.position ?? person.position,
+        updates.department ?? person.department
       );
       await this.personRepository.save(person);
     }

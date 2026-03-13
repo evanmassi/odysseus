@@ -4,6 +4,7 @@
  * Augments Express Request with properties added by middleware.
  */
 
+import type { RateLimitingService } from '@application/services/RateLimitingService';
 import type { User } from '@domain/entities/User';
 declare global {
   namespace Express {
@@ -11,7 +12,7 @@ declare global {
       user?: User;
       sessionId?: string;
       rateLimitIdentifier?: string;
-      rateLimitService?: import('@application/services/RateLimitingService').RateLimitingService;
+      rateLimitService?: RateLimitingService;
       requestId: string;
     }
   }

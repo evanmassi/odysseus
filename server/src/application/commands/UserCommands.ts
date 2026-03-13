@@ -9,6 +9,10 @@ import type { PasswordService } from '@application/contracts/PasswordService';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
 import { User } from '@domain/entities/User';
+import { ConflictError } from '@domain/errors/ConflictError';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
+import { ValidationError } from '@domain/errors/ValidationError';
 import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
 import { BulkResourcesUnassignedEvent } from '@domain/events/StorageEvents';
 import {
@@ -19,17 +23,13 @@ import {
   UserLoggedInEvent
 } from '@domain/events/UserEvents';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
-import { StorageRepository } from '@domain/repositories/StorageRepository';
-import { UserRepository } from '@domain/repositories/UserRepository';
-import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
-import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
-import { ValidationError } from '@domain/errors/ValidationError';
-import { ConflictError } from '@domain/errors/ConflictError';
-import { PermissionError } from '@domain/errors/PermissionError';
 
 import type { UserSettings } from '@odysseus/shared-schemas';
 

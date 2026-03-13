@@ -165,16 +165,16 @@ export class SearchController extends BaseController {
     // Box location included so tubes in different boxes form separate groups
     const createBatchKey = (tube: TubeResponse): string => {
       return JSON.stringify({
-        cellType: tube.sample?.cellType || '',
-        donorInternalId: tube.sample?.donorInternalId || '',
-        donorSourceId: tube.sample?.donorSourceId || '',
-        lotNumber: tube.sample?.lotNumber || '',
-        mediaType: tube.sample?.mediaType || '',
-        cultureCondition: tube.sample?.cultureCondition || '',
-        concentration: tube.sample?.concentration || '',
-        concentrationUnit: tube.sample?.concentrationUnit || '',
-        date: tube.sample?.date || '',
-        researcherId: tube.researcherId || '',
+        cellType: tube.sample?.cellType ?? '',
+        donorInternalId: tube.sample?.donorInternalId ?? '',
+        donorSourceId: tube.sample?.donorSourceId ?? '',
+        lotNumber: tube.sample?.lotNumber ?? '',
+        mediaType: tube.sample?.mediaType ?? '',
+        cultureCondition: tube.sample?.cultureCondition ?? '',
+        concentration: tube.sample?.concentration ?? '',
+        concentrationUnit: tube.sample?.concentrationUnit ?? '',
+        date: tube.sample?.date ?? '',
+        researcherId: tube.researcherId ?? '',
         tankId: tube.location?.tankId || '',
         rackId: tube.location?.rackId || '',
         boxId: tube.location?.boxId || ''
@@ -194,9 +194,9 @@ export class SearchController extends BaseController {
     const groupedResults = Array.from(groups.entries()).map(([, groupTubes]) => {
       const firstTube = groupTubes[0];
 
-      const cellType = firstTube.sample?.cellType || 'Unknown';
-      const donorInternal = firstTube.sample?.donorInternalId || '';
-      const donorSource = firstTube.sample?.donorSourceId || '';
+      const cellType = firstTube.sample?.cellType ?? 'Unknown';
+      const donorInternal = firstTube.sample?.donorInternalId ?? '';
+      const donorSource = firstTube.sample?.donorSourceId ?? '';
       const donorDisplay = donorInternal || donorSource || 'Unknown Donor';
       const groupKey = `${cellType} • ${donorDisplay}`;
 
@@ -204,7 +204,7 @@ export class SearchController extends BaseController {
       const locationCounts = new Map<string, number>();
       for (const tube of groupTubes) {
         const location = `${tube.location?.tankId}:${tube.location?.rackId}:${tube.location?.boxId}`;
-        locationCounts.set(location, (locationCounts.get(location) || 0) + 1);
+        locationCounts.set(location, (locationCounts.get(location) ?? 0) + 1);
       }
 
       const primaryLocation = Array.from(locationCounts.entries())

@@ -24,6 +24,7 @@ function errorResponse(
     error: { code, message },
     meta: {
       timestamp: new Date().toISOString(),
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       requestId: req.headers['x-request-id'] || 'unknown'
     }
   });

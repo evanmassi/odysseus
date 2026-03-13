@@ -54,6 +54,7 @@ if (!isPkgBundle && !isElectronPackaged && !isElectronApp) {
 }
 
 export const logger = winston.createLogger({
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
   transports

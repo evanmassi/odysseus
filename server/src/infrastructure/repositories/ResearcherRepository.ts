@@ -148,7 +148,7 @@ export class ResearcherRepository implements IResearcherRepository {
       'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1',
       [researcherId]
     );
-    return parseInt(result?.count || '0', 10);
+    return parseInt(result?.count ?? '0', 10);
   }
 
   async getTubeCountsByResearcherIds(researcherIds: string[]): Promise<Map<string, number>> {

@@ -9,29 +9,14 @@ import { nanoid } from 'nanoid';
 
 import type { EventBus } from '@application/contracts/EventBus';
 import { UserDto } from '@application/dto/UserDto';
+import type { UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
 import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
 import { User } from '@domain/entities/User';
-import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import type { LabRepository } from '@domain/repositories/LabRepository';
-import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import type { AccessControlService } from '@domain/services/AccessControlService';
-import { UserRole } from '@domain/value-objects/UserRole';
-import type { UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
-
-import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
-
-
-import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
-
-
+import { ValidationError } from '@domain/errors/ValidationError';
 import {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
@@ -41,6 +26,19 @@ import {
   UserSuspendedEvent,
   UserReactivatedEvent
 } from '@domain/events/UserEvents';
+import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import type { AccessControlService } from '@domain/services/AccessControlService';
+import { UserRole } from '@domain/value-objects/UserRole';
+
+import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
+
+
 
 export type EnrichedPublicUser = ReturnType<User['toPublicData']> & {
   firstName?: string;
@@ -66,7 +64,7 @@ export class UserApplicationService {
    */
   async registerWithPassword(request: RegisterRequest): Promise<AuthResponse> {
     const isFirstUser = await this.userRepository.isEmpty();
-    const targetRole = isFirstUser ? 'admin' : (request.role || 'user');
+    const targetRole = isFirstUser ? 'admin' : (request.role ?? 'user');
     const status = isFirstUser ? 'approved' : 'pending';
 
     const existingUser = await this.userRepository.findByUsername(request.username);
@@ -689,7 +687,7 @@ export class UserApplicationService {
 
     // Get researcher info before unlinking for audit
     const oldResearcherId = user.researcherId;
-    let researcherName = oldResearcherId || '';
+    let researcherName = oldResearcherId ?? '';
 
     if (oldResearcherId && this.researcherRepository && this.personRepository) {
       const researcher = await this.researcherRepository.findById(oldResearcherId);

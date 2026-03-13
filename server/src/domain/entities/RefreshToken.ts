@@ -66,7 +66,7 @@ export class RefreshToken {
       data.expiresAt,
       data.createdAt,
       data.lastUsedAt ?? null,
-      data.isRevoked || false,
+      data.isRevoked ?? false,
       data.userAgent,
       data.ipAddress
     );

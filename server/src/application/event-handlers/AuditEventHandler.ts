@@ -88,7 +88,7 @@ export class AuditEventHandler {
   private async resolveUser(userId: string): Promise<{ username: string; isDemo: boolean }> {
     const user = await this.userRepository.findById(userId);
     return {
-      username: user?.username || userId,
+      username: user?.username ?? userId,
       isDemo: user?.isDemo ?? false
     };
   }
@@ -640,7 +640,7 @@ export class AuditEventHandler {
       entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
-        oldLabel: event.oldLabel || null, newLabel: event.newLabel || null, updatedBy: username,
+        oldLabel: event.oldLabel ?? null, newLabel: event.newLabel ?? null, updatedBy: username,
       }),
     });
   }
@@ -653,7 +653,7 @@ export class AuditEventHandler {
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         boxId: event.boxId, boxName: event.boxName,
-        oldLabel: event.oldLabel || null, newLabel: event.newLabel || null, updatedBy: username,
+        oldLabel: event.oldLabel ?? null, newLabel: event.newLabel ?? null, updatedBy: username,
       }),
     });
   }

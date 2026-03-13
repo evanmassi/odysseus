@@ -7,7 +7,7 @@
 import { Tube } from '@domain/entities/Tube';
 
 function nullToUndefined<T>(value: T | null): T | undefined {
-  return value === null ? undefined : value;
+  return value ?? undefined;
 }
 
 export interface TubeRow {
@@ -60,6 +60,7 @@ export class TubeMapper {
       rack_id: location.rackId,
       box_id: location.boxId,
       position: location.position,
+      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
       cell_type: sampleData.cellType || undefined,
       donor_internal_id: sampleData.donorInternalId || undefined,
       donor_source_id: sampleData.donorSourceId || undefined,
@@ -78,6 +79,7 @@ export class TubeMapper {
       catalog_number: sampleData.catalogNumber || undefined,
       passage_number: sampleData.passageNumber ?? undefined,
       notes: sampleData.notes || undefined,
+      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
       created_at: tube.createdAt,
       updated_at: tube.updatedAt,
       version: tube.version,

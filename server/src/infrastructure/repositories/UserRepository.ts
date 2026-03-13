@@ -207,7 +207,7 @@ export class UserRepository implements IUserRepository {
       'SELECT COUNT(*) as count FROM users WHERE role = $1',
       [role]
     );
-    return parseInt(result?.count || '0', 10);
+    return parseInt(result?.count ?? '0', 10);
   }
 
   async isEmpty(): Promise<boolean> {
@@ -241,7 +241,7 @@ export class UserRepository implements IUserRepository {
     const result = await this.context.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM users'
     );
-    return parseInt(result?.count || '0', 10);
+    return parseInt(result?.count ?? '0', 10);
   }
 
   async search(criteria: UserSearchCriteria): Promise<User[]> {
@@ -273,7 +273,7 @@ export class UserRepository implements IUserRepository {
 
     if (criteria.sortBy) {
       const sortColumn = this.mapSortColumn(criteria.sortBy);
-      const sortOrder = criteria.sortOrder || 'asc';
+      const sortOrder = criteria.sortOrder ?? 'asc';
       query += ` ORDER BY u.${sortColumn} ${sortOrder.toUpperCase()}`;
     } else {
       query += ' ORDER BY u.created_at ASC';
@@ -328,7 +328,7 @@ export class UserRepository implements IUserRepository {
       'SELECT COUNT(*) as count FROM users WHERE role = $1 AND lab_id = $2',
       [role, labId]
     );
-    return parseInt(result?.count || '0', 10);
+    return parseInt(result?.count ?? '0', 10);
   }
 
   // MAINTENANCE OPERATIONS

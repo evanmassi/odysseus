@@ -216,6 +216,7 @@ export class SampleData {
     passageNumber?: number | null;
     notes?: string | null;
   }>): SampleData {
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- three-way null/undefined/value logic throughout */
     let newConcentration = updates.concentration === null
       ? undefined
       : (updates.concentration !== undefined ? updates.concentration : this._concentration);
@@ -247,6 +248,7 @@ export class SampleData {
       passageNumber: updates.passageNumber === null ? undefined : (updates.passageNumber !== undefined ? updates.passageNumber : this._passageNumber),
       notes: updates.notes === null ? undefined : (updates.notes !== undefined ? updates.notes : this._notes)
     });
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
   }
 
   hasConcentration(): boolean {

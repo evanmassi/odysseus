@@ -64,7 +64,7 @@ export class InMemoryEventBus implements EventBus {
 
   private async processEvent(event: DomainEvent): Promise<void> {
     const eventName = event.eventName();
-    const handlers = this.handlers.get(eventName) || [];
+    const handlers = this.handlers.get(eventName) ?? [];
 
     if (handlers.length === 0) {
       logger.warn('No handlers registered for domain event', { eventName });
@@ -118,7 +118,7 @@ export class InMemoryEventBus implements EventBus {
     eventName: K,
     handler: EventHandler<DomainEventMap[K]>
   ): void {
-    const existingHandlers = this.handlers.get(eventName) || [];
+    const existingHandlers = this.handlers.get(eventName) ?? [];
     existingHandlers.push(handler as AnyEventHandler);
     this.handlers.set(eventName, existingHandlers);
 
@@ -133,7 +133,7 @@ export class InMemoryEventBus implements EventBus {
     eventName: K,
     handler: EventHandler<DomainEventMap[K]>
   ): void {
-    const existingHandlers = this.handlers.get(eventName) || [];
+    const existingHandlers = this.handlers.get(eventName) ?? [];
     const updatedHandlers = existingHandlers.filter(h => h !== handler);
 
     if (updatedHandlers.length === 0) {

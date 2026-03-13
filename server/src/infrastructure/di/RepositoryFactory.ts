@@ -13,21 +13,21 @@ import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRe
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
-import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
-import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
-import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
-import { StorageRepository as StorageRepositoryImpl } from '@infrastructure/repositories/StorageRepository';
-import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
-import { UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
-import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
-import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
-import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
-import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
+import { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
+import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
+import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
+import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
+import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
+import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
+import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
+import { StorageRepository as StorageRepositoryImpl } from '@infrastructure/repositories/StorageRepository';
+import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
+import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
+import { UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
 
 export class RepositoryFactory {
   private postgresContext: PostgresContext;

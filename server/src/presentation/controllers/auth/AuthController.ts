@@ -175,7 +175,7 @@ export class AuthController {
         const person = await this.deps.personRepository.findById(req.user.personId);
         logger.info('Verification email resent', {
           userId: req.user.id,
-          email: person?.email || 'unknown'
+          email: person?.email ?? 'unknown'
         });
       }
 
@@ -202,7 +202,7 @@ export class AuthController {
       let email: string | null = null;
       if (req.user.personId) {
         const person = await this.deps.personRepository.findById(req.user.personId);
-        email = person?.email || null;
+        email = person?.email ?? null;
       }
 
       res.status(200).json(ResponseBuilder.success({

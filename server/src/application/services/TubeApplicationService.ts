@@ -12,17 +12,8 @@ import type { Storage } from '@domain/entities/Storage';
 import { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
-import { ValidationError } from '@domain/errors/ValidationError';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import type { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { TubeSearchCriteria } from '@domain/types/repository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import type { TubePositionService } from '@domain/services/TubePositionService';
-import type { AccessControlService } from '@domain/services/AccessControlService';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { logger } from '@infrastructure/logging/logger';
+import { ValidationError } from '@domain/errors/ValidationError';
 import {
   TubeCreatedEvent,
   TubeUpdatedEvent,
@@ -36,6 +27,15 @@ import {
   TubeAccessSharedEvent,
   TubeAccessRevokedEvent
 } from '@domain/events/TubeLockEvents';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { AccessControlService } from '@domain/services/AccessControlService';
+import type { TubePositionService } from '@domain/services/TubePositionService';
+import type { TubeSearchCriteria } from '@domain/types/repository';
+import { logger } from '@infrastructure/logging/logger';
 
 import type {
   LockTubesRequest,
@@ -432,15 +432,15 @@ export class TubeApplicationService {
     }
 
     const hasLocationUpdate = request.location && (
-      request.location.tankId || request.location.rackId || 
-      request.location.boxId || request.location.position !== undefined
+      request.location.tankId ?? request.location.rackId ?? 
+      request.location.boxId ?? request.location.position !== undefined
     );
     
     if (hasLocationUpdate && request.location) {
-      const newTankId = request.location.tankId || existingTube.location.tankId;
-      const newRackId = request.location.rackId || existingTube.location.rackId;
-      const newBoxId = request.location.boxId || existingTube.location.boxId;
-      const newPosition = request.location.position !== undefined ? request.location.position : existingTube.location.position;
+      const newTankId = request.location.tankId ?? existingTube.location.tankId;
+      const newRackId = request.location.rackId ?? existingTube.location.rackId;
+      const newBoxId = request.location.boxId ?? existingTube.location.boxId;
+      const newPosition = request.location.position ?? existingTube.location.position;
 
       const positionChanged = (
         newTankId !== existingTube.location.tankId ||

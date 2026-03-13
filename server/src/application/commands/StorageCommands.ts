@@ -457,6 +457,7 @@ export class UpdateResourceLabelCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const newLabel = command.customLabel?.trim() || undefined;
     if (oldLabel !== newLabel) {
       if (command.resourceType === 'rack') {

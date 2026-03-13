@@ -499,19 +499,19 @@ export class StorageRepository implements IStorageRepository {
       const tubesRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1
       `, [labId]);
-      const totalTubes = parseInt(tubesRow?.count || '0', 10);
+      const totalTubes = parseInt(tubesRow?.count ?? '0', 10);
 
       const usersRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count FROM users WHERE lab_id = $1
       `, [labId]);
-      const totalUsers = parseInt(usersRow?.count || '0', 10);
+      const totalUsers = parseInt(usersRow?.count ?? '0', 10);
 
       const researchersRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count
         FROM researchers
         WHERE active = TRUE AND lab_id = $1
       `, [labId]);
-      const totalResearchers = parseInt(researchersRow?.count || '0', 10);
+      const totalResearchers = parseInt(researchersRow?.count ?? '0', 10);
 
       const backupRow = await this.context.queryOne<{ updated_at: Date | string }>(`
         SELECT cc.updated_at
@@ -709,6 +709,6 @@ export class StorageRepository implements IStorageRepository {
     const rack = tank.racks.find(r => r.id === rackId);
     if (!rack) return null;
 
-    return rack.boxes.find(box => box.name.toLowerCase() === boxId.toLowerCase()) || null;
+    return rack.boxes.find(box => box.name.toLowerCase() === boxId.toLowerCase()) ?? null;
   }
 }

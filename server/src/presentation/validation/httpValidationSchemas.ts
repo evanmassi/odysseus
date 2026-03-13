@@ -104,6 +104,7 @@ export const UpdateRoleBodySchema = z.object({
 export const LinkResearcherBodySchema = z.object({
   researcherId: z.string().optional(),
   newResearcher: createResearcherProfileSchema.optional(),
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 }).refine(data => data.researcherId || data.newResearcher, {
   message: 'Must provide either researcherId or newResearcher',
 });

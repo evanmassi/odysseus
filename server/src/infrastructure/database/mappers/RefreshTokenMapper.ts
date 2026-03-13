@@ -27,10 +27,10 @@ export class RefreshTokenMapper {
       token: refreshToken.token,
       expires_at: refreshToken.expiresAt,
       created_at: refreshToken.createdAt,
-      last_used_at: refreshToken.lastUsedAt || null,
+      last_used_at: refreshToken.lastUsedAt ?? null,
       is_revoked: refreshToken.isRevoked,
-      user_agent: refreshToken.userAgent || null,
-      ip_address: refreshToken.ipAddress || null
+      user_agent: refreshToken.userAgent ?? null,
+      ip_address: refreshToken.ipAddress ?? null
     };
   }
 
@@ -45,8 +45,8 @@ export class RefreshTokenMapper {
         ? (row.last_used_at instanceof Date ? row.last_used_at : new Date(row.last_used_at))
         : undefined,
       isRevoked: row.is_revoked,
-      userAgent: row.user_agent || undefined,
-      ipAddress: row.ip_address || undefined
+      userAgent: row.user_agent ?? undefined,
+      ipAddress: row.ip_address ?? undefined
     });
   }
 
