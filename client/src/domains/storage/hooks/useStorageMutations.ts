@@ -7,7 +7,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { useLabId } from '@domains/authentication';
+import { useAuthStore, useLabId } from '@domains/authentication';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { isConflictError } from '@shared/errors';
@@ -372,7 +372,7 @@ export const useBulkReassignMutation = () => {
 /** For fresh installs only. */
 export const useInitializeConfigurationMutation = () => {
   const queryClient = useQueryClient();
-  const labId = useLabId();
+  const labId = useAuthStore(s => s.user?.labId);
 
   return useMutation({
     mutationKey: ['storage', 'initialize'],
@@ -387,16 +387,20 @@ export const useInitializeConfigurationMutation = () => {
     }) => StorageService.initializeConfiguration(labName, tankCount, racksPerTank),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
+      if (labId) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
+      }
       notifications.success('Lab configuration initialized successfully');
     },
 
-    onError: createMutationErrorHandler(
-      queryClient,
-      labId,
-      'Initialize configuration',
-      'Failed to initialize configuration'
-    ),
+    onError: labId
+      ? createMutationErrorHandler(
+          queryClient,
+          labId,
+          'Initialize configuration',
+          'Failed to initialize configuration'
+        )
+      : () => notifications.error('Failed to initialize configuration'),
   });
 };
 
