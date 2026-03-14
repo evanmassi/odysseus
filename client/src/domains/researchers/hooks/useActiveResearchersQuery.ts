@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { DOMAIN_QUERY_OPTIONS } from '@app/cache/queryClient';
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 
 import { ResearcherService } from '../services/ResearcherService';
 
@@ -17,8 +18,10 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 export function useActiveResearchersQuery(options?: {
   queryOptions?: Omit<UseQueryOptions<Researcher[], Error, Researcher[]>, 'queryKey' | 'queryFn'>;
 }) {
+  const labId = useLabId();
+
   return useQuery<Researcher[], Error, Researcher[]>({
-    queryKey: queryKeys.researchers.visible(),
+    queryKey: queryKeys.researchers.visible(labId),
     queryFn: async () => {
       const researchers = await ResearcherService.list({ visible: true });
       return sortByName(researchers);

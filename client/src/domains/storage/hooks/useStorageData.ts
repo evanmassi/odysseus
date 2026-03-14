@@ -93,13 +93,16 @@ export function useStorageData(config?: { enabled?: boolean }): StorageDataResul
 }
 
 /** Use sparingly — prefer passing data as parameters. */
-export function getStorageDataFromCache(queryClient: ReturnType<typeof useQueryClient>): {
+export function getStorageDataFromCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  labId: string
+): {
   currentLab: LabConfiguration | null;
   systemConfig: SystemConfiguration | null;
 } {
   const data = queryClient.getQueryData<{
     configuration: { systemConfig: SystemConfiguration; currentLab: LabConfiguration };
-  }>(queryKeys.storage.data());
+  }>(queryKeys.storage.data(labId));
 
   return {
     currentLab: data?.configuration.currentLab ?? null,

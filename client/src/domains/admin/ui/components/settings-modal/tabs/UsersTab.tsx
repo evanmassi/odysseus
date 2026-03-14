@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { useAuthStore } from '@domains/authentication';
+import { useAuthStore, useLabId } from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
@@ -84,6 +84,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
 
+  const labId = useLabId();
   const currentUserId = useAuthStore(s => s.user?.id);
   const deleteUserMutation = useDeleteUserMutation();
   const deactivateUserMutation = useDeactivateUserMutation();
@@ -143,7 +144,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       notifications.success(`User "${username}" approved successfully`);
       await loadPendingUsers();
       onUserUpdate();
-      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all(labId) });
     } catch (error) {
       logger.error('Failed to approve user', { error });
       notifications.error('Failed to approve user');

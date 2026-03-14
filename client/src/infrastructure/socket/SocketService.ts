@@ -6,7 +6,7 @@
 
 import { io } from 'socket.io-client';
 
-import { sessionManager } from '@domains/authentication/stores/authStore';
+import { sessionManager, useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@infra/logger';
 
 import { getSocketBridge, cleanupSocketBridge } from './SocketQueryBridge';
@@ -51,7 +51,8 @@ class SocketService {
         auth: authToken ? { token: authToken } : undefined,
       });
 
-      const bridge = getSocketBridge(this.queryClient);
+      const labId = useAuthStore.getState().user?.labId;
+      const bridge = getSocketBridge(this.queryClient, labId);
       bridge.initializeSocket(this.socket);
 
       await this.waitForConnection();

@@ -6,17 +6,18 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { useAuthStore } from '@domains/authentication';
+import { useAuthStore, useLabId } from '@domains/authentication';
 
 import { StorageService } from '../services/StorageService';
 
 /** Automatically disabled for users without a lab (system admins). */
 export const useLoadStorageQuery = (config?: { enabled?: boolean; staleTime?: number }) => {
   const { user } = useAuthStore();
+  const labId = useLabId();
   const hasLab = !!user?.labId;
 
   return useQuery({
-    queryKey: queryKeys.storage.data(),
+    queryKey: queryKeys.storage.data(labId),
     queryFn: () => StorageService.loadConfiguration(),
     enabled: hasLab && (config?.enabled ?? true),
     staleTime: config?.staleTime ?? 10 * 60 * 1000, // 10 minutes

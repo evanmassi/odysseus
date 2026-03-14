@@ -21,8 +21,9 @@ interface VersionCheckResult {
   reason: 'match' | 'mismatch' | 'no-cache' | 'no-session' | 'error';
 }
 
-function getCachedConfigVersion(qc: QueryClient): number | null {
-  const cachedData = qc.getQueryData(queryKeys.storage.data());
+function getCachedConfigVersion(qc: QueryClient, labId?: string): number | null {
+  if (!labId) return null;
+  const cachedData = qc.getQueryData(queryKeys.storage.data(labId));
 
   if (!cachedData || typeof cachedData !== 'object') {
     return null;
@@ -77,13 +78,18 @@ async function fetchServerVersion(accessToken: string): Promise<number | null> {
   }
 }
 
-function clearStaleCaches(qc: QueryClient): void {
+function clearStaleCaches(qc: QueryClient, labId?: string): void {
   logger.info('Clearing stale caches due to version mismatch');
 
-  qc.removeQueries({ queryKey: queryKeys.storage.all });
-  // Tubes and researchers reference storage locations, so clear them too
-  qc.removeQueries({ queryKey: queryKeys.tubes.all });
-  qc.removeQueries({ queryKey: queryKeys.researchers.all });
+  if (labId) {
+    qc.removeQueries({ queryKey: queryKeys.storage.all(labId) });
+    qc.removeQueries({ queryKey: queryKeys.tubes.all(labId) });
+    qc.removeQueries({ queryKey: queryKeys.researchers.all(labId) });
+  } else {
+    qc.removeQueries({ queryKey: ['storage'] });
+    qc.removeQueries({ queryKey: ['tubes'] });
+    qc.removeQueries({ queryKey: ['researchers'] });
+  }
 
   try {
     localStorage.removeItem(QUERY_CACHE_KEY);
@@ -97,13 +103,14 @@ function clearStaleCaches(qc: QueryClient): void {
 
 /** Call during bootstrap after session-restore, before components render cached data. */
 export async function validateCacheVersion(
-  accessToken: string | null
+  accessToken: string | null,
+  labId?: string
 ): Promise<VersionCheckResult> {
   if (!accessToken) {
     // No session but cached data exists → stale from previous DB/session — clear it
-    const cachedVersion = getCachedConfigVersion(queryClient);
+    const cachedVersion = getCachedConfigVersion(queryClient, labId);
     if (cachedVersion !== null) {
-      clearStaleCaches(queryClient);
+      clearStaleCaches(queryClient, labId);
     }
 
     return {
@@ -114,7 +121,7 @@ export async function validateCacheVersion(
     };
   }
 
-  const cachedVersion = getCachedConfigVersion(queryClient);
+  const cachedVersion = getCachedConfigVersion(queryClient, labId);
   if (cachedVersion === null) {
     return {
       isValid: true,
@@ -142,7 +149,7 @@ export async function validateCacheVersion(
       cachedVersion,
       isReset: serverVersion < cachedVersion,
     });
-    clearStaleCaches(queryClient);
+    clearStaleCaches(queryClient, labId);
 
     return {
       isValid: false,

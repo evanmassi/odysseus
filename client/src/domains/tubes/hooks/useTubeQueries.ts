@@ -8,6 +8,7 @@ import { type TubeData as SchemaTubeData } from '@odysseus/shared-schemas';
 import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 import { TubeService } from '@domains/tubes/services/TubeService';
 import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
@@ -41,8 +42,10 @@ export const useTubes = (
     'queryKey' | 'queryFn' | 'select'
   > = {}
 ) => {
+  const labId = useLabId();
+
   return useQuery<TubeData[], Error, TubeData[]>({
-    queryKey: queryKeys.tubes.listAll(),
+    queryKey: queryKeys.tubes.listAll(labId),
     queryFn: async (): Promise<TubeData[]> => {
       const schemaTubes = await TubeService.fetchTubes();
       return schemaTubes.map(convertSchemaToSharedTubeData);
@@ -90,8 +93,10 @@ export const useTubesByLocation = (
   boxId: string,
   options: Omit<UseQueryOptions<TubeData[]>, 'queryKey' | 'queryFn'> = {}
 ) => {
+  const labId = useLabId();
+
   return useQuery({
-    queryKey: queryKeys.tubes.location(tankId, rackId, boxId),
+    queryKey: queryKeys.tubes.location(labId, tankId, rackId, boxId),
     queryFn: async (): Promise<TubeData[]> => {
       const schemaTubes = await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
       return schemaTubes.map(convertSchemaToSharedTubeData);
@@ -109,10 +114,11 @@ export const useTube = (
   options: Omit<UseQueryOptions<TubeData>, 'queryKey' | 'queryFn'> = {}
 ) => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   const initialData = (): TubeData | undefined => {
     const allTubeQueries = queryClient.getQueriesData<TubeData[]>({
-      queryKey: queryKeys.tubes.all,
+      queryKey: queryKeys.tubes.all(labId),
     });
 
     for (const [, tubes] of allTubeQueries) {
@@ -126,7 +132,7 @@ export const useTube = (
   };
 
   return useQuery({
-    queryKey: queryKeys.tubes.detail(id),
+    queryKey: queryKeys.tubes.detail(labId, id),
     queryFn: async (): Promise<TubeData> => {
       const schemaTube = await TubeService.fetchTubeById(id);
       return convertSchemaToSharedTubeData(schemaTube);
@@ -143,8 +149,10 @@ export const useBulkTubes = (
   tubeIds: string[],
   options: Omit<UseQueryOptions<TubeData[]>, 'queryKey' | 'queryFn'> = {}
 ) => {
+  const labId = useLabId();
+
   return useQuery({
-    queryKey: queryKeys.tubes.bulk(tubeIds),
+    queryKey: queryKeys.tubes.bulk(labId, tubeIds),
     queryFn: async (): Promise<TubeData[]> => {
       if (tubeIds.length === 0) {
         return [];

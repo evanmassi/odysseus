@@ -78,18 +78,18 @@ export function useStorageSync() {
   // These may persist from a previous user's session via localStorage cache
   useEffect(() => {
     if (!hasLab) {
-      queryClient.removeQueries({ queryKey: queryKeys.storage.all });
-      queryClient.removeQueries({ queryKey: queryKeys.tubes.all });
-      queryClient.removeQueries({ queryKey: queryKeys.researchers.all });
+      queryClient.removeQueries({ queryKey: ['storage'] });
+      queryClient.removeQueries({ queryKey: ['tubes'] });
+      queryClient.removeQueries({ queryKey: ['researchers'] });
     }
   }, [hasLab, queryClient]);
 
   // Multi-tab synchronization via storage events
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'odysseus-configuration-version') {
+      if (e.key === 'odysseus-configuration-version' && user?.labId) {
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.storage.data(),
+          queryKey: queryKeys.storage.data(user.labId),
         });
       }
     };
@@ -100,7 +100,7 @@ export function useStorageSync() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, [queryClient]);
+  }, [queryClient, user?.labId]);
 
   // Broadcast version changes to other tabs when data updates
   useEffect(() => {

@@ -7,6 +7,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 
 import { SearchService } from '../services/SearchService';
 
@@ -19,7 +20,8 @@ export const useSearchTubesQuery = (
     staleTime?: number;
   }
 ) => {
-  const queryKey = queryKeys.search.tubesSearch(options);
+  const labId = useLabId();
+  const queryKey = queryKeys.search.tubesSearch(labId, options);
 
   return useQuery({
     queryKey,

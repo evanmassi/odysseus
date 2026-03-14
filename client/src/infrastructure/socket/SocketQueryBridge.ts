@@ -24,14 +24,16 @@ import type { Socket } from 'socket.io-client';
 class SocketQueryBridge {
   private socket: Socket | null = null;
   private queryClient: QueryClient;
+  private labId: string | undefined;
   private isConnected = false;
   private isInitialized = false;
 
   // Persists across socket reconnections for version-change detection
   private lastKnownConfigVersion: number | null = null;
 
-  constructor(queryClient: QueryClient) {
+  constructor(queryClient: QueryClient, labId: string | undefined) {
     this.queryClient = queryClient;
+    this.labId = labId;
   }
 
   public initializeSocket(socket: Socket): void {
@@ -72,9 +74,9 @@ class SocketQueryBridge {
     this.socket.on('connect', () => {
       this.isConnected = true;
 
-      if (this.lastKnownConfigVersion === null) {
+      if (this.lastKnownConfigVersion === null && this.labId) {
         const currentConfig = this.queryClient.getQueryData(
-          queryKeys.storage.data()
+          queryKeys.storage.data(this.labId)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query cache data with unknown structure before validation
         ) as any;
         const currentVersion = currentConfig?.configuration?.systemConfig?.version;
@@ -114,29 +116,37 @@ class SocketQueryBridge {
     if (!this.socket) return;
 
     this.socket.on('tube_created', (data: unknown) => {
+      if (!this.labId) return;
       try {
         const { location } = tubeEventSchemas.tube_created.parse(data);
 
         void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
+          queryKey: queryKeys.tubes.location(
+            this.labId,
+            location.tankId,
+            location.rackId,
+            location.boxId
+          ),
         });
         // Used by TubeEditorModal position analysis
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tube_created event', { error });
       }
     });
 
     this.socket.on('tube_updated', (data: unknown) => {
+      if (!this.labId) return;
       try {
         const { tubeId, oldLocation, newLocation } = tubeEventSchemas.tube_updated.parse(data);
 
         void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.detail(tubeId),
+          queryKey: queryKeys.tubes.detail(this.labId, tubeId),
         });
         void this.queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.location(
+            this.labId,
             oldLocation.tankId,
             oldLocation.rackId,
             oldLocation.boxId
@@ -150,6 +160,7 @@ class SocketQueryBridge {
         ) {
           void this.queryClient.invalidateQueries({
             queryKey: queryKeys.tubes.location(
+              this.labId,
               newLocation.tankId,
               newLocation.rackId,
               newLocation.boxId
@@ -157,32 +168,39 @@ class SocketQueryBridge {
           });
         }
 
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tube_updated event', { error });
       }
     });
 
     this.socket.on('tube_deleted', (data: unknown) => {
+      if (!this.labId) return;
       try {
         const { tubeId, location } = tubeEventSchemas.tube_deleted.parse(data);
 
-        this.queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
+        this.queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(this.labId, tubeId) });
         void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
+          queryKey: queryKeys.tubes.location(
+            this.labId,
+            location.tankId,
+            location.rackId,
+            location.boxId
+          ),
         });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tube_deleted event', { error });
       }
     });
 
     this.socket.on('tubes_bulk_updated', (data: unknown) => {
+      if (!this.labId) return;
       try {
         tubeEventSchemas.tubes_bulk_updated.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
       } catch (error) {
         logger.error('Invalid tubes_bulk_updated event', { error });
       }
@@ -266,10 +284,11 @@ class SocketQueryBridge {
   }
 
   private patchTubesInCache(tubeIds: string[], patchFn: (tube: TubeData) => TubeData): void {
+    if (!this.labId) return;
     const tubeIdSet = new Set(tubeIds);
 
     this.queryClient.setQueriesData<TubeData[] | TubeData | undefined>(
-      { queryKey: queryKeys.tubes.all },
+      { queryKey: queryKeys.tubes.all(this.labId) },
       oldData => {
         if (!oldData) return oldData;
 
@@ -293,10 +312,13 @@ class SocketQueryBridge {
 
     for (const [event, schema] of Object.entries(researcherEventSchemas)) {
       this.socket.on(event, (data: unknown) => {
+        if (!this.labId) return;
         try {
           schema.parse(data);
-          void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+          void this.queryClient.invalidateQueries({
+            queryKey: queryKeys.researchers.all(this.labId),
+          });
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
         } catch (error) {
           logger.error(`Invalid ${event} event`, { error });
         }
@@ -309,8 +331,16 @@ class SocketQueryBridge {
   private setupUserEventHandlers(): void {
     if (!this.socket) return;
 
-    const userListAndAdmin = [queryKeys.users.list(), queryKeys.admin.users()] as const;
-    const userListAdminAndResearchers = [...userListAndAdmin, queryKeys.researchers.all] as const;
+    if (!this.labId) return;
+
+    const userListAndAdmin = [
+      queryKeys.users.list(this.labId),
+      queryKeys.admin.users(this.labId),
+    ] as const;
+    const userListAdminAndResearchers = [
+      ...userListAndAdmin,
+      queryKeys.researchers.all(this.labId),
+    ] as const;
 
     const userEventHandlers: {
       event: keyof typeof userEventSchemas;
@@ -319,7 +349,7 @@ class SocketQueryBridge {
       { event: 'user_approved', invalidate: userListAndAdmin },
       { event: 'user_deleted', invalidate: userListAndAdmin },
       { event: 'user_role_changed', invalidate: userListAndAdmin },
-      { event: 'user_created', invalidate: [queryKeys.admin.users()] },
+      { event: 'user_created', invalidate: [queryKeys.admin.users(this.labId)] },
       { event: 'user_linked_to_researcher', invalidate: userListAdminAndResearchers },
       { event: 'user_unlinked_from_researcher', invalidate: userListAdminAndResearchers },
     ];
@@ -344,17 +374,18 @@ class SocketQueryBridge {
     if (!this.socket) return;
 
     this.socket.on('user_online', (data: unknown) => {
+      if (!this.labId) return;
       try {
         const { userId, onlineUserIds } = presenceEventSchemas.user_online.parse(data);
 
-        this.queryClient.setQueryData(queryKeys.users.presence(), onlineUserIds);
+        this.queryClient.setQueryData(queryKeys.users.presence(this.labId), onlineUserIds);
 
         // If the new user isn't in our cached list, refetch so we can display their badge
         const cachedUsers = this.queryClient.getQueryData<Array<{ id: string }>>(
-          queryKeys.users.list()
+          queryKeys.users.list(this.labId)
         );
         if (cachedUsers && !cachedUsers.some(u => u.id === userId)) {
-          void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list(this.labId) });
         }
       } catch (error) {
         logger.error('Invalid user_online event', { error });
@@ -362,18 +393,20 @@ class SocketQueryBridge {
     });
 
     this.socket.on('user_offline', (data: unknown) => {
+      if (!this.labId) return;
       try {
         const { onlineUserIds } = presenceEventSchemas.user_offline.parse(data);
-        this.queryClient.setQueryData(queryKeys.users.presence(), onlineUserIds);
+        this.queryClient.setQueryData(queryKeys.users.presence(this.labId), onlineUserIds);
       } catch (error) {
         logger.error('Invalid user_offline event', { error });
       }
     });
 
     this.socket.on('presence_state', (data: unknown) => {
+      if (!this.labId) return;
       try {
         const { onlineUserIds } = presenceEventSchemas.presence_state.parse(data);
-        this.queryClient.setQueryData(queryKeys.users.presence(), onlineUserIds);
+        this.queryClient.setQueryData(queryKeys.users.presence(this.labId), onlineUserIds);
       } catch (error) {
         logger.error('Invalid presence_state event', { error });
       }
@@ -406,8 +439,9 @@ class SocketQueryBridge {
 
         // Graceful degradation — invalidate anyway to ensure consistency
         try {
+          if (!this.labId) return;
           await this.queryClient.invalidateQueries({
-            queryKey: queryKeys.storage.data(),
+            queryKey: queryKeys.storage.data(this.labId),
           });
         } catch (fallbackError) {
           logger.error('Critical: Failed to invalidate cache in error handler', { fallbackError });
@@ -422,12 +456,14 @@ class SocketQueryBridge {
     try {
       const currentVersion = this.lastKnownConfigVersion;
 
+      if (!this.labId) return true;
+
       await this.queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.data(),
+        queryKey: queryKeys.storage.data(this.labId),
       });
 
       const freshData = (await this.queryClient.fetchQuery({
-        queryKey: queryKeys.storage.data(),
+        queryKey: queryKeys.storage.data(this.labId),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query result with unknown structure before validation
       })) as any;
 
@@ -539,16 +575,19 @@ class SocketQueryBridge {
 
 let globalSocketBridge: SocketQueryBridge | null = null;
 
-export const getSocketBridge = (queryClient: QueryClient): SocketQueryBridge => {
+export const getSocketBridge = (
+  queryClient: QueryClient,
+  labId: string | undefined
+): SocketQueryBridge => {
   if (!globalSocketBridge) {
-    globalSocketBridge = new SocketQueryBridge(queryClient);
+    globalSocketBridge = new SocketQueryBridge(queryClient, labId);
   }
   return globalSocketBridge;
 };
 
-/** Disconnects but preserves the singleton — session state (version tracking) survives. */
 export const cleanupSocketBridge = (): void => {
   if (globalSocketBridge) {
     globalSocketBridge.disconnect();
+    globalSocketBridge = null;
   }
 };

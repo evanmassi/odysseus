@@ -6,14 +6,17 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 
 import { userLookupService } from '../services/UserLookupService';
 
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
 export function useUserLookupQuery(userIds: string[]) {
+  const labId = useLabId();
+
   return useQuery({
-    queryKey: queryKeys.users.lookup(userIds),
+    queryKey: queryKeys.users.lookup(labId, userIds),
     queryFn: async (): Promise<UserDisplayInfo[]> => {
       return userLookupService.lookupUsers(userIds);
     },

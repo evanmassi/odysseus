@@ -7,6 +7,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { isConflictError } from '@shared/errors';
@@ -18,23 +19,25 @@ import type { GridConfiguration, PositionDisplayConfig } from '@odysseus/shared-
 
 function handleConflictError(
   queryClient: ReturnType<typeof useQueryClient>,
+  labId: string,
   operation: string
 ): void {
   notifications.error(
     `${operation} failed: Configuration was modified by another user. Please review the latest changes and try again.`
   );
-  void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
 }
 
 function createMutationErrorHandler(
   queryClient: ReturnType<typeof useQueryClient>,
+  labId: string,
   operation: string,
   errorLabel: string
 ) {
   return (error: unknown) => {
     if (isOfflineError(error)) return;
     if (isConflictError(error)) {
-      handleConflictError(queryClient, operation);
+      handleConflictError(queryClient, labId, operation);
       return;
     }
     logger.error(`${operation} failed`, { error });
@@ -47,6 +50,7 @@ function createMutationErrorHandler(
 
 export const useAddTankMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'addTank'],
@@ -54,16 +58,17 @@ export const useAddTankMutation = () => {
       StorageService.addTank(name, location),
 
     onSuccess: (data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success(`Tank "${variables.name}" added successfully`);
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Add tank', 'Failed to add tank'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Add tank', 'Failed to add tank'),
   });
 };
 
 export const useUpdateTankMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'updateTank'],
@@ -76,28 +81,29 @@ export const useUpdateTankMutation = () => {
     }) => StorageService.updateTank(tankId, updates),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success('Tank updated successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Update tank', 'Failed to update tank'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Update tank', 'Failed to update tank'),
   });
 };
 
 /** Blocks if tubes exist. */
 export const useDeleteTankMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'deleteTank'],
     mutationFn: ({ tankId }: { tankId: string }) => StorageService.deleteTank(tankId),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success('Tank deleted successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Delete tank', 'Failed to delete tank'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Delete tank', 'Failed to delete tank'),
   });
 };
 
@@ -105,6 +111,7 @@ export const useDeleteTankMutation = () => {
 
 export const useAddRacksMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'addRacks'],
@@ -112,7 +119,7 @@ export const useAddRacksMutation = () => {
       StorageService.addRacks(tankId, count),
 
     onSuccess: (data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       const message =
         variables.count === 1
           ? 'Rack added successfully'
@@ -120,12 +127,13 @@ export const useAddRacksMutation = () => {
       notifications.success(message);
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Add rack(s)', 'Failed to add rack(s)'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Add rack(s)', 'Failed to add rack(s)'),
   });
 };
 
 export const useUpdateRackMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'updateRack'],
@@ -140,17 +148,18 @@ export const useUpdateRackMutation = () => {
     }) => StorageService.updateRack(tankId, rackId, updates),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success('Rack updated successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Update rack', 'Failed to update rack'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Update rack', 'Failed to update rack'),
   });
 };
 
 /** Blocks if tubes exist. */
 export const useDeleteRackMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'deleteRack'],
@@ -158,16 +167,17 @@ export const useDeleteRackMutation = () => {
       StorageService.deleteRack(tankId, rackId),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success('Rack deleted successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Delete rack', 'Failed to delete rack'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Delete rack', 'Failed to delete rack'),
   });
 };
 
 export const useAssignRackMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'assignRack'],
@@ -182,13 +192,13 @@ export const useAssignRackMutation = () => {
     }) => StorageService.assignRack(tankId, rackId, assignedUserId),
 
     onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success(
         variables.assignedUserId ? 'Rack assigned successfully' : 'Rack unassigned successfully'
       );
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Assign rack', 'Failed to assign rack'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Assign rack', 'Failed to assign rack'),
   });
 };
 
@@ -196,6 +206,7 @@ export const useAssignRackMutation = () => {
 
 export const useAddBoxesMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'addBoxes'],
@@ -203,7 +214,7 @@ export const useAddBoxesMutation = () => {
       StorageService.addBoxes(tankId, rackId, count),
 
     onSuccess: (data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       const message =
         variables.count === 1
           ? 'Box added successfully'
@@ -211,12 +222,13 @@ export const useAddBoxesMutation = () => {
       notifications.success(message);
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Add box(es)', 'Failed to add box(es)'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Add box(es)', 'Failed to add box(es)'),
   });
 };
 
 export const useUpdateBoxMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'updateBox'],
@@ -238,17 +250,18 @@ export const useUpdateBoxMutation = () => {
     }) => StorageService.updateBox(tankId, rackId, boxId, updates),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success('Box updated successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Update box', 'Failed to update box'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Update box', 'Failed to update box'),
   });
 };
 
 /** Blocks if tubes exist. */
 export const useDeleteBoxMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'deleteBox'],
@@ -256,16 +269,17 @@ export const useDeleteBoxMutation = () => {
       StorageService.deleteBox(tankId, rackId, boxId),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success('Box deleted successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Delete box', 'Failed to delete box'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Delete box', 'Failed to delete box'),
   });
 };
 
 export const useAssignBoxMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'assignBox'],
@@ -282,13 +296,13 @@ export const useAssignBoxMutation = () => {
     }) => StorageService.assignBox(tankId, rackId, boxId, assignedUserId),
 
     onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success(
         variables.assignedUserId ? 'Box assigned successfully' : 'Box unassigned successfully'
       );
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Assign box', 'Failed to assign box'),
+    onError: createMutationErrorHandler(queryClient, labId, 'Assign box', 'Failed to assign box'),
   });
 };
 
@@ -297,6 +311,7 @@ export const useAssignBoxMutation = () => {
 /** Used when deactivating users. */
 export const useBulkUnassignMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'bulkUnassign'],
@@ -304,7 +319,7 @@ export const useBulkUnassignMutation = () => {
       StorageService.bulkUnassignResources(fromUserId),
 
     onSuccess: data => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       const total = data.racksAffected + data.boxesAffected;
       if (total > 0) {
         notifications.success(
@@ -317,6 +332,7 @@ export const useBulkUnassignMutation = () => {
 
     onError: createMutationErrorHandler(
       queryClient,
+      labId,
       'Bulk unassign',
       'Failed to unassign resources'
     ),
@@ -325,6 +341,7 @@ export const useBulkUnassignMutation = () => {
 
 export const useBulkReassignMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'bulkReassign'],
@@ -332,7 +349,7 @@ export const useBulkReassignMutation = () => {
       StorageService.bulkReassignResources(fromUserId, toUserId),
 
     onSuccess: data => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       const total = data.racksAffected + data.boxesAffected;
       if (total > 0) {
         notifications.success(
@@ -345,6 +362,7 @@ export const useBulkReassignMutation = () => {
 
     onError: createMutationErrorHandler(
       queryClient,
+      labId,
       'Bulk reassign',
       'Failed to reassign resources'
     ),
@@ -354,6 +372,7 @@ export const useBulkReassignMutation = () => {
 /** For fresh installs only. */
 export const useInitializeConfigurationMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'initialize'],
@@ -368,12 +387,13 @@ export const useInitializeConfigurationMutation = () => {
     }) => StorageService.initializeConfiguration(labName, tankCount, racksPerTank),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success('Lab configuration initialized successfully');
     },
 
     onError: createMutationErrorHandler(
       queryClient,
+      labId,
       'Initialize configuration',
       'Failed to initialize configuration'
     ),
@@ -384,6 +404,7 @@ export const useInitializeConfigurationMutation = () => {
 
 export const useUpdateResourceLabelMutation = () => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'updateResourceLabel'],
@@ -403,10 +424,15 @@ export const useUpdateResourceLabelMutation = () => {
 
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.data(),
+        queryKey: queryKeys.storage.data(labId),
       });
     },
 
-    onError: createMutationErrorHandler(queryClient, 'Update label', 'Failed to update label'),
+    onError: createMutationErrorHandler(
+      queryClient,
+      labId,
+      'Update label',
+      'Failed to update label'
+    ),
   });
 };

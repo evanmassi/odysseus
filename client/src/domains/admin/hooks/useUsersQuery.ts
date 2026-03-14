@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { CACHE_TIMES } from '@app/cache/queryClient';
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 
 import { adminUserService } from '../services/AdminUserService';
 
@@ -17,8 +18,10 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 export function useUsersQuery(options?: {
   queryOptions?: Omit<UseQueryOptions<AdminUser[]>, 'queryKey' | 'queryFn'>;
 }) {
+  const labId = useLabId();
+
   return useQuery({
-    queryKey: queryKeys.admin.users(),
+    queryKey: queryKeys.admin.users(labId),
     queryFn: () => adminUserService.getUsers(),
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,

@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Check, Pencil, Plus, RefreshCw, Trash2, X, BookOpen } from 'lucide-react';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -276,6 +277,7 @@ interface CatalogTabProps {
 
 export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const queryClient = useQueryClient();
+  const labId = useLabId();
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
   const [mediaValues, setMediaValues] = useState<LookupValueWithCount[]>([]);
@@ -322,7 +324,9 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const handleAdd = async (category: LookupCategory, value: string) => {
     try {
       await adminService.createLookupValue(category, value);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.byCategory(category) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.lookups.byCategory(labId, category),
+      });
       notifications.success(`Added "${value}" to ${category}`);
       await loadValues();
     } catch (error: unknown) {
@@ -336,8 +340,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const handleRename = async (category: LookupCategory, id: string, newValue: string) => {
     try {
       await adminService.renameLookupValue(id, newValue);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.all(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
       notifications.success(`Renamed to "${newValue}"`);
       await loadValues();
     } catch (error: unknown) {
@@ -358,7 +362,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     try {
       await adminService.deleteLookupValue(confirmDialog.id);
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.lookups.byCategory(confirmDialog.category),
+        queryKey: queryKeys.lookups.byCategory(labId, confirmDialog.category),
       });
       notifications.success(`Deleted "${confirmDialog.value}"`);
       setConfirmDialog(null);

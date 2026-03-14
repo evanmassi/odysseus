@@ -20,6 +20,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 import { logger } from '@infra/logger';
 
 import { useCreateTubeMutation, useUpdateTubeMutation } from './useTubeMutations';
@@ -60,6 +61,7 @@ function useTubeForm<
 } {
   const { mode, tubeId, initialData, onSuccess, onError } = config;
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   // Type assertion needed for generic factory pattern - safety enforced at public wrappers
   const form = useForm<TInput>({
@@ -78,8 +80,8 @@ function useTubeForm<
       const warnings: Record<string, string> = {};
 
       if ('location' in payload && payload.location) {
-        // Fresh query on every validation to avoid stale duplicate checks
-        const existingTubes = queryClient.getQueryData<TubeData[]>(queryKeys.tubes.all) ?? [];
+        const existingTubes =
+          queryClient.getQueryData<TubeData[]>(queryKeys.tubes.listAll(labId)) ?? [];
 
         const filteredTubes =
           mode === 'edit' && tubeId
@@ -102,7 +104,7 @@ function useTubeForm<
 
       return { warnings };
     },
-    [queryClient, mode, tubeId]
+    [queryClient, labId, mode, tubeId]
   );
 
   const submitTube = useCallback(

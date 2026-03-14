@@ -7,6 +7,7 @@
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 import { TubeService } from '@domains/tubes/services/TubeService';
 import { logger } from '@infra/logger';
 
@@ -26,6 +27,7 @@ export const useLockTubesMutation = (
   options: UseMutationOptions<BatchLockResult, Error, LockTubesRequest> = {}
 ) => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationFn: async (request: LockTubesRequest) => {
@@ -33,7 +35,7 @@ export const useLockTubesMutation = (
     },
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
     },
 
     onError: error => {
@@ -49,6 +51,7 @@ export const useUnlockTubesMutation = (
   options: UseMutationOptions<BatchUnlockResult, Error, UnlockTubesRequest> = {}
 ) => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationFn: async (request: UnlockTubesRequest) => {
@@ -56,7 +59,7 @@ export const useUnlockTubesMutation = (
     },
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
     },
 
     onError: error => {
@@ -72,6 +75,7 @@ export const useShareTubeAccessMutation = (
   options: UseMutationOptions<ShareAccessResult, Error, ShareTubeAccessRequest> = {}
 ) => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationFn: async (request: ShareTubeAccessRequest) => {
@@ -79,7 +83,7 @@ export const useShareTubeAccessMutation = (
     },
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
     },
 
     onError: error => {
@@ -95,6 +99,7 @@ export const useRevokeTubeAccessMutation = (
   options: UseMutationOptions<RevokeAccessResult, Error, RevokeTubeAccessRequest> = {}
 ) => {
   const queryClient = useQueryClient();
+  const labId = useLabId();
 
   return useMutation({
     mutationFn: async (request: RevokeTubeAccessRequest) => {
@@ -102,7 +107,7 @@ export const useRevokeTubeAccessMutation = (
     },
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
     },
 
     onError: error => {

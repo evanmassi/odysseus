@@ -25,14 +25,14 @@ vi.mock('./queryClient', () => ({
 vi.mock('./queryKeys', () => ({
   queryKeys: {
     storage: {
-      all: ['storage'],
-      data: () => ['storage', 'data'],
+      all: (labId: string) => ['storage', labId],
+      data: (labId: string) => ['storage', labId, 'data'],
     },
     tubes: {
-      all: ['tubes'],
+      all: (labId: string) => ['tubes', labId],
     },
     researchers: {
-      all: ['researchers'],
+      all: (labId: string) => ['researchers', labId],
     },
   },
 }));
@@ -60,7 +60,7 @@ describe('validateCacheVersion', () => {
 
   describe('when no access token provided', () => {
     it('should return valid with no-session reason', async () => {
-      const result = await validateCacheVersion(null);
+      const result = await validateCacheVersion(null, 'lab_test');
 
       expect(result).toEqual({
         isValid: true,
@@ -76,7 +76,7 @@ describe('validateCacheVersion', () => {
     it('should return valid with no-cache reason', async () => {
       vi.mocked(queryClient.getQueryData).mockReturnValue(undefined);
 
-      const result = await validateCacheVersion('valid-token');
+      const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result).toEqual({
         isValid: true,
@@ -111,7 +111,7 @@ describe('validateCacheVersion', () => {
           }),
       });
 
-      const result = await validateCacheVersion('valid-token');
+      const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result).toEqual({
         isValid: true,
@@ -132,7 +132,7 @@ describe('validateCacheVersion', () => {
           }),
       });
 
-      const result = await validateCacheVersion('valid-token');
+      const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result).toEqual({
         isValid: false,
@@ -162,7 +162,7 @@ describe('validateCacheVersion', () => {
           }),
       });
 
-      const result = await validateCacheVersion('valid-token');
+      const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result).toEqual({
         isValid: false,
@@ -181,7 +181,7 @@ describe('validateCacheVersion', () => {
     it('should not clear cache on network error', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
-      const result = await validateCacheVersion('valid-token');
+      const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result).toEqual({
         isValid: true,
@@ -201,7 +201,7 @@ describe('validateCacheVersion', () => {
         status: 500,
       });
 
-      const result = await validateCacheVersion('valid-token');
+      const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result).toEqual({
         isValid: true,
@@ -222,7 +222,7 @@ describe('validateCacheVersion', () => {
           }),
       });
 
-      await validateCacheVersion('my-access-token');
+      await validateCacheVersion('my-access-token', 'lab_test');
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/storage/version'),
@@ -243,7 +243,7 @@ describe('validateCacheVersion', () => {
         },
       });
 
-      const result = await validateCacheVersion('valid-token');
+      const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result.reason).toBe('no-cache');
     });
@@ -262,7 +262,7 @@ describe('validateCacheVersion', () => {
           }),
       });
 
-      const result = await validateCacheVersion('valid-token');
+      const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result.reason).toBe('error');
     });

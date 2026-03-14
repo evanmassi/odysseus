@@ -20,7 +20,6 @@ import { initializeSocket, cleanupSocket } from '@infra/socket';
 
 import { validateCacheVersion } from '../cache';
 import { queryClient } from '../cache/queryClient';
-import { queryKeys } from '../cache/queryKeys';
 
 import { clearChunkReloadFlag } from './chunkErrorRecovery';
 import { BOOTSTRAP_STEPS } from './constants';
@@ -105,9 +104,8 @@ export class AppBootstrapService {
         useTubeStore.getState().resetStore();
         useSearchStore.getState().clearSearch();
 
-        // Clear presence cache to ensure fresh state on next login
-        // This prevents stale online user badges from appearing
-        queryClient.setQueryData(queryKeys.users.presence(), []);
+        // Clear all user queries (presence, list) to ensure fresh state on next login
+        queryClient.removeQueries({ queryKey: ['users'] });
 
         // Disconnect socket to trigger user_offline event on server
         // This notifies other clients that this user is no longer online
@@ -170,7 +168,8 @@ export class AppBootstrapService {
       try {
         const tokens = sessionManager.getTokens();
         const accessToken = tokens?.accessToken ?? null;
-        const result = await validateCacheVersion(accessToken);
+        const labId = useAuthStore.getState().user?.labId;
+        const result = await validateCacheVersion(accessToken, labId);
 
         if (!result.isValid) {
           logger.info('Cache invalidated due to version mismatch', {
