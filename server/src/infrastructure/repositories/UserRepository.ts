@@ -9,7 +9,6 @@ import * as crypto from 'crypto';
 import type { User } from '@domain/entities/User';
 import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
 import type { UserRepository as IUserRepository } from '@domain/repositories/UserRepository';
-import type { UserSearchCriteria } from '@domain/types/repository';
 import { isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
 import type { UserRow } from '@infrastructure/database/mappers/UserMapper';
 import { UserMapper } from '@infrastructure/database/mappers/UserMapper';
@@ -194,14 +193,6 @@ export class UserRepository implements IUserRepository {
 
   // ROLE-BASED OPERATIONS
 
-  async isAdmin(apiKey: string): Promise<boolean> {
-    const result = await this.context.queryOne<{ role: string }>(
-      'SELECT role FROM users WHERE api_key = $1',
-      [apiKey]
-    );
-    return result?.role === 'system_admin' || result?.role === 'lab_admin';
-  }
-
   async countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM users WHERE role = $1',
@@ -223,84 +214,6 @@ export class UserRepository implements IUserRepository {
       [status]
     );
     return UserMapper.fromRows(rows);
-  }
-
-  // USER MANAGEMENT OPERATIONS
-
-  async updateRole(userId: string, newRole: 'system_admin' | 'lab_admin' | 'user'): Promise<boolean> {
-    const result = await this.context.execute(
-      'UPDATE users SET role = $1 WHERE id = $2',
-      [newRole, userId]
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  // BUSINESS QUERIES
-
-  async count(): Promise<number> {
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM users'
-    );
-    return parseInt(result?.count ?? '0', 10);
-  }
-
-  async search(criteria: UserSearchCriteria): Promise<User[]> {
-    const whereClauses: string[] = ['1=1'];
-    const params: unknown[] = [];
-    let paramIndex = 1;
-
-    if (criteria.username) {
-      whereClauses.push(`u.username ILIKE $${paramIndex++}`);
-      params.push(`%${criteria.username}%`);
-    }
-
-    if (criteria.role) {
-      whereClauses.push(`u.role = $${paramIndex++}`);
-      params.push(criteria.role);
-    }
-
-    if (criteria.createdAfter) {
-      whereClauses.push(`u.created_at >= $${paramIndex++}`);
-      params.push(criteria.createdAfter);
-    }
-
-    if (criteria.createdBefore) {
-      whereClauses.push(`u.created_at <= $${paramIndex++}`);
-      params.push(criteria.createdBefore);
-    }
-
-    let query = `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE ${whereClauses.join(' AND ')}`;
-
-    if (criteria.sortBy) {
-      const sortColumn = this.mapSortColumn(criteria.sortBy);
-      const sortOrder = criteria.sortOrder ?? 'asc';
-      query += ` ORDER BY u.${sortColumn} ${sortOrder.toUpperCase()}`;
-    } else {
-      query += ' ORDER BY u.created_at ASC';
-    }
-
-    if (criteria.limit) {
-      query += ` LIMIT $${paramIndex++}`;
-      params.push(criteria.limit);
-
-      if (criteria.offset) {
-        query += ` OFFSET $${paramIndex++}`;
-        params.push(criteria.offset);
-      }
-    }
-
-    const rows = await this.context.queryMany<UserRow>(query, params);
-    return UserMapper.fromRows(rows);
-  }
-
-  private mapSortColumn(sortBy: string): string {
-    const columnMap: Record<string, string> = {
-      'createdAt': 'created_at',
-      'username': 'username',
-      'role': 'role',
-      'status': 'status'
-    };
-    return columnMap[sortBy] || 'created_at';
   }
 
   // LAB-SCOPED OPERATIONS

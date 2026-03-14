@@ -5,7 +5,6 @@
  */
 
 import type { User } from '@domain/entities/User';
-import type { UserSearchCriteria } from '@domain/types/repository/searchCriteriaTypes';
 
 export interface UserRepository {
 
@@ -41,7 +40,6 @@ export interface UserRepository {
 
   // ROLE-BASED OPERATIONS
 
-  isAdmin(apiKey: string): Promise<boolean>;
   countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number>;
   isEmpty(): Promise<boolean>;
   findByStatus(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended'): Promise<User[]>;
@@ -51,15 +49,6 @@ export interface UserRepository {
   findByLabId(labId: string): Promise<User[]>;
   findByStatusInLab(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended', labId: string): Promise<User[]>;
   countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number>;
-
-  // USER MANAGEMENT OPERATIONS
-
-  updateRole(userId: string, newRole: 'system_admin' | 'lab_admin' | 'user'): Promise<boolean>;
-
-  // BUSINESS QUERIES
-
-  count(): Promise<number>;
-  search(criteria: UserSearchCriteria): Promise<User[]>;
 
   // MAINTENANCE OPERATIONS
 

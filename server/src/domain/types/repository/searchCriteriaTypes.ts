@@ -75,14 +75,3 @@ export interface TubeSearchCriteria {
   groupBy?: 'auto' | 'none' | 'donor' | 'cellType' | 'researcher' | 'lotNumber' | 'media' | 'location';
 }
 
-export interface UserSearchCriteria {
-  username?: string;
-  role?: 'admin' | 'user';
-  createdAfter?: Date;
-  createdBefore?: Date;
-  isLocked?: boolean;
-  limit?: number;
-  offset?: number;
-  sortBy?: 'username' | 'createdAt' | 'status';
-  sortOrder?: 'asc' | 'desc';
-}

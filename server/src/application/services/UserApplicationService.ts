@@ -601,7 +601,7 @@ export class UserApplicationService {
       ? await this.userRepository.findByStatus('pending')
       : admin.labId
         ? await this.userRepository.findByStatusInLab('pending', admin.labId)
-        : await this.userRepository.findByStatus('pending');
+        : [];
 
     return pendingUsers.map(user => UserDto.toResponse(user));
   }

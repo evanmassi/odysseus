@@ -61,7 +61,10 @@ export class CheckFirstTimeSetupQueryHandler implements QueryHandler<CheckFirstT
 // GET USER STATISTICS QUERY
 
 export class GetUserStatisticsQuery extends BaseQuery {
-  constructor(requestedBy?: string) {
+  constructor(
+    public readonly labId?: string,
+    requestedBy?: string
+  ) {
     super(requestedBy);
   }
 }
@@ -76,8 +79,10 @@ export interface UserStatistics {
 export class GetUserStatisticsQueryHandler implements QueryHandler<GetUserStatisticsQuery, UserStatistics> {
   constructor(private userRepository: UserRepository) {}
 
-  async handle(_query: GetUserStatisticsQuery): Promise<UserStatistics> {
-    const allUsers = await this.userRepository.findAll();
+  async handle(query: GetUserStatisticsQuery): Promise<UserStatistics> {
+    const allUsers = query.labId
+      ? await this.userRepository.findByLabId(query.labId)
+      : await this.userRepository.findAll();
 
     const totalUsers = allUsers.length;
     const adminUsers = allUsers.filter(user => user.isAdmin()).length;

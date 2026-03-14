@@ -104,8 +104,10 @@ export class AdminConfigController {
 
   async getUserStatistics(req: Request, res: Response): Promise<void> {
     try {
+      const user = req.user;
+      const isLabScoped = user && !user.isSystemAdmin() && user.labId;
 
-      const query = new GetUserStatisticsQuery();
+      const query = new GetUserStatisticsQuery(isLabScoped ? user.labId! : undefined);
       const stats = await this.deps.getUserStatsHandler.handle(query);
 
       const response = ResponseBuilder.success({ statistics: stats });
