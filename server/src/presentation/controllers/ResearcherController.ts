@@ -96,8 +96,9 @@ export class ResearcherController extends BaseController {
   async getResearcherById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      const userApiKey = this.extractApiKey(req);
 
-      const researcher = await this.deps.researcherApplicationService.getResearcherById(id);
+      const researcher = await this.deps.researcherApplicationService.getResearcherById(id, userApiKey);
 
       res.json(ResponseBuilder.success(researcher));
     } catch (error) {

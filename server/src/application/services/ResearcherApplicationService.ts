@@ -109,8 +109,10 @@ export class ResearcherApplicationService {
     return this.resolveWithPersons(unlinked);
   }
 
-  async getResearcherById(id: string): Promise<ResearcherResponse> {
+  async getResearcherById(id: string, userApiKey: string): Promise<ResearcherResponse> {
+    const user = await this.getUserByApiKey(userApiKey);
     const researcher = await this.getResearcherOrThrow(id);
+    this.requireSameLabAsResearcher(user, researcher);
     const person = await this.getPersonForResearcher(researcher);
     return ResearcherDto.toResponse(researcher, person);
   }
