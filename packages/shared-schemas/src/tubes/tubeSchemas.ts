@@ -77,6 +77,7 @@ export const tubeDataSchema = z.object({
   lockNote: z.string().max(100).optional(),
   lockedAt: z.string().datetime().optional(),
   sharedWithUserIds: z.array(z.string()).optional(),
+  labId: z.string().optional(),
 });
 
 export const tubeDataArraySchema = z.array(tubeDataSchema);

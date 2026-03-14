@@ -25,7 +25,8 @@ export const researcherSchema = z.object({
   lastName: z.string(),
   email: z.string(),
   position: z.string().optional(),
-  department: z.string().optional()
+  department: z.string().optional(),
+  labId: z.string().optional(),
 });
 
 export const createResearcherProfileSchema = z.object({

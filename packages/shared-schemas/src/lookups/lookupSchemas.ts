@@ -17,6 +17,7 @@ export const lookupValueSchema = z.object({
   isActive: z.boolean().default(true),
   createdAt: z.union([z.string().datetime(), z.date()]),
   updatedAt: z.union([z.string().datetime(), z.date()]),
+  labId: z.string().optional(),
 });
 
 export const lookupValueWithCountSchema = lookupValueSchema.extend({

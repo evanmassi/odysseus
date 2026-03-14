@@ -27,6 +27,7 @@ export interface ResearcherResponse {
   email: string;
   position?: string;
   department?: string;
+  labId?: string;
 }
 
 export class ResearcherDto {
@@ -43,7 +44,8 @@ export class ResearcherDto {
       lastName: person.lastName,
       email: person.email,
       position: person.position,
-      department: person.department
+      department: person.department,
+      labId: researcher.labId
     };
   }
 }
