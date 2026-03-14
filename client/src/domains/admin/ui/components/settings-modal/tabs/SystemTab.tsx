@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Gauge, FlaskConical, FileText, Check, X } from 'lucide-react';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { useAuthStore, useLabId } from '@domains/authentication';
+import { useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
@@ -30,8 +30,8 @@ export interface SystemTabProps {
 }
 
 export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabProps) {
-  const labId = useLabId();
-  const hasLab = !!useAuthStore(s => s.user?.labId);
+  const labId = useAuthStore(s => s.user?.labId);
+  const hasLab = !!labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
   const queryClient = useQueryClient();
 
@@ -108,7 +108,9 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
       // Use dedicated system settings endpoint - only updates labName, preserves all equipment
       await httpClient.put('/storage/system', { labName: trimmedName });
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
+      if (labId) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
+      }
 
       notifications.success('Lab name updated successfully');
       setIsEditingLabName(false);
