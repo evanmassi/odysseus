@@ -90,6 +90,12 @@ client/src/
 - **UI state**: Zustand (navigation, selections, modals)
 - Never store server data in Zustand
 
+**Lab Context in Hooks**:
+- **Lab-only hooks** (tubes, researchers, search, lookups, most mutations): Use `useLabId()` from `@domains/authentication` — throws if no lab, catching misuse early
+- **Global hooks** (rendered in `AppHeader`/`AppDashboard` for all users including system admins): Use `useAuthStore(s => s.user?.labId)` directly with `labId ?? ''` and `enabled: !!labId`
+- System admins have no `labId` — never use `useLabId()` in components that render for them
+- Query keys for lab-scoped domains include `labId` for cache partitioning between tenants
+
 ---
 
 ## Shared Schemas
