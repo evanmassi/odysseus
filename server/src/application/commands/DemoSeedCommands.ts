@@ -90,7 +90,6 @@ export class SeedDemoCommandHandler {
     }
 
     return {
-      success: true,
       message: `Seeded ${tanks} tanks, ${racks} racks, ${boxes} boxes`,
       seededCount: { tanks, racks, boxes },
     };
@@ -178,7 +177,6 @@ export class UnseedDemoCommandHandler {
     );
 
     return {
-      success: true,
       message: 'Demo infrastructure unseeded',
     };
   }

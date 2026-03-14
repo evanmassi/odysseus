@@ -365,10 +365,12 @@ export {
   demoLimitsSchema,
   updateDemoLimitsSchema,
   seedDemoResponseSchema,
+  unseedDemoResponseSchema,
   DEMO_LIMITS_DEFAULTS,
   type DemoLimits,
   type UpdateDemoLimits,
   type SeedDemoResponse,
+  type UnseedDemoResponse,
 } from './demo/demoSchemas';
 
 // Events

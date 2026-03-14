@@ -95,6 +95,16 @@ export class AuditRepository implements IAuditRepository {
     return rows.map(this.rowToEntry);
   }
 
+  async findByEntityIdForLab(entityId: string, entityType: string, labId: string): Promise<AuditLogEntry[]> {
+    const rows = await this.context.queryMany<AuditLogRow>(
+      `SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log
+       WHERE entity_id = $1 AND entity_type = $2 AND lab_id = $3
+       ORDER BY timestamp DESC`,
+      [entityId, entityType, labId]
+    );
+    return rows.map(this.rowToEntry);
+  }
+
   async findByAction(action: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
     return this.findWithOptions(['action = $1'], [action], options);
   }
@@ -137,10 +147,26 @@ export class AuditRepository implements IAuditRepository {
     return parseCount(row);
   }
 
+  async countForLab(labId: string): Promise<number> {
+    const row = await this.context.queryOne<{ total: string }>(
+      'SELECT COUNT(*) as total FROM audit_log WHERE lab_id = $1',
+      [labId]
+    );
+    return parseCount(row);
+  }
+
   async countInRange(dateFrom: Date, dateTo: Date): Promise<number> {
     const row = await this.context.queryOne<{ total: string }>(
       'SELECT COUNT(*) as total FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2',
       [dateFrom, dateTo]
+    );
+    return parseCount(row);
+  }
+
+  async countInRangeForLab(dateFrom: Date, dateTo: Date, labId: string): Promise<number> {
+    const row = await this.context.queryOne<{ total: string }>(
+      'SELECT COUNT(*) as total FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2 AND lab_id = $3',
+      [dateFrom, dateTo, labId]
     );
     return parseCount(row);
   }

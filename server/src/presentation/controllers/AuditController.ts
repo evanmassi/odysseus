@@ -70,7 +70,6 @@ export class AuditController {
   /** GET /api/admin/audit/entity/:entityType/:entityId */
   async getEntityHistory(req: Request, res: Response): Promise<void> {
     try {
-
       const { entityType, entityId } = req.params;
 
       if (!entityType || !entityId) {
@@ -78,7 +77,12 @@ export class AuditController {
         return;
       }
 
-      const entries = await this.deps.auditService.getEntityHistory(entityId, entityType);
+      const user = req.user;
+      const isLabScoped = user && !user.isSystemAdmin() && user.labId;
+
+      const entries = isLabScoped
+        ? await this.deps.auditService.getEntityHistoryForLab(entityId, entityType, user.labId!)
+        : await this.deps.auditService.getEntityHistory(entityId, entityType);
 
       const response = ResponseBuilder.success({
         entries,
@@ -102,9 +106,12 @@ export class AuditController {
   /** GET /api/admin/audit/statistics */
   async getStatistics(req: Request, res: Response): Promise<void> {
     try {
+      const user = req.user;
+      const isLabScoped = user && !user.isSystemAdmin() && user.labId;
 
-
-      const stats = await this.deps.auditService.getStatistics();
+      const stats = isLabScoped
+        ? await this.deps.auditService.getStatisticsForLab(user.labId!)
+        : await this.deps.auditService.getStatistics();
 
       const response = ResponseBuilder.success({
         statistics: stats,

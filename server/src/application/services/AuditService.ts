@@ -82,6 +82,10 @@ export class AuditService {
     return await this.auditRepository.findByEntityId(entityId, entityType);
   }
 
+  async getEntityHistoryForLab(entityId: string, entityType: string, labId: string): Promise<AuditLogEntry[]> {
+    return await this.auditRepository.findByEntityIdForLab(entityId, entityType, labId);
+  }
+
   async getUserActivity(userId: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
     return await this.auditRepository.findByUserId(userId, options);
   }
@@ -103,6 +107,27 @@ export class AuditService {
 
     const today = await this.auditRepository.countInRange(todayStart, now);
     const thisWeek = await this.auditRepository.countInRange(weekStart, now);
+
+    return {
+      total,
+      today,
+      thisWeek,
+    };
+  }
+
+  async getStatisticsForLab(labId: string): Promise<{
+    total: number;
+    today: number;
+    thisWeek: number;
+  }> {
+    const total = await this.auditRepository.countForLab(labId);
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const today = await this.auditRepository.countInRangeForLab(todayStart, now, labId);
+    const thisWeek = await this.auditRepository.countInRangeForLab(weekStart, now, labId);
 
     return {
       total,

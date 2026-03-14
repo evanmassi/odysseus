@@ -7,9 +7,9 @@
 import {
   labDetailsSchema,
   seedDemoResponseSchema,
+  unseedDemoResponseSchema,
   auditSearchResponseSchema,
   systemOverviewSchema,
-  messageResponseSchema,
   labsListSchema,
   labDataResponseSchema,
   inviteCodesListSchema,
@@ -29,7 +29,7 @@ import type {
   LabDetails,
   DemoLimits,
   SeedDemoResponse,
-  MessageResponse,
+  UnseedDemoResponse,
   AuditLogEntry,
   AuditLogFilters,
   SystemOverview,
@@ -146,12 +146,12 @@ export class LabService {
     }
   }
 
-  async unseedDemo(labId: string): Promise<MessageResponse> {
+  async unseedDemo(labId: string): Promise<UnseedDemoResponse> {
     try {
       return await httpClient.postData(
         `/system/labs/${labId}/demo/unseed`,
         undefined,
-        messageResponseSchema
+        unseedDemoResponseSchema
       );
     } catch (error) {
       logger.error('Failed to unseed demo lab', { labId, error });
