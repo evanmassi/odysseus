@@ -100,8 +100,8 @@ export class UserMapper {
       createdAt: createdAt.toISOString(),
       passwordHash: row.password_hash,
       salt: row.salt,
-      researcherId: row.researcher_id,
-      personId: row.person_id,
+      researcherId: row.researcher_id ?? undefined,
+      personId: row.person_id ?? undefined,
       status: row.status,
       emailVerified: row.email_verified ? 1 : 0,
       emailVerificationToken: row.email_verification_token,
@@ -113,7 +113,7 @@ export class UserMapper {
       lastPasswordChange: lastPasswordChange,
       labIsDemo: row.lab_is_demo ?? false,
       settings: row.settings,
-      labId: row.lab_id
+      labId: row.lab_id ?? undefined
     });
   }
 
