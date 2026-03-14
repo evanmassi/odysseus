@@ -7,6 +7,7 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
+import { requireAdmin } from '@application/guards/UserGuards';
 import { Person } from '@domain/entities/Person';
 import { User } from '@domain/entities/User';
 import { ConflictError } from '@domain/errors/ConflictError';
@@ -300,6 +301,9 @@ export class DeleteUserCommandHandler {
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }
+
+    const admin = await requireAdmin(this.userRepository, command.initiatedBy);
+    admin.requireCanManage(user);
 
     const username = user.username;
 

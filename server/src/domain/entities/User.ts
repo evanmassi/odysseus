@@ -315,22 +315,10 @@ export class User {
   }
 
   changeRole(newRole: 'system_admin' | 'lab_admin' | 'user', performedBy: User): void {
-    if (!performedBy.isAdmin()) {
-      throw new PermissionError('Only administrators can change user roles');
-    }
+    performedBy.requireCanManage(this);
 
-    if (this.equals(performedBy)) {
-      throw new PermissionError('Users cannot change their own role');
-    }
-
-    // Lab admins can only toggle between lab_admin and user within their lab
-    if (performedBy.isLabAdmin() && !performedBy.isSystemAdmin()) {
-      if (newRole === 'system_admin') {
-        throw new PermissionError('Lab administrators cannot assign system admin role');
-      }
-      if (this._labId !== performedBy._labId) {
-        throw new PermissionError('Lab administrators can only change roles within their own lab');
-      }
+    if (performedBy.isLabAdmin() && !performedBy.isSystemAdmin() && newRole === 'system_admin') {
+      throw new PermissionError('Lab administrators cannot assign system admin role');
     }
 
     const role = UserRole.create(newRole);
@@ -416,13 +404,7 @@ export class User {
   }
 
   approve(approvedBy: User): void {
-    if (!approvedBy.isAdmin()) {
-      throw new PermissionError('Only administrators can approve users');
-    }
-
-    if (approvedBy.isLabAdmin() && !approvedBy.isSystemAdmin() && this._labId !== approvedBy._labId) {
-      throw new PermissionError('Lab administrators can only approve users within their own lab');
-    }
+    approvedBy.requireCanManage(this);
 
     if (this._status === 'approved') {
       throw new ValidationError('User is already approved');
@@ -441,13 +423,7 @@ export class User {
   }
 
   reject(rejectedBy: User): void {
-    if (!rejectedBy.isAdmin()) {
-      throw new PermissionError('Only administrators can reject users');
-    }
-
-    if (rejectedBy.isLabAdmin() && !rejectedBy.isSystemAdmin() && this._labId !== rejectedBy._labId) {
-      throw new PermissionError('Lab administrators can only reject users within their own lab');
-    }
+    rejectedBy.requireCanManage(this);
 
     if (this._status !== 'pending') {
       throw new ValidationError('Only pending users can be rejected');
@@ -458,13 +434,7 @@ export class User {
   }
 
   deactivate(deactivatedBy: User): void {
-    if (!deactivatedBy.isAdmin()) {
-      throw new PermissionError('Only administrators can deactivate users');
-    }
-
-    if (deactivatedBy.isLabAdmin() && !deactivatedBy.isSystemAdmin() && this._labId !== deactivatedBy._labId) {
-      throw new PermissionError('Lab administrators can only deactivate users within their own lab');
-    }
+    deactivatedBy.requireCanManage(this);
 
     if (this._status !== 'approved') {
       throw new ValidationError('Only approved users can be deactivated');

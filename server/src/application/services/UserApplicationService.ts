@@ -205,11 +205,6 @@ export class UserApplicationService {
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
-    // Prevent admin from changing their own role (lockout protection)
-    if (admin.id === targetUser.id) {
-      throw new PermissionError('Cannot change your own role', { userId: admin.id });
-    }
-
     if (request.role === 'user') {
       await this.ensureNotLastAdmin(targetUser, 'demote');
     }
@@ -230,19 +225,9 @@ export class UserApplicationService {
 
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
-
-    if (admin.id === targetUser.id) {
-      throw new PermissionError('Cannot delete yourself', { userId: admin.id });
-    }
+    admin.requireCanManage(targetUser);
 
     await this.ensureNotLastAdmin(targetUser, 'delete');
-
-    if (admin.isLabAdmin() && !admin.isSystemAdmin() && admin.labId !== targetUser.labId) {
-      throw new PermissionError('Cannot manage users outside your lab', {
-        adminLabId: admin.labId,
-        targetLabId: targetUser.labId
-      });
-    }
 
     if (this.storageRepository) {
       const config = admin.labId

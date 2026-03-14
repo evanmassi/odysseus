@@ -129,12 +129,12 @@ describe('User', () => {
     it('should reject role change by non-admin', () => {
       const regular = createTestUser({ username: 'regular' });
       const target = createTestUser({ username: 'target' });
-      expect(() => target.changeRole('lab_admin', regular)).toThrow('Only administrators can change user roles');
+      expect(() => target.changeRole('lab_admin', regular)).toThrow('Cannot manage user');
     });
 
     it('should reject self role change', () => {
       const admin = createTestSystemAdmin();
-      expect(() => admin.changeRole('user', admin)).toThrow('Users cannot change their own role');
+      expect(() => admin.changeRole('user', admin)).toThrow('Cannot manage user');
     });
 
     it('should prevent lab_admin from assigning system_admin role', () => {
@@ -146,7 +146,7 @@ describe('User', () => {
     it('should prevent lab_admin from changing roles in another lab', () => {
       const labAdmin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ labId: 'lab_2' });
-      expect(() => user.changeRole('lab_admin', labAdmin)).toThrow('Lab administrators can only change roles within their own lab');
+      expect(() => user.changeRole('lab_admin', labAdmin)).toThrow('Cannot manage user');
     });
   });
 
@@ -256,13 +256,13 @@ describe('User', () => {
     it('should not allow non-admin to approve', () => {
       const regular = createTestUser({ username: 'regular' });
       const pending = createTestUser({ username: 'pending', status: 'pending' });
-      expect(() => pending.approve(regular)).toThrow('Only administrators can approve users');
+      expect(() => pending.approve(regular)).toThrow('Cannot manage user');
     });
 
     it('should not allow lab_admin to approve users from other labs', () => {
       const admin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ status: 'pending', labId: 'lab_2' });
-      expect(() => user.approve(admin)).toThrow('Lab administrators can only approve users within their own lab');
+      expect(() => user.approve(admin)).toThrow('Cannot manage user');
     });
   });
 
@@ -283,13 +283,13 @@ describe('User', () => {
     it('should not allow non-admin to deactivate', () => {
       const regular = createTestUser({ username: 'regular' });
       const user = createTestUser({ username: 'target', status: 'approved' });
-      expect(() => user.deactivate(regular)).toThrow('Only administrators can deactivate users');
+      expect(() => user.deactivate(regular)).toThrow('Cannot manage user');
     });
 
     it('should not allow lab admin to deactivate users in other labs', () => {
       const admin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ status: 'approved', labId: 'lab_2' });
-      expect(() => user.deactivate(admin)).toThrow('Lab administrators can only deactivate users within their own lab');
+      expect(() => user.deactivate(admin)).toThrow('Cannot manage user');
     });
 
     it('should reactivate deactivated user (any admin)', () => {

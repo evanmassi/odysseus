@@ -50,6 +50,7 @@ export class AdminResetPasswordCommandHandler {
   async handle(command: AdminResetPasswordCommand): Promise<void> {
     const admin = await requireAdmin(this.userRepository, command.adminUserId);
     const targetUser = await requireUser(this.userRepository, command.targetUserId);
+    admin.requireCanManage(targetUser);
 
     await validatePasswordPolicy(this.storageRepository, command.newPassword);
     const passwordHash = await this.passwordService.hash(command.newPassword);
@@ -90,6 +91,7 @@ export class GeneratePasswordResetTokenCommandHandler {
   async handle(command: GeneratePasswordResetTokenCommand): Promise<{ resetUrl: string; expiresAt: Date }> {
     const admin = await requireAdmin(this.userRepository, command.adminUserId);
     const targetUser = await requireUser(this.userRepository, command.targetUserId);
+    admin.requireCanManage(targetUser);
 
     const token = targetUser.generatePasswordResetToken();
     await this.userRepository.save(targetUser);
