@@ -16,7 +16,7 @@ export const auditLogEntrySchema = z.object({
   action: z.string(),
   entityType: z.string().optional(),
   entityId: z.string().optional(),
-  details: z.string(),
+  details: z.union([z.string(), z.record(z.string(), z.unknown())]),
   timestamp: dateOrString,
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),

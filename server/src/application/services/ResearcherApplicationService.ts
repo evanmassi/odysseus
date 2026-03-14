@@ -78,6 +78,7 @@ export class ResearcherApplicationService {
 
       return {
         id: researcher.id,
+        personId: researcher.personId,
         firstName: person.firstName,
         lastName: person.lastName,
         position: person.position,
