@@ -25,30 +25,12 @@ export class ResearcherRepository implements IResearcherRepository {
     return row ? ResearcherMapper.fromRow(row) : null;
   }
 
-  async findByName(firstName: string, lastName: string): Promise<Researcher | null> {
-    const row = await this.context.queryOne<ResearcherRow>(`
-      SELECT ${RESEARCHER_COLUMNS_JOINED} FROM researchers r
-      INNER JOIN persons p ON r.person_id = p.id
-      WHERE p.first_name = $1 AND p.last_name = $2
-    `, [firstName, lastName]);
-    return row ? ResearcherMapper.fromRow(row) : null;
-  }
-
   async findByPersonId(personId: string): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(
       `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE person_id = $1`,
       [personId]
     );
     return row ? ResearcherMapper.fromRow(row) : null;
-  }
-
-  async findAll(): Promise<Researcher[]> {
-    const rows = await this.context.queryMany<ResearcherRow>(`
-      SELECT ${RESEARCHER_COLUMNS_JOINED} FROM researchers r
-      INNER JOIN persons p ON r.person_id = p.id
-      ORDER BY p.last_name, p.first_name
-    `);
-    return ResearcherMapper.fromRows(rows);
   }
 
   async findByLabId(labId: string): Promise<Researcher[]> {
@@ -99,40 +81,42 @@ export class ResearcherRepository implements IResearcherRepository {
 
   // QUERY OPERATIONS
 
-  async nameExists(firstName: string, lastName: string): Promise<boolean> {
+  async nameExists(firstName: string, lastName: string, labId?: string): Promise<boolean> {
+    const labFilter = labId ? ' AND r.lab_id = $3' : '';
+    const params = labId ? [firstName, lastName, labId] : [firstName, lastName];
     const row = await this.context.queryOne<{ exists: boolean }>(
       `SELECT EXISTS(
         SELECT 1 FROM researchers r
         INNER JOIN persons p ON r.person_id = p.id
-        WHERE p.first_name = $1 AND p.last_name = $2
+        WHERE p.first_name = $1 AND p.last_name = $2${labFilter}
       ) as exists`,
-      [firstName, lastName]
+      params
     );
     return row?.exists ?? false;
   }
 
-  async searchByName(namePattern: string): Promise<Researcher[]> {
+  async searchByName(namePattern: string, labId: string): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(`
       SELECT ${RESEARCHER_COLUMNS_JOINED} FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
-      WHERE p.first_name ILIKE $1 OR p.last_name ILIKE $1
+      WHERE (p.first_name ILIKE $1 OR p.last_name ILIKE $1) AND r.lab_id = $2
       ORDER BY p.last_name, p.first_name
-    `, [`%${namePattern}%`]);
+    `, [`%${namePattern}%`, labId]);
     return ResearcherMapper.fromRows(rows);
   }
 
   // INTEGRATION QUERIES
 
-  async getMostActiveResearchers(limit: number = 10): Promise<Array<{ researcher: Researcher, tubeCount: number }>> {
+  async getMostActiveResearchers(limit: number = 10, labId: string): Promise<Array<{ researcher: Researcher, tubeCount: number }>> {
     const rows = await this.context.queryMany<{ researcher_id: string; tube_count: string }>(
       `SELECT t.researcher_id, COUNT(*)::text as tube_count
        FROM tubes t
        INNER JOIN researchers r ON t.researcher_id = r.id
-       WHERE r.active = TRUE
+       WHERE r.active = TRUE AND r.lab_id = $1
        GROUP BY t.researcher_id
        ORDER BY COUNT(*) DESC
-       LIMIT $1`,
-      [limit]
+       LIMIT $2`,
+      [labId, limit]
     );
 
     const ids = rows.map(r => r.researcher_id);

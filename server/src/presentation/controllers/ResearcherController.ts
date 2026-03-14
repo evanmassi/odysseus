@@ -215,9 +215,10 @@ export class ResearcherController extends BaseController {
   /** GET /api/researchers/stats */
   async getResearcherStats(req: Request, res: Response): Promise<void> {
     try {
+      const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
 
-      const stats = await this.deps.researcherApplicationService.getResearcherStats(userApiKey);
+      const stats = await this.deps.researcherApplicationService.getResearcherStats(labId, userApiKey);
       
       res.json(ResponseBuilder.success(stats));
     } catch (error) {
@@ -228,6 +229,7 @@ export class ResearcherController extends BaseController {
   /** GET /api/researchers/search */
   async searchResearchers(req: Request, res: Response): Promise<void> {
     try {
+      const labId = this.extractLabId(req);
       const { query } = req.query;
 
       if (!query || typeof query !== 'string') {
@@ -235,7 +237,7 @@ export class ResearcherController extends BaseController {
         return;
       }
 
-      const researchers = await this.deps.researcherApplicationService.searchResearchers(query);
+      const researchers = await this.deps.researcherApplicationService.searchResearchers(labId, query);
 
       res.json(ResponseBuilder.success(researchers));
     } catch (error) {

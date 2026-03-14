@@ -398,7 +398,8 @@ export class UserApplicationService {
     if (createResearcher) {
       const nameExists = await this.researcherRepository.nameExists(
         request.firstName,
-        request.lastName
+        request.lastName,
+        labId
       );
       if (nameExists) {
         throw new ValidationError(

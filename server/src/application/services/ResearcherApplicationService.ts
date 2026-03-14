@@ -189,6 +189,7 @@ export class ResearcherApplicationService {
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
+    this.requireSameLabAsResearcher(user, researcher);
     const person = await this.getPersonForResearcher(researcher);
 
     const changes: AuditChange[] = [];
@@ -259,6 +260,7 @@ export class ResearcherApplicationService {
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
+    this.requireSameLabAsResearcher(user, researcher);
     const person = await this.getPersonForResearcher(researcher);
     const personId = researcher.personId;
 
@@ -309,6 +311,7 @@ export class ResearcherApplicationService {
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
+    this.requireSameLabAsResearcher(user, researcher);
 
     if (user.researcherId === id) {
       throw new PermissionError('Cannot deactivate your own researcher profile');
@@ -341,6 +344,7 @@ export class ResearcherApplicationService {
     this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
+    this.requireSameLabAsResearcher(user, researcher);
     this.rejectIfPending(researcher);
 
     const person = await this.getPersonForResearcher(researcher);
@@ -360,14 +364,14 @@ export class ResearcherApplicationService {
     return ResearcherDto.toResponse(researcher, person);
   }
 
-  async getResearcherStats(userApiKey: string): Promise<Array<{
+  async getResearcherStats(labId: string, userApiKey: string): Promise<Array<{
     researcher: ResearcherResponse;
     tubeCount: number;
   }>> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireCanViewTubes(user);
 
-    const activeResearchers = await this.researcherRepository.getMostActiveResearchers(10);
+    const activeResearchers = await this.researcherRepository.getMostActiveResearchers(10, labId);
     const personMap = await this.buildPersonMap(activeResearchers.map(item => item.researcher));
 
     return activeResearchers.map(item => ({
@@ -376,8 +380,8 @@ export class ResearcherApplicationService {
     }));
   }
 
-  async searchResearchers(namePattern: string): Promise<ResearcherResponse[]> {
-    const researchers = await this.researcherRepository.searchByName(namePattern);
+  async searchResearchers(labId: string, namePattern: string): Promise<ResearcherResponse[]> {
+    const researchers = await this.researcherRepository.searchByName(namePattern, labId);
     return this.resolveWithPersons(researchers);
   }
 
@@ -431,6 +435,12 @@ export class ResearcherApplicationService {
         email,
         researcherId: existing.id
       });
+    }
+  }
+
+  private requireSameLabAsResearcher(user: User, researcher: Researcher): void {
+    if (user.isLabAdmin() && !user.isSystemAdmin() && researcher.labId !== user.labId) {
+      throw new PermissionError('Cannot manage researchers outside your lab');
     }
   }
 

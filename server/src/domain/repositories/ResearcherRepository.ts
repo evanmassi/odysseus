@@ -11,9 +11,7 @@ export interface ResearcherRepository {
   // BASIC CRUD OPERATIONS
 
   findById(id: string): Promise<Researcher | null>;
-  findByName(firstName: string, lastName: string): Promise<Researcher | null>;
   findByPersonId(personId: string): Promise<Researcher | null>;
-  findAll(): Promise<Researcher[]>;
   findByLabId(labId: string): Promise<Researcher[]>;
   findActiveByLabId(labId: string): Promise<Researcher[]>;
 
@@ -27,12 +25,12 @@ export interface ResearcherRepository {
 
   // QUERY OPERATIONS
 
-  nameExists(firstName: string, lastName: string): Promise<boolean>;
-  searchByName(namePattern: string): Promise<Researcher[]>;
+  nameExists(firstName: string, lastName: string, labId?: string): Promise<boolean>;
+  searchByName(namePattern: string, labId: string): Promise<Researcher[]>;
 
   // INTEGRATION QUERIES
 
-  getMostActiveResearchers(limit?: number): Promise<Array<{ researcher: Researcher, tubeCount: number }>>;
+  getMostActiveResearchers(limit: number | undefined, labId: string): Promise<Array<{ researcher: Researcher, tubeCount: number }>>;
   getTubeCountByResearcher(researcherId: string): Promise<number>;
   getTubeCountsByResearcherIds(researcherIds: string[]): Promise<Map<string, number>>;
 
