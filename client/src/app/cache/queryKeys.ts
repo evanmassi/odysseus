@@ -3,6 +3,7 @@
  *
  * Hierarchical query key structure for TanStack Query.
  * Lab-scoped domains include labId for cache partitioning between tenants.
+ * Default labId of '' is inert — queries using it should be disabled via enabled: !!labId.
  */
 
 import type {
@@ -27,77 +28,77 @@ export const queryKeys = {
     settings: () => [...queryKeys.users.all, 'settings'] as const,
     profile: () => [...queryKeys.users.all, 'profile'] as const,
     sessions: () => [...queryKeys.users.all, 'sessions'] as const,
-    lookup: (labId: string, userIds: string[]) =>
+    lookup: (labId = '', userIds: string[]) =>
       [...queryKeys.users.all, labId, 'lookup', [...userIds].sort()] as const,
-    list: (labId: string) => [...queryKeys.users.all, labId, 'list'] as const,
-    presence: (labId: string) => [...queryKeys.users.all, labId, 'presence'] as const,
+    list: (labId = '') => [...queryKeys.users.all, labId, 'list'] as const,
+    presence: (labId = '') => [...queryKeys.users.all, labId, 'presence'] as const,
   },
 
   // Admin (lab-scoped)
   admin: {
-    all: (labId: string) => ['admin', labId] as const,
-    users: (labId: string) => [...queryKeys.admin.all(labId), 'users'] as const,
+    all: (labId = '') => ['admin', labId] as const,
+    users: (labId = '') => [...queryKeys.admin.all(labId), 'users'] as const,
   },
 
   // Tubes (lab-scoped)
   tubes: {
-    all: (labId: string) => ['tubes', labId] as const,
-    list: (labId: string, filters?: TubeQueryFilters) =>
+    all: (labId = '') => ['tubes', labId] as const,
+    list: (labId = '', filters?: TubeQueryFilters) =>
       filters
         ? ([...queryKeys.tubes.all(labId), 'list', filters] as const)
         : ([...queryKeys.tubes.all(labId), 'list'] as const),
-    listAll: (labId: string) => [...queryKeys.tubes.all(labId), 'list'] as const,
-    detail: (labId: string, id: string) => [...queryKeys.tubes.all(labId), 'detail', id] as const,
-    location: (labId: string, tankId: string, rackId: string, boxId: string) =>
+    listAll: (labId = '') => [...queryKeys.tubes.all(labId), 'list'] as const,
+    detail: (labId = '', id: string) => [...queryKeys.tubes.all(labId), 'detail', id] as const,
+    location: (labId = '', tankId: string, rackId: string, boxId: string) =>
       [...queryKeys.tubes.all(labId), 'location', tankId, rackId, boxId] as const,
-    locationStats: (labId: string, tankId: string, rackId: string) =>
+    locationStats: (labId = '', tankId: string, rackId: string) =>
       [...queryKeys.tubes.all(labId), 'locationStats', tankId, rackId] as const,
-    stats: (labId: string) => [...queryKeys.tubes.all(labId), 'stats'] as const,
-    bulk: (labId: string, tubeIds: string[]) =>
+    stats: (labId = '') => [...queryKeys.tubes.all(labId), 'stats'] as const,
+    bulk: (labId = '', tubeIds: string[]) =>
       [
         ...queryKeys.tubes.all(labId),
         'bulk',
         { tubeIds: [...tubeIds].sort(), length: tubeIds.length },
       ] as const,
-    paginated: (labId: string, filters?: TubeQueryFilters) =>
+    paginated: (labId = '', filters?: TubeQueryFilters) =>
       [...queryKeys.tubes.all(labId), 'paginated', filters] as const,
   },
 
   // Researchers (lab-scoped)
   researchers: {
-    all: (labId: string) => ['researchers', labId] as const,
-    list: (labId: string, filters?: ResearcherQueryFilters) =>
+    all: (labId = '') => ['researchers', labId] as const,
+    list: (labId = '', filters?: ResearcherQueryFilters) =>
       filters
         ? ([...queryKeys.researchers.all(labId), 'list', filters] as const)
         : ([...queryKeys.researchers.all(labId), 'list'] as const),
-    visible: (labId: string) => [...queryKeys.researchers.all(labId), 'visible'] as const,
-    admin: (labId: string, filters?: ResearcherQueryFilters) =>
+    visible: (labId = '') => [...queryKeys.researchers.all(labId), 'visible'] as const,
+    admin: (labId = '', filters?: ResearcherQueryFilters) =>
       filters
         ? ([...queryKeys.researchers.all(labId), 'admin', filters] as const)
         : ([...queryKeys.researchers.all(labId), 'admin'] as const),
-    detail: (labId: string, id: string) =>
+    detail: (labId = '', id: string) =>
       [...queryKeys.researchers.all(labId), 'detail', id] as const,
-    stats: (labId: string) => [...queryKeys.researchers.all(labId), 'stats'] as const,
+    stats: (labId = '') => [...queryKeys.researchers.all(labId), 'stats'] as const,
   },
 
   // Search (lab-scoped)
   search: {
-    all: (labId: string) => ['search', labId] as const,
-    tubes: (labId: string) => [...queryKeys.search.all(labId), 'tubes'] as const,
-    tubesSearch: (labId: string, options: AdvancedSearchOptions) =>
+    all: (labId = '') => ['search', labId] as const,
+    tubes: (labId = '') => [...queryKeys.search.all(labId), 'tubes'] as const,
+    tubesSearch: (labId = '', options: AdvancedSearchOptions) =>
       [...queryKeys.search.tubes(labId), 'search', options] as const,
-    quickSearch: (labId: string, query: string, limit?: number) =>
+    quickSearch: (labId = '', query: string, limit?: number) =>
       [...queryKeys.search.tubes(labId), 'quick', query, limit] as const,
-    fieldSearch: (labId: string, field: string, value: string, options?: AdvancedSearchOptions) =>
+    fieldSearch: (labId = '', field: string, value: string, options?: AdvancedSearchOptions) =>
       [...queryKeys.search.tubes(labId), 'field', field, value, options] as const,
-    results: (labId: string, query: string, filters?: SearchFilters) =>
+    results: (labId = '', query: string, filters?: SearchFilters) =>
       [...queryKeys.search.all(labId), 'results', query, filters] as const,
   },
 
   // Lookups (lab-scoped)
   lookups: {
-    all: (labId: string) => ['lookups', labId] as const,
-    byCategory: (labId: string, category: LookupCategory) =>
+    all: (labId = '') => ['lookups', labId] as const,
+    byCategory: (labId = '', category: LookupCategory) =>
       [...queryKeys.lookups.all(labId), category] as const,
   },
 
@@ -120,9 +121,9 @@ export const queryKeys = {
 
   // Storage (lab-scoped)
   storage: {
-    all: (labId: string) => ['storage', labId] as const,
-    data: (labId: string) => [...queryKeys.storage.all(labId), 'data'] as const,
-    positionDisplayPresets: (labId: string) =>
+    all: (labId = '') => ['storage', labId] as const,
+    data: (labId = '') => [...queryKeys.storage.all(labId), 'data'] as const,
+    positionDisplayPresets: (labId = '') =>
       [...queryKeys.storage.all(labId), 'positionDisplayPresets'] as const,
   },
 } as const;

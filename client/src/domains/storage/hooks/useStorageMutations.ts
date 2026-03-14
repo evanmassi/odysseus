@@ -19,7 +19,7 @@ import type { GridConfiguration, PositionDisplayConfig } from '@odysseus/shared-
 
 function handleConflictError(
   queryClient: ReturnType<typeof useQueryClient>,
-  labId: string,
+  labId: string | undefined,
   operation: string
 ): void {
   notifications.error(
@@ -30,7 +30,7 @@ function handleConflictError(
 
 function createMutationErrorHandler(
   queryClient: ReturnType<typeof useQueryClient>,
-  labId: string,
+  labId: string | undefined,
   operation: string,
   errorLabel: string
 ) {

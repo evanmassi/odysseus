@@ -16,7 +16,7 @@ export function useActiveUsersQuery() {
   const labId = useAuthStore(s => s.user?.labId);
 
   return useQuery({
-    queryKey: queryKeys.users.list(labId ?? ''),
+    queryKey: queryKeys.users.list(labId),
     enabled: !!labId,
     queryFn: async (): Promise<UserDisplayInfo[]> => {
       return userLookupService.listActiveUsers();

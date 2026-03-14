@@ -17,7 +17,7 @@ export const useLoadStorageQuery = (config?: { enabled?: boolean; staleTime?: nu
   const hasLab = !!labId;
 
   return useQuery({
-    queryKey: queryKeys.storage.data(labId ?? ''),
+    queryKey: queryKeys.storage.data(labId),
     queryFn: () => StorageService.loadConfiguration(),
     enabled: hasLab && (config?.enabled ?? true),
     staleTime: config?.staleTime ?? 10 * 60 * 1000, // 10 minutes

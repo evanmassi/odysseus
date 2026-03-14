@@ -63,7 +63,7 @@ function getPositionFromError(error: unknown): {
 /** Format position with display names for user-friendly error message. */
 function formatPositionDisplayString(
   queryClient: ReturnType<typeof useQueryClient>,
-  labId: string,
+  labId: string | undefined,
   tankId: string,
   rackId: string,
   boxId: string,
@@ -102,7 +102,7 @@ function formatPositionDisplayString(
 /** Show position occupied error message and refresh cache. */
 function handlePositionOccupiedError(
   queryClient: ReturnType<typeof useQueryClient>,
-  labId: string,
+  labId: string | undefined,
   error: unknown
 ): void {
   const positionInfo = getPositionFromError(error);
@@ -127,7 +127,7 @@ function handlePositionOccupiedError(
 /** Show conflict error message and refresh cache. */
 function handleTubeConflictError(
   queryClient: ReturnType<typeof useQueryClient>,
-  labId: string,
+  labId: string | undefined,
   tubeId: string
 ): void {
   notifications.error(

@@ -95,7 +95,7 @@ export function useStorageData(config?: { enabled?: boolean }): StorageDataResul
 /** Use sparingly — prefer passing data as parameters. */
 export function getStorageDataFromCache(
   queryClient: ReturnType<typeof useQueryClient>,
-  labId: string
+  labId: string | undefined
 ): {
   currentLab: LabConfiguration | null;
   systemConfig: SystemConfiguration | null;

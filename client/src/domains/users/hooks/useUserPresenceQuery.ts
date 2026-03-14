@@ -18,7 +18,7 @@ export function useUserPresenceQuery() {
   const labId = useAuthStore(s => s.user?.labId);
 
   return useQuery({
-    queryKey: queryKeys.users.presence(labId ?? ''),
+    queryKey: queryKeys.users.presence(labId),
     queryFn: (): Promise<string[]> => Promise.resolve([]),
     initialData: [],
     staleTime: Infinity,
