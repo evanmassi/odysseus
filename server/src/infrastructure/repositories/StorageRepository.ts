@@ -13,6 +13,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import type { StorageRepository as IStorageRepository, StorageHistory, StorageExport, StorageValidationResult } from '@domain/repositories/StorageRepository';
 import type { Box } from '@domain/value-objects/Equipment';
 import type { Location } from '@domain/value-objects/Location';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -499,19 +500,19 @@ export class StorageRepository implements IStorageRepository {
       const tubesRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1
       `, [labId]);
-      const totalTubes = parseInt(tubesRow?.count ?? '0', 10);
+      const totalTubes = parseCount(tubesRow);
 
       const usersRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count FROM users WHERE lab_id = $1
       `, [labId]);
-      const totalUsers = parseInt(usersRow?.count ?? '0', 10);
+      const totalUsers = parseCount(usersRow);
 
       const researchersRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count
         FROM researchers
         WHERE active = TRUE AND lab_id = $1
       `, [labId]);
-      const totalResearchers = parseInt(researchersRow?.count ?? '0', 10);
+      const totalResearchers = parseCount(researchersRow);
 
       const backupRow = await this.context.queryOne<{ updated_at: Date | string }>(`
         SELECT cc.updated_at
@@ -634,7 +635,7 @@ export class StorageRepository implements IStorageRepository {
       try {
         return await this.context.transactionSerializable(async (client) => {
           const countResult = await client.query<{ count: string }>(tubeCountQuery, tubeCountParams);
-          const tubeCount = parseInt(countResult.rows[0].count, 10);
+          const tubeCount = parseCount(countResult.rows[0]);
 
           if (tubeCount > 0) {
             throw new ValidationError(

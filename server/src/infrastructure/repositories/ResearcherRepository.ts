@@ -9,6 +9,7 @@ import type { ResearcherRepository as IResearcherRepository } from '@domain/repo
 import type { ResearcherRow } from '@infrastructure/database/mappers/ResearcherMapper';
 import { ResearcherMapper } from '@infrastructure/database/mappers/ResearcherMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const RESEARCHER_COLUMNS = 'id, person_id, active, created_at, approval_status, source, lab_id';
 const RESEARCHER_COLUMNS_JOINED = 'r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source, r.lab_id';
@@ -134,7 +135,7 @@ export class ResearcherRepository implements IResearcherRepository {
       `SELECT lab_id, COUNT(*) as count FROM researchers WHERE lab_id IN (${placeholders}) GROUP BY lab_id`,
       labIds
     );
-    return new Map(rows.map(r => [r.lab_id, parseInt(r.count, 10)]));
+    return new Map(rows.map(r => [r.lab_id, parseCount(r)]));
   }
 
   async getTubeCountByResearcher(researcherId: string): Promise<number> {
@@ -142,7 +143,7 @@ export class ResearcherRepository implements IResearcherRepository {
       'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1',
       [researcherId]
     );
-    return parseInt(result?.count ?? '0', 10);
+    return parseCount(result);
   }
 
   async getTubeCountsByResearcherIds(researcherIds: string[]): Promise<Map<string, number>> {
@@ -154,7 +155,7 @@ export class ResearcherRepository implements IResearcherRepository {
       researcherIds
     );
 
-    return new Map(rows.map(r => [r.researcher_id, parseInt(r.count, 10)]));
+    return new Map(rows.map(r => [r.researcher_id, parseCount(r)]));
   }
 
   // MAINTENANCE

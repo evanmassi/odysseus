@@ -9,6 +9,7 @@ import type { RefreshTokenRepository as IRefreshTokenRepository } from '@domain/
 import type { RefreshTokenRow } from '@infrastructure/database/mappers/RefreshTokenMapper';
 import { RefreshTokenMapper } from '@infrastructure/database/mappers/RefreshTokenMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const REFRESH_TOKEN_COLUMNS = `
   id, user_id, token, expires_at, created_at, last_used_at, is_revoked, user_agent, ip_address
@@ -137,7 +138,6 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
 
   async countActiveTokensForUser(userId: string): Promise<number> {
     const now = new Date();
-    // COUNT returns bigint as string, requires parseInt
     const result = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM refresh_tokens
        WHERE user_id = $1
@@ -145,7 +145,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
          AND expires_at > $2`,
       [userId, now]
     );
-    return parseInt(result?.count ?? '0', 10);
+    return parseCount(result);
   }
 
   // Maintenance operations

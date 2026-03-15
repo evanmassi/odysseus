@@ -6,6 +6,7 @@
 
 import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import type { PaginatedResult } from '@domain/types/repository';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -98,8 +99,8 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
   }
 
   async countArchived(): Promise<number> {
-    const row = await this.context.queryOne<{ total: string }>(
-      'SELECT COUNT(*) as total FROM audit_log_archive'
+    const row = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM audit_log_archive'
     );
     return parseCount(row);
   }
@@ -195,8 +196,8 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
   private async findPaginated(filters: AuditLogFilters, filterResult: FilterResult): Promise<PaginatedResult<AuditLogEntry>> {
     const { whereClause, params, nextParamIndex } = filterResult;
 
-    const countQuery = `SELECT COUNT(*) as total FROM audit_log_archive ${whereClause}`;
-    const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
+    const countQuery = `SELECT COUNT(*) as count FROM audit_log_archive ${whereClause}`;
+    const countRow = await this.context.queryOne<{ count: string }>(countQuery, params);
     const total = parseCount(countRow);
 
     const limit = filters.limit ?? DEFAULT_PAGE_LIMIT;
@@ -240,8 +241,4 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
       userAgent: row.user_agent ?? undefined,
     };
   }
-}
-
-function parseCount(row: { total: string } | null): number {
-  return parseInt(row?.total ?? '0', 10);
 }

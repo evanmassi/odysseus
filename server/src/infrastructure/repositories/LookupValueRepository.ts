@@ -9,6 +9,7 @@ import type { LookupValueRepository as ILookupValueRepository } from '@domain/re
 import type { LookupValueRow } from '@infrastructure/database/mappers/LookupValueMapper';
 import { LookupValueMapper } from '@infrastructure/database/mappers/LookupValueMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const LOOKUP_VALUE_COLUMNS = 'id, category, value, sort_order, is_active, created_at, updated_at, lab_id';
 
@@ -78,7 +79,7 @@ export class LookupValueRepository implements ILookupValueRepository {
       `SELECT COUNT(*) as count FROM tubes WHERE ${column} = $1 AND lab_id = $2`,
       [value, labId]
     );
-    return result ? parseInt(result.count, 10) : 0;
+    return parseCount(result);
   }
 
   async countTubesUsingValues(category: LookupCategory, values: string[], labId: string): Promise<Map<string, number>> {
@@ -91,7 +92,7 @@ export class LookupValueRepository implements ILookupValueRepository {
       [...values, labId]
     );
 
-    return new Map(rows.map(r => [r.value, parseInt(r.count, 10)]));
+    return new Map(rows.map(r => [r.value, parseCount(r)]));
   }
 
   async renameTubeValues(category: LookupCategory, oldValue: string, newValue: string, labId: string): Promise<number> {

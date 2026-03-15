@@ -6,6 +6,7 @@
 
 import type { AuditRepository as IAuditRepository } from '@domain/repositories/AuditRepository';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
@@ -141,31 +142,31 @@ export class AuditRepository implements IAuditRepository {
   }
 
   async count(): Promise<number> {
-    const row = await this.context.queryOne<{ total: string }>(
-      'SELECT COUNT(*) as total FROM audit_log'
+    const row = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM audit_log'
     );
     return parseCount(row);
   }
 
   async countForLab(labId: string): Promise<number> {
-    const row = await this.context.queryOne<{ total: string }>(
-      'SELECT COUNT(*) as total FROM audit_log WHERE lab_id = $1',
+    const row = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM audit_log WHERE lab_id = $1',
       [labId]
     );
     return parseCount(row);
   }
 
   async countInRange(dateFrom: Date, dateTo: Date): Promise<number> {
-    const row = await this.context.queryOne<{ total: string }>(
-      'SELECT COUNT(*) as total FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2',
+    const row = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2',
       [dateFrom, dateTo]
     );
     return parseCount(row);
   }
 
   async countInRangeForLab(dateFrom: Date, dateTo: Date, labId: string): Promise<number> {
-    const row = await this.context.queryOne<{ total: string }>(
-      'SELECT COUNT(*) as total FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2 AND lab_id = $3',
+    const row = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2 AND lab_id = $3',
       [dateFrom, dateTo, labId]
     );
     return parseCount(row);
@@ -203,11 +204,11 @@ export class AuditRepository implements IAuditRepository {
     newestEntry: Date | null;
   }> {
     const row = await this.context.queryOne<{
-      total: string;
+      count: string;
       oldest: Date | string | null;
       newest: Date | string | null;
     }>(
-      'SELECT COUNT(*) as total, MIN(timestamp) as oldest, MAX(timestamp) as newest FROM audit_log'
+      'SELECT COUNT(*) as count, MIN(timestamp) as oldest, MAX(timestamp) as newest FROM audit_log'
     );
 
     return {
@@ -283,8 +284,8 @@ export class AuditRepository implements IAuditRepository {
   private async findPaginated(filters: AuditLogFilters, filterResult: FilterResult): Promise<PaginatedResult<AuditLogEntry>> {
     const { whereClause, params, nextParamIndex } = filterResult;
 
-    const countQuery = `SELECT COUNT(*) as total FROM audit_log ${whereClause}`;
-    const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
+    const countQuery = `SELECT COUNT(*) as count FROM audit_log ${whereClause}`;
+    const countRow = await this.context.queryOne<{ count: string }>(countQuery, params);
     const total = parseCount(countRow);
 
     const limit = filters.limit ?? DEFAULT_PAGE_LIMIT;
@@ -361,8 +362,4 @@ export class AuditRepository implements IAuditRepository {
       userAgent: row.user_agent ?? undefined,
     };
   }
-}
-
-function parseCount(row: { total: string } | null): number {
-  return parseInt(row?.total ?? '0', 10);
 }

@@ -9,6 +9,7 @@ import type { UserSessionRepository } from '@domain/repositories/UserSessionRepo
 import type { UserSessionRow } from '@infrastructure/database/mappers/UserSessionMapper';
 import { UserSessionMapper } from '@infrastructure/database/mappers/UserSessionMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const SESSION_COLUMNS = `
   id, user_id, refresh_token, device_info, ip_address, user_agent,
@@ -93,7 +94,7 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
          AND expires_at > $2`,
       [userId, now]
     );
-    return parseInt(result?.count ?? '0', 10);
+    return parseCount(result);
   }
 
   async revokeSession(sessionId: string): Promise<boolean> {

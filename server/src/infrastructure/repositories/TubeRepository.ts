@@ -15,6 +15,7 @@ import { isPositionConstraintError } from '@infrastructure/database/DatabaseErro
 import type { TubeRow } from '@infrastructure/database/mappers/TubeMapper';
 import { TubeMapper } from '@infrastructure/database/mappers/TubeMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 import {
   normalizeSearchQuery,
   expandWithSynonyms,
@@ -281,7 +282,7 @@ export class TubeRepository implements ITubeRepository {
       'SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1',
       [labId]
     );
-    return result ? parseInt(result.count, 10) : 0;
+    return parseCount(result);
   }
 
   async countByLabIds(labIds: string[]): Promise<Map<string, number>> {
@@ -291,7 +292,7 @@ export class TubeRepository implements ITubeRepository {
       `SELECT lab_id, COUNT(*) as count FROM tubes WHERE lab_id IN (${placeholders}) GROUP BY lab_id`,
       labIds
     );
-    return new Map(rows.map(r => [r.lab_id, parseInt(r.count, 10)]));
+    return new Map(rows.map(r => [r.lab_id, parseCount(r)]));
   }
 
   async countByResearcher(researcher: string, labId: string): Promise<number> {
@@ -299,7 +300,7 @@ export class TubeRepository implements ITubeRepository {
       'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1 AND lab_id = $2',
       [researcher, labId]
     );
-    return result ? parseInt(result.count, 10) : 0;
+    return parseCount(result);
   }
 
   async countByTank(tankId: string, labId: string): Promise<number> {
@@ -307,7 +308,7 @@ export class TubeRepository implements ITubeRepository {
       'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND lab_id = $2',
       [tankId, labId]
     );
-    return result ? parseInt(result.count, 10) : 0;
+    return parseCount(result);
   }
 
   async countByRack(tankId: string, rackId: string, labId: string): Promise<number> {
@@ -315,7 +316,7 @@ export class TubeRepository implements ITubeRepository {
       'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND lab_id = $3',
       [tankId, rackId, labId]
     );
-    return result ? parseInt(result.count, 10) : 0;
+    return parseCount(result);
   }
 
   async countByBox(tankId: string, rackId: string, boxId: string, labId: string): Promise<number> {
@@ -323,7 +324,7 @@ export class TubeRepository implements ITubeRepository {
       'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND lab_id = $4',
       [tankId, rackId, boxId, labId]
     );
-    return result ? parseInt(result.count, 10) : 0;
+    return parseCount(result);
   }
 
   // SEARCH AND FILTERING
@@ -995,14 +996,14 @@ export class TubeRepository implements ITubeRepository {
     const totalResult = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM tubes ${whereClause}`, params
     );
-    const totalTubes = totalResult ? parseInt(totalResult.count, 10) : 0;
+    const totalTubes = parseCount(totalResult);
 
     const tankRows = await this.context.queryMany<{ tank_id: string; count: string }>(
       `SELECT tank_id, COUNT(*) as count FROM tubes ${whereClause} GROUP BY tank_id ORDER BY tank_id`, params
     );
     const tubesByTank: Record<string, number> = {};
     tankRows.forEach((row: { tank_id: string; count: string }) => {
-      tubesByTank[row.tank_id] = parseInt(row.count, 10);
+      tubesByTank[row.tank_id] = parseCount(row);
     });
 
     const researcherRows = await this.context.queryMany<{ researcher_id: string; count: string }>(
@@ -1010,13 +1011,13 @@ export class TubeRepository implements ITubeRepository {
     );
     const tubesByResearcher: Record<string, number> = {};
     researcherRows.forEach((row: { researcher_id: string; count: string }) => {
-      tubesByResearcher[row.researcher_id] = parseInt(row.count, 10);
+      tubesByResearcher[row.researcher_id] = parseCount(row);
     });
 
     const boxCount = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(DISTINCT tank_id || '-' || rack_id || '-' || box_id) as count FROM tubes ${whereClause}`, params
     );
-    const boxCountNum = boxCount ? parseInt(boxCount.count, 10) : 0;
+    const boxCountNum = parseCount(boxCount);
     const averageTubesPerBox = boxCountNum > 0 ? totalTubes / boxCountNum : 0;
 
     const oldestRow = await this.context.queryOne<{ id: string; created_at: Date }>(
@@ -1029,12 +1030,12 @@ export class TubeRepository implements ITubeRepository {
     const completeCount = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM tubes WHERE cell_type IS NOT NULL AND donor_internal_id IS NOT NULL AND researcher_id IS NOT NULL ${andClause}`, params
     );
-    const completionRate = totalTubes > 0 ? ((parseInt(completeCount?.count ?? '0', 10)) / totalTubes) * 100 : 0;
+    const completionRate = totalTubes > 0 ? (parseCount(completeCount) / totalTubes) * 100 : 0;
 
     const expiredCount = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text ${andClause}`, params
     );
-    const expirationRate = totalTubes > 0 ? ((parseInt(expiredCount?.count ?? '0', 10)) / totalTubes) * 100 : 0;
+    const expirationRate = totalTubes > 0 ? (parseCount(expiredCount) / totalTubes) * 100 : 0;
 
     return {
       totalTubes,

@@ -13,6 +13,7 @@ import { isEmailConstraintError } from '@infrastructure/database/DatabaseErrors'
 import type { UserRow } from '@infrastructure/database/mappers/UserMapper';
 import { UserMapper } from '@infrastructure/database/mappers/UserMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 
 const USER_COLUMNS = `
@@ -198,7 +199,7 @@ export class UserRepository implements IUserRepository {
       'SELECT COUNT(*) as count FROM users WHERE role = $1',
       [role]
     );
-    return parseInt(result?.count ?? '0', 10);
+    return parseCount(result);
   }
 
   async isEmpty(): Promise<boolean> {
@@ -241,7 +242,7 @@ export class UserRepository implements IUserRepository {
       'SELECT COUNT(*) as count FROM users WHERE role = $1 AND lab_id = $2',
       [role, labId]
     );
-    return parseInt(result?.count ?? '0', 10);
+    return parseCount(result);
   }
 
   // MAINTENANCE OPERATIONS

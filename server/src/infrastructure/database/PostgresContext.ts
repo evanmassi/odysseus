@@ -164,3 +164,7 @@ export class PostgresContext {
     await this.pool.end();
   }
 }
+
+export function parseCount(row: { count: string } | null): number {
+  return parseInt(row?.count ?? '0', 10);
+}
