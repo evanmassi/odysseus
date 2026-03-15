@@ -133,7 +133,7 @@ export class ResearcherApplicationService {
       throw new ValidationError('Email is required for creating researcher profile', {});
     }
 
-    const normalizedEmail = request.email.trim().toLowerCase();
+    const normalizedEmail = request.email.toLowerCase().trim();
 
     const existingUser = await this.userRepository.findByEmail(normalizedEmail);
     if (existingUser?.personId) {

@@ -8,7 +8,7 @@ import type { AuditRepository as IAuditRepository } from '@domain/repositories/A
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { buildAuditFilterClauses, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
+import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
@@ -18,7 +18,7 @@ const AUDIT_LOG_COLUMNS = `
 `.trim();
 
 const COLUMNS_PER_ROW = 11;
-const DEFAULT_PAGE_LIMIT = 50;
+
 
 interface AuditLogRow {
   id: string;
@@ -242,7 +242,7 @@ export class AuditRepository implements IAuditRepository {
     const countRow = await this.context.queryOne<{ count: string }>(countQuery, params);
     const total = parseCount(countRow);
 
-    const limit = filters.limit ?? DEFAULT_PAGE_LIMIT;
+    const limit = filters.limit ?? DEFAULT_AUDIT_PAGE_LIMIT;
     const offset = filters.offset ?? 0;
 
     const dataQuery = `

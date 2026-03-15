@@ -6,6 +6,8 @@
 
 import type { AuditLogFilters } from '@odysseus/shared-schemas';
 
+export const DEFAULT_AUDIT_PAGE_LIMIT = 50;
+
 export interface FilterResult {
   whereClause: string;
   params: unknown[];
