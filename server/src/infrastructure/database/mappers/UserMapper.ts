@@ -5,6 +5,7 @@
  */
 
 import { User } from '@domain/entities/User';
+import { toDate, toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface UserRow {
   id: string;
@@ -61,32 +62,22 @@ export class UserMapper {
   }
 
   static fromRow(row: UserRow): User {
-    const createdAt = row.created_at instanceof Date
-      ? row.created_at
-      : new Date(row.created_at);
+    const createdAt = toDate(row.created_at);
 
     const emailVerificationExpiry = row.email_verification_expiry
-      ? (row.email_verification_expiry instanceof Date
-          ? row.email_verification_expiry.toISOString()
-          : row.email_verification_expiry)
+      ? toISOString(row.email_verification_expiry)
       : undefined;
 
     const lastVerificationEmailSent = row.last_verification_email_sent
-      ? (row.last_verification_email_sent instanceof Date
-          ? row.last_verification_email_sent.toISOString()
-          : row.last_verification_email_sent)
+      ? toISOString(row.last_verification_email_sent)
       : undefined;
 
     const passwordResetExpiry = row.password_reset_expiry
-      ? (row.password_reset_expiry instanceof Date
-          ? row.password_reset_expiry.toISOString()
-          : row.password_reset_expiry)
+      ? toISOString(row.password_reset_expiry)
       : undefined;
 
     const lastPasswordChange = row.last_password_change
-      ? (row.last_password_change instanceof Date
-          ? row.last_password_change.toISOString()
-          : row.last_password_change)
+      ? toISOString(row.last_password_change)
       : undefined;
 
     return User.fromData({
@@ -95,7 +86,7 @@ export class UserMapper {
       apiKey: row.api_key,
       role: row.role,
       lastActivity: row.last_activity
-        ? (row.last_activity instanceof Date ? row.last_activity.toISOString() : row.last_activity)
+        ? toISOString(row.last_activity)
         : createdAt.toISOString(),
       createdAt: createdAt.toISOString(),
       passwordHash: row.password_hash,

@@ -6,7 +6,7 @@
 
 import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import type { PaginatedResult } from '@domain/types/repository';
-import { parseCount } from '@infrastructure/database/PostgresContext';
+import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 import { logger } from '@infrastructure/logging/logger';
@@ -62,7 +62,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
         entry.entityId ?? null,
         entry.labId ?? null,
         entry.details,
-        entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
+        toDate(entry.timestamp),
         entry.ipAddress ?? null,
         entry.userAgent ?? null,
         archivedAt
@@ -105,7 +105,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
       'SELECT MIN(timestamp) as oldest FROM audit_log_archive'
     );
     if (!row?.oldest) return null;
-    return row.oldest instanceof Date ? row.oldest : new Date(row.oldest);
+    return toDate(row.oldest);
   }
 
   async deleteOlderThan(date: Date): Promise<number> {
@@ -190,7 +190,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
       entityType: row.entity_type,
       entityId: row.entity_id ?? undefined,
       details: row.details,
-      timestamp: row.timestamp instanceof Date ? row.timestamp : new Date(row.timestamp),
+      timestamp: toDate(row.timestamp),
       ipAddress: row.ip_address ?? undefined,
       userAgent: row.user_agent ?? undefined,
     };

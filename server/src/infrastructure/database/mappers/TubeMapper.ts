@@ -5,6 +5,7 @@
  */
 
 import { Tube } from '@domain/entities/Tube';
+import { toISOString } from '@infrastructure/database/PostgresContext';
 
 function nullToUndefined<T>(value: T | null): T | undefined {
   return value ?? undefined;
@@ -102,15 +103,9 @@ export class TubeMapper {
       ? JSON.parse(sharedWithUserIdsJson)
       : [];
 
-    const createdAt = row.created_at instanceof Date
-      ? row.created_at.toISOString()
-      : row.created_at;
-    const updatedAt = row.updated_at instanceof Date
-      ? row.updated_at.toISOString()
-      : row.updated_at;
-    const lockedAt = row.locked_at
-      ? (row.locked_at instanceof Date ? row.locked_at.toISOString() : row.locked_at)
-      : undefined;
+    const createdAt = toISOString(row.created_at);
+    const updatedAt = toISOString(row.updated_at);
+    const lockedAt = row.locked_at ? toISOString(row.locked_at) : undefined;
 
     return Tube.fromData({
       id: row.id,

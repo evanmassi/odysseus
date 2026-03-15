@@ -15,7 +15,7 @@ import { isPositionConstraintError } from '@infrastructure/database/DatabaseErro
 import type { TubeRow } from '@infrastructure/database/mappers/TubeMapper';
 import { TubeMapper } from '@infrastructure/database/mappers/TubeMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { parseCount } from '@infrastructure/database/PostgresContext';
+import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import {
   normalizeSearchQuery,
   expandWithSynonyms,
@@ -1044,11 +1044,11 @@ export class TubeRepository implements ITubeRepository {
       averageTubesPerBox,
       oldestTube: oldestRow ? {
         id: oldestRow.id,
-        createdAt: oldestRow.created_at instanceof Date ? oldestRow.created_at : new Date(oldestRow.created_at)
+        createdAt: toDate(oldestRow.created_at)
       } : undefined,
       newestTube: newestRow ? {
         id: newestRow.id,
-        createdAt: newestRow.created_at instanceof Date ? newestRow.created_at : new Date(newestRow.created_at)
+        createdAt: toDate(newestRow.created_at)
       } : undefined,
       completionRate,
       expirationRate

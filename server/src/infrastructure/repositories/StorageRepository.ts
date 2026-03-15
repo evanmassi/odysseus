@@ -13,7 +13,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import type { StorageRepository as IStorageRepository, StorageHistory, StorageExport, StorageValidationResult } from '@domain/repositories/StorageRepository';
 import type { Box } from '@domain/value-objects/Equipment';
 import type { Location } from '@domain/value-objects/Location';
-import { parseCount } from '@infrastructure/database/PostgresContext';
+import { parseCount, toDate, toISOString } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -126,7 +126,7 @@ export class StorageRepository implements IStorageRepository {
 
       return rows.map(row => ({
         version: row.version,
-        timestamp: row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at),
+        timestamp: toDate(row.updated_at),
         changeDescription: row.change_description,
         changedBy: row.changed_by,
         storage: Storage.fromData(row.config_json)
@@ -520,7 +520,7 @@ export class StorageRepository implements IStorageRepository {
         WHERE cc.lab_id = $1
       `, [labId]);
       const lastBackup = backupRow?.updated_at
-        ? (backupRow.updated_at instanceof Date ? backupRow.updated_at.toISOString() : backupRow.updated_at)
+        ? toISOString(backupRow.updated_at)
         : new Date().toISOString();
 
       return {

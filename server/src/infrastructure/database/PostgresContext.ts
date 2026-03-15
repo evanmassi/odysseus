@@ -168,3 +168,11 @@ export class PostgresContext {
 export function parseCount(row: { count: string } | null): number {
   return parseInt(row?.count ?? '0', 10);
 }
+
+export function toDate(value: Date | string): Date {
+  return value instanceof Date ? value : new Date(value);
+}
+
+export function toISOString(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : value;
+}

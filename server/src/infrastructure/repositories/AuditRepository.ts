@@ -6,7 +6,7 @@
 
 import type { AuditRepository as IAuditRepository } from '@domain/repositories/AuditRepository';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
-import { parseCount } from '@infrastructure/database/PostgresContext';
+import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 
@@ -208,12 +208,8 @@ export class AuditRepository implements IAuditRepository {
 
     return {
       count: parseCount(row),
-      oldestEntry: row?.oldest
-        ? (row.oldest instanceof Date ? row.oldest : new Date(row.oldest))
-        : null,
-      newestEntry: row?.newest
-        ? (row.newest instanceof Date ? row.newest : new Date(row.newest))
-        : null,
+      oldestEntry: row?.oldest ? toDate(row.oldest) : null,
+      newestEntry: row?.newest ? toDate(row.newest) : null,
     };
   }
 
@@ -228,7 +224,7 @@ export class AuditRepository implements IAuditRepository {
       entry.entityType,
       entry.entityId ?? null,
       entry.details,
-      entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
+      toDate(entry.timestamp),
       entry.ipAddress ?? null,
       entry.userAgent ?? null,
       entry.labId ?? null,
@@ -311,7 +307,7 @@ export class AuditRepository implements IAuditRepository {
       entityType: row.entity_type,
       entityId: row.entity_id ?? undefined,
       details: row.details,
-      timestamp: row.timestamp instanceof Date ? row.timestamp : new Date(row.timestamp),
+      timestamp: toDate(row.timestamp),
       ipAddress: row.ip_address ?? undefined,
       userAgent: row.user_agent ?? undefined,
     };

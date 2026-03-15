@@ -4,6 +4,8 @@
  * Converts arrays of objects to CSV format with proper escaping.
  */
 
+import { toDate } from '@infrastructure/database/PostgresContext';
+
 function escapeValue(value: unknown): string {
   if (value === null || value === undefined) {
     return '';
@@ -44,7 +46,7 @@ export function generateCsv<T extends object>(
 export function formatDateForCsv(date: Date | string | null | undefined): string {
   if (!date) return '';
 
-  const dateObj = date instanceof Date ? date : new Date(date);
+  const dateObj = toDate(date);
 
   if (isNaN(dateObj.getTime())) return '';
 

@@ -5,6 +5,7 @@
  */
 
 import { Person } from '@domain/entities/Person';
+import { toDate, toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface PersonRow {
   id: string;
@@ -27,8 +28,8 @@ export class PersonMapper {
       email: person.email,
       position: person.position,
       department: person.department,
-      created_at: person.createdAt instanceof Date ? person.createdAt : new Date(person.createdAt),
-      updated_at: person.updatedAt instanceof Date ? person.updatedAt : new Date(person.updatedAt)
+      created_at: toDate(person.createdAt),
+      updated_at: toDate(person.updatedAt)
     };
   }
 
@@ -40,12 +41,8 @@ export class PersonMapper {
       email: row.email,
       position: row.position,
       department: row.department,
-      createdAt: row.created_at instanceof Date
-        ? row.created_at.toISOString()
-        : new Date(row.created_at).toISOString(),
-      updatedAt: row.updated_at instanceof Date
-        ? row.updated_at.toISOString()
-        : new Date(row.updated_at).toISOString()
+      createdAt: toISOString(row.created_at),
+      updatedAt: toISOString(row.updated_at)
     });
   }
 

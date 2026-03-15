@@ -5,6 +5,7 @@
  */
 
 import { InviteCode } from '@domain/entities/InviteCode';
+import { toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface InviteCodeRow {
   id: string;
@@ -37,12 +38,10 @@ export class InviteCodeMapper {
   }
 
   static fromRow(row: InviteCodeRow): InviteCode {
-    const createdAt = row.created_at instanceof Date
-      ? row.created_at.toISOString()
-      : row.created_at;
+    const createdAt = toISOString(row.created_at);
 
     const expiresAt = row.expires_at
-      ? (row.expires_at instanceof Date ? row.expires_at.toISOString() : row.expires_at)
+      ? toISOString(row.expires_at)
       : undefined;
 
     return InviteCode.fromData({

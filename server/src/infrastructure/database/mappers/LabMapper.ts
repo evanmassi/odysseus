@@ -5,6 +5,7 @@
  */
 
 import { Lab } from '@domain/entities/Lab';
+import { toISOString } from '@infrastructure/database/PostgresContext';
 
 import type { DemoLimits } from '@odysseus/shared-schemas';
 
@@ -36,12 +37,8 @@ export class LabMapper {
   }
 
   static fromRow(row: LabRow): Lab {
-    const createdAt = row.created_at instanceof Date
-      ? row.created_at.toISOString()
-      : row.created_at;
-    const updatedAt = row.updated_at instanceof Date
-      ? row.updated_at.toISOString()
-      : row.updated_at;
+    const createdAt = toISOString(row.created_at);
+    const updatedAt = toISOString(row.updated_at);
 
     return Lab.fromData({
       id: row.id,

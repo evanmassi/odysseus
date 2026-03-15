@@ -6,6 +6,7 @@
 
 import type { ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
 import { Researcher } from '@domain/entities/Researcher';
+import { toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface ResearcherRow {
   id: string;
@@ -32,9 +33,7 @@ export class ResearcherMapper {
   }
 
   static fromRow(row: ResearcherRow): Researcher {
-    const createdAt = row.created_at instanceof Date
-      ? row.created_at.toISOString()
-      : row.created_at;
+    const createdAt = toISOString(row.created_at);
 
     return Researcher.fromData({
       id: row.id,

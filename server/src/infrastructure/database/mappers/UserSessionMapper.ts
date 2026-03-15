@@ -5,6 +5,7 @@
  */
 
 import { UserSession } from '@domain/entities/UserSession';
+import { toDate } from '@infrastructure/database/PostgresContext';
 
 export interface UserSessionRow {
   id: string;
@@ -41,9 +42,9 @@ export class UserSessionMapper {
       id: row.id,
       userId: row.user_id,
       refreshToken: row.refresh_token,
-      createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
-      lastUsedAt: row.last_used_at instanceof Date ? row.last_used_at : new Date(row.last_used_at),
-      expiresAt: row.expires_at instanceof Date ? row.expires_at : new Date(row.expires_at),
+      createdAt: toDate(row.created_at),
+      lastUsedAt: toDate(row.last_used_at),
+      expiresAt: toDate(row.expires_at),
       isActive: row.is_active,
       deviceInfo: row.device_info ?? undefined,
       ipAddress: row.ip_address ?? undefined,

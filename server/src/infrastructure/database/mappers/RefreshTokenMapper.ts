@@ -5,6 +5,7 @@
  */
 
 import { RefreshToken } from '@domain/entities/RefreshToken';
+import { toDate } from '@infrastructure/database/PostgresContext';
 
 export interface RefreshTokenRow {
   id: string;
@@ -39,11 +40,9 @@ export class RefreshTokenMapper {
       id: row.id,
       userId: row.user_id,
       token: row.token,
-      expiresAt: row.expires_at instanceof Date ? row.expires_at : new Date(row.expires_at),
-      createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
-      lastUsedAt: row.last_used_at
-        ? (row.last_used_at instanceof Date ? row.last_used_at : new Date(row.last_used_at))
-        : undefined,
+      expiresAt: toDate(row.expires_at),
+      createdAt: toDate(row.created_at),
+      lastUsedAt: row.last_used_at ? toDate(row.last_used_at) : undefined,
       isRevoked: row.is_revoked,
       userAgent: row.user_agent ?? undefined,
       ipAddress: row.ip_address ?? undefined
