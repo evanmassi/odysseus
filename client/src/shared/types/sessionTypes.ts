@@ -9,16 +9,8 @@
  *   - Token expiry is persistent
  */
 
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-  accessTokenExpiry: Date;
-  refreshTokenExpiry: Date;
-  tokenType: 'Bearer';
-  lastActivityTime: Date;
-  sessionTimeoutMinutes?: number; // From SecurityConfig
-  idleWarningMinutes?: number; // From SecurityConfig
-}
+import type { TokenPair } from '@odysseus/shared-schemas';
+export type { TokenPair };
 
 export type SessionStatus =
   | 'authenticated'

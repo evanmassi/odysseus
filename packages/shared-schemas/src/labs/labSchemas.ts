@@ -111,6 +111,7 @@ const systemOverviewLabStatSchema = z.object({
   labName: z.string(),
   adminCount: z.number(),
   userCount: z.number(),
+  researcherCount: z.number(),
   tubeCount: z.number(),
   tankCount: z.number(),
   rackCount: z.number(),

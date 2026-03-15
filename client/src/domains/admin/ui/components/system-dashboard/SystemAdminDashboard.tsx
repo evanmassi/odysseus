@@ -4,7 +4,7 @@
  * Landing page for system admins: lab overview, lab creation, and drill-down into individual labs.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   Activity,
@@ -12,12 +12,14 @@ import {
   CircleCheckBig,
   OctagonX,
   Clock,
+  Dna,
   FlaskConical,
   LayoutDashboard,
   Plus,
   ShieldUser,
   BeanOff,
   Sprout,
+  TestTube,
   UsersRound,
   TicketCheck,
   Copy,
@@ -54,6 +56,12 @@ export function SystemAdminDashboard() {
   const deactivateLabMutation = useDeactivateLabMutation();
   const activateLabMutation = useActivateLabMutation();
   const createInviteCodeMutation = useCreateLabInviteCodeMutation();
+
+  const regularLabs = useMemo(
+    () => labs.filter(l => !l.isDemo).sort((a, b) => a.name.localeCompare(b.name)),
+    [labs]
+  );
+  const demoLabs = useMemo(() => labs.filter(l => l.isDemo), [labs]);
 
   const [showCreateLab, setShowCreateLab] = useState(false);
   const [newLabName, setNewLabName] = useState('');
@@ -134,6 +142,142 @@ export function SystemAdminDashboard() {
 
   const getLabStats = (labId: string) => {
     return overview?.labStats.find(s => s.labId === labId);
+  };
+
+  const renderLabCard = (lab: (typeof labs)[number]) => {
+    const stats = getLabStats(lab.id);
+    const codes = labInviteCodes[lab.id] ?? [];
+
+    return (
+      <div
+        key={lab.id}
+        className={`px-4 py-3 rounded-lg space-y-2 cursor-pointer transition-colors outline outline-1 outline-offset-4 ${
+          lab.isDemo
+            ? 'bg-demo-light outline-demo-text/50 hover:bg-demo-light-hover'
+            : 'bg-muted outline-secondary-foreground/50 hover:bg-muted-hover'
+        }`}
+        onClick={() => setSelectedLabId(lab.id)}
+        onKeyDown={e => {
+          if (e.key === 'Enter') setSelectedLabId(lab.id);
+        }}
+        role="button"
+        tabIndex={0}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
+            <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {lab.isDemo && (
+              <Chip
+                color={lab.isSeeded ? 'success' : 'warning'}
+                size="sm"
+                leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
+              >
+                {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
+              </Chip>
+            )}
+            <Chip
+              color={lab.isActive ? 'success' : 'danger'}
+              size="sm"
+              leftIcon={lab.isActive ? <CircleCheckBig /> : <OctagonX />}
+            >
+              {lab.isActive ? 'Active' : 'Deactivated'}
+            </Chip>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {stats && (
+              <>
+                <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
+                  {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
+                </Chip>
+                <Chip color="info" size="sm" leftIcon={<UsersRound />}>
+                  {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
+                </Chip>
+                <Chip color="info" size="sm" leftIcon={<Dna />}>
+                  {stats.researcherCount} {stats.researcherCount === 1 ? 'researcher' : 'researchers'}
+                </Chip>
+                <Chip color="info" size="sm" leftIcon={<TestTube />}>
+                  {stats.tubeCount} {stats.tubeCount === 1 ? 'tube' : 'tubes'}
+                </Chip>
+              </>
+            )}
+          </div>
+          <div
+            className="flex items-center gap-2"
+            role="presentation"
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+          >
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleGenerateLabAdminCode(lab.id)}
+              isLoading={generatingCodeForLab === lab.id}
+              leftIcon={<TicketCheck size={14} />}
+              disabled={!lab.isActive}
+            >
+              Lab Admin Code
+            </Button>
+            {lab.isActive ? (
+              <Tooltip content="Deactivate lab">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDeactivateTarget(lab.id)}
+                  className="text-danger-text hover:text-danger-text"
+                >
+                  <Power size={14} />
+                </Button>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handleActivateLab(lab.id)}
+                isLoading={activateLabMutation.isPending}
+              >
+                Activate
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {codes.length > 0 && (
+          <div
+            className="flex justify-end"
+            role="presentation"
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+          >
+            <div className="space-y-1">
+              {codes.map(code => (
+                <div key={code.id} className="flex items-center gap-2 text-xs">
+                  <code className="font-mono font-semibold bg-background px-2 py-0.5 rounded border border-border">
+                    {code.code}
+                  </code>
+                  <Tooltip content="Copy to clipboard">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(code.code);
+                        notifications.success('Copied');
+                      }}
+                    >
+                      <Copy size={12} />
+                    </Button>
+                  </Tooltip>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (selectedLabId) {
@@ -253,135 +397,15 @@ export function SystemAdminDashboard() {
           <div className="text-center py-8 text-muted-foreground text-sm">Loading labs...</div>
         ) : (
           <div className="space-y-5">
-            {labs.map(lab => {
-              const stats = getLabStats(lab.id);
-              const codes = labInviteCodes[lab.id] ?? [];
+            {regularLabs.map(lab => renderLabCard(lab))}
 
-              return (
-                <div
-                  key={lab.id}
-                  className={`px-4 py-3 rounded-lg space-y-2 cursor-pointer transition-colors outline outline-1 outline-offset-4 ${
-                    lab.isDemo
-                      ? 'bg-demo-light outline-demo-text/50 hover:bg-demo-light-hover'
-                      : 'bg-muted outline-secondary-foreground/50 hover:bg-muted-hover'
-                  }`}
-                  onClick={() => setSelectedLabId(lab.id)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') setSelectedLabId(lab.id);
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
-                      <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {lab.isDemo && (
-                        <Chip
-                          color={lab.isSeeded ? 'success' : 'warning'}
-                          size="sm"
-                          leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
-                        >
-                          {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
-                        </Chip>
-                      )}
-                      <Chip
-                        color={lab.isActive ? 'success' : 'danger'}
-                        size="sm"
-                        leftIcon={lab.isActive ? <CircleCheckBig /> : <OctagonX />}
-                      >
-                        {lab.isActive ? 'Active' : 'Deactivated'}
-                      </Chip>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      {stats && (
-                        <>
-                          <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
-                            {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
-                          </Chip>
-                          <Chip color="info" size="sm" leftIcon={<UsersRound />}>
-                            {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
-                          </Chip>
-                        </>
-                      )}
-                    </div>
-                    <div
-                      className="flex items-center gap-2"
-                      role="presentation"
-                      onClick={e => e.stopPropagation()}
-                      onKeyDown={e => e.stopPropagation()}
-                    >
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleGenerateLabAdminCode(lab.id)}
-                        isLoading={generatingCodeForLab === lab.id}
-                        leftIcon={<TicketCheck size={14} />}
-                        disabled={!lab.isActive}
-                      >
-                        Lab Admin Code
-                      </Button>
-                      {lab.isActive ? (
-                        <Tooltip content="Deactivate lab">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeactivateTarget(lab.id)}
-                            className="text-danger-text hover:text-danger-text"
-                          >
-                            <Power size={14} />
-                          </Button>
-                        </Tooltip>
-                      ) : (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleActivateLab(lab.id)}
-                          isLoading={activateLabMutation.isPending}
-                        >
-                          Activate
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+            {demoLabs.length > 0 && regularLabs.length > 0 && (
+              <div className="py-3">
+                <div className="h-px bg-muted-foreground/60" />
+              </div>
+            )}
 
-                  {codes.length > 0 && (
-                    <div
-                      className="flex justify-end"
-                      role="presentation"
-                      onClick={e => e.stopPropagation()}
-                      onKeyDown={e => e.stopPropagation()}
-                    >
-                      <div className="space-y-1">
-                        {codes.map(code => (
-                          <div key={code.id} className="flex items-center gap-2 text-xs">
-                            <code className="font-mono font-semibold bg-background px-2 py-0.5 rounded border border-border">
-                              {code.code}
-                            </code>
-                            <Tooltip content="Copy to clipboard">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={async () => {
-                                  await navigator.clipboard.writeText(code.code);
-                                  notifications.success('Copied');
-                                }}
-                              >
-                                <Copy size={12} />
-                              </Button>
-                            </Tooltip>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {demoLabs.map(lab => renderLabCard(lab))}
           </div>
         )}
 

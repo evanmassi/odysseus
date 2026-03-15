@@ -6,16 +6,8 @@
 
 import type { User } from '@domain/entities/User';
 
-export interface TokenPair {
-  accessToken: string;      // Short-lived JWT (15-30 min)
-  refreshToken: string;     // Long-lived secure random (7-30 days)
-  accessTokenExpiry: Date;
-  refreshTokenExpiry: Date;
-  tokenType: 'Bearer';
-  lastActivityTime: Date;
-  sessionTimeoutMinutes?: number;  // From SecurityConfig
-  idleWarningMinutes?: number;     // From SecurityConfig
-}
+import type { TokenPair } from '@odysseus/shared-schemas';
+export type { TokenPair };
 
 /** Stored in database as refresh_tokens row. */
 export interface RefreshTokenRecord {

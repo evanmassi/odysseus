@@ -31,6 +31,7 @@ export interface ResearcherRepository {
   // INTEGRATION QUERIES
 
   getMostActiveResearchers(limit: number | undefined, labId: string): Promise<Array<{ researcher: Researcher, tubeCount: number }>>;
+  countByLabIds(labIds: string[]): Promise<Map<string, number>>;
   getTubeCountByResearcher(researcherId: string): Promise<number>;
   getTubeCountsByResearcherIds(researcherIds: string[]): Promise<Map<string, number>>;
 
