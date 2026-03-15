@@ -434,7 +434,7 @@ export const TubeForm = ({
 
       {/* ROW 6: Date + Researcher */}
       <div className="flex gap-2.5">
-        <div className="w-40">
+        <div className="w-48">
           <Controller
             name="sample.date"
             control={control}
