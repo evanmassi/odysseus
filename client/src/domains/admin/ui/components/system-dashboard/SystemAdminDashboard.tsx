@@ -191,18 +191,26 @@ export function SystemAdminDashboard() {
           <div className="flex items-center gap-2">
             {stats && (
               <>
-                <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
-                  {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
-                </Chip>
-                <Chip color="info" size="sm" leftIcon={<UsersRound />}>
-                  {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
-                </Chip>
-                <Chip color="info" size="sm" leftIcon={<Dna />}>
-                  {stats.researcherCount} {stats.researcherCount === 1 ? 'researcher' : 'researchers'}
-                </Chip>
-                <Chip color="info" size="sm" leftIcon={<TestTube />}>
-                  {stats.tubeCount} {stats.tubeCount === 1 ? 'tube' : 'tubes'}
-                </Chip>
+                {stats.adminCount > 0 && (
+                  <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
+                    {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
+                  </Chip>
+                )}
+                {stats.userCount > 0 && (
+                  <Chip color="info" size="sm" leftIcon={<UsersRound />}>
+                    {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
+                  </Chip>
+                )}
+                {stats.researcherCount > 0 && (
+                  <Chip color="info" size="sm" leftIcon={<Dna />}>
+                    {stats.researcherCount} {stats.researcherCount === 1 ? 'researcher' : 'researchers'}
+                  </Chip>
+                )}
+                {stats.tubeCount > 0 && (
+                  <Chip color="info" size="sm" leftIcon={<TestTube />}>
+                    {stats.tubeCount} {stats.tubeCount === 1 ? 'tube' : 'tubes'}
+                  </Chip>
+                )}
               </>
             )}
           </div>

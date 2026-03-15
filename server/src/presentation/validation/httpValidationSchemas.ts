@@ -11,7 +11,10 @@ import {
   lockTubesRequestSchema,
   unlockTubesRequestSchema,
   shareTubeAccessRequestSchema,
-  revokeTubeAccessRequestSchema
+  revokeTubeAccessRequestSchema,
+  validateInviteCodeRequestSchema,
+  createInviteCodeRequestSchema,
+  createLabRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -80,9 +83,7 @@ export const ResendVerificationBodySchema = z.object({
   usernameOrEmail: z.string().min(1),
 });
 
-export const ValidateInviteCodeBodySchema = z.object({
-  code: z.string().min(1),
-});
+export const ValidateInviteCodeBodySchema = validateInviteCodeRequestSchema;
 
 export const SetupSystemAdminBodySchema = z.object({
   username: z.string().min(1).max(50),
@@ -109,18 +110,11 @@ export const LinkResearcherBodySchema = z.object({
   message: 'Must provide either researcherId or newResearcher',
 });
 
-export const CreateInviteCodeBodySchema = z.object({
-  role: z.enum(['lab_admin', 'user']).optional(),
-  maxUses: z.number().int().positive().optional(),
-  expiresAt: z.string().optional(),
-});
+export const CreateInviteCodeBodySchema = createInviteCodeRequestSchema;
 
 // Lab management schemas
 
-export const CreateLabBodySchema = z.object({
-  name: z.string().min(1).max(200),
-  isDemo: z.boolean().optional(),
-});
+export const CreateLabBodySchema = createLabRequestSchema;
 
 export const UpdateLabBodySchema = z.object({
   name: z.string().min(1).max(200),
