@@ -72,7 +72,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     isDragPreview = false,
     isCut,
     isCopied,
-    _isKeyboardFocused,
+    _isKeyboardFocused: _,
     gridConfig,
     fontSize,
     onPositionClick,

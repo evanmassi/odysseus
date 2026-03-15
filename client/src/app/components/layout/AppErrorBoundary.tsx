@@ -5,7 +5,7 @@
  */
 
 import type { ErrorInfo, ReactNode } from 'react';
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react';
 

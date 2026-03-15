@@ -9,7 +9,7 @@
  * 2. Server (authoritative source, syncs across devices)
  */
 import type { ReactNode } from 'react';
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 import type { ThemePreference } from '@odysseus/shared-schemas';
 

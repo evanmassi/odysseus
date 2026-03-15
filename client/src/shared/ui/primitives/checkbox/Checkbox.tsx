@@ -4,7 +4,7 @@
  * Styled checkbox input with semantic color tokens for theme support.
  */
 
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 
 export interface CheckboxProps {
   checked: boolean;

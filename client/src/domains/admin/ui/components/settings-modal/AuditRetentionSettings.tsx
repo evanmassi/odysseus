@@ -3,7 +3,7 @@
  *
  * Admin controls for retention policy, metrics, and manual archival
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
   RefreshCw,

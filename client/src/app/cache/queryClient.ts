@@ -152,7 +152,7 @@ const handleQueryError = (error: unknown, query: unknown): void => {
 const handleMutationError = (
   error: unknown,
   variables: unknown,
-  context: unknown,
+  _context: unknown,
   mutation: unknown
 ): void => {
   if (env.isDev()) {

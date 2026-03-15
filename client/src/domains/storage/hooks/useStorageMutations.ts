@@ -57,7 +57,7 @@ export const useAddTankMutation = () => {
     mutationFn: ({ name, location }: { name: string; location?: string }) =>
       StorageService.addTank(name, location),
 
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       notifications.success(`Tank "${variables.name}" added successfully`);
     },
@@ -118,7 +118,7 @@ export const useAddRacksMutation = () => {
     mutationFn: ({ tankId, count }: { tankId: string; count: number }) =>
       StorageService.addRacks(tankId, count),
 
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       const message =
         variables.count === 1
@@ -213,7 +213,7 @@ export const useAddBoxesMutation = () => {
     mutationFn: ({ tankId, rackId, count }: { tankId: string; rackId: string; count: number }) =>
       StorageService.addBoxes(tankId, rackId, count),
 
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
       const message =
         variables.count === 1

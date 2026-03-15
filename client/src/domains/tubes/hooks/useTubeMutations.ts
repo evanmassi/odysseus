@@ -225,7 +225,7 @@ export const useUpdateTubeMutation = (
       return { previousTube, id, updates };
     },
 
-    onSuccess: (tube, variables, context) => {
+    onSuccess: (tube, _variables, context) => {
       queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
 
       queryClient.setQueriesData(
@@ -303,7 +303,7 @@ export const useUpdateTubeMutation = (
       }
     },
 
-    onSettled: (data, error, variables) => {
+    onSettled: (_data, _error, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(labId, variables.id) });
     },
 
@@ -344,7 +344,7 @@ export const useDeleteTubeMutation = (
       return { previousTube, id };
     },
 
-    onSuccess: (data, id, context) => {
+    onSuccess: (_data, id, context) => {
       queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(labId, id) });
 
       if (context?.previousTube) {

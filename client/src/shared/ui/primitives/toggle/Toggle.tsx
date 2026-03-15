@@ -4,7 +4,7 @@
  * Sliding toggle switch for boolean settings with semantic color tokens.
  */
 
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 
 export interface ToggleProps {
   checked: boolean;

@@ -5,7 +5,7 @@
  * Prevents duplicate bootstrap processes.
  */
 import type { ReactNode } from 'react';
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 
 import type { UseAppBootstrapResult } from '@app/bootstrap';
 

@@ -25,7 +25,6 @@ class SocketQueryBridge {
   private socket: Socket | null = null;
   private queryClient: QueryClient;
   private labId: string | undefined;
-  private isConnected = false;
   private isInitialized = false;
 
   // Persists across socket reconnections for version-change detection
@@ -61,7 +60,7 @@ class SocketQueryBridge {
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
-      this.isConnected = false;
+
       this.isInitialized = false;
     }
   }
@@ -72,8 +71,6 @@ class SocketQueryBridge {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      this.isConnected = true;
-
       if (this.lastKnownConfigVersion === null && this.labId) {
         const currentConfig = this.queryClient.getQueryData(
           queryKeys.storage.data(this.labId)
@@ -93,7 +90,6 @@ class SocketQueryBridge {
     });
 
     this.socket.on('disconnect', (reason: string) => {
-      this.isConnected = false;
       logger.warn('Socket disconnected', { reason, timestamp: new Date().toISOString() });
 
       if (reason !== 'io client disconnect') {
