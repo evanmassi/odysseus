@@ -42,7 +42,7 @@ export class CreateInviteCodeCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(command: CreateInviteCodeCommand): Promise<{ code: string; id: string }> {
+  async handle(command: CreateInviteCodeCommand): Promise<ReturnType<InviteCode['toData']>> {
     const user = await requireUser(this.userRepository, command.userId);
 
     const role = command.role ?? 'user';
@@ -97,7 +97,7 @@ export class CreateInviteCodeCommandHandler {
       command.userId
     ));
 
-    return { code: inviteCode.code, id: inviteCode.id };
+    return inviteCode.toData();
   }
 }
 
