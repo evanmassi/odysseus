@@ -1,12 +1,19 @@
 /**
  * Lab Researchers Panel
  *
- * Researchers table showing name, linked user, and tube count.
+ * Researchers table showing name, linked user, tube count, and delete action for orphaned researchers.
  */
 
-import { Dna } from 'lucide-react';
+import { useState } from 'react';
 
-import { Chip, Table } from '@shared/ui';
+import { Dna, Trash2 } from 'lucide-react';
+
+import { Button, Chip, Table } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
+import { notifications } from '@shared/utils';
+
+import { adminResearcherService } from '../../../services/AdminResearcherService';
 
 import type { TableColumn, SortConfig } from '@shared/ui';
 
@@ -22,9 +29,38 @@ interface LabResearchersPanelProps {
   researchers: LabResearcher[];
   sortConfig: SortConfig | undefined;
   onSort: (config: SortConfig | undefined) => void;
+  onResearcherDeleted?: () => void;
 }
 
-export function LabResearchersPanel({ researchers, sortConfig, onSort }: LabResearchersPanelProps) {
+export function LabResearchersPanel({
+  researchers,
+  sortConfig,
+  onSort,
+  onResearcherDeleted,
+}: LabResearchersPanelProps) {
+  const [deleteTarget, setDeleteTarget] = useState<LabResearcher | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await adminResearcherService.deleteResearcher(deleteTarget.id);
+      notifications.success(
+        `Researcher "${deleteTarget.firstName} ${deleteTarget.lastName}" deleted`
+      );
+      setDeleteTarget(null);
+      onResearcherDeleted?.();
+    } catch {
+      notifications.error('Failed to delete researcher');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const canDelete = (researcher: LabResearcher) =>
+    researcher.tubeCount === 0 && !researcher.linkedUser;
+
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
@@ -32,7 +68,7 @@ export function LabResearchersPanel({ researchers, sortConfig, onSort }: LabRese
         <h3 className="text-sm font-semibold text-card-foreground">Researchers</h3>
       </div>
       <Table
-        columns={getResearcherColumns()}
+        columns={getResearcherColumns(canDelete, setDeleteTarget)}
         data={researchers}
         size="sm"
         rounded="lg"
@@ -43,11 +79,25 @@ export function LabResearchersPanel({ researchers, sortConfig, onSort }: LabRese
         emptyMessage="No researchers in this lab"
         aria-label="Lab researchers"
       />
+
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        title="Delete Researcher"
+        message={`Delete "${deleteTarget?.firstName} ${deleteTarget?.lastName}"? This cannot be undone.`}
+        confirmText="Delete"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
 
-function getResearcherColumns(): TableColumn<LabResearcher>[] {
+function getResearcherColumns(
+  canDelete: (r: LabResearcher) => boolean,
+  onDelete: (r: LabResearcher) => void
+): TableColumn<LabResearcher>[] {
   return [
     {
       id: 'name',
@@ -79,6 +129,23 @@ function getResearcherColumns(): TableColumn<LabResearcher>[] {
           {row.tubeCount}
         </Chip>
       ),
+    },
+    {
+      id: 'actions',
+      header: '',
+      render: (_value, row) =>
+        canDelete(row) ? (
+          <Tooltip content="Delete orphaned researcher">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(row)}
+              className="text-danger-text hover:text-danger-text"
+            >
+              <Trash2 size={14} />
+            </Button>
+          </Tooltip>
+        ) : null,
     },
   ];
 }

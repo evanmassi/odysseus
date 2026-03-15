@@ -8,6 +8,7 @@ import { PasswordValidator } from '@odysseus/shared-schemas';
 import { nanoid } from 'nanoid';
 
 import type { EventBus } from '@application/contracts/EventBus';
+import type { PasswordService } from '@application/contracts/PasswordService';
 import { UserDto } from '@application/dto/UserDto';
 import type { UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
 import { Person } from '@domain/entities/Person';
@@ -55,7 +56,8 @@ export class UserApplicationService {
     private eventBus?: EventBus,
     private inviteCodeRepository?: InviteCodeRepository,
     private labRepository?: LabRepository,
-    private userSessionRepository?: UserSessionRepository
+    private userSessionRepository?: UserSessionRepository,
+    private passwordService?: PasswordService
   ) {}
 
   /**
@@ -426,6 +428,11 @@ export class UserApplicationService {
 
     await this.validatePasswordPolicy(request.password);
 
+    if (!this.passwordService) {
+      throw new Error('PasswordService is required for registration');
+    }
+    const passwordHash = await this.passwordService.hash(request.password);
+
     const username = await this.generateUsername(request.firstName, request.lastName);
 
     const person = Person.create(
@@ -455,7 +462,7 @@ export class UserApplicationService {
 
     const user = User.createWithPassword(
       username,
-      request.password,
+      passwordHash,
       role,
       researcherId,
       person.id,

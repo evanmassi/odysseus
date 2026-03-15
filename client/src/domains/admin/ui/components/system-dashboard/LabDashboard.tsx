@@ -28,7 +28,7 @@ interface LabDashboardProps {
 }
 
 export function LabDashboard({ labId, onBack }: LabDashboardProps) {
-  const { data: details, isLoading } = useLabDetailsQuery(labId);
+  const { data: details, isLoading, refetch } = useLabDetailsQuery(labId);
 
   const [userSortConfig, setUserSortConfig] = useState<SortConfig | undefined>(undefined);
   const [researcherSortConfig, setResearcherSortConfig] = useState<SortConfig | undefined>(
@@ -118,6 +118,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
               researchers={sortedResearchers}
               sortConfig={researcherSortConfig}
               onSort={setResearcherSortConfig}
+              onResearcherDeleted={() => void refetch()}
             />
           </div>
         </div>

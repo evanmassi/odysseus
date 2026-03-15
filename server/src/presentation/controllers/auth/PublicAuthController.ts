@@ -94,6 +94,7 @@ export class PublicAuthController {
 
       const response = ResponseBuilder.success({
         user: user.toPublicData(),
+        sessionToken: authResult.tokens.accessToken,
         tokens: authResult.tokens,
       });
       res.status(201).json(response);
