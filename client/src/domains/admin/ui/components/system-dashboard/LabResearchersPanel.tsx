@@ -133,19 +133,30 @@ function getResearcherColumns(
     {
       id: 'actions',
       header: '',
-      render: (_value, row) =>
-        canDelete(row) ? (
-          <Tooltip content="Delete orphaned researcher">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(row)}
-              className="text-danger-text hover:text-danger-text"
-            >
-              <Trash2 size={14} />
-            </Button>
+      render: (_value, row) => {
+        const deletable = canDelete(row);
+        const reason = row.linkedUser
+          ? 'Unlink user before deleting'
+          : row.tubeCount > 0
+            ? `Has ${row.tubeCount} tube${row.tubeCount === 1 ? '' : 's'}`
+            : undefined;
+
+        return (
+          <Tooltip content={deletable ? 'Delete researcher' : reason}>
+            <span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => deletable && onDelete(row)}
+                disabled={!deletable}
+                className={deletable ? 'text-danger-text hover:text-danger-text' : ''}
+              >
+                <Trash2 size={14} />
+              </Button>
+            </span>
           </Tooltip>
-        ) : null,
+        );
+      },
     },
   ];
 }
