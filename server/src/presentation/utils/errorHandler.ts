@@ -63,7 +63,7 @@ export function handleControllerError(
   }
 
   if (err instanceof DomainError) {
-    res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.BUSINESS_RULE_VIOLATION, err.message, err.context ?? {}));
+    res.status(err.statusCode).json(ResponseBuilder.error(API_ERROR_CODES.BUSINESS_RULE_VIOLATION, err.message, err.context ?? {}));
     return;
   }
 
