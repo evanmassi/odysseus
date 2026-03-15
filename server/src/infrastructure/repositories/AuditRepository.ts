@@ -8,6 +8,7 @@ import type { AuditRepository as IAuditRepository } from '@domain/repositories/A
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { buildAuditFilterClauses, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
@@ -31,12 +32,6 @@ interface AuditLogRow {
   ip_address: string | null;
   user_agent: string | null;
   lab_id: string | null;
-}
-
-interface FilterResult {
-  whereClause: string;
-  params: unknown[];
-  nextParamIndex: number;
 }
 
 export class AuditRepository implements IAuditRepository {
@@ -111,7 +106,7 @@ export class AuditRepository implements IAuditRepository {
   }
 
   async findAll(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>> {
-    return this.findPaginated(filters, this.buildFilterClauses(filters));
+    return this.findPaginated(filters, buildAuditFilterClauses(filters));
   }
 
   // LAB-SCOPED OPERATIONS
@@ -119,7 +114,7 @@ export class AuditRepository implements IAuditRepository {
   async findAllForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>> {
     return this.findPaginated(
       filters,
-      this.buildFilterClauses(filters, ['lab_id = $1'], [labId])
+      buildAuditFilterClauses(filters, ['lab_id = $1'], [labId])
     );
   }
 
@@ -238,47 +233,6 @@ export class AuditRepository implements IAuditRepository {
       entry.userAgent ?? null,
       entry.labId ?? null,
     ];
-  }
-
-  private buildFilterClauses(
-    filters: AuditLogFilters,
-    initialClauses: string[] = [],
-    initialParams: unknown[] = []
-  ): FilterResult {
-    const whereClauses = [...initialClauses];
-    const params = [...initialParams];
-    let paramIndex = initialParams.length + 1;
-
-    if (filters.username) {
-      whereClauses.push(`username = $${paramIndex++}`);
-      params.push(filters.username);
-    }
-
-    if (filters.action) {
-      whereClauses.push(`action = $${paramIndex++}`);
-      params.push(filters.action);
-    }
-
-    if (filters.entityType) {
-      whereClauses.push(`entity_type = $${paramIndex++}`);
-      params.push(filters.entityType);
-    }
-
-    if (filters.dateFrom) {
-      whereClauses.push(`timestamp >= $${paramIndex++}`);
-      params.push(filters.dateFrom);
-    }
-
-    if (filters.dateTo) {
-      whereClauses.push(`timestamp <= $${paramIndex++}`);
-      params.push(filters.dateTo);
-    }
-
-    const whereClause = whereClauses.length > 0
-      ? 'WHERE ' + whereClauses.join(' AND ')
-      : '';
-
-    return { whereClause, params, nextParamIndex: paramIndex };
   }
 
   private async findPaginated(filters: AuditLogFilters, filterResult: FilterResult): Promise<PaginatedResult<AuditLogEntry>> {

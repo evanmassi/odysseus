@@ -8,6 +8,7 @@ import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/
 import type { PaginatedResult } from '@domain/types/repository';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { buildAuditFilterClauses, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
@@ -33,12 +34,6 @@ interface AuditArchiveRow {
   ip_address: string | null;
   user_agent: string | null;
   archived_at: Date | string;
-}
-
-interface FilterResult {
-  whereClause: string;
-  params: unknown[];
-  nextParamIndex: number;
 }
 
 export class AuditArchiveRepository implements IAuditArchiveRepository {
@@ -88,13 +83,13 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
   }
 
   async findArchived(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>> {
-    return this.findPaginated(filters, this.buildFilterClauses(filters));
+    return this.findPaginated(filters, buildAuditFilterClauses(filters));
   }
 
   async findArchivedForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>> {
     return this.findPaginated(
       filters,
-      this.buildFilterClauses(filters, ['lab_id = $1'], [labId])
+      buildAuditFilterClauses(filters, ['lab_id = $1'], [labId])
     );
   }
 
@@ -128,47 +123,6 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     const rows = await this.context.queryMany<AuditArchiveRow>(query, params);
 
     return JSON.stringify(rows.map(this.rowToEntry), null, 2);
-  }
-
-  private buildFilterClauses(
-    filters: AuditLogFilters,
-    initialClauses: string[] = [],
-    initialParams: unknown[] = []
-  ): FilterResult {
-    const whereClauses = [...initialClauses];
-    const params = [...initialParams];
-    let paramIndex = initialParams.length + 1;
-
-    if (filters.username) {
-      whereClauses.push(`username = $${paramIndex++}`);
-      params.push(filters.username);
-    }
-
-    if (filters.action) {
-      whereClauses.push(`action = $${paramIndex++}`);
-      params.push(filters.action);
-    }
-
-    if (filters.entityType) {
-      whereClauses.push(`entity_type = $${paramIndex++}`);
-      params.push(filters.entityType);
-    }
-
-    if (filters.dateFrom) {
-      whereClauses.push(`timestamp >= $${paramIndex++}`);
-      params.push(filters.dateFrom);
-    }
-
-    if (filters.dateTo) {
-      whereClauses.push(`timestamp <= $${paramIndex++}`);
-      params.push(filters.dateTo);
-    }
-
-    const whereClause = whereClauses.length > 0
-      ? 'WHERE ' + whereClauses.join(' AND ')
-      : '';
-
-    return { whereClause, params, nextParamIndex: paramIndex };
   }
 
   private buildDateClauses(dateFrom?: Date, dateTo?: Date): Omit<FilterResult, 'nextParamIndex'> {
