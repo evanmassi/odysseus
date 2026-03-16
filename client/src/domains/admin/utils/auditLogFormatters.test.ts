@@ -312,6 +312,23 @@ describe('lab events', () => {
     );
     expect(result.text).toBe('Lab A → Lab B');
   });
+
+  it('lab_renamed shows old → new', () => {
+    const result = formatAuditDetails(
+      entry('lab_renamed', 'lab', { oldName: 'Old Lab', newName: 'New Lab', renamedBy: 'admin1' })
+    );
+    expect(result.text).toBe('Old Lab → New Lab');
+  });
+
+  it('lab_activated shows activation message', () => {
+    const result = formatAuditDetails(entry('lab_activated', 'lab', { activatedBy: 'admin1' }));
+    expect(result.text).toBe('Lab activated');
+  });
+
+  it('lab_deactivated shows deactivation message', () => {
+    const result = formatAuditDetails(entry('lab_deactivated', 'lab', { deactivatedBy: 'admin1' }));
+    expect(result.text).toBe('Lab deactivated');
+  });
 });
 
 // ── RESEARCHER EVENTS ──

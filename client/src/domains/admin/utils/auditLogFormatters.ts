@@ -454,9 +454,15 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       if (action === 'invite_code_used') {
         return plain('Invite code redeemed');
       }
+      if (action === 'lab_activated') {
+        return plain('Lab activated');
+      }
+      if (action === 'lab_deactivated') {
+        return plain('Lab deactivated');
+      }
       const oldName = getStringProperty(details, 'oldName');
       const newName = getStringProperty(details, 'newName');
-      if (action === 'lab_name_changed' && oldName && newName) {
+      if ((action === 'lab_name_changed' || action === 'lab_renamed') && oldName && newName) {
         return plain(`${oldName} → ${newName}`);
       }
       return plain(newName || '-');
