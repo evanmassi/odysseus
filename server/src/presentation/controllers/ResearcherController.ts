@@ -38,8 +38,8 @@ export class ResearcherController extends BaseController {
 
       if (includeAdminData) {
         const userApiKey = this.extractApiKey(req);
-        const researchers = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
-        res.json(ResponseBuilder.success({ researchers }));
+        const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
+        res.json(ResponseBuilder.success(result));
       } else if (visibleOnly) {
         const researchers = await this.deps.researcherApplicationService.getVisibleResearchers(labId);
         res.json(ResponseBuilder.success(researchers));
@@ -58,15 +58,15 @@ export class ResearcherController extends BaseController {
       const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
 
-      const researchers = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
+      const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
 
       logger.debug('Retrieved researchers with metadata', {
-        count: researchers.length,
+        count: result.researchers.length,
         requestedBy: req.user?.username,
         requestId: req.requestId
       });
 
-      res.json(ResponseBuilder.success({ researchers }));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researchers with metadata', req.requestId);
     }

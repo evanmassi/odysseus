@@ -44,6 +44,7 @@ export function ResearchersTab({
   readOnly = false,
 }: ResearchersTabProps) {
   const [researchers, setResearchers] = useState<AdminResearcher[]>([]);
+  const [totalTubeCount, setTotalTubeCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [togglingStatus, setTogglingStatus] = useState<string | null>(null);
@@ -60,6 +61,9 @@ export function ResearchersTab({
     void loadResearchers();
   }, []);
 
+  const tubesWithoutResearcher =
+    totalTubeCount - researchers.reduce((sum, r) => sum + r.tubeCount, 0);
+
   useEffect(() => {
     onTabFooter?.(
       <div className="space-y-2">
@@ -67,12 +71,20 @@ export function ResearchersTab({
           <Chip color="info" size="sm" leftIcon={<Dna />}>
             {researchers.length} {researchers.length === 1 ? 'researcher' : 'researchers'}
           </Chip>
-          <Chip color="info" size="sm" leftIcon={<TestTube />}>
-            {researchers.filter(r => r.tubeCount > 0).length} with tubes
-          </Chip>
           <Chip color="info" size="sm" leftIcon={<Link />}>
             {researchers.filter(r => r.linkedUserId).length} linked to users
           </Chip>
+          <Chip color="info" size="sm" leftIcon={<TestTube />}>
+            {researchers.filter(r => r.tubeCount > 0).length}{' '}
+            {researchers.filter(r => r.tubeCount > 0).length === 1 ? 'researcher' : 'researchers'}{' '}
+            with tubes
+          </Chip>
+          {tubesWithoutResearcher > 0 && (
+            <Chip color="warning" size="sm" leftIcon={<TestTube />}>
+              {tubesWithoutResearcher} {tubesWithoutResearcher === 1 ? 'tube' : 'tubes'} without
+              researcher
+            </Chip>
+          )}
           {researchers.filter(r => r.approvalStatus === 'pending').length > 0 && (
             <Chip color="warning" size="sm" leftIcon={<Clock />}>
               {researchers.filter(r => r.approvalStatus === 'pending').length} pending approval
@@ -84,13 +96,14 @@ export function ResearchersTab({
         </AlertBanner>
       </div>
     );
-  }, [onTabFooter, researchers]);
+  }, [onTabFooter, researchers, tubesWithoutResearcher]);
 
   const loadResearchers = async () => {
     setLoading(true);
     try {
-      const researchers = await adminResearcherService.getResearchers();
-      setResearchers(sortByName(researchers));
+      const data = await adminResearcherService.getResearchers();
+      setResearchers(sortByName(data.researchers));
+      setTotalTubeCount(data.totalTubeCount ?? 0);
     } catch (error) {
       logger.error('Failed to load researchers', { error });
       notifications.error('Failed to load researchers');

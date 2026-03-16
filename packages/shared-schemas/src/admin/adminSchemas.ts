@@ -111,6 +111,7 @@ export type AdminUsersList = z.infer<typeof adminUsersListSchema>;
 
 export const adminResearchersListSchema = z.object({
   researchers: z.array(adminResearcherSchema),
+  totalTubeCount: z.number().optional(),
 });
 
 export type AdminResearchersList = z.infer<typeof adminResearchersListSchema>;

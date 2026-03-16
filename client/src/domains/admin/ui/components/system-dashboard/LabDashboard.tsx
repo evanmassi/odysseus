@@ -81,6 +81,8 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   const { lab, researcherCount, tubeCount, storageSummary } = details;
 
   const adminCount = users.filter(u => u.role === 'lab_admin').length;
+  const assignedTubes = details.researchers.reduce((sum, r) => sum + r.tubeCount, 0);
+  const tubesWithoutResearcher = tubeCount - assignedTubes;
 
   return (
     <div className="h-full overflow-y-auto">
@@ -108,6 +110,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           userCount={users.length}
           researcherCount={researcherCount}
           tubeCount={tubeCount}
+          tubesWithoutResearcher={tubesWithoutResearcher}
           storageSummary={storageSummary}
         />
 

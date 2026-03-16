@@ -46,6 +46,7 @@ interface LabInfoPanelProps {
   userCount: number;
   researcherCount: number;
   tubeCount: number;
+  tubesWithoutResearcher: number;
   storageSummary: LabDetails['storageSummary'];
 }
 
@@ -57,6 +58,7 @@ export function LabInfoPanel({
   userCount,
   researcherCount,
   tubeCount,
+  tubesWithoutResearcher,
   storageSummary,
 }: LabInfoPanelProps) {
   const updateLabMutation = useUpdateLabMutation();
@@ -209,9 +211,17 @@ export function LabInfoPanel({
             <Chip color="info" size="sm" leftIcon={<BoxIcon />}>
               {storageSummary.boxCount} {storageSummary.boxCount === 1 ? 'box' : 'boxes'}
             </Chip>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <Chip color="info" size="sm" leftIcon={<TestTube />}>
-              {tubeCount} {tubeCount === 1 ? 'tube' : 'tubes'}
+              {tubeCount} total {tubeCount === 1 ? 'tube' : 'tubes'}
             </Chip>
+            {tubesWithoutResearcher > 0 && (
+              <Chip color="warning" size="sm" leftIcon={<TestTube />}>
+                {tubesWithoutResearcher} {tubesWithoutResearcher === 1 ? 'tube' : 'tubes'} without
+                researcher
+              </Chip>
+            )}
           </div>
         </div>
       </div>

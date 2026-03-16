@@ -24,6 +24,7 @@ import {
 } from '@domain/events/ResearcherEvents';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 
@@ -32,6 +33,7 @@ export class ResearcherApplicationService {
     private researcherRepository: ResearcherRepository,
     private userRepository: UserRepository,
     private personRepository: PersonRepository,
+    private tubeRepository: TubeRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
@@ -47,52 +49,61 @@ export class ResearcherApplicationService {
     return this.resolveWithPersons(researchers);
   }
 
-  async getResearchersWithMetadata(labId: string, userApiKey: string): Promise<Array<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    position?: string;
-    department?: string;
-    email?: string;
-    active: boolean;
-    createdAt: string | Date;
-    approvalStatus: 'pending' | 'approved';
-    source: 'registration' | 'admin';
-    tubeCount: number;
-    linkedUserId: string | null;
-    linkedUsername: string | null;
-  }>> {
+  async getResearchersWithMetadata(labId: string, userApiKey: string): Promise<{
+    researchers: Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+      position?: string;
+      department?: string;
+      email?: string;
+      active: boolean;
+      createdAt: string | Date;
+      approvalStatus: 'pending' | 'approved';
+      source: 'registration' | 'admin';
+      tubeCount: number;
+      linkedUserId: string | null;
+      linkedUsername: string | null;
+    }>;
+    totalTubeCount: number;
+  }> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireAdminAccess(user);
 
-    const researchers = await this.researcherRepository.findByLabId(labId);
-    const users = await this.userRepository.findByLabId(labId);
+    const [researchers, users, totalTubeCount] = await Promise.all([
+      this.researcherRepository.findByLabId(labId),
+      this.userRepository.findByLabId(labId),
+      this.tubeRepository.countByLabId(labId),
+    ]);
     const personMap = await this.buildPersonMap(researchers);
     const tubeCounts = await this.researcherRepository.getTubeCountsByResearcherIds(
       researchers.map(r => r.id)
     );
 
-    return researchers.map(researcher => {
-      const person = personMap.get(researcher.personId)!;
-      const linkedUser = users.find(u => u.researcherId === researcher.id);
+    return {
+      researchers: researchers.map(researcher => {
+        const person = personMap.get(researcher.personId)!;
+        const linkedUser = users.find(u => u.researcherId === researcher.id);
 
-      return {
-        id: researcher.id,
-        personId: researcher.personId,
-        firstName: person.firstName,
-        lastName: person.lastName,
-        position: person.position,
-        department: person.department,
-        email: person.email,
-        active: researcher.active,
-        createdAt: researcher.createdAt,
-        approvalStatus: researcher.approvalStatus,
-        source: researcher.source,
-        tubeCount: tubeCounts.get(researcher.id) ?? 0,
-        linkedUserId: linkedUser?.id ?? null,
-        linkedUsername: linkedUser?.username ?? null,
-      };
-    });
+        return {
+          id: researcher.id,
+          personId: researcher.personId,
+          firstName: person.firstName,
+          lastName: person.lastName,
+          position: person.position,
+          department: person.department,
+          email: person.email,
+          active: researcher.active,
+          createdAt: researcher.createdAt,
+          approvalStatus: researcher.approvalStatus,
+          source: researcher.source,
+          tubeCount: tubeCounts.get(researcher.id) ?? 0,
+          linkedUserId: linkedUser?.id ?? null,
+          linkedUsername: linkedUser?.username ?? null,
+        };
+      }),
+      totalTubeCount,
+    };
   }
 
   async getUnlinkedResearchers(labId: string, userApiKey: string): Promise<ResearcherResponse[]> {

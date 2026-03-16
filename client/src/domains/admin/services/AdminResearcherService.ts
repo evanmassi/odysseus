@@ -8,6 +8,7 @@ import {
   adminResearcherSchema,
   adminResearchersListSchema,
   type AdminResearcher,
+  type AdminResearchersList,
   type CreateResearcherProfile,
 } from '@odysseus/shared-schemas';
 
@@ -15,10 +16,9 @@ import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
 export class AdminResearcherService {
-  async getResearchers(): Promise<AdminResearcher[]> {
+  async getResearchers(): Promise<AdminResearchersList> {
     try {
-      const data = await httpClient.getData('/admin/researchers', adminResearchersListSchema);
-      return data.researchers;
+      return await httpClient.getData('/admin/researchers', adminResearchersListSchema);
     } catch (error) {
       logger.error('Failed to get researchers', { error });
       throw error;

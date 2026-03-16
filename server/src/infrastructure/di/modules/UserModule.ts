@@ -140,6 +140,7 @@ export class UserModule {
         repositories.researchers,
         repositories.users,
         repositories.persons,
+        repositories.tubes,
         this.shared.accessControlService,
         this.shared.eventBus
       );
