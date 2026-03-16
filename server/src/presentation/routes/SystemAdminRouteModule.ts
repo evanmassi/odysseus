@@ -9,6 +9,7 @@ import { updateSecurityConfigSchema, updateDemoLimitsSchema } from '@odysseus/sh
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import type { AuditController } from '@presentation/controllers/AuditController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
@@ -29,6 +30,8 @@ import {
 import type { Router, RequestHandler } from 'express';
 
 export class SystemAdminRouteModule implements RouteModule {
+  private readonly strictLimiter = createStrictRateLimiter();
+
   constructor(
     private readonly labController: LabController,
     private readonly inviteCodeController: InviteCodeController,
@@ -119,16 +122,19 @@ export class SystemAdminRouteModule implements RouteModule {
 
     router.post('/labs/:labId/demo/reset',
       validateParams(LabIdParams),
+      this.strictLimiter,
       this.configurationController.resetDemoDataForLab.bind(this.configurationController)
     );
 
     router.post('/labs/:labId/demo/seed',
       validateParams(LabIdParams),
+      this.strictLimiter,
       this.configurationController.seedDemoLab.bind(this.configurationController)
     );
 
     router.post('/labs/:labId/demo/unseed',
       validateParams(LabIdParams),
+      this.strictLimiter,
       this.configurationController.unseedDemoLab.bind(this.configurationController)
     );
 

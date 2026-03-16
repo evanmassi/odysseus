@@ -6,12 +6,14 @@
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { StorageController } from '@presentation/controllers/StorageController';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 
 import type { Router, RequestHandler } from 'express';
 
 export class StorageRouteModule implements RouteModule {
+  private readonly strictLimiter = createStrictRateLimiter();
 
   constructor(
     private storageController: StorageController,
@@ -80,11 +82,13 @@ export class StorageRouteModule implements RouteModule {
 
     router.post('/reset',
       this.authMiddleware.requireAdmin,
+      this.strictLimiter,
       this.storageController.resetStorageToDefault.bind(this.storageController)
     );
 
     router.post('/import',
       this.authMiddleware.requireAdmin,
+      this.strictLimiter,
       this.storageController.importStorage.bind(this.storageController)
     );
 
@@ -170,6 +174,7 @@ export class StorageRouteModule implements RouteModule {
 
     router.post('/initialize',
       this.authMiddleware.requireAdmin,
+      this.strictLimiter,
       this.storageController.initializeStorage.bind(this.storageController)
     );
   }

@@ -139,7 +139,9 @@ const handleQueryError = (error: unknown, query: unknown): void => {
     });
   }
 
-  if (hasStatus(error) && error.status >= 500) {
+  if (hasStatus(error) && error.status === 429) {
+    notifications.error('Too many requests. Please wait a moment and try again.');
+  } else if (hasStatus(error) && error.status >= 500) {
     notifications.error('Server error occurred. Please try again.');
   } else if (
     (hasStatus(error) && error.status === 0) ||
@@ -185,7 +187,9 @@ const handleMutationError = (
     return;
   }
 
-  if (hasStatus(error) && error.status >= 500) {
+  if (hasStatus(error) && error.status === 429) {
+    notifications.error('Too many requests. Please wait a moment and try again.');
+  } else if (hasStatus(error) && error.status >= 500) {
     notifications.error('Server error. Your changes could not be saved.');
   } else if (hasStatus(error) && error.status >= 400 && error.status < 500) {
     const message = hasMessage(error) ? error.message : 'Invalid request. Please check your input.';

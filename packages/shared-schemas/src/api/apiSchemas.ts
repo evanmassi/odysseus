@@ -35,6 +35,9 @@ export const API_ERROR_CODES = {
   // Operations
   OPERATION_FAILED: 'OPERATION_FAILED',
 
+  // Rate Limiting
+  RATE_LIMITED: 'RATE_LIMITED',
+
   // System
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
 } as const;

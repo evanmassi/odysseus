@@ -12,6 +12,7 @@ import {
 
 
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import { createAuthRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
@@ -31,6 +32,7 @@ import type { Router, RequestHandler } from 'express';
 
 export class PublicRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
+  private readonly authLimiter = createAuthRateLimiter();
 
   constructor(
     private readonly publicAuthController: PublicAuthController,
@@ -63,16 +65,19 @@ export class PublicRouteModule implements RouteModule {
     );
 
     router.post('/auth/register',
+      this.authLimiter,
       validateBody(RegisterBodySchema),
       this.publicAuthController.register.bind(this.publicAuthController)
     );
 
     router.post('/auth/login',
+      this.authLimiter,
       validateBody(LoginBodySchema),
       this.publicAuthController.login.bind(this.publicAuthController)
     );
 
     router.post('/auth/register-with-researcher',
+      this.authLimiter,
       validateBody(registerWithResearcherSchema),
       this.publicAuthController.registerWithResearcher.bind(this.publicAuthController)
     );
@@ -94,6 +99,7 @@ export class PublicRouteModule implements RouteModule {
     );
 
     router.post('/auth/reset-password',
+      this.authLimiter,
       validateBody(resetPasswordWithTokenRequestSchema),
       this.publicAuthController.resetPasswordWithToken.bind(this.publicAuthController)
     );

@@ -13,6 +13,7 @@ import {
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import type { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
 import type { AuditController } from '@presentation/controllers/AuditController';
@@ -36,6 +37,8 @@ import {
 import type { Router, RequestHandler } from 'express';
 
 export class AdminRouteModule implements RouteModule {
+  private readonly strictLimiter = createStrictRateLimiter();
+
   constructor(
     private readonly adminUserController: AdminUserController,
     private readonly adminConfigController: AdminConfigController,
@@ -211,18 +214,22 @@ export class AdminRouteModule implements RouteModule {
     // DATA EXPORT ENDPOINTS
 
     router.get('/export/tubes',
+      this.strictLimiter,
       this.exportController.exportTubes.bind(this.exportController)
     );
 
     router.get('/export/users',
+      this.strictLimiter,
       this.exportController.exportUsers.bind(this.exportController)
     );
 
     router.get('/export/researchers',
+      this.strictLimiter,
       this.exportController.exportResearchers.bind(this.exportController)
     );
 
     router.get('/export/system-backup',
+      this.strictLimiter,
       this.exportController.exportSystemBackup.bind(this.exportController)
     );
 

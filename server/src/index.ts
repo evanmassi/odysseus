@@ -17,6 +17,7 @@ import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
 import { logger } from '@infrastructure/logging/logger';
 import { EnvironmentConfigurationService } from '@infrastructure/services/EnvironmentConfigurationService';
+import { createGlobalRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { requestIdMiddleware } from '@presentation/middleware/requestId';
 import { sanitizeStrings } from '@presentation/middleware/requestValidation';
 import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth';
@@ -114,11 +115,14 @@ class OdysseusServer {
   }
 
   private setupMiddleware(): void {
+    // Railway proxies traffic — trust one hop so req.ip reflects the real client
+    this.app.set('trust proxy', 1);
     this.app.use(helmet());
     this.app.use(cors({
       origin: this.configurationService.get('server').allowedOrigins,
       credentials: true
     }));
+    this.app.use(createGlobalRateLimiter());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(sanitizeStrings);

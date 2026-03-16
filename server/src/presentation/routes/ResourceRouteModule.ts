@@ -6,6 +6,7 @@
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
@@ -33,6 +34,7 @@ import type { Router, RequestHandler } from 'express';
 
 export class ResourceRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
+  private readonly moderateLimiter = createModerateRateLimiter();
 
   constructor(
     private tubeController: TubeController,
@@ -100,11 +102,13 @@ export class ResourceRouteModule implements RouteModule {
     );
 
     router.post('/tubes/bulk-update',
+      this.moderateLimiter,
       validateBody(BulkUpdateHttpSchema),
       this.tubeController.bulkUpdateTubes.bind(this.tubeController)
     );
 
     router.post('/tubes/bulk-delete',
+      this.moderateLimiter,
       validateBody(BulkDeleteHttpSchema),
       this.tubeController.bulkDeleteTubes.bind(this.tubeController)
     );
