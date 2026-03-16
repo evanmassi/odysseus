@@ -10,6 +10,7 @@ import {
   configurationEventSchemas,
   userEventSchemas,
   presenceEventSchemas,
+  systemAdminEventSchemas,
 } from '@odysseus/shared-schemas';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -43,12 +44,16 @@ class SocketQueryBridge {
 
     this.socket = socket;
     this.setupConnectionHandlers();
-    this.setupTubeEventHandlers();
-    this.setupTubeLockEventHandlers();
-    this.setupResearcherEventHandlers();
-    this.setupUserEventHandlers();
-    this.setupPresenceEventHandlers();
-    this.setupConfigurationEventHandlers();
+    if (this.labId) {
+      this.setupTubeEventHandlers();
+      this.setupTubeLockEventHandlers();
+      this.setupResearcherEventHandlers();
+      this.setupUserEventHandlers();
+      this.setupPresenceEventHandlers();
+      this.setupConfigurationEventHandlers();
+    } else {
+      this.setupSystemAdminEventHandlers();
+    }
     this.setupReconnectionHandlers();
 
     this.isInitialized = true;
@@ -545,6 +550,24 @@ class SocketQueryBridge {
     }
 
     return 'Multiple configuration changes applied';
+  }
+
+  // SYSTEM ADMIN EVENT HANDLERS
+
+  private setupSystemAdminEventHandlers(): void {
+    if (!this.socket) return;
+
+    this.socket.on('lab_data_changed', (data: unknown) => {
+      try {
+        const { labId } = systemAdminEventSchemas.lab_data_changed.parse(data);
+
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.labs.list() });
+      } catch (error) {
+        logger.error('Invalid lab_data_changed event', { error });
+      }
+    });
   }
 
   // RECONNECTION HANDLERS — Manager-level events (socket.io) in Socket.IO v4

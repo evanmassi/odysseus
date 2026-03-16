@@ -30,6 +30,82 @@ export class LabCreatedEvent extends DomainEvent {
   }
 }
 
+export class LabRenamedEvent extends DomainEvent {
+  constructor(
+    public readonly labId: string,
+    public readonly oldName: string,
+    public readonly newName: string,
+    public readonly renamedBy: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'LabRenamed';
+  }
+
+  getAggregateId(): string {
+    return this.labId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      labId: this.labId,
+      oldName: this.oldName,
+      newName: this.newName,
+      renamedBy: this.renamedBy,
+    };
+  }
+}
+
+export class LabActivatedEvent extends DomainEvent {
+  constructor(
+    public readonly labId: string,
+    public readonly activatedBy: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'LabActivated';
+  }
+
+  getAggregateId(): string {
+    return this.labId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      labId: this.labId,
+      activatedBy: this.activatedBy,
+    };
+  }
+}
+
+export class LabDeactivatedEvent extends DomainEvent {
+  constructor(
+    public readonly labId: string,
+    public readonly deactivatedBy: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'LabDeactivated';
+  }
+
+  getAggregateId(): string {
+    return this.labId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      labId: this.labId,
+      deactivatedBy: this.deactivatedBy,
+    };
+  }
+}
+
 export class InviteCodeCreatedEvent extends DomainEvent {
   constructor(
     public readonly codeId: string,

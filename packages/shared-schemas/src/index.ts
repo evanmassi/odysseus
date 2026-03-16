@@ -380,6 +380,7 @@ export {
   configurationEventSchemas,
   userEventSchemas,
   presenceEventSchemas,
+  systemAdminEventSchemas,
 } from './events';
 
 // Persons

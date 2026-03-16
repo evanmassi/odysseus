@@ -50,7 +50,8 @@ export class LabModule {
       const repositories = this.repositoryFactory.getRepositories();
       this.updateLabHandler = new UpdateLabCommandHandler(
         repositories.labs,
-        repositories.users
+        repositories.users,
+        this.shared.eventBus
       );
     }
     return this.updateLabHandler;
@@ -62,7 +63,8 @@ export class LabModule {
       this.deactivateLabHandler = new DeactivateLabCommandHandler(
         repositories.labs,
         repositories.users,
-        repositories.userSessions
+        repositories.userSessions,
+        this.shared.eventBus
       );
     }
     return this.deactivateLabHandler;
@@ -73,7 +75,8 @@ export class LabModule {
       const repositories = this.repositoryFactory.getRepositories();
       this.activateLabHandler = new ActivateLabCommandHandler(
         repositories.labs,
-        repositories.users
+        repositories.users,
+        this.shared.eventBus
       );
     }
     return this.activateLabHandler;

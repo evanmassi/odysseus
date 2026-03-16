@@ -11,6 +11,9 @@ import type {
 } from './EmailVerificationEvents';
 import type {
   LabCreatedEvent,
+  LabRenamedEvent,
+  LabActivatedEvent,
+  LabDeactivatedEvent,
   InviteCodeCreatedEvent,
   InviteCodeUsedEvent
 } from './LabEvents';
@@ -146,6 +149,9 @@ export interface DomainEventMap {
 
   // Lab events
   'LabCreated': LabCreatedEvent;
+  'LabRenamed': LabRenamedEvent;
+  'LabActivated': LabActivatedEvent;
+  'LabDeactivated': LabDeactivatedEvent;
   'InviteCodeCreated': InviteCodeCreatedEvent;
   'InviteCodeUsed': InviteCodeUsedEvent;
 }

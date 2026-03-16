@@ -7,7 +7,7 @@
 import { useState, useMemo } from 'react';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { Activity, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Activity, ArrowLeft, ChevronDown, RefreshCw } from 'lucide-react';
 
 import { Button } from '@shared/ui';
 
@@ -28,7 +28,7 @@ interface LabDashboardProps {
 }
 
 export function LabDashboard({ labId, onBack }: LabDashboardProps) {
-  const { data: details, isLoading, refetch } = useLabDetailsQuery(labId);
+  const { data: details, isLoading, isFetching, refetch } = useLabDetailsQuery(labId);
 
   const [userSortConfig, setUserSortConfig] = useState<SortConfig | undefined>(undefined);
   const [researcherSortConfig, setResearcherSortConfig] = useState<SortConfig | undefined>(
@@ -88,6 +88,15 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
             Back
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => void refetch()}
+            disabled={isLoading}
+            leftIcon={<RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />}
+          >
+            Refresh
           </Button>
         </div>
 

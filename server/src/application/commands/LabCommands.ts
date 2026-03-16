@@ -9,7 +9,7 @@ import { requireSystemAdmin } from '@application/guards/UserGuards';
 import { Lab } from '@domain/entities/Lab';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { LabCreatedEvent } from '@domain/events/LabEvents';
+import { LabCreatedEvent, LabRenamedEvent, LabActivatedEvent, LabDeactivatedEvent } from '@domain/events/LabEvents';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
@@ -75,7 +75,8 @@ export class CreateLabCommandHandler {
 export class UpdateLabCommandHandler {
   constructor(
     private labRepository: LabRepository,
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
+    private eventBus: EventBus
   ) {}
 
   async handle(command: UpdateLabCommand): Promise<void> {
@@ -90,6 +91,7 @@ export class UpdateLabCommandHandler {
       return;
     }
 
+    const oldName = lab.name;
     const newSlug = Lab.generateSlug(command.name);
     const existingBySlug = await this.labRepository.findBySlug(newSlug);
     if (existingBySlug && existingBySlug.id !== lab.id) {
@@ -98,6 +100,8 @@ export class UpdateLabCommandHandler {
 
     lab.updateName(command.name);
     await this.labRepository.save(lab);
+
+    await this.eventBus.publish(new LabRenamedEvent(command.labId, oldName, command.name, command.userId));
   }
 }
 
@@ -105,7 +109,8 @@ export class DeactivateLabCommandHandler {
   constructor(
     private labRepository: LabRepository,
     private userRepository: UserRepository,
-    private userSessionRepository: UserSessionRepository
+    private userSessionRepository: UserSessionRepository,
+    private eventBus: EventBus
   ) {}
 
   async handle(command: DeactivateLabCommand): Promise<void> {
@@ -127,13 +132,16 @@ export class DeactivateLabCommandHandler {
     await Promise.all(
       labUsers.map(user => this.userSessionRepository.revokeAllSessions(user.id))
     );
+
+    await this.eventBus.publish(new LabDeactivatedEvent(command.labId, command.userId));
   }
 }
 
 export class ActivateLabCommandHandler {
   constructor(
     private labRepository: LabRepository,
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
+    private eventBus: EventBus
   ) {}
 
   async handle(command: ActivateLabCommand): Promise<void> {
@@ -150,5 +158,7 @@ export class ActivateLabCommandHandler {
 
     lab.activate();
     await this.labRepository.save(lab);
+
+    await this.eventBus.publish(new LabActivatedEvent(command.labId, command.userId));
   }
 }

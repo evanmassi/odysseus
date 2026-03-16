@@ -8,6 +8,9 @@ import type { EventBus } from '@application/contracts/EventBus';
 import type { AuditService } from '@application/services/AuditService';
 import type {
   LabCreatedEvent,
+  LabRenamedEvent,
+  LabActivatedEvent,
+  LabDeactivatedEvent,
   InviteCodeCreatedEvent,
   InviteCodeUsedEvent
 } from '@domain/events/LabEvents';
@@ -210,6 +213,9 @@ export class AuditEventHandler {
 
     // Lab events
     this.eventBus.subscribe('LabCreated', (e) => this.handleLabCreated(e));
+    this.eventBus.subscribe('LabRenamed', (e) => this.handleLabRenamed(e));
+    this.eventBus.subscribe('LabActivated', (e) => this.handleLabActivated(e));
+    this.eventBus.subscribe('LabDeactivated', (e) => this.handleLabDeactivated(e));
     this.eventBus.subscribe('InviteCodeCreated', (e) => this.handleInviteCodeCreated(e));
     this.eventBus.subscribe('InviteCodeUsed', (e) => this.handleInviteCodeUsed(e));
   }
@@ -895,6 +901,33 @@ export class AuditEventHandler {
           timestamp: event.occurredOn.toISOString(),
         },
       });
+    });
+  }
+
+  private async handleLabRenamed(event: LabRenamedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'lab renamed', context: { labId: event.labId },
+      actorId: event.renamedBy, action: 'lab_renamed', entityType: 'lab',
+      entityId: event.labId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({ oldName: event.oldName, newName: event.newName, renamedBy: username }),
+    });
+  }
+
+  private async handleLabActivated(event: LabActivatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'lab activated', context: { labId: event.labId },
+      actorId: event.activatedBy, action: 'lab_activated', entityType: 'lab',
+      entityId: event.labId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({ activatedBy: username }),
+    });
+  }
+
+  private async handleLabDeactivated(event: LabDeactivatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'lab deactivated', context: { labId: event.labId },
+      actorId: event.deactivatedBy, action: 'lab_deactivated', entityType: 'lab',
+      entityId: event.labId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({ deactivatedBy: username }),
     });
   }
 

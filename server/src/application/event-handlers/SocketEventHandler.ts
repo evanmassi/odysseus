@@ -51,16 +51,26 @@ import type {
   TubeAccessRevokedEvent
 } from '@domain/events/TubeLockEvents';
 import type {
+  LabCreatedEvent,
+  LabActivatedEvent,
+  LabDeactivatedEvent
+} from '@domain/events/LabEvents';
+import type {
   UserApprovedEvent,
   UserDeletedEvent,
   UserRoleChangedEvent,
   UserCreatedEvent,
+  UserDeactivatedEvent,
+  UserSuspendedEvent,
+  UserReactivatedEvent,
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent
 } from '@domain/events/UserEvents';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { Server as SocketIOServer } from 'socket.io';
+
+const SYSTEM_ADMIN_ROOM = 'system-admins';
 
 export class SocketEventHandler {
   private configTimersByLab = new Map<string, NodeJS.Timeout>();
@@ -88,6 +98,15 @@ export class SocketEventHandler {
     }
   }
 
+  private emitSystemAdminUpdate(labId: string | undefined, trigger: string): void {
+    if (!labId) return;
+    this.io.to(SYSTEM_ADMIN_ROOM).emit('lab_data_changed', {
+      labId,
+      trigger,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   private setupPresenceHandlers(): void {
     this.io.on('connection', (socket) => {
       if (socket.userId && socket.username) {
@@ -98,6 +117,10 @@ export class SocketEventHandler {
             const labRoom = this.getLabRoomName(socket.labId);
             void socket.join(labRoom);
             logger.debug('Socket joined lab room', { socketId: socket.id, room: labRoom, labId: socket.labId });
+          } else {
+            // System admins have no labId — join a shared room for cross-lab notifications
+            void socket.join(SYSTEM_ADMIN_ROOM);
+            logger.debug('Socket joined system admin room', { socketId: socket.id, userId: socket.userId });
           }
 
           const onlinePayload = {
@@ -209,6 +232,17 @@ export class SocketEventHandler {
     // Bulk resource events - triggered during user deletion cascade
     this.eventBus.subscribe('BulkResourcesUnassigned', (e) => this.handleStorageChange(e));
     this.eventBus.subscribe('BulkResourcesReassigned', (e) => this.handleStorageChange(e));
+
+    // Lab lifecycle events — system admin only
+    this.eventBus.subscribe('LabCreated', async (e) => this.emitSystemAdminUpdate(e.labId, 'LabCreated'));
+    this.eventBus.subscribe('LabRenamed', async (e) => this.emitSystemAdminUpdate(e.labId, 'LabRenamed'));
+    this.eventBus.subscribe('LabActivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'LabActivated'));
+    this.eventBus.subscribe('LabDeactivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'LabDeactivated'));
+
+    // User status events — system admin only (lab-scoped events handled by existing user handlers)
+    this.eventBus.subscribe('UserDeactivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'UserDeactivated'));
+    this.eventBus.subscribe('UserSuspended', async (e) => this.emitSystemAdminUpdate(e.labId, 'UserSuspended'));
+    this.eventBus.subscribe('UserReactivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'UserReactivated'));
 
     // User events
     this.eventBus.subscribe('UserApproved', (e) => this.handleUserApproved(e));
@@ -471,6 +505,7 @@ export class SocketEventHandler {
       });
 
       this.emitToLabRooms(event.labId, 'researcher_created', payload);
+      this.emitSystemAdminUpdate(event.labId, 'ResearcherCreated');
     } catch (error) {
       logger.error('Failed to emit researcher_created event', {
         error: error instanceof Error ? error.message : String(error),
@@ -539,6 +574,7 @@ export class SocketEventHandler {
       });
 
       this.emitToLabRooms(event.labId, 'researcher_deleted', payload);
+      this.emitSystemAdminUpdate(event.labId, 'ResearcherDeleted');
     } catch (error) {
       logger.error('Failed to emit researcher_deleted event', {
         error: error instanceof Error ? error.message : String(error),
@@ -564,6 +600,7 @@ export class SocketEventHandler {
       });
 
       this.emitToLabRooms(event.labId, 'user_approved', payload);
+      this.emitSystemAdminUpdate(event.labId, 'UserApproved');
     } catch (error) {
       logger.error('Failed to emit user_approved event', {
         error: error instanceof Error ? error.message : String(error),
@@ -587,6 +624,7 @@ export class SocketEventHandler {
       });
 
       this.emitToLabRooms(event.labId, 'user_deleted', payload);
+      this.emitSystemAdminUpdate(event.labId, 'UserDeleted');
     } catch (error) {
       logger.error('Failed to emit user_deleted event', {
         error: error instanceof Error ? error.message : String(error),
@@ -612,6 +650,7 @@ export class SocketEventHandler {
       });
 
       this.emitToLabRooms(event.labId, 'user_role_changed', payload);
+      this.emitSystemAdminUpdate(event.labId, 'UserRoleChanged');
     } catch (error) {
       logger.error('Failed to emit user_role_changed event', {
         error: error instanceof Error ? error.message : String(error),
@@ -635,6 +674,7 @@ export class SocketEventHandler {
       });
 
       this.emitToLabRooms(event.labId, 'user_created', payload);
+      this.emitSystemAdminUpdate(event.labId, 'UserCreated');
     } catch (error) {
       logger.error('Failed to emit user_created event', {
         error: error instanceof Error ? error.message : String(error),
