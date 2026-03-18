@@ -41,11 +41,14 @@ export function DonorTable({
 
   const filteredDonors = useMemo(() => {
     if (!searchQuery) return donors;
-    const q = searchQuery.toLowerCase();
+    // Strip spaces and # for flexible matching (e.g., "LP8", "LP#8", "LP #8" all match)
+    const normalize = (s: string) => s.toLowerCase().replace(/[\s#]+/g, '');
+    const q = normalize(searchQuery);
     return donors.filter(
       d =>
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: need to match on either ID
-        d.donorSourceId?.toLowerCase().includes(q) || d.donorInternalId?.toLowerCase().includes(q)
+        normalize(d.donorSourceId ?? '').includes(q) ||
+        normalize(d.donorInternalId ?? '').includes(q)
     );
   }, [donors, searchQuery]);
 
@@ -85,7 +88,7 @@ export function DonorTable({
             {!row.isCurated && (
               <span
                 className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"
-                title="Uncurated — needs lab admin review"
+                title="Needs review — awaiting lab admin curation"
               />
             )}
             <span className="truncate">{row.donorSourceId ?? '—'}</span>
@@ -102,7 +105,7 @@ export function DonorTable({
         id: 'tubeCount',
         header: 'Tubes',
         sortable: true,
-        align: 'right' as const,
+        align: 'left' as const,
         width: 65,
         render: (_value, row) => (
           <Chip

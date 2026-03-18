@@ -88,18 +88,7 @@ export function CollectionHistoryTimeline({
   };
 
   return (
-    <div className="space-y-2">
-      {isAdmin && !isAdding && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsAdding(true)}
-          leftIcon={<Plus className="w-3 h-3" />}
-        >
-          Add entry
-        </Button>
-      )}
-
+    <div className="space-y-2 pl-1">
       {isAdding && (
         <div className="space-y-2 p-2 rounded-md bg-muted/30 border border-border/50">
           <DatePicker value={newDate} onChange={setNewDate} size="sm" />
@@ -171,6 +160,17 @@ export function CollectionHistoryTimeline({
             </div>
           ))}
         </div>
+      )}
+
+      {isAdmin && !isAdding && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsAdding(true)}
+          leftIcon={<Plus className="w-3 h-3" />}
+        >
+          Add entry
+        </Button>
       )}
     </div>
   );

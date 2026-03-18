@@ -45,7 +45,7 @@ export function DonorInfoPanel({
         <div className="flex items-center gap-2">
           {!donor.isCurated && (
             <Chip size="sm" color="warning">
-              Uncurated
+              Needs Review
             </Chip>
           )}
           <Chip size="sm" color="info">
@@ -63,13 +63,12 @@ export function DonorInfoPanel({
               Edit
             </Button>
             <Button
-              variant="ghost"
+              variant="ghost-danger"
               size="sm"
               onClick={onDelete}
-              className="text-danger-text hover:text-danger-text hover:bg-danger-text/10"
               leftIcon={<Trash2 className="w-3.5 h-3.5" />}
             >
-              Delete
+              Remove
             </Button>
           </div>
         )}
