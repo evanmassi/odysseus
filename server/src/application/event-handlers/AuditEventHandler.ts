@@ -7,6 +7,11 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { AuditService } from '@application/services/AuditService';
 import type {
+  DonorCreatedEvent,
+  DonorUpdatedEvent,
+  DonorDeletedEvent,
+} from '@domain/events/DonorEvents';
+import type {
   LabCreatedEvent,
   LabRenamedEvent,
   LabActivatedEvent,
@@ -210,6 +215,11 @@ export class AuditEventHandler {
     this.eventBus.subscribe('ResearcherReactivated', (e) => this.handleResearcherReactivated(e));
     this.eventBus.subscribe('ResearcherDeleted', (e) => this.handleResearcherDeleted(e));
     this.eventBus.subscribe('ResearcherApproved', (e) => this.handleResearcherApproved(e));
+
+    // Donor events
+    this.eventBus.subscribe('DonorCreated', (e) => this.handleDonorCreated(e));
+    this.eventBus.subscribe('DonorUpdated', (e) => this.handleDonorUpdated(e));
+    this.eventBus.subscribe('DonorDeleted', (e) => this.handleDonorDeleted(e));
 
     // Lab events
     this.eventBus.subscribe('LabCreated', (e) => this.handleLabCreated(e));
@@ -946,6 +956,44 @@ export class AuditEventHandler {
       actorId: event.userId, action: 'invite_code_used', entityType: 'lab',
       entityId: event.codeId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({ codeId: event.codeId, usedBy: username }),
+    });
+  }
+
+  // DONOR EVENT HANDLERS
+
+  private async handleDonorCreated(event: DonorCreatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'donor created', context: { donorId: event.donorId },
+      actorId: event.createdBy, action: 'donor_created', entityType: 'donor',
+      entityId: event.donorId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        donorId: event.donorId, donorSourceId: event.donorSourceId,
+        donorInternalId: event.donorInternalId, isCurated: event.isCurated,
+        createdBy: username,
+      }),
+    });
+  }
+
+  private async handleDonorUpdated(event: DonorUpdatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'donor updated', context: { donorId: event.donorId },
+      actorId: event.updatedBy, action: 'donor_updated', entityType: 'donor',
+      entityId: event.donorId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        donorId: event.donorId, changes: event.changes, updatedBy: username,
+      }),
+    });
+  }
+
+  private async handleDonorDeleted(event: DonorDeletedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'donor deleted', context: { donorId: event.donorId },
+      actorId: event.deletedBy, action: 'donor_deleted', entityType: 'donor',
+      entityId: event.donorId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        donorId: event.donorId, donorSourceId: event.donorSourceId,
+        donorInternalId: event.donorInternalId, deletedBy: username,
+      }),
     });
   }
 
