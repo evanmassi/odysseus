@@ -193,7 +193,8 @@ export class StorageModule {
       this.resetDemoDataHandler = new ResetDemoDataCommandHandler(
         repositories.storage,
         repositories.tubes,
-        repositories.users
+        repositories.users,
+        repositories.donors
       );
     }
     return this.resetDemoDataHandler;

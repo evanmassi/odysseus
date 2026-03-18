@@ -15,6 +15,7 @@ import {
   TankUpdatedEvent,
   TankDeletedEvent
 } from '@domain/events/StorageEvents';
+import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -211,12 +212,13 @@ export class DeleteTankCommandHandler {
   }
 }
 
-/** Deletes all tubes in the lab (used for demo lab reset). */
+/** Deletes all tubes and donors in the lab (used for demo lab reset). */
 export class ResetDemoDataCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
     private tubeRepository: TubeRepository,
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
+    private donorRepository?: DonorRepository
   ) {}
 
   async handle(command: ResetDemoDataCommand): Promise<{ deletedTubes: number }> {
@@ -237,6 +239,14 @@ export class ResetDemoDataCommandHandler {
     }
 
     const deletedTubes = await this.tubeRepository.deleteByTankIds(allTankIds, command.labId);
+
+    // Clean up donor records so the registry resets cleanly
+    if (this.donorRepository) {
+      const donors = await this.donorRepository.findByLabId(command.labId);
+      for (const donor of donors) {
+        await this.donorRepository.delete(donor.id);
+      }
+    }
 
     if (currentConfig.hasAnySeededResources()) {
       const expectedVersion = currentConfig.version;
