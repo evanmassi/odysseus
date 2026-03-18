@@ -1,0 +1,211 @@
+/**
+ * Donor Repository
+ *
+ * PostgreSQL implementation for donor records and collection history.
+ */
+
+import type { Donor } from '@domain/entities/Donor';
+import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
+import type { DonorRepository as IDonorRepository } from '@domain/repositories/DonorRepository';
+import type { DonorRow, DonorCollectionHistoryRow } from '@infrastructure/database/mappers/DonorMapper';
+import { DonorMapper } from '@infrastructure/database/mappers/DonorMapper';
+import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+
+const DONOR_COLUMNS = 'id, lab_id, donor_source_id, donor_internal_id, species, age, sex, ethnicity, clinical_status, diagnosis, disease_stage, notes, is_curated, created_at, updated_at';
+const HISTORY_COLUMNS = 'id, donor_id, collection_date, specimen_type, source, created_at';
+
+export class DonorRepository implements IDonorRepository {
+
+  constructor(private db: PostgresContext) {}
+
+  async findById(id: string): Promise<Donor | null> {
+    const row = await this.db.queryOne<DonorRow>(
+      `SELECT ${DONOR_COLUMNS} FROM donors WHERE id = $1`,
+      [id]
+    );
+    return row ? DonorMapper.fromRow(row) : null;
+  }
+
+  async findByLabId(labId: string): Promise<Donor[]> {
+    const rows = await this.db.queryMany<DonorRow>(
+      `SELECT ${DONOR_COLUMNS} FROM donors WHERE lab_id = $1 ORDER BY updated_at DESC`,
+      [labId]
+    );
+    return DonorMapper.fromRows(rows);
+  }
+
+  async findByDonorIds(labId: string, sourceId?: string, internalId?: string): Promise<Donor | null> {
+    if (!sourceId && !internalId) return null;
+
+    const conditions: string[] = ['lab_id = $1'];
+    const params: (string | undefined)[] = [labId];
+    const orClauses: string[] = [];
+
+    if (sourceId) {
+      params.push(sourceId);
+      orClauses.push(`donor_source_id = $${params.length}`);
+    }
+    if (internalId) {
+      params.push(internalId);
+      orClauses.push(`donor_internal_id = $${params.length}`);
+    }
+
+    conditions.push(`(${orClauses.join(' OR ')})`);
+
+    const row = await this.db.queryOne<DonorRow>(
+      `SELECT ${DONOR_COLUMNS} FROM donors WHERE ${conditions.join(' AND ')} LIMIT 1`,
+      params
+    );
+    return row ? DonorMapper.fromRow(row) : null;
+  }
+
+  async search(labId: string, query: string, limit: number = 20): Promise<Donor[]> {
+    const rows = await this.db.queryMany<DonorRow>(`
+      SELECT ${DONOR_COLUMNS} FROM donors
+      WHERE lab_id = $1
+        AND (donor_source_id % $2 OR donor_internal_id % $2)
+      ORDER BY GREATEST(
+        COALESCE(similarity(donor_source_id, $2), 0),
+        COALESCE(similarity(donor_internal_id, $2), 0)
+      ) DESC
+      LIMIT $3
+    `, [labId, query, limit]);
+    return DonorMapper.fromRows(rows);
+  }
+
+  async save(donor: Donor): Promise<void> {
+    const row = DonorMapper.toRow(donor);
+
+    await this.db.execute(`
+      INSERT INTO donors (${DONOR_COLUMNS})
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      ON CONFLICT (id) DO UPDATE SET
+        donor_source_id = EXCLUDED.donor_source_id,
+        donor_internal_id = EXCLUDED.donor_internal_id,
+        species = EXCLUDED.species,
+        age = EXCLUDED.age,
+        sex = EXCLUDED.sex,
+        ethnicity = EXCLUDED.ethnicity,
+        clinical_status = EXCLUDED.clinical_status,
+        diagnosis = EXCLUDED.diagnosis,
+        disease_stage = EXCLUDED.disease_stage,
+        notes = EXCLUDED.notes,
+        is_curated = EXCLUDED.is_curated,
+        updated_at = EXCLUDED.updated_at
+    `, [
+      row.id, row.lab_id, row.donor_source_id, row.donor_internal_id,
+      row.species, row.age, row.sex, row.ethnicity,
+      row.clinical_status, row.diagnosis, row.disease_stage, row.notes,
+      row.is_curated, row.created_at, row.updated_at
+    ]);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await this.db.execute('DELETE FROM donors WHERE id = $1', [id]);
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  /** Atomic insert-if-not-exists for tube auto-creation. */
+  async saveIfNotExists(donor: Donor): Promise<boolean> {
+    const row = DonorMapper.toRow(donor);
+
+    const conditions: string[] = ['lab_id = $2'];
+    const orClauses: string[] = [];
+
+    if (row.donor_source_id) {
+      orClauses.push(`donor_source_id = $3`);
+    }
+    if (row.donor_internal_id) {
+      orClauses.push(`donor_internal_id = $4`);
+    }
+
+    if (orClauses.length === 0) return false;
+    conditions.push(`(${orClauses.join(' OR ')})`);
+
+    const result = await this.db.execute(`
+      INSERT INTO donors (${DONOR_COLUMNS})
+      SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+      WHERE NOT EXISTS (
+        SELECT 1 FROM donors WHERE ${conditions.join(' AND ')}
+      )
+    `, [
+      row.id, row.lab_id, row.donor_source_id, row.donor_internal_id,
+      row.species, row.age, row.sex, row.ethnicity,
+      row.clinical_status, row.diagnosis, row.disease_stage, row.notes,
+      row.is_curated, row.created_at, row.updated_at
+    ]);
+
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getTubeCountsForDonors(labId: string, donors: Donor[]): Promise<Map<string, number>> {
+    const result = new Map<string, number>();
+    if (donors.length === 0) return result;
+
+    // Build per-donor matching conditions
+    const caseWhenClauses: string[] = [];
+    const params: string[] = [labId];
+
+    for (const donor of donors) {
+      const orParts: string[] = [];
+      if (donor.donorSourceId) {
+        params.push(donor.donorSourceId);
+        orParts.push(`t.donor_source_id = $${params.length}`);
+      }
+      if (donor.donorInternalId) {
+        params.push(donor.donorInternalId);
+        orParts.push(`t.donor_internal_id = $${params.length}`);
+      }
+      if (orParts.length > 0) {
+        params.push(donor.id);
+        caseWhenClauses.push(`WHEN ${orParts.join(' OR ')} THEN $${params.length}`);
+      }
+    }
+
+    if (caseWhenClauses.length === 0) return result;
+
+    const rows = await this.db.queryMany<{ donor_id: string; count: string }>(`
+      SELECT
+        CASE ${caseWhenClauses.join(' ')} END AS donor_id,
+        COUNT(*) AS count
+      FROM tubes t
+      WHERE t.lab_id = $1
+        AND (CASE ${caseWhenClauses.join(' ')} END) IS NOT NULL
+      GROUP BY donor_id
+    `, params);
+
+    for (const row of rows) {
+      result.set(row.donor_id, parseInt(row.count, 10));
+    }
+
+    // Ensure all donors have an entry (0 for those with no tubes)
+    for (const donor of donors) {
+      if (!result.has(donor.id)) {
+        result.set(donor.id, 0);
+      }
+    }
+
+    return result;
+  }
+
+  async findCollectionHistory(donorId: string): Promise<DonorCollectionHistory[]> {
+    const rows = await this.db.queryMany<DonorCollectionHistoryRow>(
+      `SELECT ${HISTORY_COLUMNS} FROM donor_collection_history WHERE donor_id = $1 ORDER BY collection_date DESC`,
+      [donorId]
+    );
+    return DonorMapper.historyFromRows(rows);
+  }
+
+  async saveCollectionHistory(entry: DonorCollectionHistory): Promise<void> {
+    const row = DonorMapper.historyToRow(entry);
+    await this.db.execute(`
+      INSERT INTO donor_collection_history (${HISTORY_COLUMNS})
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [row.id, row.donor_id, row.collection_date, row.specimen_type, row.source, row.created_at]);
+  }
+
+  async deleteCollectionHistory(id: string): Promise<boolean> {
+    const result = await this.db.execute('DELETE FROM donor_collection_history WHERE id = $1', [id]);
+    return (result.rowCount ?? 0) > 0;
+  }
+}
