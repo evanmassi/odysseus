@@ -26,9 +26,11 @@ import {
   TestTube,
   FlaskConical,
   CircleHelp,
+  BookUser,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
+import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
 import { SearchPanel } from '@domains/search/ui/components/SearchPanel';
 import { useStorageData } from '@domains/storage';
 import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
@@ -68,6 +70,12 @@ const HelpModal = lazy(() =>
   }))
 );
 
+const DonorRegistryModal = lazy(() =>
+  import('@domains/donors/ui/components/DonorRegistryModal').then(m => ({
+    default: m.DonorRegistryModal,
+  }))
+);
+
 const useLazyAdminSettings = createPreloadHook(() => import('@domains/admin'));
 
 const useLazyStorageManager = createPreloadHook(
@@ -79,6 +87,10 @@ const useLazyUserSettings = createPreloadHook(
 );
 
 const useLazyHelp = createPreloadHook(() => import('@domains/help'));
+
+const useLazyDonorRegistry = createPreloadHook(
+  () => import('@domains/donors/ui/components/DonorRegistryModal')
+);
 
 type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
 
@@ -154,6 +166,8 @@ export function AppHeader({
   const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
   const { triggerProps: userSettingsTriggerProps } = useLazyUserSettings();
   const { triggerProps: helpTriggerProps } = useLazyHelp();
+  const { triggerProps: donorRegistryTriggerProps } = useLazyDonorRegistry();
+  const donorRegistry = useDonorRegistryStore();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showStorageManager, setShowStorageManager] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
@@ -548,6 +562,19 @@ export function AppHeader({
                     />
                   )}
 
+                  {/* Donor Registry - requires lab context */}
+                  {hasLab && (
+                    <HamburgerMenuItem
+                      icon={BookUser}
+                      label="Donor Registry"
+                      onClick={() => {
+                        donorRegistry.open();
+                        closeMenu();
+                      }}
+                      triggerProps={donorRegistryTriggerProps}
+                    />
+                  )}
+
                   {/* Admin Settings - Only show to lab_admin and system_admin */}
                   {isAdminRole(user?.role) && (
                     <HamburgerMenuItem
@@ -602,6 +629,16 @@ export function AppHeader({
       {/* Help Modal */}
       <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="HelpModal">
         <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+      </SuspenseBoundary>
+
+      {/* Donor Registry Modal */}
+      <SuspenseBoundary fallback={<ModalSkeleton size="xl" />} name="DonorRegistryModal">
+        <DonorRegistryModal
+          isOpen={donorRegistry.isOpen}
+          onClose={donorRegistry.close}
+          initialDonorId={donorRegistry.initialDonorId}
+          initialIdType={donorRegistry.initialIdType}
+        />
       </SuspenseBoundary>
     </header>
   );

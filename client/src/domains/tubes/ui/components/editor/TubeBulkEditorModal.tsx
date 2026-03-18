@@ -46,7 +46,13 @@ import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useTubeFieldResolver';
 import type { BulkUpdateProgress, BulkUpdateResult } from '@domains/tubes/types';
-import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
+import type {
+  Control,
+  UseFormRegister,
+  UseFormSetValue,
+  FieldErrors,
+  UseFormTrigger,
+} from 'react-hook-form';
 
 export interface TubeBulkEditorModalProps {
   isOpen?: boolean;
@@ -603,6 +609,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
           <TubeForm
             control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
             register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+            setValue={form.setValue as UseFormSetValue<CreateTubeRequest | UpdateTubeRequest>}
             errors={filteredErrors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
             trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
             researchers={researchers}

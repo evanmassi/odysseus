@@ -12,6 +12,7 @@ import {
 } from '@odysseus/shared-schemas';
 import { AlertTriangle, Lock, MapPin, Notebook, Pencil, TestTube, UsersRound } from 'lucide-react';
 
+import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
 import { useResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,
@@ -116,6 +117,7 @@ interface TubeInfoPanelProps {
 export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps) {
   const { getTubeValue, analyzeFieldConflicts, tubes } = useTubeFieldResolver();
   const { data: researchers = [] } = useResearchersQuery();
+  const openDonorRegistry = useDonorRegistryStore(s => s.open);
   const { settings: userSettings } = useUserSettings();
 
   const researcherMap = useMemo(() => {
@@ -469,18 +471,44 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             ) : null}
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-            <TubeInfoField
-              label="Internal ID"
-              value={donorInternalId}
-              inline={false}
-              isMixed={isFieldMixed('sample.donorInternalId')}
-            />
-            <TubeInfoField
-              label="Source ID"
-              value={donorSourceId}
-              inline={false}
-              isMixed={isFieldMixed('sample.donorSourceId')}
-            />
+            {donorInternalId && !isFieldMixed('sample.donorInternalId') ? (
+              <div>
+                <div className="text-card-foreground/50 text-xs">Internal ID</div>
+                <button
+                  type="button"
+                  onClick={() => openDonorRegistry(donorInternalId as string, 'internal')}
+                  className="text-card-foreground font-medium text-sm break-all hover:text-primary hover:underline cursor-pointer text-left"
+                >
+                  {donorInternalId}
+                </button>
+              </div>
+            ) : (
+              <TubeInfoField
+                label="Internal ID"
+                value={donorInternalId}
+                inline={false}
+                isMixed={isFieldMixed('sample.donorInternalId')}
+              />
+            )}
+            {donorSourceId && !isFieldMixed('sample.donorSourceId') ? (
+              <div>
+                <div className="text-card-foreground/50 text-xs">Source ID</div>
+                <button
+                  type="button"
+                  onClick={() => openDonorRegistry(donorSourceId as string, 'source')}
+                  className="text-card-foreground font-medium text-sm break-all hover:text-primary hover:underline cursor-pointer text-left"
+                >
+                  {donorSourceId}
+                </button>
+              </div>
+            ) : (
+              <TubeInfoField
+                label="Source ID"
+                value={donorSourceId}
+                inline={false}
+                isMixed={isFieldMixed('sample.donorSourceId')}
+              />
+            )}
           </div>
         </TubeInfoGroup>
 

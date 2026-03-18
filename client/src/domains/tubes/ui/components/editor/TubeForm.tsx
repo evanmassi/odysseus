@@ -13,12 +13,19 @@ import {
 import { AlertTriangle } from 'lucide-react';
 import { Controller, useWatch } from 'react-hook-form';
 
+import { DonorIdAutocomplete } from '@domains/donors';
 import { DatePicker, Select, ValidatedInput } from '@shared/ui';
 
 import { TubeConcentrationField } from './TubeConcentrationField';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
-import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
+import type {
+  Control,
+  UseFormRegister,
+  UseFormSetValue,
+  FieldErrors,
+  UseFormTrigger,
+} from 'react-hook-form';
 
 const CONFLICT_FIELD_MAP: Record<string, string> = {
   cellType: 'sample.cellType',
@@ -48,6 +55,7 @@ type TubeFormValues = CreateTubeRequest | UpdateTubeRequest;
 export interface TubeFormProps {
   control: Control<TubeFormValues>;
   register: UseFormRegister<TubeFormValues>;
+  setValue: UseFormSetValue<TubeFormValues>;
   errors: FieldErrors<TubeFormValues>;
   trigger: UseFormTrigger<TubeFormValues>;
   researchers: Researcher[];
@@ -61,6 +69,7 @@ export interface TubeFormProps {
 export const TubeForm = ({
   control,
   register,
+  setValue,
   errors,
   trigger,
   researchers,
@@ -195,9 +204,8 @@ export const TubeForm = ({
       {/* ROW 2: Donor IDs */}
       <div className="flex gap-2.5">
         <div className="w-64">
-          <ValidatedInput
+          <DonorIdAutocomplete
             label="Internal ID"
-            type="text"
             placeholder="Internal tracking ID"
             registration={register('sample.donorInternalId')}
             error={Boolean(getFieldError('sample.donorInternalId', errors))}
@@ -205,12 +213,17 @@ export const TubeForm = ({
             disabled={isLoading}
             badge={getConflictBadge('sample.donorInternalId')}
             hasConflict={hasConflict('sample.donorInternalId')}
+            fieldType="internal"
+            onValueSelect={v =>
+              setValue('sample.donorInternalId' as keyof TubeFormValues, v, {
+                shouldValidate: true,
+              })
+            }
           />
         </div>
         <div className="w-64">
-          <ValidatedInput
+          <DonorIdAutocomplete
             label="Source ID"
-            type="text"
             placeholder="Original source ID"
             registration={register('sample.donorSourceId')}
             error={Boolean(getFieldError('sample.donorSourceId', errors))}
@@ -218,6 +231,10 @@ export const TubeForm = ({
             disabled={isLoading}
             badge={getConflictBadge('sample.donorSourceId')}
             hasConflict={hasConflict('sample.donorSourceId')}
+            fieldType="source"
+            onValueSelect={v =>
+              setValue('sample.donorSourceId' as keyof TubeFormValues, v, { shouldValidate: true })
+            }
           />
         </div>
       </div>

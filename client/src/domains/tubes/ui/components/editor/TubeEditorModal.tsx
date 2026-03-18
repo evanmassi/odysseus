@@ -47,7 +47,13 @@ import { TubeForm } from './TubeForm';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
-import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
+import type {
+  Control,
+  UseFormRegister,
+  UseFormSetValue,
+  FieldErrors,
+  UseFormTrigger,
+} from 'react-hook-form';
 
 export interface TubeEditorModalProps {
   isOpen?: boolean;
@@ -373,6 +379,7 @@ function EditModeForm({
           <TubeForm
             control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
             register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+            setValue={form.setValue as UseFormSetValue<CreateTubeRequest | UpdateTubeRequest>}
             errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
             trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
             researchers={researchers}
@@ -754,6 +761,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         <TubeForm
           control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
           register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+          setValue={form.setValue as UseFormSetValue<CreateTubeRequest | UpdateTubeRequest>}
           errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
           trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
           researchers={researchers}
