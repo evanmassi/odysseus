@@ -23,7 +23,6 @@ import {
 } from '@domains/storage';
 import { useTubeFieldResolver, TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useTubeFieldResolver';
 import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { useLookupValuesQuery } from '@domains/tubes/hooks/useTubeLookupValuesQuery';
 import {
   useBulkUpdateTubesMutation,
   useBulkDeleteTubesMutation,
@@ -31,6 +30,7 @@ import {
 import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { useUserSettings } from '@domains/users';
 import { logger } from '@infra/logger';
+import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { AlertBanner, Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';

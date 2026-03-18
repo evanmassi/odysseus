@@ -25,7 +25,6 @@ import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubes, useTube } from '@domains/tubes';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { useLookupValuesQuery } from '@domains/tubes/hooks/useTubeLookupValuesQuery';
 import {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
@@ -35,6 +34,7 @@ import { parsePositionKey, type PositionKey } from '@domains/tubes/types/gridSel
 import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
+import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { AlertBanner, Button, Checkbox } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';

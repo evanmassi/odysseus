@@ -1,5 +1,5 @@
 /**
- * Tube Info Field
+ * Info Field
  *
  * Read-only label–value display with inline or stacked layout and mixed-state indicator.
  */
@@ -8,22 +8,28 @@ import type { FC } from 'react';
 
 import { AlertTriangle } from 'lucide-react';
 
-interface TubeInfoFieldProps {
+export interface InfoFieldProps {
   label: string;
   value: string | number | null | undefined;
   className?: string;
   inline?: boolean;
   isMixed?: boolean;
+  emptyText?: string;
 }
 
-export const TubeInfoField: FC<TubeInfoFieldProps> = ({
+export const InfoField: FC<InfoFieldProps> = ({
   label,
   value,
   className = '',
   inline = true,
   isMixed = false,
+  emptyText,
 }) => {
-  if (!value && value !== 0 && !isMixed) return null;
+  const isEmpty = !value && value !== 0 && !isMixed;
+
+  if (isEmpty && !emptyText) return null;
+
+  const displayValue = isEmpty ? emptyText : value;
 
   if (inline) {
     return (
@@ -34,8 +40,10 @@ export const TubeInfoField: FC<TubeInfoFieldProps> = ({
             <AlertTriangle className="inline w-3 h-3 text-warning-text mr-0.5" />
             <span className="text-card-foreground/30 text-sm">—</span>
           </>
+        ) : isEmpty ? (
+          <span className="text-card-foreground/30 text-sm italic">{displayValue}</span>
         ) : (
-          <span className="text-card-foreground font-medium text-sm break-all">{value}</span>
+          <span className="text-card-foreground font-medium text-sm break-all">{displayValue}</span>
         )}
       </div>
     );
@@ -48,7 +56,13 @@ export const TubeInfoField: FC<TubeInfoFieldProps> = ({
         {isMixed && <AlertTriangle className="w-3 h-3 text-warning-text" />}
       </div>
       <div className="text-card-foreground font-medium text-sm break-all">
-        {isMixed ? <span className="text-card-foreground/30 font-normal">—</span> : value}
+        {isMixed ? (
+          <span className="text-card-foreground/30 font-normal">—</span>
+        ) : isEmpty ? (
+          <span className="text-card-foreground/30 font-normal italic">{displayValue}</span>
+        ) : (
+          displayValue
+        )}
       </div>
     </div>
   );

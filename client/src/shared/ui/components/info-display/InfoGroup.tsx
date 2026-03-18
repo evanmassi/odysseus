@@ -1,19 +1,19 @@
 /**
- * Tube Info Group
+ * Info Group
  *
  * Section wrapper that groups related fields under a muted header with divider.
  */
 
 import type { FC, ReactNode } from 'react';
 
-interface TubeInfoGroupProps {
+export interface InfoGroupProps {
   title: string;
   children: ReactNode;
   className?: string;
   hideTitle?: boolean;
 }
 
-export const TubeInfoGroup: FC<TubeInfoGroupProps> = ({
+export const InfoGroup: FC<InfoGroupProps> = ({
   title,
   children,
   className = '',

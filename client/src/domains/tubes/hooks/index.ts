@@ -30,7 +30,7 @@ export {
 export { useTubeAccessControl } from './useTubeAccessControl';
 
 // Lookup hooks
-export { useLookupValuesQuery } from './useTubeLookupValuesQuery';
+export { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 
 // Form hooks
 export {

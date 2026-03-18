@@ -1,7 +1,7 @@
 /**
  * Lookup Values Query Hook
  *
- * Fetches active lookup values for form dropdowns (species, source).
+ * Fetches active lookup values for form dropdowns (species, source, media, specimen type).
  */
 
 import { lookupValueSchema } from '@odysseus/shared-schemas';

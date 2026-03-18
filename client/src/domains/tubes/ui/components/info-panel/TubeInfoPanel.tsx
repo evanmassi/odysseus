@@ -21,15 +21,12 @@ import {
 } from '@domains/storage';
 import { useTubeFieldResolver } from '@domains/tubes/hooks';
 import { useUserSettings } from '@domains/users';
-import { Chip, Tooltip } from '@shared/ui';
+import { Chip, Tooltip, InfoField as TubeInfoField, InfoGroup as TubeInfoGroup } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { useTubeStore } from '../../../stores/tubeStore';
 import { parsePositionKey } from '../../../types/gridSelectionTypes';
 import { TubeLockNoteModal } from '../locking/TubeLockNoteModal';
-
-import { TubeInfoField } from './TubeInfoField';
-import { TubeInfoGroup } from './TubeInfoGroup';
 
 import type { LockContext } from '../../../types/gridSelectionTypes';
 import type { Researcher, TubeData } from '@odysseus/shared-schemas';

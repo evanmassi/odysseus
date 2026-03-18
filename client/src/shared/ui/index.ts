@@ -16,6 +16,11 @@ export * from './primitives';
 export { ErrorBoundary } from './components/boundaries/ErrorBoundary';
 export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 
+// Info display components
+export { InfoField, InfoGroup } from './components/info-display';
+export type { InfoFieldProps } from './components/info-display';
+export type { InfoGroupProps } from './components/info-display';
+
 // Loading components
 export {
   LoadingOverlay,

@@ -5,6 +5,11 @@
  */
 
 import type {
+  DonorCreatedEvent,
+  DonorUpdatedEvent,
+  DonorDeletedEvent
+} from './DonorEvents';
+import type {
   VerificationEmailSentEvent,
   EmailVerifiedEvent,
   VerificationEmailResentEvent
@@ -22,11 +27,6 @@ import type {
   PasswordResetTokenGeneratedEvent,
   PasswordResetCompletedEvent
 } from './PasswordResetEvents';
-import type {
-  DonorCreatedEvent,
-  DonorUpdatedEvent,
-  DonorDeletedEvent
-} from './DonorEvents';
 import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
