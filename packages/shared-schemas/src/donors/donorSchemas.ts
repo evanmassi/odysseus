@@ -98,6 +98,10 @@ export const donorCollectionHistoryResponseSchema = z.object({
   history: z.array(donorCollectionHistorySchema),
 });
 
+export const donorCollectionHistoryEntryResponseSchema = z.object({
+  entry: donorCollectionHistorySchema,
+});
+
 export const donorSearchResultSchema = donorSchema.pick({
   id: true,
   donorSourceId: true,

@@ -8,6 +8,7 @@ export {
   donorsResponseSchema,
   donorResponseSchema,
   donorCollectionHistoryResponseSchema,
+  donorCollectionHistoryEntryResponseSchema,
   donorSearchResultSchema,
   donorSearchResponseSchema,
   type Donor,
