@@ -383,6 +383,28 @@ export {
   systemAdminEventSchemas,
 } from './events';
 
+// Donors
+export {
+  donorSchema,
+  donorWithTubeCountSchema,
+  donorCollectionHistorySchema,
+  createDonorRequestSchema,
+  updateDonorRequestSchema,
+  createCollectionHistoryRequestSchema,
+  donorsResponseSchema,
+  donorResponseSchema,
+  donorCollectionHistoryResponseSchema,
+  donorSearchResultSchema,
+  donorSearchResponseSchema,
+  type Donor,
+  type DonorWithTubeCount,
+  type DonorCollectionHistory,
+  type CreateDonorRequest,
+  type UpdateDonorRequest,
+  type CreateCollectionHistoryRequest,
+  type DonorSearchResult,
+} from './donors';
+
 // Persons
 export {
   personSchema,
