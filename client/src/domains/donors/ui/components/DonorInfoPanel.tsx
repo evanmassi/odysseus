@@ -62,7 +62,7 @@ export function DonorInfoPanel({
         )}
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+      <div className="flex-1 min-h-0 overflow-hidden pr-1">
         <div className="space-y-4 pb-4">
           <InfoGroup title="Identifiers">
             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">

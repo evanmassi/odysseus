@@ -8,7 +8,7 @@ import { useState, useMemo } from 'react';
 
 import { Plus, Search } from 'lucide-react';
 
-import { Button, Chip, Input, Table } from '@shared/ui';
+import { Button, Chip, ScrollArea, Table } from '@shared/ui';
 
 import type { DonorWithTubeCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
@@ -119,17 +119,8 @@ export function DonorTable({
   );
 
   return (
-    <div className="flex flex-col gap-2 h-full">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-          <Input
-            value={searchQuery}
-            onChange={e => onSearchChange(e.target.value)}
-            placeholder="Search donor IDs..."
-            className="pl-8 h-8 text-sm"
-          />
-        </div>
+    <div className="flex flex-col gap-2 h-full pt-1 px-1">
+      <div className="flex items-center justify-between gap-2">
         {isAdmin && (
           <Button
             variant="primary"
@@ -137,12 +128,22 @@ export function DonorTable({
             onClick={onAddDonor}
             leftIcon={<Plus className="w-3.5 h-3.5" />}
           >
-            Add
+            Add Donor
           </Button>
         )}
+        <div className="relative w-48 ml-auto">
+          <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => onSearchChange(e.target.value)}
+            placeholder="Search..."
+            className="input-search w-full pl-8"
+          />
+        </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+      <ScrollArea className="flex-1 min-h-0">
         <Table
           columns={columns}
           data={sortedDonors}
@@ -158,7 +159,7 @@ export function DonorTable({
           aria-label="Donor registry"
           rowClassName={row => (row.id === selectedDonorId ? 'bg-accent/50' : '')}
         />
-      </div>
+      </ScrollArea>
     </div>
   );
 }
