@@ -1,7 +1,7 @@
 /**
  * Catalog Tab
  *
- * Admin interface for managing lookup values (species, source dropdowns).
+ * Admin interface for managing lookup values (species, source, media, specimen type dropdowns).
  */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -281,6 +281,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
   const [mediaValues, setMediaValues] = useState<LookupValueWithCount[]>([]);
+  const [specimenTypeValues, setSpecimenTypeValues] = useState<LookupValueWithCount[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -292,14 +293,16 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const loadValues = useCallback(async () => {
     setLoading(true);
     try {
-      const [species, sources, media] = await Promise.all([
+      const [species, sources, media, specimenTypes] = await Promise.all([
         adminService.getLookupValues('species'),
         adminService.getLookupValues('source'),
         adminService.getLookupValues('media'),
+        adminService.getLookupValues('specimen_type'),
       ]);
       setSpeciesValues(species);
       setSourceValues(sources);
       setMediaValues(media);
+      setSpecimenTypeValues(specimenTypes);
     } catch (error) {
       logger.error('Failed to load lookup values', { error });
       notifications.error('Failed to load catalog values');
@@ -431,13 +434,25 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
           deletingId={deletingId}
           readOnly={readOnly}
         />
+
+        <CategorySection
+          category="specimen_type"
+          title="Specimen Types"
+          values={specimenTypeValues}
+          loading={loading}
+          onAdd={value => handleAdd('specimen_type', value)}
+          onRename={(id, newValue) => handleRename('specimen_type', id, newValue)}
+          onDelete={(id, value) => handleDeleteRequest('specimen_type', id, value)}
+          deletingId={deletingId}
+          readOnly={readOnly}
+        />
       </div>
 
       {confirmDialog && (
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : confirmDialog.category === 'source' ? 'Source' : 'Media Type'}`}
+          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : confirmDialog.category === 'source' ? 'Source' : confirmDialog.category === 'specimen_type' ? 'Specimen Type' : 'Media Type'}`}
           message={`Are you sure you want to delete "${confirmDialog.value}" from ${confirmDialog.category}? This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => void executeDelete()}
