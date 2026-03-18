@@ -52,14 +52,16 @@ export function CollectionHistoryTimeline({
   const addMutation = useAddCollectionHistoryMutation();
   const deleteMutation = useDeleteCollectionHistoryMutation();
 
+  const hasAnyField = !!(newDate || newSpecimenType || newSource);
+
   const handleAdd = () => {
-    if (!newDate) return;
+    if (!hasAnyField) return;
 
     addMutation.mutate(
       {
         donorId,
         data: {
-          collectionDate: newDate,
+          collectionDate: newDate || undefined,
           specimenType: newSpecimenType || undefined,
           source: newSource || undefined,
         },
@@ -120,7 +122,7 @@ export function CollectionHistoryTimeline({
               size="sm"
               variant="primary"
               onClick={handleAdd}
-              disabled={!newDate || addMutation.isPending}
+              disabled={!hasAnyField || addMutation.isPending}
             >
               Save
             </Button>
@@ -137,18 +139,23 @@ export function CollectionHistoryTimeline({
         <div className="space-y-1.5">
           {history.map(entry => (
             <div key={entry.id} className="flex items-center gap-2 text-sm group">
-              <span className="text-card-foreground/60 whitespace-nowrap">
-                {formatDate(entry.collectionDate)}
-              </span>
+              {entry.collectionDate && (
+                <span className="text-card-foreground/60 whitespace-nowrap">
+                  {formatDate(entry.collectionDate)}
+                </span>
+              )}
               {entry.specimenType && (
                 <>
-                  <span className="text-card-foreground/30">·</span>
+                  {entry.collectionDate && <span className="text-card-foreground/30">·</span>}
                   <span className="text-card-foreground">{entry.specimenType}</span>
                 </>
               )}
               {entry.source && (
                 <>
-                  <span className="text-card-foreground/30">·</span>
+                  {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: separator shown when either preceding field exists */}
+                  {(entry.collectionDate || entry.specimenType) && (
+                    <span className="text-card-foreground/30">·</span>
+                  )}
                   <span className="text-card-foreground/60">{entry.source}</span>
                 </>
               )}

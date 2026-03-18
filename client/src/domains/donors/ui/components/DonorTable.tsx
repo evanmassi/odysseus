@@ -8,7 +8,7 @@ import { useState, useMemo } from 'react';
 
 import { Plus, Search } from 'lucide-react';
 
-import { Button, Input, Table } from '@shared/ui';
+import { Button, Chip, Input, Table } from '@shared/ui';
 
 import type { DonorWithTubeCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
@@ -103,8 +103,16 @@ export function DonorTable({
         header: 'Tubes',
         sortable: true,
         align: 'right' as const,
-        width: 70,
-        render: (_value, row) => <span className="text-muted-foreground">{row.tubeCount}</span>,
+        width: 65,
+        render: (_value, row) => (
+          <Chip
+            size="sm"
+            color={row.tubeCount > 0 ? 'primary' : 'default'}
+            className={row.tubeCount > 0 ? 'border border-action' : 'border border-border'}
+          >
+            {row.tubeCount}
+          </Chip>
+        ),
       },
     ],
     []
@@ -134,13 +142,14 @@ export function DonorTable({
         )}
       </div>
 
-      <div className="flex-1 min-h-0 overflow-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <Table
           columns={columns}
           data={sortedDonors}
           size="sm"
           hoverable
           sortable
+          rounded="lg"
           sortConfig={sortConfig}
           onSort={setSortConfig}
           onRowClick={row => onSelectDonor(row.id)}

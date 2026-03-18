@@ -400,7 +400,7 @@ CREATE INDEX idx_donors_internal_id_trgm ON donors USING gin (donor_internal_id 
 CREATE TABLE donor_collection_history (
   id TEXT PRIMARY KEY,
   donor_id TEXT NOT NULL REFERENCES donors(id) ON DELETE CASCADE,
-  collection_date DATE NOT NULL,
+  collection_date DATE,
   specimen_type TEXT,
   source TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

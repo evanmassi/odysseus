@@ -32,7 +32,7 @@ export interface DonorWithTubeCountResponse extends DonorResponse {
 export interface DonorCollectionHistoryResponse {
   id: string;
   donorId: string;
-  collectionDate: string;
+  collectionDate?: string;
   specimenType?: string;
   source?: string;
   createdAt: string;
@@ -71,7 +71,7 @@ export class DonorDto {
     return {
       id: entry.id,
       donorId: entry.donorId,
-      collectionDate: entry.collectionDate.toISOString(),
+      collectionDate: entry.collectionDate?.toISOString(),
       specimenType: entry.specimenType,
       source: entry.source,
       createdAt: entry.createdAt.toISOString(),

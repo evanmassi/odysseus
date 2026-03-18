@@ -47,7 +47,7 @@ export const migration016: Migration = {
       CREATE TABLE donor_collection_history (
         id TEXT PRIMARY KEY,
         donor_id TEXT NOT NULL REFERENCES donors(id) ON DELETE CASCADE,
-        collection_date DATE NOT NULL,
+        collection_date DATE,
         specimen_type TEXT,
         source TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

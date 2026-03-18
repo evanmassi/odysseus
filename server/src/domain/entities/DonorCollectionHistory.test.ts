@@ -29,7 +29,7 @@ describe('DonorCollectionHistory', () => {
         donorId: 'donor_123',
         collectionDate: date,
       });
-      expect(entry.collectionDate.getTime()).toBe(date.getTime());
+      expect(entry.collectionDate!.getTime()).toBe(date.getTime());
     });
 
     it('should accept optional specimen type and source', () => {
@@ -50,6 +50,25 @@ describe('DonorCollectionHistory', () => {
       });
       expect(entry.specimenType).toBeUndefined();
       expect(entry.source).toBeUndefined();
+    });
+
+    it('should allow optional collection date', () => {
+      const entry = DonorCollectionHistory.create({
+        donorId: 'donor_123',
+        specimenType: 'Blood',
+      });
+      expect(entry.collectionDate).toBeUndefined();
+      expect(entry.specimenType).toBe('Blood');
+    });
+
+    it('should allow only source without date or specimen type', () => {
+      const entry = DonorCollectionHistory.create({
+        donorId: 'donor_123',
+        source: 'UCSF',
+      });
+      expect(entry.collectionDate).toBeUndefined();
+      expect(entry.specimenType).toBeUndefined();
+      expect(entry.source).toBe('UCSF');
     });
   });
 
@@ -79,7 +98,7 @@ describe('DonorCollectionHistory', () => {
         collectionDate: date,
         createdAt: now,
       });
-      expect(entry.collectionDate.getTime()).toBe(date.getTime());
+      expect(entry.collectionDate!.getTime()).toBe(date.getTime());
       expect(entry.createdAt.getTime()).toBe(now.getTime());
     });
   });
@@ -93,7 +112,7 @@ describe('DonorCollectionHistory', () => {
       const date1 = entry.collectionDate;
       const date2 = entry.collectionDate;
       expect(date1).not.toBe(date2);
-      expect(date1.getTime()).toBe(date2.getTime());
+      expect(date1!.getTime()).toBe(date2!.getTime());
     });
 
     it('should return copies of createdAt', () => {

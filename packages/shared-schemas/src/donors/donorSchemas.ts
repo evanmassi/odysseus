@@ -33,7 +33,7 @@ export const donorWithTubeCountSchema = donorSchema.extend({
 export const donorCollectionHistorySchema = z.object({
   id: z.string(),
   donorId: z.string(),
-  collectionDate: z.union([z.string(), z.date()]),
+  collectionDate: z.union([z.string(), z.date()]).optional().nullable(),
   specimenType: z.string().optional(),
   source: z.string().optional(),
   createdAt: z.union([z.string().datetime(), z.date()]),
@@ -79,10 +79,13 @@ export const updateDonorRequestSchema = z.object({
 );
 
 export const createCollectionHistoryRequestSchema = z.object({
-  collectionDate: z.string().min(1, 'Collection date is required'),
+  collectionDate: z.string().optional(),
   specimenType: z.string().max(200).optional(),
   source: z.string().max(200).optional(),
-});
+}).refine(
+  (data) => data.collectionDate || data.specimenType || data.source,
+  { message: 'At least one field (date, specimen type, or source) is required' }
+);
 
 // Response schemas
 

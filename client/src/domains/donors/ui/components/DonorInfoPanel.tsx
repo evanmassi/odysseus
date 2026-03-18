@@ -4,9 +4,9 @@
  * Read-only display of selected donor profile and collection history.
  */
 
-import { Pencil } from 'lucide-react';
+import { BookUser, Pencil } from 'lucide-react';
 
-import { Button, Chip, ScrollArea } from '@shared/ui';
+import { Button, Chip } from '@shared/ui';
 import { InfoField, InfoGroup } from '@shared/ui/components/info-display';
 
 import { CollectionHistoryTimeline } from './CollectionHistoryTimeline';
@@ -31,105 +31,119 @@ export function DonorInfoPanel({
   const emptyText = 'Unknown';
 
   return (
-    <ScrollArea className="h-full pr-2">
-      <div className="space-y-4 pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {!donor.isCurated && (
-              <Chip size="sm" color="warning">
-                Uncurated
-              </Chip>
-            )}
-            <Chip size="sm" color="info">
-              {donor.tubeCount} tube{donor.tubeCount !== 1 ? 's' : ''}
+    <div className="flex flex-col h-full min-h-0">
+      <div className="pb-2 flex-shrink-0">
+        <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
+          <BookUser size={16} className="text-secondary-foreground" />
+          Donor Information
+        </h4>
+      </div>
+
+      <div className="bg-muted rounded-md px-3 py-2 mb-3 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2">
+          {!donor.isCurated && (
+            <Chip size="sm" color="warning">
+              Uncurated
             </Chip>
-          </div>
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onEdit}
-              leftIcon={<Pencil className="w-3.5 h-3.5" />}
-            >
-              Edit
-            </Button>
           )}
+          <Chip size="sm" color="info">
+            {donor.tubeCount} tube{donor.tubeCount !== 1 ? 's' : ''}
+          </Chip>
         </div>
-
-        <InfoGroup title="Identifiers">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-            <InfoField
-              label="Source ID"
-              value={donor.donorSourceId}
-              emptyText={emptyText}
-              inline={false}
-            />
-            <InfoField
-              label="Internal ID"
-              value={donor.donorInternalId}
-              emptyText={emptyText}
-              inline={false}
-            />
-          </div>
-        </InfoGroup>
-
-        <InfoGroup title="Demographics">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-            <InfoField label="Species" value={donor.species} emptyText={emptyText} inline={false} />
-            <InfoField label="Age" value={donor.age} emptyText={emptyText} inline={false} />
-            <InfoField label="Sex" value={donor.sex} emptyText={emptyText} inline={false} />
-            <InfoField
-              label="Ethnicity"
-              value={donor.ethnicity}
-              emptyText={emptyText}
-              inline={false}
-            />
-          </div>
-        </InfoGroup>
-
-        <InfoGroup title="Clinical">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-            <InfoField
-              label="Status"
-              value={donor.clinicalStatus}
-              emptyText={emptyText}
-              inline={false}
-            />
-            <InfoField
-              label="Diagnosis"
-              value={donor.diagnosis}
-              emptyText={emptyText}
-              inline={false}
-            />
-            <InfoField
-              label="Disease Stage"
-              value={donor.diseaseStage}
-              emptyText={emptyText}
-              inline={false}
-            />
-          </div>
-        </InfoGroup>
-
-        <InfoGroup title="Collection History">
-          <CollectionHistoryTimeline
-            history={collectionHistory}
-            donorId={donor.id}
-            isAdmin={isAdmin}
-            onHistoryChange={onHistoryChange}
-          />
-        </InfoGroup>
-
-        {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: empty string should fall through to show notes section for admins */}
-        {(donor.notes || isAdmin) && (
-          <InfoGroup title="Notes">
-            <p
-              className={`text-sm ${donor.notes ? 'text-card-foreground' : 'text-card-foreground/30 italic'}`}
-            >
-              {donor.notes ?? emptyText}
-            </p>
-          </InfoGroup>
+        {isAdmin && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onEdit}
+            leftIcon={<Pencil className="w-3.5 h-3.5" />}
+          >
+            Edit
+          </Button>
         )}
       </div>
-    </ScrollArea>
+
+      <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+        <div className="space-y-4 pb-4">
+          <InfoGroup title="Identifiers">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <InfoField
+                label="Source ID"
+                value={donor.donorSourceId}
+                emptyText={emptyText}
+                inline={false}
+              />
+              <InfoField
+                label="Internal ID"
+                value={donor.donorInternalId}
+                emptyText={emptyText}
+                inline={false}
+              />
+            </div>
+          </InfoGroup>
+
+          <InfoGroup title="Demographics">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <InfoField
+                label="Species"
+                value={donor.species}
+                emptyText={emptyText}
+                inline={false}
+              />
+              <InfoField label="Age" value={donor.age} emptyText={emptyText} inline={false} />
+              <InfoField label="Sex" value={donor.sex} emptyText={emptyText} inline={false} />
+              <InfoField
+                label="Ethnicity"
+                value={donor.ethnicity}
+                emptyText={emptyText}
+                inline={false}
+              />
+            </div>
+          </InfoGroup>
+
+          <InfoGroup title="Clinical">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <InfoField
+                label="Status"
+                value={donor.clinicalStatus}
+                emptyText={emptyText}
+                inline={false}
+              />
+              <InfoField
+                label="Diagnosis"
+                value={donor.diagnosis}
+                emptyText={emptyText}
+                inline={false}
+              />
+              <InfoField
+                label="Disease Stage"
+                value={donor.diseaseStage}
+                emptyText={emptyText}
+                inline={false}
+              />
+            </div>
+          </InfoGroup>
+
+          <InfoGroup title="Collection History">
+            <CollectionHistoryTimeline
+              history={collectionHistory}
+              donorId={donor.id}
+              isAdmin={isAdmin}
+              onHistoryChange={onHistoryChange}
+            />
+          </InfoGroup>
+
+          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: empty string should fall through to show notes section for admins */}
+          {(donor.notes || isAdmin) && (
+            <InfoGroup title="Notes">
+              <p
+                className={`text-sm ${donor.notes ? 'text-card-foreground' : 'text-card-foreground/30 italic'}`}
+              >
+                {donor.notes ?? emptyText}
+              </p>
+            </InfoGroup>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

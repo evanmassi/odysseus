@@ -10,7 +10,7 @@ export class DonorCollectionHistory {
   private constructor(
     private readonly _id: string,
     private readonly _donorId: string,
-    private readonly _collectionDate: Date,
+    private readonly _collectionDate: Date | undefined,
     private readonly _specimenType: string | undefined,
     private readonly _source: string | undefined,
     private readonly _createdAt: Date
@@ -18,14 +18,16 @@ export class DonorCollectionHistory {
 
   static create(data: {
     donorId: string;
-    collectionDate: string | Date;
+    collectionDate?: string | Date;
     specimenType?: string;
     source?: string;
   }): DonorCollectionHistory {
     return new DonorCollectionHistory(
       generateId('donorCollection'),
       data.donorId,
-      typeof data.collectionDate === 'string' ? new Date(data.collectionDate) : data.collectionDate,
+      data.collectionDate
+        ? (typeof data.collectionDate === 'string' ? new Date(data.collectionDate) : data.collectionDate)
+        : undefined,
       data.specimenType,
       data.source,
       new Date()
@@ -35,7 +37,7 @@ export class DonorCollectionHistory {
   static fromData(data: {
     id: string;
     donorId: string;
-    collectionDate: string | Date;
+    collectionDate?: string | Date | null;
     specimenType?: string;
     source?: string;
     createdAt: string | Date;
@@ -43,7 +45,9 @@ export class DonorCollectionHistory {
     return new DonorCollectionHistory(
       data.id,
       data.donorId,
-      typeof data.collectionDate === 'string' ? new Date(data.collectionDate) : data.collectionDate,
+      data.collectionDate
+        ? (typeof data.collectionDate === 'string' ? new Date(data.collectionDate) : data.collectionDate)
+        : undefined,
       data.specimenType,
       data.source,
       typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt
@@ -52,7 +56,7 @@ export class DonorCollectionHistory {
 
   get id(): string { return this._id; }
   get donorId(): string { return this._donorId; }
-  get collectionDate(): Date { return new Date(this._collectionDate); }
+  get collectionDate(): Date | undefined { return this._collectionDate ? new Date(this._collectionDate) : undefined; }
   get specimenType(): string | undefined { return this._specimenType; }
   get source(): string | undefined { return this._source; }
   get createdAt(): Date { return new Date(this._createdAt); }
