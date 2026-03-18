@@ -204,37 +204,45 @@ export const TubeForm = ({
       {/* ROW 2: Donor IDs */}
       <div className="flex gap-2.5">
         <div className="w-64">
-          <DonorIdAutocomplete
-            label="Internal ID"
-            placeholder="Internal tracking ID"
-            registration={register('sample.donorInternalId')}
-            error={Boolean(getFieldError('sample.donorInternalId', errors))}
-            helperText={getFieldError('sample.donorInternalId', errors)}
-            disabled={isLoading}
-            badge={getConflictBadge('sample.donorInternalId')}
-            hasConflict={hasConflict('sample.donorInternalId')}
-            fieldType="internal"
-            onValueSelect={v =>
-              setValue('sample.donorInternalId' as keyof TubeFormValues, v, {
-                shouldValidate: true,
-              })
-            }
+          <Controller
+            name="sample.donorInternalId"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <DonorIdAutocomplete
+                label="Internal ID"
+                placeholder="Internal tracking ID"
+                value={(value as string) ?? ''}
+                onChange={onChange}
+                error={Boolean(getFieldError('sample.donorInternalId', errors))}
+                helperText={getFieldError('sample.donorInternalId', errors)}
+                disabled={isLoading}
+                badge={getConflictBadge('sample.donorInternalId')}
+                hasConflict={hasConflict('sample.donorInternalId')}
+                fieldType="internal"
+                onPairSelect={v => setValue('sample.donorSourceId' as keyof TubeFormValues, v)}
+              />
+            )}
           />
         </div>
         <div className="w-64">
-          <DonorIdAutocomplete
-            label="Source ID"
-            placeholder="Original source ID"
-            registration={register('sample.donorSourceId')}
-            error={Boolean(getFieldError('sample.donorSourceId', errors))}
-            helperText={getFieldError('sample.donorSourceId', errors)}
-            disabled={isLoading}
-            badge={getConflictBadge('sample.donorSourceId')}
-            hasConflict={hasConflict('sample.donorSourceId')}
-            fieldType="source"
-            onValueSelect={v =>
-              setValue('sample.donorSourceId' as keyof TubeFormValues, v, { shouldValidate: true })
-            }
+          <Controller
+            name="sample.donorSourceId"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <DonorIdAutocomplete
+                label="Source ID"
+                placeholder="Original source ID"
+                value={(value as string) ?? ''}
+                onChange={onChange}
+                error={Boolean(getFieldError('sample.donorSourceId', errors))}
+                helperText={getFieldError('sample.donorSourceId', errors)}
+                disabled={isLoading}
+                badge={getConflictBadge('sample.donorSourceId')}
+                hasConflict={hasConflict('sample.donorSourceId')}
+                fieldType="source"
+                onPairSelect={v => setValue('sample.donorInternalId' as keyof TubeFormValues, v)}
+              />
+            )}
           />
         </div>
       </div>

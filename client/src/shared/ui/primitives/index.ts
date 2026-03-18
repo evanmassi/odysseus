@@ -4,6 +4,9 @@
  * Barrel export for all shared primitive components and their types.
  */
 
+export { Autocomplete } from './autocomplete/Autocomplete';
+export type { AutocompleteProps, AutocompleteOption, AutocompleteRef } from './autocomplete/types';
+
 export { AlertBanner } from './banners/AlertBanner';
 export type { AlertBannerProps, AlertBannerVariant } from './banners/types';
 

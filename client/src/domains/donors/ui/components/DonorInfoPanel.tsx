@@ -4,7 +4,7 @@
  * Read-only display of selected donor profile and collection history.
  */
 
-import { BookUser, Pencil } from 'lucide-react';
+import { BookUser, Pencil, Trash2 } from 'lucide-react';
 
 import { Button, Chip } from '@shared/ui';
 import { InfoField, InfoGroup } from '@shared/ui/components/info-display';
@@ -17,6 +17,7 @@ interface DonorInfoPanelProps {
   donor: DonorWithTubeCount;
   collectionHistory: DonorCollectionHistory[];
   onEdit: () => void;
+  onDelete: () => void;
   onHistoryChange: () => void;
   isAdmin: boolean;
 }
@@ -25,6 +26,7 @@ export function DonorInfoPanel({
   donor,
   collectionHistory,
   onEdit,
+  onDelete,
   onHistoryChange,
   isAdmin,
 }: DonorInfoPanelProps) {
@@ -51,14 +53,25 @@ export function DonorInfoPanel({
           </Chip>
         </div>
         {isAdmin && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onEdit}
-            leftIcon={<Pencil className="w-3.5 h-3.5" />}
-          >
-            Edit
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onEdit}
+              leftIcon={<Pencil className="w-3.5 h-3.5" />}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              className="text-danger-text hover:text-danger-text hover:bg-danger-text/10"
+              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+            >
+              Delete
+            </Button>
+          </div>
         )}
       </div>
 

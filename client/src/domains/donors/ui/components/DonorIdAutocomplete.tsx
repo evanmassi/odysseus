@@ -4,121 +4,93 @@
  * Input with registry search dropdown for donor ID fields in the tube editor.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useMemo } from 'react';
 
 import { useDonorSearchQuery } from '@domains/donors/hooks/useDonorSearchQuery';
 import { useDebounce } from '@shared/hooks';
-import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { Autocomplete } from '@shared/ui';
 
-import type { UseFormRegisterReturn } from 'react-hook-form';
+import type { AutocompleteOption } from '@shared/ui/primitives/autocomplete/types';
+import type { InputState } from '@shared/ui/primitives/input/types';
 
 interface DonorIdAutocompleteProps {
   label: string;
   placeholder: string;
-  registration: UseFormRegisterReturn;
+  value: string;
+  onChange: (value: string) => void;
   error?: boolean;
   helperText?: string;
   disabled?: boolean;
   fieldType: 'source' | 'internal';
   badge?: React.ReactNode;
   hasConflict?: boolean;
-  onValueSelect?: (value: string) => void;
+  state?: InputState;
+  onPairSelect?: (secondaryValue: string) => void;
 }
 
 export function DonorIdAutocomplete({
   label,
   placeholder,
-  registration,
+  value,
+  onChange,
   error,
   helperText,
   disabled,
   fieldType,
   badge,
   hasConflict,
-  onValueSelect,
+  onPairSelect,
 }: DonorIdAutocompleteProps) {
-  const [inputValue, setInputValue] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const debouncedQuery = useDebounce(inputValue, 300);
+  const debouncedQuery = useDebounce(value, 300);
   const { data: results = [] } = useDonorSearchQuery(debouncedQuery);
 
-  const hasResults = results.length > 0 && isFocused && debouncedQuery.length >= 2;
+  const options: AutocompleteOption[] = useMemo(
+    () =>
+      results
+        .reduce<AutocompleteOption[]>((acc, result) => {
+          const primary = fieldType === 'source' ? result.donorSourceId : result.donorInternalId;
+          const secondary = fieldType === 'source' ? result.donorInternalId : result.donorSourceId;
+          if (primary) {
+            acc.push({ value: primary, label: primary, secondary });
+          }
+          return acc;
+        }, [])
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [results, fieldType]
+  );
 
-  useEffect(() => {
-    setShowDropdown(hasResults);
-  }, [hasResults]);
-
-  const handleSelect = (value: string) => {
-    onValueSelect?.(value);
-    setShowDropdown(false);
-  };
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const inputState: InputState = error ? 'error' : hasConflict ? 'warning' : 'default';
 
   return (
-    <div
-      className="relative"
-      ref={dropdownRef}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-    >
-      <ValidatedInput
-        label={label}
-        type="text"
-        placeholder={placeholder}
-        registration={{
-          ...registration,
-          onChange: e => {
-            setInputValue((e.target as HTMLInputElement).value);
-            return registration.onChange(e);
-          },
+    <div>
+      <label
+        className={`block text-sm font-medium mb-1 ${error ? 'text-danger-text' : 'text-secondary-foreground'}`}
+      >
+        <span className="flex items-center gap-1.5">
+          {label}
+          {badge}
+        </span>
+      </label>
+      <Autocomplete
+        options={options}
+        value={value}
+        onChange={onChange}
+        onSelect={option => {
+          onChange(option.value);
+          if (option.secondary && onPairSelect) {
+            onPairSelect(option.secondary);
+          }
         }}
-        error={error}
-        helperText={helperText}
+        placeholder={placeholder}
         disabled={disabled}
-        badge={badge}
-        hasConflict={hasConflict}
+        state={inputState}
+        fullWidth
       />
-
-      {showDropdown && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-lg max-h-40 overflow-y-auto">
-          {results.map(result => {
-            const displayValue =
-              fieldType === 'source' ? result.donorSourceId : result.donorInternalId;
-            const secondaryValue =
-              fieldType === 'source' ? result.donorInternalId : result.donorSourceId;
-
-            if (!displayValue) return null;
-
-            return (
-              <button
-                key={result.id}
-                type="button"
-                className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors"
-                onMouseDown={e => {
-                  e.preventDefault();
-                  handleSelect(displayValue);
-                }}
-              >
-                <span className="font-medium">{displayValue}</span>
-                {secondaryValue && (
-                  <span className="text-muted-foreground ml-2 text-xs">({secondaryValue})</span>
-                )}
-              </button>
-            );
-          })}
+      {helperText && (
+        <div
+          className={`flex items-center mt-1 text-xs ${error ? 'text-danger-text' : 'text-muted-foreground'}`}
+        >
+          <span>{helperText}</span>
         </div>
       )}
     </div>

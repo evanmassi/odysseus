@@ -78,21 +78,21 @@ export const migration016: Migration = {
       END $$
     `);
 
-    // Backfill donor stubs from existing tube data
+    // Backfill donor stubs from existing tube data, coalescing NULLs to avoid duplicate groups
     await pool.query(`
       INSERT INTO donors (id, lab_id, donor_source_id, donor_internal_id, species, is_curated, created_at, updated_at)
       SELECT
         'donor_' || gen_random_uuid(),
         lab_id,
-        donor_source_id,
-        donor_internal_id,
+        MAX(donor_source_id),
+        MAX(donor_internal_id),
         MIN(species),
         false,
         NOW(),
         NOW()
       FROM tubes
       WHERE donor_source_id IS NOT NULL OR donor_internal_id IS NOT NULL
-      GROUP BY lab_id, donor_source_id, donor_internal_id
+      GROUP BY lab_id, COALESCE(donor_source_id, ''), COALESCE(donor_internal_id, '')
     `);
   }
 };
