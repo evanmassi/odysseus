@@ -251,7 +251,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     const positionText =
       positionCount > 0
         ? `No tube${positionCount > 1 ? 's' : ''} at ${positionCount > 1 ? 'these' : 'this'} position${positionCount > 1 ? 's' : ''}`
-        : 'Select a position to view tube information';
+        : 'Select a tube to view details';
 
     return (
       <div style={{ minWidth: '280px' }}>

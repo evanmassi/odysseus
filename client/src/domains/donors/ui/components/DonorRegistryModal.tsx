@@ -179,8 +179,11 @@ export function DonorRegistryModal({
                 isAdmin={isAdmin}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground/50 text-sm">
-                Select a donor to view details
+              <div className="flex flex-col items-center justify-center h-full">
+                <div className="w-12 h-12 mb-3 rounded-full bg-muted flex items-center justify-center">
+                  <BookUser className="w-6 h-6 text-card-foreground/30" />
+                </div>
+                <p className="text-card-foreground/40 text-sm">Select a donor to view details</p>
               </div>
             )}
           </div>
