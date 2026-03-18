@@ -160,7 +160,7 @@ export function DonorTable({
           selectedRows={selectedDonorId ? [selectedDonorId] : []}
           emptyMessage={isLoading ? 'Loading donors...' : 'No donors found'}
           aria-label="Donor registry"
-          rowClassName={row => (row.id === selectedDonorId ? 'bg-accent/50' : '')}
+          rowClassName={row => (row.id === selectedDonorId ? '!bg-accent' : '')}
         />
       </ScrollArea>
     </div>
