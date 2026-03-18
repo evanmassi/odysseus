@@ -1,0 +1,155 @@
+/**
+ * Donor Table
+ *
+ * Searchable, sortable donor list with curation indicators.
+ */
+
+import { useState, useMemo } from 'react';
+
+import { Plus, Search } from 'lucide-react';
+
+import { Button, Input, Table } from '@shared/ui';
+
+import type { DonorWithTubeCount } from '@odysseus/shared-schemas';
+import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
+
+interface DonorTableProps {
+  donors: DonorWithTubeCount[];
+  selectedDonorId?: string;
+  onSelectDonor: (id: string) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  isAdmin: boolean;
+  onAddDonor: () => void;
+  isLoading: boolean;
+}
+
+export function DonorTable({
+  donors,
+  selectedDonorId,
+  onSelectDonor,
+  searchQuery,
+  onSearchChange,
+  isAdmin,
+  onAddDonor,
+  isLoading,
+}: DonorTableProps) {
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    columnId: 'donorSourceId',
+    direction: 'asc',
+  });
+
+  const filteredDonors = useMemo(() => {
+    if (!searchQuery) return donors;
+    const q = searchQuery.toLowerCase();
+    return donors.filter(
+      d =>
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: need to match on either ID
+        d.donorSourceId?.toLowerCase().includes(q) || d.donorInternalId?.toLowerCase().includes(q)
+    );
+  }, [donors, searchQuery]);
+
+  const sortedDonors = useMemo(() => {
+    const sorted = [...filteredDonors];
+    const { columnId, direction } = sortConfig;
+    const multiplier = direction === 'asc' ? 1 : -1;
+
+    sorted.sort((a, b) => {
+      let aVal: string | number = '';
+      let bVal: string | number = '';
+
+      if (columnId === 'donorSourceId') {
+        aVal = a.donorSourceId ?? '';
+        bVal = b.donorSourceId ?? '';
+      } else if (columnId === 'donorInternalId') {
+        aVal = a.donorInternalId ?? '';
+        bVal = b.donorInternalId ?? '';
+      } else if (columnId === 'tubeCount') {
+        return (a.tubeCount - b.tubeCount) * multiplier;
+      }
+
+      return String(aVal).localeCompare(String(bVal)) * multiplier;
+    });
+
+    return sorted;
+  }, [filteredDonors, sortConfig]);
+
+  const columns: TableColumn<DonorWithTubeCount>[] = useMemo(
+    () => [
+      {
+        id: 'donorSourceId',
+        header: 'Source ID',
+        sortable: true,
+        render: (_value, row) => (
+          <div className="flex items-center gap-1.5">
+            {!row.isCurated && (
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"
+                title="Uncurated — needs lab admin review"
+              />
+            )}
+            <span className="truncate">{row.donorSourceId ?? '—'}</span>
+          </div>
+        ),
+      },
+      {
+        id: 'donorInternalId',
+        header: 'Internal ID',
+        sortable: true,
+        render: (_value, row) => <span className="truncate">{row.donorInternalId ?? '—'}</span>,
+      },
+      {
+        id: 'tubeCount',
+        header: 'Tubes',
+        sortable: true,
+        align: 'right' as const,
+        width: 70,
+        render: (_value, row) => <span className="text-muted-foreground">{row.tubeCount}</span>,
+      },
+    ],
+    []
+  );
+
+  return (
+    <div className="flex flex-col gap-2 h-full">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+          <Input
+            value={searchQuery}
+            onChange={e => onSearchChange(e.target.value)}
+            placeholder="Search donor IDs..."
+            className="pl-8 h-8 text-sm"
+          />
+        </div>
+        {isAdmin && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onAddDonor}
+            leftIcon={<Plus className="w-3.5 h-3.5" />}
+          >
+            Add
+          </Button>
+        )}
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-auto">
+        <Table
+          columns={columns}
+          data={sortedDonors}
+          size="sm"
+          hoverable
+          sortable
+          sortConfig={sortConfig}
+          onSort={setSortConfig}
+          onRowClick={row => onSelectDonor(row.id)}
+          selectedRows={selectedDonorId ? [selectedDonorId] : []}
+          emptyMessage={isLoading ? 'Loading donors...' : 'No donors found'}
+          aria-label="Donor registry"
+          rowClassName={row => (row.id === selectedDonorId ? 'bg-accent/50' : '')}
+        />
+      </div>
+    </div>
+  );
+}
