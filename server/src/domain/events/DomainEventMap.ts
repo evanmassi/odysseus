@@ -23,6 +23,11 @@ import type {
   PasswordResetCompletedEvent
 } from './PasswordResetEvents';
 import type {
+  DonorCreatedEvent,
+  DonorUpdatedEvent,
+  DonorDeletedEvent
+} from './DonorEvents';
+import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
@@ -146,6 +151,11 @@ export interface DomainEventMap {
   'PasswordResetByAdmin': PasswordResetByAdminEvent;
   'PasswordResetTokenGenerated': PasswordResetTokenGeneratedEvent;
   'PasswordResetCompleted': PasswordResetCompletedEvent;
+
+  // Donor events
+  'DonorCreated': DonorCreatedEvent;
+  'DonorUpdated': DonorUpdatedEvent;
+  'DonorDeleted': DonorDeletedEvent;
 
   // Lab events
   'LabCreated': LabCreatedEvent;
