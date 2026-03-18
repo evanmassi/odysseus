@@ -77,5 +77,22 @@ export const migration016: Migration = {
         END IF;
       END $$
     `);
+
+    // Backfill donor stubs from existing tube data
+    await pool.query(`
+      INSERT INTO donors (id, lab_id, donor_source_id, donor_internal_id, species, is_curated, created_at, updated_at)
+      SELECT
+        'donor_' || gen_random_uuid(),
+        lab_id,
+        donor_source_id,
+        donor_internal_id,
+        MIN(species),
+        false,
+        NOW(),
+        NOW()
+      FROM tubes
+      WHERE donor_source_id IS NOT NULL OR donor_internal_id IS NOT NULL
+      GROUP BY lab_id, donor_source_id, donor_internal_id
+    `);
   }
 };
