@@ -312,7 +312,7 @@ CREATE INDEX idx_audit_log_lab_id ON audit_log(lab_id);
 
 CREATE TABLE lookup_values (
   id TEXT PRIMARY KEY,
-  category TEXT NOT NULL CHECK (category IN ('species', 'source', 'media')),
+  category TEXT NOT NULL CHECK (category IN ('species', 'source', 'media', 'specimen_type')),
   lab_id TEXT NOT NULL REFERENCES labs(id),
   value TEXT NOT NULL,
   sort_order INTEGER DEFAULT 0,
@@ -365,6 +365,48 @@ CREATE TABLE invite_codes (
 
 CREATE INDEX idx_invite_codes_lab_id ON invite_codes(lab_id);
 CREATE INDEX idx_invite_codes_code ON invite_codes(code);
+
+-- DONORS TABLE
+
+CREATE TABLE donors (
+  id TEXT PRIMARY KEY,
+  lab_id TEXT NOT NULL REFERENCES labs(id),
+  donor_source_id TEXT,
+  donor_internal_id TEXT,
+  species TEXT,
+  age TEXT,
+  sex TEXT,
+  ethnicity TEXT,
+  clinical_status TEXT,
+  diagnosis TEXT,
+  disease_stage TEXT,
+  notes TEXT,
+  is_curated BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT donors_has_at_least_one_id
+    CHECK (donor_source_id IS NOT NULL OR donor_internal_id IS NOT NULL)
+);
+
+CREATE INDEX idx_donors_lab_id ON donors(lab_id);
+CREATE INDEX idx_donors_source_id ON donors(lab_id, donor_source_id) WHERE donor_source_id IS NOT NULL;
+CREATE INDEX idx_donors_internal_id ON donors(lab_id, donor_internal_id) WHERE donor_internal_id IS NOT NULL;
+CREATE INDEX idx_donors_uncurated ON donors(lab_id, is_curated) WHERE is_curated = FALSE;
+CREATE INDEX idx_donors_source_id_trgm ON donors USING gin (donor_source_id gin_trgm_ops) WHERE donor_source_id IS NOT NULL;
+CREATE INDEX idx_donors_internal_id_trgm ON donors USING gin (donor_internal_id gin_trgm_ops) WHERE donor_internal_id IS NOT NULL;
+
+-- DONOR COLLECTION HISTORY TABLE
+
+CREATE TABLE donor_collection_history (
+  id TEXT PRIMARY KEY,
+  donor_id TEXT NOT NULL REFERENCES donors(id) ON DELETE CASCADE,
+  collection_date DATE NOT NULL,
+  specimen_type TEXT,
+  source TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_donor_collection_history_donor_id ON donor_collection_history(donor_id);
 
 -- MIGRATION TRACKING TABLE (managed by migrationRunner.ts)
 
