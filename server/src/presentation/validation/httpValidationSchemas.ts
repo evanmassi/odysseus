@@ -15,6 +15,9 @@ import {
   validateInviteCodeRequestSchema,
   createInviteCodeRequestSchema,
   createLabRequestSchema,
+  createDonorRequestSchema,
+  updateDonorRequestSchema,
+  createCollectionHistoryRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -118,6 +121,17 @@ export const CreateLabBodySchema = createLabRequestSchema;
 
 export const UpdateLabBodySchema = z.object({
   name: z.string().min(1).max(200),
+});
+
+// Donor schemas
+
+export const DonorHistoryIdParams = z.object({ historyId: z.string().min(1) });
+export const CreateDonorHttpSchema = createDonorRequestSchema;
+export const UpdateDonorHttpSchema = updateDonorRequestSchema;
+export const CreateCollectionHistoryHttpSchema = createCollectionHistoryRequestSchema;
+export const DonorSearchQuery = z.object({
+  q: z.string().min(1),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
 });
 
 // Search schemas
