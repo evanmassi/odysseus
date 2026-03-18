@@ -58,7 +58,8 @@ export class TubeApplicationService {
     private storageRepository: StorageRepository,
     private tubePositionService: TubePositionService,
     private accessControlService: AccessControlService,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private ensureDonorExists?: (labId: string, sourceId?: string, internalId?: string, species?: string) => Promise<void>
   ) {}
 
   private async getContainerInfo(labId: string, tankId: string, rackId: string, boxId: string, preloadedConfig?: Storage | null): Promise<{
@@ -165,6 +166,13 @@ export class TubeApplicationService {
     });
 
     await this.tubeRepository.save(tube);
+
+    const sample = tube.sample;
+    if (this.ensureDonorExists && (sample.donorSourceId || sample.donorInternalId)) {
+      await this.ensureDonorExists(
+        authenticatedUser.labId!, sample.donorSourceId, sample.donorInternalId, sample.species
+      );
+    }
 
     const createdEvent = new TubeCreatedEvent(
       tube.id,
@@ -509,6 +517,16 @@ export class TubeApplicationService {
     }
 
     await this.tubeRepository.saveWithOptimisticLock(updatedTube, existingTube.version);
+
+    // Auto-create donor registry stub if donor IDs changed to new values
+    const updatedSample = updatedTube.sample;
+    const donorIdsChanged = updatedSample.donorSourceId !== oldSampleData.donorSourceId
+      || updatedSample.donorInternalId !== oldSampleData.donorInternalId;
+    if (this.ensureDonorExists && donorIdsChanged && (updatedSample.donorSourceId || updatedSample.donorInternalId)) {
+      await this.ensureDonorExists(
+        authenticatedUser.labId!, updatedSample.donorSourceId, updatedSample.donorInternalId, updatedSample.species
+      );
+    }
 
     const locationChanged = !oldLocation.equals(updatedTube.location);
 

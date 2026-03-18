@@ -14,6 +14,7 @@ import type { SocketEventHandler } from '@application/event-handlers/SocketEvent
 import type { AuditRetentionService } from '@application/services/AuditRetentionService';
 import type { AuditService } from '@application/services/AuditService';
 import type { ExportService } from '@application/services/ExportService';
+import type { DonorApplicationService } from '@application/services/DonorApplicationService';
 import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import type { PresenceService } from '@application/services/PresenceService';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
@@ -24,6 +25,7 @@ import type { EmailService } from '@domain/services/EmailService';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { ValidationService } from '@domain/services/ValidationService';
 import { AuditModule } from '@infrastructure/di/modules/AuditModule';
+import { DonorModule } from '@infrastructure/di/modules/DonorModule';
 import { AuthModule } from '@infrastructure/di/modules/AuthModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
 import { LabModule } from '@infrastructure/di/modules/LabModule';
@@ -45,6 +47,7 @@ import type { AuthController } from '@presentation/controllers/auth/AuthControll
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import type { ExportController } from '@presentation/controllers/ExportController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
+import type { DonorController } from '@presentation/controllers/DonorController';
 import type { LabController } from '@presentation/controllers/LabController';
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
 import type { PersonController } from '@presentation/controllers/PersonController';
@@ -81,6 +84,7 @@ export class ServiceContainer {
   private _userModule?: UserModule;
   private _storageModule?: StorageModule;
   private _authModule?: AuthModule;
+  private _donorModule?: DonorModule;
 
   constructor(repositoryFactory: RepositoryFactory, configurationService: ConfigurationService) {
     this.repositoryFactory = repositoryFactory;
@@ -197,9 +201,18 @@ export class ServiceContainer {
     return this._auditModule;
   }
 
+  private getDonorModule(): DonorModule {
+    if (!this._donorModule) {
+      this._donorModule = new DonorModule(this.getShared(), this.repositoryFactory);
+    }
+    return this._donorModule;
+  }
+
   private getTubeModule(): TubeModule {
     if (!this._tubeModule) {
-      this._tubeModule = new TubeModule(this.getShared(), this.repositoryFactory);
+      this._tubeModule = new TubeModule(this.getShared(), this.repositoryFactory, {
+        getDonorApplicationService: () => this.getDonorModule().getDonorApplicationService(),
+      });
     }
     return this._tubeModule;
   }
@@ -349,6 +362,16 @@ export class ServiceContainer {
 
   getResearcherController(): ResearcherController {
     return this.getUserModule().getResearcherController();
+  }
+
+  // Public API — DonorModule
+
+  getDonorApplicationService(): DonorApplicationService {
+    return this.getDonorModule().getDonorApplicationService();
+  }
+
+  getDonorController(): DonorController {
+    return this.getDonorModule().getDonorController();
   }
 
   // Public API — StorageModule

@@ -4,12 +4,17 @@
  * Lazy-singleton wiring for tube operations, locking, and search.
  */
 
+import type { DonorApplicationService } from '@application/services/DonorApplicationService';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { SearchController } from '@presentation/controllers/SearchController';
 import { TubeController } from '@presentation/controllers/TubeController';
 import { TubeLockController } from '@presentation/controllers/TubeLockController';
+
+interface TubeCrossModuleDeps {
+  getDonorApplicationService: () => DonorApplicationService;
+}
 
 export class TubeModule {
   private tubeApplicationService?: TubeApplicationService;
@@ -19,12 +24,18 @@ export class TubeModule {
 
   constructor(
     private shared: SharedServices,
-    private repositoryFactory: RepositoryFactory
+    private repositoryFactory: RepositoryFactory,
+    private crossModuleDeps?: TubeCrossModuleDeps
   ) {}
 
   getTubeApplicationService(): TubeApplicationService {
     if (!this.tubeApplicationService) {
       const repositories = this.repositoryFactory.getRepositories();
+      const donorService = this.crossModuleDeps?.getDonorApplicationService();
+      const ensureDonorExists = donorService
+        ? donorService.ensureDonorExists.bind(donorService)
+        : undefined;
+
       this.tubeApplicationService = new TubeApplicationService(
         repositories.tubes,
         repositories.users,
@@ -33,7 +44,8 @@ export class TubeModule {
         repositories.storage,
         this.shared.tubePositionService,
         this.shared.accessControlService,
-        this.shared.eventBus
+        this.shared.eventBus,
+        ensureDonorExists
       );
     }
     return this.tubeApplicationService;

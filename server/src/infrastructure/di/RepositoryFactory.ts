@@ -5,6 +5,7 @@
  */
 
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
@@ -18,6 +19,7 @@ import type { UserSessionRepository } from '@domain/repositories/UserSessionRepo
 import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
+import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
 import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
 import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
 import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
@@ -42,6 +44,7 @@ export class RepositoryFactory {
   private lookupValueRepository?: LookupValueRepository;
   private labRepository?: LabRepository;
   private inviteCodeRepository?: InviteCodeRepository;
+  private donorRepository?: DonorRepository;
 
   constructor(databaseConfig: DatabaseConnectionConfig) {
     this.postgresContext = new PostgresContext(databaseConfig);
@@ -129,6 +132,13 @@ export class RepositoryFactory {
     return this.inviteCodeRepository;
   }
 
+  getDonorRepository(): DonorRepository {
+    if (!this.donorRepository) {
+      this.donorRepository = new DonorRepositoryImpl(this.postgresContext);
+    }
+    return this.donorRepository;
+  }
+
   getRepositories() {
     return {
       tubes: this.getTubeRepository(),
@@ -141,7 +151,8 @@ export class RepositoryFactory {
       audit: this.getAuditRepository(),
       lookupValues: this.getLookupValueRepository(),
       labs: this.getLabRepository(),
-      inviteCodes: this.getInviteCodeRepository()
+      inviteCodes: this.getInviteCodeRepository(),
+      donors: this.getDonorRepository()
     };
   }
 
