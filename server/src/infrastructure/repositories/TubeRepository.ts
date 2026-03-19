@@ -673,7 +673,7 @@ export class TubeRepository implements ITubeRepository {
     // Layer 2: Fuzzy matching with pg_trgm (catches typos)
     const fuzzyColumns = ['cell_type', 'species', 'source', 'donor_internal_id', 'donor_source_id', 'lot_number', 'notes', 'media_type', 'culture_condition'];
     const fuzzySearchTerm = normalizedQuery;
-    const shouldDoFuzzy = !shouldSkipFuzzyMatching(fuzzySearchTerm) && fuzzySearchTerm.length >= 3;
+    const shouldDoFuzzy = !shouldSkipFuzzyMatching(fuzzySearchTerm) && fuzzySearchTerm.length >= 2;
 
     let fuzzySql = '';
     if (shouldDoFuzzy) {

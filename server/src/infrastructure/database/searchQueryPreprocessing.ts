@@ -196,7 +196,7 @@ export enum SearchRankTier {
  * to avoid false positives, longer words allow more typo tolerance.
  */
 export function getFuzzyThreshold(termLength: number): number {
-  if (termLength <= 2) return 1.0;
+  if (termLength <= 2) return 0.7;
   if (termLength <= 4) return 0.6;
   if (termLength <= 6) return 0.4;
   return 0.3;
