@@ -170,34 +170,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
   const { getCurrentTanks } = useStorageData();
   const tanks = getCurrentTanks();
 
-  const filterOptions = useMemo(() => {
-    const uniqueSampleValues = (field: string): string[] =>
-      Array.from(
-        new Set(
-          tubes
-            ?.map((t: TubeData) => (t.sample as Record<string, unknown> | undefined)?.[field])
-            .filter((v): v is string => typeof v === 'string' && v.length > 0) ?? []
-        )
-      ).sort();
-
-    return {
-      tankIds: Array.from(
-        new Set(tubes?.map((tube: TubeData) => tube.location?.tankId).filter(Boolean) || [])
-      ).sort(),
-      rackIds: Array.from(new Set(tubes?.map((tube: TubeData) => tube.location?.rackId) || []))
-        .filter(Boolean)
-        .sort(),
-      boxIds: Array.from(
-        new Set(tubes?.map((tube: TubeData) => tube.location?.boxId).filter(Boolean) || [])
-      ).sort(),
-      sampleGroups: SAMPLE_FILTER_GROUPS.map(group => ({
-        ...group,
-        options: uniqueSampleValues(group.tubeField),
-      })),
-      researchers: researchers || [],
-    };
-  }, [tubes, researchers]);
-
   const getTankName = useCallback(
     (tankId: string): string => {
       const tank = tanks.find(t => t.id === tankId);
@@ -229,6 +201,34 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
     },
     [tanks]
   );
+
+  const filterOptions = useMemo(() => {
+    const uniqueSampleValues = (field: string): string[] =>
+      Array.from(
+        new Set(
+          tubes
+            ?.map((t: TubeData) => (t.sample as Record<string, unknown> | undefined)?.[field])
+            .filter((v): v is string => typeof v === 'string' && v.length > 0) ?? []
+        )
+      ).sort();
+
+    return {
+      tankIds: Array.from(
+        new Set(tubes?.map((tube: TubeData) => tube.location?.tankId).filter(Boolean) || [])
+      ).sort((a, b) => getTankName(a).localeCompare(getTankName(b), undefined, { numeric: true })),
+      rackIds: Array.from(new Set(tubes?.map((tube: TubeData) => tube.location?.rackId) || []))
+        .filter(Boolean)
+        .sort((a, b) => getRackName(a).localeCompare(getRackName(b), undefined, { numeric: true })),
+      boxIds: Array.from(
+        new Set(tubes?.map((tube: TubeData) => tube.location?.boxId).filter(Boolean) || [])
+      ).sort((a, b) => getBoxName(a).localeCompare(getBoxName(b), undefined, { numeric: true })),
+      sampleGroups: SAMPLE_FILTER_GROUPS.map(group => ({
+        ...group,
+        options: uniqueSampleValues(group.tubeField),
+      })),
+      researchers: researchers || [],
+    };
+  }, [tubes, researchers, getTankName, getRackName, getBoxName]);
 
   const updateDateFilter = useCallback(
     (field: 'dateFrom' | 'dateTo', value: string) => {
