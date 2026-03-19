@@ -13,7 +13,7 @@ import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const LOOKUP_VALUE_COLUMNS = 'id, category, value, sort_order, is_active, created_at, updated_at, lab_id';
 
-const CATEGORY_COLUMN_MAP: Record<LookupCategory, string> = {
+const CATEGORY_COLUMN_MAP: Partial<Record<LookupCategory, string>> = {
   species: 'species',
   source: 'source',
   media: 'media_type',
@@ -75,6 +75,7 @@ export class LookupValueRepository implements ILookupValueRepository {
 
   async countTubesUsingValue(category: LookupCategory, value: string, labId: string): Promise<number> {
     const column = CATEGORY_COLUMN_MAP[category];
+    if (!column) return 0;
     const result = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM tubes WHERE ${column} = $1 AND lab_id = $2`,
       [value, labId]
@@ -86,6 +87,8 @@ export class LookupValueRepository implements ILookupValueRepository {
     if (values.length === 0) return new Map();
 
     const column = CATEGORY_COLUMN_MAP[category];
+    if (!column) return new Map();
+
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
     const rows = await this.context.queryMany<{ value: string; count: string }>(
       `SELECT ${column} as value, COUNT(*) as count FROM tubes WHERE ${column} IN (${placeholders}) AND lab_id = $${values.length + 1} GROUP BY ${column}`,
@@ -97,6 +100,7 @@ export class LookupValueRepository implements ILookupValueRepository {
 
   async renameTubeValues(category: LookupCategory, oldValue: string, newValue: string, labId: string): Promise<number> {
     const column = CATEGORY_COLUMN_MAP[category];
+    if (!column) return 0;
     const result = await this.context.execute(
       `UPDATE tubes SET ${column} = $1, updated_at = NOW() WHERE ${column} = $2 AND lab_id = $3`,
       [newValue, oldValue, labId]

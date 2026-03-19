@@ -132,7 +132,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     },
     ref
   ) => {
-    const isInteractive = behavior !== 'static';
+    const isInteractive = behavior === 'selectable';
 
     const chipClasses = [
       chipVariants({

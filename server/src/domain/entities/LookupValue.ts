@@ -7,7 +7,7 @@
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
-export type LookupCategory = 'species' | 'source' | 'media';
+export type LookupCategory = 'species' | 'source' | 'media' | 'specimen_type';
 
 export class LookupValue {
   private constructor(
@@ -83,7 +83,7 @@ export class LookupValue {
     if (this._value.length > 200) {
       throw new ValidationError('Lookup value cannot exceed 200 characters');
     }
-    if (!['species', 'source', 'media'].includes(this._category)) {
+    if (!['species', 'source', 'media', 'specimen_type'].includes(this._category)) {
       throw new ValidationError('Invalid lookup category');
     }
   }
