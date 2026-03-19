@@ -639,54 +639,47 @@ export class TubeRepository implements ITubeRepository {
    */
   private async comprehensiveSearch(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
     const rawQuery = criteria.query!.trim();
-
-    // Step 1: Normalize query (split hyphens, clean punctuation)
     const normalizedQuery = normalizeSearchQuery(rawQuery);
-
-    // Step 2: Parse into concept groups with synonyms and alphanumeric variants
-    // "Human T-cells" → [["human", "homo sapiens"], ["t cell", "t-cell", "t lymphocyte"]]
     const concepts = parseQueryIntoConcepts(rawQuery);
-
-    // Step 3: Build tsquery with AND between concepts, OR within synonyms
-    // Result: (human:* | homo:* & sapiens:*) & (t:* & cell:* | t:* & lymphocyte:*)
     const tsqueryTerms = buildTsQueryFromConcepts(concepts);
-
-    // Step 4: Calculate fuzzy threshold based on query length
     const fuzzyThreshold = calculateQueryFuzzyThreshold(normalizedQuery);
 
     const params: unknown[] = [];
     const paramIndex = { current: 1 };
 
-    const tsqueryParamNum = paramIndex.current;
-    const ftsLabIdParamNum = paramIndex.current + 1;
+    // CTE: pre-filter tubes once (lab_id + all user-selected filters)
+    let cteSql = `SELECT * FROM tubes WHERE tubes.lab_id = $${paramIndex.current}`;
+    params.push(labId);
+    paramIndex.current++;
 
-    let ftsSql = `
+    cteSql = this.addLocationFilters(cteSql, params, criteria, paramIndex);
+    cteSql = this.addSampleFilters(cteSql, params, criteria, paramIndex);
+    cteSql = this.addResearcherFilters(cteSql, params, criteria, paramIndex);
+    cteSql = this.addDateRangeFilters(cteSql, params, criteria, paramIndex);
+    cteSql = await this.addPositionLabelFilter(cteSql, params, criteria, paramIndex, labId);
+
+    // Layer 1: tsvector full-text search
+    const tsqueryParamNum = paramIndex.current;
+    params.push(tsqueryTerms);
+    paramIndex.current++;
+
+    const ftsSql = `
       SELECT ${this.TUBE_COLUMNS},
              ts_rank(tubes.search_vector, to_tsquery('english', $${tsqueryParamNum})) * ${SearchRankTier.TSVECTOR_HIGH} as rank
-      FROM tubes
+      FROM filtered_tubes tubes
       WHERE tubes.search_vector @@ to_tsquery('english', $${tsqueryParamNum})
-        AND tubes.lab_id = $${ftsLabIdParamNum}
     `;
-    params.push(tsqueryTerms, labId);
-    paramIndex.current += 2;
-
-    ftsSql = this.addLocationFilters(ftsSql, params, criteria, paramIndex);
-    ftsSql = this.addSampleFilters(ftsSql, params, criteria, paramIndex);
-    ftsSql = this.addResearcherFilters(ftsSql, params, criteria, paramIndex);
-    ftsSql = this.addDateRangeFilters(ftsSql, params, criteria, paramIndex);
-    ftsSql = await this.addPositionLabelFilter(ftsSql, params, criteria, paramIndex, labId);
 
     // Layer 2: Fuzzy matching with pg_trgm (catches typos)
     const fuzzyColumns = ['cell_type', 'species', 'source', 'donor_internal_id', 'donor_source_id', 'lot_number', 'notes', 'media_type', 'culture_condition'];
     const fuzzySearchTerm = normalizedQuery;
-
-    // Skip fuzzy for very short or numeric queries
     const shouldDoFuzzy = !shouldSkipFuzzyMatching(fuzzySearchTerm) && fuzzySearchTerm.length >= 3;
 
     let fuzzySql = '';
     if (shouldDoFuzzy) {
       const fuzzyParamNum = paramIndex.current;
-      const labIdParamNum = paramIndex.current + 1;
+      params.push(fuzzySearchTerm);
+      paramIndex.current++;
 
       const fuzzyConditions = fuzzyColumns.map(col =>
         `similarity(COALESCE(${col}, ''), $${fuzzyParamNum}) > ${fuzzyThreshold}`
@@ -699,18 +692,9 @@ export class TubeRepository implements ITubeRepository {
 
       fuzzySql = `
         SELECT ${this.TUBE_COLUMNS}, ${fuzzyRankExpr} as rank
-        FROM tubes
+        FROM filtered_tubes tubes
         WHERE (${fuzzyConditions})
-          AND tubes.lab_id = $${labIdParamNum}
       `;
-      params.push(fuzzySearchTerm, labId);
-      paramIndex.current += 2;
-
-      fuzzySql = this.addLocationFilters(fuzzySql, params, criteria, paramIndex);
-      fuzzySql = this.addSampleFilters(fuzzySql, params, criteria, paramIndex);
-      fuzzySql = this.addResearcherFilters(fuzzySql, params, criteria, paramIndex);
-      fuzzySql = this.addDateRangeFilters(fuzzySql, params, criteria, paramIndex);
-      fuzzySql = await this.addPositionLabelFilter(fuzzySql, params, criteria, paramIndex, labId);
     }
 
     // Layer 3: Researcher name search — AND between concepts, OR within variants
@@ -725,29 +709,22 @@ export class TubeRepository implements ITubeRepository {
       researcherConceptConditions.push(`(${variantConditions.join(' OR ')})`);
     }
 
-    let researcherSql = `
+    const researcherSql = `
       SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.RESEARCHER_NAME} as rank
-      FROM tubes
+      FROM filtered_tubes tubes
       INNER JOIN researchers ON tubes.researcher_id = researchers.id
       INNER JOIN persons p ON researchers.person_id = p.id
-      WHERE tubes.lab_id = $${paramIndex.current}
-        AND ${researcherConceptConditions.join(' AND ')}
+      WHERE ${researcherConceptConditions.join(' AND ')}
     `;
-    params.push(labId);
-    paramIndex.current++;
-    researcherSql = this.addLocationFilters(researcherSql, params, criteria, paramIndex);
-    researcherSql = this.addSampleFilters(researcherSql, params, criteria, paramIndex);
-    researcherSql = this.addResearcherFilters(researcherSql, params, criteria, paramIndex);
-    researcherSql = this.addDateRangeFilters(researcherSql, params, criteria, paramIndex);
-    researcherSql = await this.addPositionLabelFilter(researcherSql, params, criteria, paramIndex, labId);
 
     // Combine all layers with UNION
     const unionParts = [ftsSql, researcherSql];
     if (fuzzySql) {
-      unionParts.splice(1, 0, fuzzySql); // Insert fuzzy after tsvector
+      unionParts.splice(1, 0, fuzzySql);
     }
 
     const combinedSql = `
+      WITH filtered_tubes AS (${cteSql})
       SELECT DISTINCT ON (id) * FROM (
         ${unionParts.join('\n        UNION ALL\n        ')}
       ) combined_results
@@ -761,12 +738,11 @@ export class TubeRepository implements ITubeRepository {
 
     let finalSql = combinedSql;
     if (sortBy === 'rank') {
-      finalSql += ` ORDER BY id, rank DESC`; // Higher rank = more relevant
+      finalSql += ` ORDER BY id, rank DESC`;
     } else {
       finalSql += ` ORDER BY id, ${sortBy} ${sortOrder}`;
     }
 
-    // Wrap with outer query to apply proper sorting after DISTINCT ON
     finalSql = `
       SELECT * FROM (${finalSql}) sorted_results
       ORDER BY ${sortBy === 'rank' ? 'rank DESC' : `${sortBy} ${sortOrder}`}
