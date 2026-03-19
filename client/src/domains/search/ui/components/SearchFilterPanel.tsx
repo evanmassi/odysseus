@@ -6,7 +6,10 @@
 
 import { useMemo, useState, useCallback } from 'react';
 
-import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
+import {
+  formatResearcherDropdownDisplay,
+  formatResourceDisplayName,
+} from '@odysseus/shared-schemas';
 import {
   type LucideIcon,
   UsersRound,
@@ -203,6 +206,30 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
     [tanks]
   );
 
+  const getRackName = useCallback(
+    (rackId: string): string => {
+      for (const tank of tanks) {
+        const rack = tank.racks?.find(r => r.id === rackId);
+        if (rack) return formatResourceDisplayName(rack.name ?? `Rack ${rackId}`, rack.customLabel);
+      }
+      return `Rack ${rackId}`;
+    },
+    [tanks]
+  );
+
+  const getBoxName = useCallback(
+    (boxId: string): string => {
+      for (const tank of tanks) {
+        for (const rack of tank.racks ?? []) {
+          const box = rack.boxes?.find(b => b.id === boxId);
+          if (box) return formatResourceDisplayName(box.name ?? `Box ${boxId}`, box.customLabel);
+        }
+      }
+      return `Box ${boxId}`;
+    },
+    [tanks]
+  );
+
   const updateDateFilter = useCallback(
     (field: 'dateFrom' | 'dateTo', value: string) => {
       const normalized = normalizeDateString(value);
@@ -266,7 +293,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
     filters.rackIds?.forEach(rackId => {
       result.push({
         category: 'Location',
-        label: `Rack ${rackId}`,
+        label: getRackName(rackId),
         onRemove: () => toggleFilterValue('rackIds', rackId),
       });
     });
@@ -274,7 +301,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
     filters.boxIds?.forEach(boxId => {
       result.push({
         category: 'Location',
-        label: `Box ${boxId}`,
+        label: getBoxName(boxId),
         onRemove: () => toggleFilterValue('boxIds', boxId),
       });
     });
@@ -320,7 +347,15 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
     }
 
     return result;
-  }, [filters, researchers, getTankName, toggleFilterValue, updateDateFilter]);
+  }, [
+    filters,
+    researchers,
+    getTankName,
+    getRackName,
+    getBoxName,
+    toggleFilterValue,
+    updateDateFilter,
+  ]);
 
   const hasActiveFilters = activeFilters.length > 0;
 
@@ -406,7 +441,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
                       selected={isSelected('rackIds', rackId)}
                       onSelect={() => toggleFilterValue('rackIds', rackId)}
                     >
-                      Rack {rackId}
+                      {getRackName(rackId)}
                     </Chip>
                   ))}
                 </div>
@@ -429,7 +464,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
                       selected={isSelected('boxIds', boxId)}
                       onSelect={() => toggleFilterValue('boxIds', boxId)}
                     >
-                      Box {boxId}
+                      {getBoxName(boxId)}
                     </Chip>
                   ))}
                 </div>
