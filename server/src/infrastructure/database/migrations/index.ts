@@ -20,6 +20,7 @@ import { migration013 } from './013_normalize_lab_ids';
 import { migration014 } from './014_ensure_system_admin_person';
 import { migration015 } from './015_insert_default_configuration';
 import { migration016 } from './016_create_donors';
+import { migration017 } from './017_enhance_search_vector';
 
 import type { Migration } from './migrationRunner';
 
@@ -40,4 +41,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration014,
   migration015,
   migration016,
+  migration017,
 ];
