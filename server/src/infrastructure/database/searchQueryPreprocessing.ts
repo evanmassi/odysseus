@@ -153,23 +153,6 @@ export function parseQueryIntoConcepts(query: string): string[][] {
   return concepts;
 }
 
-/**
- * Flat synonym list for client-side highlighting.
- * For search logic, use parseQueryIntoConcepts() instead.
- */
-export function expandWithSynonyms(query: string): string[] {
-  const concepts = parseQueryIntoConcepts(query);
-  const allTerms: Set<string> = new Set();
-
-  for (const concept of concepts) {
-    for (const term of concept) {
-      allTerms.add(term);
-    }
-  }
-
-  return Array.from(allTerms);
-}
-
 /** Uses AND between concepts (must match all), OR within concepts (synonyms). */
 export function buildTsQueryFromConcepts(concepts: string[][]): string {
   if (concepts.length === 0) return '';

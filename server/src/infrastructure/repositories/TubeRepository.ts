@@ -18,7 +18,6 @@ import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import {
   normalizeSearchQuery,
-  expandWithSynonyms,
   parseQueryIntoConcepts,
   buildTsQueryFromConcepts,
   calculateQueryFuzzyThreshold,
@@ -603,7 +602,7 @@ export class TubeRepository implements ITubeRepository {
     if (criteria.query?.trim()) {
       const rawQuery = criteria.query.trim();
       const normalizedQuery = normalizeSearchQuery(rawQuery);
-      const expandedTerms = expandWithSynonyms(normalizedQuery);
+      const concepts = parseQueryIntoConcepts(rawQuery);
 
       matchedTerms.push(rawQuery.toLowerCase());
 
@@ -611,9 +610,11 @@ export class TubeRepository implements ITubeRepository {
         matchedTerms.push(normalizedQuery);
       }
 
-      for (const term of expandedTerms) {
-        if (!matchedTerms.includes(term)) {
-          matchedTerms.push(term);
+      for (const synonymGroup of concepts) {
+        for (const term of synonymGroup) {
+          if (!matchedTerms.includes(term)) {
+            matchedTerms.push(term);
+          }
         }
       }
 
@@ -635,7 +636,6 @@ export class TubeRepository implements ITubeRepository {
    * 1. tsvector full-text with synonym expansion
    * 2. Fuzzy matching with pg_trgm similarity
    * 3. Researcher name ILIKE
-   * 4. ILIKE fallback for edge cases
    */
   private async comprehensiveSearch(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
     const rawQuery = criteria.query!.trim();
