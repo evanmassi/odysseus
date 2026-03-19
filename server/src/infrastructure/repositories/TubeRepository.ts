@@ -682,12 +682,15 @@ export class TubeRepository implements ITubeRepository {
 
     let fuzzySql = '';
     if (shouldDoFuzzy) {
+      const fuzzyParamNum = paramIndex.current;
+      const labIdParamNum = paramIndex.current + 1;
+
       const fuzzyConditions = fuzzyColumns.map(col =>
-        `similarity(COALESCE(${col}, ''), $${paramIndex.current}) > ${fuzzyThreshold}`
+        `similarity(COALESCE(${col}, ''), $${fuzzyParamNum}) > ${fuzzyThreshold}`
       ).join(' OR ');
 
       const fuzzyRankParts = fuzzyColumns.map(col =>
-        `similarity(COALESCE(${col}, ''), $${paramIndex.current})`
+        `similarity(COALESCE(${col}, ''), $${fuzzyParamNum})`
       );
       const fuzzyRankExpr = `GREATEST(${fuzzyRankParts.join(', ')}) * ${SearchRankTier.FUZZY_MATCH}`;
 
@@ -695,7 +698,7 @@ export class TubeRepository implements ITubeRepository {
         SELECT ${this.TUBE_COLUMNS}, ${fuzzyRankExpr} as rank
         FROM tubes
         WHERE (${fuzzyConditions})
-          AND tubes.lab_id = $${paramIndex.current}
+          AND tubes.lab_id = $${labIdParamNum}
       `;
       params.push(fuzzySearchTerm, labId);
       paramIndex.current += 2;
@@ -736,42 +739,8 @@ export class TubeRepository implements ITubeRepository {
     researcherSql = this.addDateRangeFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = await this.addPositionLabelFilter(researcherSql, params, criteria, paramIndex, labId);
 
-    // Layer 4: ILIKE fallback — AND between concepts, OR within variants/columns
-    const ilikeSearchColumns = [
-      'cell_type', 'species', 'source', 'donor_internal_id', 'donor_source_id',
-      'lot_number', 'notes', 'media_type', 'media_supplements', 'media_selection',
-      'culture_condition', 'catalog_number', 'passage_number::TEXT',
-      'concentration::TEXT', 'date', 'created_by_name',
-    ];
-
-    const ilikeConceptConditions: string[] = [];
-    for (const conceptVariants of concepts) {
-      const variantConditions: string[] = [];
-      for (const variant of conceptVariants) {
-        const paramNum = paramIndex.current++;
-        params.push(`%${variant}%`);
-        variantConditions.push(`(${ilikeSearchColumns.map(col => `${col} ILIKE $${paramNum}`).join(' OR ')})`);
-      }
-      ilikeConceptConditions.push(`(${variantConditions.join(' OR ')})`);
-    }
-
-    let ilikeSql = `
-      SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.ILIKE_FALLBACK} as rank
-      FROM tubes
-      WHERE tubes.lab_id = $${paramIndex.current}
-        AND ${ilikeConceptConditions.join(' AND ')}
-    `;
-    params.push(labId);
-    paramIndex.current++;
-
-    ilikeSql = this.addLocationFilters(ilikeSql, params, criteria, paramIndex);
-    ilikeSql = this.addSampleFilters(ilikeSql, params, criteria, paramIndex);
-    ilikeSql = this.addResearcherFilters(ilikeSql, params, criteria, paramIndex);
-    ilikeSql = this.addDateRangeFilters(ilikeSql, params, criteria, paramIndex);
-    ilikeSql = await this.addPositionLabelFilter(ilikeSql, params, criteria, paramIndex, labId);
-
     // Combine all layers with UNION
-    const unionParts = [ftsSql, researcherSql, ilikeSql];
+    const unionParts = [ftsSql, researcherSql];
     if (fuzzySql) {
       unionParts.splice(1, 0, fuzzySql); // Insert fuzzy after tsvector
     }

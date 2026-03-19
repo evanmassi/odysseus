@@ -203,14 +203,9 @@ export function buildTsQueryFromConcepts(concepts: string[][]): string {
 
 /** Higher tier = better match = shown first. */
 export enum SearchRankTier {
-  EXACT_MATCH = 10.0,
   TSVECTOR_HIGH = 5.0,
-  TSVECTOR_MEDIUM = 3.0,
-  SYNONYM_MATCH = 2.5,
   FUZZY_MATCH = 2.0,
   RESEARCHER_NAME = 1.5,
-  ILIKE_FALLBACK = 1.0,
-  PARTIAL_MATCH = 0.5,
 }
 
 /**
@@ -243,21 +238,3 @@ export function shouldSkipFuzzyMatching(term: string): boolean {
 
   return false;
 }
-
-/** Catches typos and near-matches the tsvector layer might miss. */
-export function buildFuzzySql(
-  searchColumns: string[],
-  threshold: number
-): { conditions: string[]; rankExpression: string } {
-  const conditions = searchColumns.map(
-    col => `similarity(COALESCE(${col}, ''), $1) > ${threshold}`
-  );
-
-  const similarities = searchColumns.map(
-    col => `similarity(COALESCE(${col}, ''), $1)`
-  );
-  const rankExpression = `GREATEST(${similarities.join(', ')}) * ${SearchRankTier.FUZZY_MATCH}`;
-
-  return { conditions, rankExpression };
-}
-
