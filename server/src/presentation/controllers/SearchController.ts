@@ -109,7 +109,7 @@ export class SearchController extends BaseController {
         return;
       }
 
-      const parsedLimit = limit ? parseInt(limit as string) : 20;
+      const parsedLimit = (limit as number | undefined) ?? 20;
       const tubes = await this.deps.tubeApplicationService.searchTubes(
         { query, limit: parsedLimit },
         authenticatedUser

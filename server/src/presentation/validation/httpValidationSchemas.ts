@@ -138,7 +138,7 @@ export const DonorSearchQuery = z.object({
 
 export const QuickSearchQuerySchema = z.object({
   q: z.string().min(1),
-  limit: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
 });
 
 export const FieldSearchBodySchema = z.object({
