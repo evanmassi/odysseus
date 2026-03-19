@@ -24,6 +24,18 @@ export interface DisplayResults {
 }
 
 /**
+ * Builds a regex pattern for a highlight term. Splits on alphanumeric
+ * boundaries so "lp8", "lp-8", and "lp 8" all match "LP #8" in text.
+ */
+function termToHighlightPattern(term: string): string {
+  const parts = term.match(/[a-zA-Z]+|\d+/g);
+  if (parts && parts.length >= 2) {
+    return parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[^a-zA-Z0-9]*');
+  }
+  return term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Supports server-provided matchedTerms (synonyms, normalized forms) with
  * fallback to whitespace-split query terms. Longer terms match first.
  *
@@ -57,18 +69,20 @@ export function highlightMatches(
 
   // Sort by length descending so longer terms match first
   const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
-  const regex = new RegExp(
-    `(${sortedTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
-    'gi'
-  );
+
+  const patterns = new Set(sortedTerms.map(termToHighlightPattern));
+
+  const regex = new RegExp(`(${Array.from(patterns).join('|')})`, 'gi');
 
   const parts = text.split(regex);
+
+  const testRegex = new RegExp(regex.source, 'i');
 
   return parts
     .filter(part => part.length > 0)
     .map(part => ({
       text: part,
-      isMatch: terms.some(term => part.toLowerCase().includes(term.toLowerCase())),
+      isMatch: testRegex.test(part),
     }));
 }
 
