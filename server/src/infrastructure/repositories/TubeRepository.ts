@@ -657,15 +657,18 @@ export class TubeRepository implements ITubeRepository {
     const params: unknown[] = [];
     const paramIndex = { current: 1 };
 
+    const tsqueryParamNum = paramIndex.current;
+    const ftsLabIdParamNum = paramIndex.current + 1;
+
     let ftsSql = `
       SELECT ${this.TUBE_COLUMNS},
-             ts_rank(tubes.search_vector, to_tsquery('english', $${paramIndex.current})) * ${SearchRankTier.TSVECTOR_HIGH} as rank
+             ts_rank(tubes.search_vector, to_tsquery('english', $${tsqueryParamNum})) * ${SearchRankTier.TSVECTOR_HIGH} as rank
       FROM tubes
-      WHERE tubes.search_vector @@ to_tsquery('english', $${paramIndex.current++})
-        AND tubes.lab_id = $${paramIndex.current}
+      WHERE tubes.search_vector @@ to_tsquery('english', $${tsqueryParamNum})
+        AND tubes.lab_id = $${ftsLabIdParamNum}
     `;
     params.push(tsqueryTerms, labId);
-    paramIndex.current++;
+    paramIndex.current += 2;
 
     ftsSql = this.addLocationFilters(ftsSql, params, criteria, paramIndex);
     ftsSql = this.addSampleFilters(ftsSql, params, criteria, paramIndex);
@@ -725,10 +728,9 @@ export class TubeRepository implements ITubeRepository {
     let researcherSql = `
       SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.RESEARCHER_NAME} as rank
       FROM tubes
-      LEFT JOIN researchers ON tubes.researcher_id = researchers.id
+      INNER JOIN researchers ON tubes.researcher_id = researchers.id
       INNER JOIN persons p ON researchers.person_id = p.id
-      WHERE researchers.id IS NOT NULL
-        AND tubes.lab_id = $${paramIndex.current}
+      WHERE tubes.lab_id = $${paramIndex.current}
         AND ${researcherConceptConditions.join(' AND ')}
     `;
     params.push(labId);
