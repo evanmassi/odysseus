@@ -76,5 +76,19 @@ export const bulkRevokeResponseSchema = z.object({
   revokedCount: z.number(),
 });
 
+export const failedLoginEntrySchema = z.object({
+  username: z.string(),
+  ipAddress: z.string().nullable(),
+  reason: z.string(),
+  timestamp: z.string(),
+});
+
+export const failedLoginsResponseSchema = z.object({
+  entries: z.array(failedLoginEntrySchema),
+  total: z.number(),
+});
+
 export type BulkRevokeSessionsRequest = z.infer<typeof bulkRevokeSessionsRequestSchema>;
 export type BulkRevokeResponse = z.infer<typeof bulkRevokeResponseSchema>;
+export type FailedLoginEntry = z.infer<typeof failedLoginEntrySchema>;
+export type FailedLoginsResponse = z.infer<typeof failedLoginsResponseSchema>;

@@ -66,6 +66,7 @@ import type {
   UserRoleChangedEvent,
   UserDeletedEvent,
   UserLoggedInEvent,
+  UserLoginFailedEvent,
   UserLoggedOutEvent,
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
@@ -125,6 +126,7 @@ export interface DomainEventMap {
   'UserRoleChanged': UserRoleChangedEvent;
   'UserDeleted': UserDeletedEvent;
   'UserLoggedIn': UserLoggedInEvent;
+  'UserLoginFailed': UserLoginFailedEvent;
   'UserLoggedOut': UserLoggedOutEvent;
   'UserLinkedToResearcher': UserLinkedToResearcherEvent;
   'UserUnlinkedFromResearcher': UserUnlinkedFromResearcherEvent;

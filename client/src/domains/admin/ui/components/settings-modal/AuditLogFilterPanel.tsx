@@ -45,6 +45,11 @@ const ACTION_GROUPS = {
     { value: 'researcher_deactivated', label: 'Deactivated' },
     { value: 'researcher_reactivated', label: 'Reactivated' },
   ],
+  donor: [
+    { value: 'donor_created', label: 'Created' },
+    { value: 'donor_updated', label: 'Updated' },
+    { value: 'donor_deleted', label: 'Deleted' },
+  ],
   user: [
     { value: 'user_created', label: 'Created' },
     { value: 'user_logged_in', label: 'Login' },
@@ -60,6 +65,7 @@ const ACTION_GROUPS = {
 const ENTITY_TYPES = [
   { value: 'tube', label: 'Tube' },
   { value: 'storage', label: 'Storage' },
+  { value: 'donor', label: 'Donor' },
   { value: 'user', label: 'User' },
   { value: 'researcher', label: 'Researcher' },
 ];
@@ -128,6 +134,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
     storageActions: false,
     userActions: false,
     researcherActions: false,
+    donorActions: false,
   });
 
   const datePresets = [
@@ -540,6 +547,41 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                   {openSections.researcherActions && (
                     <div className="flex flex-wrap gap-1 ml-4">
                       {ACTION_GROUPS.researcher.map(action => (
+                        <Chip
+                          key={action.value}
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes(action.value) ?? false}
+                          onSelect={() => toggleAction(action.value)}
+                        >
+                          {action.label}
+                        </Chip>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Donor */}
+                <div>
+                  <button
+                    onClick={() => toggleSection('donorActions')}
+                    className="flex items-center space-x-1 mb-2 hover:text-action transition-colors"
+                  >
+                    {openSections.donorActions ? (
+                      <ChevronDown className="w-3 h-3" />
+                    ) : (
+                      <ChevronRight className="w-3 h-3" />
+                    )}
+                    <span className="text-xs font-medium text-secondary-foreground">Donor</span>
+                    {getEntityActionCount('donor') > 0 && (
+                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
+                        {getEntityActionCount('donor')}
+                      </span>
+                    )}
+                  </button>
+                  {openSections.donorActions && (
+                    <div className="flex flex-wrap gap-1 ml-4">
+                      {ACTION_GROUPS.donor.map(action => (
                         <Chip
                           key={action.value}
                           behavior="selectable"

@@ -10,6 +10,7 @@ import {
   ipActivityResponseSchema,
   purgeExpiredResponseSchema,
   bulkRevokeResponseSchema,
+  failedLoginsResponseSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -21,6 +22,7 @@ import type {
   IpActivityResponse,
   PurgeExpiredResponse,
   BulkRevokeResponse,
+  FailedLoginsResponse,
 } from '@odysseus/shared-schemas';
 
 export class SecurityMonitoringService {
@@ -74,6 +76,21 @@ export class SecurityMonitoringService {
       await httpClient.post(`/system/security/sessions/${sessionId}/revoke`);
     } catch (error) {
       logger.error('Failed to revoke session', { sessionId, error });
+      throw error;
+    }
+  }
+
+  async getFailedLogins(limit?: number, startDate?: string, endDate?: string): Promise<FailedLoginsResponse> {
+    try {
+      const params = new URLSearchParams();
+      if (limit) params.set('limit', String(limit));
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
+      const query = params.toString();
+      const url = `/system/security/failed-logins${query ? `?${query}` : ''}`;
+      return await httpClient.getData(url, failedLoginsResponseSchema);
+    } catch (error) {
+      logger.error('Failed to get failed logins', { error });
       throw error;
     }
   }

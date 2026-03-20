@@ -68,6 +68,7 @@ import type {
   UserRoleChangedEvent,
   UserDeletedEvent,
   UserLoggedInEvent,
+  UserLoginFailedEvent,
   UserLoggedOutEvent,
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
@@ -199,6 +200,7 @@ export class AuditEventHandler {
     this.eventBus.subscribe('UserRoleChanged', (e) => this.handleUserRoleChanged(e));
     this.eventBus.subscribe('UserDeleted', (e) => this.handleUserDeleted(e));
     this.eventBus.subscribe('UserLoggedIn', (e) => this.handleUserLoggedIn(e));
+    this.eventBus.subscribe('UserLoginFailed', (e) => this.handleUserLoginFailed(e));
     this.eventBus.subscribe('UserLoggedOut', (e) => this.handleUserLoggedOut(e));
     this.eventBus.subscribe('UserLinkedToResearcher', (e) => this.handleUserLinkedToResearcher(e));
     this.eventBus.subscribe('UserUnlinkedFromResearcher', (e) => this.handleUserUnlinkedFromResearcher(e));
@@ -809,6 +811,15 @@ export class AuditEventHandler {
       actorId: event.userId, action: 'user_logged_in', entityType: 'user',
       entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: () => ({ username: event.username }),
+    });
+  }
+
+  private async handleUserLoginFailed(event: UserLoginFailedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'user login failed', context: { username: event.username },
+      actorId: event.username, action: 'user_login_failed', entityType: 'user',
+      entityId: event.username, occurredOn: event.occurredOn,
+      buildDetails: () => ({ username: event.username, ipAddress: event.ipAddress, reason: event.reason }),
     });
   }
 

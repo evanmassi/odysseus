@@ -273,6 +273,10 @@ export {
   bulkRevokeResponseSchema,
   type BulkRevokeSessionsRequest,
   type BulkRevokeResponse,
+  failedLoginEntrySchema,
+  failedLoginsResponseSchema,
+  type FailedLoginEntry,
+  type FailedLoginsResponse,
 } from './admin';
 
 // Authentication

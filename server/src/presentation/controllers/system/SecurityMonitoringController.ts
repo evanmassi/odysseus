@@ -4,6 +4,7 @@
  * System admin endpoints for session/token monitoring, IP activity, and session cleanup.
  */
 
+import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import type { RefreshTokenRepository, IpTokenCount } from '@domain/repositories/RefreshTokenRepository';
 import type { UserSessionRepository, IpSessionCount } from '@domain/repositories/UserSessionRepository';
@@ -17,6 +18,7 @@ import type { Request, Response } from 'express';
 export interface SecurityMonitoringControllerDeps {
   userSessionRepository: UserSessionRepository;
   refreshTokenRepository: RefreshTokenRepository;
+  auditRepository: AuditRepository;
 }
 
 export class SecurityMonitoringController extends BaseController {
@@ -163,6 +165,37 @@ export class SecurityMonitoringController extends BaseController {
       res.status(200).json(ResponseBuilder.success({ revokedCount }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to bulk revoke sessions');
+    }
+  }
+
+  async getFailedLogins(req: Request, res: Response): Promise<void> {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+
+      const entries = await this.deps.auditRepository.findByAction('user_login_failed', {
+        limit,
+        dateFrom: startDate,
+        dateTo: endDate,
+      });
+
+      const serialized = entries.map(e => {
+        const details = typeof e.details === 'string' ? JSON.parse(e.details) : e.details;
+        return {
+          username: details?.username ?? e.entityId,
+          ipAddress: details?.ipAddress ?? null,
+          reason: details?.reason ?? 'Unknown',
+          timestamp: e.timestamp instanceof Date ? e.timestamp.toISOString() : String(e.timestamp),
+        };
+      });
+
+      res.status(200).json(ResponseBuilder.success({
+        entries: serialized,
+        total: serialized.length,
+      }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to get failed logins');
     }
   }
 

@@ -17,6 +17,7 @@ import {
   MonitorX,
   RefreshCw,
   Search,
+  ShieldAlert,
   Trash2,
   UsersRound,
 } from 'lucide-react';
@@ -35,14 +36,16 @@ import {
   useSecurityOverviewQuery,
   useActiveSessionsQuery,
   useIpActivityQuery,
+  useFailedLoginsQuery,
 } from '../../../hooks/useSecurityMonitoringQueries';
 
 import { SecuritySettings } from './SecuritySettings';
 
-import type { ActiveSessionEntry, IpActivityEntry } from '@odysseus/shared-schemas';
+import type { ActiveSessionEntry, IpActivityEntry, FailedLoginEntry } from '@odysseus/shared-schemas';
 import type { SortConfig, TableColumn } from '@shared/ui';
 
 type IpActivityRow = IpActivityEntry & { id: string };
+type FailedLoginRow = FailedLoginEntry & { id: string };
 
 function formatRelativeTime(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime();
@@ -80,6 +83,7 @@ export function SecurityPanel() {
   const [autoRefresh, setAutoRefresh] = useState(false);
 
   const { data: ipData } = useIpActivityQuery(startDate || undefined, endDate || undefined);
+  const { data: failedLoginsData } = useFailedLoginsQuery(50);
 
   const purgeExpiredMutation = usePurgeExpiredSessionsMutation();
   const revokeSessionMutation = useRevokeSessionMutation();
@@ -381,6 +385,42 @@ export function SecurityPanel() {
     },
   ];
 
+  const failedLoginColumns: TableColumn<FailedLoginRow>[] = [
+    {
+      id: 'username',
+      header: 'Username',
+      accessor: 'username',
+    },
+    {
+      id: 'ipAddress',
+      header: 'IP Address',
+      render: (_val, row) => (
+        <span className="font-mono text-xs">{row.ipAddress ?? '\u2014'}</span>
+      ),
+    },
+    {
+      id: 'reason',
+      header: 'Reason',
+      render: (_val, row) => (
+        <span className="text-xs">{row.reason}</span>
+      ),
+    },
+    {
+      id: 'timestamp',
+      header: 'Time',
+      render: (_val, row) => {
+        const { date, time } = formatDateStacked(row.timestamp);
+        return (
+          <div className="text-xs">
+            <div className="text-secondary-foreground">{date}</div>
+            <div className="text-muted-foreground">{time}</div>
+            <div className="text-muted-foreground text-[10px]">{formatRelativeTime(row.timestamp)}</div>
+          </div>
+        );
+      },
+    },
+  ];
+
   const sessionOverview = overview?.sessionOverview;
   const tokenHealth = overview?.tokenHealth;
 
@@ -560,6 +600,24 @@ export function SecurityPanel() {
           rounded="lg"
           emptyMessage="No IP activity data"
           aria-label="IP activity"
+        />
+      </div>
+
+      {/* Failed Login Attempts */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <ShieldAlert size={18} className="text-muted-foreground" />
+          <h3 className="text-lg font-semibold text-card-foreground">Failed Login Attempts</h3>
+        </div>
+
+        <Table<FailedLoginRow>
+          columns={failedLoginColumns}
+          data={(failedLoginsData?.entries ?? []).map((e, i) => ({ ...e, id: `${e.username}-${e.timestamp}-${i}` }))}
+          hoverable
+          size="sm"
+          rounded="lg"
+          emptyMessage="No failed login attempts"
+          aria-label="Failed login attempts"
         />
       </div>
 

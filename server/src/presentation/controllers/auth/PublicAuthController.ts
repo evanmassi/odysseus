@@ -20,12 +20,15 @@ import type {
   CreateSystemAdminCommand, CreateSystemAdminCommandHandler,
   LoginCommand, LoginCommandHandler,
 } from '@application/commands/UserCommands';
+import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import type { SessionService } from '@application/contracts/SessionService';
 import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
 import { CheckFirstTimeSetupQuery } from '@application/queries/UserQueries';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { InvalidCredentialsError } from '@domain/errors/UserErrors';
+import { UserLoginFailedEvent } from '@domain/events/UserEvents';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
@@ -55,6 +58,7 @@ export interface PublicAuthControllerDeps {
   userSessionRepository: UserSessionRepository;
   userRepository: UserRepository;
   passwordService: PasswordService;
+  eventBus: EventBus;
 }
 
 export class PublicAuthController {
@@ -226,6 +230,16 @@ export class PublicAuthController {
       res.status(200).json(response);
     } catch (error) {
       await recordFailedLogin(req);
+
+      if (error instanceof InvalidCredentialsError) {
+        const ipAddress = req.ip ?? req.socket.remoteAddress;
+        void this.deps.eventBus.publish(new UserLoginFailedEvent(
+          req.body.username ?? 'unknown',
+          ipAddress,
+          error.message
+        ));
+      }
+
       handleControllerError(error, res, 'Failed to login');
     }
   }

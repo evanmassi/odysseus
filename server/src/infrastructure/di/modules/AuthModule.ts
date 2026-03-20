@@ -207,6 +207,7 @@ export class AuthModule {
         userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
         userRepository: this.repositoryFactory.getUserRepository(),
         passwordService: this.shared.passwordService,
+        eventBus: this.shared.eventBus,
       });
     }
     return this.publicAuthController;

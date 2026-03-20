@@ -107,6 +107,14 @@ const FIELD_LABELS: Record<string, string> = {
   isActive: 'Active Status',
   'gridConfig.rows': 'Grid Rows',
   'gridConfig.cols': 'Grid Columns',
+  species: 'Species',
+  age: 'Age',
+  sex: 'Sex',
+  ethnicity: 'Ethnicity',
+  clinicalStatus: 'Clinical Status',
+  diagnosis: 'Diagnosis',
+  diseaseStage: 'Disease Stage',
+  isCurated: 'Curated',
 };
 
 function getFieldLabel(field: string): string {
@@ -509,6 +517,41 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       }
 
       return plain(researcherName);
+    }
+
+    // ── DONOR EVENTS ──
+
+    if (entityType === 'donor') {
+      const sourceId = getStringProperty(details, 'donorSourceId');
+      const internalId = getStringProperty(details, 'donorInternalId');
+      const donorLabel = sourceId || internalId || entry.entityId || '-';
+
+      if (action === 'donor_created') {
+        const idParts: string[] = [];
+        if (internalId) idParts.push(`I.ID: ${internalId}`);
+        if (sourceId) idParts.push(`S.ID: ${sourceId}`);
+        const isCurated = details['isCurated'];
+        const curatedText = isCurated ? ' (curated)' : '';
+        return plain(idParts.length > 0 ? `${idParts.join(', ')}${curatedText}` : `Donor created${curatedText}`);
+      }
+
+      if (action === 'donor_updated') {
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          return {
+            text: `${donorLabel} — ${fields.text} changed`,
+            fullText: fields.full ? `${donorLabel} — ${fields.full} changed` : undefined,
+          };
+        }
+        return plain(`${donorLabel} updated`);
+      }
+
+      if (action === 'donor_deleted') {
+        return plain(donorLabel);
+      }
+
+      return plain(donorLabel);
     }
 
     // ── USER EVENTS ──

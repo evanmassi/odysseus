@@ -198,6 +198,7 @@ export class UserModule {
       this.securityMonitoringController = new SecurityMonitoringController({
         userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
         refreshTokenRepository: this.repositoryFactory.getRefreshTokenRepository(),
+        auditRepository: this.repositoryFactory.getAuditRepository(),
       });
     }
     return this.securityMonitoringController;

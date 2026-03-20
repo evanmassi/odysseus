@@ -42,6 +42,7 @@ export {
   useSecurityOverviewQuery,
   useActiveSessionsQuery,
   useIpActivityQuery,
+  useFailedLoginsQuery,
 } from './useSecurityMonitoringQueries';
 export {
   usePurgeExpiredSessionsMutation,
