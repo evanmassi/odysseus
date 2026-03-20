@@ -14,7 +14,7 @@ import { Button } from '@shared/ui';
 import { useLabDetailsQuery } from '../../../hooks/useLabQueries';
 import { AuditLogViewer } from '../settings-modal/AuditLogViewer';
 
-import { DemoSettings } from './DemoSettings';
+import { LabDemoSettings } from './LabDemoSettings';
 import { LabInfoPanel } from './LabInfoPanel';
 import { LabResearchersPanel } from './LabResearchersPanel';
 import { LabUsersPanel } from './LabUsersPanel';
@@ -114,7 +114,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           storageSummary={storageSummary}
         />
 
-        {lab.isDemo && <DemoSettings labId={labId} isSeeded={details.isSeeded} />}
+        {lab.isDemo && <LabDemoSettings labId={labId} isSeeded={details.isSeeded} />}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           <div className="lg:col-span-3">

@@ -198,7 +198,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       <Tab id="system" icon={<Gauge size={18} />}>
         System
       </Tab>
-      {!isDemo && (
+      {!isDemo && !isSystemAdmin && (
         <Tab id="security" icon={<Shield size={18} />}>
           Security
         </Tab>

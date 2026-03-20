@@ -1,5 +1,5 @@
 /**
- * Demo Settings
+ * Lab Demo Settings
  *
  * Collapsible panel for managing demo lab limits, seeding, and data reset.
  */
@@ -24,12 +24,12 @@ import { useDemoLimitsQuery } from '../../../hooks/useLabQueries';
 
 import type { DemoLimits } from '@odysseus/shared-schemas';
 
-interface DemoSettingsProps {
+interface LabDemoSettingsProps {
   labId: string;
   isSeeded: boolean;
 }
 
-export function DemoSettings({ labId, isSeeded }: DemoSettingsProps) {
+export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
   const { data: demoLimits } = useDemoLimitsQuery(labId);
   const updateDemoLimitsMutation = useUpdateDemoLimitsMutation();
   const resetDemoMutation = useResetDemoDataMutation();
