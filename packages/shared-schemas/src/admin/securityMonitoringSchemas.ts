@@ -67,3 +67,14 @@ export type ActiveSessionsResponse = z.infer<typeof activeSessionsResponseSchema
 export type IpActivityEntry = z.infer<typeof ipActivityEntrySchema>;
 export type IpActivityResponse = z.infer<typeof ipActivityResponseSchema>;
 export type PurgeExpiredResponse = z.infer<typeof purgeExpiredResponseSchema>;
+
+export const bulkRevokeSessionsRequestSchema = z.object({
+  sessionIds: z.array(z.string()).min(1).max(100),
+});
+
+export const bulkRevokeResponseSchema = z.object({
+  revokedCount: z.number(),
+});
+
+export type BulkRevokeSessionsRequest = z.infer<typeof bulkRevokeSessionsRequestSchema>;
+export type BulkRevokeResponse = z.infer<typeof bulkRevokeResponseSchema>;

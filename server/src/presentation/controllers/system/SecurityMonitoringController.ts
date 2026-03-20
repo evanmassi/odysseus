@@ -134,6 +134,38 @@ export class SecurityMonitoringController extends BaseController {
     }
   }
 
+  async bulkRevokeSessions(req: Request, res: Response): Promise<void> {
+    try {
+      const { sessionIds } = req.body as { sessionIds: string[] };
+
+      const sessions = await this.deps.userSessionRepository.findByIds(sessionIds);
+      if (sessions.length === 0) {
+        res.status(200).json(ResponseBuilder.success({ revokedCount: 0 }));
+        return;
+      }
+
+      const activeIds = sessions.map(s => s.id);
+      const revokedCount = await this.deps.userSessionRepository.batchRevoke(activeIds);
+
+      // Revoke associated refresh tokens
+      for (const session of sessions) {
+        if (session.refreshToken) {
+          const refreshToken = await this.deps.refreshTokenRepository.findByToken(session.refreshToken);
+          if (refreshToken) {
+            refreshToken.revoke();
+            await this.deps.refreshTokenRepository.save(refreshToken);
+          }
+        }
+      }
+
+      logger.info('Admin bulk revoked sessions', { count: revokedCount, requestId: req.requestId });
+
+      res.status(200).json(ResponseBuilder.success({ revokedCount }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to bulk revoke sessions');
+    }
+  }
+
   private mergeIpActivity(
     sessionCounts: IpSessionCount[],
     tokenCounts: IpTokenCount[]

@@ -11,6 +11,7 @@ export interface UserSessionRepository {
   // BASIC CRUD OPERATIONS
 
   findById(id: string): Promise<UserSession | null>;
+  findByIds(ids: string[]): Promise<UserSession[]>;
   findByRefreshToken(refreshToken: string): Promise<UserSession | null>;
   findActiveSessionsByUserId(userId: string): Promise<UserSession[]>;
   save(session: UserSession): Promise<void>;

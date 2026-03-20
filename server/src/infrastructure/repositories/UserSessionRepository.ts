@@ -30,6 +30,17 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
     return row ? UserSessionMapper.fromRow(row) : null;
   }
 
+  async findByIds(ids: string[]): Promise<UserSession[]> {
+    if (ids.length === 0) return [];
+
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await this.context.queryMany<UserSessionRow>(
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE id IN (${placeholders})`,
+      ids
+    );
+    return UserSessionMapper.fromRows(rows);
+  }
+
   async findByRefreshToken(refreshToken: string): Promise<UserSession | null> {
     const row = await this.context.queryOne<UserSessionRow>(
       `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE refresh_token = $1`,

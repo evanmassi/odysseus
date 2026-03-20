@@ -9,6 +9,7 @@ import {
   activeSessionsResponseSchema,
   ipActivityResponseSchema,
   purgeExpiredResponseSchema,
+  bulkRevokeResponseSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -19,6 +20,7 @@ import type {
   ActiveSessionsResponse,
   IpActivityResponse,
   PurgeExpiredResponse,
+  BulkRevokeResponse,
 } from '@odysseus/shared-schemas';
 
 export class SecurityMonitoringService {
@@ -72,6 +74,19 @@ export class SecurityMonitoringService {
       await httpClient.post(`/system/security/sessions/${sessionId}/revoke`);
     } catch (error) {
       logger.error('Failed to revoke session', { sessionId, error });
+      throw error;
+    }
+  }
+
+  async bulkRevokeSessions(sessionIds: string[]): Promise<BulkRevokeResponse> {
+    try {
+      return await httpClient.postData(
+        '/system/security/sessions/bulk-revoke',
+        { sessionIds },
+        bulkRevokeResponseSchema
+      );
+    } catch (error) {
+      logger.error('Failed to bulk revoke sessions', { count: sessionIds.length, error });
       throw error;
     }
   }

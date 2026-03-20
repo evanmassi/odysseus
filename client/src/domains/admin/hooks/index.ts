@@ -46,4 +46,5 @@ export {
 export {
   usePurgeExpiredSessionsMutation,
   useRevokeSessionMutation,
+  useBulkRevokeSessionsMutation,
 } from './useSecurityMonitoringMutations';

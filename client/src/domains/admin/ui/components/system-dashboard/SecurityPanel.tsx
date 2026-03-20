@@ -29,6 +29,7 @@ import { notifications } from '@shared/utils';
 import {
   usePurgeExpiredSessionsMutation,
   useRevokeSessionMutation,
+  useBulkRevokeSessionsMutation,
 } from '../../../hooks/useSecurityMonitoringMutations';
 import {
   useSecurityOverviewQuery,
@@ -71,6 +72,9 @@ export function SecurityPanel() {
   });
   const [revokeTarget, setRevokeTarget] = useState<ActiveSessionEntry | null>(null);
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
+  const [selectedSessionIds, setSelectedSessionIds] = useState<(string | number)[]>([]);
+  const [showBulkRevokeConfirm, setShowBulkRevokeConfirm] = useState(false);
+  const [bulkRevokeIp, setBulkRevokeIp] = useState<string | null>(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -79,6 +83,7 @@ export function SecurityPanel() {
 
   const purgeExpiredMutation = usePurgeExpiredSessionsMutation();
   const revokeSessionMutation = useRevokeSessionMutation();
+  const bulkRevokeMutation = useBulkRevokeSessionsMutation();
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -169,6 +174,44 @@ export function SecurityPanel() {
       notifications.error('Failed to revoke session');
     }
   };
+
+  const handleBulkRevoke = async () => {
+    const ids = selectedSessionIds.map(String);
+    if (ids.length === 0) return;
+    try {
+      const result = await bulkRevokeMutation.mutateAsync(ids);
+      notifications.success(`Revoked ${result.revokedCount} sessions`);
+      setSelectedSessionIds([]);
+      setShowBulkRevokeConfirm(false);
+    } catch {
+      notifications.error('Failed to revoke sessions');
+    }
+  };
+
+  const handleRevokeFromIp = async () => {
+    if (!bulkRevokeIp) return;
+    const sessions = sessionsData?.sessions ?? [];
+    const ids = sessions.filter(s => s.ipAddress === bulkRevokeIp).map(s => s.id);
+    if (ids.length === 0) return;
+    try {
+      const result = await bulkRevokeMutation.mutateAsync(ids);
+      notifications.success(`Revoked ${result.revokedCount} sessions from ${bulkRevokeIp}`);
+      setBulkRevokeIp(null);
+    } catch {
+      notifications.error('Failed to revoke sessions');
+    }
+  };
+
+  const activeSessionCountsByIp = useMemo(() => {
+    const sessions = sessionsData?.sessions ?? [];
+    const counts = new Map<string, number>();
+    for (const s of sessions) {
+      if (s.ipAddress) {
+        counts.set(s.ipAddress, (counts.get(s.ipAddress) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [sessionsData]);
 
   const sessionColumns: TableColumn<ActiveSessionEntry>[] = [
     {
@@ -314,6 +357,28 @@ export function SecurityPanel() {
         </div>
       ),
     },
+    {
+      id: 'actions',
+      header: '',
+      width: 40,
+      align: 'right',
+      render: (_val, row) => {
+        const count = activeSessionCountsByIp.get(row.ipAddress) ?? 0;
+        if (count === 0) return null;
+        return (
+          <Button
+            variant="ghost-danger"
+            size="sm"
+            onClick={e => {
+              (e as React.MouseEvent).stopPropagation();
+              setBulkRevokeIp(row.ipAddress);
+            }}
+          >
+            <LogOut size={14} />
+          </Button>
+        );
+      },
+    },
   ];
 
   const sessionOverview = overview?.sessionOverview;
@@ -404,10 +469,30 @@ export function SecurityPanel() {
           </div>
         </div>
 
+        {selectedSessionIds.length > 0 && (
+          <div className="flex items-center gap-2 mb-2">
+            <Button
+              variant="ghost-danger"
+              size="sm"
+              onClick={() => setShowBulkRevokeConfirm(true)}
+              leftIcon={<LogOut size={14} />}
+            >
+              Revoke Selected ({selectedSessionIds.length})
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedSessionIds([])}>
+              Clear Selection
+            </Button>
+          </div>
+        )}
+
         <Table<ActiveSessionEntry>
           columns={sessionColumns}
           data={sortedSessions}
           sortable
+          selectable
+          multiSelect
+          selectedRows={selectedSessionIds}
+          onSelectionChange={setSelectedSessionIds}
           sortConfig={sessionSortConfig}
           onSort={setSessionSortConfig}
           loading={sessionsLoading}
@@ -502,6 +587,28 @@ export function SecurityPanel() {
         isLoading={revokeSessionMutation.isPending}
         onConfirm={handleRevoke}
         onCancel={() => setRevokeTarget(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={showBulkRevokeConfirm}
+        title="Revoke Selected Sessions"
+        message={`Revoke ${selectedSessionIds.length} selected sessions? Those users will be logged out immediately.`}
+        confirmText="Revoke All"
+        variant="danger"
+        isLoading={bulkRevokeMutation.isPending}
+        onConfirm={handleBulkRevoke}
+        onCancel={() => setShowBulkRevokeConfirm(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={bulkRevokeIp !== null}
+        title="Revoke Sessions from IP"
+        message={`Revoke all ${activeSessionCountsByIp.get(bulkRevokeIp ?? '') ?? 0} active sessions from ${bulkRevokeIp}? Those users will be logged out immediately.`}
+        confirmText="Revoke All"
+        variant="danger"
+        isLoading={bulkRevokeMutation.isPending}
+        onConfirm={handleRevokeFromIp}
+        onCancel={() => setBulkRevokeIp(null)}
       />
     </div>
   );

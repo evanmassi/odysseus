@@ -269,6 +269,10 @@ export {
   type IpActivityEntry,
   type IpActivityResponse,
   type PurgeExpiredResponse,
+  bulkRevokeSessionsRequestSchema,
+  bulkRevokeResponseSchema,
+  type BulkRevokeSessionsRequest,
+  type BulkRevokeResponse,
 } from './admin';
 
 // Authentication

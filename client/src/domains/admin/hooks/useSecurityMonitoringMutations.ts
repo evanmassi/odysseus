@@ -38,3 +38,17 @@ export function useRevokeSessionMutation() {
     },
   });
 }
+
+export function useBulkRevokeSessionsMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sessionIds: string[]) => securityMonitoringService.bulkRevokeSessions(sessionIds),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.security.all });
+    },
+    onError: error => {
+      logger.error('Failed to bulk revoke sessions', { error });
+    },
+  });
+}

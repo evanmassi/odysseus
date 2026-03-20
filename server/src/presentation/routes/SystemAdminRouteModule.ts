@@ -5,7 +5,7 @@
  * global security settings, and cross-lab overview. Requires system_admin role.
  */
 
-import { updateSecurityConfigSchema, updateDemoLimitsSchema } from '@odysseus/shared-schemas';
+import { updateSecurityConfigSchema, updateDemoLimitsSchema, bulkRevokeSessionsRequestSchema } from '@odysseus/shared-schemas';
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
@@ -197,6 +197,12 @@ export class SystemAdminRouteModule implements RouteModule {
     router.post('/security/purge-expired',
       this.strictLimiter,
       this.securityMonitoringController.purgeExpiredSessions.bind(this.securityMonitoringController)
+    );
+
+    router.post('/security/sessions/bulk-revoke',
+      this.strictLimiter,
+      validateBody(bulkRevokeSessionsRequestSchema),
+      this.securityMonitoringController.bulkRevokeSessions.bind(this.securityMonitoringController)
     );
 
     router.post('/security/sessions/:id/revoke',
