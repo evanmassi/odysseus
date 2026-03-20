@@ -4,7 +4,7 @@
  * System-wide session and token monitoring for system admins.
  */
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   AlertTriangle,
@@ -15,6 +15,7 @@ import {
   LogOut,
   MonitorCheck,
   MonitorX,
+  RefreshCw,
   Search,
   Trash2,
   UsersRound,
@@ -42,10 +43,26 @@ import type { SortConfig, TableColumn } from '@shared/ui';
 
 type IpActivityRow = IpActivityEntry & { id: string };
 
+function formatRelativeTime(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const seconds = Math.floor(ms / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr${hours === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
+
 export function SecurityPanel() {
   const user = useAuthStore(s => s.user);
-  const { data: overview } = useSecurityOverviewQuery();
-  const { data: sessionsData, isLoading: sessionsLoading } = useActiveSessionsQuery();
+  const { data: overview, refetch: refetchOverview } = useSecurityOverviewQuery();
+  const {
+    data: sessionsData,
+    isLoading: sessionsLoading,
+    refetch: refetchSessions,
+  } = useActiveSessionsQuery();
 
   const [filterText, setFilterText] = useState('');
   const [sessionSortConfig, setSessionSortConfig] = useState<SortConfig | undefined>({
@@ -56,11 +73,37 @@ export function SecurityPanel() {
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [autoRefresh, setAutoRefresh] = useState(false);
 
   const { data: ipData } = useIpActivityQuery(startDate || undefined, endDate || undefined);
 
   const purgeExpiredMutation = usePurgeExpiredSessionsMutation();
   const revokeSessionMutation = useRevokeSessionMutation();
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const doRefresh = useCallback(() => {
+    void refetchOverview();
+    void refetchSessions();
+  }, [refetchOverview, refetchSessions]);
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(doRefresh, 30_000);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [autoRefresh, doRefresh]);
+
+  const sessionCountsByUser = useMemo(() => {
+    const sessions = sessionsData?.sessions ?? [];
+    const counts = new Map<string, number>();
+    for (const s of sessions) {
+      counts.set(s.userId, (counts.get(s.userId) ?? 0) + 1);
+    }
+    return counts;
+  }, [sessionsData]);
 
   const formatDateStacked = (iso: string) => {
     const d = new Date(iso);
@@ -132,24 +175,43 @@ export function SecurityPanel() {
       id: 'userName',
       header: 'User',
       sortable: true,
-      render: (_val, row) => (
-        <div>
-          <div className="font-medium text-card-foreground">{row.userName}</div>
-          <div className="text-xs text-muted-foreground">{row.userEmail}</div>
-        </div>
-      ),
+      render: (_val, row) => {
+        const count = sessionCountsByUser.get(row.userId) ?? 1;
+        const own = isOwnSession(row);
+        return (
+          <div>
+            <div className={`font-medium ${own ? 'text-success-text' : 'text-card-foreground'}`}>
+              {row.userName}
+            </div>
+            <div className={`text-xs ${own ? 'text-success-text/70' : 'text-muted-foreground'}`}>
+              {row.userEmail}
+            </div>
+            {count > 1 && (
+              <Chip color="info" size="xs">
+                {count} sessions
+              </Chip>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: 'userRole',
       header: 'Role',
       sortable: true,
-      accessor: 'userRole',
+      render: (_val, row) => (
+        <span className={isOwnSession(row) ? 'text-success-text' : ''}>{row.userRole}</span>
+      ),
     },
     {
       id: 'ipAddress',
       header: 'IP Address',
       sortable: true,
-      render: (_val, row) => <span className="font-mono text-xs">{row.ipAddress ?? '\u2014'}</span>,
+      render: (_val, row) => (
+        <span className={`font-mono text-xs ${isOwnSession(row) ? 'text-success-text' : ''}`}>
+          {row.ipAddress ?? '\u2014'}
+        </span>
+      ),
     },
     {
       id: 'loginTime',
@@ -157,10 +219,16 @@ export function SecurityPanel() {
       sortable: true,
       render: (_val, row) => {
         const { date, time } = formatDateStacked(row.loginTime);
+        const own = isOwnSession(row);
         return (
           <div className="text-xs">
-            <div className="text-secondary-foreground">{date}</div>
-            <div className="text-muted-foreground">{time}</div>
+            <div className={own ? 'text-success-text' : 'text-secondary-foreground'}>{date}</div>
+            <div className={own ? 'text-success-text/70' : 'text-muted-foreground'}>{time}</div>
+            <div
+              className={`text-[10px] ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}
+            >
+              {formatRelativeTime(row.loginTime)}
+            </div>
           </div>
         );
       },
@@ -171,10 +239,16 @@ export function SecurityPanel() {
       sortable: true,
       render: (_val, row) => {
         const { date, time } = formatDateStacked(row.lastActivity);
+        const own = isOwnSession(row);
         return (
           <div className="text-xs">
-            <div className="text-secondary-foreground">{date}</div>
-            <div className="text-muted-foreground">{time}</div>
+            <div className={own ? 'text-success-text' : 'text-secondary-foreground'}>{date}</div>
+            <div className={own ? 'text-success-text/70' : 'text-muted-foreground'}>{time}</div>
+            <div
+              className={`text-[10px] ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}
+            >
+              {formatRelativeTime(row.lastActivity)}
+            </div>
           </div>
         );
       },
@@ -183,7 +257,9 @@ export function SecurityPanel() {
       id: 'device',
       header: 'Device',
       render: (_val, row) => (
-        <span className="text-xs max-w-[200px] truncate block">
+        <span
+          className={`text-xs max-w-[200px] truncate block ${isOwnSession(row) ? 'text-success-text' : ''}`}
+        >
           {row.deviceInfo ?? row.userAgent ?? '\u2014'}
         </span>
       ),
@@ -308,6 +384,13 @@ export function SecurityPanel() {
           <div className="flex items-center gap-2">
             <MonitorCheck size={18} className="text-muted-foreground" />
             <h3 className="text-lg font-semibold text-card-foreground">Active Sessions</h3>
+            <Button
+              variant={autoRefresh ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setAutoRefresh(prev => !prev)}
+            >
+              <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
+            </Button>
           </div>
           <div className="relative">
             <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
@@ -334,7 +417,9 @@ export function SecurityPanel() {
           emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
           aria-label="Active sessions"
           rowClassName={row =>
-            isOwnSession(row) ? 'bg-muted/30 border-l-4 border-l-success-bg' : ''
+            isOwnSession(row)
+              ? 'bg-success-light border-l-4 border-l-success-bg text-success-text'
+              : ''
           }
         />
       </div>

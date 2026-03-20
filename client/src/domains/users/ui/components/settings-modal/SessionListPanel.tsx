@@ -165,29 +165,46 @@ export function SessionListPanel() {
               <tr
                 key={session.id}
                 className={
-                  session.isCurrentSession ? 'bg-muted/50 border-l-4 border-l-success-bg' : ''
+                  session.isCurrentSession
+                    ? 'bg-success-light border-l-4 border-l-success-bg text-success-text'
+                    : ''
                 }
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center space-x-3">
-                    <session.DeviceIcon size={16} className="text-muted-foreground flex-shrink-0" />
+                    <session.DeviceIcon
+                      size={16}
+                      className={`flex-shrink-0 ${session.isCurrentSession ? 'text-success-text' : 'text-muted-foreground'}`}
+                    />
                     <div>
-                      <p className="text-sm font-medium text-card-foreground">{session.device}</p>
+                      <p
+                        className={`text-sm font-medium ${session.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+                      >
+                        {session.device}
+                      </p>
                       {session.isCurrentSession && <CurrentSessionBadge />}
                     </div>
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <p className="text-sm text-secondary-foreground">
+                  <p
+                    className={`text-sm ${session.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
+                  >
                     {session.ipAddress ?? 'Unknown'}
                   </p>
                 </td>
                 <td className="px-4 py-3">
                   <div>
-                    <p className="text-sm text-card-foreground font-medium">
+                    <p
+                      className={`text-sm font-medium ${session.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+                    >
                       {session.timestamp.relative}
                     </p>
-                    <p className="text-xs text-muted-foreground">{session.timestamp.absolute}</p>
+                    <p
+                      className={`text-xs ${session.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
+                    >
+                      {session.timestamp.absolute}
+                    </p>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -217,13 +234,18 @@ export function SessionListPanel() {
         {displayedSessions.map(session => (
           <div
             key={session.id}
-            className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-muted/50 border border-border border-l-4 border-l-success-bg' : 'border border-border bg-card'}`}
+            className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-success-light border border-border border-l-4 border-l-success-bg text-success-text' : 'border border-border bg-card'}`}
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <session.DeviceIcon size={20} className="text-muted-foreground flex-shrink-0" />
+                <session.DeviceIcon
+                  size={20}
+                  className={`flex-shrink-0 ${session.isCurrentSession ? 'text-success-text' : 'text-muted-foreground'}`}
+                />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-card-foreground truncate">
+                  <p
+                    className={`text-sm font-medium truncate ${session.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+                  >
                     {session.device}
                   </p>
                   {session.isCurrentSession && <CurrentSessionBadge />}
@@ -246,14 +268,18 @@ export function SessionListPanel() {
                 </Tooltip>
               )}
             </div>
-            <div className="space-y-1 text-xs text-secondary-foreground">
+            <div
+              className={`space-y-1 text-xs ${session.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
+            >
               <p>
                 <span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}
               </p>
               <div>
                 <span className="font-medium">Last Active:</span>
                 <p className="ml-0 mt-0.5">{session.timestamp.relative}</p>
-                <p className="text-[11px] text-muted-foreground ml-0">
+                <p
+                  className={`text-[11px] ml-0 ${session.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
+                >
                   {session.timestamp.absolute}
                 </p>
               </div>
