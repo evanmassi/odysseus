@@ -7,7 +7,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 
 import { ChevronDown, ChevronRight, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
-import { Button, Chip, Input, Tooltip } from '@shared/ui';
+import { Button, Chip, DatePicker, Input, Tooltip } from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 export interface AuditFilterState {
@@ -621,42 +621,30 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                     Custom Range
                   </legend>
                   <div className="space-y-2">
-                    <div>
-                      <label htmlFor="audit-date-from" className="sr-only">
-                        From date
-                      </label>
-                      <Input
-                        type="datetime-local"
-                        value={filters.dateFrom ?? ''}
-                        onChange={e =>
-                          onChange({
-                            ...filters,
-                            dateFrom: e.target.value || undefined,
-                            datePreset: undefined,
-                          })
-                        }
-                        placeholder="From"
-                        aria-label="Filter start date and time"
-                        size="xs"
-                        fullWidth
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="audit-date-to" className="sr-only">
-                        To date
-                      </label>
-                      <Input
-                        type="datetime-local"
-                        value={filters.dateTo ?? ''}
-                        onChange={e =>
-                          onChange({ ...filters, dateTo: e.target.value || undefined })
-                        }
-                        placeholder="To"
-                        aria-label="Filter end date and time"
-                        size="xs"
-                        fullWidth
-                      />
-                    </div>
+                    <DatePicker
+                      value={filters.dateFrom?.slice(0, 10) ?? ''}
+                      onChange={v =>
+                        onChange({
+                          ...filters,
+                          dateFrom: v || undefined,
+                          datePreset: undefined,
+                        })
+                      }
+                      placeholder="From"
+                      aria-label="Filter start date"
+                      size="xs"
+                      fullWidth
+                      clearable
+                    />
+                    <DatePicker
+                      value={filters.dateTo?.slice(0, 10) ?? ''}
+                      onChange={v => onChange({ ...filters, dateTo: v || undefined })}
+                      placeholder="To"
+                      aria-label="Filter end date"
+                      size="xs"
+                      fullWidth
+                      clearable
+                    />
                   </div>
                 </fieldset>
               </div>

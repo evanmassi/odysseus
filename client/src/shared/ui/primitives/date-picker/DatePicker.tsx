@@ -381,7 +381,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     focused: isFocused,
     state,
     disabled,
-    className,
   });
 
   const renderSegment = (segment: Segment, displayPlaceholder: string) => {
@@ -424,7 +423,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   return (
-    <div className={fullWidth ? 'relative w-full' : 'relative'}>
+    <div className={`relative ${fullWidth ? 'w-full' : ''} ${className ?? ''}`}>
       <div
         ref={triggerRef}
         className={triggerClasses}

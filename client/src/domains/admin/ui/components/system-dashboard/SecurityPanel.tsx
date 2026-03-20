@@ -6,10 +6,22 @@
 
 import { useMemo, useState } from 'react';
 
-import { AlertTriangle, Clock, Globe, Key, MonitorX, Shield, Trash2, Users } from 'lucide-react';
+import {
+  AlertTriangle,
+  Clock,
+  Globe,
+  HeartPulse,
+  KeyRound,
+  LogOut,
+  MonitorCheck,
+  MonitorX,
+  Search,
+  Trash2,
+  UsersRound,
+} from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { Button, Chip } from '@shared/ui';
+import { Button, Chip, Table, DatePicker } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -25,10 +37,10 @@ import {
 
 import { SecuritySettings } from './SecuritySettings';
 
-import type { ActiveSessionEntry } from '@odysseus/shared-schemas';
+import type { ActiveSessionEntry, IpActivityEntry } from '@odysseus/shared-schemas';
+import type { SortConfig, TableColumn } from '@shared/ui';
 
-type SortField = 'userName' | 'userRole' | 'ipAddress' | 'loginTime' | 'lastActivity';
-type SortDirection = 'asc' | 'desc';
+type IpActivityRow = IpActivityEntry & { id: string };
 
 export function SecurityPanel() {
   const user = useAuthStore(s => s.user);
@@ -36,8 +48,10 @@ export function SecurityPanel() {
   const { data: sessionsData, isLoading: sessionsLoading } = useActiveSessionsQuery();
 
   const [filterText, setFilterText] = useState('');
-  const [sortField, setSortField] = useState<SortField>('lastActivity');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sessionSortConfig, setSessionSortConfig] = useState<SortConfig | undefined>({
+    columnId: 'lastActivity',
+    direction: 'desc',
+  });
   const [revokeTarget, setRevokeTarget] = useState<ActiveSessionEntry | null>(null);
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [startDate, setStartDate] = useState('');
@@ -48,14 +62,14 @@ export function SecurityPanel() {
   const purgeExpiredMutation = usePurgeExpiredSessionsMutation();
   const revokeSessionMutation = useRevokeSessionMutation();
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
+  const formatDateStacked = (iso: string) => {
+    const d = new Date(iso);
+    const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    return { date, time };
   };
+
+  const isOwnSession = (session: ActiveSessionEntry) => session.userId === user?.id;
 
   const filteredSessions = useMemo(() => {
     const sessions = sessionsData?.sessions ?? [];
@@ -70,9 +84,10 @@ export function SecurityPanel() {
   }, [sessionsData, filterText]);
 
   const sortedSessions = useMemo(() => {
+    if (!sessionSortConfig) return filteredSessions;
     return [...filteredSessions].sort((a, b) => {
-      const dir = sortDirection === 'asc' ? 1 : -1;
-      switch (sortField) {
+      const dir = sessionSortConfig.direction === 'asc' ? 1 : -1;
+      switch (sessionSortConfig.columnId) {
         case 'userName':
           return dir * a.userName.localeCompare(b.userName);
         case 'userRole':
@@ -87,7 +102,7 @@ export function SecurityPanel() {
           return 0;
       }
     });
-  }, [filteredSessions, sortField, sortDirection]);
+  }, [filteredSessions, sessionSortConfig]);
 
   const handlePurge = async () => {
     try {
@@ -112,21 +127,118 @@ export function SecurityPanel() {
     }
   };
 
-  const formatDate = (iso: string) => {
-    return new Date(iso).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const sessionColumns: TableColumn<ActiveSessionEntry>[] = [
+    {
+      id: 'userName',
+      header: 'User',
+      sortable: true,
+      render: (_val, row) => (
+        <div>
+          <div className="font-medium text-card-foreground">{row.userName}</div>
+          <div className="text-xs text-muted-foreground">{row.userEmail}</div>
+        </div>
+      ),
+    },
+    {
+      id: 'userRole',
+      header: 'Role',
+      sortable: true,
+      accessor: 'userRole',
+    },
+    {
+      id: 'ipAddress',
+      header: 'IP Address',
+      sortable: true,
+      render: (_val, row) => <span className="font-mono text-xs">{row.ipAddress ?? '\u2014'}</span>,
+    },
+    {
+      id: 'loginTime',
+      header: 'Login',
+      sortable: true,
+      render: (_val, row) => {
+        const { date, time } = formatDateStacked(row.loginTime);
+        return (
+          <div className="text-xs">
+            <div className="text-secondary-foreground">{date}</div>
+            <div className="text-muted-foreground">{time}</div>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'lastActivity',
+      header: 'Last Active',
+      sortable: true,
+      render: (_val, row) => {
+        const { date, time } = formatDateStacked(row.lastActivity);
+        return (
+          <div className="text-xs">
+            <div className="text-secondary-foreground">{date}</div>
+            <div className="text-muted-foreground">{time}</div>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'device',
+      header: 'Device',
+      render: (_val, row) => (
+        <span className="text-xs max-w-[200px] truncate block">
+          {row.deviceInfo ?? row.userAgent ?? '\u2014'}
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '',
+      width: 40,
+      align: 'right',
+      render: (_val, row) => (
+        <Button
+          variant="ghost-danger"
+          size="sm"
+          onClick={e => {
+            (e as React.MouseEvent).stopPropagation();
+            setRevokeTarget(row);
+          }}
+        >
+          <LogOut size={14} />
+        </Button>
+      ),
+    },
+  ];
 
-  const sortIndicator = (field: SortField) => {
-    if (sortField !== field) return '';
-    return sortDirection === 'asc' ? ' \u25B2' : ' \u25BC';
-  };
-
-  const isOwnSession = (session: ActiveSessionEntry) => session.userId === user?.id;
+  const ipColumns: TableColumn<IpActivityRow>[] = [
+    {
+      id: 'ipAddress',
+      header: 'IP Address',
+      render: (_val, row) => <span className="font-mono text-xs">{row.ipAddress}</span>,
+    },
+    {
+      id: 'sessionCount',
+      header: 'Sessions',
+      accessor: 'sessionCount',
+    },
+    {
+      id: 'tokenCount',
+      header: 'Tokens',
+      accessor: 'tokenCount',
+    },
+    {
+      id: 'uniqueUserCount',
+      header: 'Users',
+      render: (_val, row) => (
+        <div className="flex items-center gap-2">
+          <span>{row.uniqueUserCount}</span>
+          {row.uniqueUserCount > 1 && (
+            <Chip color="warning" size="sm" leftIcon={<AlertTriangle size={12} />}>
+              Multiple users
+            </Chip>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   const sessionOverview = overview?.sessionOverview;
   const tokenHealth = overview?.tokenHealth;
@@ -138,41 +250,48 @@ export function SecurityPanel() {
       {/* Overview */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <Shield size={18} className="text-muted-foreground" />
+          <HeartPulse size={18} className="text-muted-foreground" />
           <h3 className="text-lg font-semibold text-card-foreground">Session & Token Health</h3>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Chip color="info" size="sm" leftIcon={<Users />}>
-            {sessionOverview?.activeSessions ?? 0} active{' '}
-            {(sessionOverview?.activeSessions ?? 0) === 1 ? 'session' : 'sessions'}
-          </Chip>
-          <Chip
-            color={(sessionOverview?.expiredAwaitingCleanup ?? 0) > 0 ? 'warning' : 'success'}
-            size="sm"
-            leftIcon={<Clock />}
-          >
-            {sessionOverview?.expiredAwaitingCleanup ?? 0} expired awaiting cleanup
-          </Chip>
-          <Chip color="info" size="sm" leftIcon={<Clock />}>
-            {sessionOverview?.avgSessionDurationMinutes ?? 0} min avg duration
-          </Chip>
-          <Chip color="info" size="sm" leftIcon={<Key />}>
-            {tokenHealth?.activeTokens ?? 0} active tokens
-          </Chip>
-          <Chip color="default" size="sm" leftIcon={<Clock />}>
-            {tokenHealth?.expiredTokens ?? 0} expired
-          </Chip>
-          <Chip color="default" size="sm" leftIcon={<MonitorX />}>
-            {tokenHealth?.revokedTokens ?? 0} revoked
-          </Chip>
-          <Chip color="info" size="sm" leftIcon={<Key />}>
-            {tokenHealth?.avgLifespanDays ?? 0}d avg lifespan
-          </Chip>
+
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip color="info" size="sm" leftIcon={<UsersRound />}>
+              {sessionOverview?.activeSessions ?? 0} active{' '}
+              {(sessionOverview?.activeSessions ?? 0) === 1 ? 'session' : 'sessions'}
+            </Chip>
+            <Chip
+              color={(sessionOverview?.expiredAwaitingCleanup ?? 0) > 0 ? 'warning' : 'success'}
+              size="sm"
+              leftIcon={<Clock />}
+            >
+              {sessionOverview?.expiredAwaitingCleanup ?? 0} expired awaiting cleanup
+            </Chip>
+            <Chip color="info" size="sm" leftIcon={<Clock />}>
+              {sessionOverview?.avgSessionDurationMinutes ?? 0} min avg duration
+            </Chip>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip color="info" size="sm" leftIcon={<KeyRound />}>
+              {tokenHealth?.activeTokens ?? 0} active tokens
+            </Chip>
+            <Chip color="default" size="sm" leftIcon={<Clock />}>
+              {tokenHealth?.expiredTokens ?? 0} expired
+            </Chip>
+            <Chip color="default" size="sm" leftIcon={<MonitorX />}>
+              {tokenHealth?.revokedTokens ?? 0} revoked
+            </Chip>
+            <Chip color="info" size="sm" leftIcon={<KeyRound />}>
+              {tokenHealth?.avgLifespanDays ?? 0}d avg lifespan
+            </Chip>
+          </div>
         </div>
+
         {(sessionOverview?.expiredAwaitingCleanup ?? 0) > 0 && (
           <div className="mt-3">
             <Button
-              variant="secondary"
+              variant="ghost-danger"
               size="sm"
               onClick={() => setShowPurgeConfirm(true)}
               leftIcon={<Trash2 size={14} />}
@@ -187,97 +306,37 @@ export function SecurityPanel() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Users size={18} className="text-muted-foreground" />
+            <MonitorCheck size={18} className="text-muted-foreground" />
             <h3 className="text-lg font-semibold text-card-foreground">Active Sessions</h3>
           </div>
-          <input
-            type="text"
-            placeholder="Filter by name, email, or IP..."
-            value={filterText}
-            onChange={e => setFilterText(e.target.value)}
-            className="px-2 py-1.5 text-sm border border-border rounded bg-background text-foreground w-64"
-          />
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Filter by name, email, or IP..."
+              value={filterText}
+              onChange={e => setFilterText(e.target.value)}
+              className="input-search w-64 pl-8"
+            />
+          </div>
         </div>
 
-        {sessionsLoading ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">Loading sessions...</div>
-        ) : sortedSessions.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            {filterText ? 'No sessions match your filter' : 'No active sessions'}
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted text-left">
-                  <th
-                    className="px-3 py-2 font-medium text-secondary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort('userName')}
-                  >
-                    User{sortIndicator('userName')}
-                  </th>
-                  <th
-                    className="px-3 py-2 font-medium text-secondary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort('userRole')}
-                  >
-                    Role{sortIndicator('userRole')}
-                  </th>
-                  <th
-                    className="px-3 py-2 font-medium text-secondary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort('ipAddress')}
-                  >
-                    IP Address{sortIndicator('ipAddress')}
-                  </th>
-                  <th
-                    className="px-3 py-2 font-medium text-secondary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort('loginTime')}
-                  >
-                    Login Time{sortIndicator('loginTime')}
-                  </th>
-                  <th
-                    className="px-3 py-2 font-medium text-secondary-foreground cursor-pointer select-none"
-                    onClick={() => handleSort('lastActivity')}
-                  >
-                    Last Activity{sortIndicator('lastActivity')}
-                  </th>
-                  <th className="px-3 py-2 font-medium text-secondary-foreground">Device</th>
-                  <th className="px-3 py-2 font-medium text-secondary-foreground w-20" />
-                </tr>
-              </thead>
-              <tbody>
-                {sortedSessions.map(session => (
-                  <tr
-                    key={session.id}
-                    className={`border-t border-border hover:bg-muted/50 ${isOwnSession(session) ? 'bg-muted/30 border-l-4 border-l-success-bg' : ''}`}
-                  >
-                    <td className="px-3 py-2">
-                      <div className="font-medium text-card-foreground">{session.userName}</div>
-                      <div className="text-xs text-muted-foreground">{session.userEmail}</div>
-                    </td>
-                    <td className="px-3 py-2 text-secondary-foreground">{session.userRole}</td>
-                    <td className="px-3 py-2 font-mono text-xs text-secondary-foreground">
-                      {session.ipAddress ?? '\u2014'}
-                    </td>
-                    <td className="px-3 py-2 text-secondary-foreground">
-                      {formatDate(session.loginTime)}
-                    </td>
-                    <td className="px-3 py-2 text-secondary-foreground">
-                      {formatDate(session.lastActivity)}
-                    </td>
-                    <td className="px-3 py-2 text-xs text-secondary-foreground max-w-[200px] truncate">
-                      {session.deviceInfo ?? session.userAgent ?? '\u2014'}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <Button variant="danger" size="sm" onClick={() => setRevokeTarget(session)}>
-                        Revoke
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <Table<ActiveSessionEntry>
+          columns={sessionColumns}
+          data={sortedSessions}
+          sortable
+          sortConfig={sessionSortConfig}
+          onSort={setSessionSortConfig}
+          loading={sessionsLoading}
+          hoverable
+          size="sm"
+          rounded="lg"
+          emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
+          aria-label="Active sessions"
+          rowClassName={row =>
+            isOwnSession(row) ? 'bg-muted/30 border-l-4 border-l-success-bg' : ''
+          }
+        />
       </div>
 
       {/* IP Activity */}
@@ -288,27 +347,25 @@ export function SecurityPanel() {
         </div>
         <div className="flex items-center gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <label htmlFor="ip-start-date" className="text-xs text-muted-foreground">
-              From
-            </label>
-            <input
-              id="ip-start-date"
-              type="date"
+            <span className="text-xs text-muted-foreground">From</span>
+            <DatePicker
               value={startDate}
-              onChange={e => setStartDate(e.target.value)}
-              className="px-2 py-1.5 text-sm border border-border rounded bg-background text-foreground"
+              onChange={v => setStartDate(v)}
+              size="sm"
+              clearable
+              className="w-40"
+              aria-label="Start date"
             />
           </div>
           <div className="flex items-center gap-2">
-            <label htmlFor="ip-end-date" className="text-xs text-muted-foreground">
-              To
-            </label>
-            <input
-              id="ip-end-date"
-              type="date"
+            <span className="text-xs text-muted-foreground">To</span>
+            <DatePicker
               value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-              className="px-2 py-1.5 text-sm border border-border rounded bg-background text-foreground"
+              onChange={v => setEndDate(v)}
+              size="sm"
+              clearable
+              className="w-40"
+              aria-label="End date"
             />
           </div>
           {(startDate || endDate) && (
@@ -325,43 +382,15 @@ export function SecurityPanel() {
           )}
         </div>
 
-        {!ipData?.entries.length ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">No IP activity data</div>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted text-left">
-                  <th className="px-3 py-2 font-medium text-secondary-foreground">IP Address</th>
-                  <th className="px-3 py-2 font-medium text-secondary-foreground">Sessions</th>
-                  <th className="px-3 py-2 font-medium text-secondary-foreground">Tokens</th>
-                  <th className="px-3 py-2 font-medium text-secondary-foreground">Users</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ipData.entries.map(entry => (
-                  <tr key={entry.ipAddress} className="border-t border-border hover:bg-muted/50">
-                    <td className="px-3 py-2 font-mono text-xs text-card-foreground">
-                      {entry.ipAddress}
-                    </td>
-                    <td className="px-3 py-2 text-secondary-foreground">{entry.sessionCount}</td>
-                    <td className="px-3 py-2 text-secondary-foreground">{entry.tokenCount}</td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-secondary-foreground">{entry.uniqueUserCount}</span>
-                        {entry.uniqueUserCount > 1 && (
-                          <Chip color="warning" size="sm" leftIcon={<AlertTriangle size={12} />}>
-                            Multiple users
-                          </Chip>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <Table<IpActivityRow>
+          columns={ipColumns}
+          data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
+          hoverable
+          size="sm"
+          rounded="lg"
+          emptyMessage="No IP activity data"
+          aria-label="IP activity"
+        />
       </div>
 
       <ConfirmDialog
