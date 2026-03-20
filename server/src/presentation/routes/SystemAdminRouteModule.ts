@@ -12,6 +12,7 @@ import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import type { AuditController } from '@presentation/controllers/AuditController';
+import type { SecurityMonitoringController } from '@presentation/controllers/system/SecurityMonitoringController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import type { LabController } from '@presentation/controllers/LabController';
 import type { StorageController } from '@presentation/controllers/StorageController';
@@ -39,6 +40,7 @@ export class SystemAdminRouteModule implements RouteModule {
     private readonly systemAdminUserController: SystemAdminUserController,
     private readonly configurationController: StorageController,
     private readonly auditController: AuditController,
+    private readonly securityMonitoringController: SecurityMonitoringController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -176,6 +178,30 @@ export class SystemAdminRouteModule implements RouteModule {
     router.delete('/labs/:labId/users/:userId',
       validateParams(LabUserParams),
       this.systemAdminUserController.deleteUserForLab.bind(this.systemAdminUserController)
+    );
+
+    // SESSION & SECURITY MONITORING
+
+    router.get('/security/overview',
+      this.securityMonitoringController.getSecurityOverview.bind(this.securityMonitoringController)
+    );
+
+    router.get('/security/sessions',
+      this.securityMonitoringController.getActiveSessions.bind(this.securityMonitoringController)
+    );
+
+    router.get('/security/ip-activity',
+      this.securityMonitoringController.getIpActivity.bind(this.securityMonitoringController)
+    );
+
+    router.post('/security/purge-expired',
+      this.strictLimiter,
+      this.securityMonitoringController.purgeExpiredSessions.bind(this.securityMonitoringController)
+    );
+
+    router.post('/security/sessions/:id/revoke',
+      validateParams(IdParams),
+      this.securityMonitoringController.revokeSession.bind(this.securityMonitoringController)
     );
   }
 }

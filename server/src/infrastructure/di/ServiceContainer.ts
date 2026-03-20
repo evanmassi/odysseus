@@ -54,6 +54,7 @@ import type { PersonController } from '@presentation/controllers/PersonControlle
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
 import type { SearchController } from '@presentation/controllers/SearchController';
 import type { StorageController } from '@presentation/controllers/StorageController';
+import type { SecurityMonitoringController } from '@presentation/controllers/system/SecurityMonitoringController';
 import type { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import type { TubeController } from '@presentation/controllers/TubeController';
 import type { TubeLockController } from '@presentation/controllers/TubeLockController';
@@ -358,6 +359,10 @@ export class ServiceContainer {
 
   getSystemAdminUserController(): SystemAdminUserController {
     return this.getUserModule().getSystemAdminUserController();
+  }
+
+  getSecurityMonitoringController(): SecurityMonitoringController {
+    return this.getUserModule().getSecurityMonitoringController();
   }
 
   getResearcherController(): ResearcherController {

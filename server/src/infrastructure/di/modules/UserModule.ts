@@ -12,6 +12,7 @@ import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { PersonController } from '@presentation/controllers/PersonController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
+import { SecurityMonitoringController } from '@presentation/controllers/system/SecurityMonitoringController';
 import { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import { UserController } from '@presentation/controllers/UserController';
 import { UserSessionController } from '@presentation/controllers/UserSessionController';
@@ -30,6 +31,7 @@ export class UserModule {
   private personController?: PersonController;
   private userSessionController?: UserSessionController;
   private systemAdminUserController?: SystemAdminUserController;
+  private securityMonitoringController?: SecurityMonitoringController;
   private researcherController?: ResearcherController;
 
   constructor(
@@ -189,6 +191,16 @@ export class UserModule {
       });
     }
     return this.systemAdminUserController;
+  }
+
+  getSecurityMonitoringController(): SecurityMonitoringController {
+    if (!this.securityMonitoringController) {
+      this.securityMonitoringController = new SecurityMonitoringController({
+        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+        refreshTokenRepository: this.repositoryFactory.getRefreshTokenRepository(),
+      });
+    }
+    return this.securityMonitoringController;
   }
 
   getResearcherController(): ResearcherController {
