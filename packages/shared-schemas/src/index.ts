@@ -253,6 +253,22 @@ export {
   type AuditStatisticsData,
   type RetentionMetricsData,
   type RetentionPolicyData,
+  sessionOverviewSchema,
+  tokenHealthSchema,
+  securityOverviewResponseSchema,
+  activeSessionEntrySchema,
+  activeSessionsResponseSchema,
+  ipActivityEntrySchema,
+  ipActivityResponseSchema,
+  purgeExpiredResponseSchema,
+  type SessionOverview,
+  type TokenHealth,
+  type SecurityOverviewResponse,
+  type ActiveSessionEntry,
+  type ActiveSessionsResponse,
+  type IpActivityEntry,
+  type IpActivityResponse,
+  type PurgeExpiredResponse,
 } from './admin';
 
 // Authentication

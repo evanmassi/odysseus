@@ -54,3 +54,22 @@ export {
   type RetentionMetricsData,
   type RetentionPolicyData,
 } from './auditSchemas';
+
+export {
+  sessionOverviewSchema,
+  tokenHealthSchema,
+  securityOverviewResponseSchema,
+  activeSessionEntrySchema,
+  activeSessionsResponseSchema,
+  ipActivityEntrySchema,
+  ipActivityResponseSchema,
+  purgeExpiredResponseSchema,
+  type SessionOverview,
+  type TokenHealth,
+  type SecurityOverviewResponse,
+  type ActiveSessionEntry,
+  type ActiveSessionsResponse,
+  type IpActivityEntry,
+  type IpActivityResponse,
+  type PurgeExpiredResponse,
+} from './securityMonitoringSchemas';
