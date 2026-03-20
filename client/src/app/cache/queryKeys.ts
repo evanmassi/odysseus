@@ -128,6 +128,15 @@ export const queryKeys = {
     byLab: (labId: string) => [...queryKeys.inviteCodes.all, 'byLab', labId] as const,
   },
 
+  // Security (not lab-scoped — system admin only)
+  security: {
+    all: ['security'] as const,
+    overview: () => [...queryKeys.security.all, 'overview'] as const,
+    sessions: () => [...queryKeys.security.all, 'sessions'] as const,
+    ipActivity: (startDate?: string, endDate?: string) =>
+      [...queryKeys.security.all, 'ipActivity', startDate, endDate] as const,
+  },
+
   // Storage (lab-scoped)
   storage: {
     all: (labId = '') => ['storage', labId] as const,

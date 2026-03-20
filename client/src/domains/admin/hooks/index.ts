@@ -36,3 +36,14 @@ export {
   useUnseedDemoMutation,
   useUpdateDemoLimitsMutation,
 } from './useLabMutations';
+
+// Security monitoring hooks
+export {
+  useSecurityOverviewQuery,
+  useActiveSessionsQuery,
+  useIpActivityQuery,
+} from './useSecurityMonitoringQueries';
+export {
+  usePurgeExpiredSessionsMutation,
+  useRevokeSessionMutation,
+} from './useSecurityMonitoringMutations';
