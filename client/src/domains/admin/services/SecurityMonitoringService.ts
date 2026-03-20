@@ -11,6 +11,7 @@ import {
   purgeExpiredResponseSchema,
   bulkRevokeResponseSchema,
   failedLoginsResponseSchema,
+  sessionActivityResponseSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -23,6 +24,7 @@ import type {
   PurgeExpiredResponse,
   BulkRevokeResponse,
   FailedLoginsResponse,
+  SessionActivityResponse,
 } from '@odysseus/shared-schemas';
 
 export class SecurityMonitoringService {
@@ -80,7 +82,11 @@ export class SecurityMonitoringService {
     }
   }
 
-  async getFailedLogins(limit?: number, startDate?: string, endDate?: string): Promise<FailedLoginsResponse> {
+  async getFailedLogins(
+    limit?: number,
+    startDate?: string,
+    endDate?: string
+  ): Promise<FailedLoginsResponse> {
     try {
       const params = new URLSearchParams();
       if (limit) params.set('limit', String(limit));
@@ -91,6 +97,19 @@ export class SecurityMonitoringService {
       return await httpClient.getData(url, failedLoginsResponseSchema);
     } catch (error) {
       logger.error('Failed to get failed logins', { error });
+      throw error;
+    }
+  }
+
+  async getSessionActivity(hours?: number): Promise<SessionActivityResponse> {
+    try {
+      const params = hours ? `?hours=${hours}` : '';
+      return await httpClient.getData(
+        `/system/security/session-activity${params}`,
+        sessionActivityResponseSchema
+      );
+    } catch (error) {
+      logger.error('Failed to get session activity', { error });
       throw error;
     }
   }

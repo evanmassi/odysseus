@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   AlertTriangle,
+  BarChart3,
   Clock,
   Globe,
   HeartPulse,
@@ -25,6 +26,7 @@ import {
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { Button, Chip, Table, DatePicker } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils';
 
 import {
@@ -37,11 +39,16 @@ import {
   useActiveSessionsQuery,
   useIpActivityQuery,
   useFailedLoginsQuery,
+  useSessionActivityQuery,
 } from '../../../hooks/useSecurityMonitoringQueries';
 
 import { SecuritySettings } from './SecuritySettings';
 
-import type { ActiveSessionEntry, IpActivityEntry, FailedLoginEntry } from '@odysseus/shared-schemas';
+import type {
+  ActiveSessionEntry,
+  IpActivityEntry,
+  FailedLoginEntry,
+} from '@odysseus/shared-schemas';
 import type { SortConfig, TableColumn } from '@shared/ui';
 
 type IpActivityRow = IpActivityEntry & { id: string };
@@ -84,6 +91,7 @@ export function SecurityPanel() {
 
   const { data: ipData } = useIpActivityQuery(startDate || undefined, endDate || undefined);
   const { data: failedLoginsData } = useFailedLoginsQuery(50);
+  const { data: activityData } = useSessionActivityQuery(24);
 
   const purgeExpiredMutation = usePurgeExpiredSessionsMutation();
   const revokeSessionMutation = useRevokeSessionMutation();
@@ -216,6 +224,35 @@ export function SecurityPanel() {
     }
     return counts;
   }, [sessionsData]);
+
+  const activityBars = useMemo(() => {
+    const entries = activityData?.entries ?? [];
+    const now = new Date();
+    const bars: Array<{ hour: string; label: string; count: number }> = [];
+
+    for (let i = 23; i >= 0; i--) {
+      const hourDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours() - i
+      );
+      const hourIso = hourDate.toISOString().slice(0, 13);
+      const match = entries.find(e => e.hour.slice(0, 13) === hourIso);
+      bars.push({
+        hour: hourIso,
+        label: hourDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+        count: match?.count ?? 0,
+      });
+    }
+
+    return bars;
+  }, [activityData]);
+
+  const maxActivityCount = useMemo(
+    () => Math.max(1, ...activityBars.map(b => b.count)),
+    [activityBars]
+  );
 
   const sessionColumns: TableColumn<ActiveSessionEntry>[] = [
     {
@@ -394,16 +431,12 @@ export function SecurityPanel() {
     {
       id: 'ipAddress',
       header: 'IP Address',
-      render: (_val, row) => (
-        <span className="font-mono text-xs">{row.ipAddress ?? '\u2014'}</span>
-      ),
+      render: (_val, row) => <span className="font-mono text-xs">{row.ipAddress ?? '\u2014'}</span>,
     },
     {
       id: 'reason',
       header: 'Reason',
-      render: (_val, row) => (
-        <span className="text-xs">{row.reason}</span>
-      ),
+      render: (_val, row) => <span className="text-xs">{row.reason}</span>,
     },
     {
       id: 'timestamp',
@@ -414,7 +447,9 @@ export function SecurityPanel() {
           <div className="text-xs">
             <div className="text-secondary-foreground">{date}</div>
             <div className="text-muted-foreground">{time}</div>
-            <div className="text-muted-foreground text-[10px]">{formatRelativeTime(row.timestamp)}</div>
+            <div className="text-muted-foreground text-[10px]">
+              {formatRelativeTime(row.timestamp)}
+            </div>
           </div>
         );
       },
@@ -481,6 +516,39 @@ export function SecurityPanel() {
             </Button>
           </div>
         )}
+      </div>
+
+      {/* Session Activity */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <BarChart3 size={18} className="text-muted-foreground" />
+          <h3 className="text-lg font-semibold text-card-foreground">Login Activity (24h)</h3>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex items-end gap-1 h-32">
+            {activityBars.map(bar => (
+              <Tooltip
+                key={bar.hour}
+                content={`${bar.label}: ${bar.count} login${bar.count !== 1 ? 's' : ''}`}
+                side="top"
+              >
+                <div className="flex-1 flex flex-col justify-end h-full">
+                  <div
+                    className="bg-action rounded-t transition-all duration-200 hover:bg-action/80"
+                    style={{
+                      height: `${Math.max((bar.count / maxActivityCount) * 100, 2)}%`,
+                      minHeight: bar.count > 0 ? '4px' : '2px',
+                    }}
+                  />
+                </div>
+              </Tooltip>
+            ))}
+          </div>
+          <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+            <span>{activityBars[0]?.label}</span>
+            <span>{activityBars[activityBars.length - 1]?.label}</span>
+          </div>
+        </div>
       </div>
 
       {/* Active Sessions */}
@@ -612,7 +680,10 @@ export function SecurityPanel() {
 
         <Table<FailedLoginRow>
           columns={failedLoginColumns}
-          data={(failedLoginsData?.entries ?? []).map((e, i) => ({ ...e, id: `${e.username}-${e.timestamp}-${i}` }))}
+          data={(failedLoginsData?.entries ?? []).map((e, i) => ({
+            ...e,
+            id: `${e.username}-${e.timestamp}-${i}`,
+          }))}
           hoverable
           size="sm"
           rounded="lg"

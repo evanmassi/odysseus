@@ -199,6 +199,23 @@ export class SecurityMonitoringController extends BaseController {
     }
   }
 
+  async getSessionActivity(req: Request, res: Response): Promise<void> {
+    try {
+      const hours = req.query.hours ? parseInt(req.query.hours as string, 10) : 24;
+
+      const activity = await this.deps.userSessionRepository.getSessionActivityByHour(hours);
+
+      const entries = activity.map(a => ({
+        hour: a.hour.toISOString(),
+        count: a.count,
+      }));
+
+      res.status(200).json(ResponseBuilder.success({ entries }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to get session activity');
+    }
+  }
+
   private mergeIpActivity(
     sessionCounts: IpSessionCount[],
     tokenCounts: IpTokenCount[]

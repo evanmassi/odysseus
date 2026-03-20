@@ -80,4 +80,8 @@ export {
   failedLoginsResponseSchema,
   type FailedLoginEntry,
   type FailedLoginsResponse,
+  sessionActivityEntrySchema,
+  sessionActivityResponseSchema,
+  type SessionActivityEntry,
+  type SessionActivityResponse,
 } from './securityMonitoringSchemas';

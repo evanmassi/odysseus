@@ -266,4 +266,21 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
     }));
   }
 
+  async getSessionActivityByHour(hours: number): Promise<Array<{ hour: Date; count: number }>> {
+    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const rows = await this.context.queryMany<{ hour: Date; count: string }>(
+      `SELECT date_trunc('hour', created_at) AS hour, COUNT(*) AS count
+       FROM user_sessions
+       WHERE created_at >= $1
+       GROUP BY date_trunc('hour', created_at)
+       ORDER BY hour ASC`,
+      [cutoff]
+    );
+
+    return rows.map(row => ({
+      hour: new Date(row.hour),
+      count: parseInt(row.count, 10),
+    }));
+  }
+
 }

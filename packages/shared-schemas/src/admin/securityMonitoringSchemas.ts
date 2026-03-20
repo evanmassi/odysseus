@@ -88,7 +88,18 @@ export const failedLoginsResponseSchema = z.object({
   total: z.number(),
 });
 
+export const sessionActivityEntrySchema = z.object({
+  hour: z.string(),
+  count: z.number(),
+});
+
+export const sessionActivityResponseSchema = z.object({
+  entries: z.array(sessionActivityEntrySchema),
+});
+
 export type BulkRevokeSessionsRequest = z.infer<typeof bulkRevokeSessionsRequestSchema>;
 export type BulkRevokeResponse = z.infer<typeof bulkRevokeResponseSchema>;
 export type FailedLoginEntry = z.infer<typeof failedLoginEntrySchema>;
 export type FailedLoginsResponse = z.infer<typeof failedLoginsResponseSchema>;
+export type SessionActivityEntry = z.infer<typeof sessionActivityEntrySchema>;
+export type SessionActivityResponse = z.infer<typeof sessionActivityResponseSchema>;

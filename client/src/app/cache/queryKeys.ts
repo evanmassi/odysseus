@@ -137,6 +137,8 @@ export const queryKeys = {
       [...queryKeys.security.all, 'ipActivity', startDate, endDate] as const,
     failedLogins: (limit?: number, startDate?: string, endDate?: string) =>
       [...queryKeys.security.all, 'failedLogins', limit, startDate, endDate] as const,
+    sessionActivity: (hours?: number) =>
+      [...queryKeys.security.all, 'sessionActivity', hours] as const,
   },
 
   // Storage (lab-scoped)

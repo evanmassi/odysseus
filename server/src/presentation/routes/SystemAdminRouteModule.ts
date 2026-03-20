@@ -199,6 +199,10 @@ export class SystemAdminRouteModule implements RouteModule {
       this.securityMonitoringController.purgeExpiredSessions.bind(this.securityMonitoringController)
     );
 
+    router.get('/security/session-activity',
+      this.securityMonitoringController.getSessionActivity.bind(this.securityMonitoringController)
+    );
+
     router.get('/security/failed-logins',
       this.securityMonitoringController.getFailedLogins.bind(this.securityMonitoringController)
     );

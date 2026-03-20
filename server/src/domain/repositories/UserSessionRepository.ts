@@ -42,6 +42,7 @@ export interface UserSessionRepository {
   findAllActiveSessionsWithUserInfo(): Promise<ActiveSessionWithUser[]>;
   purgeExpiredSessions(): Promise<number>;
   getSessionCountsByIp(startDate?: Date, endDate?: Date): Promise<IpSessionCount[]>;
+  getSessionActivityByHour(hours: number): Promise<Array<{ hour: Date; count: number }>>;
 }
 
 export interface ActiveSessionWithUser {

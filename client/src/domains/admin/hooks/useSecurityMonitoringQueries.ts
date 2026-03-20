@@ -15,6 +15,7 @@ import type {
   ActiveSessionsResponse,
   IpActivityResponse,
   FailedLoginsResponse,
+  SessionActivityResponse,
 } from '@odysseus/shared-schemas';
 
 export function useSecurityOverviewQuery() {
@@ -46,6 +47,14 @@ export function useFailedLoginsQuery(limit?: number, startDate?: string, endDate
   return useQuery<FailedLoginsResponse>({
     queryKey: queryKeys.security.failedLogins(limit, startDate, endDate),
     queryFn: () => securityMonitoringService.getFailedLogins(limit, startDate, endDate),
+    staleTime: 60_000,
+  });
+}
+
+export function useSessionActivityQuery(hours?: number) {
+  return useQuery<SessionActivityResponse>({
+    queryKey: queryKeys.security.sessionActivity(hours),
+    queryFn: () => securityMonitoringService.getSessionActivity(hours),
     staleTime: 60_000,
   });
 }

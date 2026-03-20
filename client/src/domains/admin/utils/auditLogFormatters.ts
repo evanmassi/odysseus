@@ -524,6 +524,7 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     if (entityType === 'donor') {
       const sourceId = getStringProperty(details, 'donorSourceId');
       const internalId = getStringProperty(details, 'donorInternalId');
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentional: empty strings from getStringProperty should be treated as absent
       const donorLabel = sourceId || internalId || entry.entityId || '-';
 
       if (action === 'donor_created') {
@@ -532,7 +533,9 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         if (sourceId) idParts.push(`S.ID: ${sourceId}`);
         const isCurated = details['isCurated'];
         const curatedText = isCurated ? ' (curated)' : '';
-        return plain(idParts.length > 0 ? `${idParts.join(', ')}${curatedText}` : `Donor created${curatedText}`);
+        return plain(
+          idParts.length > 0 ? `${idParts.join(', ')}${curatedText}` : `Donor created${curatedText}`
+        );
       }
 
       if (action === 'donor_updated') {
