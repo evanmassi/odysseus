@@ -37,23 +37,25 @@ export function SystemAdminDashboard() {
         </div>
 
         {overview && (
-          <div className="flex flex-wrap items-center gap-2">
-            <Chip color="info" size="sm" leftIcon={<FlaskConical />}>
-              {overview.activeLabs} {overview.activeLabs === 1 ? 'lab' : 'labs'} active
-              {overview.inactiveLabs > 0 && ` · ${overview.inactiveLabs} inactive`}
-            </Chip>
-            <Chip color="info" size="sm" leftIcon={<Activity />}>
-              {overview.activeUsersLast24h} {overview.activeUsersLast24h === 1 ? 'user' : 'users'}{' '}
-              active today
-            </Chip>
-            <Chip
-              color={overview.pendingApprovals > 0 ? 'warning' : 'success'}
-              size="sm"
-              leftIcon={overview.pendingApprovals > 0 ? <CircleAlert /> : <Clock />}
-            >
-              {overview.pendingApprovals} {overview.pendingApprovals === 1 ? 'user' : 'users'}{' '}
-              pending
-            </Chip>
+          <div className="rounded-lg border border-border bg-card p-3 w-fit">
+            <div className="flex flex-wrap items-center gap-2">
+              <Chip color="info" size="sm" leftIcon={<FlaskConical />}>
+                {overview.activeLabs} {overview.activeLabs === 1 ? 'lab' : 'labs'} active
+                {overview.inactiveLabs > 0 && ` · ${overview.inactiveLabs} inactive`}
+              </Chip>
+              <Chip color="info" size="sm" leftIcon={<Activity />}>
+                {overview.activeUsersLast24h} {overview.activeUsersLast24h === 1 ? 'user' : 'users'}{' '}
+                active today
+              </Chip>
+              <Chip
+                color={overview.pendingApprovals > 0 ? 'warning' : 'success'}
+                size="sm"
+                leftIcon={overview.pendingApprovals > 0 ? <CircleAlert /> : <Clock />}
+              >
+                {overview.pendingApprovals} {overview.pendingApprovals === 1 ? 'user' : 'users'}{' '}
+                pending
+              </Chip>
+            </div>
           </div>
         )}
 

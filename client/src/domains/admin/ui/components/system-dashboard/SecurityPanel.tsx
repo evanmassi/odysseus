@@ -463,6 +463,10 @@ export function SecurityPanel() {
     <div className="space-y-6">
       <SecuritySettings />
 
+      <div className="py-1">
+        <div className="h-px bg-muted-foreground/60" />
+      </div>
+
       {/* Overview */}
       <div>
         <div className="flex items-center gap-2 mb-3">
@@ -470,7 +474,7 @@ export function SecurityPanel() {
           <h3 className="text-lg font-semibold text-card-foreground">Session & Token Health</h3>
         </div>
 
-        <div className="space-y-2">
+        <div className="rounded-lg border border-border bg-card p-3 space-y-2 w-fit">
           <div className="flex flex-wrap items-center gap-2">
             <Chip color="info" size="sm" leftIcon={<UsersRound />}>
               {sessionOverview?.activeSessions ?? 0} active{' '}
@@ -518,6 +522,10 @@ export function SecurityPanel() {
         )}
       </div>
 
+      <div className="py-1">
+        <div className="h-px bg-muted-foreground/60" />
+      </div>
+
       {/* Session Activity */}
       <div>
         <div className="flex items-center gap-2 mb-3">
@@ -549,6 +557,10 @@ export function SecurityPanel() {
             <span>{activityBars[activityBars.length - 1]?.label}</span>
           </div>
         </div>
+      </div>
+
+      <div className="py-1">
+        <div className="h-px bg-muted-foreground/60" />
       </div>
 
       {/* Active Sessions */}
@@ -617,6 +629,10 @@ export function SecurityPanel() {
         />
       </div>
 
+      <div className="py-1">
+        <div className="h-px bg-muted-foreground/60" />
+      </div>
+
       {/* IP Activity */}
       <div>
         <div className="flex items-center gap-2 mb-3">
@@ -669,6 +685,10 @@ export function SecurityPanel() {
           emptyMessage="No IP activity data"
           aria-label="IP activity"
         />
+      </div>
+
+      <div className="py-1">
+        <div className="h-px bg-muted-foreground/60" />
       </div>
 
       {/* Failed Login Attempts */}
