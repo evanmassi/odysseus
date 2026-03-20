@@ -5,7 +5,7 @@
  */
 
 import type { RefreshToken } from '@domain/entities/RefreshToken';
-import type { RefreshTokenRepository as IRefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
+import type { RefreshTokenRepository as IRefreshTokenRepository, IpTokenCount } from '@domain/repositories/RefreshTokenRepository';
 import type { RefreshTokenRow } from '@infrastructure/database/mappers/RefreshTokenMapper';
 import { RefreshTokenMapper } from '@infrastructure/database/mappers/RefreshTokenMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -185,5 +185,79 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
       tokenIds
     );
     return result.rowCount ?? 0;
+  }
+
+  // System-wide monitoring
+
+  async countAllActiveTokens(): Promise<number> {
+    const now = new Date();
+    const result = await this.context.queryOne<{ count: string }>(
+      `SELECT COUNT(*) as count FROM refresh_tokens
+       WHERE is_revoked = FALSE AND expires_at > $1`,
+      [now]
+    );
+    return parseCount(result);
+  }
+
+  async countExpiredTokens(): Promise<number> {
+    const now = new Date();
+    const result = await this.context.queryOne<{ count: string }>(
+      `SELECT COUNT(*) as count FROM refresh_tokens
+       WHERE expires_at <= $1 AND is_revoked = FALSE`,
+      [now]
+    );
+    return parseCount(result);
+  }
+
+  async countRevokedTokens(): Promise<number> {
+    const result = await this.context.queryOne<{ count: string }>(
+      `SELECT COUNT(*) as count FROM refresh_tokens
+       WHERE is_revoked = TRUE`
+    );
+    return parseCount(result);
+  }
+
+  async getAverageTokenLifespanDays(): Promise<number> {
+    const result = await this.context.queryOne<{ avg: string | null }>(
+      `SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (expires_at - created_at)) / 86400), 0) as avg
+       FROM refresh_tokens`
+    );
+    const parsed = parseFloat(result?.avg ?? '0');
+    return Number.isNaN(parsed) ? 0 : Math.round(parsed * 10) / 10;
+  }
+
+  async getTokenCountsByIp(startDate?: Date, endDate?: Date): Promise<IpTokenCount[]> {
+    const params: (Date)[] = [];
+    let dateFilter: string;
+
+    if (startDate && endDate) {
+      params.push(startDate, endDate);
+      dateFilter = `AND created_at >= $1 AND created_at <= $2`;
+    } else {
+      const now = new Date();
+      params.push(now);
+      dateFilter = `AND is_revoked = FALSE AND expires_at > $1`;
+    }
+
+    const rows = await this.context.queryMany<{
+      ip_address: string;
+      token_count: string;
+      user_ids: string[];
+    }>(
+      `SELECT ip_address,
+              COUNT(*) as token_count,
+              ARRAY_AGG(DISTINCT user_id) as user_ids
+       FROM refresh_tokens
+       WHERE ip_address IS NOT NULL ${dateFilter}
+       GROUP BY ip_address
+       ORDER BY COUNT(*) DESC`,
+      params
+    );
+
+    return rows.map(row => ({
+      ipAddress: row.ip_address,
+      tokenCount: parseInt(row.token_count, 10),
+      userIds: row.user_ids,
+    }));
   }
 }

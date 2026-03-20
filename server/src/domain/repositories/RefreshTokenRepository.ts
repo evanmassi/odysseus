@@ -48,4 +48,18 @@ export interface RefreshTokenRepository {
 
   batchRevoke(tokenIds: string[]): Promise<number>;
   batchDelete(tokenIds: string[]): Promise<number>;
+
+  // SYSTEM-WIDE MONITORING
+
+  countAllActiveTokens(): Promise<number>;
+  countExpiredTokens(): Promise<number>;
+  countRevokedTokens(): Promise<number>;
+  getAverageTokenLifespanDays(): Promise<number>;
+  getTokenCountsByIp(startDate?: Date, endDate?: Date): Promise<IpTokenCount[]>;
+}
+
+export interface IpTokenCount {
+  ipAddress: string;
+  tokenCount: number;
+  userIds: string[];
 }

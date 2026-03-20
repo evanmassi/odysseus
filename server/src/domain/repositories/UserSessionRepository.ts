@@ -32,4 +32,32 @@ export interface UserSessionRepository {
   // BATCH OPERATIONS
 
   batchRevoke(sessionIds: string[]): Promise<number>;
+
+  // SYSTEM-WIDE MONITORING
+
+  countAllActiveSessions(): Promise<number>;
+  countExpiredSessions(): Promise<number>;
+  getAverageSessionDurationMinutes(): Promise<number>;
+  findAllActiveSessionsWithUserInfo(): Promise<ActiveSessionWithUser[]>;
+  purgeExpiredSessions(): Promise<number>;
+  getSessionCountsByIp(startDate?: Date, endDate?: Date): Promise<IpSessionCount[]>;
+}
+
+export interface ActiveSessionWithUser {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userRole: string;
+  ipAddress: string | null;
+  loginTime: Date;
+  lastActivity: Date;
+  deviceInfo: string | null;
+  userAgent: string | null;
+}
+
+export interface IpSessionCount {
+  ipAddress: string;
+  sessionCount: number;
+  userIds: string[];
 }
