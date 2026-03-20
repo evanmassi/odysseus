@@ -36,6 +36,8 @@ export interface DonorRepository {
   // Collection history
 
   findCollectionHistory(donorId: string): Promise<DonorCollectionHistory[]>;
+  findCollectionHistoryById(id: string): Promise<DonorCollectionHistory | null>;
   saveCollectionHistory(entry: DonorCollectionHistory): Promise<void>;
+  updateCollectionHistory(entry: DonorCollectionHistory): Promise<void>;
   deleteCollectionHistory(id: string): Promise<boolean>;
 }

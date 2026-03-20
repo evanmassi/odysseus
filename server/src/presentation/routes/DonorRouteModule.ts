@@ -14,6 +14,7 @@ import {
   CreateDonorHttpSchema,
   UpdateDonorHttpSchema,
   CreateCollectionHistoryHttpSchema,
+  UpdateCollectionHistoryHttpSchema,
   DonorSearchQuery,
 } from '@presentation/validation/httpValidationSchemas';
 
@@ -81,6 +82,12 @@ export class DonorRouteModule implements RouteModule {
       validateParams(IdParams),
       validateBody(CreateCollectionHistoryHttpSchema),
       this.donorController.addCollectionHistory.bind(this.donorController)
+    );
+
+    router.put('/collection-history/:historyId',
+      validateParams(DonorHistoryIdParams),
+      validateBody(UpdateCollectionHistoryHttpSchema),
+      this.donorController.updateCollectionHistory.bind(this.donorController)
     );
 
     router.delete('/collection-history/:historyId',

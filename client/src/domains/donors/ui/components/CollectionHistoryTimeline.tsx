@@ -1,19 +1,21 @@
 /**
  * Collection History Timeline
  *
- * Chronological list of sample collection events with admin add/delete.
+ * Chronological list of sample collection events with admin add/edit/delete.
  */
 
 import { useState } from 'react';
 
-import { Plus, X } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 
 import {
   useAddCollectionHistoryMutation,
+  useUpdateCollectionHistoryMutation,
   useDeleteCollectionHistoryMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, DatePicker, Select } from '@shared/ui';
+import { Button, DatePicker, Select, Tooltip } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -35,6 +37,11 @@ export function CollectionHistoryTimeline({
   const [newDate, setNewDate] = useState('');
   const [newSpecimenType, setNewSpecimenType] = useState('');
   const [newSource, setNewSource] = useState('');
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState('');
+  const [editSpecimenType, setEditSpecimenType] = useState('');
+  const [editSource, setEditSource] = useState('');
 
   const { data: specimenTypeValues = [] } = useLookupValuesQuery('specimen_type');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
@@ -50,6 +57,7 @@ export function CollectionHistoryTimeline({
   ];
 
   const addMutation = useAddCollectionHistoryMutation();
+  const updateMutation = useUpdateCollectionHistoryMutation();
   const deleteMutation = useDeleteCollectionHistoryMutation();
 
   const hasAnyField = !!(newDate || newSpecimenType || newSource);
@@ -78,9 +86,62 @@ export function CollectionHistoryTimeline({
     );
   };
 
-  const handleDelete = (historyId: string) => {
-    deleteMutation.mutate(historyId, { onSuccess: onHistoryChange });
+  const handleDelete = (historyId: string) => setPendingDeleteId(historyId);
+
+  const confirmDelete = () => {
+    if (!pendingDeleteId) return;
+    deleteMutation.mutate(pendingDeleteId, {
+      onSuccess: () => {
+        setPendingDeleteId(null);
+        onHistoryChange();
+      },
+    });
   };
+
+  const handleEditStart = (entry: DonorCollectionHistory) => {
+    setEditingId(entry.id);
+    setEditDate(
+      entry.collectionDate ? new Date(entry.collectionDate).toISOString().split('T')[0] : ''
+    );
+    setEditSpecimenType(entry.specimenType ?? '');
+    setEditSource(entry.source ?? '');
+  };
+
+  const handleEditSave = () => {
+    if (!editingId) return;
+    const entry = history.find(e => e.id === editingId);
+    if (!entry) return;
+
+    const originalDate = entry.collectionDate
+      ? new Date(entry.collectionDate).toISOString().split('T')[0]
+      : '';
+    const dateChanged = editDate !== originalDate;
+    const specimenChanged = editSpecimenType !== (entry.specimenType ?? '');
+    const sourceChanged = editSource !== (entry.source ?? '');
+
+    if (!dateChanged && !specimenChanged && !sourceChanged) {
+      setEditingId(null);
+      return;
+    }
+
+    const data = {
+      ...(dateChanged ? { collectionDate: editDate || null } : {}),
+      ...(specimenChanged ? { specimenType: editSpecimenType || null } : {}),
+      ...(sourceChanged ? { source: editSource || null } : {}),
+    };
+
+    updateMutation.mutate(
+      { historyId: editingId, data },
+      {
+        onSuccess: () => {
+          setEditingId(null);
+          onHistoryChange();
+        },
+      }
+    );
+  };
+
+  const handleEditCancel = () => setEditingId(null);
 
   const formatDate = (date: string | Date) => {
     const d = typeof date === 'string' ? new Date(date) : date;
@@ -126,39 +187,92 @@ export function CollectionHistoryTimeline({
         <p className="text-card-foreground/30 text-sm italic">No collection history</p>
       ) : (
         <div className="space-y-1.5">
-          {history.map(entry => (
-            <div key={entry.id} className="flex items-center gap-2 text-sm group">
-              {entry.collectionDate && (
-                <span className="text-card-foreground/60 whitespace-nowrap">
-                  {formatDate(entry.collectionDate)}
-                </span>
-              )}
-              {entry.specimenType && (
-                <>
-                  {entry.collectionDate && <span className="text-card-foreground/30">·</span>}
-                  <span className="text-card-foreground">{entry.specimenType}</span>
-                </>
-              )}
-              {entry.source && (
-                <>
-                  {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: separator shown when either preceding field exists */}
-                  {(entry.collectionDate || entry.specimenType) && (
-                    <span className="text-card-foreground/30">·</span>
-                  )}
-                  <span className="text-card-foreground/60">{entry.source}</span>
-                </>
-              )}
-              {isAdmin && (
-                <button
-                  onClick={() => handleDelete(entry.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-muted-foreground/40 hover:text-danger-text"
-                  title="Delete entry"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-          ))}
+          {history.map(entry =>
+            editingId === entry.id ? (
+              <div
+                key={entry.id}
+                className="space-y-2 p-2 rounded-md bg-muted/30 border border-border/50"
+              >
+                <DatePicker value={editDate} onChange={setEditDate} size="sm" />
+                <Select
+                  options={specimenTypeOptions}
+                  value={editSpecimenType}
+                  onChange={v => setEditSpecimenType(String(v ?? ''))}
+                  fullWidth
+                  placeholder="Specimen type..."
+                />
+                <Select
+                  options={sourceOptions}
+                  value={editSource}
+                  onChange={v => setEditSource(String(v ?? ''))}
+                  fullWidth
+                  placeholder="Source..."
+                />
+                <div className="flex gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={handleEditSave}
+                    disabled={updateMutation.isPending}
+                  >
+                    Save
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleEditCancel}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div key={entry.id} className="flex items-center gap-2 text-sm group">
+                {entry.collectionDate && (
+                  <span className="text-card-foreground/60 whitespace-nowrap">
+                    {formatDate(entry.collectionDate)}
+                  </span>
+                )}
+                {entry.specimenType && (
+                  <>
+                    {entry.collectionDate && <span className="text-card-foreground/30">·</span>}
+                    <span className="text-card-foreground">{entry.specimenType}</span>
+                  </>
+                )}
+                {entry.source && (
+                  <>
+                    {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: separator shown when either preceding field exists */}
+                    {(entry.collectionDate || entry.specimenType) && (
+                      <span className="text-card-foreground/30">·</span>
+                    )}
+                    <span className="text-card-foreground/60">{entry.source}</span>
+                  </>
+                )}
+                {isAdmin && (
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex gap-0.5">
+                    <Tooltip content="Edit entry" side="left">
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        iconOnly
+                        onClick={() => handleEditStart(entry)}
+                        aria-label="Edit entry"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip content="Delete entry" side="left">
+                      <Button
+                        variant="ghost-danger"
+                        size="xs"
+                        iconOnly
+                        onClick={() => handleDelete(entry.id)}
+                        aria-label="Delete entry"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </Tooltip>
+                  </div>
+                )}
+              </div>
+            )
+          )}
         </div>
       )}
 
@@ -171,6 +285,19 @@ export function CollectionHistoryTimeline({
         >
           Add entry
         </Button>
+      )}
+
+      {pendingDeleteId && (
+        <ConfirmDialog
+          isOpen={true}
+          variant="danger"
+          title="Delete Entry"
+          message="Are you sure you want to delete this collection history entry? This action cannot be undone."
+          confirmText="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDeleteId(null)}
+          isLoading={deleteMutation.isPending}
+        />
       )}
     </div>
   );

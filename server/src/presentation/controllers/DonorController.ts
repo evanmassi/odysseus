@@ -107,6 +107,19 @@ export class DonorController extends BaseController {
     }
   }
 
+  async updateCollectionHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const entry = await this.deps.donorApplicationService.updateCollectionHistory(
+        labId, req.params.historyId, req.body, user
+      );
+      res.json(ResponseBuilder.success({ entry }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to update collection history', req.requestId);
+    }
+  }
+
   async deleteCollectionHistory(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);

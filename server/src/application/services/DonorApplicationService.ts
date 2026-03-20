@@ -20,7 +20,7 @@ import {
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
-import type { CreateDonorRequest, UpdateDonorRequest, CreateCollectionHistoryRequest } from '@odysseus/shared-schemas';
+import type { CreateDonorRequest, UpdateDonorRequest, CreateCollectionHistoryRequest, UpdateCollectionHistoryRequest } from '@odysseus/shared-schemas';
 
 export class DonorApplicationService {
 
@@ -163,6 +163,29 @@ export class DonorApplicationService {
 
     await this.donorRepository.saveCollectionHistory(entry);
     return DonorDto.historyToResponse(entry);
+  }
+
+  async updateCollectionHistory(
+    labId: string,
+    historyId: string,
+    data: UpdateCollectionHistoryRequest,
+    user: User
+  ): Promise<DonorCollectionHistoryResponse> {
+    await this.accessControlService.requireAdminAccess(user);
+
+    const existing = await this.donorRepository.findCollectionHistoryById(historyId);
+    if (!existing) {
+      throw new NotFoundError(`Collection history entry not found: ${historyId}`);
+    }
+
+    const updated = existing.update({
+      collectionDate: data.collectionDate,
+      specimenType: data.specimenType,
+      source: data.source,
+    });
+
+    await this.donorRepository.updateCollectionHistory(updated);
+    return DonorDto.historyToResponse(updated);
   }
 
   async deleteCollectionHistory(labId: string, historyId: string, user: User): Promise<void> {

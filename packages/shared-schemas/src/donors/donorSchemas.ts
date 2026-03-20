@@ -87,6 +87,15 @@ export const createCollectionHistoryRequestSchema = z.object({
   { message: 'At least one field (date, specimen type, or source) is required' }
 );
 
+export const updateCollectionHistoryRequestSchema = z.object({
+  collectionDate: z.string().nullish(),
+  specimenType: z.string().max(200).nullish(),
+  source: z.string().max(200).nullish(),
+}).refine(
+  (data) => data.collectionDate !== undefined || data.specimenType !== undefined || data.source !== undefined,
+  { message: 'At least one field must be provided' }
+);
+
 // Response schemas
 
 export const donorsResponseSchema = z.object({
@@ -123,4 +132,5 @@ export type DonorCollectionHistory = z.infer<typeof donorCollectionHistorySchema
 export type CreateDonorRequest = z.infer<typeof createDonorRequestSchema>;
 export type UpdateDonorRequest = z.infer<typeof updateDonorRequestSchema>;
 export type CreateCollectionHistoryRequest = z.infer<typeof createCollectionHistoryRequestSchema>;
+export type UpdateCollectionHistoryRequest = z.infer<typeof updateCollectionHistoryRequestSchema>;
 export type DonorSearchResult = z.infer<typeof donorSearchResultSchema>;

@@ -11,6 +11,7 @@ import {
   type CreateDonorRequest,
   type UpdateDonorRequest,
   type CreateCollectionHistoryRequest,
+  type UpdateCollectionHistoryRequest,
   donorsResponseSchema,
   donorResponseSchema,
   donorCollectionHistoryResponseSchema,
@@ -72,6 +73,18 @@ export class DonorService {
   ): Promise<DonorCollectionHistory> {
     const response = await httpClient.postData(
       `${this.BASE_PATH}/${donorId}/collection-history`,
+      data,
+      donorCollectionHistoryEntryResponseSchema
+    );
+    return response.entry;
+  }
+
+  static async updateCollectionHistory(
+    historyId: string,
+    data: UpdateCollectionHistoryRequest
+  ): Promise<DonorCollectionHistory> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/collection-history/${historyId}`,
       data,
       donorCollectionHistoryEntryResponseSchema
     );

@@ -15,6 +15,7 @@ import type {
   CreateDonorRequest,
   UpdateDonorRequest,
   CreateCollectionHistoryRequest,
+  UpdateCollectionHistoryRequest,
 } from '@odysseus/shared-schemas';
 
 export function useCreateDonorMutation() {
@@ -61,6 +62,24 @@ export function useAddCollectionHistoryMutation() {
   return useMutation({
     mutationFn: ({ donorId, data }: { donorId: string; data: CreateCollectionHistoryRequest }) =>
       DonorService.addCollectionHistory(donorId, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
+    },
+  });
+}
+
+export function useUpdateCollectionHistoryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      historyId,
+      data,
+    }: {
+      historyId: string;
+      data: UpdateCollectionHistoryRequest;
+    }) => DonorService.updateCollectionHistory(historyId, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },

@@ -193,10 +193,18 @@ export class DonorRepository implements IDonorRepository {
 
   async findCollectionHistory(donorId: string): Promise<DonorCollectionHistory[]> {
     const rows = await this.db.queryMany<DonorCollectionHistoryRow>(
-      `SELECT ${HISTORY_COLUMNS} FROM donor_collection_history WHERE donor_id = $1 ORDER BY collection_date DESC`,
+      `SELECT ${HISTORY_COLUMNS} FROM donor_collection_history WHERE donor_id = $1 ORDER BY COALESCE(collection_date, created_at::date) DESC, created_at DESC`,
       [donorId]
     );
     return DonorMapper.historyFromRows(rows);
+  }
+
+  async findCollectionHistoryById(id: string): Promise<DonorCollectionHistory | null> {
+    const row = await this.db.queryOne<DonorCollectionHistoryRow>(
+      `SELECT ${HISTORY_COLUMNS} FROM donor_collection_history WHERE id = $1`,
+      [id]
+    );
+    return row ? DonorMapper.historyFromRow(row) : null;
   }
 
   async saveCollectionHistory(entry: DonorCollectionHistory): Promise<void> {
@@ -205,6 +213,14 @@ export class DonorRepository implements IDonorRepository {
       INSERT INTO donor_collection_history (${HISTORY_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6)
     `, [row.id, row.donor_id, row.collection_date, row.specimen_type, row.source, row.created_at]);
+  }
+
+  async updateCollectionHistory(entry: DonorCollectionHistory): Promise<void> {
+    const row = DonorMapper.historyToRow(entry);
+    await this.db.execute(
+      `UPDATE donor_collection_history SET collection_date = $2, specimen_type = $3, source = $4 WHERE id = $1`,
+      [row.id, row.collection_date, row.specimen_type, row.source]
+    );
   }
 
   async deleteCollectionHistory(id: string): Promise<boolean> {

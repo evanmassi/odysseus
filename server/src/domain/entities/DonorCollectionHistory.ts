@@ -54,6 +54,23 @@ export class DonorCollectionHistory {
     );
   }
 
+  update(data: {
+    collectionDate?: string | Date | null;
+    specimenType?: string | null;
+    source?: string | null;
+  }): DonorCollectionHistory {
+    return new DonorCollectionHistory(
+      this._id,
+      this._donorId,
+      data.collectionDate !== undefined
+        ? (data.collectionDate ? (typeof data.collectionDate === 'string' ? new Date(data.collectionDate) : data.collectionDate) : undefined)
+        : this._collectionDate,
+      data.specimenType !== undefined ? (data.specimenType ?? undefined) : this._specimenType,
+      data.source !== undefined ? (data.source ?? undefined) : this._source,
+      this._createdAt,
+    );
+  }
+
   get id(): string { return this._id; }
   get donorId(): string { return this._donorId; }
   get collectionDate(): Date | undefined { return this._collectionDate ? new Date(this._collectionDate) : undefined; }

@@ -22,6 +22,13 @@ import { adminService } from '../../../../services/AdminService';
 import type { LookupCategory, LookupValueWithCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
+const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
+  species: 'species',
+  source: 'sources',
+  media: 'media types',
+  specimen_type: 'specimen types',
+};
+
 interface CategorySectionProps {
   category: LookupCategory;
   title: string;
@@ -223,8 +230,7 @@ function CategorySection({
         <h4 className="text-sm font-semibold text-card-foreground capitalize">{title}</h4>
         <div className="flex items-center gap-2 ml-auto">
           <Chip size="sm" color="info">
-            {values.length}{' '}
-            {category === 'species' ? 'species' : category === 'source' ? 'sources' : 'media types'}
+            {values.length} {CATEGORY_PLURAL_LABELS[category] ?? category}
           </Chip>
           <Input
             type="text"
@@ -262,8 +268,8 @@ function CategorySection({
         onSort={setSortConfig}
         loading={loading}
         className="w-auto"
-        emptyMessage={`No ${category === 'species' ? 'species' : category === 'source' ? 'sources' : 'media types'} yet`}
-        loadingMessage={`Loading ${category === 'species' ? 'species' : category === 'source' ? 'sources' : 'media types'}...`}
+        emptyMessage={`No ${CATEGORY_PLURAL_LABELS[category] ?? category} yet`}
+        loadingMessage={`Loading ${CATEGORY_PLURAL_LABELS[category] ?? category}...`}
         aria-label={`${title} list`}
       />
     </div>
@@ -289,6 +295,19 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     value: string;
     category: LookupCategory;
   } | null>(null);
+
+  const setterForCategory: Record<
+    LookupCategory,
+    React.Dispatch<React.SetStateAction<LookupValueWithCount[]>>
+  > = useMemo(
+    () => ({
+      species: setSpeciesValues,
+      source: setSourceValues,
+      media: setMediaValues,
+      specimen_type: setSpecimenTypeValues,
+    }),
+    []
+  );
 
   const loadValues = useCallback(async () => {
     setLoading(true);
@@ -326,12 +345,12 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
 
   const handleAdd = async (category: LookupCategory, value: string) => {
     try {
-      await adminService.createLookupValue(category, value);
+      const created = await adminService.createLookupValue(category, value);
       void queryClient.invalidateQueries({
         queryKey: queryKeys.lookups.byCategory(labId, category),
       });
+      setterForCategory[category](prev => [...prev, { ...created, tubeCount: 0 }]);
       notifications.success(`Added "${value}" to ${category}`);
-      await loadValues();
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
@@ -342,11 +361,13 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
 
   const handleRename = async (category: LookupCategory, id: string, newValue: string) => {
     try {
-      await adminService.renameLookupValue(id, newValue);
+      const updated = await adminService.renameLookupValue(id, newValue);
       void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.all(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
+      setterForCategory[category](prev =>
+        prev.map(item => (item.id === id ? { ...updated, tubeCount: item.tubeCount } : item))
+      );
       notifications.success(`Renamed to "${newValue}"`);
-      await loadValues();
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
@@ -367,9 +388,11 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.lookups.byCategory(labId, confirmDialog.category),
       });
+      setterForCategory[confirmDialog.category](prev =>
+        prev.filter(item => item.id !== confirmDialog.id)
+      );
       notifications.success(`Deleted "${confirmDialog.value}"`);
       setConfirmDialog(null);
-      await loadValues();
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??

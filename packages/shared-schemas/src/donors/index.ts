@@ -5,6 +5,7 @@ export {
   createDonorRequestSchema,
   updateDonorRequestSchema,
   createCollectionHistoryRequestSchema,
+  updateCollectionHistoryRequestSchema,
   donorsResponseSchema,
   donorResponseSchema,
   donorCollectionHistoryResponseSchema,
@@ -17,5 +18,6 @@ export {
   type CreateDonorRequest,
   type UpdateDonorRequest,
   type CreateCollectionHistoryRequest,
+  type UpdateCollectionHistoryRequest,
   type DonorSearchResult,
 } from './donorSchemas';
