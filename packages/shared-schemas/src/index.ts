@@ -281,6 +281,20 @@ export {
   sessionActivityResponseSchema,
   type SessionActivityEntry,
   type SessionActivityResponse,
+  boxUtilizationSchema,
+  rackUtilizationSchema,
+  tankUtilizationSchema,
+  nearCapacityBoxSchema,
+  labStorageAnalyticsResponseSchema,
+  labStorageSummarySchema,
+  crossLabStorageAnalyticsResponseSchema,
+  type BoxUtilization,
+  type RackUtilization,
+  type TankUtilization,
+  type NearCapacityBox,
+  type LabStorageAnalyticsResponse,
+  type LabStorageSummary,
+  type CrossLabStorageAnalyticsResponse,
 } from './admin';
 
 // Authentication

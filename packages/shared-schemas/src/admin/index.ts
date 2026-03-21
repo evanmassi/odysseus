@@ -85,3 +85,20 @@ export {
   type SessionActivityEntry,
   type SessionActivityResponse,
 } from './securityMonitoringSchemas';
+
+export {
+  boxUtilizationSchema,
+  rackUtilizationSchema,
+  tankUtilizationSchema,
+  nearCapacityBoxSchema,
+  labStorageAnalyticsResponseSchema,
+  labStorageSummarySchema,
+  crossLabStorageAnalyticsResponseSchema,
+  type BoxUtilization,
+  type RackUtilization,
+  type TankUtilization,
+  type NearCapacityBox,
+  type LabStorageAnalyticsResponse,
+  type LabStorageSummary,
+  type CrossLabStorageAnalyticsResponse,
+} from './storageAnalyticsSchemas';
