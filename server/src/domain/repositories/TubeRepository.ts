@@ -42,6 +42,8 @@ export interface TubeRepository {
   countByTank(tankId: string, labId: string): Promise<number>;
   countByRack(tankId: string, rackId: string, labId: string): Promise<number>;
   countByBox(tankId: string, rackId: string, boxId: string, labId: string): Promise<number>;
+  countGroupedByLocation(labId: string): Promise<Array<{ tankId: string; rackId: string; boxId: string; count: number }>>;
+  countGroupedByLocationAllLabs(): Promise<Array<{ labId: string; tankId: string; rackId: string; boxId: string; count: number }>>;
 
   // SEARCH AND FILTERING
 

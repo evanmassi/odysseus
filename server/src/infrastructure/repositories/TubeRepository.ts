@@ -326,6 +326,29 @@ export class TubeRepository implements ITubeRepository {
     return parseCount(result);
   }
 
+  async countGroupedByLocation(labId: string): Promise<Array<{ tankId: string; rackId: string; boxId: string; count: number }>> {
+    const rows = await this.context.queryMany<{
+      tank_id: string; rack_id: string; box_id: string; count: string;
+    }>(
+      `SELECT tank_id, rack_id, box_id, COUNT(*)::int as count
+       FROM tubes WHERE lab_id = $1
+       GROUP BY tank_id, rack_id, box_id`,
+      [labId]
+    );
+    return rows.map(r => ({ tankId: r.tank_id, rackId: r.rack_id, boxId: r.box_id, count: parseInt(r.count, 10) }));
+  }
+
+  async countGroupedByLocationAllLabs(): Promise<Array<{ labId: string; tankId: string; rackId: string; boxId: string; count: number }>> {
+    const rows = await this.context.queryMany<{
+      lab_id: string; tank_id: string; rack_id: string; box_id: string; count: string;
+    }>(
+      `SELECT lab_id, tank_id, rack_id, box_id, COUNT(*)::int as count
+       FROM tubes
+       GROUP BY lab_id, tank_id, rack_id, box_id`
+    );
+    return rows.map(r => ({ labId: r.lab_id, tankId: r.tank_id, rackId: r.rack_id, boxId: r.box_id, count: parseInt(r.count, 10) }));
+  }
+
   // SEARCH AND FILTERING
 
   private readonly ALLOWED_SORT_COLUMNS = [
