@@ -6,7 +6,15 @@
 
 import { lazy, Suspense, useState } from 'react';
 
-import { Activity, CircleAlert, Clock, FlaskConical, LayoutDashboard, Shield } from 'lucide-react';
+import {
+  Activity,
+  CircleAlert,
+  Clock,
+  FlaskConical,
+  HardDrive,
+  LayoutDashboard,
+  Shield,
+} from 'lucide-react';
 
 import { Chip, LoadingSkeleton, Tab, Tabs } from '@shared/ui';
 
@@ -18,6 +26,8 @@ import { LabsPanel } from './LabsPanel';
 const SecurityPanel = lazy(() =>
   import('./SecurityPanel').then(m => ({ default: m.SecurityPanel }))
 );
+
+const StoragePanel = lazy(() => import('./StoragePanel').then(m => ({ default: m.StoragePanel })));
 
 export function SystemAdminDashboard() {
   const [activeTab, setActiveTab] = useState<string>('labs');
@@ -66,6 +76,9 @@ export function SystemAdminDashboard() {
             <Tab id="security" icon={<Shield size={18} />}>
               Security
             </Tab>
+            <Tab id="storage" icon={<HardDrive size={18} />}>
+              Storage
+            </Tab>
           </Tabs>
         </div>
 
@@ -74,6 +87,12 @@ export function SystemAdminDashboard() {
         {activeTab === 'security' && (
           <Suspense fallback={<LoadingSkeleton />}>
             <SecurityPanel />
+          </Suspense>
+        )}
+
+        {activeTab === 'storage' && (
+          <Suspense fallback={<LoadingSkeleton />}>
+            <StoragePanel />
           </Suspense>
         )}
       </div>
