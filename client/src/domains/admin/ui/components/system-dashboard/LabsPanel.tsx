@@ -148,7 +148,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
     return (
       <div
         key={lab.id}
-        className={`rounded-lg cursor-pointer transition-colors outline outline-1 outline-offset-4 p-1 space-y-1 ${
+        className={`rounded-lg cursor-pointer transition-colors outline outline-1 outline-offset-1 p-1 space-y-1 ${
           lab.isDemo ? 'outline-demo-text/50' : 'outline-secondary-foreground/50'
         }`}
         onClick={() => onSelectLab(lab.id)}

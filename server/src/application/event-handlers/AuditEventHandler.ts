@@ -6,6 +6,8 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { AuditService } from '@application/services/AuditService';
+import type { DonorRepository } from '@domain/repositories/DonorRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
@@ -89,9 +91,24 @@ export class AuditEventHandler {
     private auditService: AuditService,
     private eventBus: EventBus,
     private userRepository: UserRepository,
-    private storageRepository: StorageRepository
+    private storageRepository: StorageRepository,
+    private labRepository: LabRepository,
+    private donorRepository: DonorRepository
   ) {
     this.subscribeToEvents();
+  }
+
+  private async resolveDonorLabel(donorId: string): Promise<{ donorSourceId?: string; donorInternalId?: string }> {
+    const donor = await this.donorRepository.findById(donorId);
+    return {
+      donorSourceId: donor?.donorSourceId,
+      donorInternalId: donor?.donorInternalId,
+    };
+  }
+
+  private async resolveLabName(labId: string): Promise<string> {
+    const lab = await this.labRepository.findById(labId);
+    return lab?.name ?? labId;
   }
 
   private async resolveUser(userId: string): Promise<{ username: string; isDemo: boolean }> {
@@ -935,29 +952,32 @@ export class AuditEventHandler {
   }
 
   private async handleLabActivated(event: LabActivatedEvent): Promise<void> {
+    const labName = await this.resolveLabName(event.labId);
     await this.logAuditEvent({
       eventName: 'lab activated', context: { labId: event.labId },
       actorId: event.activatedBy, action: 'lab_activated', entityType: 'lab',
       entityId: event.labId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ activatedBy: username }),
+      buildDetails: (username) => ({ labName, activatedBy: username }),
     });
   }
 
   private async handleLabDeactivated(event: LabDeactivatedEvent): Promise<void> {
+    const labName = await this.resolveLabName(event.labId);
     await this.logAuditEvent({
       eventName: 'lab deactivated', context: { labId: event.labId },
       actorId: event.deactivatedBy, action: 'lab_deactivated', entityType: 'lab',
       entityId: event.labId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ deactivatedBy: username }),
+      buildDetails: (username) => ({ labName, deactivatedBy: username }),
     });
   }
 
   private async handleInviteCodeCreated(event: InviteCodeCreatedEvent): Promise<void> {
+    const labName = await this.resolveLabName(event.labId);
     await this.logAuditEvent({
       eventName: 'invite code created', context: { codeId: event.codeId },
       actorId: event.createdBy, action: 'invite_code_created', entityType: 'lab',
       entityId: event.codeId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ codeId: event.codeId, createdBy: username }),
+      buildDetails: (username) => ({ labName, codeId: event.codeId, createdBy: username }),
     });
   }
 
@@ -986,12 +1006,13 @@ export class AuditEventHandler {
   }
 
   private async handleDonorUpdated(event: DonorUpdatedEvent): Promise<void> {
+    const donorIds = await this.resolveDonorLabel(event.donorId);
     await this.logAuditEvent({
       eventName: 'donor updated', context: { donorId: event.donorId },
       actorId: event.updatedBy, action: 'donor_updated', entityType: 'donor',
       entityId: event.donorId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
-        donorId: event.donorId, changes: event.changes, updatedBy: username,
+        donorId: event.donorId, ...donorIds, changes: event.changes, updatedBy: username,
       }),
     });
   }

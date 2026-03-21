@@ -101,7 +101,7 @@ export function LabInfoPanel({
 
   return (
     <>
-      <div className="rounded-lg outline outline-1 outline-offset-4 outline-secondary-foreground/50 p-1 space-y-1">
+      <div className="rounded-lg outline outline-1 outline-offset-1 outline-secondary-foreground/50 p-1 space-y-1">
         <div className="rounded-md bg-muted px-3 py-2.5">
           <div className="flex items-center gap-3">
             <LabBadge labId={labId} labName={lab.name} size="md" isDemo={lab.isDemo} />

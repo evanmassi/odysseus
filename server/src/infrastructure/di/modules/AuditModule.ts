@@ -72,7 +72,9 @@ export class AuditModule {
         this.getAuditService(),
         this.shared.eventBus,
         repositories.users,
-        repositories.storage
+        repositories.storage,
+        repositories.labs,
+        repositories.donors
       );
     }
     return this.auditEventHandler;

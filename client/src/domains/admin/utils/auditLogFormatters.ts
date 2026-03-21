@@ -457,16 +457,19 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         return plain(getStringProperty(details, 'labName') || '-');
       }
       if (action === 'invite_code_created') {
-        return plain('Invite code created');
+        const labName = getStringProperty(details, 'labName');
+        return plain(labName ? `Invite code created for ${labName}` : 'Invite code created');
       }
       if (action === 'invite_code_used') {
         return plain('Invite code redeemed');
       }
       if (action === 'lab_activated') {
-        return plain('Lab activated');
+        const labName = getStringProperty(details, 'labName');
+        return plain(labName ? `${labName} activated` : 'Lab activated');
       }
       if (action === 'lab_deactivated') {
-        return plain('Lab deactivated');
+        const labName = getStringProperty(details, 'labName');
+        return plain(labName ? `${labName} deactivated` : 'Lab deactivated');
       }
       const oldName = getStringProperty(details, 'oldName');
       const newName = getStringProperty(details, 'newName');
@@ -525,7 +528,11 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       const sourceId = getStringProperty(details, 'donorSourceId');
       const internalId = getStringProperty(details, 'donorInternalId');
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentional: empty strings from getStringProperty should be treated as absent
-      const donorLabel = sourceId || internalId || entry.entityId || '-';
+      const donorLabel = sourceId
+        ? `S.ID: ${sourceId}`
+        : internalId
+          ? `I.ID: ${internalId}`
+          : 'Donor';
 
       if (action === 'donor_created') {
         const idParts: string[] = [];
