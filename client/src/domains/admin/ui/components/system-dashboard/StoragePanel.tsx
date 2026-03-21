@@ -10,7 +10,9 @@ import { refrigeratorFreezer } from '@lucide/lab';
 import { AlertTriangle, Box as BoxIcon, ChevronLeft, HardDrive, Rows3, Icon } from 'lucide-react';
 
 import { Button, Chip, Table } from '@shared/ui';
+import { LabBadge } from '@shared/ui/components/badges';
 
+import { useLabsQuery } from '../../../hooks/useLabQueries';
 import {
   useCrossLabStorageAnalyticsQuery,
   useLabStorageAnalyticsSystemQuery,
@@ -46,10 +48,17 @@ export function StoragePanel() {
     direction: 'desc',
   });
 
-  const selectedLabName = useMemo(() => {
-    if (!selectedLabId || !crossLabData) return '';
-    return crossLabData.labs.find(l => l.labId === selectedLabId)?.labName ?? '';
-  }, [selectedLabId, crossLabData]);
+  const { data: labsData } = useLabsQuery();
+
+  const labMetaMap = useMemo(() => {
+    const map = new Map<string, { name: string; isDemo: boolean }>();
+    for (const lab of labsData ?? []) {
+      map.set(lab.id, { name: lab.name, isDemo: lab.isDemo });
+    }
+    return map;
+  }, [labsData]);
+
+  const selectedLabMeta = selectedLabId ? labMetaMap.get(selectedLabId) : undefined;
 
   const sortedLabs = useMemo(() => {
     const labs = crossLabData?.labs ?? [];
@@ -76,7 +85,15 @@ export function StoragePanel() {
       id: 'labName',
       header: 'Lab',
       sortable: true,
-      accessor: 'labName',
+      render: (_val, row) => {
+        const meta = labMetaMap.get(row.labId);
+        return (
+          <div className="flex items-center gap-2">
+            <LabBadge labId={row.labId} labName={row.labName} size="sm" isDemo={meta?.isDemo} />
+            <span>{row.labName}</span>
+          </div>
+        );
+      },
     },
     {
       id: 'totalPositions',
@@ -102,7 +119,8 @@ export function StoragePanel() {
     return (
       <LabDrillDown
         labId={selectedLabId}
-        labName={selectedLabName}
+        labName={selectedLabMeta?.name ?? ''}
+        isDemo={selectedLabMeta?.isDemo ?? false}
         onBack={() => setSelectedLabId(null)}
       />
     );
@@ -142,7 +160,7 @@ export function StoragePanel() {
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Icon iconNode={refrigeratorFreezer} size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Per-Lab Capacity</h3>
+          <h3 className="text-lg font-semibold text-card-foreground">Lab Storage</h3>
         </div>
 
         <Table<LabSummaryRow>
@@ -167,10 +185,12 @@ export function StoragePanel() {
 function LabDrillDown({
   labId,
   labName,
+  isDemo,
   onBack,
 }: {
   labId: string;
   labName: string;
+  isDemo: boolean;
   onBack: () => void;
 }) {
   const { data, isLoading } = useLabStorageAnalyticsSystemQuery(labId);
@@ -236,10 +256,12 @@ function LabDrillDown({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ChevronLeft size={14} />}>
-          All Labs
-        </Button>
+      <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ChevronLeft size={14} />}>
+        All Labs
+      </Button>
+
+      <div className="flex items-center gap-2">
+        <LabBadge labId={labId} labName={labName} size="md" isDemo={isDemo} />
         <h3 className="text-lg font-semibold text-card-foreground">{labName}</h3>
       </div>
 

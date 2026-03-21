@@ -69,7 +69,7 @@ export function SystemAdminDashboard() {
         </div>
 
         <div className="border-b border-border">
-          <Tabs value={activeTab} onChange={setActiveTab}>
+          <Tabs value={activeTab} onChange={setActiveTab} orientation="horizontal">
             <Tab id="labs" icon={<FlaskConical size={18} />}>
               Labs
             </Tab>
