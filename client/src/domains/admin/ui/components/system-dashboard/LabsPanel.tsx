@@ -148,10 +148,8 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
     return (
       <div
         key={lab.id}
-        className={`px-4 py-3 rounded-lg space-y-2 cursor-pointer transition-colors outline outline-1 outline-offset-4 ${
-          lab.isDemo
-            ? 'bg-demo-light outline-demo-text/50 hover:bg-demo-light-hover'
-            : 'bg-muted outline-secondary-foreground/50 hover:bg-muted-hover'
+        className={`rounded-lg cursor-pointer transition-colors outline outline-1 outline-offset-4 p-1 space-y-1 ${
+          lab.isDemo ? 'outline-demo-text/50' : 'outline-secondary-foreground/50'
         }`}
         onClick={() => onSelectLab(lab.id)}
         onKeyDown={e => {
@@ -160,31 +158,60 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
         role="button"
         tabIndex={0}
       >
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
-            <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {lab.isDemo && (
-              <Chip
-                color={lab.isSeeded ? 'success' : 'warning'}
-                size="sm"
-                leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
-              >
-                {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
-              </Chip>
-            )}
-            <Chip
-              color={lab.isActive ? 'success' : 'danger'}
-              size="sm"
-              leftIcon={lab.isActive ? <CircleCheckBig /> : <OctagonX />}
+        <div className={`px-3 py-2.5 rounded-md ${lab.isDemo ? 'bg-demo-light' : 'bg-card'}`}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
+              <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
+            </div>
+            <div
+              className="flex items-center gap-1.5"
+              role="presentation"
+              onClick={e => e.stopPropagation()}
+              onKeyDown={e => e.stopPropagation()}
             >
-              {lab.isActive ? 'Active' : 'Deactivated'}
-            </Chip>
+              {lab.isDemo && (
+                <Chip
+                  color={lab.isSeeded ? 'success' : 'warning'}
+                  size="sm"
+                  leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
+                >
+                  {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
+                </Chip>
+              )}
+              <Chip
+                color={lab.isActive ? 'success' : 'danger'}
+                size="sm"
+                leftIcon={lab.isActive ? <CircleCheckBig /> : <OctagonX />}
+              >
+                {lab.isActive ? 'Active' : 'Deactivated'}
+              </Chip>
+              {lab.isActive ? (
+                <Tooltip content="Deactivate lab">
+                  <Button
+                    variant="ghost-danger"
+                    size="sm"
+                    onClick={() => setDeactivateTarget(lab.id)}
+                  >
+                    <Power size={14} />
+                  </Button>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleActivateLab(lab.id)}
+                  isLoading={activateLabMutation.isPending}
+                >
+                  Activate
+                </Button>
+              )}
+            </div>
           </div>
         </div>
-        <div className="flex items-center justify-between gap-2">
+        <div
+          className={`px-3 py-1.5 rounded-md flex items-center justify-between gap-2 ${lab.isDemo ? 'bg-demo-light' : 'bg-card'}`}
+        >
           <div className="flex items-center gap-2">
             {stats && (
               <>
@@ -218,76 +245,49 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
             onClick={e => e.stopPropagation()}
             onKeyDown={e => e.stopPropagation()}
           >
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => handleGenerateLabAdminCode(lab.id)}
-              isLoading={generatingCodeForLab === lab.id}
-              leftIcon={<TicketCheck size={14} />}
-              disabled={!lab.isActive}
-            >
-              Lab Admin Code
-            </Button>
-            {lab.isActive ? (
-              <Tooltip content="Deactivate lab">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeactivateTarget(lab.id)}
-                  className="text-danger-text hover:text-danger-text"
-                >
-                  <Power size={14} />
-                </Button>
-              </Tooltip>
-            ) : (
+            <div>
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => handleActivateLab(lab.id)}
-                isLoading={activateLabMutation.isPending}
+                onClick={() => handleGenerateLabAdminCode(lab.id)}
+                isLoading={generatingCodeForLab === lab.id}
+                leftIcon={<TicketCheck size={14} />}
+                disabled={!lab.isActive}
               >
-                Activate
+                Lab Admin Code
               </Button>
-            )}
-          </div>
-        </div>
-
-        {codes.length > 0 && (
-          <div
-            className="flex justify-end"
-            role="presentation"
-            onClick={e => e.stopPropagation()}
-            onKeyDown={e => e.stopPropagation()}
-          >
-            <div className="space-y-1">
-              {codes.map(code => (
-                <div key={code.id} className="flex items-center gap-2 text-xs">
-                  <code className="font-mono font-semibold bg-background px-2 py-0.5 rounded border border-border">
-                    {code.code}
-                  </code>
-                  <Tooltip content="Copy to clipboard">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(code.code);
-                        notifications.success('Copied');
-                      }}
-                    >
-                      <Copy size={12} />
-                    </Button>
-                  </Tooltip>
+              {codes.length > 0 && (
+                <div className="space-y-1 mt-1.5">
+                  {codes.map(code => (
+                    <div key={code.id} className="flex items-center gap-2 text-xs">
+                      <code className="font-mono font-semibold bg-background px-2 py-0.5 rounded border border-border">
+                        {code.code}
+                      </code>
+                      <Tooltip content="Copy to clipboard">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(code.code);
+                            notifications.success('Copied');
+                          }}
+                        >
+                          <Copy size={12} />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </div>
-        )}
+        </div>
       </div>
     );
   };
 
   return (
-    <>
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FlaskConical size={18} className="text-muted-foreground" />
@@ -393,6 +393,6 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
         onConfirm={() => deactivateTarget && handleDeactivateLab(deactivateTarget)}
         onCancel={() => setDeactivateTarget(null)}
       />
-    </>
+    </div>
   );
 }

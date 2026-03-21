@@ -11,9 +11,13 @@ import { Monitor, TabletSmartphone, MonitorCheck, LogOut, RefreshCw } from 'luci
 import { UAParser } from 'ua-parser-js';
 
 import { useUserSessions } from '@domains/users';
-import { Button, Tooltip } from '@shared/ui';
+import { Button, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
+
+import type { ActiveSession } from '@odysseus/shared-schemas';
+import type { TableColumn } from '@shared/ui';
+import type { LucideIcon } from 'lucide-react';
 
 function parseUserAgent(userAgent: string | undefined) {
   if (!userAgent) return { device: 'Unknown Device', type: 'desktop' as const };
@@ -54,6 +58,12 @@ function CurrentSessionBadge() {
     </span>
   );
 }
+
+type DisplaySession = ActiveSession & {
+  device: string;
+  DeviceIcon: LucideIcon;
+  timestamp: { relative: string; absolute: string };
+};
 
 export function SessionListPanel() {
   const { sessions, isLoading, revokeSession, isRevoking, revokeAll, isRevokingAll } =
@@ -111,6 +121,78 @@ export function SessionListPanel() {
     });
   };
 
+  const sessionColumns: TableColumn<DisplaySession>[] = [
+    {
+      id: 'device',
+      header: 'Device',
+      render: (_val, row) => (
+        <div className="flex items-center space-x-3">
+          <row.DeviceIcon
+            size={16}
+            className={`flex-shrink-0 ${row.isCurrentSession ? 'text-success-text' : 'text-muted-foreground'}`}
+          />
+          <div>
+            <p
+              className={`text-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+            >
+              {row.device}
+            </p>
+            {row.isCurrentSession && <CurrentSessionBadge />}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'ipAddress',
+      header: 'Location',
+      render: (_val, row) => (
+        <p
+          className={`text-sm ${row.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
+        >
+          {row.ipAddress ?? 'Unknown'}
+        </p>
+      ),
+    },
+    {
+      id: 'lastUsedAt',
+      header: 'Last Active',
+      render: (_val, row) => (
+        <div>
+          <p
+            className={`text-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+          >
+            {row.timestamp.relative}
+          </p>
+          <p
+            className={`text-xs ${row.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
+          >
+            {row.timestamp.absolute}
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '',
+      align: 'right',
+      render: (_val, row) =>
+        !row.isCurrentSession ? (
+          <Tooltip content="Logout from this session" side="bottom">
+            <Button
+              variant="danger"
+              size="xs"
+              onClick={() => handleRevokeSession(row.id)}
+              disabled={isRevoking}
+              isLoading={revokingSessionId === row.id}
+              leftIcon={<LogOut size={12} />}
+            >
+              Logout
+            </Button>
+          </Tooltip>
+        ) : null,
+    },
+  ];
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -142,91 +224,21 @@ export function SessionListPanel() {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block border border-border rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-muted">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-secondary-foreground">
-                Device
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-secondary-foreground">
-                Location
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-secondary-foreground">
-                Last Active
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-secondary-foreground">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-card divide-y divide-border">
-            {displayedSessions.map(session => (
-              <tr
-                key={session.id}
-                className={
-                  session.isCurrentSession
-                    ? 'bg-success-light border-l-4 border-l-success-bg text-success-text'
-                    : ''
-                }
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center space-x-3">
-                    <session.DeviceIcon
-                      size={16}
-                      className={`flex-shrink-0 ${session.isCurrentSession ? 'text-success-text' : 'text-muted-foreground'}`}
-                    />
-                    <div>
-                      <p
-                        className={`text-sm font-medium ${session.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
-                      >
-                        {session.device}
-                      </p>
-                      {session.isCurrentSession && <CurrentSessionBadge />}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <p
-                    className={`text-sm ${session.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
-                  >
-                    {session.ipAddress ?? 'Unknown'}
-                  </p>
-                </td>
-                <td className="px-4 py-3">
-                  <div>
-                    <p
-                      className={`text-sm font-medium ${session.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
-                    >
-                      {session.timestamp.relative}
-                    </p>
-                    <p
-                      className={`text-xs ${session.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
-                    >
-                      {session.timestamp.absolute}
-                    </p>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {!session.isCurrentSession && (
-                    <Tooltip content="Logout from this session" side="bottom">
-                      <Button
-                        variant="danger"
-                        size="xs"
-                        onClick={() => handleRevokeSession(session.id)}
-                        disabled={isRevoking}
-                        isLoading={revokingSessionId === session.id}
-                        leftIcon={<LogOut size={12} />}
-                      >
-                        Logout
-                      </Button>
-                    </Tooltip>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="hidden md:block">
+        <Table<DisplaySession>
+          columns={sessionColumns}
+          data={displayedSessions}
+          hoverable
+          size="sm"
+          rounded="lg"
+          emptyMessage="No active sessions"
+          aria-label="Active sessions"
+          rowClassName={row =>
+            row.isCurrentSession
+              ? 'bg-success-light text-success-text [&>td:first-child]:border-l-4 [&>td:first-child]:border-l-success-bg'
+              : ''
+          }
+        />
       </div>
 
       {/* Mobile Card View */}

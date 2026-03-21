@@ -64,8 +64,8 @@ export function LabResearchersPanel({
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <Dna size={16} className="text-secondary-foreground" />
-        <h3 className="text-sm font-semibold text-card-foreground">Researchers</h3>
+        <Dna size={18} className="text-muted-foreground" />
+        <h3 className="text-lg font-semibold text-card-foreground">Researchers</h3>
       </div>
       <Table
         columns={getResearcherColumns(canDelete, setDeleteTarget)}

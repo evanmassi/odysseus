@@ -86,7 +86,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
             Back
@@ -116,23 +116,30 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
 
         {lab.isDemo && <LabDemoSettings labId={labId} isSeeded={details.isSeeded} />}
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          <div className="lg:col-span-3">
-            <LabUsersPanel
-              labId={labId}
-              users={users}
-              sortConfig={userSortConfig}
-              onSort={setUserSortConfig}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <LabResearchersPanel
-              researchers={sortedResearchers}
-              sortConfig={researcherSortConfig}
-              onSort={setResearcherSortConfig}
-              onResearcherDeleted={() => void refetch()}
-            />
-          </div>
+        <div>
+          <div className="h-px bg-muted-foreground/60" />
+        </div>
+
+        <LabUsersPanel
+          labId={labId}
+          users={users}
+          sortConfig={userSortConfig}
+          onSort={setUserSortConfig}
+        />
+
+        <div>
+          <div className="h-px bg-muted-foreground/60" />
+        </div>
+
+        <LabResearchersPanel
+          researchers={sortedResearchers}
+          sortConfig={researcherSortConfig}
+          onSort={setResearcherSortConfig}
+          onResearcherDeleted={() => void refetch()}
+        />
+
+        <div>
+          <div className="h-px bg-muted-foreground/60" />
         </div>
 
         <Collapsible.Root defaultOpen={false} className="rounded-lg border border-border bg-card">
@@ -142,13 +149,13 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                 size={14}
                 className="text-secondary-foreground transition-transform duration-200 group-data-[state=closed]:-rotate-90"
               />
-              <Activity size={16} className="text-secondary-foreground" />
-              <h3 className="text-sm font-semibold text-card-foreground">Audit Log</h3>
+              <Activity size={18} className="text-muted-foreground" />
+              <h3 className="text-lg font-semibold text-card-foreground">Audit Log</h3>
             </div>
           </Collapsible.Trigger>
           <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
             <div className="px-3 pb-3">
-              <AuditLogViewer labId={labId} readOnly />
+              <AuditLogViewer labId={labId} readOnly hideHeader />
             </div>
           </Collapsible.Content>
         </Collapsible.Root>

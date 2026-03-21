@@ -29,7 +29,7 @@ const useTableContext = () => {
   return context;
 };
 
-const tableVariants = cva(['w-full border-collapse'], {
+const tableVariants = cva(['w-full border-separate border-spacing-0'], {
   variants: {
     variant: {
       default: 'border border-border',

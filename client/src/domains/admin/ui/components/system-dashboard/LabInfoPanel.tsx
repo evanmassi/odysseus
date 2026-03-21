@@ -101,8 +101,8 @@ export function LabInfoPanel({
 
   return (
     <>
-      <div className="space-y-2 max-w-md">
-        <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+      <div className="rounded-lg outline outline-1 outline-offset-4 outline-secondary-foreground/50 p-1 space-y-1">
+        <div className="rounded-md bg-muted px-3 py-2.5">
           <div className="flex items-center gap-3">
             <LabBadge labId={labId} labName={lab.name} size="md" isDemo={lab.isDemo} />
             {isRenaming ? (
@@ -167,7 +167,7 @@ export function LabInfoPanel({
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+        <div className="rounded-md bg-muted px-3 py-1.5 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
             <Chip
               color={lab.isActive ? 'success' : 'danger'}
@@ -196,8 +196,7 @@ export function LabInfoPanel({
             <Chip color="info" size="sm" leftIcon={<Dna />}>
               {researcherCount} {researcherCount === 1 ? 'researcher' : 'researchers'}
             </Chip>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground">·</span>
             <Chip
               color="info"
               size="sm"
@@ -211,8 +210,7 @@ export function LabInfoPanel({
             <Chip color="info" size="sm" leftIcon={<BoxIcon />}>
               {storageSummary.boxCount} {storageSummary.boxCount === 1 ? 'box' : 'boxes'}
             </Chip>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground">·</span>
             <Chip color="info" size="sm" leftIcon={<TestTube />}>
               {tubeCount} total {tubeCount === 1 ? 'tube' : 'tubes'}
             </Chip>

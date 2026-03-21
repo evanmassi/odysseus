@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Save } from 'lucide-react';
+import { ChevronDown, Save, Shield } from 'lucide-react';
 
 import { Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
@@ -78,14 +78,15 @@ export function SecuritySettings() {
             size={14}
             className="text-secondary-foreground transition-transform duration-200 group-data-[state=closed]:-rotate-90"
           />
-          <h3 className="text-sm font-semibold text-card-foreground">Security Settings</h3>
+          <Shield size={18} className="text-muted-foreground" />
+          <h3 className="text-lg font-semibold text-card-foreground">Security Settings</h3>
         </div>
       </Collapsible.Trigger>
       <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
         <div className="px-3 pb-3 space-y-3">
           {isLoaded ? (
             <>
-              <SecurityTab config={config} onChange={handleConfigChange} />
+              <SecurityTab config={config} onChange={handleConfigChange} hideHeader />
               {hasChanges && (
                 <div className="flex justify-end pt-1">
                   <Button

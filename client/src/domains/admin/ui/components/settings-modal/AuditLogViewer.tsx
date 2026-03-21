@@ -88,6 +88,7 @@ interface AuditLogViewerProps {
   onFiltersChange?: (filters: AuditLogFilters) => void;
   labId?: string;
   readOnly?: boolean;
+  hideHeader?: boolean;
 }
 
 export function AuditLogViewer({
@@ -95,6 +96,7 @@ export function AuditLogViewer({
   onFiltersChange,
   labId,
   readOnly,
+  hideHeader = false,
 }: AuditLogViewerProps) {
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -338,7 +340,9 @@ export function AuditLogViewer({
       {/* Header with Filters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h4 className="text-base font-semibold text-card-foreground">Audit Log</h4>
+          {!hideHeader && (
+            <h4 className="text-base font-semibold text-card-foreground">Audit Log</h4>
+          )}
           <span className="text-xs text-muted-foreground">
             ({(pagination?.total || 0).toLocaleString()} total entries)
           </span>

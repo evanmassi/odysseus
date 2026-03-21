@@ -103,7 +103,7 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       disabled={disabled}
-      className="tab-button tab-button--horizontal flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      className="tab-button tab-button--horizontal flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}
       <span>{children}</span>

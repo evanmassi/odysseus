@@ -45,8 +45,8 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <UsersRound size={16} className="text-secondary-foreground" />
-        <h3 className="text-sm font-semibold text-card-foreground">Users</h3>
+        <UsersRound size={18} className="text-muted-foreground" />
+        <h3 className="text-lg font-semibold text-card-foreground">Users</h3>
       </div>
       <Table
         columns={getUserColumns(labId, setUserAction, currentUserId)}

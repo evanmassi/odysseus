@@ -460,10 +460,10 @@ export function SecurityPanel() {
   const tokenHealth = overview?.tokenHealth;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <SecuritySettings />
 
-      <div className="py-1">
+      <div>
         <div className="h-px bg-muted-foreground/60" />
       </div>
 
@@ -522,7 +522,7 @@ export function SecurityPanel() {
         )}
       </div>
 
-      <div className="py-1">
+      <div>
         <div className="h-px bg-muted-foreground/60" />
       </div>
 
@@ -559,7 +559,7 @@ export function SecurityPanel() {
         </div>
       </div>
 
-      <div className="py-1">
+      <div>
         <div className="h-px bg-muted-foreground/60" />
       </div>
 
@@ -623,13 +623,13 @@ export function SecurityPanel() {
           aria-label="Active sessions"
           rowClassName={row =>
             isOwnSession(row)
-              ? 'bg-success-light border-l-4 border-l-success-bg text-success-text'
+              ? 'bg-success-light text-success-text [&>td:first-child]:border-l-4 [&>td:first-child]:border-l-success-bg'
               : ''
           }
         />
       </div>
 
-      <div className="py-1">
+      <div>
         <div className="h-px bg-muted-foreground/60" />
       </div>
 
@@ -687,7 +687,7 @@ export function SecurityPanel() {
         />
       </div>
 
-      <div className="py-1">
+      <div>
         <div className="h-px bg-muted-foreground/60" />
       </div>
 

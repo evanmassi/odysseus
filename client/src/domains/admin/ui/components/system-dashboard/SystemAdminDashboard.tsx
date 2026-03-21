@@ -30,14 +30,13 @@ export function SystemAdminDashboard() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
-        <div className="flex items-center gap-2">
-          <LayoutDashboard size={18} className="text-muted-foreground" />
-          <h2 className="text-lg font-semibold text-card-foreground">Overview</h2>
-        </div>
-
-        {overview && (
-          <div className="rounded-lg border border-border bg-card p-3 w-fit">
+      <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
+        <div className="rounded-lg bg-card px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <LayoutDashboard size={18} className="text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-card-foreground">Overview</h2>
+          </div>
+          {overview && (
             <div className="flex flex-wrap items-center gap-2">
               <Chip color="info" size="sm" leftIcon={<FlaskConical />}>
                 {overview.activeLabs} {overview.activeLabs === 1 ? 'lab' : 'labs'} active
@@ -56,17 +55,19 @@ export function SystemAdminDashboard() {
                 pending
               </Chip>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        <Tabs value={activeTab} onChange={setActiveTab}>
-          <Tab id="labs" icon={<FlaskConical size={18} />}>
-            Labs
-          </Tab>
-          <Tab id="security" icon={<Shield size={18} />}>
-            Security
-          </Tab>
-        </Tabs>
+        <div className="border-b border-border">
+          <Tabs value={activeTab} onChange={setActiveTab}>
+            <Tab id="labs" icon={<FlaskConical size={18} />}>
+              Labs
+            </Tab>
+            <Tab id="security" icon={<Shield size={18} />}>
+              Security
+            </Tab>
+          </Tabs>
+        </div>
 
         {activeTab === 'labs' && <LabsPanel onSelectLab={setSelectedLabId} />}
 

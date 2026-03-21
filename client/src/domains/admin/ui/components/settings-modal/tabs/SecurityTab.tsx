@@ -14,15 +14,23 @@ export interface SecurityTabProps {
   config: SecurityConfig;
   onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
   readOnly?: boolean;
+  hideHeader?: boolean;
 }
 
-export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabProps) {
+export function SecurityTab({
+  config,
+  onChange,
+  readOnly = false,
+  hideHeader = false,
+}: SecurityTabProps) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
-        <Shield size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-card-foreground">Security</h3>
-      </div>
+      {!hideHeader && (
+        <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+          <Shield size={22} className="text-secondary-foreground" />
+          <h3 className="text-xl font-semibold text-card-foreground">Security</h3>
+        </div>
+      )}
 
       {readOnly && (
         <AlertBanner variant="info" spacing="none">
@@ -31,9 +39,7 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
       )}
 
       <div>
-        <h4 className="text-base font-semibold text-card-foreground mb-2">
-          Authentication Settings
-        </h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">Authentication</h4>
         <div className="space-y-1.5">
           <div className="grid grid-cols-2 gap-1.5">
             <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
