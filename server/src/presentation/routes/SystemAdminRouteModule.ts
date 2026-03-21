@@ -13,6 +13,7 @@ import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import type { AuditController } from '@presentation/controllers/AuditController';
 import type { SecurityMonitoringController } from '@presentation/controllers/system/SecurityMonitoringController';
+import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import type { LabController } from '@presentation/controllers/LabController';
 import type { StorageController } from '@presentation/controllers/StorageController';
@@ -41,6 +42,7 @@ export class SystemAdminRouteModule implements RouteModule {
     private readonly configurationController: StorageController,
     private readonly auditController: AuditController,
     private readonly securityMonitoringController: SecurityMonitoringController,
+    private readonly storageAnalyticsController: StorageAnalyticsController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -216,6 +218,17 @@ export class SystemAdminRouteModule implements RouteModule {
     router.post('/security/sessions/:id/revoke',
       validateParams(IdParams),
       this.securityMonitoringController.revokeSession.bind(this.securityMonitoringController)
+    );
+
+    // STORAGE ANALYTICS
+
+    router.get('/storage/analytics',
+      this.storageAnalyticsController.getCrossLabStorageAnalytics.bind(this.storageAnalyticsController)
+    );
+
+    router.get('/labs/:labId/storage/analytics',
+      validateParams(LabIdParams),
+      this.storageAnalyticsController.getLabStorageAnalytics.bind(this.storageAnalyticsController)
     );
   }
 }

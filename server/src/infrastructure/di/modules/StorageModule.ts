@@ -20,6 +20,7 @@ import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
 import { StorageController } from '@presentation/controllers/StorageController';
+import { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 
 interface StorageCrossModuleDeps {
   getGetUserStatsHandler: () => GetUserStatisticsQueryHandler;
@@ -66,6 +67,7 @@ export class StorageModule {
   private storageController?: StorageController;
   private adminConfigController?: AdminConfigController;
   private lookupValueController?: LookupValueController;
+  private storageAnalyticsController?: StorageAnalyticsController;
 
   constructor(
     private shared: SharedServices,
@@ -471,5 +473,17 @@ export class StorageModule {
       });
     }
     return this.lookupValueController;
+  }
+
+  getStorageAnalyticsController(): StorageAnalyticsController {
+    if (!this.storageAnalyticsController) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.storageAnalyticsController = new StorageAnalyticsController({
+        storageRepository: repositories.storage,
+        tubeRepository: repositories.tubes,
+        labRepository: repositories.labs,
+      });
+    }
+    return this.storageAnalyticsController;
   }
 }

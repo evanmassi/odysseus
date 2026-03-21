@@ -21,6 +21,7 @@ import type { ExportController } from '@presentation/controllers/ExportControlle
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
+import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
@@ -47,6 +48,7 @@ export class AdminRouteModule implements RouteModule {
     private readonly exportController: ExportController,
     private readonly lookupValueController: LookupValueController,
     private readonly inviteCodeController: InviteCodeController,
+    private readonly storageAnalyticsController: StorageAnalyticsController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -270,6 +272,12 @@ export class AdminRouteModule implements RouteModule {
     router.delete('/invite-codes/:id',
       validateParams(IdParams),
       this.inviteCodeController.deactivate.bind(this.inviteCodeController)
+    );
+
+    // STORAGE ANALYTICS
+
+    router.get('/storage/analytics',
+      this.storageAnalyticsController.getLabStorageAnalytics.bind(this.storageAnalyticsController)
     );
   }
 }

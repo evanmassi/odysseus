@@ -157,6 +157,7 @@ class OdysseusServer {
     const inviteCodeController = this.serviceContainer.getInviteCodeController();
     const donorController = this.serviceContainer.getDonorController();
     const securityMonitoringController = this.serviceContainer.getSecurityMonitoringController();
+    const storageAnalyticsController = this.serviceContainer.getStorageAnalyticsController();
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const storageRepository = this.repositoryFactory.getStorageRepository();
 
@@ -168,8 +169,8 @@ class OdysseusServer {
       this.configurationService.get('server').environment
     ));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, storageRepository));
-    registry.registerModule(new AdminRouteModule(adminUserController, adminConfigController, researcherController, auditController, exportController, lookupValueController, inviteCodeController, authMiddleware));
-    registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, adminConfigController, systemAdminUserController, storageController, auditController, securityMonitoringController, authMiddleware));
+    registry.registerModule(new AdminRouteModule(adminUserController, adminConfigController, researcherController, auditController, exportController, lookupValueController, inviteCodeController, storageAnalyticsController, authMiddleware));
+    registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, adminConfigController, systemAdminUserController, storageController, auditController, securityMonitoringController, storageAnalyticsController, authMiddleware));
     registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, storageRepository));
     registry.registerModule(new StorageRouteModule(storageController, authMiddleware));
     registry.registerModule(new DonorRouteModule(donorController, authMiddleware));

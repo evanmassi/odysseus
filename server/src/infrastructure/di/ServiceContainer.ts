@@ -55,6 +55,7 @@ import type { ResearcherController } from '@presentation/controllers/ResearcherC
 import type { SearchController } from '@presentation/controllers/SearchController';
 import type { StorageController } from '@presentation/controllers/StorageController';
 import type { SecurityMonitoringController } from '@presentation/controllers/system/SecurityMonitoringController';
+import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import type { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import type { TubeController } from '@presentation/controllers/TubeController';
 import type { TubeLockController } from '@presentation/controllers/TubeLockController';
@@ -395,6 +396,10 @@ export class ServiceContainer {
 
   getLookupValueController(): LookupValueController {
     return this.getStorageModule().getLookupValueController();
+  }
+
+  getStorageAnalyticsController(): StorageAnalyticsController {
+    return this.getStorageModule().getStorageAnalyticsController();
   }
 
   // Public API — AuthModule
