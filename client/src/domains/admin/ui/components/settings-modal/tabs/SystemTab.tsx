@@ -6,17 +6,28 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 
+import { refrigeratorFreezer } from '@lucide/lab';
 import { useQueryClient } from '@tanstack/react-query';
-import { Gauge, FlaskConical, FileText, Check, X } from 'lucide-react';
+import {
+  Gauge,
+  FlaskConical,
+  FileText,
+  Check,
+  X,
+  HardDrive,
+  AlertTriangle,
+  Icon,
+} from 'lucide-react';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
-import { Button, Input, Toggle } from '@shared/ui';
+import { Button, Chip, Input, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
+import { useLabStorageAnalyticsQuery } from '../../../../hooks/useStorageAnalyticsQueries';
 import { adminService } from '../../../../services/AdminService';
 import { DataExportForm } from '../DataExportForm';
 
@@ -225,7 +236,103 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
         </div>
       </div>
 
+      {hasLab && <StorageUtilizationSection />}
+
       <DataExportForm />
+    </div>
+  );
+}
+
+function StorageUtilizationSection() {
+  const { data } = useLabStorageAnalyticsQuery();
+
+  if (!data) return null;
+
+  const utilizationColor =
+    data.utilizationPercent >= 90
+      ? 'bg-danger-bg'
+      : data.utilizationPercent >= 70
+        ? 'bg-warning-bg'
+        : 'bg-success-bg';
+
+  return (
+    <div>
+      <h4 className="text-base font-semibold text-card-foreground mb-2">Storage Utilization</h4>
+      <div className="bg-muted p-3 rounded-lg space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <HardDrive size={18} className="text-muted-foreground" />
+            <span className="text-sm text-card-foreground font-medium">
+              {data.totalOccupied} / {data.totalPositions} positions used
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-24 h-2 rounded-full bg-background overflow-hidden">
+              <div
+                className={`h-full rounded-full ${utilizationColor}`}
+                style={{ width: `${Math.min(data.utilizationPercent, 100)}%` }}
+              />
+            </div>
+            <span className="text-xs font-medium text-secondary-foreground">
+              {data.utilizationPercent}%
+            </span>
+          </div>
+        </div>
+
+        {data.tanks.length > 0 && (
+          <div className="space-y-1.5">
+            {data.tanks.map(tank => {
+              const tankColor =
+                tank.utilizationPercent >= 90
+                  ? 'bg-danger-bg'
+                  : tank.utilizationPercent >= 70
+                    ? 'bg-warning-bg'
+                    : 'bg-success-bg';
+              return (
+                <div key={tank.tankId} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <Icon
+                      iconNode={refrigeratorFreezer}
+                      size={12}
+                      className="text-muted-foreground"
+                    />
+                    <span className="text-secondary-foreground">{tank.tankName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">
+                      {tank.occupied}/{tank.totalPositions}
+                    </span>
+                    <div className="w-16 h-1.5 rounded-full bg-background overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${tankColor}`}
+                        style={{ width: `${Math.min(tank.utilizationPercent, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-muted-foreground w-8 text-right">
+                      {tank.utilizationPercent}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {data.nearCapacityBoxes.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {data.nearCapacityBoxes.map(box => (
+              <Chip
+                key={`${box.tankName}-${box.rackName}-${box.boxName}`}
+                color="warning"
+                size="xs"
+                leftIcon={<AlertTriangle size={10} />}
+              >
+                {box.tankName} · {box.rackName} · {box.boxName}: {box.utilizationPercent}%
+              </Chip>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
