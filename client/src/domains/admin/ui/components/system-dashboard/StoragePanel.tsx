@@ -18,12 +18,18 @@ import {
   useLabStorageAnalyticsSystemQuery,
 } from '../../../hooks/useStorageAnalyticsQueries';
 
-import type { LabStorageSummary, TankUtilization, RackUtilization } from '@odysseus/shared-schemas';
+import type {
+  LabStorageSummary,
+  TankUtilization,
+  RackUtilization,
+  BoxUtilization,
+} from '@odysseus/shared-schemas';
 import type { SortConfig, TableColumn } from '@shared/ui';
 
 type LabSummaryRow = LabStorageSummary & { id: string };
 type TankRow = TankUtilization & { id: string };
 type RackRow = RackUtilization & { id: string };
+type BoxRow = BoxUtilization & { id: string };
 
 function UtilizationBar({ percent }: { percent: number }) {
   const color = percent >= 90 ? 'bg-danger-bg' : percent >= 70 ? 'bg-warning-bg' : 'bg-success-bg';
@@ -195,6 +201,7 @@ function LabDrillDown({
 }) {
   const { data, isLoading } = useLabStorageAnalyticsSystemQuery(labId);
   const [expandedTankId, setExpandedTankId] = useState<string | null>(null);
+  const [expandedRackId, setExpandedRackId] = useState<string | null>(null);
 
   const tankColumns: TableColumn<TankRow>[] = [
     {
@@ -317,7 +324,10 @@ function LabDrillDown({
           rounded="lg"
           emptyMessage="No tanks configured"
           aria-label="Per-tank utilization"
-          onRowClick={row => setExpandedTankId(row.tankId === expandedTankId ? null : row.tankId)}
+          onRowClick={row => {
+            setExpandedTankId(row.tankId === expandedTankId ? null : row.tankId);
+            setExpandedRackId(null);
+          }}
           rowClassName={row => (row.tankId === expandedTankId ? 'bg-muted/50' : '')}
         />
       </div>
@@ -345,8 +355,59 @@ function LabDrillDown({
               rounded="lg"
               emptyMessage="No racks in this tank"
               aria-label={`Racks in ${expandedTank.tankName}`}
+              onRowClick={row =>
+                setExpandedRackId(row.rackId === expandedRackId ? null : row.rackId)
+              }
+              rowClassName={row => (row.rackId === expandedRackId ? 'bg-muted/50' : '')}
             />
           </div>
+
+          {expandedRackId && expandedTank.racks.find(r => r.rackId === expandedRackId) && (
+            <>
+              <div>
+                <div className="h-px bg-muted-foreground/60" />
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <BoxIcon size={18} className="text-muted-foreground" />
+                  <h3 className="text-lg font-semibold text-card-foreground">
+                    Boxes in {expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}
+                  </h3>
+                </div>
+
+                <Table<BoxRow>
+                  columns={[
+                    {
+                      id: 'boxName',
+                      header: 'Box',
+                      render: (_val, row) => (
+                        <div className="flex items-center gap-2">
+                          <BoxIcon size={14} className="text-muted-foreground" />
+                          <span>{row.boxName}</span>
+                        </div>
+                      ),
+                    },
+                    { id: 'maxPositions', header: 'Positions', accessor: 'maxPositions' },
+                    { id: 'occupied', header: 'Occupied', accessor: 'occupied' },
+                    {
+                      id: 'utilizationPercent',
+                      header: 'Utilization',
+                      render: (_val, row) => <UtilizationBar percent={row.utilizationPercent} />,
+                    },
+                  ]}
+                  data={expandedTank.racks
+                    .find(r => r.rackId === expandedRackId)!
+                    .boxes.map(b => ({ ...b, id: b.boxName }))}
+                  hoverable
+                  size="sm"
+                  rounded="lg"
+                  emptyMessage="No boxes in this rack"
+                  aria-label="Box utilization"
+                />
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

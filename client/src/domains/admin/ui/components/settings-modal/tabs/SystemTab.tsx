@@ -4,7 +4,7 @@
  * Admin interface for lab settings, audit configuration, data export, and system statistics.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,6 +17,10 @@ import {
   HardDrive,
   AlertTriangle,
   Icon,
+  Rows3,
+  Box as BoxIcon,
+  ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -243,17 +247,23 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
   );
 }
 
+function getUtilizationColor(percent: number): string {
+  if (percent >= 90) return 'bg-danger-bg';
+  if (percent >= 70) return 'bg-warning-bg';
+  return 'bg-success-bg';
+}
+
 function StorageUtilizationSection() {
   const { data } = useLabStorageAnalyticsQuery();
+  const [expandedTankId, setExpandedTankId] = useState<string | null>(null);
+  const [expandedRackId, setExpandedRackId] = useState<string | null>(null);
+
+  const expandedTank = useMemo(
+    () => data?.tanks.find(t => t.tankId === expandedTankId),
+    [data, expandedTankId]
+  );
 
   if (!data) return null;
-
-  const utilizationColor =
-    data.utilizationPercent >= 90
-      ? 'bg-danger-bg'
-      : data.utilizationPercent >= 70
-        ? 'bg-warning-bg'
-        : 'bg-success-bg';
 
   return (
     <div>
@@ -269,7 +279,7 @@ function StorageUtilizationSection() {
           <div className="flex items-center gap-2">
             <div className="w-24 h-2 rounded-full bg-background overflow-hidden">
               <div
-                className={`h-full rounded-full ${utilizationColor}`}
+                className={`h-full rounded-full ${getUtilizationColor(data.utilizationPercent)}`}
                 style={{ width: `${Math.min(data.utilizationPercent, 100)}%` }}
               />
             </div>
@@ -280,38 +290,122 @@ function StorageUtilizationSection() {
         </div>
 
         {data.tanks.length > 0 && (
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {data.tanks.map(tank => {
-              const tankColor =
-                tank.utilizationPercent >= 90
-                  ? 'bg-danger-bg'
-                  : tank.utilizationPercent >= 70
-                    ? 'bg-warning-bg'
-                    : 'bg-success-bg';
+              const isExpanded = tank.tankId === expandedTankId;
               return (
-                <div key={tank.tankId} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <Icon
-                      iconNode={refrigeratorFreezer}
-                      size={12}
-                      className="text-muted-foreground"
-                    />
-                    <span className="text-secondary-foreground">{tank.tankName}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">
-                      {tank.occupied}/{tank.totalPositions}
-                    </span>
-                    <div className="w-16 h-1.5 rounded-full bg-background overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${tankColor}`}
-                        style={{ width: `${Math.min(tank.utilizationPercent, 100)}%` }}
+                <div key={tank.tankId}>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between text-xs py-1 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setExpandedTankId(isExpanded ? null : tank.tankId);
+                      setExpandedRackId(null);
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {isExpanded ? (
+                        <ChevronDown size={10} className="text-muted-foreground" />
+                      ) : (
+                        <ChevronRight size={10} className="text-muted-foreground" />
+                      )}
+                      <Icon
+                        iconNode={refrigeratorFreezer}
+                        size={12}
+                        className="text-muted-foreground"
                       />
+                      <span className="text-secondary-foreground">{tank.tankName}</span>
                     </div>
-                    <span className="text-muted-foreground w-8 text-right">
-                      {tank.utilizationPercent}%
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">
+                        {tank.occupied}/{tank.totalPositions}
+                      </span>
+                      <div className="w-16 h-1.5 rounded-full bg-background overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${getUtilizationColor(tank.utilizationPercent)}`}
+                          style={{ width: `${Math.min(tank.utilizationPercent, 100)}%` }}
+                        />
+                      </div>
+                      <span className="text-muted-foreground w-8 text-right">
+                        {tank.utilizationPercent}%
+                      </span>
+                    </div>
+                  </button>
+
+                  {isExpanded && expandedTank && (
+                    <div className="ml-6 mt-1 mb-2 space-y-0.5 border-l-2 border-border pl-3">
+                      {expandedTank.racks.map(rack => {
+                        const isRackExpanded = rack.rackId === expandedRackId;
+                        return (
+                          <div key={rack.rackId}>
+                            <button
+                              type="button"
+                              className="w-full flex items-center justify-between text-xs py-0.5 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
+                              onClick={() => setExpandedRackId(isRackExpanded ? null : rack.rackId)}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                {isRackExpanded ? (
+                                  <ChevronDown size={8} className="text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight size={8} className="text-muted-foreground" />
+                                )}
+                                <Rows3 size={10} className="text-muted-foreground" />
+                                <span className="text-secondary-foreground">{rack.rackName}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">
+                                  {rack.occupied}/{rack.totalPositions}
+                                </span>
+                                <div className="w-12 h-1.5 rounded-full bg-background overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full ${getUtilizationColor(rack.utilizationPercent)}`}
+                                    style={{ width: `${Math.min(rack.utilizationPercent, 100)}%` }}
+                                  />
+                                </div>
+                                <span className="text-muted-foreground w-8 text-right">
+                                  {rack.utilizationPercent}%
+                                </span>
+                              </div>
+                            </button>
+
+                            {isRackExpanded && (
+                              <div className="ml-5 mt-0.5 mb-1 space-y-0.5 border-l-2 border-border/50 pl-2.5">
+                                {rack.boxes.map(box => (
+                                  <div
+                                    key={box.boxName}
+                                    className="flex items-center justify-between text-xs py-0.5"
+                                  >
+                                    <div className="flex items-center gap-1.5">
+                                      <BoxIcon size={9} className="text-muted-foreground" />
+                                      <span className="text-secondary-foreground">
+                                        {box.boxName}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-muted-foreground">
+                                        {box.occupied}/{box.maxPositions}
+                                      </span>
+                                      <div className="w-10 h-1 rounded-full bg-background overflow-hidden">
+                                        <div
+                                          className={`h-full rounded-full ${getUtilizationColor(box.utilizationPercent)}`}
+                                          style={{
+                                            width: `${Math.min(box.utilizationPercent, 100)}%`,
+                                          }}
+                                        />
+                                      </div>
+                                      <span className="text-muted-foreground w-8 text-right">
+                                        {box.utilizationPercent}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
