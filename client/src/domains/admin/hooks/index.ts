@@ -50,3 +50,10 @@ export {
   useRevokeSessionMutation,
   useBulkRevokeSessionsMutation,
 } from './useSecurityMonitoringMutations';
+
+// Storage analytics hooks
+export {
+  useLabStorageAnalyticsQuery,
+  useLabStorageAnalyticsSystemQuery,
+  useCrossLabStorageAnalyticsQuery,
+} from './useStorageAnalyticsQueries';

@@ -148,4 +148,11 @@ export const queryKeys = {
     positionDisplayPresets: (labId = '') =>
       [...queryKeys.storage.all(labId), 'positionDisplayPresets'] as const,
   },
+
+  // Storage Analytics (not lab-scoped — system admin cross-lab or parameterized by labId)
+  storageAnalytics: {
+    all: ['storageAnalytics'] as const,
+    lab: (labId: string) => [...queryKeys.storageAnalytics.all, 'lab', labId] as const,
+    crossLab: () => [...queryKeys.storageAnalytics.all, 'crossLab'] as const,
+  },
 } as const;
