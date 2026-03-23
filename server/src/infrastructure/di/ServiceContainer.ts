@@ -9,7 +9,6 @@ import type { ConfigurationService } from '@application/contracts/ConfigurationS
 import type { PasswordService } from '@application/contracts/PasswordService';
 import type { SessionService } from '@application/contracts/SessionService';
 import type { AuditEventHandler } from '@application/event-handlers/AuditEventHandler';
-import type { ResearcherApprovalEventHandler } from '@application/event-handlers/ResearcherApprovalEventHandler';
 import type { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
 import type { AuditRetentionService } from '@application/services/AuditRetentionService';
 import type { AuditService } from '@application/services/AuditService';
@@ -270,9 +269,6 @@ export class ServiceContainer {
     return this.getEventModule().getSocketEventHandler();
   }
 
-  getResearcherApprovalEventHandler(): ResearcherApprovalEventHandler {
-    return this.getEventModule().getResearcherApprovalEventHandler();
-  }
 
   // Public API — AuditModule
 

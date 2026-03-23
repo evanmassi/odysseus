@@ -78,7 +78,6 @@ import type {
   UserDeactivatedEvent,
   UserSuspendedEvent,
   UserReactivatedEvent,
-  UserRejectedEvent
 } from '@domain/events/UserEvents';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
@@ -225,7 +224,6 @@ export class AuditEventHandler {
     this.eventBus.subscribe('UserDeactivated', (e) => this.handleUserDeactivated(e));
     this.eventBus.subscribe('UserSuspended', (e) => this.handleUserSuspended(e));
     this.eventBus.subscribe('UserReactivated', (e) => this.handleUserReactivated(e));
-    this.eventBus.subscribe('UserRejected', (e) => this.handleUserRejected(e));
 
     // Researcher events
     this.eventBus.subscribe('ResearcherCreated', (e) => this.handleResearcherCreated(e));
@@ -907,14 +905,6 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleUserRejected(event: UserRejectedEvent): Promise<void> {
-    await this.logAuditEvent({
-      eventName: 'user rejected', context: { userId: event.userId },
-      actorId: event.rejectedBy, action: 'user_rejected', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ username: event.username, rejectedBy: username }),
-    });
-  }
 
   private async handleResearcherApproved(event: ResearcherApprovedEvent): Promise<void> {
     await this.logAuditEvent({

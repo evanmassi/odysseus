@@ -422,16 +422,6 @@ export class User {
     this.recordActivity();
   }
 
-  reject(rejectedBy: User): void {
-    rejectedBy.requireCanManage(this);
-
-    if (this._status !== 'pending') {
-      throw new ValidationError('Only pending users can be rejected');
-    }
-
-    this._status = 'rejected';
-    this.recordActivity();
-  }
 
   deactivate(deactivatedBy: User): void {
     deactivatedBy.requireCanManage(this);

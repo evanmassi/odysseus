@@ -22,7 +22,6 @@ import {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
   UserApprovedEvent,
-  UserRejectedEvent,
   UserDeactivatedEvent,
   UserSuspendedEvent,
   UserReactivatedEvent
@@ -570,29 +569,6 @@ export class UserApplicationService {
     }
   }
 
-  async rejectUser(userId: string, adminApiKey: string): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
-
-    const user = await this.getUserOrThrow(userId);
-
-    const username = user.username;
-
-    user.reject(admin);
-    await this.userRepository.save(user);
-
-    // Triggers cleanup of linked researcher/person
-    if (this.eventBus) {
-      await this.eventBus.publish(new UserRejectedEvent(
-        userId,
-        username,
-        admin.username,
-        user.labId
-      ));
-    }
-  }
-
   async deactivateUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
     return this.disableUser(userId, adminApiKey, 'deactivate', expectedLabId);
   }
@@ -601,18 +577,6 @@ export class UserApplicationService {
     return this.disableUser(userId, adminApiKey, 'suspend', expectedLabId);
   }
 
-  async getPendingUsers(adminApiKey: string): Promise<UserResponse[]> {
-    const admin = await this.getUserByApiKey(adminApiKey);
-    await this.accessControlService.requireCanManageUsers(admin);
-
-    const pendingUsers = admin.isSystemAdmin()
-      ? await this.userRepository.findByStatus('pending')
-      : admin.labId
-        ? await this.userRepository.findByStatusInLab('pending', admin.labId)
-        : [];
-
-    return pendingUsers.map(user => UserDto.toResponse(user));
-  }
 
   /**
    * For users who registered without a researcher profile.

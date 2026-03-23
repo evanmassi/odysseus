@@ -110,7 +110,6 @@ class OdysseusServer {
     // Side-effect initialization — registers event bus subscribers
     this.serviceContainer.getAuditEventHandler();
     this.serviceContainer.getSocketEventHandler();
-    this.serviceContainer.getResearcherApprovalEventHandler();
 
     this.serviceContainer.getAuditArchivalJob().start();
   }

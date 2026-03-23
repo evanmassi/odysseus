@@ -4,15 +4,10 @@
  * Admin interface for user management, role assignment, and researcher linking.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
 import {
   RefreshCw,
-  UserRound,
-  CheckCircle,
-  XCircle,
-  Clock,
   UserRoundCheck,
   Unlink2,
   Trash2,
@@ -23,8 +18,7 @@ import {
   ShieldBan,
 } from 'lucide-react';
 
-import { queryKeys } from '@app/cache/queryKeys';
-import { useAuthStore, useLabId } from '@domains/authentication';
+import { useAuthStore } from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
@@ -62,8 +56,6 @@ export interface UsersTabProps {
 
 export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTabProps) {
   const [updating, setUpdating] = useState<string | null>(null);
-  const [pendingUsers, setPendingUsers] = useState<AdminUser[]>([]);
-  const [processingApproval, setProcessingApproval] = useState<string | null>(null);
   // Modal state: separate data from visibility for exit animations
   const [researcherModalData, setResearcherModalData] = useState<{
     id: string;
@@ -78,32 +70,16 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   } | null>(null);
   const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
-    type: 'delete' | 'reject' | 'unlink' | 'deactivate';
+    type: 'delete' | 'unlink' | 'deactivate';
     userId: string;
     username: string;
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
 
-  const labId = useLabId();
   const currentUserId = useAuthStore(s => s.user?.id);
   const deleteUserMutation = useDeleteUserMutation();
   const deactivateUserMutation = useDeactivateUserMutation();
   const activateUserMutation = useActivateUserMutation();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    void loadPendingUsers();
-  }, [users]);
-
-  const loadPendingUsers = async () => {
-    try {
-      const users = await adminUserService.getPendingUsers();
-      setPendingUsers(users);
-    } catch (error) {
-      logger.error('Failed to load pending users', { error });
-    }
-  };
-
   const updateUserRole = async (userId: string, newRole: UserRole) => {
     setUpdating(userId);
     try {
@@ -135,43 +111,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         setConfirmDialog(null);
       },
     });
-  };
-
-  const approveUser = async (userId: string, username: string) => {
-    setProcessingApproval(userId);
-    try {
-      await adminUserService.approveUser(userId);
-      notifications.success(`User "${username}" approved successfully`);
-      await loadPendingUsers();
-      onUserUpdate();
-      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all(labId) });
-    } catch (error) {
-      logger.error('Failed to approve user', { error });
-      notifications.error('Failed to approve user');
-    } finally {
-      setProcessingApproval(null);
-    }
-  };
-
-  const rejectUser = (userId: string, username: string) => {
-    setConfirmDialog({ type: 'reject', userId, username });
-  };
-
-  const executeRejectUser = async (userId: string, username: string) => {
-    setProcessingApproval(userId);
-    try {
-      await adminUserService.rejectUser(userId);
-      notifications.success(`User "${username}" rejected`);
-      setConfirmDialog(null);
-      await loadPendingUsers();
-      onUserUpdate();
-    } catch (error) {
-      logger.error('Failed to reject user', { error });
-      notifications.error('Failed to reject user');
-      setConfirmDialog(null);
-    } finally {
-      setProcessingApproval(null);
-    }
   };
 
   const handleDeactivateUser = (userId: string, username: string) => {
@@ -502,71 +441,11 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
           <h3 className="text-xl font-semibold text-card-foreground">Users</h3>
         </div>
         {!readOnly && (
-          <Button
-            variant="secondary"
-            onClick={() => {
-              onUserUpdate();
-              void loadPendingUsers();
-            }}
-            leftIcon={<RefreshCw size={14} />}
-          >
+          <Button variant="secondary" onClick={onUserUpdate} leftIcon={<RefreshCw size={14} />}>
             Refresh
           </Button>
         )}
       </div>
-
-      {!readOnly && pendingUsers.length > 0 && (
-        <div className="bg-muted border-l-4 border-l-warning-border rounded-lg shadow-sm p-3">
-          <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-4 h-4 text-warning-text flex-shrink-0" />
-            <h4 className="text-sm font-medium text-warning-text">
-              Pending Approvals ({pendingUsers.length})
-            </h4>
-          </div>
-
-          <div className="space-y-2">
-            {pendingUsers.map(user => (
-              <div
-                key={user.id}
-                className="bg-card/70 rounded-md p-2.5 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-warning-light-hover flex items-center justify-center">
-                    <UserRound size={14} className="text-warning-text" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-card-foreground">{user.username}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Registered {new Date(user.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    variant="success"
-                    size="xs"
-                    onClick={() => approveUser(user.id, user.username)}
-                    isLoading={processingApproval === user.id}
-                    leftIcon={<CheckCircle size={12} />}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="xs"
-                    onClick={() => rejectUser(user.id, user.username)}
-                    disabled={processingApproval === user.id}
-                    leftIcon={<XCircle size={12} />}
-                  >
-                    Reject
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <Table
         columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
@@ -618,35 +497,27 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
           title={
             confirmDialog.type === 'delete'
               ? 'Delete User'
-              : confirmDialog.type === 'reject'
-                ? 'Reject User'
-                : confirmDialog.type === 'deactivate'
-                  ? 'Deactivate User'
-                  : 'Unlink Researcher'
+              : confirmDialog.type === 'deactivate'
+                ? 'Deactivate User'
+                : 'Unlink Researcher'
           }
           message={
             confirmDialog.type === 'delete'
               ? `Are you sure you want to delete user "${confirmDialog.username}"? This action cannot be undone.`
-              : confirmDialog.type === 'reject'
-                ? `Are you sure you want to reject user "${confirmDialog.username}"? They will not be able to access the system.`
-                : confirmDialog.type === 'deactivate'
-                  ? `Are you sure you want to deactivate "${confirmDialog.username}"? They will no longer be able to log in. This can be reversed.`
-                  : `Unlink researcher profile from "${confirmDialog.username}"? The researcher record will be preserved for tube history.`
+              : confirmDialog.type === 'deactivate'
+                ? `Are you sure you want to deactivate "${confirmDialog.username}"? They will no longer be able to log in. This can be reversed.`
+                : `Unlink researcher profile from "${confirmDialog.username}"? The researcher record will be preserved for tube history.`
           }
           confirmText={
             confirmDialog.type === 'delete'
               ? 'Delete'
-              : confirmDialog.type === 'reject'
-                ? 'Reject'
-                : confirmDialog.type === 'deactivate'
-                  ? 'Deactivate'
-                  : 'Unlink'
+              : confirmDialog.type === 'deactivate'
+                ? 'Deactivate'
+                : 'Unlink'
           }
           onConfirm={() => {
             if (confirmDialog.type === 'delete') {
               executeDeleteUser(confirmDialog.userId, confirmDialog.username);
-            } else if (confirmDialog.type === 'reject') {
-              void executeRejectUser(confirmDialog.userId, confirmDialog.username);
             } else if (confirmDialog.type === 'deactivate') {
               void executeDeactivateUser(confirmDialog.userId, confirmDialog.username);
             } else {
@@ -657,11 +528,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
           isLoading={
             confirmDialog.type === 'delete'
               ? deleteUserMutation.isPending
-              : confirmDialog.type === 'reject'
-                ? processingApproval === confirmDialog.userId
-                : confirmDialog.type === 'deactivate'
-                  ? deactivateUserMutation.isPending
-                  : updating === confirmDialog.userId
+              : confirmDialog.type === 'deactivate'
+                ? deactivateUserMutation.isPending
+                : updating === confirmDialog.userId
           }
         />
       )}

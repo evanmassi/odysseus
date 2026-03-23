@@ -48,30 +48,11 @@ export class AdminUserService {
     }
   }
 
-  async getPendingUsers(): Promise<AdminUser[]> {
-    try {
-      const data = await httpClient.getData('/admin/users/pending', adminUsersListSchema);
-      return data.users;
-    } catch (error) {
-      logger.error('Failed to get pending users', { error });
-      throw error;
-    }
-  }
-
   async approveUser(userId: string): Promise<void> {
     try {
       await httpClient.post(`/admin/users/${userId}/approve`);
     } catch (error) {
       logger.error('Failed to approve user', { userId, error });
-      throw error;
-    }
-  }
-
-  async rejectUser(userId: string): Promise<void> {
-    try {
-      await httpClient.post(`/admin/users/${userId}/reject`);
-    } catch (error) {
-      logger.error('Failed to reject user', { userId, error });
       throw error;
     }
   }

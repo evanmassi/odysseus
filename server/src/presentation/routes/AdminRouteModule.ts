@@ -70,20 +70,11 @@ export class AdminRouteModule implements RouteModule {
       this.adminUserController.getAllUsers.bind(this.adminUserController)
     );
 
-    // USER APPROVAL ENDPOINTS (must come before /users/:id to avoid route collision)
-
-    router.get('/users/pending',
-      this.adminUserController.getPendingUsers.bind(this.adminUserController)
-    );
+    // USER ACTIVATION ENDPOINTS (must come before /users/:id to avoid route collision)
 
     router.post('/users/:userId/approve',
       validateParams(UserIdParams),
       this.adminUserController.approveUser.bind(this.adminUserController)
-    );
-
-    router.post('/users/:userId/reject',
-      validateParams(UserIdParams),
-      this.adminUserController.rejectUser.bind(this.adminUserController)
     );
 
     router.post('/users/:userId/deactivate',

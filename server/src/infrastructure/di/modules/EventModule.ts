@@ -4,7 +4,6 @@
  * Lazy-singleton wiring for socket event handlers and presence tracking.
  */
 
-import { ResearcherApprovalEventHandler } from '@application/event-handlers/ResearcherApprovalEventHandler';
 import { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
 import { PresenceService } from '@application/services/PresenceService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
@@ -17,8 +16,6 @@ export class EventModule {
   private socketIO?: SocketIOServer;
   private presenceService?: PresenceService;
   private socketEventHandler?: SocketEventHandler;
-  private researcherApprovalEventHandler?: ResearcherApprovalEventHandler;
-
   constructor(
     private shared: SharedServices,
     private repositoryFactory: RepositoryFactory
@@ -51,16 +48,4 @@ export class EventModule {
     return this.socketEventHandler;
   }
 
-  getResearcherApprovalEventHandler(): ResearcherApprovalEventHandler {
-    if (!this.researcherApprovalEventHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.researcherApprovalEventHandler = new ResearcherApprovalEventHandler(
-        this.shared.eventBus,
-        repositories.researchers,
-        repositories.users,
-        repositories.persons
-      );
-    }
-    return this.researcherApprovalEventHandler;
-  }
 }

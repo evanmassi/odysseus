@@ -127,32 +127,6 @@ export class AdminUserController {
     }
   }
 
-  async getPendingUsers(req: Request, res: Response): Promise<void> {
-    try {
-
-      const adminApiKey = req.user?.apiKey;
-
-      if (!adminApiKey) {
-        throw new PermissionError('Authentication required');
-      }
-
-      const pendingUsers = await this.deps.userApplicationService.getPendingUsers(adminApiKey);
-
-      const response = ResponseBuilder.success({
-        users: pendingUsers
-      });
-
-      res.status(200).json(response);
-
-      logger.debug('Pending users retrieved', {
-        count: pendingUsers.length,
-        requestedBy: req.user?.username
-      });
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get pending users');
-    }
-  }
-
   async approveUser(req: Request, res: Response): Promise<void> {
     try {
 
@@ -178,34 +152,6 @@ export class AdminUserController {
       });
     } catch (error) {
       handleControllerError(error, res, 'Failed to approve user');
-    }
-  }
-
-  async rejectUser(req: Request, res: Response): Promise<void> {
-    try {
-
-      const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
-
-      if (!adminApiKey) {
-        throw new PermissionError('Authentication required');
-      }
-
-      await this.deps.userApplicationService.rejectUser(userId, adminApiKey);
-
-      const response = ResponseBuilder.success({
-        success: true,
-        message: 'User rejected successfully'
-      });
-
-      res.status(200).json(response);
-
-      logger.info('User rejected', {
-        userId,
-        rejectedBy: req.user?.username
-      });
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to reject user');
     }
   }
 
