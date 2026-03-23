@@ -390,7 +390,7 @@ export class UserApplicationService {
       }
       labId = inviteCode.labId;
       resolvedRole = inviteCode.role as 'lab_admin' | 'user';
-      autoApprove = resolvedRole === 'lab_admin';
+      autoApprove = true;
       createResearcher = inviteCode.createResearcher;
       inviteCode.recordUse();
       await this.inviteCodeRepository.save(inviteCode);

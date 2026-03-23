@@ -121,7 +121,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
       const code = await createInviteCodeMutation.mutateAsync({
         labId,
         role: 'lab_admin',
-        createResearcher: false,
+        createResearcher: true,
         maxUses: 1,
         expiresAt,
       });

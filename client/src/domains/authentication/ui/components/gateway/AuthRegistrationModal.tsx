@@ -7,7 +7,15 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { UserRound, KeyRound, Mail, Building2, BriefcaseBusiness, TicketCheck } from 'lucide-react';
+import {
+  UserRound,
+  KeyRound,
+  Mail,
+  Building2,
+  BriefcaseBusiness,
+  TicketCheck,
+  Info,
+} from 'lucide-react';
 
 import {
   authService,
@@ -52,6 +60,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const [codeRole, setCodeRole] = useState<'lab_admin' | 'user' | null>(null);
   const [codeCreateResearcher, setCodeCreateResearcher] = useState(false);
 
   // Password validation
@@ -111,6 +120,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
       if (result.valid) {
         setInviteCodeValidated(true);
         setInviteCodeLabName(result.labName ?? null);
+        setCodeRole(result.role ?? null);
         setCodeCreateResearcher(result.createResearcher ?? false);
       } else {
         setInviteCodeError('Invalid or expired invite code');
@@ -258,6 +268,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   ? () => {
                       setInviteCodeValidated(false);
                       setInviteCodeLabName(null);
+                      setCodeRole(null);
                       setCodeCreateResearcher(false);
                       setInviteCode('');
                     }
@@ -389,11 +400,16 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                 />
               </div>
 
-              <p className="text-xs text-muted-foreground ml-1">
-                {codeCreateResearcher
-                  ? 'A researcher profile will be created for your account.'
-                  : 'No researcher profile will be created with this account.'}
-              </p>
+              <div className="flex items-center gap-1.5 ml-1">
+                <Info size={14} className="text-muted-foreground shrink-0" />
+                <p className="text-xs text-muted-foreground">
+                  {codeRole === 'lab_admin'
+                    ? "You'll have lab administrator privileges and researcher access."
+                    : codeCreateResearcher
+                      ? 'Your account includes researcher access.'
+                      : 'Your account includes standard access only.'}
+                </p>
+              </div>
             </div>
 
             {/* Password Fields Group */}

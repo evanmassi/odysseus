@@ -102,7 +102,12 @@ export class AuthService {
 
   async validateInviteCode(
     code: string
-  ): Promise<{ valid: boolean; labName?: string; createResearcher?: boolean }> {
+  ): Promise<{
+    valid: boolean;
+    labName?: string;
+    role?: 'lab_admin' | 'user';
+    createResearcher?: boolean;
+  }> {
     try {
       return await httpClient.postData(
         '/public/invite-codes/validate',

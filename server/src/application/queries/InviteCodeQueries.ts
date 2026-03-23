@@ -22,7 +22,7 @@ export class ValidateInviteCodeQueryHandler {
     private labRepository: LabRepository
   ) {}
 
-  async handle(query: ValidateInviteCodeQuery): Promise<{ valid: boolean; labName?: string; labId?: string; createResearcher?: boolean }> {
+  async handle(query: ValidateInviteCodeQuery): Promise<{ valid: boolean; labName?: string; labId?: string; role?: 'lab_admin' | 'user'; createResearcher?: boolean }> {
     if (!query.code || query.code.trim().length === 0) {
       return { valid: false };
     }
@@ -37,6 +37,6 @@ export class ValidateInviteCodeQueryHandler {
       return { valid: false };
     }
 
-    return { valid: true, labName: lab.name, labId: lab.id, createResearcher: inviteCode.createResearcher };
+    return { valid: true, labName: lab.name, labId: lab.id, role: inviteCode.role, createResearcher: inviteCode.createResearcher };
   }
 }

@@ -105,6 +105,7 @@ export type ValidateInviteCodeRequest = z.infer<typeof validateInviteCodeRequest
 export const validateInviteCodeResponseSchema = z.object({
   valid: z.boolean(),
   labName: z.string().optional(),
+  role: z.enum(['lab_admin', 'user']).optional(),
   createResearcher: z.boolean().optional(),
 });
 
