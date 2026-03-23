@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { TicketCheck, Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 
 import { logger } from '@infra/logger';
-import { Button, Chip } from '@shared/ui';
+import { Button, Chip, Toggle } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -31,6 +31,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   // New code form
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCodeMaxUses, setNewCodeMaxUses] = useState<number | undefined>(undefined);
+  const [newCodeCreateResearcher, setNewCodeCreateResearcher] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
 
   const loadCodes = useCallback(async () => {
@@ -54,11 +55,13 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
     setIsCreating(true);
     try {
       await adminService.createInviteCode({
+        createResearcher: newCodeCreateResearcher,
         maxUses: newCodeMaxUses,
       });
       notifications.success('Invite code created');
       setShowCreateForm(false);
       setNewCodeMaxUses(undefined);
+      setNewCodeCreateResearcher(false);
       await loadCodes();
     } catch (error) {
       logger.error('Failed to create invite code', { error });
@@ -149,6 +152,15 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
                 className="w-32 px-2 py-1.5 text-sm border border-border rounded bg-background text-foreground"
               />
             </div>
+            <div className="flex items-center gap-1.5">
+              <Toggle
+                checked={newCodeCreateResearcher}
+                onChange={setNewCodeCreateResearcher}
+                size="sm"
+                aria-label="Include researcher profile"
+              />
+              <span className="text-xs text-muted-foreground">Include researcher profile</span>
+            </div>
             <div className="flex gap-2">
               <Button variant="primary" size="sm" onClick={handleCreate} isLoading={isCreating}>
                 Create
@@ -159,6 +171,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
                 onClick={() => {
                   setShowCreateForm(false);
                   setNewCodeMaxUses(undefined);
+                  setNewCodeCreateResearcher(false);
                 }}
               >
                 Cancel
@@ -190,6 +203,9 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
                 <div className="flex items-center gap-2">
                   <Chip color="default" size="sm">
                     {code.role === 'lab_admin' ? 'Lab Admin' : 'User'}
+                  </Chip>
+                  <Chip color={code.createResearcher ? 'info' : 'default'} size="sm">
+                    {code.createResearcher ? 'Researcher' : 'User Only'}
                   </Chip>
                   <span className="text-xs text-muted-foreground">
                     {code.useCount}
