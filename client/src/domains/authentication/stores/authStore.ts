@@ -22,7 +22,7 @@ import type { AuthDebugInfo } from '../types/debugTypes';
 import type {
   PublicUserData,
   PasswordChangeRequiredResponse,
-  RegisterWithResearcherRequest,
+  RegisterWithProfileRequest,
 } from '@odysseus/shared-schemas';
 import type { TokenPair, SessionStatus } from '@shared/types/sessionTypes';
 
@@ -59,8 +59,8 @@ interface AuthActions {
   forceChangePassword: (newPassword: string) => Promise<boolean>;
   clearPasswordChangeRequired: () => void;
   register: (username: string, password: string) => Promise<boolean>;
-  registerWithResearcher: (
-    request: RegisterWithResearcherRequest
+  registerWithProfile: (
+    request: RegisterWithProfileRequest
   ) => Promise<{ success: boolean; status?: 'approved' | 'pending'; message?: string }>;
   logout: () => Promise<void>;
   verify: () => Promise<boolean>;
@@ -294,16 +294,16 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       /**
-       * Register with researcher profile (approval workflow)
+       * Register with profile (approval workflow)
        *
        * First user: Auto-approved as admin (authenticated immediately)
        * Subsequent users: Pending approval (awaiting admin action)
        */
-      registerWithResearcher: async (request: RegisterWithResearcherRequest) => {
+      registerWithProfile: async (request: RegisterWithProfileRequest) => {
         set({ isLoading: true, error: null });
 
         try {
-          const result = await authService.registerWithResearcher(request);
+          const result = await authService.registerWithProfile(request);
 
           // Case 1: Approved (first user) - Has tokens, authenticate immediately
           if (result.status === 'approved' && result.tokens) {
@@ -351,7 +351,7 @@ export const useAuthStore = create<AuthStore>()(
           throw new Error('Invalid registration response status');
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Registration error';
-          logger.error('Auth store registerWithResearcher exception', { error });
+          logger.error('Auth store registerWithProfile exception', { error });
 
           set({
             error: errorMessage,

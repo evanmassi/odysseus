@@ -18,7 +18,7 @@ const mockAuthService = vi.hoisted(() => ({
   logout: vi.fn(),
   checkFirstTime: vi.fn(),
   verifySession: vi.fn(),
-  registerWithResearcher: vi.fn(),
+  registerWithProfile: vi.fn(),
   forceChangePassword: vi.fn(),
 }));
 

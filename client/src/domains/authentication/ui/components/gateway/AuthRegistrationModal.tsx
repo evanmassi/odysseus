@@ -1,7 +1,7 @@
 /**
  * User Registration Form
  *
- * Researcher profile registration with auto-generated usernames.
+ * Invite-code-based registration with auto-generated usernames.
  */
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
@@ -20,7 +20,7 @@ import {
   isValidEmail,
 } from '@domains/authentication/utils/registrationUtils';
 import { logger } from '@infra/logger';
-import { AlertBanner, AuthInput, Button, Toggle } from '@shared/ui';
+import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { PasswordRequirements } from '../password/PasswordRequirements';
@@ -52,8 +52,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Researcher profile creation flag (defaults to true for backward compatibility)
-  const [createResearcher, setCreateResearcher] = useState(true);
+  const [codeCreateResearcher, setCodeCreateResearcher] = useState(false);
 
   // Password validation
   const [passwordConfig, setPasswordConfig] = useState<PasswordConfig | null>(null);
@@ -77,7 +76,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
   const firstNameInputRef = useRef<HTMLInputElement>(null);
 
-  const { registerWithResearcher } = useAuthStore();
+  const { registerWithProfile } = useAuthStore();
 
   const usernamePreview = useMemo(
     () => generateUsernamePreview(firstName, lastName),
@@ -112,6 +111,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
       if (result.valid) {
         setInviteCodeValidated(true);
         setInviteCodeLabName(result.labName ?? null);
+        setCodeCreateResearcher(result.createResearcher ?? false);
       } else {
         setInviteCodeError('Invalid or expired invite code');
         setInviteCodeValidated(false);
@@ -166,14 +166,13 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
     setIsLoading(true);
 
     try {
-      const result = await registerWithResearcher({
+      const result = await registerWithProfile({
         firstName,
         lastName,
         email: email.trim(),
         department: department.trim() || undefined,
         position: position.trim() || undefined,
         password,
-        createResearcher,
         inviteCode: inviteCode.trim(),
       });
 
@@ -259,6 +258,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   ? () => {
                       setInviteCodeValidated(false);
                       setInviteCodeLabName(null);
+                      setCodeCreateResearcher(false);
                       setInviteCode('');
                     }
                   : handleValidateInviteCode
@@ -389,21 +389,11 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                 />
               </div>
 
-              {/* Researcher Profile Toggle */}
-              <div className="ml-1">
-                <div className="flex items-center space-x-1.5 cursor-pointer group">
-                  <Toggle
-                    checked={createResearcher}
-                    onChange={setCreateResearcher}
-                    disabled={isLoading}
-                    size="sm"
-                    aria-label="I am a researcher"
-                  />
-                  <span className="text-xs text-secondary-foreground group-hover:text-accent-foreground">
-                    I am a researcher
-                  </span>
-                </div>
-              </div>
+              <p className="text-xs text-muted-foreground ml-1">
+                {codeCreateResearcher
+                  ? 'A researcher profile will be created for your account.'
+                  : 'No researcher profile will be created with this account.'}
+              </p>
             </div>
 
             {/* Password Fields Group */}

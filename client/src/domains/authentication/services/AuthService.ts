@@ -4,10 +4,10 @@
  * Handles user authentication, registration, and session verification.
  */
 import {
-  type RegisterWithResearcherRequest,
+  type RegisterWithProfileRequest,
   authResponseSchema,
   loginResponseSchema,
-  registerWithResearcherResponseSchema,
+  registerWithProfileResponseSchema,
   passwordRequirementsResponseSchema,
   verificationStatusResponseSchema,
   validateInviteCodeResponseSchema,
@@ -16,7 +16,7 @@ import {
   messageResponseSchema,
   type AuthResponse,
   type LoginResponse,
-  type RegisterWithResearcherResponse,
+  type RegisterWithProfileResponse,
   type PasswordChangeRequiredResponse,
   type VerificationStatusResponse,
   type UserRole,
@@ -59,13 +59,13 @@ export class AuthService {
    * First user: auto-approved as admin (returns tokens).
    * Subsequent users: pending approval (no tokens).
    */
-  async registerWithResearcher(
-    request: RegisterWithResearcherRequest
-  ): Promise<RegisterWithResearcherResponse> {
+  async registerWithProfile(
+    request: RegisterWithProfileRequest
+  ): Promise<RegisterWithProfileResponse> {
     return await httpClient.postData(
-      '/public/auth/register-with-researcher',
+      '/public/auth/register-with-profile',
       request,
-      registerWithResearcherResponseSchema
+      registerWithProfileResponseSchema
     );
   }
 
@@ -100,7 +100,9 @@ export class AuthService {
     }
   }
 
-  async validateInviteCode(code: string): Promise<{ valid: boolean; labName?: string }> {
+  async validateInviteCode(
+    code: string
+  ): Promise<{ valid: boolean; labName?: string; createResearcher?: boolean }> {
     try {
       return await httpClient.postData(
         '/public/invite-codes/validate',
