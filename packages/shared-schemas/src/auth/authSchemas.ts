@@ -21,17 +21,12 @@ const passwordField = z.string()
   .max(128, 'Password cannot exceed 128 characters');
 
 /**
- * Registration with researcher profile
+ * User Registration With Profile
  *
- * Creates User account with optional Researcher profile.
- * Username is auto-generated from user name (firstname.lastname).
- * Validates user credentials AND researcher information in one schema.
- *
- * If createResearcher is false, user is created without researcher profile
- * (useful for admin/IT staff who won't be creating tubes).
+ * Creates User account with Person profile. Researcher profile creation
+ * is determined by the invite code, not by the registration request.
  */
-export const registerWithResearcherSchema = z.object({
-  // User credentials (username auto-generated server-side from name)
+export const registerWithProfileSchema = z.object({
   password: passwordField,
 
   firstName: z.string()
@@ -62,12 +57,6 @@ export const registerWithResearcherSchema = z.object({
     .optional()
     .or(z.literal('')),
 
-  // Optional flag to create researcher profile (defaults to true for backward compatibility)
-  createResearcher: z.boolean()
-    .optional()
-    .default(true),
-
-  // Invite code for lab assignment (required for non-first-user registration)
   inviteCode: z.string()
     .min(1, 'Invite code is required')
     .max(20, 'Invite code too long')
@@ -75,7 +64,7 @@ export const registerWithResearcherSchema = z.object({
     .optional(),
 });
 
-export type RegisterWithResearcherRequest = z.infer<typeof registerWithResearcherSchema>;
+export type RegisterWithProfileRequest = z.infer<typeof registerWithProfileSchema>;
 
 /**
  * System admin one-time setup
@@ -116,6 +105,7 @@ export type ValidateInviteCodeRequest = z.infer<typeof validateInviteCodeRequest
 export const validateInviteCodeResponseSchema = z.object({
   valid: z.boolean(),
   labName: z.string().optional(),
+  createResearcher: z.boolean().optional(),
 });
 
 export type ValidateInviteCodeResponse = z.infer<typeof validateInviteCodeResponseSchema>;
@@ -194,14 +184,14 @@ export const loginResponseSchema = z.union([
 
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 
-export const registerWithResearcherResponseSchema = z.object({
+export const registerWithProfileResponseSchema = z.object({
   user: publicUserDataSchema,
   tokens: tokenPairSchema.optional(),
   status: z.enum(['approved', 'pending'] as const),
   message: z.string(),
 });
 
-export type RegisterWithResearcherResponse = z.infer<typeof registerWithResearcherResponseSchema>;
+export type RegisterWithProfileResponse = z.infer<typeof registerWithProfileResponseSchema>;
 
 export const passwordRequirementsResponseSchema = z.object({
   passwordMinLength: z.number().int(),

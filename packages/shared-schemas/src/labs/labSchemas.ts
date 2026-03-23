@@ -38,6 +38,7 @@ export const inviteCodeDataSchema = z.object({
   labId: z.string(),
   code: z.string(),
   role: z.enum(['lab_admin', 'user']),
+  createResearcher: z.boolean(),
   createdBy: z.string(),
   maxUses: z.number().int().positive().optional(),
   useCount: z.number().int().min(0),
@@ -135,6 +136,7 @@ export type SystemOverview = z.infer<typeof systemOverviewSchema>;
 
 export const createInviteCodeRequestSchema = z.object({
   role: z.enum(['lab_admin', 'user']).optional(),
+  createResearcher: z.boolean().default(false),
   maxUses: z.number().int().positive().optional(),
   expiresAt: z.string().optional(),
 });
