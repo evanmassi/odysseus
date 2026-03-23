@@ -28,7 +28,7 @@ import {
   isValidEmail,
 } from '@domains/authentication/utils/registrationUtils';
 import { logger } from '@infra/logger';
-import { AlertBanner, AuthInput, Button } from '@shared/ui';
+import { AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { PasswordRequirements } from '../password/PasswordRequirements';
@@ -232,76 +232,82 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
   return (
     <AuthBaseModal
-      size="large"
-      subtitle="Welcome · Create your account to get started"
+      size={inviteCodeValidated ? 'large' : 'default'}
+      subtitle={
+        inviteCodeValidated
+          ? 'Welcome · Create your account to get started'
+          : 'Enter your invite code to get started'
+      }
       initialFocusRef={inviteCodeValidated ? firstNameInputRef : undefined}
       className="max-h-[95vh] overflow-y-auto"
     >
       <form onSubmit={handleSubmit} className="space-y-3">
         {/* Invite Code Section */}
-        <div className="space-y-1.5">
-          <div className="flex gap-2 items-end">
-            <div className="flex-1">
-              <AuthInput
-                id="inviteCode"
-                value={inviteCode}
-                onChange={value => {
-                  setInviteCode(value);
-                  setInviteCodeError(null);
-                  if (inviteCodeValidated) {
-                    setInviteCodeValidated(false);
-                    setInviteCodeLabName(null);
-                  }
-                }}
-                label="Invite code"
-                placeholder="Enter your invite code"
-                icon={<TicketCheck size={16} />}
-                state={inviteCodeError ? 'error' : inviteCodeValidated ? 'success' : 'default'}
-                required
-                disabled={isLoading || isValidatingCode || inviteCodeValidated}
-                maxLength={20}
-              />
-            </div>
+        {!inviteCodeValidated ? (
+          <div className="space-y-3">
+            <AuthInput
+              id="inviteCode"
+              value={inviteCode}
+              onChange={value => {
+                setInviteCode(value);
+                setInviteCodeError(null);
+              }}
+              label="Invite code"
+              placeholder="Enter your invite code"
+              icon={<TicketCheck size={16} />}
+              state={inviteCodeError ? 'error' : 'default'}
+              required
+              disabled={isLoading || isValidatingCode}
+              maxLength={20}
+            />
+            {inviteCodeError && (
+              <p className="text-[11px] text-danger-text ml-1 -mt-2">{inviteCodeError}</p>
+            )}
             <Button
               type="button"
-              variant={inviteCodeValidated ? 'ghost' : 'secondary'}
-              size="md"
-              onClick={
-                inviteCodeValidated
-                  ? () => {
-                      setInviteCodeValidated(false);
-                      setInviteCodeLabName(null);
-                      setCodeRole(null);
-                      setCodeCreateResearcher(false);
-                      setInviteCode('');
-                    }
-                  : handleValidateInviteCode
-              }
+              variant="primary"
+              size="xl"
+              fullWidth
+              onClick={handleValidateInviteCode}
               isLoading={isValidatingCode}
-              disabled={isLoading || (!inviteCodeValidated && !inviteCode.trim())}
-              className="shrink-0 mb-px"
+              disabled={isLoading || !inviteCode.trim()}
+              className="shadow-lg font-bold"
             >
-              {inviteCodeValidated ? 'Change' : 'Verify'}
+              Verify
             </Button>
           </div>
-          {inviteCodeError && (
-            <p className="text-[11px] text-danger-text ml-1">{inviteCodeError}</p>
-          )}
-          {inviteCodeValidated && inviteCodeLabName && (
-            <p className="text-[11px] text-success-text ml-1">
-              Joining: <span className="font-semibold">{inviteCodeLabName}</span>
-            </p>
-          )}
-        </div>
-
-        {!inviteCodeValidated && (
-          <AlertBanner variant="info" spacing="none" className="text-xs">
-            You need an invite code from your lab administrator to register.
-          </AlertBanner>
+        ) : (
+          <div className="space-y-1.5">
+            <div className="flex gap-2 items-center justify-center">
+              <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                <TicketCheck size={14} className="text-success-text shrink-0" />
+                <code className="text-sm font-mono font-semibold text-foreground">
+                  {inviteCode}
+                </code>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="text-xs text-success-text">{inviteCodeLabName}</span>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setInviteCodeValidated(false);
+                  setInviteCodeLabName(null);
+                  setCodeRole(null);
+                  setCodeCreateResearcher(false);
+                  setInviteCode('');
+                }}
+              >
+                Change
+              </Button>
+            </div>
+          </div>
         )}
 
         {inviteCodeValidated && (
           <>
+            <div className="border-t border-border" />
             {/* Name Fields Group */}
             <div className="grid grid-cols-2 gap-3 items-start">
               {/* First Name Column with Username */}
@@ -351,7 +357,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
             </div>
 
             {/* Contact & Work Info Group */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               {/* Email */}
               <div className="space-y-1">
                 <AuthInput
@@ -416,7 +422,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
             </div>
 
             {/* Password Fields Group */}
-            <div className="pt-3 border-t border-border space-y-2">
+            <div className="pt-3 border-t border-border space-y-3">
               <div>
                 <AuthInput
                   id="password"
@@ -437,12 +443,11 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                     password={password}
                     config={passwordConfig}
                     showError={passwordTouched && !passwordMeetsRequirements}
-                    className="ml-2"
+                    className="ml-2 mb-1"
                   />
                 )}
               </div>
 
-              {/* Confirm Password */}
               <AuthInput
                 id="confirmPassword"
                 type="password"
@@ -468,10 +473,6 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
             >
               Create Account
             </Button>
-
-            <AlertBanner variant="info" spacing="none" className="text-xs">
-              You&apos;ll be able to sign in immediately after creating your account.
-            </AlertBanner>
           </>
         )}
       </form>
