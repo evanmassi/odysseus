@@ -37,7 +37,7 @@ import type { UserSessionRepository } from '@domain/repositories/UserSessionRepo
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import { UserRole } from '@domain/value-objects/UserRole';
 
-import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
+import type { RegisterWithProfileRequest } from '@odysseus/shared-schemas';
 
 
 
@@ -367,17 +367,17 @@ export class UserApplicationService {
   /**
    * @throws ValidationError if researcher name exists or password invalid
    */
-  async registerWithResearcher(request: RegisterWithResearcherRequest & { inviteCode?: string }, createResearcher: boolean = true): Promise<User> {
+  async registerWithProfile(request: RegisterWithProfileRequest): Promise<User> {
     if (!this.researcherRepository || !this.storageRepository) {
       throw new Error('ResearcherRepository and StorageRepository are required for this operation');
     }
 
     const isFirstUser = await this.userRepository.isEmpty();
 
-    // Resolve lab context from invite code (required for non-first-user registration)
     let labId: string | undefined;
     let resolvedRole: 'lab_admin' | 'user' | undefined;
     let autoApprove = false;
+    let createResearcher = true;
 
     if (request.inviteCode && this.inviteCodeRepository && this.labRepository) {
       const inviteCode = await this.inviteCodeRepository.findByCode(request.inviteCode.trim().toUpperCase());
@@ -391,6 +391,7 @@ export class UserApplicationService {
       labId = inviteCode.labId;
       resolvedRole = inviteCode.role as 'lab_admin' | 'user';
       autoApprove = resolvedRole === 'lab_admin';
+      createResearcher = inviteCode.createResearcher;
       inviteCode.recordUse();
       await this.inviteCodeRepository.save(inviteCode);
     } else if (!isFirstUser) {

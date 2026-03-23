@@ -6,7 +6,7 @@
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import {
-  registerWithResearcherSchema,
+  registerWithProfileSchema,
   forceChangePasswordRequestSchema,
   type PasswordChangeRequiredResponse,
   PasswordValidator
@@ -272,25 +272,19 @@ export class PublicAuthController {
   }
 
   /**
-   * Creates User and Researcher atomically. First user gets tokens
-   * for immediate login; subsequent users return pending status.
+   * Registers user with optional researcher profile. First user is auto-approved
+   * with tokens; subsequent users await admin approval.
    */
-  async registerWithResearcher(req: Request, res: Response): Promise<void> {
+  async registerWithProfile(req: Request, res: Response): Promise<void> {
     try {
+      const validatedData = registerWithProfileSchema.parse(req.body);
 
+      const user = await this.deps.userApplicationService.registerWithProfile(validatedData);
 
-      const validatedData = registerWithResearcherSchema.parse(req.body);
-      const inviteCode = req.body.inviteCode as string | undefined;
-
-      const user = await this.deps.userApplicationService.registerWithResearcher(
-        { ...validatedData, inviteCode },
-        validatedData.createResearcher
-      );
-
-      logger.info('User registered with researcher profile', {
+      logger.info('User registered', {
         userId: user.id,
         username: user.username,
-        researcherId: user.researcherId,
+        hasResearcher: !!user.researcherId,
         status: user.status,
         role: user.role.isAdmin() ? 'admin' : 'user'
       });
@@ -337,7 +331,7 @@ export class PublicAuthController {
 
       res.status(201).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to register with researcher');
+      handleControllerError(error, res, 'Failed to register');
     }
   }
 

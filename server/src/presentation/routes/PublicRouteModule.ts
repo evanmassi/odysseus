@@ -5,7 +5,7 @@
  */
 
 import {
-  registerWithResearcherSchema,
+  registerWithProfileSchema,
   resetPasswordWithTokenRequestSchema,
   forceChangePasswordRequestSchema
 } from '@odysseus/shared-schemas';
@@ -76,10 +76,10 @@ export class PublicRouteModule implements RouteModule {
       this.publicAuthController.login.bind(this.publicAuthController)
     );
 
-    router.post('/auth/register-with-researcher',
+    router.post('/auth/register-with-profile',
       this.authLimiter,
-      validateBody(registerWithResearcherSchema),
-      this.publicAuthController.registerWithResearcher.bind(this.publicAuthController)
+      validateBody(registerWithProfileSchema),
+      this.publicAuthController.registerWithProfile.bind(this.publicAuthController)
     );
 
     // Token refresh endpoint (OAuth 2.0 standard)

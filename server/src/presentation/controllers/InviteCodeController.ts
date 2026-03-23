@@ -62,10 +62,10 @@ export class InviteCodeController extends BaseController {
   private async createCode(labId: string, req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
-      const { role, maxUses, expiresAt } = req.body;
+      const { role, createResearcher, maxUses, expiresAt } = req.body;
 
       const result = await this.deps.createInviteCodeHandler.handle({
-        userId, labId, role, maxUses, expiresAt,
+        userId, labId, role, createResearcher, maxUses, expiresAt,
       });
 
       res.status(201).json(ResponseBuilder.success({ inviteCode: result }));

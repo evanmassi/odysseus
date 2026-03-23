@@ -22,6 +22,7 @@ export interface CreateInviteCodeCommand {
   userId: string;
   labId: string;
   role?: 'lab_admin' | 'user';
+  createResearcher?: boolean;
   maxUses?: number;
   expiresAt?: string;
 }
@@ -85,6 +86,7 @@ export class CreateInviteCodeCommandHandler {
       command.labId,
       command.userId,
       role,
+      command.createResearcher ?? false,
       command.maxUses,
       expiresAt
     );
