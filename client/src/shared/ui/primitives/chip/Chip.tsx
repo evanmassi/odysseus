@@ -23,6 +23,7 @@ const chipVariants = cva(
     variants: {
       color: {
         default: 'bg-muted text-secondary-foreground',
+        outlined: 'bg-transparent border border-border text-secondary-foreground',
         primary: 'bg-action-light text-action',
         active: 'bg-chip-active text-chip-active-foreground hover:bg-chip-active-hover',
         inverted: 'bg-muted-foreground text-background',

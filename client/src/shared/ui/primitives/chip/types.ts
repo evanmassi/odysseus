@@ -10,6 +10,7 @@ export type ChipBehavior = 'static' | 'selectable' | 'removable';
 
 export type ChipColor =
   | 'default'
+  | 'outlined'
   | 'primary'
   | 'active'
   | 'inverted'

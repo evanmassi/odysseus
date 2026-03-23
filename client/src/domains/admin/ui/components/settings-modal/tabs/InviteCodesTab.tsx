@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { TicketCheck, Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 
 import { logger } from '@infra/logger';
-import { Button, Chip, Toggle } from '@shared/ui';
+import { Button, Chip, NumberInput, Toggle } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -30,7 +30,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
 
   // New code form
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newCodeMaxUses, setNewCodeMaxUses] = useState<number | undefined>(undefined);
+  const [newCodeMaxUses, setNewCodeMaxUses] = useState(1);
   const [newCodeCreateResearcher, setNewCodeCreateResearcher] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
 
@@ -60,7 +60,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
       });
       notifications.success('Invite code created');
       setShowCreateForm(false);
-      setNewCodeMaxUses(undefined);
+      setNewCodeMaxUses(1);
       setNewCodeCreateResearcher(false);
       await loadCodes();
     } catch (error) {
@@ -130,53 +130,53 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
       </div>
 
       {showCreateForm && (
-        <div className="p-3 bg-muted rounded-lg space-y-3">
+        <div className="p-3 bg-muted rounded-lg space-y-2">
           <h4 className="text-sm font-medium text-card-foreground">Create Invite Code</h4>
-          <div className="flex items-end gap-3">
-            <div>
-              <label
-                htmlFor="invite-code-max-uses"
-                className="text-xs text-muted-foreground block mb-1"
-              >
-                Max uses (optional)
-              </label>
-              <input
-                id="invite-code-max-uses"
-                type="number"
+
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="flex items-center justify-between p-2.5 bg-background rounded-lg">
+              <div>
+                <h5 className="text-sm font-medium text-card-foreground">Max Uses</h5>
+                <p className="text-xs text-secondary-foreground">Times code can be used</p>
+              </div>
+              <NumberInput
+                value={newCodeMaxUses}
+                onChange={setNewCodeMaxUses}
                 min={1}
-                value={newCodeMaxUses ?? ''}
-                onChange={e =>
-                  setNewCodeMaxUses(e.target.value ? Number(e.target.value) : undefined)
-                }
-                placeholder="Unlimited"
-                className="w-32 px-2 py-1.5 text-sm border border-border rounded bg-background text-foreground"
+                max={100}
+                size="sm"
+                aria-label="Max uses"
               />
             </div>
-            <div className="flex items-center gap-1.5">
+
+            <div className="flex items-center justify-between p-2.5 bg-background rounded-lg">
+              <div>
+                <h5 className="text-sm font-medium text-card-foreground">Researcher Profile</h5>
+                <p className="text-xs text-secondary-foreground">Include researcher access</p>
+              </div>
               <Toggle
                 checked={newCodeCreateResearcher}
                 onChange={setNewCodeCreateResearcher}
-                size="sm"
                 aria-label="Include researcher profile"
               />
-              <span className="text-xs text-muted-foreground">Include researcher profile</span>
             </div>
-            <div className="flex gap-2">
-              <Button variant="primary" size="sm" onClick={handleCreate} isLoading={isCreating}>
-                Create
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setNewCodeMaxUses(undefined);
-                  setNewCodeCreateResearcher(false);
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowCreateForm(false);
+                setNewCodeMaxUses(1);
+                setNewCodeCreateResearcher(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleCreate} isLoading={isCreating}>
+              Create
+            </Button>
           </div>
         </div>
       )}
@@ -201,11 +201,8 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
                   {code.code}
                 </code>
                 <div className="flex items-center gap-2">
-                  <Chip color="default" size="sm">
-                    {code.role === 'lab_admin' ? 'Lab Admin' : 'User'}
-                  </Chip>
-                  <Chip color={code.createResearcher ? 'info' : 'default'} size="sm">
-                    {code.createResearcher ? 'Researcher' : 'User Only'}
+                  <Chip color={code.createResearcher ? 'info' : 'outlined'} size="sm">
+                    {code.createResearcher ? 'User + Researcher Profile' : 'User Only'}
                   </Chip>
                   <span className="text-xs text-muted-foreground">
                     {code.useCount}
@@ -229,11 +226,10 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
                 </Button>
                 {!readOnly && (
                   <Button
-                    variant="ghost"
+                    variant="ghost-danger"
                     size="sm"
                     onClick={() => setDeleteTarget(code.id)}
                     aria-label="Deactivate code"
-                    className="text-danger-text hover:text-danger-text"
                   >
                     <Trash2 size={14} />
                   </Button>
