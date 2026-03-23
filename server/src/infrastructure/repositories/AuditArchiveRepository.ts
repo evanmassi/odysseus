@@ -6,9 +6,9 @@
 
 import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import type { PaginatedResult } from '@domain/types/repository';
+import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';

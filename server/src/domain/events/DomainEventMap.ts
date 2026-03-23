@@ -70,7 +70,6 @@ import type {
   UserLoggedOutEvent,
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
-  UserApprovedEvent,
   UserDeactivatedEvent,
   UserSuspendedEvent,
   UserReactivatedEvent
@@ -129,7 +128,6 @@ export interface DomainEventMap {
   'UserLoggedOut': UserLoggedOutEvent;
   'UserLinkedToResearcher': UserLinkedToResearcherEvent;
   'UserUnlinkedFromResearcher': UserUnlinkedFromResearcherEvent;
-  'UserApproved': UserApprovedEvent;
   'UserDeactivated': UserDeactivatedEvent;
   'UserSuspended': UserSuspendedEvent;
   'UserReactivated': UserReactivatedEvent;

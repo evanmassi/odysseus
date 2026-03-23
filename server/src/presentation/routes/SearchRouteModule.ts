@@ -8,9 +8,9 @@ import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { SearchController } from '@presentation/controllers/SearchController';
+import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { validateBody, validateQuery } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';

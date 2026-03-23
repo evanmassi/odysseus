@@ -168,7 +168,7 @@ export class TubeApplicationService {
     await this.tubeRepository.save(tube);
 
     const sample = tube.sample;
-    if (this.ensureDonorExists && (sample.donorSourceId || sample.donorInternalId)) {
+    if (this.ensureDonorExists && (sample.donorSourceId ?? sample.donorInternalId)) {
       await this.ensureDonorExists(
         authenticatedUser.labId!, sample.donorSourceId, sample.donorInternalId, sample.species
       );
@@ -522,7 +522,7 @@ export class TubeApplicationService {
     const updatedSample = updatedTube.sample;
     const donorIdsChanged = updatedSample.donorSourceId !== oldSampleData.donorSourceId
       || updatedSample.donorInternalId !== oldSampleData.donorInternalId;
-    if (this.ensureDonorExists && donorIdsChanged && (updatedSample.donorSourceId || updatedSample.donorInternalId)) {
+    if (this.ensureDonorExists && donorIdsChanged && (updatedSample.donorSourceId ?? updatedSample.donorInternalId)) {
       await this.ensureDonorExists(
         authenticatedUser.labId!, updatedSample.donorSourceId, updatedSample.donorInternalId, updatedSample.species
       );

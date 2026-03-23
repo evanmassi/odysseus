@@ -403,18 +403,14 @@ export class User {
     return this._role.hasHigherPrivilegesThan(other._role);
   }
 
-  approve(approvedBy: User): void {
-    approvedBy.requireCanManage(this);
+  reactivate(reactivatedBy: User): void {
+    reactivatedBy.requireCanManage(this);
 
     if (this._status === 'approved') {
-      throw new ValidationError('User is already approved');
+      throw new ValidationError('User is already active');
     }
 
-    if (this._status === 'rejected') {
-      throw new ValidationError('Rejected users cannot be approved');
-    }
-
-    if (this._status === 'suspended' && !approvedBy.isSystemAdmin()) {
+    if (this._status === 'suspended' && !reactivatedBy.isSystemAdmin()) {
       throw new PermissionError('Only system administrators can unsuspend users');
     }
 

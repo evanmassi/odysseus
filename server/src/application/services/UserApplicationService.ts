@@ -21,7 +21,6 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
-  UserApprovedEvent,
   UserDeactivatedEvent,
   UserSuspendedEvent,
   UserReactivatedEvent
@@ -537,35 +536,25 @@ export class UserApplicationService {
     }
   }
 
-  async approveUser(userId: string, adminApiKey: string): Promise<void> {
+  async reactivateUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
+    const previousStatus = user.status as 'deactivated' | 'suspended';
 
-    const previousStatus = user.status;
-
-    user.approve(admin);
+    user.reactivate(admin);
     await this.userRepository.save(user);
 
     if (this.eventBus) {
-      if (previousStatus === 'deactivated' || previousStatus === 'suspended') {
-        await this.eventBus.publish(new UserReactivatedEvent(
-          user.id,
-          user.username,
-          previousStatus,
-          admin.username,
-          user.labId
-        ));
-      } else {
-        await this.eventBus.publish(new UserApprovedEvent(
-          user.id,
-          user.username,
-          admin.username,
-          user.labId
-        ));
-      }
+      await this.eventBus.publish(new UserReactivatedEvent(
+        user.id,
+        user.username,
+        previousStatus,
+        admin.username,
+        user.labId
+      ));
     }
   }
 

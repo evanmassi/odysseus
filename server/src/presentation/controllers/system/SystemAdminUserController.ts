@@ -30,7 +30,7 @@ export class SystemAdminUserController {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.approveUser(userId, adminApiKey);
+      await this.deps.userApplicationService.reactivateUser(userId, adminApiKey);
 
       const response = ResponseBuilder.success({
         success: true,

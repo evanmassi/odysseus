@@ -48,15 +48,6 @@ export class AdminUserService {
     }
   }
 
-  async approveUser(userId: string): Promise<void> {
-    try {
-      await httpClient.post(`/admin/users/${userId}/approve`);
-    } catch (error) {
-      logger.error('Failed to approve user', { userId, error });
-      throw error;
-    }
-  }
-
   async deactivateUser(userId: string): Promise<void> {
     try {
       await httpClient.post(`/admin/users/${userId}/deactivate`);

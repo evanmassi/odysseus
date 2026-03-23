@@ -4,6 +4,7 @@
  * System admin and lab admin endpoints for storage capacity and utilization analytics.
  */
 
+import type { Storage } from '@domain/entities/Storage';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -11,7 +12,6 @@ import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
-import type { Storage } from '@domain/entities/Storage';
 import type { Request, Response } from 'express';
 
 export interface StorageAnalyticsControllerDeps {

@@ -61,7 +61,8 @@ interface AuthActions {
   register: (username: string, password: string) => Promise<boolean>;
   registerWithProfile: (
     request: RegisterWithProfileRequest
-  ) => Promise<{ success: boolean; status?: 'approved' | 'pending'; message?: string }>;
+  ) => Promise<{ success: boolean; message?: string; user?: PublicUserData; tokens?: TokenPair }>;
+  completeRegistration: (user: PublicUserData, tokens: TokenPair) => void;
   logout: () => Promise<void>;
   verify: () => Promise<boolean>;
   checkFirstTime: () => Promise<boolean>;
@@ -294,10 +295,10 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       /**
-       * Register with profile (approval workflow)
+       * Register with profile
        *
-       * First user: Auto-approved as admin (authenticated immediately)
-       * Subsequent users: Pending approval (awaiting admin action)
+       * Returns success without authenticating — the caller shows a success
+       * modal first, then calls completeRegistration() to finalize auth.
        */
       registerWithProfile: async (request: RegisterWithProfileRequest) => {
         set({ isLoading: true, error: null });
@@ -305,50 +306,19 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const result = await authService.registerWithProfile(request);
 
-          // Case 1: Approved (first user) - Has tokens, authenticate immediately
           if (result.status === 'approved' && result.tokens) {
-            const userWithActivity = {
-              ...result.user,
-              lastActivity: new Date().toISOString(),
-            };
+            set({ isLoading: false, error: null });
 
-            sessionManager.setTokens(result.tokens);
-
-            set({
-              user: userWithActivity,
+            return {
+              success: true,
+              status: 'approved' as const,
+              message: result.message,
+              user: result.user,
               tokens: result.tokens,
-              sessionStatus: 'authenticated',
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-            });
-
-            return {
-              success: true,
-              status: 'approved',
-              message: result.message,
             };
           }
 
-          // Case 2: Pending (subsequent users) - No tokens, awaiting approval
-          if (result.status === 'pending') {
-            set({
-              user: null, // Don't set user until approved
-              tokens: null,
-              sessionStatus: 'unauthenticated',
-              isAuthenticated: false,
-              isLoading: false,
-              error: null,
-            });
-
-            return {
-              success: true,
-              status: 'pending',
-              message: result.message,
-            };
-          }
-
-          throw new Error('Invalid registration response status');
+          throw new Error('Registration failed: unexpected response status');
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Registration error';
           logger.error('Auth store registerWithProfile exception', { error });
@@ -363,6 +333,24 @@ export const useAuthStore = create<AuthStore>()(
             message: errorMessage,
           };
         }
+      },
+
+      completeRegistration: (user: PublicUserData, tokens: TokenPair) => {
+        const userWithActivity = {
+          ...user,
+          lastActivity: new Date().toISOString(),
+        };
+
+        sessionManager.setTokens(tokens);
+
+        set({
+          user: userWithActivity,
+          tokens,
+          sessionStatus: 'authenticated',
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
       },
 
       verify: async () => {

@@ -12,9 +12,9 @@ import {
 
 
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import { createAuthRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
+import { createAuthRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { validateBody } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';

@@ -6,7 +6,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
-import { PasswordValidator } from '@odysseus/shared-schemas';
+import { PasswordValidator, type PublicUserData } from '@odysseus/shared-schemas';
 import {
   UserRound,
   KeyRound,
@@ -35,6 +35,8 @@ import { PasswordRequirements } from '../password/PasswordRequirements';
 
 import { AuthBaseModal } from './AuthBaseModal';
 import { AuthRegistrationSuccessModal } from './AuthRegistrationSuccessModal';
+
+import type { TokenPair } from '@shared/types/sessionTypes';
 
 interface AuthRegistrationModalProps {
   onSwitchToLogin?: () => void;
@@ -80,12 +82,13 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
   const [registrationResult, setRegistrationResult] = useState<{
     username: string;
     email: string;
-    status: 'approved' | 'pending';
+    user: PublicUserData;
+    tokens: TokenPair;
   } | null>(null);
 
   const firstNameInputRef = useRef<HTMLInputElement>(null);
 
-  const { registerWithProfile } = useAuthStore();
+  const { registerWithProfile, completeRegistration } = useAuthStore();
 
   const usernamePreview = useMemo(
     () => generateUsernamePreview(firstName, lastName),
@@ -186,11 +189,12 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
         inviteCode: inviteCode.trim(),
       });
 
-      if (result.success) {
+      if (result.success && result.user && result.tokens) {
         setRegistrationResult({
           username: usernamePreview,
           email: email.trim(),
-          status: result.status as 'approved' | 'pending',
+          user: result.user,
+          tokens: result.tokens,
         });
         setShowSuccessModal(true);
       } else {
@@ -211,17 +215,16 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
   };
 
   const handleSuccessModalClose = () => {
-    setShowSuccessModal(false);
-    if (onSwitchToLogin) {
-      onSwitchToLogin();
+    if (registrationResult) {
+      completeRegistration(registrationResult.user, registrationResult.tokens);
     }
+    setShowSuccessModal(false);
   };
 
   if (showSuccessModal && registrationResult) {
     return (
       <AuthRegistrationSuccessModal
         username={registrationResult.username}
-        status={registrationResult.status}
         onClose={handleSuccessModalClose}
       />
     );
@@ -467,7 +470,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
             </Button>
 
             <AlertBanner variant="info" spacing="none" className="text-xs">
-              New users require lab admin approval before accessing the system.
+              You&apos;ll be able to sign in immediately after creating your account.
             </AlertBanner>
           </>
         )}

@@ -51,18 +51,9 @@ import type {
   TubeAccessRevokedEvent
 } from '@domain/events/TubeLockEvents';
 import type {
-  LabCreatedEvent,
-  LabActivatedEvent,
-  LabDeactivatedEvent
-} from '@domain/events/LabEvents';
-import type {
-  UserApprovedEvent,
   UserDeletedEvent,
   UserRoleChangedEvent,
   UserCreatedEvent,
-  UserDeactivatedEvent,
-  UserSuspendedEvent,
-  UserReactivatedEvent,
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent
 } from '@domain/events/UserEvents';
@@ -245,7 +236,6 @@ export class SocketEventHandler {
     this.eventBus.subscribe('UserReactivated', async (e) => this.emitSystemAdminUpdate(e.labId, 'UserReactivated'));
 
     // User events
-    this.eventBus.subscribe('UserApproved', (e) => this.handleUserApproved(e));
     this.eventBus.subscribe('UserDeleted', (e) => this.handleUserDeleted(e));
     this.eventBus.subscribe('UserRoleChanged', (e) => this.handleUserRoleChanged(e));
     this.eventBus.subscribe('UserCreated', (e) => this.handleUserCreated(e));
@@ -585,29 +575,6 @@ export class SocketEventHandler {
 
   // USER EVENT HANDLERS
 
-  private async handleUserApproved(event: UserApprovedEvent): Promise<void> {
-    try {
-      const payload = {
-        userId: event.userId,
-        username: event.username,
-        approvedBy: event.approvedBy,
-        updatedAt: new Date().toISOString()
-      };
-
-      logger.debug('Emitting user_approved socket event', {
-        userId: event.userId,
-        connectedClients: this.io.sockets.sockets.size
-      });
-
-      this.emitToLabRooms(event.labId, 'user_approved', payload);
-      this.emitSystemAdminUpdate(event.labId, 'UserApproved');
-    } catch (error) {
-      logger.error('Failed to emit user_approved event', {
-        error: error instanceof Error ? error.message : String(error),
-        userId: event.userId
-      });
-    }
-  }
 
   private async handleUserDeleted(event: UserDeletedEvent): Promise<void> {
     try {

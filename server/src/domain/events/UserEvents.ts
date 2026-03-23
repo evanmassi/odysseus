@@ -257,33 +257,6 @@ export class UserUnlinkedFromResearcherEvent extends DomainEvent {
   }
 }
 
-export class UserApprovedEvent extends DomainEvent {
-  constructor(
-    public readonly userId: string,
-    public readonly username: string,
-    public readonly approvedBy: string,
-    labId?: string
-  ) {
-    super(1, labId);
-  }
-
-  eventName(): string {
-    return 'UserApproved';
-  }
-
-  getAggregateId(): string {
-    return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      username: this.username,
-      approvedBy: this.approvedBy
-    };
-  }
-}
-
 export class UserDeactivatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,

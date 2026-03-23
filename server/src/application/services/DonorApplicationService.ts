@@ -20,6 +20,7 @@ import {
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
+
 import type { CreateDonorRequest, UpdateDonorRequest, CreateCollectionHistoryRequest, UpdateCollectionHistoryRequest } from '@odysseus/shared-schemas';
 
 export class DonorApplicationService {

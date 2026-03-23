@@ -127,34 +127,6 @@ export class AdminUserController {
     }
   }
 
-  async approveUser(req: Request, res: Response): Promise<void> {
-    try {
-
-      const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
-
-      if (!adminApiKey) {
-        throw new PermissionError('Authentication required');
-      }
-
-      await this.deps.userApplicationService.approveUser(userId, adminApiKey);
-
-      const response = ResponseBuilder.success({
-        success: true,
-        message: 'User approved successfully'
-      });
-
-      res.status(200).json(response);
-
-      logger.info('User approved', {
-        userId,
-        approvedBy: req.user?.username
-      });
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to approve user');
-    }
-  }
-
   async deactivateUser(req: Request, res: Response): Promise<void> {
     try {
 
@@ -188,7 +160,7 @@ export class AdminUserController {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.approveUser(userId, adminApiKey);
+      await this.deps.userApplicationService.reactivateUser(userId, adminApiKey);
 
       const response = ResponseBuilder.success({
         success: true,

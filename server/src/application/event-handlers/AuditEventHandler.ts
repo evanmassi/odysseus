@@ -6,8 +6,6 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { AuditService } from '@application/services/AuditService';
-import type { DonorRepository } from '@domain/repositories/DonorRepository';
-import type { LabRepository } from '@domain/repositories/LabRepository';
 import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
@@ -74,11 +72,12 @@ import type {
   UserLoggedOutEvent,
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
-  UserApprovedEvent,
   UserDeactivatedEvent,
   UserSuspendedEvent,
   UserReactivatedEvent,
 } from '@domain/events/UserEvents';
+import type { DonorRepository } from '@domain/repositories/DonorRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
@@ -220,7 +219,6 @@ export class AuditEventHandler {
     this.eventBus.subscribe('UserLoggedOut', (e) => this.handleUserLoggedOut(e));
     this.eventBus.subscribe('UserLinkedToResearcher', (e) => this.handleUserLinkedToResearcher(e));
     this.eventBus.subscribe('UserUnlinkedFromResearcher', (e) => this.handleUserUnlinkedFromResearcher(e));
-    this.eventBus.subscribe('UserApproved', (e) => this.handleUserApproved(e));
     this.eventBus.subscribe('UserDeactivated', (e) => this.handleUserDeactivated(e));
     this.eventBus.subscribe('UserSuspended', (e) => this.handleUserSuspended(e));
     this.eventBus.subscribe('UserReactivated', (e) => this.handleUserReactivated(e));
@@ -866,15 +864,6 @@ export class AuditEventHandler {
       buildDetails: (username) => ({
         username: event.username, researcherId: event.researcherId, researcherName: event.researcherName, unlinkedBy: username,
       }),
-    });
-  }
-
-  private async handleUserApproved(event: UserApprovedEvent): Promise<void> {
-    await this.logAuditEvent({
-      eventName: 'user approved', context: { userId: event.userId },
-      actorId: event.approvedBy, action: 'user_approved', entityType: 'user',
-      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ username: event.username, approvedBy: username }),
     });
   }
 

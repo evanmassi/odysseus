@@ -13,7 +13,6 @@ import {
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
 import type { AdminUserController } from '@presentation/controllers/admin/AdminUserController';
 import type { AuditController } from '@presentation/controllers/AuditController';
@@ -22,6 +21,7 @@ import type { InviteCodeController } from '@presentation/controllers/InviteCodeC
 import type { LookupValueController } from '@presentation/controllers/LookupValueController';
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
 import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
+import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
@@ -71,11 +71,6 @@ export class AdminRouteModule implements RouteModule {
     );
 
     // USER ACTIVATION ENDPOINTS (must come before /users/:id to avoid route collision)
-
-    router.post('/users/:userId/approve',
-      validateParams(UserIdParams),
-      this.adminUserController.approveUser.bind(this.adminUserController)
-    );
 
     router.post('/users/:userId/deactivate',
       validateParams(UserIdParams),

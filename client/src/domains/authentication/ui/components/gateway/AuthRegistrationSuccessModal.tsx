@@ -15,13 +15,11 @@ import { AuthBaseModal } from './AuthBaseModal';
 
 export interface AuthRegistrationSuccessModalProps {
   username: string;
-  status: 'approved' | 'pending';
   onClose: () => void;
 }
 
 export function AuthRegistrationSuccessModal({
   username,
-  status,
   onClose,
 }: AuthRegistrationSuccessModalProps) {
   const [copied, setCopied] = useState(false);
@@ -44,19 +42,14 @@ export function AuthRegistrationSuccessModal({
     }
   };
 
-  const isPending = status === 'pending';
-
   return (
     <AuthBaseModal showBranding="icon" zIndex={60}>
-      {/* Success Header */}
       <div className="flex justify-center mb-2">
         <AnimatedCheckmark size={64} className="text-success-text" delay={750} />
       </div>
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-success-text mb-1">Account Created</h2>
-        <p className="text-sm text-muted-foreground">
-          {isPending ? 'Awaiting admin approval' : 'Ready to sign in'}
-        </p>
+        <p className="text-sm text-muted-foreground">Ready to sign in</p>
       </div>
 
       {/* Username Display with Copy */}
@@ -101,13 +94,10 @@ export function AuthRegistrationSuccessModal({
       {/* Status Information */}
       <div className="mb-6">
         <AlertBanner variant="info" spacing="none" className="text-xs">
-          {isPending
-            ? "An administrator will review your account. You'll be notified when approved."
-            : "You're all set! You can now log in with your username and password."}
+          You&apos;re all set! You can now log in with your username and password.
         </AlertBanner>
       </div>
 
-      {/* Close Button */}
       <Button
         variant="primary"
         size="xl"
@@ -115,7 +105,7 @@ export function AuthRegistrationSuccessModal({
         onClick={onClose}
         className="shadow-lg font-bold"
       >
-        {isPending ? 'Return to Login' : 'Continue to Login'}
+        Continue
       </Button>
     </AuthBaseModal>
   );

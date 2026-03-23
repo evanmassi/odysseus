@@ -6,8 +6,8 @@
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
-import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { StorageController } from '@presentation/controllers/StorageController';
+import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 
 import type { Router, RequestHandler } from 'express';
