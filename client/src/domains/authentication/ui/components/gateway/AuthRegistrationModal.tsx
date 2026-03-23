@@ -241,7 +241,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
       initialFocusRef={inviteCodeValidated ? firstNameInputRef : undefined}
       className="max-h-[95vh] overflow-y-auto"
     >
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} noValidate className="space-y-3">
         {/* Invite Code Section */}
         {!inviteCodeValidated ? (
           <div className="space-y-3">
