@@ -17,6 +17,7 @@ export class InviteCode {
     private readonly _labId: string,
     private readonly _code: string,
     private readonly _role: 'lab_admin' | 'user',
+    private readonly _createResearcher: boolean,
     private readonly _createdBy: string,
     private readonly _maxUses: number | undefined,
     private _useCount: number,
@@ -32,12 +33,13 @@ export class InviteCode {
     labId: string,
     createdBy: string,
     role: 'lab_admin' | 'user' = 'user',
+    createResearcher: boolean = false,
     maxUses?: number,
     expiresAt?: Date
   ): InviteCode {
     const id = generateId('invite');
     const code = InviteCode.generateCode();
-    return new InviteCode(id, labId, code, role, createdBy, maxUses, 0, expiresAt, true, new Date(), undefined);
+    return new InviteCode(id, labId, code, role, createResearcher, createdBy, maxUses, 0, expiresAt, true, new Date(), undefined);
   }
 
   static fromData(data: {
@@ -45,6 +47,7 @@ export class InviteCode {
     labId: string;
     code: string;
     role: 'lab_admin' | 'user';
+    createResearcher: boolean;
     createdBy: string;
     maxUses?: number;
     useCount: number;
@@ -58,6 +61,7 @@ export class InviteCode {
       data.labId,
       data.code,
       data.role,
+      data.createResearcher,
       data.createdBy,
       data.maxUses,
       data.useCount,
@@ -131,6 +135,7 @@ export class InviteCode {
     labId: string;
     code: string;
     role: 'lab_admin' | 'user';
+    createResearcher: boolean;
     createdBy: string;
     maxUses?: number;
     useCount: number;
@@ -144,6 +149,7 @@ export class InviteCode {
       labId: this._labId,
       code: this._code,
       role: this._role,
+      createResearcher: this._createResearcher,
       createdBy: this._createdBy,
       maxUses: this._maxUses,
       useCount: this._useCount,
@@ -163,6 +169,7 @@ export class InviteCode {
   get labId(): string { return this._labId; }
   get code(): string { return this._code; }
   get role(): 'lab_admin' | 'user' { return this._role; }
+  get createResearcher(): boolean { return this._createResearcher; }
   get createdBy(): string { return this._createdBy; }
   get maxUses(): number | undefined { return this._maxUses; }
   get useCount(): number { return this._useCount; }
