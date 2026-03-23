@@ -10,7 +10,7 @@ import type { InviteCodeRow } from '@infrastructure/database/mappers/InviteCodeM
 import { InviteCodeMapper } from '@infrastructure/database/mappers/InviteCodeMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
-const INVITE_CODE_COLUMNS = 'id, lab_id, code, role, created_by, max_uses, use_count, expires_at, is_active, created_at';
+const INVITE_CODE_COLUMNS = 'id, lab_id, code, role, create_researcher, created_by, max_uses, use_count, expires_at, is_active, created_at, deactivation_reason';
 
 export class InviteCodeRepository implements IInviteCodeRepository {
 
@@ -56,12 +56,13 @@ export class InviteCodeRepository implements IInviteCodeRepository {
   async save(inviteCode: InviteCode): Promise<void> {
     const row = InviteCodeMapper.toRow(inviteCode);
     await this.context.execute(
-      `INSERT INTO invite_codes (id, lab_id, code, role, created_by, max_uses, use_count, expires_at, is_active, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO invite_codes (id, lab_id, code, role, create_researcher, created_by, max_uses, use_count, expires_at, is_active, created_at, deactivation_reason)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        ON CONFLICT (id) DO UPDATE SET
          use_count = EXCLUDED.use_count,
-         is_active = EXCLUDED.is_active`,
-      [row.id, row.lab_id, row.code, row.role, row.created_by, row.max_uses, row.use_count, row.expires_at, row.is_active, row.created_at]
+         is_active = EXCLUDED.is_active,
+         deactivation_reason = EXCLUDED.deactivation_reason`,
+      [row.id, row.lab_id, row.code, row.role, row.create_researcher, row.created_by, row.max_uses, row.use_count, row.expires_at, row.is_active, row.created_at, row.deactivation_reason]
     );
   }
 

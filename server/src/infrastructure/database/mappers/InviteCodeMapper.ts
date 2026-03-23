@@ -4,7 +4,7 @@
  * Converts between database rows and InviteCode domain entities.
  */
 
-import { InviteCode } from '@domain/entities/InviteCode';
+import { InviteCode, type DeactivationReason } from '@domain/entities/InviteCode';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface InviteCodeRow {
@@ -12,12 +12,14 @@ export interface InviteCodeRow {
   lab_id: string;
   code: string;
   role: 'lab_admin' | 'user';
+  create_researcher: boolean;
   created_by: string;
   max_uses: number | null;
   use_count: number;
   expires_at: Date | string | null;
   is_active: boolean;
   created_at: Date | string;
+  deactivation_reason: string | null;
 }
 
 export class InviteCodeMapper {
@@ -28,12 +30,14 @@ export class InviteCodeMapper {
       lab_id: inviteCode.labId,
       code: inviteCode.code,
       role: inviteCode.role,
+      create_researcher: inviteCode.createResearcher,
       created_by: inviteCode.createdBy,
       max_uses: inviteCode.maxUses ?? null,
       use_count: inviteCode.useCount,
       expires_at: inviteCode.expiresAt?.toISOString() ?? null,
       is_active: inviteCode.isActive,
-      created_at: inviteCode.createdAt.toISOString()
+      created_at: inviteCode.createdAt.toISOString(),
+      deactivation_reason: inviteCode.deactivationReason ?? null
     };
   }
 
@@ -49,12 +53,14 @@ export class InviteCodeMapper {
       labId: row.lab_id,
       code: row.code,
       role: row.role,
+      createResearcher: row.create_researcher,
       createdBy: row.created_by,
       maxUses: row.max_uses ?? undefined,
       useCount: row.use_count,
       expiresAt,
       isActive: row.is_active,
-      createdAt
+      createdAt,
+      deactivationReason: (row.deactivation_reason as DeactivationReason) ?? undefined
     });
   }
 
