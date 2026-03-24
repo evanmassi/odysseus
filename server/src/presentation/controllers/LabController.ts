@@ -177,6 +177,8 @@ export class LabController extends BaseController {
             id: r.id,
             firstName: person?.firstName ?? 'Unknown',
             lastName: person?.lastName ?? '',
+            email: person?.email,
+            active: r.active,
             tubeCount: tubeCountMap.get(r.id) ?? 0,
             linkedUser: linkedUser ? { id: linkedUser.id, username: linkedUser.username } : null,
           };

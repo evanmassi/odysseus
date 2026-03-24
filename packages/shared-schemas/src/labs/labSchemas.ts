@@ -84,6 +84,8 @@ export const labDetailsResearcherSchema = z.object({
   id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
+  email: z.string().optional(),
+  active: z.boolean(),
   tubeCount: z.number(),
   linkedUser: z.object({
     id: z.string(),
