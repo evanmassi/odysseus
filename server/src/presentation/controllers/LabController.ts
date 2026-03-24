@@ -248,8 +248,6 @@ export class LabController extends BaseController {
       for (const count of tubeCountMap.values()) totalTubes += count;
       const activeLabs = labs.filter(l => l.isActive).length;
       const inactiveLabs = labs.length - activeLabs;
-      const pendingApprovals = allUsers.filter(u => u.isPending()).length;
-
       const now = Date.now();
       const oneDayAgo = now - 24 * 60 * 60 * 1000;
       const activeUsersLast24h = allUsers.filter(
@@ -261,7 +259,6 @@ export class LabController extends BaseController {
         activeLabs,
         inactiveLabs,
         totalUsers: allUsers.length,
-        pendingApprovals,
         activeUsersLast24h,
         totalTubes,
         labStats,

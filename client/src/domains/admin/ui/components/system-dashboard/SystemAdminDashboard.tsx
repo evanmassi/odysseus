@@ -6,15 +6,7 @@
 
 import { lazy, Suspense, useState } from 'react';
 
-import {
-  Activity,
-  CircleAlert,
-  Clock,
-  FlaskConical,
-  HardDrive,
-  LayoutDashboard,
-  Shield,
-} from 'lucide-react';
+import { Activity, FlaskConical, HardDrive, LayoutDashboard, Shield } from 'lucide-react';
 
 import { Chip, LoadingSkeleton, Tab, Tabs } from '@shared/ui';
 
@@ -55,14 +47,6 @@ export function SystemAdminDashboard() {
               <Chip color="info" size="sm" leftIcon={<Activity />}>
                 {overview.activeUsersLast24h} {overview.activeUsersLast24h === 1 ? 'user' : 'users'}{' '}
                 active today
-              </Chip>
-              <Chip
-                color={overview.pendingApprovals > 0 ? 'warning' : 'success'}
-                size="sm"
-                leftIcon={overview.pendingApprovals > 0 ? <CircleAlert /> : <Clock />}
-              >
-                {overview.pendingApprovals} {overview.pendingApprovals === 1 ? 'user' : 'users'}{' '}
-                pending
               </Chip>
             </div>
           )}

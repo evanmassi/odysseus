@@ -126,7 +126,6 @@ export const systemOverviewSchema = z.object({
   activeLabs: z.number(),
   inactiveLabs: z.number(),
   totalUsers: z.number(),
-  pendingApprovals: z.number(),
   activeUsersLast24h: z.number(),
   totalTubes: z.number(),
   labStats: z.array(systemOverviewLabStatSchema),
