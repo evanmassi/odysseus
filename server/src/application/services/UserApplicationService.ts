@@ -47,6 +47,9 @@ export type EnrichedPublicUser = ReturnType<User['toPublicData']> & {
   firstName?: string;
   lastName?: string;
   email?: string;
+  position?: string;
+  department?: string;
+  researcherName?: string;
 };
 
 export class UserApplicationService {
@@ -170,10 +173,19 @@ export class UserApplicationService {
     const researcherPersonMap = new Map(researcherPersons.map(p => [p.id, p]));
 
     return publicDataList.map(publicData => {
+      let enriched: EnrichedPublicUser = publicData;
+
       if (publicData.personId) {
         const person = directPersonMap.get(publicData.personId);
         if (person) {
-          return { ...publicData, firstName: person.firstName, lastName: person.lastName, email: person.email };
+          enriched = {
+            ...enriched,
+            firstName: person.firstName,
+            lastName: person.lastName,
+            email: person.email,
+            position: person.position,
+            department: person.department,
+          };
         }
       }
 
@@ -182,12 +194,18 @@ export class UserApplicationService {
         if (researcher) {
           const person = researcherPersonMap.get(researcher.personId);
           if (person) {
-            return { ...publicData, firstName: person.firstName, lastName: person.lastName, email: person.email };
+            enriched = {
+              ...enriched,
+              researcherName: `${person.lastName}, ${person.firstName}`,
+              firstName: enriched.firstName ?? person.firstName,
+              lastName: enriched.lastName ?? person.lastName,
+              email: enriched.email ?? person.email,
+            };
           }
         }
       }
 
-      return publicData;
+      return enriched;
     });
   }
 

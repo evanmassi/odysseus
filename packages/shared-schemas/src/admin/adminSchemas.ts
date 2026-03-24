@@ -79,6 +79,9 @@ export const adminUserSchema = z.object({
   requirePasswordChange: z.boolean().optional().default(false),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+  position: z.string().optional(),
+  department: z.string().optional(),
+  researcherName: z.string().optional(),
   tubeCount: z.number().int().min(0).optional(),
 });
 

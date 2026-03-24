@@ -7,15 +7,16 @@
 import { useState, useMemo } from 'react';
 
 import {
-  RefreshCw,
-  UserRoundCheck,
-  Unlink2,
-  Trash2,
+  ChevronDown,
   Link2,
-  UsersRound,
   KeyRound,
   Power,
+  RefreshCw,
   ShieldBan,
+  Trash2,
+  Unlink2,
+  UserRoundCheck,
+  UsersRound,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -23,7 +24,7 @@ import { logger } from '@infra/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { notifications } from '@shared/utils';
+import { formatRelativeTime, notifications } from '@shared/utils';
 
 import {
   useDeleteUserMutation,
@@ -75,6 +76,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     username: string;
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
+  const [showInactive, setShowInactive] = useState(false);
 
   const currentUserId = useAuthStore(s => s.user?.id);
   const deleteUserMutation = useDeleteUserMutation();
@@ -210,6 +212,15 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     });
   }, [users, sortConfig]);
 
+  const activeUsers = useMemo(
+    () => (sortedUsers ?? []).filter(u => u.status === 'approved'),
+    [sortedUsers]
+  );
+  const inactiveUsers = useMemo(
+    () => (sortedUsers ?? []).filter(u => u.status === 'deactivated' || u.status === 'suspended'),
+    [sortedUsers]
+  );
+
   const userColumns: TableColumn<AdminUser>[] = [
     {
       id: 'user',
@@ -305,19 +316,39 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       },
     },
     {
-      id: 'researcher',
-      header: 'Researcher',
+      id: 'position',
+      header: 'Position',
+      render: (_, user) => (
+        <div className="whitespace-nowrap max-w-[150px]">
+          {user.position ? (
+            <Tooltip content={user.position} side="bottom">
+              <div className="text-sm text-card-foreground truncate">{user.position}</div>
+            </Tooltip>
+          ) : (
+            <div className="text-sm text-muted-foreground">—</div>
+          )}
+          {user.department && (
+            <Tooltip content={user.department} side="bottom">
+              <div className="text-xs text-muted-foreground truncate">{user.department}</div>
+            </Tooltip>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'linkedResearcher',
+      header: 'Linked Researcher',
       render: (_, user) => {
         if (user.researcherId) {
           return (
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground whitespace-nowrap">
-              <span>Linked</span>
-              <UserRoundCheck size={14} className="text-success-text flex-shrink-0" />
+            <div className="flex items-center gap-1.5 text-sm text-card-foreground whitespace-nowrap">
+              <Link2 size={14} className="text-success-text shrink-0" />
+              <span>{user.researcherName ?? 'Linked'}</span>
             </div>
           );
         }
         return (
-          <Chip size="sm" color="default">
+          <Chip size="sm" color="outlined">
             None
           </Chip>
         );
@@ -327,13 +358,11 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       id: 'lastActivity',
       header: 'Last Active',
       sortable: true,
-      render: (_, user) => {
-        return (
-          <span className="text-sm text-muted-foreground whitespace-nowrap">
-            {user.lastActivity ? new Date(user.lastActivity).toLocaleDateString() : 'Never'}
-          </span>
-        );
-      },
+      render: (_, user) => (
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
+          {user.lastActivity ? formatRelativeTime(user.lastActivity) : 'Never'}
+        </span>
+      ),
     },
     {
       id: 'actions',
@@ -452,7 +481,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
 
       <Table
         columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
-        data={sortedUsers ?? []}
+        data={activeUsers}
         size="sm"
         variant="default"
         hoverable
@@ -463,6 +492,35 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         emptyMessage="No users found"
         aria-label="Users list"
       />
+
+      {inactiveUsers.length > 0 && (
+        <div className="pt-3 border-t border-border">
+          <button
+            onClick={() => setShowInactive(prev => !prev)}
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
+            />
+            Inactive Users ({inactiveUsers.length})
+          </button>
+          {showInactive && (
+            <div className="mt-2">
+              <Table
+                columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
+                data={inactiveUsers}
+                size="sm"
+                variant="default"
+                rounded="lg"
+                emptyMessage=""
+                aria-label="Inactive users"
+                className="opacity-60"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {researcherModalData && (
         <ResearcherModal
