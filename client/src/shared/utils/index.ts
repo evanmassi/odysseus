@@ -12,4 +12,5 @@ export * from './labColorSpace';
 export * from './notifications';
 export * from './scientificNotation';
 export * from './mergeRefs';
+export * from './relativeTime';
 export * from './userDisplayFormatters';
