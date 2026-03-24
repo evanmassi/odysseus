@@ -26,6 +26,7 @@ export interface ResearcherRepository {
   // QUERY OPERATIONS
 
   nameExists(firstName: string, lastName: string, labId?: string): Promise<boolean>;
+  findDeactivatedByName(firstName: string, lastName: string, labId: string): Promise<Researcher | null>;
   searchByName(namePattern: string, labId: string): Promise<Researcher[]>;
 
   // INTEGRATION QUERIES

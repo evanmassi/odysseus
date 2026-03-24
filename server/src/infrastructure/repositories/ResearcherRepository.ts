@@ -89,11 +89,23 @@ export class ResearcherRepository implements IResearcherRepository {
       `SELECT EXISTS(
         SELECT 1 FROM researchers r
         INNER JOIN persons p ON r.person_id = p.id
-        WHERE p.first_name = $1 AND p.last_name = $2${labFilter}
+        WHERE LOWER(p.first_name) = LOWER($1) AND LOWER(p.last_name) = LOWER($2) AND r.active = TRUE${labFilter}
       ) as exists`,
       params
     );
     return row?.exists ?? false;
+  }
+
+  async findDeactivatedByName(firstName: string, lastName: string, labId: string): Promise<Researcher | null> {
+    const row = await this.context.queryOne<ResearcherRow>(
+      `SELECT ${RESEARCHER_COLUMNS_JOINED} FROM researchers r
+       INNER JOIN persons p ON r.person_id = p.id
+       WHERE LOWER(p.first_name) = LOWER($1) AND LOWER(p.last_name) = LOWER($2)
+         AND r.active = FALSE AND r.lab_id = $3
+       LIMIT 1`,
+      [firstName, lastName, labId]
+    );
+    return row ? ResearcherMapper.fromRow(row) : null;
   }
 
   async searchByName(namePattern: string, labId: string): Promise<Researcher[]> {

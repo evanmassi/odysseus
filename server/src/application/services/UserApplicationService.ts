@@ -311,12 +311,19 @@ export class UserApplicationService {
         if (personId) {
           await this.personRepository.delete(personId);
         }
-      } else if (personId) {
-        // Researcher has tubes — preserve for history, but release the email
-        const person = await this.personRepository.findById(personId);
-        if (person) {
-          person.clearEmail();
-          await this.personRepository.save(person);
+      } else {
+        // Researcher has tubes — deactivate and preserve for history, release the email
+        const researcher = await this.researcherRepository.findById(researcherId);
+        if (researcher) {
+          researcher.deactivate();
+          await this.researcherRepository.save(researcher);
+        }
+        if (personId) {
+          const person = await this.personRepository.findById(personId);
+          if (person) {
+            person.clearEmail();
+            await this.personRepository.save(person);
+          }
         }
       }
     } else if (personId && this.personRepository) {
@@ -447,6 +454,10 @@ export class UserApplicationService {
       throw new ValidationError('An invite code is required for registration');
     }
 
+    // Check for researcher name conflicts and returning-user relink
+    let relinkedResearcher: Researcher | undefined;
+    let relinkedPerson: Person | undefined;
+
     if (createResearcher) {
       const nameExists = await this.researcherRepository.nameExists(
         request.firstName,
@@ -457,6 +468,25 @@ export class UserApplicationService {
         throw new ValidationError(
           'Researcher profile already exists. Please contact an administrator to link your account.'
         );
+      }
+
+      // Returning user — reactivate their deactivated researcher profile
+      if (labId) {
+        const deactivated = await this.researcherRepository.findDeactivatedByName(
+          request.firstName, request.lastName, labId
+        );
+        if (deactivated && this.personRepository) {
+          const existingPerson = await this.personRepository.findById(deactivated.personId);
+          if (existingPerson) {
+            existingPerson.updateEmail(request.email);
+            existingPerson.updateProfile(
+              request.firstName, request.lastName, request.position, request.department
+            );
+            deactivated.activate();
+            relinkedResearcher = deactivated;
+            relinkedPerson = existingPerson;
+          }
+        }
       }
     }
 
@@ -485,7 +515,7 @@ export class UserApplicationService {
 
     const username = await this.generateUsername(request.firstName, request.lastName);
 
-    const person = Person.create(
+    const person = relinkedPerson ?? Person.create(
       request.firstName,
       request.lastName,
       request.email,
@@ -493,10 +523,13 @@ export class UserApplicationService {
       request.department
     );
 
-    let researcherId: string | undefined = undefined;
-    let researcher: Researcher | undefined = undefined;
+    let researcherId: string | undefined;
+    let researcher: Researcher | undefined;
 
-    if (createResearcher) {
+    if (relinkedResearcher) {
+      researcherId = relinkedResearcher.id;
+      researcher = relinkedResearcher;
+    } else if (createResearcher) {
       researcher = Researcher.create(person.id, {
         isUserApproved: isFirstUser || autoApprove,
         source: 'registration',

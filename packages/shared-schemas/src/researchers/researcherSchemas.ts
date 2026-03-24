@@ -23,7 +23,7 @@ export const researcherSchema = z.object({
   // Denormalized Person fields for display
   firstName: z.string(),
   lastName: z.string(),
-  email: z.string(),
+  email: z.string().optional(),
   position: z.string().optional(),
   department: z.string().optional(),
   labId: z.string().optional(),

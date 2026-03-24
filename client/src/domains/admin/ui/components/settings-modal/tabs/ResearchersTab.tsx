@@ -430,20 +430,21 @@ export function ResearchersTab({
         {!readOnly && (
           <div className="flex items-center space-x-2">
             <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadResearchers}
+              isLoading={loading}
+              leftIcon={<RefreshCw size={14} className={loading ? 'animate-spin' : ''} />}
+            >
+              Refresh
+            </Button>
+            <Button
               variant="primary"
               size="sm"
               onClick={() => setShowAddModal(true)}
               leftIcon={<Plus size={14} />}
             >
               Add Researcher
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={loadResearchers}
-              isLoading={loading}
-              leftIcon={<RefreshCw size={14} />}
-            >
-              Refresh
             </Button>
           </div>
         )}
