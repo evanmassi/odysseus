@@ -239,7 +239,7 @@ export class ResearcherApplicationService {
     }
 
     if (updates.active !== undefined) {
-      this.rejectIfPending(researcher);
+
 
       if (updates.active) {
         researcher.activate();
@@ -331,8 +331,6 @@ export class ResearcherApplicationService {
       throw new PermissionError('Cannot deactivate your own researcher profile');
     }
 
-    this.rejectIfPending(researcher);
-
     const person = await this.getPersonForResearcher(researcher);
     const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
 
@@ -359,7 +357,6 @@ export class ResearcherApplicationService {
 
     const researcher = await this.getResearcherOrThrow(id);
     this.requireSameLabAsResearcher(user, researcher);
-    this.rejectIfPending(researcher);
 
     const person = await this.getPersonForResearcher(researcher);
 
@@ -458,14 +455,6 @@ export class ResearcherApplicationService {
     }
   }
 
-  private rejectIfPending(researcher: Researcher): void {
-    if (researcher.isPending()) {
-      throw new ValidationError('Cannot change active status of pending researcher', {
-        researcherId: researcher.id,
-        approvalStatus: researcher.approvalStatus
-      });
-    }
-  }
 
   private rejectIfDemoLab(user: User): void {
     if (user.isDemo) {

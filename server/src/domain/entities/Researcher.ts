@@ -74,21 +74,8 @@ export class Researcher {
     }
   }
 
-  approve(): void {
-    this._approvalStatus = 'approved';
-  }
-
-  isPending(): boolean {
-    return this._approvalStatus === 'pending';
-  }
-
-  isApproved(): boolean {
-    return this._approvalStatus === 'approved';
-  }
-
-  /** Returns true only if approved AND active - used for user-facing visibility */
-  isVisible(): boolean {
-    return this._approvalStatus === 'approved' && this._active;
+  isActive(): boolean {
+    return this._active;
   }
 
   activate(): void {
@@ -101,10 +88,6 @@ export class Researcher {
 
   toggleActiveStatus(): void {
     this._active = !this._active;
-  }
-
-  isActive(): boolean {
-    return this._active;
   }
 
   toData(): {
