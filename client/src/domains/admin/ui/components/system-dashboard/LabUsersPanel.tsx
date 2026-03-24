@@ -4,15 +4,23 @@
  * Users table with status actions (approve, deactivate, suspend, delete) and confirmation dialogs.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { Clock, Power, ShieldBan, Trash2, UserRoundCheck, UsersRound } from 'lucide-react';
+import {
+  ChevronDown,
+  Link2,
+  Power,
+  ShieldBan,
+  Trash2,
+  UserRoundCheck,
+  UsersRound,
+} from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { Button, Chip, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { notifications } from '@shared/utils';
+import { formatRelativeTime, notifications } from '@shared/utils';
 
 import {
   useActivateLabUserMutation,
@@ -41,6 +49,13 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
   const suspendUserMutation = useSuspendLabUserMutation();
 
   const [userAction, setUserAction] = useState<UserAction | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
+
+  const activeUsers = useMemo(() => users.filter(u => u.status === 'approved'), [users]);
+  const inactiveUsers = useMemo(
+    () => users.filter(u => u.status === 'deactivated' || u.status === 'suspended'),
+    [users]
+  );
 
   return (
     <div>
@@ -50,7 +65,7 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
       </div>
       <Table
         columns={getUserColumns(labId, setUserAction, currentUserId)}
-        data={users}
+        data={activeUsers}
         size="sm"
         rounded="lg"
         sortable
@@ -60,6 +75,34 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
         emptyMessage="No users in this lab"
         aria-label="Lab users"
       />
+
+      {inactiveUsers.length > 0 && (
+        <div className="pt-3 border-t border-border mt-3">
+          <button
+            onClick={() => setShowInactive(prev => !prev)}
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
+            />
+            Inactive Users ({inactiveUsers.length})
+          </button>
+          {showInactive && (
+            <div className="mt-2">
+              <Table
+                columns={getUserColumns(labId, setUserAction, currentUserId)}
+                data={inactiveUsers}
+                size="sm"
+                rounded="lg"
+                emptyMessage=""
+                aria-label="Inactive lab users"
+                className="opacity-60"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       <ConfirmDialog
         isOpen={userAction !== null}
@@ -140,20 +183,6 @@ function ActionsCell({
 
   return (
     <div className="flex items-center gap-1">
-      {user.status === 'pending' && (
-        <Tooltip content="Approve user">
-          <Button
-            variant="ghost"
-            size="xs"
-            iconOnly
-            onClick={handleActivate}
-            disabled={activateUserMutation.isPending}
-            aria-label="Approve user"
-          >
-            <UserRoundCheck size={16} className="text-success-text" />
-          </Button>
-        </Tooltip>
-      )}
       {user.status === 'approved' && (
         <>
           <Tooltip content={isSelf ? 'Cannot deactivate yourself' : 'Deactivate user'}>
@@ -226,18 +255,6 @@ function ActionsCell({
   );
 }
 
-function formatLastActivity(iso: string): string {
-  const date = new Date(iso);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
-}
-
 function getUserColumns(
   labId: string,
   onUserAction: (action: UserAction) => void,
@@ -262,17 +279,12 @@ function getUserColumns(
 
         return (
           <div
-            className={`flex items-center whitespace-nowrap gap-2 ${row.status !== 'approved' && row.status !== 'pending' ? 'opacity-60' : ''}`}
+            className={`flex items-center whitespace-nowrap gap-2 ${row.status !== 'approved' ? 'opacity-60' : ''}`}
           >
             <UserBadge type="otherUser" initials={initials} username={row.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-medium text-card-foreground">{displayName}</span>
-                {row.status === 'pending' && (
-                  <Tooltip content="Pending approval">
-                    <Clock size={12} className="text-warning-text" />
-                  </Tooltip>
-                )}
                 {row.status === 'deactivated' && (
                   <Tooltip content="Deactivated">
                     <Power size={12} className="text-danger-text" />
@@ -285,16 +297,31 @@ function getUserColumns(
                 )}
               </div>
               <div className="text-xs text-muted-foreground">{row.username}</div>
+              {row.email && <div className="text-[11px] text-muted-foreground/70">{row.email}</div>}
             </div>
           </div>
         );
       },
     },
     {
-      id: 'email',
-      header: 'Email',
-      sortable: true,
-      render: (_value, row) => <span className="text-muted-foreground">{row.email ?? '-'}</span>,
+      id: 'position',
+      header: 'Position',
+      render: (_value, row) => (
+        <div className="whitespace-nowrap max-w-[150px]">
+          {row.position ? (
+            <Tooltip content={row.position} side="bottom">
+              <div className="text-sm text-card-foreground truncate">{row.position}</div>
+            </Tooltip>
+          ) : (
+            <div className="text-sm text-muted-foreground">—</div>
+          )}
+          {row.department && (
+            <Tooltip content={row.department} side="bottom">
+              <div className="text-xs text-muted-foreground truncate">{row.department}</div>
+            </Tooltip>
+          )}
+        </div>
+      ),
     },
     {
       id: 'role',
@@ -307,11 +334,32 @@ function getUserColumns(
       ),
     },
     {
+      id: 'linkedResearcher',
+      header: 'Linked Researcher',
+      render: (_value, row) => {
+        if (row.researcher) {
+          return (
+            <div className="flex items-center gap-1.5 text-sm text-card-foreground whitespace-nowrap">
+              <Link2 size={14} className="text-success-text shrink-0" />
+              <span>{row.researcher.name}</span>
+            </div>
+          );
+        }
+        return (
+          <Chip size="sm" color="outlined">
+            None
+          </Chip>
+        );
+      },
+    },
+    {
       id: 'lastActivity',
       header: 'Last Active',
       sortable: true,
       render: (_value, row) => (
-        <span className="text-muted-foreground">{formatLastActivity(row.lastActivity)}</span>
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
+          {formatRelativeTime(row.lastActivity)}
+        </span>
       ),
     },
     {

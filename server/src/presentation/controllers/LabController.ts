@@ -158,6 +158,8 @@ export class LabController extends BaseController {
             lastName: person?.lastName ?? null,
             username: u.username,
             email: person?.email ?? null,
+            position: person?.position ?? null,
+            department: person?.department ?? null,
             role: u.roleString,
             status: u.status,
             isDemo: u.isDemo,

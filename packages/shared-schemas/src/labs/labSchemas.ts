@@ -66,6 +66,8 @@ export const labDetailsUserSchema = z.object({
   lastName: z.string().nullable(),
   username: z.string(),
   email: z.string().nullable(),
+  position: z.string().nullable(),
+  department: z.string().nullable(),
   role: z.enum(USER_ROLES),
   status: z.enum(USER_STATUSES),
   isDemo: z.boolean(),
