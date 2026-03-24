@@ -261,6 +261,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                 )}
               </div>
               <div className="text-xs text-muted-foreground">{user.username}</div>
+              {user.email && (
+                <div className="text-[11px] text-muted-foreground/70">{user.email}</div>
+              )}
             </div>
           </div>
         );

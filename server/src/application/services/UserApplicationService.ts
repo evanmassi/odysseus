@@ -46,6 +46,7 @@ import type { RegisterWithProfileRequest } from '@odysseus/shared-schemas';
 export type EnrichedPublicUser = ReturnType<User['toPublicData']> & {
   firstName?: string;
   lastName?: string;
+  email?: string;
 };
 
 export class UserApplicationService {
@@ -172,7 +173,7 @@ export class UserApplicationService {
       if (publicData.personId) {
         const person = directPersonMap.get(publicData.personId);
         if (person) {
-          return { ...publicData, firstName: person.firstName, lastName: person.lastName };
+          return { ...publicData, firstName: person.firstName, lastName: person.lastName, email: person.email };
         }
       }
 
@@ -181,7 +182,7 @@ export class UserApplicationService {
         if (researcher) {
           const person = researcherPersonMap.get(researcher.personId);
           if (person) {
-            return { ...publicData, firstName: person.firstName, lastName: person.lastName };
+            return { ...publicData, firstName: person.firstName, lastName: person.lastName, email: person.email };
           }
         }
       }
