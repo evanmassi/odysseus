@@ -8,16 +8,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
 import {
-  RefreshCw,
-  Trash2,
-  Plus,
-  CircleCheckBig,
-  OctagonX,
-  Clock,
+  ChevronDown,
   Dna,
-  TestTube,
   Link,
+  Link2,
+  Plus,
   Power,
+  RefreshCw,
+  TestTube,
+  Trash2,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -55,6 +54,7 @@ export function ResearchersTab({
     researcherName: string;
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
+  const [showInactive, setShowInactive] = useState(false);
   const currentUserId = useAuthStore(s => s.user?.id);
 
   useEffect(() => {
@@ -83,11 +83,6 @@ export function ResearchersTab({
             <Chip color="warning" size="sm" leftIcon={<TestTube />}>
               {tubesWithoutResearcher} {tubesWithoutResearcher === 1 ? 'tube' : 'tubes'} without
               researcher
-            </Chip>
-          )}
-          {researchers.filter(r => r.approvalStatus === 'pending').length > 0 && (
-            <Chip color="warning" size="sm" leftIcon={<Clock />}>
-              {researchers.filter(r => r.approvalStatus === 'pending').length} pending approval
             </Chip>
           )}
         </div>
@@ -241,13 +236,20 @@ export function ResearchersTab({
         }
         case 'tubes':
           return (a.tubeCount - b.tubeCount) * direction;
-        case 'status':
-          return ((a.active ? 1 : 0) - (b.active ? 1 : 0)) * direction;
         default:
           return 0;
       }
     });
   }, [researchers, sortConfig]);
+
+  const activeResearchers = useMemo(
+    () => sortedResearchers.filter(r => r.active),
+    [sortedResearchers]
+  );
+  const inactiveResearchers = useMemo(
+    () => sortedResearchers.filter(r => !r.active),
+    [sortedResearchers]
+  );
 
   const researcherColumns: TableColumn<AdminResearcher>[] = [
     {
@@ -266,30 +268,6 @@ export function ResearchersTab({
               </div>
               <div className="text-xs text-muted-foreground">{researcher.email}</div>
             </div>
-          </div>
-        );
-      },
-    },
-    {
-      id: 'position',
-      header: 'Position',
-      render: (_, researcher) => {
-        return (
-          <div className="whitespace-nowrap max-w-[150px]">
-            {researcher.position ? (
-              <Tooltip content={researcher.position} side="bottom">
-                <div className="text-sm text-card-foreground truncate">{researcher.position}</div>
-              </Tooltip>
-            ) : (
-              <div className="text-sm text-card-foreground truncate">—</div>
-            )}
-            {researcher.department && (
-              <Tooltip content={researcher.department} side="bottom">
-                <div className="text-xs text-muted-foreground truncate">
-                  {researcher.department}
-                </div>
-              </Tooltip>
-            )}
           </div>
         );
       },
@@ -316,48 +294,16 @@ export function ResearchersTab({
       render: (_, researcher) => {
         if (researcher.linkedUserId) {
           return (
-            <div className="whitespace-nowrap">
-              <div className="text-sm font-medium text-card-foreground">
-                {researcher.linkedUsername}
-              </div>
-              <div className="text-xs text-muted-foreground">Linked</div>
+            <div className="flex items-center gap-1.5 text-sm text-card-foreground whitespace-nowrap">
+              <Link2 size={14} className="text-success-text shrink-0" />
+              <span>{researcher.linkedUsername ?? 'Linked'}</span>
             </div>
           );
         }
-        return <span className="text-sm text-muted-foreground whitespace-nowrap">—</span>;
-      },
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      sortable: true,
-      render: (_, researcher) => {
-        // Pending approval takes precedence (researcher not yet vetted)
-        if (researcher.approvalStatus === 'pending') {
-          return (
-            <Tooltip content="Pending Approval - Linked user not yet approved" side="bottom">
-              <span className="whitespace-nowrap">
-                <Clock size={18} className="text-warning-text" />
-              </span>
-            </Tooltip>
-          );
-        }
-
-        if (researcher.active) {
-          return (
-            <Tooltip content="Active" side="bottom">
-              <span className="whitespace-nowrap">
-                <CircleCheckBig size={18} className="text-success-text" />
-              </span>
-            </Tooltip>
-          );
-        }
         return (
-          <Tooltip content="Deactivated" side="bottom">
-            <span className="whitespace-nowrap">
-              <OctagonX size={18} className="text-danger-text" />
-            </span>
-          </Tooltip>
+          <Chip size="sm" color="outlined">
+            None
+          </Chip>
         );
       },
     },
@@ -370,13 +316,11 @@ export function ResearchersTab({
           <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
             <Tooltip
               content={
-                researcher.approvalStatus === 'pending'
-                  ? 'Cannot toggle pending researcher'
-                  : isSelfResearcher
-                    ? 'Cannot deactivate your own researcher profile'
-                    : researcher.active
-                      ? 'Deactivate researcher'
-                      : 'Reactivate researcher'
+                isSelfResearcher
+                  ? 'Cannot deactivate your own researcher profile'
+                  : researcher.active
+                    ? 'Deactivate researcher'
+                    : 'Reactivate researcher'
               }
               side="bottom"
             >
@@ -385,11 +329,7 @@ export function ResearchersTab({
                 size="xs"
                 iconOnly
                 onClick={() => void handleToggleStatus(researcher)}
-                disabled={
-                  researcher.approvalStatus === 'pending' ||
-                  isSelfResearcher ||
-                  togglingStatus === researcher.id
-                }
+                disabled={isSelfResearcher || togglingStatus === researcher.id}
                 isLoading={togglingStatus === researcher.id}
                 aria-label={researcher.active ? 'Deactivate researcher' : 'Reactivate researcher'}
               >
@@ -452,7 +392,7 @@ export function ResearchersTab({
 
       <Table
         columns={readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns}
-        data={sortedResearchers}
+        data={activeResearchers}
         size="sm"
         variant="default"
         hoverable
@@ -465,6 +405,37 @@ export function ResearchersTab({
         loadingMessage="Loading researchers..."
         aria-label="Researchers list"
       />
+
+      {inactiveResearchers.length > 0 && (
+        <div className="pt-3 border-t border-border">
+          <button
+            onClick={() => setShowInactive(prev => !prev)}
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
+            />
+            Inactive Researchers ({inactiveResearchers.length})
+          </button>
+          {showInactive && (
+            <div className="mt-2">
+              <Table
+                columns={
+                  readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns
+                }
+                data={inactiveResearchers}
+                size="sm"
+                variant="default"
+                rounded="lg"
+                emptyMessage=""
+                aria-label="Inactive researchers"
+                className="opacity-60"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       <ResearcherModal
         isOpen={showAddModal}
