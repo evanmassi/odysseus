@@ -11,7 +11,7 @@ export interface PersonRow {
   id: string;
   first_name: string;
   last_name: string;
-  email: string;
+  email: string | null;
   position?: string;
   department?: string;
   created_at: Date | string;
@@ -25,7 +25,7 @@ export class PersonMapper {
       id: person.id,
       first_name: person.firstName,
       last_name: person.lastName,
-      email: person.email,
+      email: person.email ?? null,
       position: person.position,
       department: person.department,
       created_at: toDate(person.createdAt),
@@ -38,7 +38,7 @@ export class PersonMapper {
       id: row.id,
       firstName: row.first_name,
       lastName: row.last_name,
-      email: row.email,
+      email: row.email ?? undefined,
       position: row.position,
       department: row.department,
       createdAt: toISOString(row.created_at),

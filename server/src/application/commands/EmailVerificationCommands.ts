@@ -60,12 +60,12 @@ export class SendVerificationEmailCommandHandler {
     await this.userRepository.save(user);
 
     await this.emailService.sendVerificationEmail(
-      person.email,
+      person.email!,
       token,
       user.username
     );
 
-    const event = new VerificationEmailSentEvent(user.id, person.email, user.labId);
+    const event = new VerificationEmailSentEvent(user.id, person.email!, user.labId);
     await this.eventBus.publish(event);
   }
 }
@@ -131,12 +131,12 @@ export class ResendVerificationEmailCommandHandler {
     await this.userRepository.save(user);
 
     await this.emailService.sendVerificationEmail(
-      person.email,
+      person.email!,
       token,
       user.username
     );
 
-    const event = new VerificationEmailResentEvent(user.id, person.email, user.labId);
+    const event = new VerificationEmailResentEvent(user.id, person.email!, user.labId);
     await this.eventBus.publish(event);
   }
 }

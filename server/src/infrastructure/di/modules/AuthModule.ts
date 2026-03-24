@@ -7,7 +7,7 @@
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
-import type { ChangeUserRoleCommandHandler, DeleteUserCommandHandler } from '@application/commands/UserCommands';
+import type { ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
@@ -23,7 +23,6 @@ interface AuthCrossModuleDeps {
   getCheckFirstTimeHandler: () => CheckFirstTimeSetupQueryHandler;
   getGetUserByIdHandler: () => GetUserByIdQueryHandler;
   getChangeRoleHandler: () => ChangeUserRoleCommandHandler;
-  getDeleteUserHandler: () => DeleteUserCommandHandler;
   getUserApplicationService: () => UserApplicationService;
   getResearcherApplicationService: () => ResearcherApplicationService;
 }
@@ -229,7 +228,6 @@ export class AuthModule {
     if (!this.adminUserController) {
       this.adminUserController = new AdminUserController({
         changeRoleHandler: this.crossModuleDeps.getChangeRoleHandler(),
-        deleteUserHandler: this.crossModuleDeps.getDeleteUserHandler(),
         adminResetPasswordHandler: this.getAdminResetPasswordHandler(),
         generatePasswordResetTokenHandler: this.getGeneratePasswordResetTokenHandler(),
         getUserByIdHandler: this.crossModuleDeps.getGetUserByIdHandler(),

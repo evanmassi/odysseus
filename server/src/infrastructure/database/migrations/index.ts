@@ -22,6 +22,7 @@ import { migration015 } from './015_insert_default_configuration';
 import { migration016 } from './016_create_donors';
 import { migration017 } from './017_enhance_search_vector';
 import { migration018 } from './018_add_invite_code_columns';
+import { migration019 } from './019_nullable_person_email';
 
 import type { Migration } from './migrationRunner';
 
@@ -44,4 +45,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration016,
   migration017,
   migration018,
+  migration019,
 ];

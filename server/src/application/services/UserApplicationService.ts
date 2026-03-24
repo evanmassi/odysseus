@@ -14,11 +14,14 @@ import type { UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest
 import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
 import { User } from '@domain/entities/User';
+import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
+import { BulkResourcesUnassignedEvent } from '@domain/events/StorageEvents';
 import {
+  UserDeletedEvent,
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
   UserDeactivatedEvent,
@@ -34,6 +37,7 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import { UserRole } from '@domain/value-objects/UserRole';
+import { logger } from '@infrastructure/logging/logger';
 
 import type { RegisterWithProfileRequest } from '@odysseus/shared-schemas';
 
@@ -215,9 +219,8 @@ export class UserApplicationService {
   }
 
   /**
-   * Unlinks researcher profile but preserves it for tube history.
-   * Cleans up orphaned Person if no other entity references it.
-   * Rejects deletion if user has assigned racks/boxes.
+   * Auto-clears storage assignments, deletes user, and cleans up linked records.
+   * Researchers with tubes are preserved for history (email cleared); otherwise deleted.
    */
   async deleteUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
@@ -229,46 +232,69 @@ export class UserApplicationService {
 
     await this.ensureNotLastAdmin(targetUser, 'delete');
 
-    if (this.storageRepository) {
-      const config = admin.labId
-        ? await this.storageRepository.getForLab(admin.labId)
-        : null;
-      if (config) {
-        const configData = config.toData();
-        let assignedResourceCount = 0;
-        const assignedResources: string[] = [];
+    const username = targetUser.username;
+    const personId = targetUser.personId;
+    const researcherId = targetUser.researcherId;
+    let racksAffected = 0;
+    let boxesAffected = 0;
 
-        for (const tank of configData.tanks) {
-          for (const rack of tank.racks) {
-            if (rack.assignedUserId === targetUser.id) {
-              assignedResourceCount++;
-              assignedResources.push(`Rack: ${rack.name}`);
-            }
-            for (const box of rack.boxes) {
-              if (box.assignedUserId === targetUser.id) {
-                assignedResourceCount++;
-                assignedResources.push(`Box: ${box.name} in ${rack.name}`);
-              }
-            }
-          }
+    // Auto-clear storage assignments with optimistic locking retry
+    if (this.storageRepository && targetUser.labId) {
+      const MAX_CASCADE_RETRIES = 3;
+      let cascadeSucceeded = false;
+
+      for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
+        const configuration = await this.storageRepository.getForLab(targetUser.labId);
+        if (!configuration) {
+          cascadeSucceeded = true;
+          break;
         }
 
-        if (assignedResourceCount > 0) {
-          throw new ValidationError(
-            `Cannot delete user with ${assignedResourceCount} assigned resource(s). Unassign resources first.`,
-            {
-              userId: targetUser.id,
-              assignedResourceCount,
-              assignedResources
-            }
+        const counts = configuration.countAssignmentsForUser(userId);
+        const expectedVersion = configuration.version;
+        const hadAssignments = configuration.clearAllAssignmentsForUser(userId);
+
+        if (!hadAssignments) {
+          cascadeSucceeded = true;
+          break;
+        }
+
+        try {
+          await this.storageRepository.saveWithOptimisticLock(
+            targetUser.labId,
+            configuration,
+            expectedVersion,
+            `Cleared assignments for deleted user '${username}'`,
+            admin.id
           );
+
+          racksAffected = counts.racks;
+          boxesAffected = counts.boxes;
+          cascadeSucceeded = true;
+
+          logger.info(`Cleared resource assignments for deleted user ${username}`, {
+            userId, racksAffected, boxesAffected, attempt,
+          });
+          break;
+        } catch (error) {
+          if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
+            logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for user deletion`, {
+              userId, expectedVersion, currentVersion: error.currentVersion,
+            });
+            continue;
+          }
+          throw error;
         }
+      }
+
+      if (!cascadeSucceeded) {
+        throw new ValidationError(
+          'Failed to clear resource assignments after multiple attempts. Please try again.',
+          { userId }
+        );
       }
     }
 
-    const personId = targetUser.personId;
-
-    // Preserves researcher for tube history
     if (targetUser.hasResearcherProfile()) {
       targetUser.unlinkResearcher();
       await this.userRepository.save(targetUser);
@@ -276,10 +302,35 @@ export class UserApplicationService {
 
     await this.userRepository.delete(userId);
 
-    if (personId && this.personRepository && this.researcherRepository) {
-      const researcherWithPerson = await this.researcherRepository.findByPersonId(personId);
-      if (!researcherWithPerson) {
-        await this.personRepository.delete(personId);
+    // Clean up linked researcher and person records
+    if (researcherId && this.researcherRepository && this.personRepository) {
+      const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcherId);
+
+      if (tubeCount === 0) {
+        await this.researcherRepository.delete(researcherId);
+        if (personId) {
+          await this.personRepository.delete(personId);
+        }
+      } else if (personId) {
+        // Researcher has tubes — preserve for history, but release the email
+        const person = await this.personRepository.findById(personId);
+        if (person) {
+          person.clearEmail();
+          await this.personRepository.save(person);
+        }
+      }
+    } else if (personId && this.personRepository) {
+      // User-only account (no researcher) — person is orphaned, delete it
+      await this.personRepository.delete(personId);
+    }
+
+    if (this.eventBus) {
+      await this.eventBus.publish(new UserDeletedEvent(userId, username, admin.id, targetUser.labId));
+
+      if (racksAffected > 0 || boxesAffected > 0) {
+        await this.eventBus.publish(new BulkResourcesUnassignedEvent(
+          admin.id, userId, username, racksAffected, boxesAffected, targetUser.labId!
+        ));
       }
     }
   }

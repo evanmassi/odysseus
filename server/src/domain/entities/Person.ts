@@ -12,7 +12,7 @@ export class Person {
     private readonly _id: string,
     private _firstName: string,
     private _lastName: string,
-    private _email: string,
+    private _email: string | undefined,
     private readonly _createdAt: Date,
     private _updatedAt: Date,
     private _position?: string,
@@ -47,7 +47,7 @@ export class Person {
     id: string;
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string;
     createdAt: string | Date;
     updatedAt: string | Date;
     position?: string;
@@ -89,9 +89,8 @@ export class Person {
   }
 
   private validateEmail(): void {
-    if (!this._email || this._email.trim().length === 0) {
-      throw new ValidationError('Email is required');
-    }
+    // Historical persons (deleted user, researcher kept for tube attribution) have no email
+    if (!this._email) return;
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(this._email)) {
@@ -118,6 +117,11 @@ export class Person {
     this.validateEmail();
   }
 
+  clearEmail(): void {
+    this._email = undefined;
+    this._updatedAt = new Date();
+  }
+
   equals(other: Person): boolean {
     if (!other) return false;
     return this._id === other._id;
@@ -131,7 +135,7 @@ export class Person {
     id: string;
     firstName: string;
     lastName: string;
-    email: string;
+    email?: string;
     position?: string;
     department?: string;
     createdAt: string;
@@ -161,7 +165,7 @@ export class Person {
     return this._lastName;
   }
 
-  get email(): string {
+  get email(): string | undefined {
     return this._email;
   }
 

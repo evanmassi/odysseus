@@ -247,7 +247,6 @@ export class ServiceContainer {
         getCheckFirstTimeHandler: () => this.getUserModule().getCheckFirstTimeHandler(),
         getGetUserByIdHandler: () => this.getUserModule().getGetUserByIdHandler(),
         getChangeRoleHandler: () => this.getUserModule().getChangeRoleHandler(),
-        getDeleteUserHandler: () => this.getUserModule().getDeleteUserHandler(),
         getUserApplicationService: () => this.getUserModule().getUserApplicationService(),
         getResearcherApplicationService: () => this.getUserModule().getResearcherApplicationService(),
       });

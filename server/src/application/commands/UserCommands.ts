@@ -7,20 +7,16 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
-import { requireAdmin } from '@application/guards/UserGuards';
 import { Person } from '@domain/entities/Person';
 import { User } from '@domain/entities/User';
-import { ConflictError } from '@domain/errors/ConflictError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
-import { BulkResourcesUnassignedEvent } from '@domain/events/StorageEvents';
 import {
   UserCreatedEvent,
   UserPasswordChangedEvent,
   UserRoleChangedEvent,
-  UserDeletedEvent,
   UserLoggedInEvent
 } from '@domain/events/UserEvents';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
@@ -67,11 +63,6 @@ export interface ChangeUserPasswordCommand {
 export interface ChangeUserRoleCommand {
   userId: string;
   newRole: UserRole;
-  initiatedBy: string;
-}
-
-export interface DeleteUserCommand {
-  userId: string;
   initiatedBy: string;
 }
 
@@ -289,106 +280,6 @@ export class ChangeUserRoleCommandHandler {
   }
 }
 
-export class DeleteUserCommandHandler {
-  constructor(
-    private userRepository: UserRepository,
-    private eventBus: EventBus,
-    private storageRepository: StorageRepository
-  ) {}
-
-  async handle(command: DeleteUserCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
-    if (!user) {
-      throw new UserNotFoundError(command.userId);
-    }
-
-    const admin = await requireAdmin(this.userRepository, command.initiatedBy);
-    admin.requireCanManage(user);
-
-    const username = user.username;
-
-    // Retry ensures cascade completes even during concurrent configuration changes
-    const MAX_CASCADE_RETRIES = 3;
-    let cascadeSucceeded = false;
-    let racksAffected = 0;
-    let boxesAffected = 0;
-
-    for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
-      if (!user.labId) {
-        break;
-      }
-      const configuration = await this.storageRepository.getForLab(user.labId);
-      if (!configuration) {
-        break;
-      }
-
-      const counts = configuration.countAssignmentsForUser(command.userId);
-      const expectedVersion = configuration.version;
-      const hadAssignments = configuration.clearAllAssignmentsForUser(command.userId);
-
-      if (!hadAssignments) {
-        cascadeSucceeded = true;
-        break;
-      }
-
-      try {
-        await this.storageRepository.saveWithOptimisticLock(
-          user.labId!,
-          configuration,
-          expectedVersion,
-          `Cleared assignments for deleted user '${username}'`,
-          command.initiatedBy
-        );
-
-        racksAffected = counts.racks;
-        boxesAffected = counts.boxes;
-        cascadeSucceeded = true;
-
-        logger.info(`Cleared resource assignments for deleted user ${username}`, {
-          userId: command.userId,
-          racksAffected,
-          boxesAffected,
-          attempt,
-        });
-        break;
-      } catch (error) {
-        if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
-          logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for user deletion`, {
-            userId: command.userId,
-            expectedVersion,
-            currentVersion: error.currentVersion,
-          });
-          continue;
-        }
-        throw error;
-      }
-    }
-
-    if (!cascadeSucceeded) {
-      throw new ValidationError(
-        'Failed to clear resource assignments after multiple attempts. Please try again.',
-        { userId: command.userId }
-      );
-    }
-
-    await this.userRepository.delete(command.userId);
-
-    const deleteEvent = new UserDeletedEvent(command.userId, username, command.initiatedBy, user.labId);
-    await this.eventBus.publish(deleteEvent);
-
-    if (racksAffected > 0 || boxesAffected > 0) {
-      const cascadeEvent = new BulkResourcesUnassignedEvent(
-        command.initiatedBy,
-        command.userId,
-        username,
-        racksAffected,
-        boxesAffected,
-        user.labId!
-      );
-      await this.eventBus.publish(cascadeEvent);
-    }
-  }
-}
 
 export interface LoginResult {
   user: User;

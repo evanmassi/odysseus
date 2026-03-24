@@ -24,7 +24,7 @@ export interface ResearcherResponse {
   source: ResearcherSource;
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;
   position?: string;
   department?: string;
   labId?: string;

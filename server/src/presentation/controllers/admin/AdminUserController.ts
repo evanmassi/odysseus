@@ -1,7 +1,7 @@
 /**
  * Admin User Management Controller
  *
- * Lab admin endpoints — user CRUD, approval workflow, role changes, researcher linking, password resets.
+ * Lab admin endpoints — user CRUD, role changes, researcher linking, password resets.
  */
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
@@ -10,7 +10,6 @@ import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import type { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 import type {
   ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
-  DeleteUserCommand, DeleteUserCommandHandler,
 } from '@application/commands/UserCommands';
 import type { GetUserByIdQueryHandler } from '@application/queries/UserQueries';
 import { GetUserByIdQuery } from '@application/queries/UserQueries';
@@ -26,7 +25,6 @@ import type { Request, Response } from 'express';
 
 export interface AdminUserControllerDeps {
   changeRoleHandler: ChangeUserRoleCommandHandler;
-  deleteUserHandler: DeleteUserCommandHandler;
   adminResetPasswordHandler: AdminResetPasswordCommandHandler;
   generatePasswordResetTokenHandler: GeneratePasswordResetTokenCommandHandler;
   getUserByIdHandler: GetUserByIdQueryHandler;
@@ -106,22 +104,20 @@ export class AdminUserController {
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const adminUser = req.user;
+      const adminApiKey = req.user?.apiKey;
 
-      if (!adminUser) {
-        handleControllerError(new Error('Admin user not found in request context'), res, 'Failed to delete user'); return;
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
       }
 
-      const command: DeleteUserCommand = { userId: id, initiatedBy: adminUser.id };
-      await this.deps.deleteUserHandler.handle(command);
+      await this.deps.userApplicationService.deleteUser(id, adminApiKey);
 
       logger.info('User deleted', {
         deletedUserId: id,
-        performedBy: adminUser.username
+        performedBy: req.user?.username
       });
 
-      const response = ResponseBuilder.success({ message: 'User deleted successfully' });
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success({ message: 'User deleted successfully' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete user');
     }

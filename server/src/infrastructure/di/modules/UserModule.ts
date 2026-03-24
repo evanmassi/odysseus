@@ -4,7 +4,7 @@
  * Lazy-singleton wiring for user management, roles, settings, researchers, and persons.
  */
 
-import { ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
+import { ChangeUserRoleCommandHandler, UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
 import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { UserApplicationService } from '@application/services/UserApplicationService';
@@ -19,7 +19,6 @@ import { UserSessionController } from '@presentation/controllers/UserSessionCont
 
 export class UserModule {
   private changeRoleHandler?: ChangeUserRoleCommandHandler;
-  private deleteUserHandler?: DeleteUserCommandHandler;
   private updateUserSettingsHandler?: UpdateUserSettingsCommandHandler;
   private getUserSettingsHandler?: GetUserSettingsQueryHandler;
   private checkFirstTimeHandler?: CheckFirstTimeSetupQueryHandler;
@@ -50,18 +49,6 @@ export class UserModule {
       );
     }
     return this.changeRoleHandler;
-  }
-
-  getDeleteUserHandler(): DeleteUserCommandHandler {
-    if (!this.deleteUserHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.deleteUserHandler = new DeleteUserCommandHandler(
-        repositories.users,
-        this.shared.eventBus,
-        repositories.storage
-      );
-    }
-    return this.deleteUserHandler;
   }
 
   getUpdateUserSettingsHandler(): UpdateUserSettingsCommandHandler {
