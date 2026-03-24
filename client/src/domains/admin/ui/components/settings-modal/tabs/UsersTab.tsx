@@ -8,20 +8,22 @@ import { useState, useMemo } from 'react';
 
 import {
   ChevronDown,
-  Link2,
   KeyRound,
+  Link2,
   Power,
   RefreshCw,
   ShieldBan,
+  ShieldUser,
   Trash2,
   Unlink2,
+  UserRound,
   UserRoundCheck,
   UsersRound,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { logger } from '@infra/logger';
-import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
+import { Button, Chip, OverflowMenu, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -43,11 +45,6 @@ import type {
   UserRole,
 } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
-
-const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
-  { value: 'user', label: 'User' },
-  { value: 'lab_admin', label: 'Lab Admin' },
-];
 
 export interface UsersTabProps {
   users: AdminUser[];
@@ -281,41 +278,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       },
     },
     {
-      id: 'role',
-      header: 'Role',
-      sortable: true,
-      render: (_, user) => {
-        const isDisabled =
-          readOnly ||
-          updating === user.id ||
-          user.role === 'system_admin' ||
-          user.id === currentUserId;
-        return (
-          <div
-            className={`flex items-center gap-2 whitespace-nowrap ${isDisabled ? 'opacity-50' : ''}`}
-          >
-            <div className="w-28">
-              <Select
-                value={user.role ?? 'user'}
-                onChange={newValue => {
-                  if (newValue && typeof newValue === 'string') {
-                    void updateUserRole(user.id, newValue as UserRole);
-                  }
-                }}
-                options={ROLE_OPTIONS}
-                disabled={isDisabled}
-                size="sm"
-                fullWidth
-              />
-            </div>
-            {updating === user.id && (
-              <RefreshCw size={12} className="animate-spin text-muted-foreground" />
-            )}
-          </div>
-        );
-      },
-    },
-    {
       id: 'position',
       header: 'Position',
       render: (_, user) => (
@@ -366,100 +328,81 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: '',
       render: (_, user) => {
+        if (readOnly) return null;
         const isSelf = user.id === currentUserId;
+        const isSystemAdmin = user.role === 'system_admin';
+
+        const items = [
+          ...(isSystemAdmin || isSelf
+            ? []
+            : [
+                {
+                  icon: user.role === 'lab_admin' ? UserRound : ShieldUser,
+                  label: user.role === 'lab_admin' ? 'Set as User' : 'Set as Lab Admin',
+                  onClick: () =>
+                    void updateUserRole(
+                      user.id,
+                      user.role === 'lab_admin' ? ('user' as UserRole) : ('lab_admin' as UserRole)
+                    ),
+                },
+              ]),
+          {
+            icon: KeyRound,
+            label: 'Reset Password',
+            onClick: () => {
+              setPasswordResetModalData({ userId: user.id, username: user.username });
+              setIsPasswordResetModalOpen(true);
+            },
+          },
+          user.researcherId
+            ? {
+                icon: Unlink2,
+                label: 'Unlink Researcher',
+                onClick: () => unlinkResearcher(user.id, user.username),
+              }
+            : {
+                icon: Link2,
+                label: 'Link Researcher',
+                onClick: () => openLinkModal({ id: user.id, username: user.username }),
+              },
+          ...(user.status === 'approved'
+            ? [
+                {
+                  icon: Power,
+                  label: 'Deactivate',
+                  onClick: () => void handleDeactivateUser(user.id, user.username),
+                  danger: true,
+                  disabled: isSelf,
+                },
+              ]
+            : []),
+          ...(user.status === 'deactivated'
+            ? [
+                {
+                  icon: UserRoundCheck,
+                  label: 'Reactivate',
+                  onClick: () => void handleActivateUser(user.id, user.username),
+                },
+              ]
+            : []),
+          {
+            icon: Trash2,
+            label: 'Delete',
+            onClick: () => handleDeleteUser(user.id, user.username),
+            danger: true,
+            disabled: isSelf,
+          },
+        ];
+
         return (
-          <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
-            <Tooltip content="Reset password" side="bottom">
-              <Button
-                variant="ghost"
-                size="xs"
-                iconOnly
-                onClick={() => {
-                  setPasswordResetModalData({ userId: user.id, username: user.username });
-                  setIsPasswordResetModalOpen(true);
-                }}
-                aria-label="Reset password"
-              >
-                <KeyRound size={16} />
-              </Button>
-            </Tooltip>
-            {user.researcherId ? (
-              <Tooltip content="Unlink researcher" side="bottom">
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  iconOnly
-                  onClick={() => unlinkResearcher(user.id, user.username)}
-                  aria-label="Unlink researcher"
-                >
-                  <Unlink2 size={16} />
-                </Button>
-              </Tooltip>
-            ) : (
-              <Tooltip content="Link researcher" side="bottom">
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  iconOnly
-                  onClick={() => openLinkModal({ id: user.id, username: user.username })}
-                  aria-label="Link researcher"
-                >
-                  <Link2 size={16} />
-                </Button>
-              </Tooltip>
-            )}
-            {user.status === 'approved' && (
-              <Tooltip
-                content={isSelf ? 'Cannot deactivate yourself' : 'Deactivate user'}
-                side="bottom"
-              >
-                <Button
-                  variant="ghost-danger"
-                  size="xs"
-                  iconOnly
-                  onClick={() => void handleDeactivateUser(user.id, user.username)}
-                  disabled={isSelf || deactivateUserMutation.isPending}
-                  aria-label="Deactivate user"
-                >
-                  <Power size={16} />
-                </Button>
-              </Tooltip>
-            )}
-            {user.status === 'deactivated' && (
-              <Tooltip content="Reactivate user" side="bottom">
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  iconOnly
-                  onClick={() => void handleActivateUser(user.id, user.username)}
-                  disabled={activateUserMutation.isPending}
-                  aria-label="Reactivate user"
-                >
-                  <UserRoundCheck size={16} className="text-success-text" />
-                </Button>
-              </Tooltip>
-            )}
-            {user.status === 'suspended' && (
-              <Tooltip content="Suspended by system admin" side="bottom">
-                <ShieldBan size={16} className="text-danger-text" />
-              </Tooltip>
-            )}
-            <Tooltip content={isSelf ? 'Cannot delete yourself' : 'Delete user'} side="bottom">
-              <Button
-                variant="ghost-danger"
-                size="xs"
-                iconOnly
-                onClick={() => handleDeleteUser(user.id, user.username)}
-                disabled={isSelf}
-                isLoading={deleteUserMutation.isPending}
-                aria-label="Delete user"
-              >
-                <Trash2 size={16} />
-              </Button>
-            </Tooltip>
-          </div>
+          <OverflowMenu
+            items={items}
+            dividerBefore={['Reset Password', 'Deactivate', 'Reactivate', 'Delete']}
+            size="md"
+            aria-label={`Actions for ${user.username}`}
+          />
         );
       },
     },

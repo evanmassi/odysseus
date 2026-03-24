@@ -83,12 +83,14 @@ export function useMenuKeyboardNavigation({
     (e: React.FocusEvent) => {
       if (!enabled) return;
 
-      // relatedTarget is the element receiving focus
-      if (!menuRef.current?.contains(e.relatedTarget as Node)) {
+      // relatedTarget is the element receiving focus — keep open if returning to trigger
+      const movingToMenu = menuRef.current?.contains(e.relatedTarget as Node);
+      const movingToTrigger = triggerRef?.current?.contains(e.relatedTarget as Node);
+      if (!movingToMenu && !movingToTrigger) {
         onClose();
       }
     },
-    [enabled, menuRef, onClose]
+    [enabled, menuRef, triggerRef, onClose]
   );
 
   return {
