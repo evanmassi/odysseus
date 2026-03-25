@@ -22,8 +22,8 @@ import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 
 import '../storage-navigator/storage-navigator.css';
 import { BoxEditModal } from './edit-modals/BoxEditModal';
-import { CustomLabelEditModal } from './edit-modals/CustomLabelEditModal';
 import { RackEditModal } from './edit-modals/RackEditModal';
+import { StorageRenameModal } from './edit-modals/StorageRenameModal';
 import { TankEditModal } from './edit-modals/TankEditModal';
 import { StorageManagerContext } from './StorageManagerContext';
 import { TankRow } from './tabs/by-location/TankRow';
@@ -333,7 +333,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       )}
 
       {editModals.labelModalData && (
-        <CustomLabelEditModal
+        <StorageRenameModal
           isOpen={editModals.isLabelModalOpen}
           resourceInfo={{
             type: editModals.labelModalData.type,

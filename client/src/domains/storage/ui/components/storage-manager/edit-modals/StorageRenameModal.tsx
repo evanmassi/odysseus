@@ -1,7 +1,7 @@
 /**
- * Custom Label Edit Modal
+ * Storage Rename Modal
  *
- * Modal for setting or removing a custom display label on a rack or box.
+ * Modal for setting or removing a custom display name on a rack or box.
  */
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
@@ -13,7 +13,7 @@ import { BaseModal } from '@shared/ui/components/overlays';
 
 import type { LabConfiguration } from '@domains/storage';
 
-interface CustomLabelEditModalProps {
+interface StorageRenameModalProps {
   isOpen: boolean;
   resourceInfo: {
     type: 'rack' | 'box';
@@ -33,13 +33,13 @@ interface CustomLabelEditModalProps {
   onClose: () => void;
 }
 
-export function CustomLabelEditModal({
+export function StorageRenameModal({
   isOpen,
   resourceInfo,
   currentLab,
   onSave,
   onClose,
-}: CustomLabelEditModalProps) {
+}: StorageRenameModalProps) {
   const {
     formData: label,
     setFormData: setLabel,
@@ -50,7 +50,8 @@ export function CustomLabelEditModal({
   const rack = tank?.racks.find(r => r.id === resourceInfo.rackId);
   const box = rack?.boxes.find(b => b.id === resourceInfo.boxId);
 
-  const genericName = resourceInfo.type === 'rack' ? (rack?.name ?? '') : (box?.name ?? '');
+  const isRack = resourceInfo.type === 'rack';
+  const genericName = isRack ? (rack?.name ?? '') : (box?.name ?? '');
 
   const previewName = formatResourceDisplayName(genericName, label);
 
@@ -70,7 +71,7 @@ export function CustomLabelEditModal({
   return (
     <BaseModal
       isOpen={isOpen}
-      title="Edit Custom Label"
+      title={isRack ? 'Rename Rack' : 'Rename Box'}
       icon={<Tag size={24} />}
       onClose={onClose}
       className="max-w-sm"
@@ -90,7 +91,7 @@ export function CustomLabelEditModal({
             htmlFor="custom-label-input"
             className="block text-sm font-medium mb-1 text-secondary-foreground"
           >
-            Custom Label (optional)
+            Display Name
           </label>
           <Input
             id="custom-label-input"
@@ -102,7 +103,7 @@ export function CustomLabelEditModal({
             fullWidth
           />
           <div className="flex justify-between mt-1">
-            <p className="text-xs text-muted-foreground">Leave blank to remove custom label.</p>
+            <p className="text-xs text-muted-foreground">Leave blank to use system name.</p>
             <p className="text-xs text-muted-foreground">{label.length}/50</p>
           </div>
         </div>
@@ -118,7 +119,7 @@ export function CustomLabelEditModal({
           Cancel
         </Button>
         <Button variant="primary" onClick={() => void handleSave()} leftIcon={<Save size={16} />}>
-          Save Label
+          Save
         </Button>
       </div>
     </BaseModal>

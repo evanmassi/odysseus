@@ -60,7 +60,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
     if (canEditResource(box, rack)) {
       items.push({
         icon: Tag,
-        label: 'Custom Label',
+        label: 'Rename Box',
         onClick: () => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? ''),
       });
     }

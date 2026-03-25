@@ -79,7 +79,7 @@ export function RackRow({
     if (canEditResource(rack)) {
       items.push({
         icon: Tag,
-        label: 'Custom Label',
+        label: 'Rename Rack',
         onClick: () => onEditRackLabel(tankId, rack.id, rack.customLabel ?? ''),
       });
     }
