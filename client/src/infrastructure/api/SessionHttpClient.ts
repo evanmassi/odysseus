@@ -6,8 +6,6 @@
 
 import { ApiError } from '@odysseus/shared-schemas';
 
-import { transformApiResponse } from './responseTransformers';
-
 export class SessionHttpClient {
   private readonly baseURL: string;
   private readonly timeout: number;
@@ -67,17 +65,7 @@ export class SessionHttpClient {
         );
       }
 
-      const typeHint = path.includes('/refresh')
-        ? 'RefreshResponse'
-        : path.includes('/login')
-          ? 'LoginResponse'
-          : path.includes('/session-info')
-            ? 'SessionInfo'
-            : path.includes('/heartbeat')
-              ? 'Heartbeat'
-              : undefined;
-
-      return transformApiResponse<T>(responseData, typeHint);
+      return responseData as T;
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;

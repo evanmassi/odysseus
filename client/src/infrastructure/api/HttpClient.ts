@@ -1,122 +1,14 @@
 /**
  * HTTP Client
  *
- * Composition wrapper that layers auth headers, 401 retry, and response transformation over the base transport.
+ * Composition wrapper that layers auth headers and 401 retry over the base transport.
  */
 
 import { successEnvelopeSchema, ApiError, API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
-import { transformApiResponse, ResponseTransformers } from './responseTransformers';
-
 import type { HttpTransport, ApiResponse } from './HttpTransport';
 import type { TokenProvider } from '@shared/types/sessionTypes';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
-type TransformFn = (data: any) => unknown;
-
-function mapArray(transformer: TransformFn): TransformFn {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
-  return (data: any) => (Array.isArray(data) ? data.map(transformer) : transformer(data));
-}
-
-// Order matters — more specific paths must come before broader ones (e.g. /admin/audit/statistics before /admin/audit)
-const URL_TRANSFORMER_REGISTRY: { match: (url: string) => boolean; transform: TransformFn }[] = [
-  // Auth
-  {
-    match: url =>
-      url.includes('/auth/login') ||
-      url.includes('/auth/register') ||
-      url.includes('/auth/force-change-password'),
-    transform: data => ResponseTransformers.LoginResponse(data),
-  },
-  {
-    match: url => url.includes('/auth/refresh'),
-    transform: data => ResponseTransformers.RefreshResponse(data),
-  },
-  // Session verification returns same structure as login
-  {
-    match: url => url.includes('/auth/verify'),
-    transform: data => ResponseTransformers.LoginResponse(data),
-  },
-  // Other auth endpoints (first-time, password-requirements, etc.) have no date fields
-  {
-    match: url => url.includes('/auth/'),
-    transform: data => transformApiResponse(data, 'AuthGenericResponse'),
-  },
-  // Users
-  {
-    match: url => url.includes('/users/me/profile'),
-    transform: data => ResponseTransformers.Person(data),
-  },
-  {
-    match: url => url.includes('/users/me/sessions'),
-    transform: mapArray(ResponseTransformers.ActiveSession),
-  },
-  {
-    match: url => url.includes('/users/me/settings'),
-    transform: data => transformApiResponse(data, 'UserSettingsResponse'),
-  },
-  {
-    match: url => url.includes('/users/lookup') || url.includes('/users/list'),
-    transform: data => transformApiResponse(data, 'UserLookup'),
-  },
-  // Domain
-  {
-    match: url => url.includes('/storage'),
-    transform: data => transformApiResponse(data, 'StorageResponse'),
-  },
-  {
-    match: url => url.includes('/tubes'),
-    transform: data => transformApiResponse(data, 'TubeData'),
-  },
-  {
-    match: url => url.includes('/researchers'),
-    transform: data => ResponseTransformers.Researcher(data),
-  },
-  {
-    match: url => url.includes('/donors'),
-    transform: data => transformApiResponse(data, 'Donor'),
-  },
-  {
-    match: url => url.includes('/lookups'),
-    transform: data => transformApiResponse(data, 'LookupValue'),
-  },
-  // Admin
-  {
-    match: url => url.includes('/admin/invite-codes') || url.includes('/invite-codes'),
-    transform: data => transformApiResponse(data, 'InviteCode'),
-  },
-  {
-    match: url => url.includes('/admin/users'),
-    transform: mapArray(ResponseTransformers.AdminUser),
-  },
-  {
-    match: url => url.includes('/admin/metrics'),
-    transform: data => ResponseTransformers.SystemMetrics(data),
-  },
-  {
-    match: url => url.includes('/admin/security-config'),
-    transform: data => transformApiResponse(data, 'SecurityConfigResponse'),
-  },
-  {
-    match: url => url.includes('/admin/audit/statistics'),
-    transform: data => transformApiResponse(data, 'AuditStatistics'),
-  },
-  {
-    match: url => url.includes('/admin/audit/retention'),
-    transform: data => transformApiResponse(data, 'AuditRetention'),
-  },
-  {
-    match: url => url.includes('/admin/audit'),
-    transform: mapArray(ResponseTransformers.AuditLogEntry),
-  },
-  // Misc
-  {
-    match: url => url.includes('/session-info'),
-    transform: data => transformApiResponse(data, 'SessionInfo'),
-  },
-];
 
 // Session errors that should NOT trigger token refresh — session is invalidated server-side
 const SESSION_TERMINAL_ERRORS: Set<string> = new Set([
@@ -134,13 +26,10 @@ export class HttpClient {
     this.tokenProvider = provider;
   }
 
-  // PRIMITIVE METHODS — auth headers + retry + response transformation
+  // PRIMITIVE METHODS — auth headers + retry
 
   async get<T = unknown>(url: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
-    return this.withAuthRetry(
-      h => this.baseClient.get<T>(url, h).then(r => this.applyTransform(r, url)),
-      headers
-    );
+    return this.withAuthRetry(h => this.baseClient.get<T>(url, h), headers);
   }
 
   async post<T = unknown>(
@@ -148,10 +37,7 @@ export class HttpClient {
     data?: unknown,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
-    return this.withAuthRetry(
-      h => this.baseClient.post<T>(url, data, h).then(r => this.applyTransform(r, url)),
-      headers
-    );
+    return this.withAuthRetry(h => this.baseClient.post<T>(url, data, h), headers);
   }
 
   async put<T = unknown>(
@@ -159,20 +45,14 @@ export class HttpClient {
     data?: unknown,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
-    return this.withAuthRetry(
-      h => this.baseClient.put<T>(url, data, h).then(r => this.applyTransform(r, url)),
-      headers
-    );
+    return this.withAuthRetry(h => this.baseClient.put<T>(url, data, h), headers);
   }
 
   async delete<T = unknown>(
     url: string,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
-    return this.withAuthRetry(
-      h => this.baseClient.delete<T>(url, h).then(r => this.applyTransform(r, url)),
-      headers
-    );
+    return this.withAuthRetry(h => this.baseClient.delete<T>(url, h), headers);
   }
 
   async getBlob(url: string, headers?: Record<string, string>): Promise<Blob> {
@@ -276,22 +156,5 @@ export class HttpClient {
 
       throw error;
     }
-  }
-
-  private applyTransform<T>(response: ApiResponse<T>, url: string): ApiResponse<T> {
-    if (response && response.data) {
-      response.data = this.applyResponseTransformation(response.data, url) as T;
-    }
-    return response;
-  }
-
-  private applyResponseTransformation(data: unknown, url: string): unknown {
-    if (!data) return data;
-
-    for (const { match, transform } of URL_TRANSFORMER_REGISTRY) {
-      if (match(url)) return transform(data);
-    }
-
-    return transformApiResponse(data);
   }
 }

@@ -16,7 +16,6 @@ import type {
   SessionServiceState,
   TokenValidation,
   SessionStorage,
-  RefreshResponse,
   TokenProvider,
 } from '@shared/types/sessionTypes';
 
@@ -229,18 +228,17 @@ export class SessionService implements TokenProvider {
         });
 
         if (response.success) {
-          const refreshData: RefreshResponse = response.data;
+          const refreshData = response.data;
 
-          // Validate refresh response
           if (!refreshData.accessToken || !refreshData.accessTokenExpiry) {
             throw new Error('Invalid refresh response format');
           }
 
-          // HttpClient automatically transforms date strings, so accessTokenExpiry is already a Date
+          // SessionHttpClient returns raw JSON — coerce date string manually since there's no Zod layer
           const updatedTokens: TokenPair = {
             ...tokens,
             accessToken: refreshData.accessToken,
-            accessTokenExpiry: refreshData.accessTokenExpiry,
+            accessTokenExpiry: new Date(refreshData.accessTokenExpiry),
           };
 
           this.setTokens(updatedTokens);
