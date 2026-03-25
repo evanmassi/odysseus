@@ -15,6 +15,7 @@ import { UserBadge } from '@shared/ui/components/badges';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
+import { buildUserAssignments, buildRackGroups } from './buildUserAssignments';
 import { TreeLinesByUser } from './TreeLinesByUser';
 
 import type { LabConfiguration } from '@domains/storage';
@@ -32,32 +33,6 @@ interface ByUserTabProps {
   onBulkUnassign?: (userId: string) => void;
   /** Called when admin wants to reassign all resources from one user to another */
   onBulkReassign?: (fromUserId: string, toUserId: string) => void;
-}
-
-interface ResourceAssignment {
-  type: 'rack' | 'box';
-  tankId: string;
-  tankName: string;
-  rackId: string;
-  rackName: string;
-  rackCustomLabel?: string;
-  boxId?: string;
-  boxName?: string;
-  boxCustomLabel?: string;
-  isInherited?: boolean;
-}
-
-interface UserAssignments {
-  userId: string | null; // null = unassigned/common
-  username: string;
-  initials: string;
-  firstName?: string;
-  lastName?: string;
-  displayName: string;
-  assignments: ResourceAssignment[];
-  rackCount: number;
-  boxCount: number;
-  inheritedBoxCount: number;
 }
 
 export function ByUserTab({
@@ -85,117 +60,10 @@ export function ByUserTab({
     });
   };
 
-  const assignmentsByUser = useMemo(() => {
-    const grouped = new Map<string | null, ResourceAssignment[]>();
-
-    const addAssignment = (userId: string | null, assignment: ResourceAssignment) => {
-      if (!grouped.has(userId)) {
-        grouped.set(userId, []);
-      }
-      grouped.get(userId)!.push(assignment);
-    };
-
-    for (const tank of lab.equipment.tanks) {
-      for (const rack of tank.racks) {
-        // Determine rack owner (string = assigned, null/undefined = unassigned)
-        const rackOwnerId = rack.assignedUserId ?? null;
-
-        addAssignment(rackOwnerId, {
-          type: 'rack',
-          tankId: tank.id,
-          tankName: tank.name,
-          rackId: rack.id,
-          rackName: rack.name,
-          rackCustomLabel: rack.customLabel,
-        });
-
-        for (const box of rack.boxes) {
-          if (box.assignedUserId === undefined) {
-            // Box inherits from rack - add to rack owner with inherited flag
-            addAssignment(rackOwnerId, {
-              type: 'box',
-              tankId: tank.id,
-              tankName: tank.name,
-              rackId: rack.id,
-              rackName: rack.name,
-              rackCustomLabel: rack.customLabel,
-              boxId: box.id,
-              boxName: box.name,
-              boxCustomLabel: box.customLabel,
-              isInherited: true,
-            });
-          } else {
-            // Box has explicit assignment (string or null)
-            addAssignment(box.assignedUserId, {
-              type: 'box',
-              tankId: tank.id,
-              tankName: tank.name,
-              rackId: rack.id,
-              rackName: rack.name,
-              rackCustomLabel: rack.customLabel,
-              boxId: box.id,
-              boxName: box.name,
-              boxCustomLabel: box.customLabel,
-              isInherited: false,
-            });
-          }
-        }
-      }
-    }
-
-    const result: UserAssignments[] = [];
-
-    for (const [userId, assignments] of grouped) {
-      const rackCount = assignments.filter(a => a.type === 'rack').length;
-      const boxes = assignments.filter(a => a.type === 'box');
-      const boxCount = boxes.length;
-      const inheritedBoxCount = boxes.filter(b => b.isInherited).length;
-
-      if (userId === null) {
-        result.push({
-          userId: null,
-          username: 'Unassigned / Common',
-          initials: '?',
-          displayName: 'Unassigned / Common',
-          assignments,
-          rackCount,
-          boxCount,
-          inheritedBoxCount,
-        });
-      } else {
-        const userInfo = getUserInfo(userId);
-        const username = userInfo?.username ?? `Unknown (${userId.slice(0, 8)}...)`;
-        const firstName = userInfo?.firstName;
-        const lastName = userInfo?.lastName;
-
-        const displayName =
-          firstName && lastName ? `${lastName}, ${firstName} (${username})` : username;
-
-        result.push({
-          userId,
-          username,
-          initials: userInfo?.initials ?? '??',
-          firstName,
-          lastName,
-          displayName,
-          assignments,
-          rackCount,
-          boxCount,
-          inheritedBoxCount,
-        });
-      }
-    }
-
-    result.sort((a, b) => {
-      if (a.userId === currentUserId) return -1;
-      if (b.userId === currentUserId) return 1;
-      if (a.userId === null) return 1;
-      if (b.userId === null) return -1;
-      return a.displayName.localeCompare(b.displayName);
-    });
-
-    return result;
-  }, [lab, getUserInfo, currentUserId]);
+  const assignmentsByUser = useMemo(
+    () => buildUserAssignments(lab, getUserInfo, currentUserId),
+    [lab, getUserInfo, currentUserId]
+  );
 
   const buildOverflowMenuItems = useCallback(
     (userId: string): OverflowMenuItem[] => {
@@ -219,76 +87,6 @@ export function ByUserTab({
       return items;
     },
     [onBulkUnassign]
-  );
-
-  const buildRackGroups = useCallback(
-    (racks: ResourceAssignment[], boxes: ResourceAssignment[]) => {
-      // Build rack groups: combine owned racks with racks containing orphan boxes
-      const rackGroupMap = new Map<
-        string,
-        {
-          tankId: string;
-          tankName: string;
-          rackId: string;
-          rackName: string;
-          rackCustomLabel?: string;
-          ownsRack: boolean;
-          boxes: ResourceAssignment[];
-        }
-      >();
-
-      for (const rack of racks) {
-        const key = `${rack.tankId}-${rack.rackId}`;
-        const rackBoxes = boxes
-          .filter(b => b.tankId === rack.tankId && b.rackId === rack.rackId)
-          .sort((a, b) => (a.boxId ?? '').localeCompare(b.boxId ?? ''));
-        rackGroupMap.set(key, {
-          tankId: rack.tankId,
-          tankName: rack.tankName,
-          rackId: rack.rackId,
-          rackName: rack.rackName,
-          rackCustomLabel: rack.rackCustomLabel,
-          ownsRack: true,
-          boxes: rackBoxes,
-        });
-      }
-
-      // Add orphan boxes grouped by their parent rack
-      for (const box of boxes) {
-        const key = `${box.tankId}-${box.rackId}`;
-        if (!rackGroupMap.has(key)) {
-          // This is an orphan box - create a rack group for it
-          rackGroupMap.set(key, {
-            tankId: box.tankId,
-            tankName: box.tankName,
-            rackId: box.rackId,
-            rackName: box.rackName,
-            rackCustomLabel: box.rackCustomLabel,
-            ownsRack: false,
-            boxes: [],
-          });
-        }
-        const group = rackGroupMap.get(key)!;
-        // Only add if not already in the list (avoid duplicates)
-        if (!group.ownsRack && !group.boxes.some(b => b.boxId === box.boxId)) {
-          group.boxes.push(box);
-        }
-      }
-
-      return Array.from(rackGroupMap.values())
-        .map(group => ({
-          ...group,
-          boxes: group.ownsRack
-            ? group.boxes
-            : group.boxes.sort((a, b) => (a.boxId ?? '').localeCompare(b.boxId ?? '')),
-        }))
-        .sort((a, b) => {
-          const tankCompare = a.tankName.localeCompare(b.tankName);
-          if (tankCompare !== 0) return tankCompare;
-          return a.rackId.localeCompare(b.rackId);
-        });
-    },
-    []
   );
 
   if (assignmentsByUser.length === 0) {
