@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Button, Chip, Table, Tooltip } from '@shared/ui';
+import { Chip, OverflowMenu, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -47,9 +47,19 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
   const deleteUserMutation = useDeleteLabUserMutation();
   const deactivateUserMutation = useDeactivateLabUserMutation();
   const suspendUserMutation = useSuspendLabUserMutation();
+  const activateUserMutation = useActivateLabUserMutation();
 
   const [userAction, setUserAction] = useState<UserAction | null>(null);
   const [showInactive, setShowInactive] = useState(false);
+
+  const handleActivate = async (user: LabDetailsUser) => {
+    try {
+      await activateUserMutation.mutateAsync({ labId, userId: user.id });
+      notifications.success(`${user.username} activated`);
+    } catch {
+      notifications.error('Failed to activate user');
+    }
+  };
 
   const activeUsers = useMemo(() => users.filter(u => u.status === 'approved'), [users]);
   const inactiveUsers = useMemo(
@@ -64,7 +74,11 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
         <h3 className="text-lg font-semibold text-card-foreground">Users</h3>
       </div>
       <Table
-        columns={getUserColumns(labId, setUserAction, currentUserId)}
+        columns={getUserColumns({
+          onUserAction: setUserAction,
+          onActivate: handleActivate,
+          currentUserId,
+        })}
         data={activeUsers}
         size="sm"
         rounded="lg"
@@ -91,7 +105,11 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
           {showInactive && (
             <div className="mt-2">
               <Table
-                columns={getUserColumns(labId, setUserAction, currentUserId)}
+                columns={getUserColumns({
+                  onUserAction: setUserAction,
+                  onActivate: handleActivate,
+                  currentUserId,
+                })}
                 data={inactiveUsers}
                 size="sm"
                 rounded="lg"
@@ -158,108 +176,17 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
   );
 }
 
-function ActionsCell({
-  user,
-  labId,
-  onUserAction,
-  currentUserId,
-}: {
-  user: LabDetailsUser;
-  labId: string;
+interface ColumnConfig {
   onUserAction: (action: UserAction) => void;
+  onActivate: (user: LabDetailsUser) => void;
   currentUserId?: string;
-}) {
-  const activateUserMutation = useActivateLabUserMutation();
-  const isSelf = user.id === currentUserId;
-
-  const handleActivate = async () => {
-    try {
-      await activateUserMutation.mutateAsync({ labId, userId: user.id });
-      notifications.success(`${user.username} activated`);
-    } catch {
-      notifications.error('Failed to activate user');
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-1">
-      {user.status === 'approved' && (
-        <>
-          <Tooltip content={isSelf ? 'Cannot deactivate yourself' : 'Deactivate user'}>
-            <Button
-              variant="ghost-danger"
-              size="xs"
-              iconOnly
-              onClick={() => onUserAction({ type: 'deactivate', user })}
-              disabled={isSelf}
-              aria-label="Deactivate user"
-            >
-              <Power size={16} />
-            </Button>
-          </Tooltip>
-          <Tooltip content={isSelf ? 'Cannot suspend yourself' : 'Suspend user'}>
-            <Button
-              variant="ghost-danger"
-              size="xs"
-              iconOnly
-              onClick={() => onUserAction({ type: 'suspend', user })}
-              disabled={isSelf}
-              aria-label="Suspend user"
-            >
-              <ShieldBan size={16} />
-            </Button>
-          </Tooltip>
-        </>
-      )}
-      {user.status === 'deactivated' && (
-        <Tooltip content="Reactivate user">
-          <Button
-            variant="ghost"
-            size="xs"
-            iconOnly
-            onClick={handleActivate}
-            disabled={activateUserMutation.isPending}
-            aria-label="Reactivate user"
-          >
-            <UserRoundCheck size={16} className="text-success-text" />
-          </Button>
-        </Tooltip>
-      )}
-      {user.status === 'suspended' && (
-        <Tooltip content="Unsuspend user">
-          <Button
-            variant="ghost"
-            size="xs"
-            iconOnly
-            onClick={handleActivate}
-            disabled={activateUserMutation.isPending}
-            aria-label="Unsuspend user"
-          >
-            <UserRoundCheck size={16} className="text-success-text" />
-          </Button>
-        </Tooltip>
-      )}
-      <Tooltip content={isSelf ? 'Cannot delete yourself' : 'Delete user'}>
-        <Button
-          variant="ghost-danger"
-          size="xs"
-          iconOnly
-          onClick={() => onUserAction({ type: 'delete', user })}
-          disabled={isSelf || activateUserMutation.isPending}
-          aria-label="Delete user"
-        >
-          <Trash2 size={16} />
-        </Button>
-      </Tooltip>
-    </div>
-  );
 }
 
-function getUserColumns(
-  labId: string,
-  onUserAction: (action: UserAction) => void,
-  currentUserId?: string
-): TableColumn<LabDetailsUser>[] {
+function getUserColumns({
+  onUserAction,
+  onActivate,
+  currentUserId,
+}: ColumnConfig): TableColumn<LabDetailsUser>[] {
   return [
     {
       id: 'lastName',
@@ -364,15 +291,65 @@ function getUserColumns(
     },
     {
       id: 'actions',
-      header: 'Actions',
-      render: (_value, row) => (
-        <ActionsCell
-          user={row}
-          labId={labId}
-          onUserAction={onUserAction}
-          currentUserId={currentUserId}
-        />
-      ),
+      header: '',
+      render: (_value, row) => {
+        const isSelf = row.id === currentUserId;
+
+        const items = [
+          ...(row.status === 'approved'
+            ? [
+                {
+                  icon: Power,
+                  label: 'Deactivate',
+                  onClick: () => onUserAction({ type: 'deactivate' as const, user: row }),
+                  danger: true,
+                  disabled: isSelf,
+                },
+                {
+                  icon: ShieldBan,
+                  label: 'Suspend',
+                  onClick: () => onUserAction({ type: 'suspend' as const, user: row }),
+                  danger: true,
+                  disabled: isSelf,
+                },
+              ]
+            : []),
+          ...(row.status === 'deactivated'
+            ? [
+                {
+                  icon: UserRoundCheck,
+                  label: 'Reactivate',
+                  onClick: () => void onActivate(row),
+                },
+              ]
+            : []),
+          ...(row.status === 'suspended'
+            ? [
+                {
+                  icon: UserRoundCheck,
+                  label: 'Unsuspend',
+                  onClick: () => void onActivate(row),
+                },
+              ]
+            : []),
+          {
+            icon: Trash2,
+            label: 'Delete',
+            onClick: () => onUserAction({ type: 'delete' as const, user: row }),
+            danger: true,
+            disabled: isSelf,
+          },
+        ];
+
+        return (
+          <OverflowMenu
+            items={items}
+            dividerBefore={['Delete']}
+            size="md"
+            aria-label={`Actions for ${row.username}`}
+          />
+        );
+      },
     },
   ];
 }

@@ -399,7 +399,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         return (
           <OverflowMenu
             items={items}
-            dividerBefore={['Reset Password', 'Deactivate', 'Reactivate', 'Delete']}
+            dividerBefore={['Reset Password', 'Deactivate', 'Reactivate']}
             size="md"
             aria-label={`Actions for ${user.username}`}
           />
