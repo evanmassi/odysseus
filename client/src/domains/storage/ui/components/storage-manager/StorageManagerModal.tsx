@@ -28,7 +28,8 @@ import { TankEditModal } from './edit-modals/TankEditModal';
 import { StorageManagerContext } from './StorageManagerContext';
 import { TankRow } from './tabs/by-location/TankRow';
 import { ByUserTab } from './tabs/by-user/ByUserTab';
-import { useStorageManagerMutations } from './useStorageManagerMutations';
+import { useEditModals } from './useEditModals';
+import { useStorageHandlers } from './useStorageHandlers';
 
 function toggleSetItem<T>(set: Set<T>, item: T): Set<T> {
   const next = new Set(set);
@@ -96,45 +97,10 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     return allRackKeys;
   });
 
-  const {
-    isMutating,
-    addTankMutation,
-    rackCountToAdd,
-    boxCountToAdd,
-    setRackCountToAdd,
-    setBoxCountToAdd,
-    tankModalData,
-    isTankModalOpen,
-    setIsTankModalOpen,
-    boxModalData,
-    isBoxModalOpen,
-    setIsBoxModalOpen,
-    rackModalData,
-    isRackModalOpen,
-    setIsRackModalOpen,
-    labelModalData,
-    isLabelModalOpen,
-    setIsLabelModalOpen,
-    onEditTank,
-    onEditRack,
-    onEditRackLabel,
-    onEditBox,
-    onEditBoxLabel,
-    handleAssignRack,
-    handleAssignBox,
-    handleUpdateCustomLabel,
-    handleCreateRack,
-    handleAddBox,
-    handleRemoveBox,
-    handleUpdateBoxGrid,
-    handleUpdateRack,
-    handleDeleteRack,
-    handleAddNewTank,
-    handleDeleteTank,
-    handleUpdateTank,
-    handleBulkUnassign,
-    handleBulkReassign,
-  } = useStorageManagerMutations({ currentLab, getUserInfo, setCollapsedRacks });
+  const editModals = useEditModals();
+  const handlers = useStorageHandlers({ currentLab, getUserInfo, setCollapsedRacks });
+
+  const isMutating = editModals.isMutating || handlers.isMutating;
 
   const expandedTanks = useMemo(() => {
     if (!currentLab) return new Set<string>();
@@ -178,18 +144,18 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       canEditResource,
       canManageStorage,
       isResourceLocked,
-      onEditTank,
-      onDeleteTank: handleDeleteTank,
-      onAddRack: handleCreateRack,
-      onEditRack,
-      onDeleteRack: handleDeleteRack,
-      onAddBox: handleAddBox,
-      onAssignRack: handleAssignRack,
-      onEditRackLabel,
-      onEditBox,
-      onDeleteBox: handleRemoveBox,
-      onAssignBox: handleAssignBox,
-      onEditBoxLabel,
+      onEditTank: editModals.onEditTank,
+      onDeleteTank: handlers.handleDeleteTank,
+      onAddRack: handlers.handleCreateRack,
+      onEditRack: editModals.onEditRack,
+      onDeleteRack: handlers.handleDeleteRack,
+      onAddBox: handlers.handleAddBox,
+      onAssignRack: handlers.handleAssignRack,
+      onEditRackLabel: editModals.onEditRackLabel,
+      onEditBox: editModals.onEditBox,
+      onDeleteBox: handlers.handleRemoveBox,
+      onAssignBox: handlers.handleAssignBox,
+      onEditBoxLabel: editModals.onEditBoxLabel,
     }),
     [
       dropdownUsers,
@@ -202,18 +168,18 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       canEditResource,
       canManageStorage,
       isResourceLocked,
-      onEditTank,
-      handleDeleteTank,
-      handleCreateRack,
-      onEditRack,
-      handleDeleteRack,
-      handleAddBox,
-      handleAssignRack,
-      onEditRackLabel,
-      onEditBox,
-      handleRemoveBox,
-      handleAssignBox,
-      onEditBoxLabel,
+      editModals.onEditTank,
+      editModals.onEditRack,
+      editModals.onEditRackLabel,
+      editModals.onEditBox,
+      editModals.onEditBoxLabel,
+      handlers.handleDeleteTank,
+      handlers.handleCreateRack,
+      handlers.handleDeleteRack,
+      handlers.handleAddBox,
+      handlers.handleRemoveBox,
+      handlers.handleAssignRack,
+      handlers.handleAssignBox,
     ]
   );
 
@@ -287,8 +253,8 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={handleAddNewTank}
-                  isLoading={addTankMutation.isPending}
+                  onClick={handlers.handleAddNewTank}
+                  isLoading={handlers.addTankMutation.isPending}
                   loadingText="Adding..."
                   leftIcon={<Plus size={16} />}
                   disabled={!!tankLimitReached}
@@ -311,15 +277,15 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                       key={tank.id}
                       tank={tank}
                       collapsed={collapsedTanks.has(tank.id)}
-                      rackCountToAdd={rackCountToAdd[tank.id] || 1}
-                      boxCountToAdd={boxCountToAdd}
+                      rackCountToAdd={handlers.rackCountToAdd[tank.id] || 1}
+                      boxCountToAdd={handlers.boxCountToAdd}
                       onToggleCollapse={() => toggleTankCollapse(tank.id)}
                       onToggleRackCollapse={toggleRackCollapse}
                       onRackCountChange={count =>
-                        setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
+                        handlers.setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
                       }
                       onBoxCountChange={(rackKey, count) =>
-                        setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
+                        handlers.setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
                       }
                       collapsedRacks={collapsedRacks}
                       canDeleteTank={currentLab.equipment.tanks.length > 1}
@@ -336,56 +302,56 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
             currentUserId={currentUser?.id}
             canManageStorage={canManageStorage}
             users={dropdownUsers}
-            onBulkUnassign={handleBulkUnassign}
-            onBulkReassign={handleBulkReassign}
+            onBulkUnassign={handlers.handleBulkUnassign}
+            onBulkReassign={handlers.handleBulkReassign}
           />
         )}
       </BaseModal>
 
-      {boxModalData && (
+      {editModals.boxModalData && (
         <BoxEditModal
-          isOpen={isBoxModalOpen}
-          initialBox={boxModalData.box}
-          tankId={boxModalData.tankId}
-          rackId={boxModalData.rackId}
+          isOpen={editModals.isBoxModalOpen}
+          initialBox={editModals.boxModalData.box}
+          tankId={editModals.boxModalData.tankId}
+          rackId={editModals.boxModalData.rackId}
           gridTemplates={GRID_TEMPLATES}
-          onSave={handleUpdateBoxGrid}
-          onClose={() => setIsBoxModalOpen(false)}
+          onSave={editModals.handleUpdateBoxGrid}
+          onClose={() => editModals.setIsBoxModalOpen(false)}
         />
       )}
 
-      {rackModalData && (
+      {editModals.rackModalData && (
         <RackEditModal
-          isOpen={isRackModalOpen}
-          initialRack={rackModalData.rack}
-          tankId={rackModalData.tankId}
-          onSave={handleUpdateRack}
-          onClose={() => setIsRackModalOpen(false)}
+          isOpen={editModals.isRackModalOpen}
+          initialRack={editModals.rackModalData.rack}
+          tankId={editModals.rackModalData.tankId}
+          onSave={editModals.handleUpdateRack}
+          onClose={() => editModals.setIsRackModalOpen(false)}
         />
       )}
 
-      {tankModalData && (
+      {editModals.tankModalData && (
         <TankEditModal
-          isOpen={isTankModalOpen}
-          initialTank={tankModalData}
-          onSave={handleUpdateTank}
-          onClose={() => setIsTankModalOpen(false)}
+          isOpen={editModals.isTankModalOpen}
+          initialTank={editModals.tankModalData}
+          onSave={editModals.handleUpdateTank}
+          onClose={() => editModals.setIsTankModalOpen(false)}
         />
       )}
 
-      {labelModalData && (
+      {editModals.labelModalData && (
         <CustomLabelEditModal
-          isOpen={isLabelModalOpen}
+          isOpen={editModals.isLabelModalOpen}
           resourceInfo={{
-            type: labelModalData.type,
-            tankId: labelModalData.tankId,
-            rackId: labelModalData.rackId,
-            boxId: labelModalData.boxId,
-            initialLabel: labelModalData.currentLabel,
+            type: editModals.labelModalData.type,
+            tankId: editModals.labelModalData.tankId,
+            rackId: editModals.labelModalData.rackId,
+            boxId: editModals.labelModalData.boxId,
+            initialLabel: editModals.labelModalData.currentLabel,
           }}
           currentLab={currentLab}
-          onSave={handleUpdateCustomLabel}
-          onClose={() => setIsLabelModalOpen(false)}
+          onSave={editModals.handleUpdateCustomLabel}
+          onClose={() => editModals.setIsLabelModalOpen(false)}
         />
       )}
     </>
