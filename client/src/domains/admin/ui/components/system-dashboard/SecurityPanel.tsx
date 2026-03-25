@@ -110,8 +110,8 @@ export function SecurityPanel() {
     return counts;
   }, [sessionsData]);
 
-  const formatDateStacked = (iso: string) => {
-    const d = new Date(iso);
+  const formatDateStacked = (iso: string | Date) => {
+    const d = iso instanceof Date ? iso : new Date(iso);
     const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
     return { date, time };

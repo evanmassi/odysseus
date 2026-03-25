@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField, nullableOptionalDateField } from '../utils/dateFields';
 
 // Entity schema
 
@@ -22,8 +23,8 @@ export const donorSchema = z.object({
   diseaseStage: z.string().optional(),
   notes: z.string().optional(),
   isCurated: z.boolean(),
-  createdAt: z.union([z.string().datetime(), z.date()]),
-  updatedAt: z.union([z.string().datetime(), z.date()]),
+  createdAt: dateField,
+  updatedAt: dateField,
 });
 
 export const donorWithTubeCountSchema = donorSchema.extend({
@@ -33,10 +34,10 @@ export const donorWithTubeCountSchema = donorSchema.extend({
 export const donorCollectionHistorySchema = z.object({
   id: z.string(),
   donorId: z.string(),
-  collectionDate: z.union([z.string(), z.date()]).optional().nullable(),
+  collectionDate: nullableOptionalDateField,
   specimenType: z.string().optional(),
   source: z.string().optional(),
-  createdAt: z.union([z.string().datetime(), z.date()]),
+  createdAt: dateField,
 });
 
 // Request schemas

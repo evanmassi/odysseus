@@ -64,8 +64,8 @@ const mockUser = {
   id: 'user-1',
   username: 'testuser',
   role: 'user' as const,
-  createdAt: new Date().toISOString(),
-  lastActivity: new Date().toISOString(),
+  createdAt: new Date(),
+  lastActivity: new Date(),
   status: 'approved' as const,
   isDemo: false,
 };

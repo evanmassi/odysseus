@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField } from '../utils/dateFields';
 
 export const LOOKUP_CATEGORIES = ['species', 'source', 'media', 'specimen_type'] as const;
 export type LookupCategory = typeof LOOKUP_CATEGORIES[number];
@@ -15,8 +16,8 @@ export const lookupValueSchema = z.object({
   value: z.string().min(1).max(200),
   sortOrder: z.number().int().default(0),
   isActive: z.boolean().default(true),
-  createdAt: z.union([z.string().datetime(), z.date()]),
-  updatedAt: z.union([z.string().datetime(), z.date()]),
+  createdAt: dateField,
+  updatedAt: dateField,
   labId: z.string().optional(),
 });
 

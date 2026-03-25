@@ -22,7 +22,7 @@ function entry(
     action,
     entityType,
     details: details as unknown as string,
-    timestamp: '2026-01-27T12:00:00.000Z',
+    timestamp: new Date('2026-01-27T12:00:00.000Z'),
   };
 }
 
@@ -522,7 +522,7 @@ describe('edge cases', () => {
       action: 'tube_created',
       entityType: 'tube',
       details: null as unknown as string,
-      timestamp: '2026-01-27T12:00:00.000Z',
+      timestamp: new Date('2026-01-27T12:00:00.000Z'),
     };
     const result = formatAuditDetails(e);
     expect(result.text).toBe('-');
@@ -536,7 +536,7 @@ describe('edge cases', () => {
       action: 'tank_created',
       entityType: 'tank',
       details: JSON.stringify({ tankName: 'Tank 1' }),
-      timestamp: '2026-01-27T12:00:00.000Z',
+      timestamp: new Date('2026-01-27T12:00:00.000Z'),
     };
     const result = formatAuditDetails(e);
     expect(result.text).toBe('Tank 1');
@@ -550,7 +550,7 @@ describe('edge cases', () => {
       action: 'tube_created',
       entityType: 'tube',
       details: '{invalid json' as string,
-      timestamp: '2026-01-27T12:00:00.000Z',
+      timestamp: new Date('2026-01-27T12:00:00.000Z'),
     };
     const result = formatAuditDetails(e);
     expect(result.text).toBe('-');

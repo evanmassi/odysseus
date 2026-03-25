@@ -13,7 +13,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import type { StorageRepository as IStorageRepository, StorageHistory, StorageExport, StorageValidationResult } from '@domain/repositories/StorageRepository';
 import type { Box } from '@domain/value-objects/Equipment';
 import type { Location } from '@domain/value-objects/Location';
-import { parseCount, toDate, toISOString } from '@infrastructure/database/PostgresContext';
+import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -520,8 +520,8 @@ export class StorageRepository implements IStorageRepository {
         WHERE cc.lab_id = $1
       `, [labId]);
       const lastBackup = backupRow?.updated_at
-        ? toISOString(backupRow.updated_at)
-        : new Date().toISOString();
+        ? new Date(backupRow.updated_at)
+        : new Date();
 
       return {
         totalTubes,
@@ -536,7 +536,7 @@ export class StorageRepository implements IStorageRepository {
         totalTubes: 0,
         totalUsers: 0,
         totalResearchers: 0,
-        lastBackup: new Date().toISOString()
+        lastBackup: new Date()
       };
     }
   }

@@ -5,8 +5,7 @@
  */
 
 import { z } from 'zod';
-
-const dateOrString = z.union([z.string().datetime(), z.date()]);
+import { dateField } from '../utils/dateFields';
 
 export const userSessionSchema = z.object({
   id: z.string(),
@@ -14,9 +13,9 @@ export const userSessionSchema = z.object({
   deviceInfo: z.string().optional(),
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
-  createdAt: dateOrString,
-  lastUsedAt: dateOrString,
-  expiresAt: dateOrString,
+  createdAt: dateField,
+  lastUsedAt: dateField,
+  expiresAt: dateField,
   isActive: z.boolean(),
 });
 
@@ -29,9 +28,9 @@ export const activeSessionSchema = z.object({
   deviceInfo: z.string().optional(),
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
-  createdAt: z.date(),
-  lastUsedAt: z.date(),
-  expiresAt: z.date(),
+  createdAt: dateField,
+  lastUsedAt: dateField,
+  expiresAt: dateField,
   isCurrentSession: z.boolean(),
 });
 

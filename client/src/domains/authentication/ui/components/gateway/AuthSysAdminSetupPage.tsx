@@ -119,7 +119,7 @@ export function AuthSysAdminSetupPage() {
       sessionManager.setTokens(result.tokens);
       useAuthStore
         .getState()
-        .setAuthData({ ...result.user, lastActivity: new Date().toISOString() }, result.tokens);
+        .setAuthData({ ...result.user, lastActivity: new Date() }, result.tokens);
 
       notifications.success('System admin account created');
     } catch (error) {

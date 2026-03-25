@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField } from '../utils/dateFields';
 import type { Person } from '../persons/personSchemas';
 
 export const researcherApprovalStatusSchema = z.enum(['pending', 'approved']);
@@ -17,7 +18,7 @@ export const researcherSchema = z.object({
   id: z.string(),
   personId: z.string(),
   active: z.boolean(),
-  createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]),
+  createdAt: dateField,
   approvalStatus: researcherApprovalStatusSchema.optional().default('approved'),
   source: researcherSourceSchema.optional().default('admin'),
   // Denormalized Person fields for display

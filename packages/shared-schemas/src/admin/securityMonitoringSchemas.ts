@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField } from '../utils/dateFields';
 
 export const sessionOverviewSchema = z.object({
   activeSessions: z.number(),
@@ -31,8 +32,8 @@ export const activeSessionEntrySchema = z.object({
   userEmail: z.string(),
   userRole: z.string(),
   ipAddress: z.string().nullable(),
-  loginTime: z.string(),
-  lastActivity: z.string(),
+  loginTime: dateField,
+  lastActivity: dateField,
   deviceInfo: z.string().nullable(),
   userAgent: z.string().nullable(),
 });
@@ -80,7 +81,7 @@ export const failedLoginEntrySchema = z.object({
   username: z.string(),
   ipAddress: z.string().nullable(),
   reason: z.string(),
-  timestamp: z.string(),
+  timestamp: dateField,
 });
 
 export const failedLoginsResponseSchema = z.object({

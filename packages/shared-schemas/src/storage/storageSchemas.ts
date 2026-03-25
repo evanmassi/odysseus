@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField } from '../utils/dateFields';
 import { demoLimitsSchema } from '../demo/demoSchemas';
 import { positionDisplayConfigSchema } from './positionSchemas';
 
@@ -47,8 +48,8 @@ export const TankConfigurationSchema = z.object({
   name: z.string(),
   location: z.string(),
   isActive: z.boolean().default(true),
-  createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]),
-  updatedAt: z.union([z.string().datetime('Invalid updated date'), z.date()]),
+  createdAt: dateField,
+  updatedAt: dateField,
   defaultGridConfig: GridConfigurationSchema,
   racks: z.array(RackConfigurationSchema),
   isSeeded: z.boolean().optional(),
@@ -73,8 +74,8 @@ export const LabConfigurationSchema = z.object({
   name: z.string(),
   organization: z.string(),
   isActive: z.boolean().default(true),
-  createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]),
-  updatedAt: z.union([z.string().datetime('Invalid updated date'), z.date()]),
+  createdAt: dateField,
+  updatedAt: dateField,
   equipment: EquipmentConfigurationSchema,
   branding: z.object({
     logo: z.string().optional(),

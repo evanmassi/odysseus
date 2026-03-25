@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField } from '../utils/dateFields';
 
 export const personSchema = z.object({
   id: z.string(),
@@ -13,8 +14,8 @@ export const personSchema = z.object({
   email: z.string().email(),
   position: z.string().nullable().optional(),
   department: z.string().nullable().optional(),
-  createdAt: z.union([z.string().datetime(), z.date()]),
-  updatedAt: z.union([z.string().datetime(), z.date()])
+  createdAt: dateField,
+  updatedAt: dateField,
 });
 
 export type Person = z.infer<typeof personSchema>;

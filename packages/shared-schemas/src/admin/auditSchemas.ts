@@ -5,8 +5,7 @@
  */
 
 import { z } from 'zod';
-
-const dateOrString = z.union([z.string().datetime(), z.date()]);
+import { dateField, nullableDateField } from '../utils/dateFields';
 
 export const auditLogEntrySchema = z.object({
   id: z.string(),
@@ -17,7 +16,7 @@ export const auditLogEntrySchema = z.object({
   entityType: z.string().optional(),
   entityId: z.string().optional(),
   details: z.union([z.string(), z.record(z.string(), z.unknown())]),
-  timestamp: dateOrString,
+  timestamp: dateField,
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
 });
@@ -47,16 +46,16 @@ export type AuditStatistics = z.infer<typeof auditStatisticsSchema>;
 export const retentionMetricsSchema = z.object({
   activeTable: z.object({
     count: z.number().int().min(0),
-    oldestEntry: dateOrString.nullable(),
-    newestEntry: dateOrString.nullable(),
+    oldestEntry: nullableDateField,
+    newestEntry: nullableDateField,
     retentionDays: z.number().int(),
   }),
   archiveTable: z.object({
     count: z.number().int().min(0),
-    oldestEntry: dateOrString.nullable(),
+    oldestEntry: nullableDateField,
     retentionDays: z.number().int(),
   }),
-  nextArchivalDate: dateOrString.nullable(),
+  nextArchivalDate: nullableDateField,
   performanceWarning: z.boolean(),
 });
 

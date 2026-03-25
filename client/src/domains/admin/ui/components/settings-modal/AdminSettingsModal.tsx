@@ -120,7 +120,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         totalTubes: 0,
         totalUsers: 1,
         totalResearchers: 0,
-        lastBackup: new Date().toISOString(),
+        lastBackup: new Date(),
       });
     }
   };

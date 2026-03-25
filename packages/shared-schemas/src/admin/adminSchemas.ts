@@ -5,11 +5,10 @@
  */
 
 import { z } from 'zod';
+import { dateField, optionalDateField } from '../utils/dateFields';
 import { USER_ROLES, USER_STATUSES } from '../auth/authSchemas';
 import { adminResearcherSchema } from '../researchers/researcherSchemas';
 import { inviteCodeDataSchema } from '../labs/labSchemas';
-
-const dateOrString = z.union([z.string().datetime(), z.date()]);
 
 export const securityConfigSchema = z.object({
   // Authentication
@@ -71,8 +70,8 @@ export const adminUserSchema = z.object({
   labId: z.string().optional(),
   personId: z.string().nullable().optional(),
   researcherId: z.string().nullable().optional(),
-  createdAt: dateOrString,
-  lastActivity: dateOrString.optional(),
+  createdAt: dateField,
+  lastActivity: optionalDateField,
   isActive: z.boolean().default(true),
   isDemo: z.boolean().default(false),
   status: z.enum(USER_STATUSES).default('approved'),
@@ -91,7 +90,7 @@ export const systemMetricsSchema = z.object({
   totalTubes: z.number().int().min(0),
   totalUsers: z.number().int().min(0),
   totalResearchers: z.number().int().min(0),
-  lastBackup: dateOrString,
+  lastBackup: dateField,
   databaseSize: z.number().optional(), // bytes
   activeUsersLast24h: z.number().int().min(0).optional(),
 });

@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField, optionalDateField } from '../utils/dateFields';
 import { USER_ROLES, USER_STATUSES } from '../auth/authSchemas';
 import { demoLimitsSchema } from '../demo/demoSchemas';
 
@@ -14,8 +15,8 @@ export const labDataSchema = z.object({
   slug: z.string(),
   isActive: z.boolean(),
   isDemo: z.boolean(),
-  createdAt: z.union([z.string().datetime(), z.date()]),
-  updatedAt: z.union([z.string().datetime(), z.date()]),
+  createdAt: dateField,
+  updatedAt: dateField,
   demoLimits: demoLimitsSchema.optional(),
   isSeeded: z.boolean().optional(),
 });
@@ -42,9 +43,9 @@ export const inviteCodeDataSchema = z.object({
   createdBy: z.string(),
   maxUses: z.number().int().positive().optional(),
   useCount: z.number().int().min(0),
-  expiresAt: z.union([z.string().datetime(), z.date()]).optional(),
+  expiresAt: optionalDateField,
   isActive: z.boolean(),
-  createdAt: z.union([z.string().datetime(), z.date()]),
+  createdAt: dateField,
   deactivationReason: z.enum(['used', 'expired', 'manual']).optional(),
 });
 
@@ -71,7 +72,7 @@ export const labDetailsUserSchema = z.object({
   role: z.enum(USER_ROLES),
   status: z.enum(USER_STATUSES),
   isDemo: z.boolean(),
-  lastActivity: z.string(),
+  lastActivity: dateField,
   researcher: z.object({
     name: z.string(),
     tubeCount: z.number(),

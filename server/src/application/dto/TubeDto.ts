@@ -53,7 +53,14 @@ export interface TubeSearchResponse {
 
 export class TubeDto {
   static toResponse(tube: Tube): TubeResponse {
-    return tube.toData();
+    const data = tube.toData();
+    return {
+      ...data,
+      timestamps: {
+        createdAt: new Date(data.timestamps.createdAt),
+        updatedAt: new Date(data.timestamps.updatedAt),
+      },
+    };
   }
 
   static toResponseList(tubes: Tube[]): TubeResponse[] {

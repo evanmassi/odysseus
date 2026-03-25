@@ -18,6 +18,7 @@ export class StorageDto {
 
   static toResponse(config: Storage): StorageResponse {
     const configData = config.toData();
+    const updatedAtDate = new Date(configData.updatedAt);
     const defaultGridConfig = {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
@@ -40,10 +41,10 @@ export class StorageDto {
             name: configData.systemSettings.labName,
             organization: 'Default Organization',
             isActive: true,
-            createdAt: configData.updatedAt,
-            updatedAt: configData.updatedAt,
+            createdAt: updatedAtDate,
+            updatedAt: updatedAtDate,
             equipment: {
-              tanks: configData.tanks.map(tank => this.transformTank(tank, configData.updatedAt)),
+              tanks: configData.tanks.map(tank => this.transformTank(tank, updatedAtDate)),
               defaultBoxConfig,
               defaultGridConfig
             }
@@ -61,10 +62,10 @@ export class StorageDto {
           name: configData.systemSettings.labName,
           organization: 'Default Organization',
           isActive: true,
-          createdAt: configData.updatedAt,
-          updatedAt: configData.updatedAt,
+          createdAt: updatedAtDate,
+          updatedAt: updatedAtDate,
           equipment: {
-            tanks: configData.tanks.map(tank => this.transformTank(tank, configData.updatedAt)),
+            tanks: configData.tanks.map(tank => this.transformTank(tank, updatedAtDate)),
             defaultBoxConfig,
             defaultGridConfig
           }
@@ -73,7 +74,7 @@ export class StorageDto {
     };
   }
 
-  private static transformTank(tankData: ReturnType<Tank['toData']>, updatedAt: string) {
+  private static transformTank(tankData: ReturnType<Tank['toData']>, updatedAt: Date) {
     const defaultGridConfig = {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,

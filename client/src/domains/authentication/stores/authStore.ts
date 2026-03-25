@@ -154,7 +154,7 @@ export const useAuthStore = create<AuthStore>()(
 
           const userWithActivity = {
             ...result.user,
-            lastActivity: new Date().toISOString(),
+            lastActivity: new Date(),
           };
 
           // Set tokens in session manager (handles HTTP client + storage)
@@ -209,7 +209,7 @@ export const useAuthStore = create<AuthStore>()(
 
           const userWithActivity = {
             ...result.user,
-            lastActivity: new Date().toISOString(),
+            lastActivity: new Date(),
           };
 
           // Set tokens in session manager (handles HTTP client + storage)
@@ -266,7 +266,7 @@ export const useAuthStore = create<AuthStore>()(
 
           const userWithActivity = {
             ...result.user,
-            lastActivity: new Date().toISOString(),
+            lastActivity: new Date(),
           };
 
           // Set tokens in session manager (handles HTTP client + storage)
@@ -338,7 +338,7 @@ export const useAuthStore = create<AuthStore>()(
       completeRegistration: (user: PublicUserData, tokens: TokenPair) => {
         const userWithActivity = {
           ...user,
-          lastActivity: new Date().toISOString(),
+          lastActivity: new Date(),
         };
 
         sessionManager.setTokens(tokens);
@@ -374,7 +374,7 @@ export const useAuthStore = create<AuthStore>()(
           set({
             user: {
               ...result.user,
-              lastActivity: new Date().toISOString(),
+              lastActivity: new Date(),
             },
             tokens: sessionManager.getTokens(),
             sessionStatus: 'authenticated',

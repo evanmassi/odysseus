@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField } from '../utils/dateFields';
 import { passwordChangeRequiredResponseSchema } from './passwordResetSchemas';
 
 export const USER_ROLES = ['system_admin', 'lab_admin', 'user'] as const;
@@ -145,10 +146,10 @@ export type VerificationStatusResponse = z.infer<typeof verificationStatusRespon
 export const tokenPairSchema = z.object({
   accessToken: z.string(),
   refreshToken: z.string(),
-  accessTokenExpiry: z.coerce.date(),
-  refreshTokenExpiry: z.coerce.date(),
+  accessTokenExpiry: dateField,
+  refreshTokenExpiry: dateField,
   tokenType: z.literal('Bearer'),
-  lastActivityTime: z.coerce.date(),
+  lastActivityTime: dateField,
   sessionTimeoutMinutes: z.number().int().optional(),
   idleWarningMinutes: z.number().int().optional(),
 });
@@ -159,8 +160,8 @@ export const publicUserDataSchema = z.object({
   id: z.string(),
   username: z.string(),
   role: z.enum(USER_ROLES),
-  createdAt: z.union([z.string().datetime(), z.date()]),
-  lastActivity: z.union([z.string().datetime(), z.date()]),
+  createdAt: dateField,
+  lastActivity: dateField,
   status: z.enum(USER_STATUSES),
   isDemo: z.boolean(),
   researcherId: z.string().optional(),

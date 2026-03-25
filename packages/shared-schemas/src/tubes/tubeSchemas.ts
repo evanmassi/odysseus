@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { dateField } from '../utils/dateFields';
 import {
   concentrationPreprocessor,
   concentrationPreprocessorNullable,
@@ -59,8 +60,8 @@ export const tubeSampleSchema = z.object({
 });
 
 export const tubeTimestampsSchema = z.object({
-  createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]),
-  updatedAt: z.union([z.string().datetime('Invalid updated date'), z.date()])
+  createdAt: dateField,
+  updatedAt: dateField,
 });
 
 export const tubeDataSchema = z.object({
