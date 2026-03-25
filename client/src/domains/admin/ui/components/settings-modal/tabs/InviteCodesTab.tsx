@@ -93,12 +93,8 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   };
 
   const now = new Date();
-  const activeCodes = codes.filter(
-    c => c.isActive && !(c.expiresAt && new Date(c.expiresAt) < now)
-  );
-  const inactiveCodes = codes.filter(
-    c => !c.isActive || (c.expiresAt && new Date(c.expiresAt) < now)
-  );
+  const activeCodes = codes.filter(c => c.isActive && !(c.expiresAt && c.expiresAt < now));
+  const inactiveCodes = codes.filter(c => !c.isActive || (c.expiresAt && c.expiresAt < now));
 
   return (
     <div className="space-y-4">
@@ -210,7 +206,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
                   </span>
                   {code.expiresAt && (
                     <span className="text-xs text-muted-foreground">
-                      expires {new Date(code.expiresAt).toLocaleDateString()}
+                      expires {code.expiresAt.toLocaleDateString()}
                     </span>
                   )}
                 </div>
@@ -257,7 +253,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               {inactiveCodes.map(code => {
                 const reason =
                   code.deactivationReason ??
-                  (code.expiresAt && new Date(code.expiresAt) < now ? 'expired' : undefined);
+                  (code.expiresAt && code.expiresAt < now ? 'expired' : undefined);
 
                 return (
                   <div

@@ -199,8 +199,8 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         case 'role':
           return (a.role ?? 'user').localeCompare(b.role ?? 'user') * direction;
         case 'lastActivity': {
-          const dateA = a.lastActivity ? new Date(a.lastActivity).getTime() : 0;
-          const dateB = b.lastActivity ? new Date(b.lastActivity).getTime() : 0;
+          const dateA = a.lastActivity ? a.lastActivity.getTime() : 0;
+          const dateB = b.lastActivity ? b.lastActivity.getTime() : 0;
           return (dateA - dateB) * direction;
         }
         default:

@@ -143,9 +143,9 @@ export function SecurityPanel() {
         case 'ipAddress':
           return dir * (a.ipAddress ?? '').localeCompare(b.ipAddress ?? '');
         case 'loginTime':
-          return dir * (new Date(a.loginTime).getTime() - new Date(b.loginTime).getTime());
+          return dir * (a.loginTime.getTime() - b.loginTime.getTime());
         case 'lastActivity':
-          return dir * (new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime());
+          return dir * (a.lastActivity.getTime() - b.lastActivity.getTime());
         default:
           return 0;
       }

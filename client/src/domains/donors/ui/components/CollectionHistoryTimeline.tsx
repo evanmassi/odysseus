@@ -100,9 +100,7 @@ export function CollectionHistoryTimeline({
 
   const handleEditStart = (entry: DonorCollectionHistory) => {
     setEditingId(entry.id);
-    setEditDate(
-      entry.collectionDate ? new Date(entry.collectionDate).toISOString().split('T')[0] : ''
-    );
+    setEditDate(entry.collectionDate ? entry.collectionDate.toISOString().split('T')[0] : '');
     setEditSpecimenType(entry.specimenType ?? '');
     setEditSource(entry.source ?? '');
   };
@@ -113,7 +111,7 @@ export function CollectionHistoryTimeline({
     if (!entry) return;
 
     const originalDate = entry.collectionDate
-      ? new Date(entry.collectionDate).toISOString().split('T')[0]
+      ? entry.collectionDate.toISOString().split('T')[0]
       : '';
     const dateChanged = editDate !== originalDate;
     const specimenChanged = editSpecimenType !== (entry.specimenType ?? '');
@@ -143,9 +141,8 @@ export function CollectionHistoryTimeline({
 
   const handleEditCancel = () => setEditingId(null);
 
-  const formatDate = (date: string | Date) => {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   return (

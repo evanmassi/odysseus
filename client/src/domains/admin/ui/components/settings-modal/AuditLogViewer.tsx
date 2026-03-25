@@ -185,9 +185,8 @@ export function AuditLogViewer({
     }
   };
 
-  const formatTimestamp = (timestamp: string | Date) => {
-    const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
-    return date.toLocaleString('en-US', {
+  const formatTimestamp = (timestamp: Date) => {
+    return timestamp.toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

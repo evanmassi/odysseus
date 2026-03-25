@@ -22,10 +22,7 @@ function convertSchemaToSharedTubeData(schemaTube: SchemaTubeData): TubeData {
       ...schemaTube.sample,
       concentration: normalizeConcentration(schemaTube.sample.concentration),
     },
-    timestamps: {
-      createdAt: new Date(schemaTube.timestamps.createdAt),
-      updatedAt: new Date(schemaTube.timestamps.updatedAt),
-    },
+    timestamps: schemaTube.timestamps,
   };
 }
 

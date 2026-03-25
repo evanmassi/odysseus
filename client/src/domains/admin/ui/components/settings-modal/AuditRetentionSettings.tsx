@@ -130,10 +130,9 @@ export function AuditRetentionSettings({
     }
   };
 
-  const formatDate = (date: Date | string | null) => {
+  const formatDate = (date: Date | null) => {
     if (!date) return '-';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

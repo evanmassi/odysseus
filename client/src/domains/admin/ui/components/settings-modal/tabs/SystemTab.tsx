@@ -96,7 +96,7 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
           <span className="text-border">•</span>
           <span>Last Backup:</span>
           <span className="font-semibold text-secondary-foreground">
-            {stats?.lastBackup ? new Date(stats.lastBackup).toLocaleDateString() : 'Never'}
+            {stats?.lastBackup ? stats.lastBackup.toLocaleDateString() : 'Never'}
           </span>
         </div>
         <div className="text-xs text-muted-foreground">

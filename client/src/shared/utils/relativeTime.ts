@@ -4,8 +4,7 @@
  * Human-readable time distances for activity timestamps.
  */
 
-export function formatRelativeTime(iso: string | Date): string {
-  const date = typeof iso === 'string' ? new Date(iso) : iso;
+export function formatRelativeTime(date: Date): string {
   const ms = Date.now() - date.getTime();
   const seconds = Math.floor(ms / 1000);
 
