@@ -16,7 +16,7 @@ import {
   createTubeRequestSchema,
   updateTubeRequestSchema,
   formatConcentrationDisplay,
-  formatResourceDisplayName,
+  formatStorageDisplayName,
 } from '@odysseus/shared-schemas';
 import { Edit, Plus, Save, Trash2 } from 'lucide-react';
 
@@ -485,11 +485,11 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
 
     const rack = tank?.racks?.find(r => r.id === firstLocation.rackId);
     const rackGenericName = rack?.name ?? `Rack ${firstLocation.rackId}`;
-    const rackName = formatResourceDisplayName(rackGenericName, rack?.customLabel);
+    const rackName = formatStorageDisplayName(rackGenericName, rack?.customLabel);
 
     const box = rack?.boxes?.find(b => b.id === firstLocation.boxId);
     const boxGenericName = box?.name ?? `Box ${firstLocation.boxId}`;
-    const boxName = formatResourceDisplayName(boxGenericName, box?.customLabel);
+    const boxName = formatStorageDisplayName(boxGenericName, box?.customLabel);
 
     // Get box config for flexible position formatting
     const boxObj = getBox(firstLocation.tankId, firstLocation.rackId, firstLocation.boxId);

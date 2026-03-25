@@ -6,10 +6,10 @@
 
 /**
  * @example
- * formatResourceDisplayName("Rack 3", undefined) → "Rack 3"
- * formatResourceDisplayName("Rack 3", "Hadia's Samples") → "Rack 3 (Hadia's Samples)"
+ * formatStorageDisplayName("Rack 3", undefined) → "Rack 3"
+ * formatStorageDisplayName("Rack 3", "Hadia's Samples") → "Rack 3 (Hadia's Samples)"
  */
-export const formatResourceDisplayName = (
+export const formatStorageDisplayName = (
   genericName: string,
   customLabel?: string
 ): string => {

@@ -4,7 +4,7 @@
  * Modal for setting or removing a custom display name on a rack or box.
  */
 
-import { formatResourceDisplayName } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 import { Save, Tag } from 'lucide-react';
 
 import { useEditModalForm } from '@shared/hooks';
@@ -53,7 +53,7 @@ export function StorageRenameModal({
   const isRack = resourceInfo.type === 'rack';
   const genericName = isRack ? (rack?.name ?? '') : (box?.name ?? '');
 
-  const previewName = formatResourceDisplayName(genericName, label);
+  const previewName = formatStorageDisplayName(genericName, label);
 
   const handleSave = async () => {
     await onSave(

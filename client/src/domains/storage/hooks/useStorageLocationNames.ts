@@ -5,7 +5,7 @@
  */
 import { useMemo } from 'react';
 
-import { formatResourceDisplayName } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 
 import { useStorageData } from './useStorageData';
 
@@ -39,11 +39,11 @@ export function useStorageLocationNames(
 
     const rack = tank && rackId ? tank.racks?.find(r => r.id === rackId) : undefined;
     const rackGenericName = rack?.name ?? (rackId ? `Rack ${rackId}` : 'Unknown Rack');
-    const rackName = formatResourceDisplayName(rackGenericName, rack?.customLabel);
+    const rackName = formatStorageDisplayName(rackGenericName, rack?.customLabel);
 
     const box = rack && boxId ? rack.boxes?.find(b => b.id === boxId) : undefined;
     const boxGenericName = box?.name ?? (boxId ? `Box ${boxId}` : 'Unknown Box');
-    const boxName = formatResourceDisplayName(boxGenericName, box?.customLabel);
+    const boxName = formatStorageDisplayName(boxGenericName, box?.customLabel);
 
     return {
       tankName,

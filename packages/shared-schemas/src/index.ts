@@ -160,7 +160,7 @@ export {
   type SystemConfiguration,
   type StorageResponse,
   type SaveStorageRequest,
-  formatResourceDisplayName,
+  formatStorageDisplayName,
   positionDisplayFormatSchema,
   alphanumericConfigSchema,
   positionDisplayConfigSchema,

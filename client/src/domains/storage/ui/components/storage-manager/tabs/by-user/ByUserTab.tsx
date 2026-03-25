@@ -6,7 +6,7 @@
 
 import { useMemo, useState, useCallback } from 'react';
 
-import { formatResourceDisplayName, type UserDisplayInfo } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName, type UserDisplayInfo } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { UsersRound, ChevronDown, UserRoundX, UserRoundPen } from 'lucide-react';
 
@@ -230,7 +230,7 @@ export function ByUserTab({
                               </div>
                               <span className="storage-nav-button__text">
                                 {rackGroup.tankName} /{' '}
-                                {formatResourceDisplayName(
+                                {formatStorageDisplayName(
                                   rackGroup.rackName,
                                   rackGroup.rackCustomLabel
                                 )}
@@ -272,10 +272,7 @@ export function ByUserTab({
                                         <BoxIcon size={14} aria-hidden="true" />
                                       </div>
                                       <span className="storage-nav-button__text">
-                                        {formatResourceDisplayName(
-                                          box.boxName!,
-                                          box.boxCustomLabel
-                                        )}
+                                        {formatStorageDisplayName(box.boxName!, box.boxCustomLabel)}
                                       </span>
                                     </div>
                                   </div>

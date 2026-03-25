@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 
-import { formatResourceDisplayName, isAdminRole } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
 import { Edit3, Lock, Tag, Trash2 } from 'lucide-react';
 
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
@@ -114,7 +114,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
             <BoxIcon size={14} aria-hidden="true" />
           </div>
           <span className="storage-nav-button__text">
-            {formatResourceDisplayName(box.name, box.customLabel)}
+            {formatStorageDisplayName(box.name, box.customLabel)}
           </span>
           <span className="storage-nav-pill storage-nav-pill--muted">
             {box.gridConfig.rows}×{box.gridConfig.cols}

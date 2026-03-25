@@ -6,7 +6,7 @@
 
 import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
 
-import { formatResourceDisplayName, isAdminRole } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
 import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -264,13 +264,13 @@ function LabDashboard() {
         name: tank.name,
         racks: tank.racks.map(rack => ({
           id: rack.id,
-          name: formatResourceDisplayName(rack.name, rack.customLabel),
+          name: formatStorageDisplayName(rack.name, rack.customLabel),
           assignedUserId: rack.assignedUserId,
           boxes: rack.boxes
             .filter(box => box.position !== undefined)
             .map(box => ({
               id: box.id,
-              name: formatResourceDisplayName(box.name, box.customLabel),
+              name: formatStorageDisplayName(box.name, box.customLabel),
               position: box.position!,
               assignedUserId: box.assignedUserId,
             })),

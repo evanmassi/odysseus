@@ -40,7 +40,7 @@ export {
 } from './storageSchemas';
 
 export {
-  formatResourceDisplayName,
+  formatStorageDisplayName,
 } from './storageFormatters';
 
 export {

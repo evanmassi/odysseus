@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import {
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
-  formatResourceDisplayName,
+  formatStorageDisplayName,
 } from '@odysseus/shared-schemas';
 import { Download, MapPin } from 'lucide-react';
 
@@ -229,11 +229,11 @@ export function SearchResultsPanel({
 
       const rack = tank?.racks?.find(r => r.id === rackId);
       const rackGenericName = rack?.name ?? `Rack ${rackId}`;
-      const rackName = formatResourceDisplayName(rackGenericName, rack?.customLabel);
+      const rackName = formatStorageDisplayName(rackGenericName, rack?.customLabel);
 
       const box = rack?.boxes?.find(b => b.id === boxId);
       const boxGenericName = box?.name ?? `Box ${boxId}`;
-      const boxName = formatResourceDisplayName(boxGenericName, box?.customLabel);
+      const boxName = formatStorageDisplayName(boxGenericName, box?.customLabel);
 
       return { tankName, rackName, boxName, box };
     };

@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react';
 
 import {
   EQUIPMENT_DEFAULTS,
-  formatResourceDisplayName,
+  formatStorageDisplayName,
   isAdminRole,
 } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
@@ -140,7 +140,7 @@ export function RackRow({
               <RackIcon size={16} aria-hidden="true" />
             </div>
             <span className="storage-nav-button__text">
-              {formatResourceDisplayName(rack.name, rack.customLabel)}
+              {formatStorageDisplayName(rack.name, rack.customLabel)}
             </span>
             <span className="storage-nav-pill storage-nav-pill--muted">
               {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}

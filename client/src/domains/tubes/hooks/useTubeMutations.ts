@@ -4,7 +4,7 @@
  * React Query hooks for tube write operations.
  */
 
-import { formatResourceDisplayName } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -76,8 +76,8 @@ function formatPositionDisplayString(
   const box = rack?.boxes?.find(b => b.id === boxId);
 
   const tankName = tank?.name ?? tankId;
-  const rackName = formatResourceDisplayName(rack?.name ?? rackId, rack?.customLabel);
-  const boxName = formatResourceDisplayName(box?.name ?? boxId, box?.customLabel);
+  const rackName = formatStorageDisplayName(rack?.name ?? rackId, rack?.customLabel);
+  const boxName = formatStorageDisplayName(box?.name ?? boxId, box?.customLabel);
 
   let positionLabel = String(position);
   if (box?.gridConfig && currentLab) {

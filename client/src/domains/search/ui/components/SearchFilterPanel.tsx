@@ -8,7 +8,7 @@ import { useMemo, useState, useCallback } from 'react';
 
 import {
   formatResearcherDropdownDisplay,
-  formatResourceDisplayName,
+  formatStorageDisplayName,
 } from '@odysseus/shared-schemas';
 import {
   type LucideIcon,
@@ -182,7 +182,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
     (rackId: string): string => {
       for (const tank of tanks) {
         const rack = tank.racks?.find(r => r.id === rackId);
-        if (rack) return formatResourceDisplayName(rack.name ?? `Rack ${rackId}`, rack.customLabel);
+        if (rack) return formatStorageDisplayName(rack.name ?? `Rack ${rackId}`, rack.customLabel);
       }
       return `Rack ${rackId}`;
     },
@@ -194,7 +194,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
       for (const tank of tanks) {
         for (const rack of tank.racks ?? []) {
           const box = rack.boxes?.find(b => b.id === boxId);
-          if (box) return formatResourceDisplayName(box.name ?? `Box ${boxId}`, box.customLabel);
+          if (box) return formatStorageDisplayName(box.name ?? `Box ${boxId}`, box.customLabel);
         }
       }
       return `Box ${boxId}`;
