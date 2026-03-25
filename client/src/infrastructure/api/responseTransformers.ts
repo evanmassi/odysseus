@@ -47,6 +47,8 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   AuditStatistics: new Set(['timestamp']),
   AuditRetention: new Set(['nextArchivalDate']),
   LookupValue: new Set(['createdAt', 'updatedAt']),
+  InviteCode: new Set(['createdAt', 'expiresAt']),
+  Donor: new Set(['createdAt', 'updatedAt']),
   SessionInfo: new Set([]),
   UserLookup: new Set([]),
   Heartbeat: new Set([]),

@@ -75,10 +75,18 @@ const URL_TRANSFORMER_REGISTRY: { match: (url: string) => boolean; transform: Tr
     transform: data => ResponseTransformers.Researcher(data),
   },
   {
+    match: url => url.includes('/donors'),
+    transform: data => transformApiResponse(data, 'Donor'),
+  },
+  {
     match: url => url.includes('/lookups'),
     transform: data => transformApiResponse(data, 'LookupValue'),
   },
   // Admin
+  {
+    match: url => url.includes('/admin/invite-codes') || url.includes('/invite-codes'),
+    transform: data => transformApiResponse(data, 'InviteCode'),
+  },
   {
     match: url => url.includes('/admin/users'),
     transform: mapArray(ResponseTransformers.AdminUser),
