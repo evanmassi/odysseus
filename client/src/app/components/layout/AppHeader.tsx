@@ -487,7 +487,7 @@ export function AppHeader({
               aria-haspopup="menu"
               aria-expanded={showHamburgerMenu}
               aria-label="Main menu"
-              className="flex items-center gap-2 h-8 px-2 rounded-full border border-border hover:bg-accent transition-colors"
+              className="flex items-center gap-2 h-8 px-2 rounded-lg border border-border hover:bg-accent transition-colors"
             >
               <UserBadge
                 type="currentUser"
