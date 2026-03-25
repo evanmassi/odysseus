@@ -134,11 +134,6 @@ export function useStorageSync() {
               tubeStore.setCurrentBox(firstRack.boxes[0].id);
             }
           }
-
-          logger.info('Synced tubeStore to first available tank', {
-            previousTank: currentTank,
-            newTank: firstTank.id,
-          });
         }
       }
     }

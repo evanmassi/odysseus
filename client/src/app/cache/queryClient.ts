@@ -340,6 +340,4 @@ export function clearAllCaches(): void {
   queryClient.clear();
   localStorage.removeItem('odysseus-query-cache');
   localStorage.removeItem('odysseus-configuration-version');
-
-  logger.info('Cleared all query caches on logout');
 }
