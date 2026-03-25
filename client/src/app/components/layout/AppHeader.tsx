@@ -9,8 +9,6 @@ import { useState, lazy, useEffect, useRef, useCallback } from 'react';
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
   LogOut,
-  UserRound,
-  Menu,
   Plus,
   Edit,
   Trash2,
@@ -34,12 +32,15 @@ import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore
 import { SearchPanel } from '@domains/search/ui/components/SearchPanel';
 import { useStorageData } from '@domains/storage';
 import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
+import { useUserProfile } from '@domains/users/hooks/useUserProfile';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
+import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
 import { createPreloadHook } from '@shared/utils/preloadHelpers';
+import { getUserDisplayName, getUserInitials } from '@shared/utils/userDisplayFormatters';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
@@ -158,9 +159,17 @@ export function AppHeader({
   gridController,
   isViewOnlySpace = false,
 }: HeaderProps) {
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const { profile } = useUserProfile();
   const hasLab = !!user?.labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
+
+  const displayName = user
+    ? getUserDisplayName(user.username, profile?.firstName, profile?.lastName)
+    : '';
+  const initials = user
+    ? getUserInitials(user.username, profile?.firstName, profile?.lastName)
+    : '';
 
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
   const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
@@ -469,20 +478,27 @@ export function AppHeader({
             </div>
           )}
 
-          {/* Hamburger Menu */}
+          {/* User Menu */}
           <div className="relative" ref={hamburgerMenuRef}>
-            <Button
+            <button
               ref={hamburgerButtonRef}
-              variant="ghost"
-              size="xs"
-              iconOnly
+              type="button"
               onClick={() => (showHamburgerMenu ? closeMenu() : setShowHamburgerMenu(true))}
               aria-haspopup="menu"
               aria-expanded={showHamburgerMenu}
               aria-label="Main menu"
+              className="flex items-center gap-2 h-8 px-2 rounded-full border border-border hover:bg-accent transition-colors"
             >
-              <Menu size={20} />
-            </Button>
+              <UserBadge
+                type="currentUser"
+                initials={initials}
+                username={user?.username}
+                size="xs"
+              />
+              <span className="text-xs font-medium text-card-foreground max-w-[150px] truncate">
+                {displayName}
+              </span>
+            </button>
 
             {/* Hamburger Menu Dropdown - WAI-ARIA Menu Button pattern */}
             {(showHamburgerMenu || isClosingMenu) && (
@@ -503,22 +519,6 @@ export function AppHeader({
                       <FlaskConical size={16} className="text-muted-foreground" />
                       <span className="text-sm text-secondary-foreground font-medium">
                         {currentLab.name}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* User Info */}
-                {isAuthenticated && user && (
-                  <div className="px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      {user.role === 'user' ? (
-                        <UserRound size={16} className="text-muted-foreground" />
-                      ) : (
-                        <ShieldUser size={16} className="text-muted-foreground" />
-                      )}
-                      <span className="text-sm text-secondary-foreground font-medium">
-                        {user.username}
                       </span>
                     </div>
                   </div>

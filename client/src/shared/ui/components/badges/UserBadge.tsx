@@ -42,11 +42,16 @@ interface UserBadgeProps {
   type: UserBadgeType;
   initials?: string;
   username?: string;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
   variant?: 'default' | 'navigator';
 }
 
 const sizeClasses = {
+  xs: {
+    badge: 'w-5 h-5',
+    icon: 11,
+    text: 'text-[10px]',
+  },
   sm: {
     badge: 'w-5 h-5',
     icon: 11,
