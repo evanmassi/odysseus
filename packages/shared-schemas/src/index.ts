@@ -459,3 +459,11 @@ export {
   type NameSortable,
   sortByName,
 } from './persons/personSchemas';
+
+// Date field helpers
+export {
+  dateField,
+  optionalDateField,
+  nullableDateField,
+  nullableOptionalDateField,
+} from './utils/dateFields';
