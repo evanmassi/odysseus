@@ -412,7 +412,7 @@ export function ByUserTab({
                   )}
                 </div>
 
-                <Collapsible.Content className="overflow-visible data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+                <Collapsible.Content className="overflow-visible">
                   {userAssignment.assignments.length > 0 && (
                     <div className="storage-nav-children mt-1 space-y-1">
                       {buildRackGroups(racks, boxes).map(rackGroup => (

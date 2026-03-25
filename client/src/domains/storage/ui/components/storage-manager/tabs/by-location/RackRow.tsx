@@ -188,7 +188,7 @@ export function RackRow({
           )}
         </div>
 
-        <Collapsible.Content className="overflow-visible data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+        <Collapsible.Content className="overflow-visible">
           <div id={`rack-content-${rackKey}`} className="storage-nav-children mt-0.5 space-y-0.5">
             {rack.boxes.map(box => (
               <BoxRow key={box.id} box={box} rack={rack} tankId={tankId} rackId={rack.id} />
