@@ -135,6 +135,7 @@ export function DonorRegistryModal({
       <BaseModal
         isOpen={isOpen}
         title="Donor Registry"
+        subtitle="Profiles & Collection History"
         icon={<BookUser />}
         onClose={onClose}
         size="xl"
