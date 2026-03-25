@@ -10,7 +10,7 @@ import { getUserInitials } from '@shared/utils/userDisplayFormatters';
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
-interface UserInfo {
+export interface UserInfo {
   initials: string;
   username: string;
   firstName?: string;

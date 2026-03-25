@@ -12,7 +12,7 @@ import { useTextTruncation } from '@shared/hooks';
 import { Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
-import type { StorageNavigatorNodeProps } from './types';
+import type { StorageNavigatorNodeProps } from './storageNavigatorTypes';
 
 const ICON_SIZE = { tank: 20, rack: 18, box: 16 } as const;
 

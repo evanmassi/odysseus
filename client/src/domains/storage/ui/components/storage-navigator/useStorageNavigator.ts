@@ -8,7 +8,7 @@ import { useState, useCallback, useMemo } from 'react';
 
 import { logger } from '@infra/logger';
 
-import type { StorageHierarchy, SelectedLocation } from './types';
+import type { StorageHierarchy, SelectedLocation } from './storageNavigatorTypes';
 
 export function useStorageNavigator(
   data: StorageHierarchy,

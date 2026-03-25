@@ -18,13 +18,7 @@ import { AssignmentDropdown } from './AssignmentDropdown';
 import { TreeLinesByUser } from './TreeLinesByUser';
 
 import type { LabConfiguration } from '@domains/storage';
-
-interface UserInfo {
-  initials: string;
-  username: string;
-  firstName?: string;
-  lastName?: string;
-}
+import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
 
 interface ByUserTabProps {
   lab: LabConfiguration;

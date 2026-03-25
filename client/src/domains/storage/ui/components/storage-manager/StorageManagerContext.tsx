@@ -7,12 +7,8 @@
 import { createContext, useContext } from 'react';
 
 import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
+import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
 import type { DemoLimits, UserDisplayInfo } from '@odysseus/shared-schemas';
-
-interface UserInfo {
-  initials: string;
-  username: string;
-}
 
 interface StorageManagerContextValue {
   // Data

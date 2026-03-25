@@ -11,7 +11,7 @@ import { TreeLinesByLocation } from './TreeLinesByLocation';
 import { useStorageNavigator } from './useStorageNavigator';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
-import type { StorageNavigatorProps, VisibleTreeNode } from './types';
+import type { StorageNavigatorProps, VisibleTreeNode } from './storageNavigatorTypes';
 import type { UserBadgeType } from '@shared/ui/components/badges';
 
 function getNodeKey(
