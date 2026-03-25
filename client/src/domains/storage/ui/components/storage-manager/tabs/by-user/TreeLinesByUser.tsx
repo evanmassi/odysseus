@@ -26,7 +26,7 @@ export function TreeLinesByUser({ expandedUsers }: TreeLinesByUserProps) {
     [expandedUsers]
   );
 
-  const lines = useTreeLines(calculate);
+  const lines = useTreeLines(calculate, { initialDelay: 450 });
 
   return <TreeLinesDisplay lines={lines} />;
 }

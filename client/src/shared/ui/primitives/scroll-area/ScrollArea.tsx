@@ -26,6 +26,7 @@ export const ScrollArea = forwardRef<OverlayScrollbarsComponentRef, ScrollAreaPr
         defer={defer}
         options={{
           scrollbars: { theme: 'os-theme-odysseus', autoHide: 'move', autoHideDelay: 800 },
+          update: { elementEvents: [['[data-state]', 'animationend transitionend']] },
           ...options,
         }}
         {...rest}

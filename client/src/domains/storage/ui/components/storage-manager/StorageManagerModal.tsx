@@ -270,6 +270,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                   expandedTanks={expandedTanks}
                   expandedRacks={expandedRacks}
                   treeId="modal"
+                  initialDelay={450}
                 />
                 <div className="space-y-1">
                   {currentLab.equipment.tanks.map(tank => (

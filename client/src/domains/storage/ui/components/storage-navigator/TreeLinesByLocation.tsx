@@ -15,12 +15,14 @@ interface TreeLinesByLocationProps {
   expandedTanks: Set<string>;
   expandedRacks: Set<string>;
   treeId?: string;
+  initialDelay?: number;
 }
 
 export function TreeLinesByLocation({
   expandedTanks,
   expandedRacks,
   treeId,
+  initialDelay,
 }: TreeLinesByLocationProps) {
   const calculate = useCallback(
     () =>
@@ -33,7 +35,7 @@ export function TreeLinesByLocation({
     [expandedTanks, expandedRacks, treeId]
   );
 
-  const lines = useTreeLines(calculate);
+  const lines = useTreeLines(calculate, initialDelay ? { initialDelay } : undefined);
 
   return <TreeLinesDisplay lines={lines} />;
 }

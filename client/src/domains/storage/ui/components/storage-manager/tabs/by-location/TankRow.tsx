@@ -128,7 +128,7 @@ export function TankRow({
           )}
         </div>
 
-        <Collapsible.Content className="overflow-visible data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+        <Collapsible.Content className="overflow-visible">
           <div id={`tank-content-${tank.id}`} className="storage-nav-children mt-1 space-y-1">
             {tank.racks.map(rack => {
               const rackKey = `${tank.id}-rack-${rack.id}`;
