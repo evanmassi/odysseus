@@ -4,7 +4,7 @@
  * Collapsible tank node in the By Location tab with rack management controls.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Edit3, Lock, Plus, Trash2 } from 'lucide-react';
@@ -21,12 +21,8 @@ import type { TankConfiguration } from '@domains/storage';
 interface TankRowProps {
   tank: TankConfiguration;
   collapsed: boolean;
-  rackCountToAdd: number;
-  boxCountToAdd: Record<string, number>;
   onToggleCollapse: () => void;
   onToggleRackCollapse: (rackKey: string) => void;
-  onRackCountChange: (count: number) => void;
-  onBoxCountChange: (rackKey: string, count: number) => void;
   collapsedRacks: Set<string>;
   canDeleteTank: boolean;
 }
@@ -34,25 +30,23 @@ interface TankRowProps {
 export function TankRow({
   tank,
   collapsed,
-  rackCountToAdd,
-  boxCountToAdd,
   onToggleCollapse,
   onToggleRackCollapse,
-  onRackCountChange,
-  onBoxCountChange,
   collapsedRacks,
   canDeleteTank,
 }: TankRowProps) {
   const {
     onEditTank,
     onDeleteTank,
-    onAddRack,
+    onAddRacks,
     canManageStorage,
     isResourceLocked,
     isDemo,
     demoLimits,
     hasSeededResources,
   } = useStorageManagerContext();
+
+  const [rackCountToAdd, setRackCountToAdd] = useState(1);
 
   const locked = isResourceLocked(tank);
   const demoLimitsActive = isDemo && demoLimits && hasSeededResources;
@@ -144,9 +138,7 @@ export function TankRow({
                   rack={rack}
                   tankId={tank.id}
                   collapsed={collapsedRacks.has(rackKey)}
-                  boxCountToAdd={boxCountToAdd[`${tank.id}-${rack.id}`] || 1}
                   onToggleCollapse={() => onToggleRackCollapse(rackKey)}
-                  onBoxCountChange={count => onBoxCountChange(`${tank.id}-${rack.id}`, count)}
                   canDeleteRack={tank.racks.length > 1}
                 />
               );
@@ -162,7 +154,7 @@ export function TankRow({
                 <Tooltip content="Number of racks to add" side="bottom">
                   <NumberInput
                     value={rackCountToAdd}
-                    onChange={onRackCountChange}
+                    onChange={setRackCountToAdd}
                     min={1}
                     max={
                       demoLimitsActive
@@ -176,7 +168,9 @@ export function TankRow({
                 <Button
                   variant="primary"
                   size="xs"
-                  onClick={() => onAddRack(tank.id)}
+                  onClick={() =>
+                    onAddRacks(tank.id, rackCountToAdd, { onSuccess: () => setRackCountToAdd(1) })
+                  }
                   leftIcon={<Plus size={12} />}
                   disabled={!!rackLimitReached}
                 >

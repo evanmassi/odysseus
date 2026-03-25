@@ -4,7 +4,7 @@
  * Collapsible rack node in the By Location tab with box management and assignment controls.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   EQUIPMENT_DEFAULTS,
@@ -30,9 +30,7 @@ interface RackRowProps {
   rack: RackConfiguration;
   tankId: string;
   collapsed: boolean;
-  boxCountToAdd: number;
   onToggleCollapse: () => void;
-  onBoxCountChange: (count: number) => void;
   canDeleteRack: boolean;
 }
 
@@ -40,9 +38,7 @@ export function RackRow({
   rack,
   tankId,
   collapsed,
-  boxCountToAdd,
   onToggleCollapse,
-  onBoxCountChange,
   canDeleteRack,
 }: RackRowProps) {
   const {
@@ -59,8 +55,10 @@ export function RackRow({
     onEditRackLabel,
     onEditRack,
     onDeleteRack,
-    onAddBox,
+    onAddBoxes,
   } = useStorageManagerContext();
+
+  const [boxCountToAdd, setBoxCountToAdd] = useState(1);
   const rackKey = `${tankId}-rack-${rack.id}`;
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);
   const locked = isResourceLocked(rack);
@@ -204,7 +202,7 @@ export function RackRow({
                 <Tooltip content="Number of boxes to add" side="bottom">
                   <NumberInput
                     value={boxCountToAdd}
-                    onChange={onBoxCountChange}
+                    onChange={setBoxCountToAdd}
                     min={1}
                     max={
                       demoLimitsActive
@@ -218,7 +216,11 @@ export function RackRow({
                 <Button
                   variant="primary"
                   size="xs"
-                  onClick={() => onAddBox(tankId, rack.id)}
+                  onClick={() =>
+                    onAddBoxes(tankId, rack.id, boxCountToAdd, {
+                      onSuccess: () => setBoxCountToAdd(1),
+                    })
+                  }
                   leftIcon={<Plus size={12} />}
                   disabled={!!boxLimitReached}
                 >

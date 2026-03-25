@@ -34,12 +34,17 @@ interface StorageManagerContextValue {
   // Tank handlers
   onEditTank: (tank: TankConfiguration) => void;
   onDeleteTank: (tankId: string) => void;
-  onAddRack: (tankId: string) => void;
+  onAddRacks: (tankId: string, count: number, options?: { onSuccess?: () => void }) => void;
 
   // Rack handlers
   onEditRack: (tankId: string, rack: RackConfiguration) => void;
   onDeleteRack: (tankId: string, rackId: string) => void;
-  onAddBox: (tankId: string, rackId: string) => void;
+  onAddBoxes: (
+    tankId: string,
+    rackId: string,
+    count: number,
+    options?: { onSuccess?: () => void }
+  ) => void;
   onAssignRack: (tankId: string, rackId: string, userId: string | undefined) => void;
   onEditRackLabel: (tankId: string, rackId: string, currentLabel: string) => void;
 

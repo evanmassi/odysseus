@@ -146,10 +146,10 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       isResourceLocked,
       onEditTank: editModals.onEditTank,
       onDeleteTank: handlers.handleDeleteTank,
-      onAddRack: handlers.handleCreateRack,
+      onAddRacks: handlers.handleAddRacks,
       onEditRack: editModals.onEditRack,
       onDeleteRack: handlers.handleDeleteRack,
-      onAddBox: handlers.handleAddBox,
+      onAddBoxes: handlers.handleAddBoxes,
       onAssignRack: handlers.handleAssignRack,
       onEditRackLabel: editModals.onEditRackLabel,
       onEditBox: editModals.onEditBox,
@@ -174,9 +174,9 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       editModals.onEditBox,
       editModals.onEditBoxLabel,
       handlers.handleDeleteTank,
-      handlers.handleCreateRack,
+      handlers.handleAddRacks,
       handlers.handleDeleteRack,
-      handlers.handleAddBox,
+      handlers.handleAddBoxes,
       handlers.handleRemoveBox,
       handlers.handleAssignRack,
       handlers.handleAssignBox,
@@ -277,16 +277,8 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                       key={tank.id}
                       tank={tank}
                       collapsed={collapsedTanks.has(tank.id)}
-                      rackCountToAdd={handlers.rackCountToAdd[tank.id] || 1}
-                      boxCountToAdd={handlers.boxCountToAdd}
                       onToggleCollapse={() => toggleTankCollapse(tank.id)}
                       onToggleRackCollapse={toggleRackCollapse}
-                      onRackCountChange={count =>
-                        handlers.setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
-                      }
-                      onBoxCountChange={(rackKey, count) =>
-                        handlers.setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
-                      }
                       collapsedRacks={collapsedRacks}
                       canDeleteTank={currentLab.equipment.tanks.length > 1}
                     />

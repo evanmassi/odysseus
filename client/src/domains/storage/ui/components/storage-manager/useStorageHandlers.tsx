@@ -4,7 +4,7 @@
  * CRUD, assignment, and bulk operation handlers for the storage manager modal.
  */
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import {
@@ -89,9 +89,6 @@ export function useStorageHandlers({
     bulkUnassignMutation.isPending ||
     bulkReassignMutation.isPending;
 
-  const [rackCountToAdd, setRackCountToAdd] = useState<Record<string, number>>({});
-  const [boxCountToAdd, setBoxCountToAdd] = useState<Record<string, number>>({});
-
   const handleAssignRack = useCallback(
     (tankId: string, rackId: string, userId: string | undefined) => {
       assignRackMutation.mutate({ tankId, rackId, assignedUserId: userId ?? null });
@@ -106,33 +103,30 @@ export function useStorageHandlers({
     [assignBoxMutation]
   );
 
-  const handleCreateRack = useCallback(
-    (tankId: string) => {
-      const count = rackCountToAdd[tankId] || 1;
+  const handleAddRacks = useCallback(
+    (tankId: string, count: number, options?: { onSuccess?: () => void }) => {
       addRacksMutation.mutate(
         { tankId, count },
         {
           onSuccess: data => {
             const newRackKeys = data.rackIds.map(id => `${tankId}-rack-${id}`);
             setCollapsedRacks(prev => new Set([...prev, ...newRackKeys]));
-            setRackCountToAdd(prev => ({ ...prev, [tankId]: 1 }));
+            options?.onSuccess?.();
           },
         }
       );
     },
-    [rackCountToAdd, addRacksMutation, setCollapsedRacks]
+    [addRacksMutation, setCollapsedRacks]
   );
 
-  const handleAddBox = useCallback(
-    (tankId: string, rackId: string) => {
-      const rackKey = `${tankId}-${rackId}`;
-      const count = boxCountToAdd[rackKey] || 1;
+  const handleAddBoxes = useCallback(
+    (tankId: string, rackId: string, count: number, options?: { onSuccess?: () => void }) => {
       addBoxesMutation.mutate(
         { tankId, rackId, count },
-        { onSuccess: () => setBoxCountToAdd(prev => ({ ...prev, [rackKey]: 1 })) }
+        options?.onSuccess ? { onSuccess: options.onSuccess } : undefined
       );
     },
-    [boxCountToAdd, addBoxesMutation]
+    [addBoxesMutation]
   );
 
   const handleRemoveBox = useCallback(
@@ -292,15 +286,10 @@ export function useStorageHandlers({
     isMutating,
     addTankMutation,
 
-    rackCountToAdd,
-    boxCountToAdd,
-    setRackCountToAdd,
-    setBoxCountToAdd,
-
     handleAssignRack,
     handleAssignBox,
-    handleCreateRack,
-    handleAddBox,
+    handleAddRacks,
+    handleAddBoxes,
     handleRemoveBox,
     handleDeleteRack,
     handleAddNewTank,
