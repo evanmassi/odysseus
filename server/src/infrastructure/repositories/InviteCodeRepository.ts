@@ -73,4 +73,12 @@ export class InviteCodeRepository implements IInviteCodeRepository {
     );
     return (result.rowCount ?? 0) > 0;
   }
+
+  async deleteByCreator(userId: string): Promise<number> {
+    const result = await this.context.execute(
+      'DELETE FROM invite_codes WHERE created_by = $1',
+      [userId]
+    );
+    return result.rowCount ?? 0;
+  }
 }

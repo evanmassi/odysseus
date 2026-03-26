@@ -314,6 +314,10 @@ export class UserApplicationService {
       }
     }
 
+    if (this.inviteCodeRepository) {
+      await this.inviteCodeRepository.deleteByCreator(userId);
+    }
+
     if (targetUser.hasResearcherProfile()) {
       targetUser.unlinkResearcher();
       await this.userRepository.save(targetUser);
