@@ -6,6 +6,7 @@
  */
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
+  BookUser,
   Lock,
   MousePointerClick,
   Navigation,
@@ -18,6 +19,7 @@ import {
 
 import { useAuthStore } from '@domains/authentication';
 import { AlertBanner } from '@shared/ui';
+import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 
 export function GettingStartedTab() {
   const { user } = useAuthStore();
@@ -33,8 +35,9 @@ export function GettingStartedTab() {
         </div>
         <p className="text-xs text-muted-foreground mb-2">
           Use the navigator sidebar to browse tanks, racks, and boxes. Click a tube in the grid to
-          open the info panel on the right. Your current location is always visible above the grid
-          or in the Tube Information panel.
+          open the Tube Information panel on the right, where you can see its details — cell type,
+          donor, researcher, lock status, shared access, and location. Your current location is
+          always visible above the grid.
         </p>
         <p className="text-xs text-muted-foreground inline-flex items-center gap-1 flex-wrap">
           Racks and boxes assigned to you display your initials. Common (unassigned) spaces show the{' '}
@@ -50,8 +53,9 @@ export function GettingStartedTab() {
         </div>
         <p className="text-xs text-muted-foreground">
           Click an empty position to add a tube. Double-click an existing tube to edit it, or
-          right-click for more options. Select multiple tubes to batch add or edit. You can only add
-          or edit tubes in boxes assigned to you or marked as common.
+          right-click for more options. Select multiple tubes to batch add or edit. You can also
+          copy, cut, and paste tubes between positions. You can only add or edit tubes in boxes
+          assigned to you or marked as common.
         </p>
       </section>
 
@@ -89,6 +93,30 @@ export function GettingStartedTab() {
           Find tubes across all storage using the search bar. Use advanced filters to narrow results
           by cell type, donor, researcher, location, and more. Clicking a result navigates directly
           to that tube in the grid. You can also export your search results to CSV.
+        </p>
+      </section>
+
+      {/* Section E: Storage Manager */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <TankIcon size={16} className="text-secondary-foreground" />
+          <h3 className="text-sm font-semibold text-card-foreground">Storage Manager</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Open the Storage Manager from the header menu to view and organize your lab&apos;s storage
+          structure — tanks, racks, and boxes. See the Storage tab for details.
+        </p>
+      </section>
+
+      {/* Section F: Donor Registry */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <BookUser size={16} className="text-secondary-foreground" />
+          <h3 className="text-sm font-semibold text-card-foreground">Donor Registry</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Open the Donor Registry from the header menu to browse donor profiles and their collection
+          history. See the Donors tab for details.
         </p>
       </section>
 
