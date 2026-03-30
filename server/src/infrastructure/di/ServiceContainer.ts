@@ -164,7 +164,8 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.accessControlService = new AccessControlService(
         repositories.users,
-        repositories.tubes
+        repositories.tubes,
+        repositories.researchers
       );
     }
     return this.accessControlService;
