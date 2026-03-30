@@ -8,7 +8,6 @@ import type { Researcher } from '@domain/entities/Researcher';
 import type { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
-import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
@@ -25,8 +24,7 @@ export class AccessControlService {
   
   constructor(
     private userRepository: UserRepository,
-    private tubeRepository: TubeRepository,
-    private researcherRepository: ResearcherRepository
+    private tubeRepository: TubeRepository
   ) {}
 
   // TUBE OPERATIONS
@@ -40,7 +38,7 @@ export class AccessControlService {
       return this.createAllowedResult('Admin access');
     }
 
-    const researcherCheck = await this.checkActiveResearcher(user);
+    const researcherCheck = this.checkActiveResearcher(user);
     if (researcherCheck) return researcherCheck;
 
     return this.createAllowedResult('Authorized');
@@ -116,11 +114,11 @@ export class AccessControlService {
 
   // TUBE LOCK OPERATIONS
 
-  async canLockTube(
+  canLockTube(
     user: User,
     tube: Tube,
     containerInfo?: { rack?: ResourceWithOwnership; box?: ResourceWithOwnership }
-  ): Promise<AccessResult> {
+  ): AccessResult {
     if (tube.isLocked) {
       return this.createDeniedResult('Tube is already locked');
     }
@@ -129,7 +127,7 @@ export class AccessControlService {
       return this.createAllowedResult('Admin access');
     }
 
-    const researcherCheck = await this.checkActiveResearcher(user);
+    const researcherCheck = this.checkActiveResearcher(user);
     if (researcherCheck) return researcherCheck;
 
     if (containerInfo) {
@@ -154,7 +152,7 @@ export class AccessControlService {
   }
 
   /** Shared users cannot unlock — only the lock owner or admin can */
-  async canUnlockTube(user: User, tube: Tube): Promise<AccessResult> {
+  canUnlockTube(user: User, tube: Tube): AccessResult {
     if (!tube.isLocked) {
       return this.createDeniedResult('Tube is not locked');
     }
@@ -163,7 +161,7 @@ export class AccessControlService {
       return this.createAllowedResult('Admin access');
     }
 
-    const researcherCheck = await this.checkActiveResearcher(user);
+    const researcherCheck = this.checkActiveResearcher(user);
     if (researcherCheck) return researcherCheck;
 
     if (tube.lockedBy === user.id) {
@@ -193,7 +191,7 @@ export class AccessControlService {
     return this.createDeniedResult('Tube is locked by another user');
   }
 
-  async canShareTubeAccess(user: User, tube: Tube): Promise<AccessResult> {
+  canShareTubeAccess(user: User, tube: Tube): AccessResult {
     if (!tube.isLocked) {
       return this.createDeniedResult('Cannot share access to an unlocked tube');
     }
@@ -202,7 +200,7 @@ export class AccessControlService {
       return this.createAllowedResult('Admin access');
     }
 
-    const researcherCheck = await this.checkActiveResearcher(user);
+    const researcherCheck = this.checkActiveResearcher(user);
     if (researcherCheck) return researcherCheck;
 
     if (tube.lockedBy === user.id) {
@@ -362,15 +360,15 @@ export class AccessControlService {
 
   // RESOURCE ASSIGNMENT OPERATIONS
 
-  async canAccessContainer(
+  canAccessContainer(
     user: User,
     containerInfo: { rack?: ResourceWithOwnership; box?: ResourceWithOwnership }
-  ): Promise<AccessResult> {
+  ): AccessResult {
     if (user.isAdmin()) {
       return this.createAllowedResult('Admin access');
     }
 
-    const researcherCheck = await this.checkActiveResearcher(user);
+    const researcherCheck = this.checkActiveResearcher(user);
     if (researcherCheck) return researcherCheck;
 
     const { rack, box } = containerInfo;
@@ -405,12 +403,12 @@ export class AccessControlService {
    *
    * ADD operations require container access — shared access doesn't apply.
    */
-  async canAccessTubeForModification(
+  canAccessTubeForModification(
     user: User,
     tube: Tube,
     containerInfo: { rack?: ResourceWithOwnership; box?: ResourceWithOwnership }
-  ): Promise<AccessResult> {
-    const containerAccess = await this.canAccessContainer(user, containerInfo);
+  ): AccessResult {
+    const containerAccess = this.canAccessContainer(user, containerInfo);
     const hasContainerAccess = containerAccess.allowed;
     const hasSharedAccess = tube.sharedWithUserIds.includes(user.id);
 
@@ -485,13 +483,12 @@ export class AccessControlService {
 
   // HELPER METHODS
 
-  private async checkActiveResearcher(user: User): Promise<AccessResult | null> {
+  private checkActiveResearcher(user: User): AccessResult | null {
     if (!user.hasResearcherProfile()) {
       return this.createDeniedResult('Researcher profile required for tube operations');
     }
 
-    const researcher = await this.researcherRepository.findById(user.researcherId!);
-    if (!researcher || !researcher.active) {
+    if (user.researcherActive === false) {
       return this.createDeniedResult('Researcher profile is deactivated');
     }
 

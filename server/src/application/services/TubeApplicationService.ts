@@ -106,7 +106,7 @@ export class TubeApplicationService {
       options?.config
     );
     if (containerInfo) {
-      const containerAccess = await this.accessControlService.canAccessContainer(
+      const containerAccess = this.accessControlService.canAccessContainer(
         authenticatedUser,
         containerInfo
       );
@@ -282,7 +282,7 @@ export class TubeApplicationService {
       tube.location.boxId
     );
     if (containerInfo) {
-      const tubeAccess = await this.accessControlService.canAccessTubeForModification(
+      const tubeAccess = this.accessControlService.canAccessTubeForModification(
         authenticatedUser,
         tube,
         containerInfo
@@ -424,7 +424,7 @@ export class TubeApplicationService {
       options?.config
     );
     if (containerInfo) {
-      const tubeAccess = await this.accessControlService.canAccessTubeForModification(
+      const tubeAccess = this.accessControlService.canAccessTubeForModification(
         authenticatedUser,
         existingTube,
         containerInfo
@@ -464,7 +464,7 @@ export class TubeApplicationService {
 
         const destContainerInfo = await this.getContainerInfo(authenticatedUser.labId!, newTankId, newRackId, newBoxId, options?.config);
         if (destContainerInfo) {
-          const destAccess = await this.accessControlService.canAccessContainer(
+          const destAccess = this.accessControlService.canAccessContainer(
             authenticatedUser,
             destContainerInfo
           );
@@ -571,7 +571,7 @@ export class TubeApplicationService {
       options?.config
     );
     if (containerInfo) {
-      const tubeAccess = await this.accessControlService.canAccessTubeForModification(
+      const tubeAccess = this.accessControlService.canAccessTubeForModification(
         authenticatedUser,
         tube,
         containerInfo
@@ -676,7 +676,7 @@ export class TubeApplicationService {
           config
         );
         if (containerInfo) {
-          const tubeAccess = await this.accessControlService.canAccessTubeForModification(
+          const tubeAccess = this.accessControlService.canAccessTubeForModification(
             authenticatedUser,
             tube,
             containerInfo
@@ -745,7 +745,7 @@ export class TubeApplicationService {
         config
       );
       if (containerInfo) {
-        const containerAccess = await this.accessControlService.canAccessContainer(
+        const containerAccess = this.accessControlService.canAccessContainer(
           authenticatedUser,
           containerInfo
         );
@@ -755,7 +755,7 @@ export class TubeApplicationService {
         }
       }
 
-      const accessResult = await this.accessControlService.canLockTube(
+      const accessResult = this.accessControlService.canLockTube(
         authenticatedUser,
         tube,
         containerInfo ?? undefined
@@ -821,7 +821,7 @@ export class TubeApplicationService {
         continue;
       }
 
-      const accessResult = await this.accessControlService.canUnlockTube(authenticatedUser, tube);
+      const accessResult = this.accessControlService.canUnlockTube(authenticatedUser, tube);
       if (!accessResult.allowed) {
         skipped.push({ tubeId, reason: accessResult.reason });
         continue;
@@ -889,7 +889,7 @@ export class TubeApplicationService {
         continue;
       }
 
-      const accessResult = await this.accessControlService.canShareTubeAccess(authenticatedUser, tube);
+      const accessResult = this.accessControlService.canShareTubeAccess(authenticatedUser, tube);
       if (!accessResult.allowed) {
         skipped.push({ tubeId, reason: accessResult.reason });
         continue;
@@ -949,7 +949,7 @@ export class TubeApplicationService {
         continue;
       }
 
-      const accessResult = await this.accessControlService.canShareTubeAccess(authenticatedUser, tube);
+      const accessResult = this.accessControlService.canShareTubeAccess(authenticatedUser, tube);
       if (!accessResult.allowed) {
         skipped.push({ tubeId, reason: accessResult.reason });
         continue;

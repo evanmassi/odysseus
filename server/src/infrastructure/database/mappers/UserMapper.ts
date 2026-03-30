@@ -30,6 +30,7 @@ export interface UserRow {
   last_activity?: Date | string;
   lab_id?: string;
   lab_is_demo?: boolean;
+  researcher_active?: boolean;
 }
 
 export class UserMapper {
@@ -103,6 +104,7 @@ export class UserMapper {
       requirePasswordChange: row.require_password_change ? 1 : 0,
       lastPasswordChange: lastPasswordChange,
       labIsDemo: row.lab_is_demo ?? false,
+      researcherActive: row.researcher_active ?? undefined,
       settings: row.settings,
       labId: row.lab_id ?? undefined
     });

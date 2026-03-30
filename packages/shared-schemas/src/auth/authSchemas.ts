@@ -165,6 +165,7 @@ export const publicUserDataSchema = z.object({
   status: z.enum(USER_STATUSES),
   isDemo: z.boolean(),
   researcherId: z.string().optional(),
+  researcherActive: z.boolean().optional(),
   personId: z.string().optional(),
   labId: z.string().optional(),
 });

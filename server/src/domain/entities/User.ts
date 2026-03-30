@@ -36,6 +36,7 @@ interface UserConstructorProps {
   requirePasswordChange?: boolean;
   lastPasswordChange?: Date | string;
   labIsDemo?: boolean;
+  researcherActive?: boolean;
   settings?: UserSettings;
   labId?: string;
 }
@@ -52,6 +53,7 @@ export class User {
   private _requirePasswordChange: boolean = false;
   private _lastPasswordChange?: Date;
   private _labIsDemo: boolean = false;
+  private _researcherActive?: boolean;
   private _settings: UserSettings;
 
   private readonly _id: string;
@@ -94,6 +96,7 @@ export class User {
       ? (typeof props.lastPasswordChange === 'string' ? new Date(props.lastPasswordChange) : props.lastPasswordChange)
       : undefined;
     this._labIsDemo = props.labIsDemo ?? false;
+    this._researcherActive = props.researcherActive;
     this._settings = props.settings ?? DEFAULT_USER_SETTINGS;
     this.validate();
   }
@@ -202,6 +205,7 @@ export class User {
     requirePasswordChange?: number;
     lastPasswordChange?: string;
     labIsDemo?: boolean;
+    researcherActive?: boolean;
     settings?: UserSettings | string;
     labId?: string;
   }): User {
@@ -242,6 +246,7 @@ export class User {
       requirePasswordChange: data.requirePasswordChange === 1,
       lastPasswordChange: data.lastPasswordChange,
       labIsDemo: data.labIsDemo ?? false,
+      researcherActive: data.researcherActive,
       settings: parsedSettings,
       labId: data.labId,
     });
@@ -526,6 +531,7 @@ export class User {
     status: UserStatus;
     isDemo: boolean;
     researcherId?: string;
+    researcherActive?: boolean;
     personId?: string;
     labId?: string;
   } {
@@ -538,6 +544,7 @@ export class User {
       status: this._status,
       isDemo: this._labIsDemo,
       researcherId: this._researcherId,
+      researcherActive: this._researcherActive,
       personId: this._personId,
       labId: this._labId,
     };
@@ -583,6 +590,7 @@ export class User {
   get requirePasswordChange(): boolean { return this._requirePasswordChange; }
   get lastPasswordChange(): Date | undefined { return this._lastPasswordChange ? new Date(this._lastPasswordChange) : undefined; }
   get isDemo(): boolean { return this._labIsDemo; }
+  get researcherActive(): boolean | undefined { return this._researcherActive; }
 
   get labId(): string | undefined { return this._labId; }
 

@@ -397,8 +397,9 @@ function LabDashboard() {
 
   const selectionAnalysis = useGridSelectionAnalysis(selectedPositions, tubes);
 
-  // Users without a researcher profile can only browse (admins always have full access)
-  const hasResearcherProfile = isAdminRole(user?.role) || !!user?.researcherId;
+  // Users without an active researcher profile can only browse (admins always have full access)
+  const hasResearcherProfile =
+    isAdminRole(user?.role) || (!!user?.researcherId && user?.researcherActive !== false);
 
   const gridController = useGridController({
     tankId: currentTank,

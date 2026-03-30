@@ -20,10 +20,11 @@ const USER_COLUMNS = `
   u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,
   u.email_verified, u.email_verification_token, u.email_verification_expiry, u.last_verification_email_sent,
   u.password_reset_token, u.password_reset_expiry, u.require_password_change, u.last_password_change, u.settings, u.lab_id,
-  l.is_demo AS lab_is_demo
+  l.is_demo AS lab_is_demo,
+  r.active AS researcher_active
 `.trim();
 
-const USER_FROM = `users u LEFT JOIN labs l ON u.lab_id = l.id`;
+const USER_FROM = `users u LEFT JOIN labs l ON u.lab_id = l.id LEFT JOIN researchers r ON u.researcher_id = r.id`;
 
 export class UserRepository implements IUserRepository {
 
