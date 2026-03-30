@@ -658,13 +658,8 @@ export class UserApplicationService {
       });
     }
 
-    // TODO: User entity lacks a linkResearcher() method; fromData workaround
-    const updatedUser = User.fromData({
-      ...user.toData(),
-      researcherId: researcherId
-    });
-
-    await this.userRepository.save(updatedUser);
+    user.linkResearcher(researcherId);
+    await this.userRepository.save(user);
 
     if (this.personRepository && this.eventBus) {
       const person = await this.personRepository.findById(researcher.personId);

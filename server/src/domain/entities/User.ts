@@ -463,7 +463,11 @@ export class User {
     return this._status === 'suspended';
   }
 
-  /** Preserves researcher records for tube history when deleting a user */
+  linkResearcher(researcherId: string): void {
+    this._researcherId = researcherId;
+    this.recordActivity();
+  }
+
   unlinkResearcher(): void {
     this._researcherId = undefined;
     this.recordActivity();
