@@ -151,7 +151,7 @@ export const tubeUpdateSampleSchema = concentrationUnitRefinement(
         if (val === undefined || val === null) return undefined;
         if (typeof val === 'string') {
           const trimmed = val.trim();
-          return trimmed || '';
+          return trimmed || undefined;
         }
         return val;
       },
