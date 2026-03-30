@@ -176,6 +176,7 @@ export const useCreateTubeMutation = (
       }
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
 
     onError: (error, _variables, context) => {
@@ -283,6 +284,7 @@ export const useUpdateTubeMutation = (
       }
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
 
     onError: (error, variables, context) => {
@@ -438,6 +440,7 @@ export const useBulkUpdateTubesMutation = (
     onSuccess: (_data, _variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
 
     onError: (error, _variables) => {
@@ -573,6 +576,7 @@ export const usePasteTubesMutation = (
       });
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
 
       if (failed.length > 0) {
         logger.warn('Paste tubes partial failure', {
