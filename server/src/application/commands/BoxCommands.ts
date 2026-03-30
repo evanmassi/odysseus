@@ -382,7 +382,7 @@ export class AssignBoxCommandHandler {
       b => b.name === boxIdUpper
     );
 
-    configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId = command.assignedUserId ?? undefined;
+    configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId = command.assignedUserId;
 
     const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
