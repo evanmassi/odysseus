@@ -292,7 +292,7 @@ export function TubesTab() {
         </div>
         <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1.5">
           <Notebook size={14} className="flex-shrink-0 text-secondary-foreground" />
-          Lock notes appear when hovering over the lock icon, or in the tube information panel.
+          Lock notes appear when hovering over the tube, or in the Tube Information panel.
         </p>
       </section>
 

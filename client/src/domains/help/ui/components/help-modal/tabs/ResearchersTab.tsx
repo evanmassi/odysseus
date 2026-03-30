@@ -56,7 +56,7 @@ export function ResearchersTab() {
         <p className="text-xs text-muted-foreground">
           A researcher can optionally be linked to a user account. When linked, that user can see
           and manage their own tubes. Unlinked researchers are profiles managed by admins on behalf
-          of others (i.e. researchers that no longer have access to the samples).
+          of others (e.g. external collaborators or former lab members).
         </p>
       </section>
 

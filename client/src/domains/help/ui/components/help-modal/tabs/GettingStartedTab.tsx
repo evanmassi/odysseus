@@ -100,7 +100,7 @@ export function GettingStartedTab() {
           </div>
           <p className="text-xs text-muted-foreground">
             As an admin, you have access to Admin Settings from the header menu where you can manage
-            users, researchers, security policies, invite codes, catalog values, and system
+            users, researchers, security settings, invite codes, catalog values, and system
             configuration. See the Administration tab for details.
           </p>
         </section>

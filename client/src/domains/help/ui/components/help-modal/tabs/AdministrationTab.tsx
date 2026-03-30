@@ -1,8 +1,8 @@
 /**
  * Administration Tab
  *
- * Admin-only help content covering the Admin Settings panel:
- * users, researchers, security, invite codes, catalog, monitoring, and system.
+ * Admin-only help content covering the Admin Settings panel.
+ * Section order matches the tab order in the Admin Settings modal.
  */
 import {
   Activity,
@@ -18,7 +18,7 @@ import {
 export function AdministrationTab() {
   return (
     <div className="space-y-8">
-      {/* Section A: Overview */}
+      {/* Overview */}
       <section>
         <div className="flex items-center gap-2 mb-3">
           <Settings size={16} className="text-secondary-foreground" />
@@ -31,7 +31,53 @@ export function AdministrationTab() {
         </p>
       </section>
 
-      {/* Section B: User Management */}
+      {/* System */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <Gauge size={16} className="text-secondary-foreground" />
+          <h3 className="text-sm font-semibold text-card-foreground">System</h3>
+        </div>
+        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+          <li>Edit your lab name</li>
+          <li>View storage utilization — capacity usage across tanks, racks, and boxes</li>
+          <li>Export system data</li>
+          <li>Toggle detailed system logging for troubleshooting</li>
+        </ul>
+      </section>
+
+      {/* Security Settings */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <Shield size={16} className="text-secondary-foreground" />
+          <h3 className="text-sm font-semibold text-card-foreground">Security Settings</h3>
+        </div>
+        <p className="text-xs text-muted-foreground mb-2">
+          Authentication, login, and timeout settings for your lab. Only the system administrator
+          can modify these settings — lab admins can view them but not make changes.
+        </p>
+        <div className="space-y-2">
+          <div className="flex items-start gap-2">
+            <span className="text-xs text-card-foreground font-medium">Authentication</span>
+            <span className="text-xs text-muted-foreground">
+              — Strong passwords, minimum length, special character requirements
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-xs text-card-foreground font-medium">Sessions</span>
+            <span className="text-xs text-muted-foreground">
+              — Auto-logout timeout, idle warning, how many devices can be logged in at once
+            </span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-xs text-card-foreground font-medium">Login Protection</span>
+            <span className="text-xs text-muted-foreground">
+              — Limits on failed login attempts and temporary lockout after too many tries
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* User Management */}
       <section>
         <div className="flex items-center gap-2 mb-3">
           <UsersRound size={16} className="text-secondary-foreground" />
@@ -58,7 +104,7 @@ export function AdministrationTab() {
         </div>
       </section>
 
-      {/* Section C: Researcher Management */}
+      {/* Researcher Management */}
       <section>
         <div className="flex items-center gap-2 mb-3">
           <Dna size={16} className="text-secondary-foreground" />
@@ -75,38 +121,7 @@ export function AdministrationTab() {
         </ul>
       </section>
 
-      {/* Section D: Security Settings */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Shield size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Security Settings</h3>
-        </div>
-        <p className="text-xs text-muted-foreground mb-2">
-          Configure authentication and session policies for your lab.
-        </p>
-        <div className="space-y-2">
-          <div className="flex items-start gap-2">
-            <span className="text-xs text-card-foreground font-medium">Authentication</span>
-            <span className="text-xs text-muted-foreground">
-              — Strong passwords, minimum length, special character requirements
-            </span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-xs text-card-foreground font-medium">Sessions</span>
-            <span className="text-xs text-muted-foreground">
-              — Auto-logout timeout, idle warning, maximum concurrent sessions
-            </span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-xs text-card-foreground font-medium">Rate Limiting</span>
-            <span className="text-xs text-muted-foreground">
-              — Max login attempts per minute, lockout duration after repeated failures
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* Section E: Invite Codes */}
+      {/* Invite Codes */}
       <section>
         <div className="flex items-center gap-2 mb-3">
           <TicketCheck size={16} className="text-secondary-foreground" />
@@ -120,21 +135,21 @@ export function AdministrationTab() {
         </p>
       </section>
 
-      {/* Section F: Catalog Management */}
+      {/* Catalog Management */}
       <section>
         <div className="flex items-center gap-2 mb-3">
           <BookOpen size={16} className="text-secondary-foreground" />
           <h3 className="text-sm font-semibold text-card-foreground">Catalog Management</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Manage the lookup values that appear in dropdowns across the system — species, source
-          types, media types, and specimen types. You can add new values, rename existing ones, and
-          remove values that are no longer needed. The system shows how many records reference each
-          value before deletion.
+          Customize the options available when filling out tube and donor forms — species, source
+          types, media types, and specimen types. You can add new options, rename existing ones, and
+          remove options that are no longer relevant. Before removing an option, the system shows
+          how many records currently use it.
         </p>
       </section>
 
-      {/* Section G: Monitoring & System */}
+      {/* Monitoring */}
       <section>
         <div className="flex items-center gap-2 mb-3">
           <Activity size={16} className="text-secondary-foreground" />
@@ -144,19 +159,6 @@ export function AdministrationTab() {
           The audit log tracks user actions across the system. Filter by user, action type, or date
           range to review activity. Useful for troubleshooting or verifying changes.
         </p>
-      </section>
-
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Gauge size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">System</h3>
-        </div>
-        <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-          <li>Edit your lab name</li>
-          <li>View storage utilization — capacity usage across tanks, racks, and boxes</li>
-          <li>Export system data</li>
-          <li>Toggle detailed system logging</li>
-        </ul>
       </section>
     </div>
   );

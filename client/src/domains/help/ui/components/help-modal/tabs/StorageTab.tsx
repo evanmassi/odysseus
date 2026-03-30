@@ -75,8 +75,8 @@ export function StorageTab() {
             <div className="pt-0.5">
               <span className="text-sm font-medium text-card-foreground">Box</span>
               <p className="text-xs text-muted-foreground">
-                A grid of positions (5x5 to 10x10) where tubes are stored. Can be assigned to a user
-                or left as common.
+                A grid where tubes are stored, ranging from 5x5 up to 10x10 positions. Can be
+                assigned to a user or left as common.
               </p>
             </div>
           </div>
@@ -119,7 +119,7 @@ export function StorageTab() {
 
         {/* Inheritance explanation */}
         <div className="rounded-lg border border-border p-3 bg-muted/30">
-          <h4 className="text-xs font-medium text-card-foreground mb-1">Inheritance</h4>
+          <h4 className="text-xs font-medium text-card-foreground mb-1">Default Assignment</h4>
           <p className="text-xs text-muted-foreground">
             Boxes inherit their rack&apos;s owner by default. An admin can override this by
             assigning a box to a different user or marking it as common.

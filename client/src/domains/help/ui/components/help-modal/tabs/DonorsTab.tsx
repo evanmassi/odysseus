@@ -97,8 +97,9 @@ export function DonorsTab() {
           <h3 className="text-sm font-semibold text-card-foreground">Linking Donors to Tubes</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          When adding or editing a tube, use the donor autocomplete fields to link it to an existing
-          donor. Selecting a donor auto-fills both the Source ID and Internal ID if available.
+          When adding or editing a tube, use the donor search fields to link it to an existing
+          donor. Selecting a donor automatically fills in both the Source ID and Internal ID if
+          available.
         </p>
         <p className="text-xs text-muted-foreground mt-2">
           If you type a donor ID that doesn&apos;t exist yet, a new donor record is automatically
@@ -143,7 +144,8 @@ export function DonorsTab() {
             </li>
             <li>
               <span className="text-card-foreground font-medium">Delete donors</span> — removes the
-              donor and all associated collection history. Tube links are cleared.
+              donor and all associated collection history. Any tubes referencing this donor will
+              have their donor fields cleared.
             </li>
           </ul>
         </section>

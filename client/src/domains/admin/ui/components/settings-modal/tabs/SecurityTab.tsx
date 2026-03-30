@@ -1,7 +1,7 @@
 /**
  * Security Settings Tab
  *
- * Admin controls for authentication, session management, and rate limiting policies.
+ * Admin controls for authentication, session management, and login protection policies.
  */
 
 import { Shield } from 'lucide-react';
@@ -193,18 +193,18 @@ export function SecurityTab({
       </div>
 
       <div>
-        <h4 className="text-base font-semibold text-card-foreground mb-2">Rate Limiting</h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">Login Protection</h4>
         <div className="space-y-1.5">
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-card-foreground">Enable Rate Limiting</h5>
+              <h5 className="text-sm font-medium text-card-foreground">Enable Login Protection</h5>
               <p className="text-xs text-secondary-foreground">Prevent brute force attacks</p>
             </div>
             <Toggle
               checked={config.enableRateLimiting}
               onChange={checked => onChange('enableRateLimiting', checked)}
               disabled={readOnly}
-              aria-label="Enable rate limiting to prevent brute force attacks"
+              aria-label="Enable login protection to prevent brute force attacks"
             />
           </div>
 
