@@ -514,17 +514,18 @@ export function AppHeader({
               >
                 {/* Lab Name */}
                 {currentLab && (
-                  <div className="px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <FlaskConical size={16} className="text-muted-foreground" />
-                      <span className="text-sm text-secondary-foreground font-medium">
-                        {currentLab.name}
-                      </span>
+                  <>
+                    <div className="px-3 py-2">
+                      <div className="flex items-center gap-3">
+                        <FlaskConical size={16} className="text-muted-foreground" />
+                        <span className="text-sm text-secondary-foreground font-medium">
+                          {currentLab.name}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                    <div className="h-px bg-border my-1" />
+                  </>
                 )}
-
-                <div className="h-px bg-border my-1" />
 
                 <div className="px-1">
                   {/* Help */}
