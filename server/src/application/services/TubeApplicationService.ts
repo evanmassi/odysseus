@@ -300,6 +300,18 @@ export class TubeApplicationService {
     return TubeDto.toResponse(tube);
   }
 
+  async getTubesByIds(ids: string[], authenticatedUser: User): Promise<TubeResponse[]> {
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
+
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
+    const allowedTankSet = new Set(allowedTankIds);
+
+    const tubes = await this.tubeRepository.findByIds(ids, authenticatedUser.labId!);
+    const filtered = tubes.filter(t => allowedTankSet.has(t.location.tankId));
+
+    return TubeDto.toResponseList(filtered);
+  }
+
   async getAllTubes(authenticatedUser: User, searchRequest?: TubeSearchRequest): Promise<TubeResponse[]> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 

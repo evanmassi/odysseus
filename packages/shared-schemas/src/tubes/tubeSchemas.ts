@@ -299,3 +299,5 @@ export const bulkUpdateResponseSchema = z.object({
 });
 
 export type BulkUpdateResponse = z.infer<typeof bulkUpdateResponseSchema>;
+
+export const bulkFetchResponseSchema = z.array(tubeDataSchema);

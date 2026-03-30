@@ -34,6 +34,7 @@ export {
   bulkDeleteResponseSchema,
   pasteTubesResponseSchema,
   bulkUpdateResponseSchema,
+  bulkFetchResponseSchema,
   type BulkDeleteResponse,
   type PasteTubesResponse,
   type BulkUpdateResponse,

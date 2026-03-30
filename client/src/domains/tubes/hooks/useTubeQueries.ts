@@ -155,7 +155,7 @@ export const useBulkTubes = (
         return [];
       }
 
-      const schemaTubes = await Promise.all(tubeIds.map(id => TubeService.fetchTubeById(id)));
+      const schemaTubes = await TubeService.bulkFetchTubes(tubeIds);
       return schemaTubes.map(convertSchemaToSharedTubeData);
     },
     enabled: tubeIds.length > 0,

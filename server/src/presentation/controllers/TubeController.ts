@@ -182,6 +182,20 @@ export class TubeController extends BaseController {
     }
   }
 
+  /** POST /api/tubes/bulk-fetch */
+  async bulkFetchTubes(req: Request, res: Response): Promise<void> {
+    try {
+      const { tubeIds } = req.body;
+      const authenticatedUser = this.getAuthenticatedUser(req);
+
+      const tubes = await this.deps.tubeApplicationService.getTubesByIds(tubeIds, authenticatedUser);
+
+      res.json(ResponseBuilder.success(tubes));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to bulk fetch tubes', req.requestId);
+    }
+  }
+
   /** GET /api/tubes/location?tankId=X&rackId=Y&boxId=Z */
   async getTubesByLocation(req: Request, res: Response): Promise<void> {
     try {

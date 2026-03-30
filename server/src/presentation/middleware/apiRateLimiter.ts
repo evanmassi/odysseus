@@ -35,8 +35,8 @@ function createLimiter(limit: number, windowMs: number = ONE_MINUTE): RateLimitR
 }
 
 export function createGlobalRateLimiter(): RateLimitRequestHandler {
-  logger.info('Global API rate limiter enabled', { limit: 100, windowMs: ONE_MINUTE });
-  return createLimiter(100);
+  logger.info('Global API rate limiter enabled', { limit: 300, windowMs: ONE_MINUTE });
+  return createLimiter(300);
 }
 
 export function createStrictRateLimiter(): RateLimitRequestHandler {

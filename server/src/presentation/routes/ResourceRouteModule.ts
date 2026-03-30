@@ -23,6 +23,7 @@ import {
   CreateResearcherHttpSchema,
   BulkUpdateHttpSchema,
   BulkDeleteHttpSchema,
+  BulkFetchHttpSchema,
   LocationQuerySchema,
   LockTubesHttpSchema,
   UnlockTubesHttpSchema,
@@ -111,6 +112,11 @@ export class ResourceRouteModule implements RouteModule {
       this.moderateLimiter,
       validateBody(BulkDeleteHttpSchema),
       this.tubeController.bulkDeleteTubes.bind(this.tubeController)
+    );
+
+    router.post('/tubes/bulk-fetch',
+      validateBody(BulkFetchHttpSchema),
+      this.tubeController.bulkFetchTubes.bind(this.tubeController)
     );
 
     // TUBE LOCK ROUTES

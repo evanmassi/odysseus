@@ -30,6 +30,7 @@ import {
   bulkDeleteResponseSchema,
   pasteTubesResponseSchema,
   bulkUpdateResponseSchema,
+  bulkFetchResponseSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -131,6 +132,14 @@ export class TubeService {
       `${this.BASE_PATH}/bulk-update`,
       { updates: normalizedUpdates },
       bulkUpdateResponseSchema
+    );
+  }
+
+  static async bulkFetchTubes(tubeIds: string[]): Promise<TubeData[]> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk-fetch`,
+      { tubeIds },
+      bulkFetchResponseSchema
     );
   }
 
