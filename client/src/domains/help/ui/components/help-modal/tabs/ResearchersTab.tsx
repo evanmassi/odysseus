@@ -4,9 +4,15 @@
  * Explains the relationship between users and researchers,
  * how tubes connect to researchers, and management workflows.
  */
+import { isAdminRole } from '@odysseus/shared-schemas';
 import { Link, ShieldUser, TestTube, UserRoundCog, UsersRound } from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication';
+
 export function ResearchersTab() {
+  const { user } = useAuthStore();
+  const isAdmin = isAdminRole(user?.role);
+
   return (
     <div className="space-y-8">
       {/* Section A: Users vs Researchers */}
@@ -63,9 +69,18 @@ export function ResearchersTab() {
         <div className="flex items-start gap-2">
           <ShieldUser size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground">
-            Admins can add new researchers, edit profiles, and handle the approval process.
+            Admins can add new researchers, edit profiles, and manage researcher status.
           </p>
         </div>
+        {isAdmin && (
+          <ul className="text-xs text-muted-foreground mt-3 space-y-1 list-disc list-inside">
+            <li>Create researcher profiles with name and contact details</li>
+            <li>Link a researcher to a user account so they can manage their own tubes</li>
+            <li>Unlink a researcher from a user without losing tube associations</li>
+            <li>Deactivate researchers while preserving their existing tube data</li>
+            <li>View tube counts per researcher from the Admin Settings panel</li>
+          </ul>
+        )}
       </section>
     </div>
   );

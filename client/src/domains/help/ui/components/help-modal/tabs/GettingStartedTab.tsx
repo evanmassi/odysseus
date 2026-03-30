@@ -4,6 +4,7 @@
  * Orientation guide covering core workflows: navigation, editing,
  * locking/sharing, and search.
  */
+import { isAdminRole } from '@odysseus/shared-schemas';
 import {
   Lock,
   MousePointerClick,
@@ -11,6 +12,7 @@ import {
   PenLine,
   Search,
   Share2,
+  ShieldUser,
   UsersRound,
 } from 'lucide-react';
 
@@ -20,6 +22,7 @@ import { AlertBanner } from '@shared/ui';
 export function GettingStartedTab() {
   const { user } = useAuthStore();
   const isDemo = user?.isDemo ?? false;
+  const isAdmin = isAdminRole(user?.role);
   return (
     <div className="space-y-8">
       {/* Section A: Navigating the Grid */}
@@ -34,8 +37,8 @@ export function GettingStartedTab() {
           or in the Tube Information panel.
         </p>
         <p className="text-xs text-muted-foreground inline-flex items-center gap-1 flex-wrap">
-          Racks and boxes assigned to you display your initials. Common or unassigned spaces show
-          the <UsersRound size={13} className="text-secondary-foreground inline -mt-px" /> icon.
+          Racks and boxes assigned to you display your initials. Common (unassigned) spaces show the{' '}
+          <UsersRound size={13} className="text-secondary-foreground inline -mt-px" /> icon.
         </p>
       </section>
 
@@ -88,6 +91,20 @@ export function GettingStartedTab() {
           to that tube in the grid. You can also export your search results to CSV.
         </p>
       </section>
+
+      {isAdmin && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldUser size={16} className="text-secondary-foreground" />
+            <h3 className="text-sm font-semibold text-card-foreground">Admin Access</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            As an admin, you have access to Admin Settings from the header menu where you can manage
+            users, researchers, security policies, invite codes, catalog values, and system
+            configuration. See the Administration tab for details.
+          </p>
+        </section>
+      )}
 
       {isDemo && (
         <AlertBanner variant="demo" spacing="none" className="text-xs">
