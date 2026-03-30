@@ -274,6 +274,16 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
+  // LOCK-BASED QUERIES
+
+  async findLockedByUser(userId: string, labId: string): Promise<Tube[]> {
+    const rows = await this.context.queryMany<TubeRow>(
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE locked_by = $1 AND lab_id = $2 AND is_locked = TRUE`,
+      [userId, labId]
+    );
+    return TubeMapper.fromRows(rows);
+  }
+
   // BUSINESS QUERIES
 
   async countByLabId(labId: string): Promise<number> {

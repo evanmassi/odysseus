@@ -33,6 +33,7 @@ import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
@@ -63,7 +64,8 @@ export class UserApplicationService {
     private inviteCodeRepository?: InviteCodeRepository,
     private labRepository?: LabRepository,
     private userSessionRepository?: UserSessionRepository,
-    private passwordService?: PasswordService
+    private passwordService?: PasswordService,
+    private tubeRepository?: TubeRepository
   ) {}
 
   /**
@@ -254,65 +256,14 @@ export class UserApplicationService {
     const username = targetUser.username;
     const personId = targetUser.personId;
     const researcherId = targetUser.researcherId;
-    let racksAffected = 0;
-    let boxesAffected = 0;
 
-    // Auto-clear storage assignments with optimistic locking retry
-    if (this.storageRepository && targetUser.labId) {
-      const MAX_CASCADE_RETRIES = 3;
-      let cascadeSucceeded = false;
+    const { racks: racksAffected, boxes: boxesAffected } = targetUser.labId
+      ? await this.clearStorageAssignments(userId, username, targetUser.labId, admin.id, 'deleted')
+      : { racks: 0, boxes: 0 };
 
-      for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
-        const configuration = await this.storageRepository.getForLab(targetUser.labId);
-        if (!configuration) {
-          cascadeSucceeded = true;
-          break;
-        }
-
-        const counts = configuration.countAssignmentsForUser(userId);
-        const expectedVersion = configuration.version;
-        const hadAssignments = configuration.clearAllAssignmentsForUser(userId);
-
-        if (!hadAssignments) {
-          cascadeSucceeded = true;
-          break;
-        }
-
-        try {
-          await this.storageRepository.saveWithOptimisticLock(
-            targetUser.labId,
-            configuration,
-            expectedVersion,
-            `Cleared assignments for deleted user '${username}'`,
-            admin.id
-          );
-
-          racksAffected = counts.racks;
-          boxesAffected = counts.boxes;
-          cascadeSucceeded = true;
-
-          logger.info(`Cleared resource assignments for deleted user ${username}`, {
-            userId, racksAffected, boxesAffected, attempt,
-          });
-          break;
-        } catch (error) {
-          if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
-            logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for user deletion`, {
-              userId, expectedVersion, currentVersion: error.currentVersion,
-            });
-            continue;
-          }
-          throw error;
-        }
-      }
-
-      if (!cascadeSucceeded) {
-        throw new ValidationError(
-          'Failed to clear resource assignments after multiple attempts. Please try again.',
-          { userId }
-        );
-      }
-    }
+    const tubesUnlocked = targetUser.labId
+      ? await this.unlockTubesForUser(userId, targetUser.labId)
+      : 0;
 
     if (this.inviteCodeRepository) {
       await this.inviteCodeRepository.deleteByCreator(userId);
@@ -362,6 +313,12 @@ export class UserApplicationService {
           admin.id, userId, username, racksAffected, boxesAffected, targetUser.labId!
         ));
       }
+    }
+
+    if (tubesUnlocked > 0) {
+      logger.info(`Auto-unlocked ${tubesUnlocked} tube(s) during deletion of user ${username}`, {
+        userId, tubesUnlocked,
+      });
     }
   }
 
@@ -754,64 +711,13 @@ export class UserApplicationService {
     user.unlinkResearcher();
     await this.userRepository.save(user);
 
-    let racksAffected = 0;
-    let boxesAffected = 0;
+    const { racks: racksAffected, boxes: boxesAffected } = user.labId
+      ? await this.clearStorageAssignments(userId, user.username, user.labId, admin.id, 'unlinked')
+      : { racks: 0, boxes: 0 };
 
-    if (this.storageRepository && user.labId) {
-      const MAX_CASCADE_RETRIES = 3;
-      let cascadeSucceeded = false;
-
-      for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
-        const configuration = await this.storageRepository.getForLab(user.labId);
-        if (!configuration) {
-          cascadeSucceeded = true;
-          break;
-        }
-
-        const counts = configuration.countAssignmentsForUser(userId);
-        const expectedVersion = configuration.version;
-        const hadAssignments = configuration.clearAllAssignmentsForUser(userId);
-
-        if (!hadAssignments) {
-          cascadeSucceeded = true;
-          break;
-        }
-
-        try {
-          await this.storageRepository.saveWithOptimisticLock(
-            user.labId,
-            configuration,
-            expectedVersion,
-            `Cleared assignments for unlinked user '${user.username}'`,
-            admin.id
-          );
-
-          racksAffected = counts.racks;
-          boxesAffected = counts.boxes;
-          cascadeSucceeded = true;
-
-          logger.info(`Cleared resource assignments for unlinked user ${user.username}`, {
-            userId, racksAffected, boxesAffected, attempt,
-          });
-          break;
-        } catch (error) {
-          if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
-            logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for researcher unlink`, {
-              userId, expectedVersion,
-            });
-            continue;
-          }
-          throw error;
-        }
-      }
-
-      if (!cascadeSucceeded) {
-        throw new ValidationError(
-          'Failed to clear resource assignments after multiple attempts. Please try again.',
-          { userId }
-        );
-      }
-    }
+    const tubesUnlocked = user.labId
+      ? await this.unlockTubesForUser(userId, user.labId)
+      : 0;
 
     if (this.eventBus && oldResearcherId) {
       await this.eventBus.publish(new UserUnlinkedFromResearcherEvent(
@@ -829,6 +735,12 @@ export class UserApplicationService {
         ));
       }
     }
+
+    if (tubesUnlocked > 0) {
+      logger.info(`Auto-unlocked ${tubesUnlocked} tube(s) during unlink of user ${user.username}`, {
+        userId, tubesUnlocked,
+      });
+    }
   }
 
   /**
@@ -843,6 +755,86 @@ export class UserApplicationService {
    */
   async getUserByEmail(email: string): Promise<User | null> {
     return await this.userRepository.findByEmail(email);
+  }
+
+  private async clearStorageAssignments(
+    userId: string,
+    username: string,
+    labId: string,
+    adminId: string,
+    reason: string
+  ): Promise<{ racks: number; boxes: number }> {
+    if (!this.storageRepository) return { racks: 0, boxes: 0 };
+
+    const MAX_CASCADE_RETRIES = 3;
+
+    for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
+      const configuration = await this.storageRepository.getForLab(labId);
+      if (!configuration) return { racks: 0, boxes: 0 };
+
+      const counts = configuration.countAssignmentsForUser(userId);
+      const expectedVersion = configuration.version;
+      const hadAssignments = configuration.clearAllAssignmentsForUser(userId);
+
+      if (!hadAssignments) return { racks: 0, boxes: 0 };
+
+      try {
+        await this.storageRepository.saveWithOptimisticLock(
+          labId,
+          configuration,
+          expectedVersion,
+          `Cleared assignments for ${reason} user '${username}'`,
+          adminId
+        );
+
+        logger.info(`Cleared resource assignments for ${reason} user ${username}`, {
+          userId, racksAffected: counts.racks, boxesAffected: counts.boxes, attempt,
+        });
+        return counts;
+      } catch (error) {
+        if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
+          logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for ${reason}`, {
+            userId, expectedVersion,
+          });
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw new ValidationError(
+      'Failed to clear resource assignments after multiple attempts. Please try again.',
+      { userId }
+    );
+  }
+
+  private async unlockTubesForUser(userId: string, labId: string): Promise<number> {
+    if (!this.tubeRepository) return 0;
+
+    const lockedTubes = await this.tubeRepository.findLockedByUser(userId, labId);
+    if (lockedTubes.length === 0) return 0;
+
+    let unlocked = 0;
+    for (const tube of lockedTubes) {
+      const unlockedTube = tube.unlock();
+      try {
+        await this.tubeRepository.saveWithOptimisticLock(unlockedTube, tube.version);
+        unlocked++;
+      } catch (error) {
+        if (error instanceof ConflictError) {
+          logger.warn('Skipped unlocking tube due to version conflict during cascade', {
+            tubeId: tube.id, userId,
+          });
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (unlocked > 0) {
+      logger.info(`Unlocked ${unlocked} tube(s) for user ${userId}`, { userId, labId, unlocked });
+    }
+    return unlocked;
   }
 
 }

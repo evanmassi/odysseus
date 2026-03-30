@@ -116,7 +116,8 @@ export class UserModule {
         repositories.inviteCodes,
         repositories.labs,
         repositories.userSessions,
-        this.shared.passwordService
+        this.shared.passwordService,
+        repositories.tubes
       );
     }
     return this.userApplicationService;

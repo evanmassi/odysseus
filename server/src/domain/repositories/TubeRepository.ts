@@ -34,6 +34,10 @@ export interface TubeRepository {
 
   findByResearcher(researcher: string, labId: string): Promise<Tube[]>;
 
+  // LOCK-BASED QUERIES
+
+  findLockedByUser(userId: string, labId: string): Promise<Tube[]>;
+
   // BUSINESS QUERIES
 
   countByLabId(labId: string): Promise<number>;

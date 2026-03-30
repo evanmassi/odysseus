@@ -32,6 +32,7 @@ import {
   useDeleteUserMutation,
   useDeactivateUserMutation,
   useActivateUserMutation,
+  useUnlinkResearcherMutation,
 } from '../../../../hooks/useUserMutations';
 import { adminResearcherService } from '../../../../services/AdminResearcherService';
 import { adminUserService } from '../../../../services/AdminUserService';
@@ -79,6 +80,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const deleteUserMutation = useDeleteUserMutation();
   const deactivateUserMutation = useDeactivateUserMutation();
   const activateUserMutation = useActivateUserMutation();
+  const unlinkResearcherMutation = useUnlinkResearcherMutation();
   const updateUserRole = async (userId: string, newRole: UserRole) => {
     setUpdating(userId);
     try {
@@ -142,20 +144,18 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     setConfirmDialog({ type: 'unlink', userId, username });
   };
 
-  const executeUnlinkResearcher = async (userId: string, username: string) => {
-    setUpdating(userId);
-    try {
-      await adminUserService.unlinkResearcherFromUser(userId);
-      notifications.success(`Researcher unlinked from "${username}"`);
-      setConfirmDialog(null);
-      onUserUpdate();
-    } catch (error) {
-      logger.error('Failed to unlink researcher', { error });
-      notifications.error('Failed to unlink researcher');
-      setConfirmDialog(null);
-    } finally {
-      setUpdating(null);
-    }
+  const executeUnlinkResearcher = (userId: string, username: string) => {
+    unlinkResearcherMutation.mutate(userId, {
+      onSuccess: () => {
+        notifications.success(`Researcher unlinked from "${username}"`);
+        setConfirmDialog(null);
+        onUserUpdate();
+      },
+      onError: () => {
+        notifications.error('Failed to unlink researcher');
+        setConfirmDialog(null);
+      },
+    });
   };
 
   const openLinkModal = async (user: { id: string; username: string }) => {

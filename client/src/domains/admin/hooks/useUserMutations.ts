@@ -50,12 +50,31 @@ export function useDeleteUserMutation() {
 
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
-      // Server clears user assignments on deletion, so storage cache needs refresh
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.all(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
     },
 
     onError: (error, userId) => {
       logger.error(`Failed to delete user ${userId}`, { error });
+    },
+  });
+}
+
+export function useUnlinkResearcherMutation() {
+  const queryClient = useQueryClient();
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: (userId: string) => adminUserService.unlinkResearcherFromUser(userId),
+
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.all(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
+    },
+
+    onError: (error, userId) => {
+      logger.error(`Failed to unlink researcher from user ${userId}`, { error });
     },
   });
 }

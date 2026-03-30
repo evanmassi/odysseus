@@ -10,6 +10,7 @@ export {
   useDeactivateUserMutation,
   useActivateUserMutation,
   useDeleteUserMutation,
+  useUnlinkResearcherMutation,
 } from './useUserMutations';
 
 // Lab management hooks
