@@ -167,6 +167,7 @@ export class LabController extends BaseController {
             researcher: u.researcherId ? {
               name: researcherPerson ? `${researcherPerson.firstName} ${researcherPerson.lastName}` : 'Unknown',
               tubeCount: tubeCountMap.get(u.researcherId) ?? 0,
+              active: researcher?.active ?? false,
             } : null,
           };
         }),
@@ -180,7 +181,7 @@ export class LabController extends BaseController {
             email: person?.email,
             active: r.active,
             tubeCount: tubeCountMap.get(r.id) ?? 0,
-            linkedUser: linkedUser ? { id: linkedUser.id, username: linkedUser.username } : null,
+            linkedUser: linkedUser ? { id: linkedUser.id, username: linkedUser.username, status: linkedUser.status } : null,
           };
         }),
         researcherCount: researchers.length,

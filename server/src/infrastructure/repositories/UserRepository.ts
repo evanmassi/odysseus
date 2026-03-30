@@ -100,7 +100,7 @@ export class UserRepository implements IUserRepository {
   async findAllWithLastActivity(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
       `SELECT ${USER_COLUMNS},
-        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = u.id AND is_active = true) as last_activity
+        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = u.id) as last_activity
       FROM ${USER_FROM} ORDER BY u.created_at`
     );
     return UserMapper.fromRows(rows);
@@ -223,7 +223,7 @@ export class UserRepository implements IUserRepository {
   async findByLabId(labId: string): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
       `SELECT ${USER_COLUMNS},
-        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = u.id AND is_active = true) as last_activity
+        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = u.id) as last_activity
       FROM ${USER_FROM} WHERE u.lab_id = $1 ORDER BY u.created_at`,
       [labId]
     );

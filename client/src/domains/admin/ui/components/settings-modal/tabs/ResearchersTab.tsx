@@ -293,10 +293,25 @@ export function ResearchersTab({
       header: 'Linked User',
       render: (_, researcher) => {
         if (researcher.linkedUserId) {
+          const isDeactivated =
+            researcher.linkedUserStatus === 'deactivated' ||
+            researcher.linkedUserStatus === 'suspended';
           return (
-            <div className="flex items-center gap-1.5 text-sm text-card-foreground whitespace-nowrap">
-              <Link2 size={14} className="text-success-text shrink-0" />
-              <span>{researcher.linkedUsername ?? 'Linked'}</span>
+            <div className="flex flex-col gap-0.5">
+              <div
+                className={`flex items-center gap-1.5 text-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
+              >
+                <Link2
+                  size={14}
+                  className={`shrink-0 ${isDeactivated ? 'text-muted-foreground' : 'text-success-text'}`}
+                />
+                <span>{researcher.linkedUsername ?? 'Linked'}</span>
+              </div>
+              {isDeactivated && (
+                <Chip size="sm" color="default" className="w-fit">
+                  Deactivated
+                </Chip>
+              )}
             </div>
           );
         }

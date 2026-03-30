@@ -100,6 +100,7 @@ export class ResearcherApplicationService {
           tubeCount: tubeCounts.get(researcher.id) ?? 0,
           linkedUserId: linkedUser?.id ?? null,
           linkedUsername: linkedUser?.username ?? null,
+          linkedUserStatus: linkedUser?.status ?? null,
         };
       }),
       totalTubeCount,
@@ -158,6 +159,7 @@ export class ResearcherApplicationService {
           tubeCount: tubeCounts.get(researcher.id) ?? 0,
           linkedUserId: null,
           linkedUsername: null,
+          linkedUserStatus: null,
         };
       }),
     };

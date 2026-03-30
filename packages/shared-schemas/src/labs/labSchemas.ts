@@ -76,6 +76,7 @@ export const labDetailsUserSchema = z.object({
   researcher: z.object({
     name: z.string(),
     tubeCount: z.number(),
+    active: z.boolean(),
   }).nullable(),
 });
 
@@ -91,6 +92,7 @@ export const labDetailsResearcherSchema = z.object({
   linkedUser: z.object({
     id: z.string(),
     username: z.string(),
+    status: z.string(),
   }).nullable(),
 });
 

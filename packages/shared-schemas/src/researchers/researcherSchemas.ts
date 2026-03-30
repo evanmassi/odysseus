@@ -69,6 +69,7 @@ export const adminResearcherSchema = researcherSchema.extend({
   tubeCount: z.number().int().min(0),
   linkedUserId: z.string().nullable(),
   linkedUsername: z.string().nullable(),
+  linkedUserStatus: z.string().nullable().optional(),
 });
 
 export type AdminResearcher = z.infer<typeof adminResearcherSchema>;

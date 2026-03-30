@@ -162,10 +162,24 @@ function getResearcherColumns(
       header: 'Linked User',
       render: (_value, row) => {
         if (row.linkedUser) {
+          const isDeactivated =
+            row.linkedUser.status === 'deactivated' || row.linkedUser.status === 'suspended';
           return (
-            <div className="flex items-center gap-1.5 text-sm text-card-foreground whitespace-nowrap">
-              <Link2 size={14} className="text-success-text shrink-0" />
-              <span>{row.linkedUser.username}</span>
+            <div className="flex flex-col gap-0.5">
+              <div
+                className={`flex items-center gap-1.5 text-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
+              >
+                <Link2
+                  size={14}
+                  className={`shrink-0 ${isDeactivated ? 'text-muted-foreground' : 'text-success-text'}`}
+                />
+                <span>{row.linkedUser.username}</span>
+              </div>
+              {isDeactivated && (
+                <Chip size="sm" color="default" className="w-fit">
+                  Deactivated
+                </Chip>
+              )}
             </div>
           );
         }
