@@ -396,6 +396,7 @@ export const useBulkUpdateTubesMutation = (
     {
       tubeIds: string[];
       updates: UpdateTubeRequest;
+      location?: { tankId: string; rackId: string; boxId: string };
       onProgress?: (progress: { completed: number; total: number; currentId: string }) => void;
     }
   > = {}
@@ -405,7 +406,6 @@ export const useBulkUpdateTubesMutation = (
 
   return useMutation({
     mutationFn: async ({ tubeIds, updates }) => {
-      // Uses bulk endpoint instead of individual updates for proper audit logging
       const bulkUpdateItems = tubeIds.map(id => ({
         id,
         data: updates,
@@ -437,10 +437,26 @@ export const useBulkUpdateTubesMutation = (
       } as BulkUpdateResult;
     },
 
-    onSuccess: (_data, _variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
+
+      if (variables.location) {
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.location(
+            labId,
+            variables.location.tankId,
+            variables.location.rackId,
+            variables.location.boxId
+          ),
+        });
+      }
+
+      // Invalidate bulk query so the batch editor refetches if still open
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.tubes.bulk(labId, variables.tubeIds),
+      });
     },
 
     onError: (error, _variables) => {
@@ -457,6 +473,7 @@ export const useBulkDeleteTubesMutation = (
     Error,
     {
       tubeIds: string[];
+      location?: { tankId: string; rackId: string; boxId: string };
       onProgress?: (progress: { completed: number; total: number; currentId: string }) => void;
     }
   > = {}
@@ -500,7 +517,7 @@ export const useBulkDeleteTubesMutation = (
       };
     },
 
-    onSuccess: (data, _variables) => {
+    onSuccess: (data, variables) => {
       const successfulIds = data.results.filter(result => result.success).map(result => result.id);
 
       successfulIds.forEach(id => {
@@ -515,8 +532,19 @@ export const useBulkDeleteTubesMutation = (
         }
       );
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
+
+      if (variables.location) {
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.location(
+            labId,
+            variables.location.tankId,
+            variables.location.rackId,
+            variables.location.boxId
+          ),
+        });
+      }
     },
 
     onError: (error, _variables) => {

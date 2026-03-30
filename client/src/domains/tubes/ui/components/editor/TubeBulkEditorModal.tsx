@@ -339,9 +339,19 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         return;
       }
 
+      const firstTube = tubes[0];
+      const location = firstTube
+        ? {
+            tankId: firstTube.location.tankId,
+            rackId: firstTube.location.rackId,
+            boxId: firstTube.location.boxId,
+          }
+        : undefined;
+
       const bulkResult = await bulkUpdateMutation.mutateAsync({
         tubeIds,
         updates: validatedUpdates,
+        location,
         onProgress: progress => {
           setProgress({
             current: progress.completed,
@@ -397,9 +407,19 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         return;
       }
 
+      const firstTube = tubes[0];
+      const retryLocation = firstTube
+        ? {
+            tankId: firstTube.location.tankId,
+            rackId: firstTube.location.rackId,
+            boxId: firstTube.location.boxId,
+          }
+        : undefined;
+
       const retryResult = await bulkUpdateMutation.mutateAsync({
         tubeIds: failedTubeIds,
         updates: validatedUpdates,
+        location: retryLocation,
         onProgress: progress => {
           setProgress({
             current: progress.completed,
@@ -431,8 +451,18 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
   const handleBatchDelete = async () => {
     try {
+      const firstTube = tubes[0];
+      const deleteLocation = firstTube
+        ? {
+            tankId: firstTube.location.tankId,
+            rackId: firstTube.location.rackId,
+            boxId: firstTube.location.boxId,
+          }
+        : undefined;
+
       const deleteResult = await bulkDeleteMutation.mutateAsync({
         tubeIds,
+        location: deleteLocation,
         onProgress: progress => {
           setProgress({
             current: progress.completed,
