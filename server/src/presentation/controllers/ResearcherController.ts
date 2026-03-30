@@ -78,15 +78,15 @@ export class ResearcherController extends BaseController {
       const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
 
-      const researchers = await this.deps.researcherApplicationService.getUnlinkedResearchers(labId, userApiKey);
+      const result = await this.deps.researcherApplicationService.getUnlinkedResearchers(labId, userApiKey);
 
       logger.debug('Retrieved unlinked researchers', {
-        count: researchers.length,
+        count: result.researchers.length,
         requestedBy: req.user?.username,
         requestId: req.requestId
       });
 
-      res.json(ResponseBuilder.success({ researchers }));
+      res.json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get unlinked researchers', req.requestId);
     }

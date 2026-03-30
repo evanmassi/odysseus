@@ -754,6 +754,65 @@ export class UserApplicationService {
     user.unlinkResearcher();
     await this.userRepository.save(user);
 
+    let racksAffected = 0;
+    let boxesAffected = 0;
+
+    if (this.storageRepository && user.labId) {
+      const MAX_CASCADE_RETRIES = 3;
+      let cascadeSucceeded = false;
+
+      for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
+        const configuration = await this.storageRepository.getForLab(user.labId);
+        if (!configuration) {
+          cascadeSucceeded = true;
+          break;
+        }
+
+        const counts = configuration.countAssignmentsForUser(userId);
+        const expectedVersion = configuration.version;
+        const hadAssignments = configuration.clearAllAssignmentsForUser(userId);
+
+        if (!hadAssignments) {
+          cascadeSucceeded = true;
+          break;
+        }
+
+        try {
+          await this.storageRepository.saveWithOptimisticLock(
+            user.labId,
+            configuration,
+            expectedVersion,
+            `Cleared assignments for unlinked user '${user.username}'`,
+            admin.id
+          );
+
+          racksAffected = counts.racks;
+          boxesAffected = counts.boxes;
+          cascadeSucceeded = true;
+
+          logger.info(`Cleared resource assignments for unlinked user ${user.username}`, {
+            userId, racksAffected, boxesAffected, attempt,
+          });
+          break;
+        } catch (error) {
+          if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
+            logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for researcher unlink`, {
+              userId, expectedVersion,
+            });
+            continue;
+          }
+          throw error;
+        }
+      }
+
+      if (!cascadeSucceeded) {
+        throw new ValidationError(
+          'Failed to clear resource assignments after multiple attempts. Please try again.',
+          { userId }
+        );
+      }
+    }
+
     if (this.eventBus && oldResearcherId) {
       await this.eventBus.publish(new UserUnlinkedFromResearcherEvent(
         userId,
@@ -763,6 +822,12 @@ export class UserApplicationService {
         admin.id,
         user.labId
       ));
+
+      if (racksAffected > 0 || boxesAffected > 0) {
+        await this.eventBus.publish(new BulkResourcesUnassignedEvent(
+          admin.id, userId, user.username, racksAffected, boxesAffected, user.labId!
+        ));
+      }
     }
   }
 

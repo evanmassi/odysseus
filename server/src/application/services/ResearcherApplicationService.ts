@@ -106,7 +106,23 @@ export class ResearcherApplicationService {
     };
   }
 
-  async getUnlinkedResearchers(labId: string, userApiKey: string): Promise<ResearcherResponse[]> {
+  async getUnlinkedResearchers(labId: string, userApiKey: string): Promise<{
+    researchers: Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+      position?: string;
+      department?: string;
+      email?: string;
+      active: boolean;
+      createdAt: string | Date;
+      approvalStatus: 'pending' | 'approved';
+      source: 'registration' | 'admin';
+      tubeCount: number;
+      linkedUserId: string | null;
+      linkedUsername: string | null;
+    }>;
+  }> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireAdminAccess(user);
 
@@ -118,7 +134,33 @@ export class ResearcherApplicationService {
     );
 
     const unlinked = researchers.filter(r => !linkedResearcherIds.has(r.id));
-    return this.resolveWithPersons(unlinked);
+    const personMap = await this.buildPersonMap(unlinked);
+    const tubeCounts = await this.researcherRepository.getTubeCountsByResearcherIds(
+      unlinked.map(r => r.id)
+    );
+
+    return {
+      researchers: unlinked.map(researcher => {
+        const person = personMap.get(researcher.personId)!;
+
+        return {
+          id: researcher.id,
+          personId: researcher.personId,
+          firstName: person.firstName,
+          lastName: person.lastName,
+          position: person.position,
+          department: person.department,
+          email: person.email,
+          active: researcher.active,
+          createdAt: researcher.createdAt,
+          approvalStatus: researcher.approvalStatus,
+          source: researcher.source,
+          tubeCount: tubeCounts.get(researcher.id) ?? 0,
+          linkedUserId: null,
+          linkedUsername: null,
+        };
+      }),
+    };
   }
 
   async getResearcherById(id: string, userApiKey: string): Promise<ResearcherResponse> {
