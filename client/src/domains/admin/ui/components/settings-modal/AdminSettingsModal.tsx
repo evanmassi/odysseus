@@ -318,7 +318,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       {activeTab === 'researchers' && !isSystemAdmin && (
         <Suspense fallback={<LoadingSkeleton />}>
           <ResearchersTab
-            onResearcherUpdate={loadSystemStats}
+            onResearcherUpdate={() => {
+              void loadSystemStats();
+              void loadUsers();
+            }}
             onTabFooter={handleTabFooter}
             readOnly={isDemo}
           />

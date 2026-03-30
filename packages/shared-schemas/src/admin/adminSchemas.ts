@@ -81,6 +81,7 @@ export const adminUserSchema = z.object({
   position: z.string().optional(),
   department: z.string().optional(),
   researcherName: z.string().optional(),
+  researcherActive: z.boolean().optional(),
   tubeCount: z.number().int().min(0).optional(),
 });
 
