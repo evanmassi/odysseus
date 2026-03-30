@@ -18,7 +18,7 @@ import type {
 import type { TubeData } from '@odysseus/shared-schemas';
 
 // Delay to distinguish single-click from double-click on multi-selection
-const DOUBLE_CLICK_DELAY_MS = 200;
+const DOUBLE_CLICK_DELAY_MS = 300;
 
 export interface UseGridSelectionProps {
   ctx: PositionContext;
