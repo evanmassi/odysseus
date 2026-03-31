@@ -586,20 +586,23 @@ export const usePasteTubesMutation = (
         queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
       });
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
-
+      const tubesByBox = new Map<string, TubeData[]>();
       createdTubes.forEach(tube => {
-        if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.tubes.location(
-              labId,
-              tube.location.tankId,
-              tube.location.rackId,
-              tube.location.boxId
-            ),
-          });
-        }
+        const key = `${tube.location.tankId}:${tube.location.rackId}:${tube.location.boxId}`;
+        if (!tubesByBox.has(key)) tubesByBox.set(key, []);
+        tubesByBox.get(key)!.push(tube);
       });
+
+      for (const [key, newTubes] of tubesByBox) {
+        const [tankId, rackId, boxId] = key.split(':');
+        const queryKey = queryKeys.tubes.location(labId, tankId, rackId, boxId);
+        queryClient.setQueryData<TubeData[]>(queryKey, old => {
+          if (!old) return newTubes;
+          const existingIds = new Set(old.map(t => t.id));
+          const toAdd = newTubes.filter(t => !existingIds.has(t.id));
+          return [...old, ...toAdd];
+        });
+      }
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
