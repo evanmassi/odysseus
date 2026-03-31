@@ -21,7 +21,7 @@ import {
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
-import { useTubeFieldResolver, TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useTubeFieldResolver';
+import { analyzeFieldConflict, TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useTubeFieldResolver';
 import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useBulkUpdateTubesMutation,
@@ -132,8 +132,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
   const { data: mediaValues = [] } = useLookupValuesQuery('media');
-  const { analyzeFieldConflicts } = useTubeFieldResolver();
-
   const speciesOptions = useMemo(
     () => speciesValues.map(v => ({ value: v.value, label: v.value })),
     [speciesValues]
@@ -154,23 +152,23 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
   const conflictAnalysis = useMemo(() => {
     const analysis = {
-      cellType: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.cellType),
-      donorInternalId: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.donorInternalId),
-      donorSourceId: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.donorSourceId),
-      concentration: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.concentration),
-      concentrationUnit: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.concentrationUnit),
-      date: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.date),
-      mediaType: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.mediaType),
-      mediaSupplements: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.mediaSupplements),
-      mediaSelection: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.mediaSelection),
-      cultureCondition: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.cultureCondition),
-      lotNumber: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.lotNumber),
-      species: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.species),
-      source: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.source),
-      catalogNumber: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.catalogNumber),
-      passageNumber: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.passageNumber),
-      notes: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.notes),
-      researcherId: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.researcherId),
+      cellType: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.cellType),
+      donorInternalId: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.donorInternalId),
+      donorSourceId: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.donorSourceId),
+      concentration: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.concentration),
+      concentrationUnit: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.concentrationUnit),
+      date: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.date),
+      mediaType: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.mediaType),
+      mediaSupplements: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.mediaSupplements),
+      mediaSelection: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.mediaSelection),
+      cultureCondition: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.cultureCondition),
+      lotNumber: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.lotNumber),
+      species: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.species),
+      source: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.source),
+      catalogNumber: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.catalogNumber),
+      passageNumber: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.passageNumber),
+      notes: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.notes),
+      researcherId: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.researcherId),
     } satisfies BatchEditConflictAnalysis;
 
     // Partial updates to concentration/unit pair corrupt data — treat as joint conflict
@@ -195,7 +193,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       .map(([key, _]) => key);
 
     return { analysis, conflictingFields };
-  }, [tubes, analyzeFieldConflicts]);
+  }, [tubes]);
 
   const resolvedData = useMemo(() => {
     const { analysis } = conflictAnalysis;

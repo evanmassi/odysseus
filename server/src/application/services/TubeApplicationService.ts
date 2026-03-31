@@ -420,7 +420,7 @@ export class TubeApplicationService {
     };
   }
 
-  async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube }): Promise<TubeResponse> {
+  async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube; skipEvents?: boolean }): Promise<TubeResponse> {
     const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
@@ -540,29 +540,31 @@ export class TubeApplicationService {
       );
     }
 
-    const locationChanged = !oldLocation.equals(updatedTube.location);
+    if (!options?.skipEvents) {
+      const locationChanged = !oldLocation.equals(updatedTube.location);
 
-    if (locationChanged) {
-      const locationEvent = new TubeLocationChangedEvent(
+      if (locationChanged) {
+        const locationEvent = new TubeLocationChangedEvent(
+          updatedTube.id,
+          oldLocation,
+          updatedTube.location,
+          authenticatedUser.id,
+          authenticatedUser.labId!
+        );
+        await this.eventBus.publish(locationEvent);
+      }
+
+      const updateEvent = new TubeUpdatedEvent(
         updatedTube.id,
         oldLocation,
         updatedTube.location,
+        oldSampleData,
+        updatedTube.sample,
         authenticatedUser.id,
         authenticatedUser.labId!
       );
-      await this.eventBus.publish(locationEvent);
+      await this.eventBus.publish(updateEvent);
     }
-
-    const updateEvent = new TubeUpdatedEvent(
-      updatedTube.id,
-      oldLocation,
-      updatedTube.location,
-      oldSampleData,
-      updatedTube.sample,
-      authenticatedUser.id,
-      authenticatedUser.labId!
-    );
-    await this.eventBus.publish(updateEvent);
 
     return TubeDto.toResponse(updatedTube);
   }
@@ -627,7 +629,7 @@ export class TubeApplicationService {
       request.updates,
       async (item) => {
         const preloadedTube = tubeMap.get(item.id);
-        await this.updateTube(item.id, item.updates, authenticatedUser, { config, preloadedTube });
+        await this.updateTube(item.id, item.updates, authenticatedUser, { config, preloadedTube, skipEvents: true });
         return item.id;
       },
       (item, _index, error) => ({ id: item.id, error })

@@ -438,7 +438,6 @@ export const useBulkUpdateTubesMutation = (
     },
 
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
 
@@ -532,7 +531,6 @@ export const useBulkDeleteTubesMutation = (
         }
       );
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
 
       if (variables.location) {

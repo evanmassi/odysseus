@@ -115,6 +115,73 @@ function getNestedValue(obj: unknown, path: string): unknown {
   }, obj);
 }
 
+/** Standalone conflict analysis — no hook subscription, no query dependency. */
+export function analyzeFieldConflict<T extends NormalizedFieldValue = NormalizedFieldValue>(
+  tubes: TubeData[],
+  fieldPath: string
+): FieldConflictAnalysis<T> {
+  if (tubes.length === 0) {
+    return {
+      state: 'common',
+      hasConflict: false,
+      commonValue: undefined,
+      values: [],
+      totalSelected: 0,
+      withValue: 0,
+      withoutValue: 0,
+      distribution: new Map(),
+    };
+  }
+
+  const allValues = tubes.map(tube => {
+    const value = getNestedValue(tube, fieldPath);
+    if (value instanceof Date) {
+      return normalizeDateString(value) as T | undefined;
+    }
+    return value as T | undefined;
+  });
+
+  let emptyCount = 0;
+  const nonEmptyValues: T[] = [];
+  for (const value of allValues) {
+    if (!hasValue(value)) {
+      emptyCount++;
+    } else {
+      nonEmptyValues.push(value);
+    }
+  }
+
+  const normalizedValues: (T | undefined)[] = allValues.map(v => (hasValue(v) ? v : undefined));
+  const distribution = new Map<T | undefined, number>();
+  normalizedValues.forEach(value => {
+    distribution.set(value, (distribution.get(value) ?? 0) + 1);
+  });
+
+  const uniqueValues = Array.from(new Set(normalizedValues));
+
+  let state: 'common' | 'conflict';
+  let commonValue: T | undefined;
+
+  if (uniqueValues.length === 1) {
+    state = 'common';
+    commonValue = uniqueValues[0];
+  } else {
+    state = 'conflict';
+    commonValue = undefined;
+  }
+
+  return {
+    state,
+    hasConflict: state === 'conflict',
+    values: uniqueValues,
+    commonValue,
+    totalSelected: tubes.length,
+    withValue: nonEmptyValues.length,
+    withoutValue: emptyCount,
+    distribution,
+  };
+}
+
 export function useTubeFieldResolver(): TubeFieldResolverResult {
   const { data, isLoading, error, refetch } = useTubes();
 

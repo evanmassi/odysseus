@@ -201,7 +201,8 @@ class SocketQueryBridge {
       if (!this.labId) return;
       try {
         tubeEventSchemas.tubes_bulk_updated.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tubes_bulk_updated event', { error });
       }

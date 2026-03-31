@@ -576,41 +576,41 @@ function LabDashboard() {
         </div>
       </div>
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Add">
-        <TubeEditorModal
-          isOpen={
-            modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'add'
-          }
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
-          rackId={modalService.tubeEditorModal.rackId || currentRack}
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
-          boxId={modalService.tubeEditorModal.boxId || currentBox}
-          onClose={handleCloseModal}
-          selectedPositions={modalPositionsSet}
-        />
-      </SuspenseBoundary>
+      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'add' && (
+        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Add">
+          <TubeEditorModal
+            isOpen
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
+            rackId={modalService.tubeEditorModal.rackId || currentRack}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
+            boxId={modalService.tubeEditorModal.boxId || currentBox}
+            onClose={handleCloseModal}
+            selectedPositions={modalPositionsSet}
+          />
+        </SuspenseBoundary>
+      )}
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Edit">
-        <TubeEditorModal
-          isOpen={
-            modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'edit'
-          }
-          tubeId={modalService.tubeEditorModal.tubeId}
-          onClose={handleCloseModal}
-        />
-      </SuspenseBoundary>
+      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'edit' && (
+        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Edit">
+          <TubeEditorModal
+            isOpen
+            tubeId={modalService.tubeEditorModal.tubeId}
+            onClose={handleCloseModal}
+          />
+        </SuspenseBoundary>
+      )}
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeBulkEditorModal">
-        <TubeBulkEditorModal
-          isOpen={
-            modalService.tubeEditorModal.isOpen &&
-            modalService.tubeEditorModal.mode === 'batch' &&
-            (modalService.tubeEditorModal.tubeIds ?? []).length > 0
-          }
-          tubeIds={modalService.tubeEditorModal.tubeIds ?? []}
-          onClose={handleCloseModal}
-        />
-      </SuspenseBoundary>
+      {modalService.tubeEditorModal.isOpen &&
+        modalService.tubeEditorModal.mode === 'batch' &&
+        (modalService.tubeEditorModal.tubeIds ?? []).length > 0 && (
+          <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeBulkEditorModal">
+            <TubeBulkEditorModal
+              isOpen
+              tubeIds={modalService.tubeEditorModal.tubeIds ?? []}
+              onClose={handleCloseModal}
+            />
+          </SuspenseBoundary>
+        )}
 
       <ConfirmDialog
         isOpen={modalService.deleteConfirm.isOpen}
