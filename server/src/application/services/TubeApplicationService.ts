@@ -842,7 +842,7 @@ export class TubeApplicationService {
         const locationEvent = new TubeLocationChangedEvent(
           tube.id, oldLocation, newLocation, authenticatedUser.id, labId
         );
-        locationEvent.partOfBulkOperation = true;
+        if (moves.length > 1) locationEvent.partOfBulkOperation = true;
         await this.eventBus.publish(locationEvent);
 
         moved.push(TubeDto.toResponse(tube));
@@ -855,7 +855,7 @@ export class TubeApplicationService {
       }
     }
 
-    if (moved.length > 0) {
+    if (moved.length > 1) {
       const bulkMovedEvent = new BulkTubesMovedEvent(
         moved.map(t => t.id),
         [...sourceTankIds],

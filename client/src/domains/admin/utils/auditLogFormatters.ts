@@ -201,6 +201,13 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         }
       }
 
+      if (action === 'tube_bulk_moved') {
+        const count = getNumberProperty(details, 'count');
+        if (count > 0) {
+          return plain(`${count} tube${count !== 1 ? 's' : ''} moved`);
+        }
+      }
+
       if (action === 'tubes_locked') {
         const count = getNumberProperty(details, 'tubeCount');
         const lockNote = getStringProperty(details, 'lockNote');

@@ -415,7 +415,7 @@ export class AuditEventHandler {
 
   private async handleBulkTubesMoved(event: BulkTubesMovedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'bulk tubes moved',
+      eventName: `moved ${event.tubeIds.length} tubes`,
       context: { tubeCount: event.tubeIds.length },
       actorId: event.movedBy,
       action: 'tube_bulk_moved',
