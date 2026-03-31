@@ -408,7 +408,13 @@ function LabDashboard() {
     selectedPositions,
     onSelectionChange: setSelection,
     onDeleteTubes: async (tubeIds: string[], silent = false) => {
-      await bulkDeleteTubesMutation.mutateAsync({ tubeIds });
+      await bulkDeleteTubesMutation.mutateAsync({
+        tubeIds,
+        location:
+          currentTank && currentRack && currentBox
+            ? { tankId: currentTank, rackId: currentRack, boxId: currentBox }
+            : undefined,
+      });
 
       if (!silent) {
         notifications.success(
