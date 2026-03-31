@@ -219,7 +219,9 @@ export const TubeForm = ({
                 badge={getConflictBadge('sample.donorInternalId')}
                 hasConflict={hasConflict('sample.donorInternalId')}
                 fieldType="internal"
-                onPairSelect={v => setValue('sample.donorSourceId' as keyof TubeFormValues, v)}
+                onPairSelect={v =>
+                  setValue('sample.donorSourceId' as keyof TubeFormValues, v, { shouldDirty: true })
+                }
               />
             )}
           />
@@ -240,7 +242,11 @@ export const TubeForm = ({
                 badge={getConflictBadge('sample.donorSourceId')}
                 hasConflict={hasConflict('sample.donorSourceId')}
                 fieldType="source"
-                onPairSelect={v => setValue('sample.donorInternalId' as keyof TubeFormValues, v)}
+                onPairSelect={v =>
+                  setValue('sample.donorInternalId' as keyof TubeFormValues, v, {
+                    shouldDirty: true,
+                  })
+                }
               />
             )}
           />
