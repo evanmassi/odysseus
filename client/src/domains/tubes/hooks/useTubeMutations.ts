@@ -397,7 +397,6 @@ export const useBulkUpdateTubesMutation = (
       tubeIds: string[];
       updates: UpdateTubeRequest;
       location?: { tankId: string; rackId: string; boxId: string };
-      onProgress?: (progress: { completed: number; total: number; currentId: string }) => void;
     }
   > = {}
 ) => {

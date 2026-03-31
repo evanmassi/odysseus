@@ -325,7 +325,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowProgress(true);
     setResult(null);
 
     try {
@@ -333,7 +332,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
       if (!validatedUpdates) {
         notifications.info('No changes to save');
-        setShowProgress(false);
         return;
       }
 
@@ -346,20 +344,12 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
           }
         : undefined;
 
+      setShowProgress(true);
+
       const bulkResult = await bulkUpdateMutation.mutateAsync({
         tubeIds,
         updates: validatedUpdates,
         location,
-        onProgress: progress => {
-          setProgress({
-            current: progress.completed,
-            total: progress.total,
-            completed: progress.completed,
-            currentTubeId: progress.currentId,
-            phase: 'updating',
-            errors: [],
-          });
-        },
       });
 
       setResult(bulkResult);
@@ -393,7 +383,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
     }
 
     // Retry only the failed tubes
-    setShowProgress(true);
     setResult(null);
 
     try {
@@ -401,7 +390,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
       if (!validatedUpdates) {
         notifications.info('No changes to retry');
-        setShowProgress(false);
         return;
       }
 
@@ -414,21 +402,14 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
           }
         : undefined;
 
+      setShowProgress(true);
+
       const retryResult = await bulkUpdateMutation.mutateAsync({
         tubeIds: failedTubeIds,
         updates: validatedUpdates,
         location: retryLocation,
-        onProgress: progress => {
-          setProgress({
-            current: progress.completed,
-            total: progress.total,
-            completed: progress.completed,
-            currentTubeId: progress.currentId,
-            phase: 'updating',
-            errors: [],
-          });
-        },
       });
+
       setResult(retryResult);
 
       if (retryResult.success) {
@@ -704,6 +685,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         progress={progress}
         onClose={handleProgressClose}
         canClose={!isSubmitting && result !== null}
+        tubeCount={tubeIds.length}
       />
 
       <ConfirmDialog

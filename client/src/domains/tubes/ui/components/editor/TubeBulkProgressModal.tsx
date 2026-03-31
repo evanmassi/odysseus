@@ -16,6 +16,7 @@ interface TubeBulkProgressModalProps {
   progress: BulkUpdateProgress;
   onClose: () => void;
   canClose: boolean;
+  tubeCount?: number;
 }
 
 export function TubeBulkProgressModal({
@@ -23,6 +24,7 @@ export function TubeBulkProgressModal({
   progress,
   onClose,
   canClose,
+  tubeCount,
 }: TubeBulkProgressModalProps) {
   if (!isOpen) return null;
 
@@ -55,8 +57,10 @@ export function TubeBulkProgressModal({
     }
   };
 
+  const isIndeterminate = progress.total === 0;
   const progressPercentage = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
   const hasErrors = progress.errors.length > 0;
+  const displayCount = tubeCount ?? progress.total;
 
   return (
     <ModalPortal>
@@ -66,31 +70,36 @@ export function TubeBulkProgressModal({
             <div className="mb-4">{getPhaseIcon(progress.phase)}</div>
 
             <h3 className="text-lg font-semibold text-card-foreground mb-2">
-              {getPhaseLabel(progress.phase)}
+              {isIndeterminate
+                ? `Updating ${displayCount} tube${displayCount !== 1 ? 's' : ''}...`
+                : getPhaseLabel(progress.phase)}
             </h3>
 
-            <div className="text-sm text-muted-foreground">
-              {progress.current} of {progress.total} tubes
-              {progress.currentTubeId && (
-                <div className="text-xs mt-1 text-muted-foreground">
-                  Processing: {progress.currentTubeId}
-                </div>
-              )}
-            </div>
+            {!isIndeterminate && (
+              <div className="text-sm text-muted-foreground">
+                {progress.current} of {progress.total} tubes
+                {progress.currentTubeId && (
+                  <div className="text-xs mt-1 text-muted-foreground">
+                    Processing: {progress.currentTubeId}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="w-full bg-border rounded-full h-3 mb-2">
-              <div
-                className="bg-primary h-3 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${progressPercentage}%` }}
-              />
+          {!isIndeterminate && (
+            <div className="mb-6">
+              <div className="w-full bg-border rounded-full h-3 mb-2">
+                <div
+                  className="bg-primary h-3 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${progressPercentage}%` }}
+                />
+              </div>
+              <div className="text-center text-sm text-muted-foreground">
+                {Math.round(progressPercentage)}% complete
+              </div>
             </div>
-            <div className="text-center text-sm text-muted-foreground">
-              {Math.round(progressPercentage)}% complete
-            </div>
-          </div>
+          )}
 
           {/* Error Summary */}
           {hasErrors && (
