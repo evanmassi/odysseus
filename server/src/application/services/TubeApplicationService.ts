@@ -19,7 +19,9 @@ import {
   TubeUpdatedEvent,
   TubeLocationChangedEvent,
   TubeDeletedEvent,
-  BulkTubesUpdatedEvent
+  BulkTubesCreatedEvent,
+  BulkTubesUpdatedEvent,
+  BulkTubesDeletedEvent
 } from '@domain/events/TubeEvents';
 import {
   TubesLockedEvent,
@@ -93,7 +95,7 @@ export class TubeApplicationService {
     return tube;
   }
 
-  async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string> }): Promise<TubeResponse> {
+  async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string>; skipEvents?: boolean }): Promise<TubeResponse> {
     await this.accessControlService.requireCanCreateTube(authenticatedUser);
 
     const tubeData = TubeDto.fromCreateRequest(request);
@@ -174,14 +176,16 @@ export class TubeApplicationService {
       );
     }
 
-    const createdEvent = new TubeCreatedEvent(
-      tube.id,
-      tube.location,
-      tube.sample,
-      authenticatedUser.id,
-      authenticatedUser.labId!
-    );
-    await this.eventBus.publish(createdEvent);
+    if (!options?.skipEvents) {
+      const createdEvent = new TubeCreatedEvent(
+        tube.id,
+        tube.location,
+        tube.sample,
+        authenticatedUser.id,
+        authenticatedUser.labId!
+      );
+      await this.eventBus.publish(createdEvent);
+    }
 
     return TubeDto.toResponse(tube);
   }
@@ -260,9 +264,21 @@ export class TubeApplicationService {
         config,
         positionValidation: positionValidations.get(index),
         researcherNameCache,
+        skipEvents: true,
       }),
       (req, index, error) => ({ index, request: req, error })
     );
+
+    if (created.length > 0) {
+      const tankIds = [...new Set(created.map(t => t.location.tankId))];
+      const bulkCreatedEvent = new BulkTubesCreatedEvent(
+        created.map(t => t.id),
+        tankIds,
+        authenticatedUser.id,
+        authenticatedUser.labId!
+      );
+      await this.eventBus.publish(bulkCreatedEvent);
+    }
 
     return { created, failed };
   }
@@ -711,16 +727,14 @@ export class TubeApplicationService {
     if (validatedIds.length > 0) {
       await this.tubeRepository.deleteMany(validatedIds, authenticatedUser.labId!);
 
-      for (const tube of validatedTubes) {
-        const tubeDeletedEvent = new TubeDeletedEvent(
-          tube.id,
-          tube.location,
-          authenticatedUser.id,
-          tube.sample,
-          authenticatedUser.labId!
-        );
-        await this.eventBus.publish(tubeDeletedEvent);
-      }
+      const tankIds = [...new Set(validatedTubes.map(t => t.location.tankId))];
+      const bulkDeletedEvent = new BulkTubesDeletedEvent(
+        validatedIds,
+        tankIds,
+        authenticatedUser.id,
+        authenticatedUser.labId!
+      );
+      await this.eventBus.publish(bulkDeletedEvent);
     }
 
     return { deleted: validatedIds, failed };

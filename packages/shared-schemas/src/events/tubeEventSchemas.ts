@@ -36,6 +36,14 @@ export const tubeEventSchemas = {
     updatedAt: z.string(),
   }),
 
+  tubes_bulk_created: z.object({
+    tubeIds: z.array(z.string()),
+    count: z.number(),
+    operation: z.string(),
+    createdBy: z.string(),
+    createdAt: z.string(),
+  }),
+
   tubes_bulk_updated: z.object({
     tubeIds: z.array(z.string()),
     count: z.number(),
@@ -43,6 +51,14 @@ export const tubeEventSchemas = {
     changesSummary: z.record(z.string(), z.unknown()).optional(),
     updatedBy: z.string(),
     updatedAt: z.string(),
+  }),
+
+  tubes_bulk_deleted: z.object({
+    tubeIds: z.array(z.string()),
+    count: z.number(),
+    operation: z.string(),
+    deletedBy: z.string(),
+    deletedAt: z.string(),
   }),
 
   tubes_locked: z.object({

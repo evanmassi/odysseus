@@ -128,6 +128,60 @@ export class TubeDeletedEvent extends DomainEvent {
   }
 }
 
+export class BulkTubesCreatedEvent extends DomainEvent {
+  constructor(
+    public readonly tubeIds: string[],
+    public readonly tankIds: string[],
+    public readonly createdBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'BulkTubesCreated';
+  }
+
+  getAggregateId(): string {
+    return `bulk-${this.tubeIds.join(',')}`;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      tubeIds: this.tubeIds,
+      tankIds: this.tankIds,
+      createdBy: this.createdBy
+    };
+  }
+}
+
+export class BulkTubesDeletedEvent extends DomainEvent {
+  constructor(
+    public readonly tubeIds: string[],
+    public readonly tankIds: string[],
+    public readonly deletedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'BulkTubesDeleted';
+  }
+
+  getAggregateId(): string {
+    return `bulk-${this.tubeIds.join(',')}`;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      tubeIds: this.tubeIds,
+      tankIds: this.tankIds,
+      deletedBy: this.deletedBy
+    };
+  }
+}
+
 export class BulkTubesUpdatedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],

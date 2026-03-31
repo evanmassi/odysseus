@@ -42,7 +42,9 @@ import type {
   TubeCreatedEvent,
   TubeUpdatedEvent,
   TubeDeletedEvent,
-  BulkTubesUpdatedEvent
+  BulkTubesCreatedEvent,
+  BulkTubesUpdatedEvent,
+  BulkTubesDeletedEvent
 } from '@domain/events/TubeEvents';
 import type {
   TubesLockedEvent,
@@ -247,7 +249,9 @@ export class SocketEventHandler {
     this.eventBus.subscribe('TubeUpdated', (e) => this.handleTubeUpdated(e));
     this.eventBus.subscribe('TubeLocationChanged', (e) => this.handleTubeUpdated(e));
     this.eventBus.subscribe('TubeDeleted', (e) => this.handleTubeDeleted(e));
+    this.eventBus.subscribe('BulkTubesCreated', (e) => this.handleBulkTubesCreated(e));
     this.eventBus.subscribe('BulkTubesUpdated', (e) => this.handleBulkTubesUpdated(e));
+    this.eventBus.subscribe('BulkTubesDeleted', (e) => this.handleBulkTubesDeleted(e));
 
     // Tube lock/access events
     this.eventBus.subscribe('TubesLocked', (e) => this.handleTubesLocked(e));
@@ -468,6 +472,56 @@ export class SocketEventHandler {
       this.emitToLabRooms(event.labId, 'tubes_bulk_updated', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_bulk_updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        count: event.tubeIds.length
+      });
+    }
+  }
+
+  private async handleBulkTubesCreated(event: BulkTubesCreatedEvent): Promise<void> {
+    try {
+      const payload = {
+        tubeIds: event.tubeIds,
+        count: event.tubeIds.length,
+        operation: 'bulk_create',
+        createdBy: event.createdBy,
+        createdAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tubes_bulk_created socket event', {
+        count: event.tubeIds.length,
+        labId: event.labId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.emitToLabRooms(event.labId, 'tubes_bulk_created', payload);
+    } catch (error) {
+      logger.error('Failed to emit tubes_bulk_created event', {
+        error: error instanceof Error ? error.message : String(error),
+        count: event.tubeIds.length
+      });
+    }
+  }
+
+  private async handleBulkTubesDeleted(event: BulkTubesDeletedEvent): Promise<void> {
+    try {
+      const payload = {
+        tubeIds: event.tubeIds,
+        count: event.tubeIds.length,
+        operation: 'bulk_delete',
+        deletedBy: event.deletedBy,
+        deletedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tubes_bulk_deleted socket event', {
+        count: event.tubeIds.length,
+        labId: event.labId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.emitToLabRooms(event.labId, 'tubes_bulk_deleted', payload);
+    } catch (error) {
+      logger.error('Failed to emit tubes_bulk_deleted event', {
         error: error instanceof Error ? error.message : String(error),
         count: event.tubeIds.length
       });

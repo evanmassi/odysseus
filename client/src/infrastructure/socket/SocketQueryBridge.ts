@@ -197,6 +197,17 @@ class SocketQueryBridge {
       }
     });
 
+    this.socket.on('tubes_bulk_created', (data: unknown) => {
+      if (!this.labId) return;
+      try {
+        tubeEventSchemas.tubes_bulk_created.parse(data);
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
+      } catch (error) {
+        logger.error('Invalid tubes_bulk_created event', { error });
+      }
+    });
+
     this.socket.on('tubes_bulk_updated', (data: unknown) => {
       if (!this.labId) return;
       try {
@@ -205,6 +216,17 @@ class SocketQueryBridge {
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tubes_bulk_updated event', { error });
+      }
+    });
+
+    this.socket.on('tubes_bulk_deleted', (data: unknown) => {
+      if (!this.labId) return;
+      try {
+        tubeEventSchemas.tubes_bulk_deleted.parse(data);
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
+      } catch (error) {
+        logger.error('Invalid tubes_bulk_deleted event', { error });
       }
     });
   }
