@@ -11,8 +11,10 @@ import type { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequ
 import type { Storage } from '@domain/entities/Storage';
 import { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
+import { Location } from '@domain/value-objects/Location';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { ConflictError } from '@domain/errors/ConflictError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
   TubeCreatedEvent,
@@ -21,7 +23,8 @@ import {
   TubeDeletedEvent,
   BulkTubesCreatedEvent,
   BulkTubesUpdatedEvent,
-  BulkTubesDeletedEvent
+  BulkTubesDeletedEvent,
+  BulkTubesMovedEvent
 } from '@domain/events/TubeEvents';
 import {
   TubesLockedEvent,
@@ -749,6 +752,121 @@ export class TubeApplicationService {
     }
 
     return { deleted: validatedIds, failed };
+  }
+
+  /** Atomically moves tubes to new locations with position validation. Emits per-tube TubeLocationChangedEvent for audit and one BulkTubesMovedEvent for socket. */
+  async moveTubes(
+    moves: Array<{ tubeId: string; version: number; destination: { tankId: string; rackId: string; boxId: string; position: number } }>,
+    authenticatedUser: User
+  ): Promise<{
+    moved: TubeResponse[];
+    failed: Array<{ tubeId: string; error: string }>;
+  }> {
+    const labId = authenticatedUser.labId!;
+    const config = await this.storageRepository.getForLab(labId);
+
+    const tubeIds = moves.map(m => m.tubeId);
+    const tubes = await this.tubeRepository.findByIds(tubeIds, labId);
+    const tubeMap = new Map(tubes.map(t => [t.id, t]));
+
+    const allowedTankIds = await this.getAllowedTankIds(labId);
+    const allowedTankSet = new Set(allowedTankIds);
+
+    const moved: TubeResponse[] = [];
+    const failed: Array<{ tubeId: string; error: string }> = [];
+    const sourceTankIds = new Set<string>();
+    const destinationTankIds = new Set<string>();
+
+    for (const move of moves) {
+      const tube = tubeMap.get(move.tubeId);
+      if (!tube) {
+        failed.push({ tubeId: move.tubeId, error: 'Tube not found' });
+        continue;
+      }
+
+      if (!allowedTankSet.has(tube.location.tankId)) {
+        failed.push({ tubeId: move.tubeId, error: 'Tube not found' });
+        continue;
+      }
+
+      if (!allowedTankSet.has(move.destination.tankId)) {
+        failed.push({ tubeId: move.tubeId, error: 'Destination not accessible' });
+        continue;
+      }
+
+      try {
+        const sourceContainerInfo = await this.getContainerInfo(
+          labId, tube.location.tankId, tube.location.rackId, tube.location.boxId, config
+        );
+        if (sourceContainerInfo) {
+          const sourceAccess = this.accessControlService.canAccessTubeForModification(
+            authenticatedUser, tube, sourceContainerInfo
+          );
+          if (!sourceAccess.allowed) {
+            failed.push({ tubeId: move.tubeId, error: sourceAccess.reason });
+            continue;
+          }
+        }
+
+        const destContainerInfo = await this.getContainerInfo(
+          labId, move.destination.tankId, move.destination.rackId, move.destination.boxId, config
+        );
+        if (destContainerInfo) {
+          const destAccess = this.accessControlService.canAccessContainer(
+            authenticatedUser, destContainerInfo
+          );
+          if (!destAccess.allowed) {
+            failed.push({ tubeId: move.tubeId, error: `Cannot move to destination: ${destAccess.reason}` });
+            continue;
+          }
+        }
+
+        const positionResult = await this.tubePositionService.validatePosition(
+          move.destination.tankId, move.destination.rackId, move.destination.boxId,
+          move.destination.position, move.tubeId, labId
+        );
+        if (!positionResult.isValid) {
+          failed.push({ tubeId: move.tubeId, error: `Position conflict: ${positionResult.reason}` });
+          continue;
+        }
+
+        const oldLocation = tube.location;
+        const newLocation = Location.create(move.destination);
+        tube.moveTo(newLocation);
+
+        await this.tubeRepository.saveWithOptimisticLock(tube, move.version);
+
+        sourceTankIds.add(oldLocation.tankId);
+        destinationTankIds.add(newLocation.tankId);
+
+        const locationEvent = new TubeLocationChangedEvent(
+          tube.id, oldLocation, newLocation, authenticatedUser.id, labId
+        );
+        locationEvent.partOfBulkOperation = true;
+        await this.eventBus.publish(locationEvent);
+
+        moved.push(TubeDto.toResponse(tube));
+      } catch (error) {
+        if (error instanceof ConflictError) {
+          failed.push({ tubeId: move.tubeId, error: 'Tube was modified by another user' });
+        } else {
+          failed.push({ tubeId: move.tubeId, error: error instanceof Error ? error.message : 'Unknown error' });
+        }
+      }
+    }
+
+    if (moved.length > 0) {
+      const bulkMovedEvent = new BulkTubesMovedEvent(
+        moved.map(t => t.id),
+        [...sourceTankIds],
+        [...destinationTankIds],
+        authenticatedUser.id,
+        labId
+      );
+      await this.eventBus.publish(bulkMovedEvent);
+    }
+
+    return { moved, failed };
   }
 
   async lockTubes(

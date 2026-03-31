@@ -58,7 +58,7 @@ import type {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from './StorageEvents';
-import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesCreatedEvent, BulkTubesUpdatedEvent, BulkTubesDeletedEvent } from './TubeEvents';
+import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesCreatedEvent, BulkTubesUpdatedEvent, BulkTubesDeletedEvent, BulkTubesMovedEvent } from './TubeEvents';
 import type { TubesLockedEvent, TubesUnlockedEvent, TubeAccessSharedEvent, TubeAccessRevokedEvent } from './TubeLockEvents';
 import type {
   UserCreatedEvent,
@@ -84,6 +84,7 @@ export interface DomainEventMap {
   'BulkTubesCreated': BulkTubesCreatedEvent;
   'BulkTubesUpdated': BulkTubesUpdatedEvent;
   'BulkTubesDeleted': BulkTubesDeletedEvent;
+  'BulkTubesMoved': BulkTubesMovedEvent;
 
   // Tube lock/access events
   'TubesLocked': TubesLockedEvent;

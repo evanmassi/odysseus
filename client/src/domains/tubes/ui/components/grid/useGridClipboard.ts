@@ -27,7 +27,7 @@ import type {
   PositionContext,
   TubeClipboardItem,
 } from '@domains/tubes/types/gridSelectionTypes';
-import type { TubeData } from '@odysseus/shared-schemas';
+import type { TubeData, TubeLocation } from '@odysseus/shared-schemas';
 
 export interface UseGridClipboardProps {
   ctx: PositionContext;
@@ -36,6 +36,9 @@ export interface UseGridClipboardProps {
   resolveTubeIdAtPosition: (position: number) => string | null;
   onDeleteTubes?: (tubeIds: string[], silent?: boolean) => Promise<void>;
   onPasteTubes?: (tubes: ReturnType<typeof tubeDataToCreateRequest>[]) => Promise<void>;
+  onMoveTubes?: (
+    moves: Array<{ tubeId: string; version: number; destination: TubeLocation }>
+  ) => Promise<void>;
   onSelectionChange: (selection: Set<PositionKey>) => void;
   currentUserId?: string;
   isViewOnlySpace?: boolean;
@@ -65,6 +68,7 @@ export const useGridClipboard = ({
   resolveTubeIdAtPosition,
   onDeleteTubes,
   onPasteTubes,
+  onMoveTubes,
   onSelectionChange,
   currentUserId,
   isViewOnlySpace = false,
@@ -360,21 +364,26 @@ export const useGridClipboard = ({
         }
       }
 
-      if (onPasteTubes) {
-        await onPasteTubes(tubesToPaste);
-      }
-
-      if (clipData.operation === 'cut' && tubesToPaste.length > 0) {
-        // Spatial mode: only delete tubes that were actually pasted (some may be skipped due to bounds)
-        // Fill mode: delete all source tubes (they're all used/duplicated)
-        const tubeIdsToDelete =
-          pastedSourceTubeIds.length > 0
-            ? pastedSourceTubeIds
-            : clipData.tubes.map(t => t.id).filter(Boolean);
-
-        if (onDeleteTubes && tubeIdsToDelete.length > 0) {
-          await onDeleteTubes(tubeIdsToDelete, true);
+      if (clipData.operation === 'cut' && onMoveTubes && tubesToPaste.length > 0) {
+        // Atomic move: update locations in a single request instead of create+delete
+        const uniqueMoves = new Map<
+          string,
+          { tubeId: string; version: number; destination: TubeLocation }
+        >();
+        for (let i = 0; i < tubesToPaste.length; i++) {
+          const sourceId = pastedSourceTubeIds[i];
+          if (!sourceId || uniqueMoves.has(sourceId)) continue;
+          const sourceTube = clipData.tubes.find(t => t.id === sourceId);
+          if (!sourceTube) continue;
+          uniqueMoves.set(sourceId, {
+            tubeId: sourceId,
+            version: sourceTube.version,
+            destination: tubesToPaste[i].location,
+          });
         }
+        await onMoveTubes([...uniqueMoves.values()]);
+      } else if (onPasteTubes) {
+        await onPasteTubes(tubesToPaste);
       }
 
       const skippedCount = clipData.tubes.length - tubesToPaste.length;
@@ -398,6 +407,7 @@ export const useGridClipboard = ({
       selectedPositionsInThisBox,
       setClipboard,
       onPasteTubes,
+      onMoveTubes,
       onDeleteTubes,
       ctx,
       getBox,

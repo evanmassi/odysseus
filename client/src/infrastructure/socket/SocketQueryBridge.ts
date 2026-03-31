@@ -229,6 +229,17 @@ class SocketQueryBridge {
         logger.error('Invalid tubes_bulk_deleted event', { error });
       }
     });
+
+    this.socket.on('tubes_bulk_moved', (data: unknown) => {
+      if (!this.labId) return;
+      try {
+        tubeEventSchemas.tubes_bulk_moved.parse(data);
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
+      } catch (error) {
+        logger.error('Invalid tubes_bulk_moved event', { error });
+      }
+    });
   }
 
   // TUBE LOCK EVENT HANDLERS — patches cache directly instead of invalidation

@@ -44,7 +44,8 @@ import type {
   TubeDeletedEvent,
   BulkTubesCreatedEvent,
   BulkTubesUpdatedEvent,
-  BulkTubesDeletedEvent
+  BulkTubesDeletedEvent,
+  BulkTubesMovedEvent
 } from '@domain/events/TubeEvents';
 import type {
   TubesLockedEvent,
@@ -252,6 +253,7 @@ export class SocketEventHandler {
     this.eventBus.subscribe('BulkTubesCreated', (e) => this.handleBulkTubesCreated(e));
     this.eventBus.subscribe('BulkTubesUpdated', (e) => this.handleBulkTubesUpdated(e));
     this.eventBus.subscribe('BulkTubesDeleted', (e) => this.handleBulkTubesDeleted(e));
+    this.eventBus.subscribe('BulkTubesMoved', (e) => this.handleBulkTubesMoved(e));
 
     // Tube lock/access events
     this.eventBus.subscribe('TubesLocked', (e) => this.handleTubesLocked(e));
@@ -525,6 +527,31 @@ export class SocketEventHandler {
       this.emitToLabRooms(event.labId, 'tubes_bulk_deleted', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_bulk_deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        count: event.tubeIds.length
+      });
+    }
+  }
+
+  private async handleBulkTubesMoved(event: BulkTubesMovedEvent): Promise<void> {
+    try {
+      const payload = {
+        tubeIds: event.tubeIds,
+        count: event.tubeIds.length,
+        operation: 'bulk_move' as const,
+        movedBy: event.movedBy,
+        movedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tubes_bulk_moved socket event', {
+        count: event.tubeIds.length,
+        labId: event.labId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.emitToLabRooms(event.labId, 'tubes_bulk_moved', payload);
+    } catch (error) {
+      logger.error('Failed to emit tubes_bulk_moved event', {
         error: error instanceof Error ? error.message : String(error),
         count: event.tubeIds.length
       });

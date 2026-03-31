@@ -35,9 +35,13 @@ export {
   pasteTubesResponseSchema,
   bulkUpdateResponseSchema,
   bulkFetchResponseSchema,
+  bulkMoveRequestSchema,
+  bulkMoveResponseSchema,
   type BulkDeleteResponse,
   type PasteTubesResponse,
   type BulkUpdateResponse,
+  type BulkMoveRequest,
+  type BulkMoveResponse,
 } from './tubeSchemas';
 
 export {

@@ -624,3 +624,139 @@ export const usePasteTubesMutation = (
     ...options,
   });
 };
+
+export type MoveTubesResult = {
+  moved: TubeData[];
+  failed: Array<{ tubeId: string; error: string }>;
+};
+
+export const useMoveTubesMutation = (
+  options: UseMutationOptions<
+    MoveTubesResult,
+    Error,
+    {
+      moves: Array<{
+        tubeId: string;
+        version: number;
+        destination: { tankId: string; rackId: string; boxId: string; position: number };
+      }>;
+    },
+    { snapshots: Map<string, TubeData[] | undefined> }
+  > = {}
+) => {
+  const queryClient = useQueryClient();
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: async ({ moves }) => {
+      return await TubeService.bulkMoveTubes(moves);
+    },
+
+    onMutate: async ({ moves }) => {
+      const affectedBoxKeys = new Set<string>();
+      const moveMap = new Map(moves.map(m => [m.tubeId, m.destination]));
+
+      moves.forEach(m => {
+        affectedBoxKeys.add(
+          `${m.destination.tankId}:${m.destination.rackId}:${m.destination.boxId}`
+        );
+      });
+
+      const snapshots = new Map<string, TubeData[] | undefined>();
+
+      for (const key of affectedBoxKeys) {
+        const [tankId, rackId, boxId] = key.split(':');
+        const queryKey = queryKeys.tubes.location(labId, tankId, rackId, boxId);
+        await queryClient.cancelQueries({ queryKey });
+        snapshots.set(key, queryClient.getQueryData<TubeData[]>(queryKey));
+      }
+
+      // Also snapshot source boxes by finding tubes in the cache
+      for (const move of moves) {
+        const allLocationQueries = queryClient.getQueriesData<TubeData[]>({
+          queryKey: [...queryKeys.tubes.all(labId), 'location'],
+        });
+        for (const [key, data] of allLocationQueries) {
+          if (data?.some(t => t.id === move.tubeId)) {
+            const keyStr = (key as string[]).slice(3).join(':');
+            if (!snapshots.has(keyStr)) {
+              await queryClient.cancelQueries({ queryKey: key });
+              snapshots.set(keyStr, data);
+            }
+          }
+        }
+      }
+
+      // Optimistically remove from source and add to destination
+      queryClient.setQueriesData(
+        { queryKey: [...queryKeys.tubes.all(labId), 'location'] },
+        (oldData: TubeData[] | undefined) => {
+          if (!oldData) return oldData;
+          return oldData
+            .filter(tube => !moveMap.has(tube.id))
+            .concat(
+              oldData
+                .filter(tube => moveMap.has(tube.id))
+                .map(tube => {
+                  const dest = moveMap.get(tube.id)!;
+                  return { ...tube, location: { ...tube.location, ...dest } };
+                })
+                .filter(tube => {
+                  const firstTube = oldData[0];
+                  if (!firstTube) return false;
+                  return (
+                    tube.location.tankId === firstTube.location.tankId &&
+                    tube.location.rackId === firstTube.location.rackId &&
+                    tube.location.boxId === firstTube.location.boxId
+                  );
+                })
+            );
+        }
+      );
+
+      return { snapshots };
+    },
+
+    onSuccess: result => {
+      result.moved.forEach(tube => {
+        queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
+      });
+
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
+
+      const boxes = new Set<string>();
+      result.moved.forEach(tube => {
+        boxes.add(`${tube.location.tankId}:${tube.location.rackId}:${tube.location.boxId}`);
+      });
+      for (const key of boxes) {
+        const [tankId, rackId, boxId] = key.split(':');
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.location(labId, tankId, rackId, boxId),
+        });
+      }
+
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
+
+      if (result.failed.length > 0) {
+        logger.warn('Move tubes partial failure', {
+          moved: result.moved.length,
+          failed: result.failed.length,
+          errors: result.failed.map(f => f.error),
+        });
+      }
+    },
+
+    onError: (error, _variables, context) => {
+      logger.error('Move tubes failed', { error });
+
+      if (context?.snapshots) {
+        for (const [key, data] of context.snapshots) {
+          const [tankId, rackId, boxId] = key.split(':');
+          queryClient.setQueryData(queryKeys.tubes.location(labId, tankId, rackId, boxId), data);
+        }
+      }
+    },
+
+    ...options,
+  });
+};

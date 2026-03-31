@@ -182,6 +182,35 @@ export class BulkTubesDeletedEvent extends DomainEvent {
   }
 }
 
+export class BulkTubesMovedEvent extends DomainEvent {
+  constructor(
+    public readonly tubeIds: string[],
+    public readonly sourceTankIds: string[],
+    public readonly destinationTankIds: string[],
+    public readonly movedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'BulkTubesMoved';
+  }
+
+  getAggregateId(): string {
+    return `bulk-${this.tubeIds.join(',')}`;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      tubeIds: this.tubeIds,
+      sourceTankIds: this.sourceTankIds,
+      destinationTankIds: this.destinationTankIds,
+      movedBy: this.movedBy
+    };
+  }
+}
+
 export class BulkTubesUpdatedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],

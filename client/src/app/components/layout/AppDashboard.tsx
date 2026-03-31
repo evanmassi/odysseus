@@ -23,6 +23,7 @@ import {
 import {
   useBulkDeleteTubesMutation,
   usePasteTubesMutation,
+  useMoveTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { TubeBulkEditorModal } from '@domains/tubes/ui/components/editor/TubeBulkEditorModal';
 import { TubeEditorModal } from '@domains/tubes/ui/components/editor/TubeEditorModal';
@@ -106,6 +107,7 @@ function LabDashboard() {
 
   const bulkDeleteTubesMutation = useBulkDeleteTubesMutation();
   const pasteTubesMutation = usePasteTubesMutation();
+  const moveTubesMutation = useMoveTubesMutation();
   const unlockTubesMutation = useUnlockTubesMutation();
 
   const accessControl = useTubeAccessControl(user);
@@ -424,6 +426,9 @@ function LabDashboard() {
     },
     onPasteTubes: async tubes => {
       await pasteTubesMutation.mutateAsync({ tubes });
+    },
+    onMoveTubes: async moves => {
+      await moveTubesMutation.mutateAsync({ moves });
     },
     onLockTubes: handleLockTubes,
     onUnlockTubes: handleUnlockTubes,

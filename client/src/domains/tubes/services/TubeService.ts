@@ -31,6 +31,9 @@ import {
   pasteTubesResponseSchema,
   bulkUpdateResponseSchema,
   bulkFetchResponseSchema,
+  bulkMoveResponseSchema,
+  type BulkMoveRequest,
+  type BulkMoveResponse,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -132,6 +135,14 @@ export class TubeService {
       `${this.BASE_PATH}/bulk-update`,
       { updates: normalizedUpdates },
       bulkUpdateResponseSchema
+    );
+  }
+
+  static async bulkMoveTubes(moves: BulkMoveRequest['moves']): Promise<BulkMoveResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk-move`,
+      { moves },
+      bulkMoveResponseSchema
     );
   }
 

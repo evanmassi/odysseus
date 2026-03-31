@@ -61,6 +61,14 @@ export const BulkFetchHttpSchema = z.object({
   tubeIds: z.array(z.string().min(1)).min(1, "At least one tube ID is required").max(100)
 });
 
+export const BulkMoveHttpSchema = z.object({
+  moves: z.array(z.object({
+    tubeId: z.string().min(1),
+    version: z.number().int().positive(),
+    destination: tubeLocationSchema,
+  })).min(1, "At least one move is required").max(100)
+});
+
 export const LockTubesHttpSchema = lockTubesRequestSchema;
 export const UnlockTubesHttpSchema = unlockTubesRequestSchema;
 export const ShareTubeAccessHttpSchema = shareTubeAccessRequestSchema;

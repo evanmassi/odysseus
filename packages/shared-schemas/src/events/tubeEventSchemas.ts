@@ -61,6 +61,14 @@ export const tubeEventSchemas = {
     deletedAt: z.string(),
   }),
 
+  tubes_bulk_moved: z.object({
+    tubeIds: z.array(z.string()),
+    count: z.number(),
+    operation: z.literal('bulk_move'),
+    movedBy: z.string(),
+    movedAt: z.string(),
+  }),
+
   tubes_locked: z.object({
     tubeIds: z.array(z.string()),
     count: z.number(),

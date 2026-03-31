@@ -182,6 +182,27 @@ export class TubeController extends BaseController {
     }
   }
 
+  /** POST /api/tubes/bulk-move */
+  async bulkMoveTubes(req: Request, res: Response): Promise<void> {
+    try {
+      const { moves } = req.body;
+      const authenticatedUser = this.getAuthenticatedUser(req);
+
+      const result = await this.deps.tubeApplicationService.moveTubes(moves, authenticatedUser);
+
+      logger.debug('Bulk tube move completed', {
+        moved: result.moved.length,
+        failed: result.failed.length,
+        user: req.user?.username,
+        requestId: req.requestId
+      });
+
+      res.json(ResponseBuilder.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to bulk move tubes', req.requestId);
+    }
+  }
+
   /** POST /api/tubes/bulk-fetch */
   async bulkFetchTubes(req: Request, res: Response): Promise<void> {
     try {

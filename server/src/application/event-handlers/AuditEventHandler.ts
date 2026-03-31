@@ -55,6 +55,7 @@ import type {
   TubeLocationChangedEvent,
   TubeDeletedEvent,
   BulkTubesUpdatedEvent,
+  BulkTubesMovedEvent,
 } from '@domain/events/TubeEvents';
 import type {
   TubesLockedEvent,
@@ -174,6 +175,7 @@ export class AuditEventHandler {
     this.eventBus.subscribe('TubeLocationChanged', (e) => this.handleTubeLocationChanged(e));
     this.eventBus.subscribe('TubeDeleted', (e) => this.handleTubeDeleted(e));
     this.eventBus.subscribe('BulkTubesUpdated', (e) => this.handleBulkTubesUpdated(e));
+    this.eventBus.subscribe('BulkTubesMoved', (e) => this.handleBulkTubesMoved(e));
 
     // Tube lock events
     this.eventBus.subscribe('TubesLocked', (e) => this.handleTubesLocked(e));
@@ -407,6 +409,23 @@ export class AuditEventHandler {
         count: event.tubeIds.length,
         changesSummary: event.changesSummary,
         updatedBy: username,
+      }),
+    });
+  }
+
+  private async handleBulkTubesMoved(event: BulkTubesMovedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'bulk tubes moved',
+      context: { tubeCount: event.tubeIds.length },
+      actorId: event.movedBy,
+      action: 'tube_bulk_moved',
+      entityType: 'tube',
+      occurredOn: event.occurredOn,
+      labId: event.labId,
+      buildDetails: (username) => ({
+        tubeIds: event.tubeIds,
+        count: event.tubeIds.length,
+        movedBy: username,
       }),
     });
   }

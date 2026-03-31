@@ -301,3 +301,19 @@ export const bulkUpdateResponseSchema = z.object({
 export type BulkUpdateResponse = z.infer<typeof bulkUpdateResponseSchema>;
 
 export const bulkFetchResponseSchema = z.array(tubeDataSchema);
+
+export const bulkMoveRequestSchema = z.object({
+  moves: z.array(z.object({
+    tubeId: z.string().min(1),
+    version: z.number().int().positive(),
+    destination: tubeLocationSchema,
+  })).min(1, 'At least one move is required').max(100),
+});
+
+export const bulkMoveResponseSchema = z.object({
+  moved: z.array(tubeDataSchema),
+  failed: z.array(z.object({ tubeId: z.string(), error: z.string() })),
+});
+
+export type BulkMoveRequest = z.infer<typeof bulkMoveRequestSchema>;
+export type BulkMoveResponse = z.infer<typeof bulkMoveResponseSchema>;
