@@ -95,7 +95,7 @@ export class TubeApplicationService {
     return tube;
   }
 
-  async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string>; skipEvents?: boolean }): Promise<TubeResponse> {
+  async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string>; bulkOperation?: boolean }): Promise<TubeResponse> {
     await this.accessControlService.requireCanCreateTube(authenticatedUser);
 
     const tubeData = TubeDto.fromCreateRequest(request);
@@ -176,16 +176,15 @@ export class TubeApplicationService {
       );
     }
 
-    if (!options?.skipEvents) {
-      const createdEvent = new TubeCreatedEvent(
-        tube.id,
-        tube.location,
-        tube.sample,
-        authenticatedUser.id,
-        authenticatedUser.labId!
-      );
-      await this.eventBus.publish(createdEvent);
-    }
+    const createdEvent = new TubeCreatedEvent(
+      tube.id,
+      tube.location,
+      tube.sample,
+      authenticatedUser.id,
+      authenticatedUser.labId!
+    );
+    if (options?.bulkOperation) createdEvent.partOfBulkOperation = true;
+    await this.eventBus.publish(createdEvent);
 
     return TubeDto.toResponse(tube);
   }
@@ -264,7 +263,7 @@ export class TubeApplicationService {
         config,
         positionValidation: positionValidations.get(index),
         researcherNameCache,
-        skipEvents: true,
+        bulkOperation: true,
       }),
       (req, index, error) => ({ index, request: req, error })
     );
@@ -436,7 +435,7 @@ export class TubeApplicationService {
     };
   }
 
-  async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube; skipEvents?: boolean }): Promise<TubeResponse> {
+  async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube; bulkOperation?: boolean }): Promise<TubeResponse> {
     const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
@@ -556,31 +555,31 @@ export class TubeApplicationService {
       );
     }
 
-    if (!options?.skipEvents) {
-      const locationChanged = !oldLocation.equals(updatedTube.location);
+    const locationChanged = !oldLocation.equals(updatedTube.location);
 
-      if (locationChanged) {
-        const locationEvent = new TubeLocationChangedEvent(
-          updatedTube.id,
-          oldLocation,
-          updatedTube.location,
-          authenticatedUser.id,
-          authenticatedUser.labId!
-        );
-        await this.eventBus.publish(locationEvent);
-      }
-
-      const updateEvent = new TubeUpdatedEvent(
+    if (locationChanged) {
+      const locationEvent = new TubeLocationChangedEvent(
         updatedTube.id,
         oldLocation,
         updatedTube.location,
-        oldSampleData,
-        updatedTube.sample,
         authenticatedUser.id,
         authenticatedUser.labId!
       );
-      await this.eventBus.publish(updateEvent);
+      if (options?.bulkOperation) locationEvent.partOfBulkOperation = true;
+      await this.eventBus.publish(locationEvent);
     }
+
+    const updateEvent = new TubeUpdatedEvent(
+      updatedTube.id,
+      oldLocation,
+      updatedTube.location,
+      oldSampleData,
+      updatedTube.sample,
+      authenticatedUser.id,
+      authenticatedUser.labId!
+    );
+    if (options?.bulkOperation) updateEvent.partOfBulkOperation = true;
+    await this.eventBus.publish(updateEvent);
 
     return TubeDto.toResponse(updatedTube);
   }
@@ -645,7 +644,7 @@ export class TubeApplicationService {
       request.updates,
       async (item) => {
         const preloadedTube = tubeMap.get(item.id);
-        await this.updateTube(item.id, item.updates, authenticatedUser, { config, preloadedTube, skipEvents: true });
+        await this.updateTube(item.id, item.updates, authenticatedUser, { config, preloadedTube, bulkOperation: true });
         return item.id;
       },
       (item, _index, error) => ({ id: item.id, error })
@@ -726,6 +725,18 @@ export class TubeApplicationService {
 
     if (validatedIds.length > 0) {
       await this.tubeRepository.deleteMany(validatedIds, authenticatedUser.labId!);
+
+      for (const tube of validatedTubes) {
+        const deleteEvent = new TubeDeletedEvent(
+          tube.id,
+          tube.location,
+          authenticatedUser.id,
+          tube.sample,
+          authenticatedUser.labId!
+        );
+        deleteEvent.partOfBulkOperation = true;
+        await this.eventBus.publish(deleteEvent);
+      }
 
       const tankIds = [...new Set(validatedTubes.map(t => t.location.tankId))];
       const bulkDeletedEvent = new BulkTubesDeletedEvent(

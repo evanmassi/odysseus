@@ -366,6 +366,7 @@ export class SocketEventHandler {
   // TUBE EVENT HANDLERS
 
   private async handleTubeCreated(event: TubeCreatedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
     try {
       const locationData = event.location.toData();
 
@@ -395,6 +396,7 @@ export class SocketEventHandler {
   private async handleTubeUpdated(
     event: TubeUpdatedEvent | TubeLocationChangedEvent
   ): Promise<void> {
+    if (event.partOfBulkOperation) return;
     try {
       const changedBy = event instanceof TubeLocationChangedEvent
         ? event.movedBy
@@ -427,6 +429,7 @@ export class SocketEventHandler {
   }
 
   private async handleTubeDeleted(event: TubeDeletedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
     try {
       const locationData = event.location.toData();
 

@@ -11,6 +11,7 @@ export abstract class DomainEvent {
   public readonly occurredOn: Date;
   public readonly version: number;
   public readonly labId?: string;
+  public partOfBulkOperation: boolean = false;
 
   constructor(version: number = 1, labId?: string) {
     this.eventId = randomUUID();
