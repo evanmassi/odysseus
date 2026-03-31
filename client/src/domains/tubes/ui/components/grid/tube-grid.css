@@ -98,7 +98,7 @@
 
 /* Respect user's reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .tube-position.selected {
+  .tube-position.freshly-selected {
     animation: none !important;
   }
 }
@@ -126,9 +126,12 @@
     0 0 8px 3px hsl(var(--grid-selection-glow));
   position: relative;
   z-index: 1;
-  animation: tube-select-once 0.3s ease-out;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
+}
+
+.tube-position.freshly-selected {
+  animation: tube-select-once 0.3s ease-out;
 }
 
 .tube-position.selected::after {

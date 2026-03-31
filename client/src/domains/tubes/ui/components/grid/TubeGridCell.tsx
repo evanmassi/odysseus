@@ -3,7 +3,7 @@
  *
  * Individual tube position cell with color coding, lock indicators, and property indicators.
  */
-import React, { memo, useMemo, useRef, useCallback } from 'react';
+import React, { memo, useMemo, useRef, useCallback, useEffect } from 'react';
 
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
@@ -106,6 +106,12 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     );
 
     const cellRef = useRef<HTMLDivElement>(null);
+    const wasSelectedRef = useRef(selected);
+    const freshlySelected = selected && !wasSelectedRef.current;
+
+    useEffect(() => {
+      wasSelectedRef.current = selected;
+    }, [selected]);
 
     const handleMouseEnter = useCallback(() => {
       if (tube && cellRef.current) {
@@ -147,6 +153,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
         tube-position relative group cursor-pointer
         ${tube ? 'occupied' : 'empty'}
         ${selected ? 'selected' : ''}
+        ${freshlySelected ? 'freshly-selected' : ''}
         ${isDragPreview ? 'drag-preview' : ''}
         ${isCut ? 'cut-tube' : ''}
         ${isCopied ? 'copied-tube' : ''}
