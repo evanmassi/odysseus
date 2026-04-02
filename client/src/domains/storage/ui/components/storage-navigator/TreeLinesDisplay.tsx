@@ -2,7 +2,10 @@
  * Tree Lines Display
  *
  * Renders SVG connecting lines as an absolute-positioned overlay within a tree container.
+ * Fades in smoothly to avoid a visual flash when lines first calculate.
  */
+
+import { useState, useEffect } from 'react';
 
 import type { TreeLine } from './useTreeLines';
 
@@ -11,6 +14,14 @@ interface TreeLinesDisplayProps {
 }
 
 export function TreeLinesDisplay({ lines }: TreeLinesDisplayProps) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (lines.length > 0 && !visible) {
+      requestAnimationFrame(() => setVisible(true));
+    }
+  }, [lines, visible]);
+
   if (lines.length === 0) return null;
 
   return (
@@ -24,6 +35,8 @@ export function TreeLinesDisplay({ lines }: TreeLinesDisplayProps) {
         height: '100%',
         pointerEvents: 'none',
         zIndex: 0,
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 250ms ease-out',
       }}
     >
       <style>

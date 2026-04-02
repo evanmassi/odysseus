@@ -236,7 +236,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         className="!max-w-lg max-h-[80vh]"
         onClose={onClose}
       >
-        {viewMode === 'tree' ? (
+        <div className={viewMode === 'tree' ? '' : 'hidden'}>
           <div className="space-y-2">
             {isDemo && hasSeededResources && (
               <AlertBanner variant="demo" spacing="none">
@@ -270,7 +270,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                   expandedTanks={expandedTanks}
                   expandedRacks={expandedRacks}
                   treeId="modal"
-                  initialDelay={450}
+                  initialDelay={420}
                 />
                 <div className="space-y-1">
                   {currentLab.equipment.tanks.map(tank => (
@@ -288,7 +288,8 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
               </div>
             </StorageManagerContext.Provider>
           </div>
-        ) : (
+        </div>
+        <div className={viewMode === 'byUser' ? '' : 'hidden'}>
           <ByUserTab
             lab={currentLab}
             getUserInfo={getUserInfo}
@@ -298,7 +299,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
             onBulkUnassign={handlers.handleBulkUnassign}
             onBulkReassign={handlers.handleBulkReassign}
           />
-        )}
+        </div>
       </BaseModal>
 
       {editModals.boxModalData && (

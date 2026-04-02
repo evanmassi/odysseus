@@ -30,7 +30,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
     const topId = (topItem as HTMLElement).dataset['id'] ?? 'unassigned';
     if (!config.isTopExpanded(topId)) return;
 
-    const topButton = topItem.querySelector('button');
+    const topButton = topItem.querySelector('.storage-nav-button');
     if (!topButton) return;
 
     const topRect = topButton.getBoundingClientRect();
@@ -44,7 +44,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
       const rackId = (rackItem as HTMLElement).dataset['id'];
       if (!rackId) return;
 
-      const rackButton = rackItem.querySelector('button');
+      const rackButton = rackItem.querySelector('.storage-nav-button');
       if (!rackButton) return;
 
       const rackRect = rackButton.getBoundingClientRect();
@@ -70,7 +70,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
         let lastBoxY = rackRect.bottom - containerRect.top;
 
         boxItems.forEach(boxItem => {
-          const boxButton = boxItem.querySelector('button, [role="listitem"]');
+          const boxButton = boxItem.querySelector('.storage-nav-button, [role="listitem"]');
           if (!boxButton) return;
 
           const boxRect = boxButton.getBoundingClientRect();

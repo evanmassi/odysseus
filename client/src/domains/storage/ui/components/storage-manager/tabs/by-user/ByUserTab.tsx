@@ -126,10 +126,14 @@ export function ByUserTab({
             >
               <div data-level="user" data-id={userAssignment.userId ?? 'unassigned'}>
                 <div className="storage-nav-item--modal storage-nav-item--tank">
-                  <button
-                    type="button"
+                  <div
                     onClick={() => toggleUser(userAssignment.userId)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') toggleUser(userAssignment.userId);
+                    }}
                     className={`storage-nav-button storage-nav-button--tank ${isExpanded ? 'selected' : ''}`}
+                    role="button"
+                    tabIndex={0}
                     aria-expanded={isExpanded}
                     aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${userAssignment.displayName}`}
                   >
@@ -138,6 +142,21 @@ export function ByUserTab({
                       className={`storage-nav-button__chevron transition-transform duration-200 ${!isExpanded ? '-rotate-90' : ''}`}
                       aria-hidden="true"
                     />
+                    {showOverflowMenu && (
+                      <div
+                        role="presentation"
+                        onClick={e => e.stopPropagation()}
+                        onKeyDown={e => e.stopPropagation()}
+                        className="flex-shrink-0"
+                      >
+                        <OverflowMenu
+                          items={buildOverflowMenuItems(userAssignment.userId!)}
+                          dividerBefore={['Unassign All']}
+                          size="sm"
+                          aria-label={`Actions for ${userAssignment.displayName}`}
+                        />
+                      </div>
+                    )}
                     <UserBadge
                       type={badgeType}
                       initials={userAssignment.initials}
@@ -160,7 +179,7 @@ export function ByUserTab({
                         </span>
                       )}
                     </div>
-                  </button>
+                  </div>
 
                   {isReassigning && (
                     <div
@@ -189,17 +208,6 @@ export function ByUserTab({
                           ×
                         </button>
                       </Tooltip>
-                    </div>
-                  )}
-
-                  {showOverflowMenu && (
-                    <div className="flex-shrink-0">
-                      <OverflowMenu
-                        items={buildOverflowMenuItems(userAssignment.userId!)}
-                        dividerBefore={['Unassign All']}
-                        size="sm"
-                        aria-label={`Actions for ${userAssignment.displayName}`}
-                      />
                     </div>
                   )}
                 </div>

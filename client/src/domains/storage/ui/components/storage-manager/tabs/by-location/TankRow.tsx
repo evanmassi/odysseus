@@ -84,10 +84,14 @@ export function TankRow({
     <Collapsible.Root open={!collapsed} onOpenChange={onToggleCollapse}>
       <div data-level="tank" data-id={tank.id}>
         <div className="storage-nav-item--modal storage-nav-item--tank">
-          <button
-            type="button"
+          <div
             onClick={onToggleCollapse}
+            onKeyDown={e => {
+              if (e.key === 'Enter') onToggleCollapse();
+            }}
             className={`storage-nav-button storage-nav-button--tank ${!collapsed ? 'selected' : ''}`}
+            role="button"
+            tabIndex={0}
             aria-expanded={!collapsed}
             aria-controls={`tank-content-${tank.id}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} tank ${tank.name}`}
@@ -97,6 +101,21 @@ export function TankRow({
               className={`storage-nav-button__chevron transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
               aria-hidden="true"
             />
+            {canManageStorage && !locked && overflowMenuItems.length > 0 && (
+              <div
+                role="presentation"
+                onClick={e => e.stopPropagation()}
+                onKeyDown={e => e.stopPropagation()}
+                className="flex-shrink-0"
+              >
+                <OverflowMenu
+                  items={overflowMenuItems}
+                  dividerBefore={dividerBefore}
+                  size="sm"
+                  aria-label={`Actions for tank ${tank.name}`}
+                />
+              </div>
+            )}
             <div className="storage-nav-button__icon">
               <TankIcon size={18} aria-hidden="true" />
             </div>
@@ -108,17 +127,7 @@ export function TankRow({
                 {tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}
               </span>
             </span>
-          </button>
-          {canManageStorage && !locked && overflowMenuItems.length > 0 && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <OverflowMenu
-                items={overflowMenuItems}
-                dividerBefore={dividerBefore}
-                size="sm"
-                aria-label={`Actions for tank ${tank.name}`}
-              />
-            </div>
-          )}
+          </div>
           {locked && (
             <div className="flex items-center px-1.5">
               <Tooltip content="Protected — part of demo setup" side="left">

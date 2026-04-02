@@ -118,10 +118,14 @@ export function RackRow({
     <Collapsible.Root open={!collapsed} onOpenChange={onToggleCollapse}>
       <div data-level="rack" data-id={rack.id}>
         <div className="storage-nav-item--modal storage-nav-item--rack">
-          <button
-            type="button"
+          <div
             onClick={onToggleCollapse}
+            onKeyDown={e => {
+              if (e.key === 'Enter') onToggleCollapse();
+            }}
             className={`storage-nav-button storage-nav-button--rack ${!collapsed ? 'selected' : ''}`}
+            role="button"
+            tabIndex={0}
             aria-expanded={!collapsed}
             aria-controls={`rack-content-${rackKey}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
@@ -131,6 +135,21 @@ export function RackRow({
               className={`storage-nav-button__chevron transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
               aria-hidden="true"
             />
+            {canManageStorage && !locked && overflowMenuItems.length > 0 && (
+              <div
+                role="presentation"
+                onClick={e => e.stopPropagation()}
+                onKeyDown={e => e.stopPropagation()}
+                className="flex-shrink-0"
+              >
+                <OverflowMenu
+                  items={overflowMenuItems}
+                  dividerBefore={dividerBefore}
+                  size="sm"
+                  aria-label={`Actions for rack ${rack.name}`}
+                />
+              </div>
+            )}
             <AssignmentBadge
               userId={rack.assignedUserId}
               size="md"
@@ -145,26 +164,16 @@ export function RackRow({
             <span className="storage-nav-pill storage-nav-pill--muted">
               {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
             </span>
-          </button>
+          </div>
 
-          {canManageStorage && !locked && (
+          {canManageStorage && !locked && isAdminRole(currentUser?.role) && (
             <div className="flex items-center gap-1 flex-shrink-0">
-              {isAdminRole(currentUser?.role) && (
-                <AssignmentDropdown
-                  value={rack.assignedUserId}
-                  users={users}
-                  onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
-                  size="md"
-                />
-              )}
-              {overflowMenuItems.length > 0 && (
-                <OverflowMenu
-                  items={overflowMenuItems}
-                  dividerBefore={dividerBefore}
-                  size="sm"
-                  aria-label={`Actions for rack ${rack.name}`}
-                />
-              )}
+              <AssignmentDropdown
+                value={rack.assignedUserId}
+                users={users}
+                onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
+                size="md"
+              />
             </div>
           )}
           {locked && (

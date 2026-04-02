@@ -100,11 +100,27 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
   return (
     <div data-level="box" data-id={box.id}>
       <div className="storage-nav-item--modal storage-nav-item--box">
-        <button
-          type="button"
+        <div
           className="storage-nav-button storage-nav-button--box"
+          role="button"
+          tabIndex={0}
           aria-label={`Box ${box.name}`}
         >
+          {canManageStorage && !locked && overflowMenuItems.length > 0 && (
+            <div
+              role="presentation"
+              onClick={e => e.stopPropagation()}
+              onKeyDown={e => e.stopPropagation()}
+              className="flex-shrink-0"
+            >
+              <OverflowMenu
+                items={overflowMenuItems}
+                dividerBefore={dividerBefore}
+                size="sm"
+                aria-label={`Actions for box ${box.name}`}
+              />
+            </div>
+          )}
           <AssignmentBadge
             userId={effectiveOwnerId}
             size="sm"
@@ -119,28 +135,18 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
           <span className="storage-nav-pill storage-nav-pill--muted">
             {box.gridConfig.rows}×{box.gridConfig.cols}
           </span>
-        </button>
+        </div>
 
-        {canManageStorage && !locked && (
+        {canManageStorage && !locked && isAdminRole(currentUser?.role) && (
           <div className="flex items-center gap-1 flex-shrink-0">
-            {isAdminRole(currentUser?.role) && (
-              <AssignmentDropdown
-                value={box.assignedUserId}
-                users={users}
-                onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
-                size="sm"
-                showCommonOption
-                parentUserId={rack.assignedUserId}
-              />
-            )}
-            {overflowMenuItems.length > 0 && (
-              <OverflowMenu
-                items={overflowMenuItems}
-                dividerBefore={dividerBefore}
-                size="sm"
-                aria-label={`Actions for box ${box.name}`}
-              />
-            )}
+            <AssignmentDropdown
+              value={box.assignedUserId}
+              users={users}
+              onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
+              size="sm"
+              showCommonOption
+              parentUserId={rack.assignedUserId}
+            />
           </div>
         )}
         {locked && (
