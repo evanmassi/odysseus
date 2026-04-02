@@ -101,6 +101,26 @@
   gap: 4px;
 }
 
+/* Lab Management Layout */
+.lab-management-layout {
+  height: calc(100vh - var(--layout-header-height) - var(--layout-top-padding));
+  display: flex;
+  gap: 20px;
+  padding: 8px 16px 16px;
+  background-color: hsl(var(--page));
+}
+
+.lab-management-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.lab-management-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1400px) {
   .storage-navigator-panel {

@@ -25,7 +25,10 @@ import {
   FlaskConical,
   CircleHelp,
   BookUser,
+  Wrench,
+  ChevronDown,
 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '@domains/authentication';
 import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
@@ -163,6 +166,11 @@ export function AppHeader({
   const { profile } = useUserProfile();
   const hasLab = !!user?.labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isBiobankRoute = !location.pathname.startsWith('/lab');
+  const [showSuiteDropdown, setShowSuiteDropdown] = useState(false);
+  const suiteDropdownRef = useRef<HTMLDivElement>(null);
 
   const displayName = user
     ? getUserDisplayName(user.username, profile?.firstName, profile?.lastName)
@@ -170,6 +178,18 @@ export function AppHeader({
   const initials = user
     ? getUserInitials(user.username, profile?.firstName, profile?.lastName)
     : '';
+
+  // Close suite dropdown on outside click
+  useEffect(() => {
+    if (!showSuiteDropdown) return;
+    const handleClick = (e: MouseEvent) => {
+      if (suiteDropdownRef.current && !suiteDropdownRef.current.contains(e.target as Node)) {
+        setShowSuiteDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showSuiteDropdown]);
 
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
   const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
@@ -281,12 +301,62 @@ export function AppHeader({
   return (
     <header className="bg-background px-4 h-full flex items-center">
       <div className="flex justify-between items-center w-full">
-        {/* Far Left: Logo */}
-        <div className="flex items-center">
-          <OdysseusLogo
-            className="h-11 w-auto text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground"
-            aria-label="Odysseus"
-          />
+        {/* Far Left: Logo + Suite Selector */}
+        <div className="flex items-center gap-2" ref={suiteDropdownRef}>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => hasLab && setShowSuiteDropdown(!showSuiteDropdown)}
+              className="flex items-center gap-1.5 group"
+              aria-haspopup="menu"
+              aria-expanded={showSuiteDropdown}
+              aria-label="Switch management suite"
+            >
+              <OdysseusLogo
+                className="h-11 w-auto text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground"
+                aria-label="Odysseus"
+              />
+              {hasLab && (
+                <ChevronDown
+                  size={14}
+                  className="text-muted-foreground group-hover:text-secondary-foreground transition-colors"
+                />
+              )}
+            </button>
+
+            {showSuiteDropdown && (
+              <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-lg shadow-lg py-1 z-50 min-w-[180px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigate('/');
+                    setShowSuiteDropdown(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${isBiobankRoute ? 'bg-accent text-accent-foreground font-medium' : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                >
+                  <FlaskConical size={16} />
+                  Biobank
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigate('/lab/equipment');
+                    setShowSuiteDropdown(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${!isBiobankRoute ? 'bg-accent text-accent-foreground font-medium' : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                >
+                  <Wrench size={16} />
+                  Equipment
+                </button>
+              </div>
+            )}
+          </div>
+
+          {hasLab && (
+            <span className="text-xs text-muted-foreground font-medium">
+              {isBiobankRoute ? 'Biobank' : 'Equipment'}
+            </span>
+          )}
         </div>
 
         {/* Right Side: Controls + Search + Hamburger */}
@@ -471,8 +541,8 @@ export function AppHeader({
           {/* Online Users Badges */}
           <OnlineUsersBadgeList />
 
-          {/* Search Container */}
-          {hasLab && (
+          {/* Search Container — Biobank only */}
+          {hasLab && isBiobankRoute && (
             <div className="flex-shrink-0">
               <SearchPanel />
             </div>
