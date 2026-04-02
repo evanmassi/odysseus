@@ -37,7 +37,7 @@ import { useStorageData } from '@domains/storage';
 import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
 import { useUserProfile } from '@domains/users/hooks/useUserProfile';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
-import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
+import { Button, DropdownMenu, MenuDivider, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
@@ -202,94 +202,9 @@ export function AppHeader({
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
-  const [isClosingMenu, setIsClosingMenu] = useState(false);
-
-  const hamburgerMenuRef = useRef<HTMLDivElement>(null);
   const hamburgerButtonRef = useRef<HTMLButtonElement>(null);
-  const menuCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Animated close for hamburger menu
-  const closeMenu = useCallback(() => {
-    if (isClosingMenu || !showHamburgerMenu) return;
-    setIsClosingMenu(true);
-    menuCloseTimeoutRef.current = setTimeout(() => {
-      setShowHamburgerMenu(false);
-      setIsClosingMenu(false);
-    }, 200); // Match animation duration
-  }, [isClosingMenu, showHamburgerMenu]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (menuCloseTimeoutRef.current) {
-        clearTimeout(menuCloseTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Close hamburger menu when clicking outside
-  useEffect(() => {
-    if (!showHamburgerMenu) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (hamburgerMenuRef.current && !hamburgerMenuRef.current.contains(e.target as Node)) {
-        closeMenu();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showHamburgerMenu, closeMenu]);
-
-  // Keyboard navigation for hamburger menu (WAI-ARIA Menu Button pattern)
-  const handleMenuKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        closeMenu();
-        hamburgerButtonRef.current?.focus();
-        return;
-      }
-
-      // Arrow key navigation between menu items
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        const items = hamburgerMenuRef.current?.querySelectorAll<HTMLElement>(
-          'button[role="menuitem"]:not([disabled])'
-        );
-        if (!items?.length) return;
-
-        const currentIndex = Array.from(items).findIndex(item => item === document.activeElement);
-        const nextIndex =
-          e.key === 'ArrowDown'
-            ? (currentIndex + 1) % items.length
-            : (currentIndex - 1 + items.length) % items.length;
-        items[nextIndex].focus();
-      }
-
-      // Home/End keys for first/last item
-      if (e.key === 'Home' || e.key === 'End') {
-        e.preventDefault();
-        const items = hamburgerMenuRef.current?.querySelectorAll<HTMLElement>(
-          'button[role="menuitem"]:not([disabled])'
-        );
-        if (!items?.length) return;
-        items[e.key === 'Home' ? 0 : items.length - 1].focus();
-      }
-    },
-    [closeMenu]
-  );
-
-  // Close menu when focus leaves the dropdown
-  const handleMenuBlur = useCallback(
-    (e: React.FocusEvent) => {
-      // relatedTarget is the element receiving focus
-      // Only close if focus is moving outside the menu container
-      if (!hamburgerMenuRef.current?.contains(e.relatedTarget as Node)) {
-        closeMenu();
-      }
-    },
-    [closeMenu]
-  );
+  const closeMenu = () => setShowHamburgerMenu(false);
 
   const handleLogout = () => {
     // Socket cleanup is now handled centrally by AppBootstrapService
@@ -549,11 +464,11 @@ export function AppHeader({
           )}
 
           {/* User Menu */}
-          <div className="relative" ref={hamburgerMenuRef}>
+          <div className="relative">
             <button
               ref={hamburgerButtonRef}
               type="button"
-              onClick={() => (showHamburgerMenu ? closeMenu() : setShowHamburgerMenu(true))}
+              onClick={() => setShowHamburgerMenu(prev => !prev)}
               aria-haspopup="menu"
               aria-expanded={showHamburgerMenu}
               aria-label="Main menu"
@@ -570,111 +485,99 @@ export function AppHeader({
               </span>
             </button>
 
-            {/* Hamburger Menu Dropdown - WAI-ARIA Menu Button pattern */}
-            {(showHamburgerMenu || isClosingMenu) && (
-              <div
-                role="menu"
-                aria-label="Main menu"
-                tabIndex={-1}
-                onKeyDown={handleMenuKeyDown}
-                onBlur={handleMenuBlur}
-                className={`absolute top-10 right-0 bg-popover rounded-lg shadow-lg border border-border py-1.5 z-50 min-w-48 p-1 ${
-                  isClosingMenu ? 'animate-dropdown-reveal-out' : 'animate-dropdown-reveal-in'
-                }`}
-              >
-                {/* Lab Name */}
-                {currentLab && (
-                  <>
-                    <div className="px-3 py-2">
-                      <div className="flex items-center gap-3">
-                        <FlaskConical size={16} className="text-muted-foreground" />
-                        <span className="text-sm text-secondary-foreground font-medium">
-                          {currentLab.name}
-                        </span>
-                      </div>
+            <DropdownMenu
+              isOpen={showHamburgerMenu}
+              onClose={closeMenu}
+              triggerRef={hamburgerButtonRef}
+              align="end"
+              aria-label="Main menu"
+              className="min-w-48 p-1 top-10"
+            >
+              {currentLab && (
+                <>
+                  <div className="px-3 py-2">
+                    <div className="flex items-center gap-3">
+                      <FlaskConical size={16} className="text-muted-foreground" />
+                      <span className="text-sm text-secondary-foreground font-medium">
+                        {currentLab.name}
+                      </span>
                     </div>
-                    <div className="h-px bg-border my-1" />
-                  </>
+                  </div>
+                  <MenuDivider />
+                </>
+              )}
+
+              <div className="px-1">
+                <HamburgerMenuItem
+                  icon={CircleHelp}
+                  label="Help"
+                  onClick={() => {
+                    setShowHelp(true);
+                    closeMenu();
+                  }}
+                  triggerProps={helpTriggerProps}
+                />
+
+                <HamburgerMenuItem
+                  icon={Settings}
+                  label={isAdminRole(user?.role) ? 'User Settings' : 'Settings'}
+                  onClick={() => {
+                    setShowUserSettings(true);
+                    closeMenu();
+                  }}
+                  triggerProps={userSettingsTriggerProps}
+                />
+
+                {hasLab && isBiobankRoute && (
+                  <HamburgerMenuItem
+                    icon={TankIcon}
+                    label="Storage Manager"
+                    onClick={() => {
+                      setShowStorageManager(true);
+                      closeMenu();
+                    }}
+                    triggerProps={storageManagerTriggerProps}
+                  />
                 )}
 
-                <div className="px-1">
-                  {/* Help */}
+                {hasLab && isBiobankRoute && (
                   <HamburgerMenuItem
-                    icon={CircleHelp}
-                    label="Help"
+                    icon={BookUser}
+                    label="Donor Registry"
                     onClick={() => {
-                      setShowHelp(true);
+                      donorRegistry.open();
                       closeMenu();
                     }}
-                    triggerProps={helpTriggerProps}
+                    triggerProps={donorRegistryTriggerProps}
                   />
+                )}
 
-                  {/* User Settings */}
+                {isAdminRole(user?.role) && (
                   <HamburgerMenuItem
-                    icon={Settings}
-                    label={isAdminRole(user?.role) ? 'User Settings' : 'Settings'}
+                    icon={ShieldUser}
+                    label="Admin Settings"
                     onClick={() => {
-                      setShowUserSettings(true);
+                      setShowAdminPanel(true);
                       closeMenu();
                     }}
-                    triggerProps={userSettingsTriggerProps}
+                    triggerProps={adminSettingsTriggerProps}
                   />
-
-                  {/* Storage Manager - biobank only */}
-                  {hasLab && isBiobankRoute && (
-                    <HamburgerMenuItem
-                      icon={TankIcon}
-                      label="Storage Manager"
-                      onClick={() => {
-                        setShowStorageManager(true);
-                        closeMenu();
-                      }}
-                      triggerProps={storageManagerTriggerProps}
-                    />
-                  )}
-
-                  {/* Donor Registry - biobank only */}
-                  {hasLab && isBiobankRoute && (
-                    <HamburgerMenuItem
-                      icon={BookUser}
-                      label="Donor Registry"
-                      onClick={() => {
-                        donorRegistry.open();
-                        closeMenu();
-                      }}
-                      triggerProps={donorRegistryTriggerProps}
-                    />
-                  )}
-
-                  {/* Admin Settings - Only show to lab_admin and system_admin */}
-                  {isAdminRole(user?.role) && (
-                    <HamburgerMenuItem
-                      icon={ShieldUser}
-                      label="Admin Settings"
-                      onClick={() => {
-                        setShowAdminPanel(true);
-                        closeMenu();
-                      }}
-                      triggerProps={adminSettingsTriggerProps}
-                    />
-                  )}
-                </div>
-
-                <div className="h-px bg-border my-1" />
-
-                {/* Logout */}
-                <div className="px-1">
-                  <HamburgerMenuItem
-                    icon={LogOut}
-                    label="Logout"
-                    onClick={() => {
-                      handleLogout();
-                      closeMenu();
-                    }}
-                  />
-                </div>
+                )}
               </div>
-            )}
+
+              <MenuDivider />
+
+              <div className="px-1">
+                <HamburgerMenuItem
+                  icon={LogOut}
+                  label="Logout"
+                  onClick={() => {
+                    handleLogout();
+                    closeMenu();
+                  }}
+                />
+              </div>
+            </DropdownMenu>
           </div>
         </div>
       </div>
