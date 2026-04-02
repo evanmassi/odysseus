@@ -12,14 +12,12 @@ import { Plus, Search, Eye, EyeOff } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
-import {
-  useCreateEquipmentCategoryMutation,
-  useAddEquipmentDocumentMutation,
-} from '@domains/equipment/hooks/useEquipmentMutations';
+import { useAddEquipmentDocumentMutation } from '@domains/equipment/hooks/useEquipmentMutations';
 import { Button } from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
+import { EquipmentCategoryModal } from './EquipmentCategoryModal';
 import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
 import { EquipmentEditForm } from './EquipmentEditForm';
 import { EquipmentItemInfoPanel } from './EquipmentItemInfoPanel';
@@ -40,13 +38,17 @@ export function EquipmentTab() {
 
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
-  const createCategoryMutation = useCreateEquipmentCategoryMutation();
   const addDocumentMutation = useAddEquipmentDocumentMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDecommissioned, setShowDecommissioned] = useState(false);
+  const [categoryModal, setCategoryModal] = useState<{
+    isOpen: boolean;
+    parentId?: string;
+    parentName?: string;
+  }>({ isOpen: false });
 
   const categoryNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -112,29 +114,16 @@ export function EquipmentTab() {
     setRightPanel(undefined);
   }, []);
 
-  const handleAddCategory = useCallback(async () => {
-    const name = window.prompt('Category name:');
-    if (!name?.trim()) return;
-    try {
-      await createCategoryMutation.mutateAsync({ name: name.trim() });
-      notifications.success(`Category "${name.trim()}" created`);
-    } catch {
-      notifications.error('Failed to create category');
-    }
-  }, [createCategoryMutation]);
+  const handleAddCategory = useCallback(() => {
+    setCategoryModal({ isOpen: true });
+  }, []);
 
   const handleAddSubcategory = useCallback(
-    async (parentId: string) => {
-      const name = window.prompt('Subcategory name:');
-      if (!name?.trim()) return;
-      try {
-        await createCategoryMutation.mutateAsync({ name: name.trim(), parentId });
-        notifications.success(`Subcategory "${name.trim()}" created`);
-      } catch {
-        notifications.error('Failed to create subcategory');
-      }
+    (parentId: string) => {
+      const parent = categories.find(c => c.id === parentId);
+      setCategoryModal({ isOpen: true, parentId, parentName: parent?.name });
     },
-    [createCategoryMutation]
+    [categories]
   );
 
   const handleAddDocumentSubmit = useCallback(async () => {
@@ -211,8 +200,8 @@ export function EquipmentTab() {
             showDecommissioned={showDecommissioned}
             searchQuery={searchQuery}
             isAdmin={isAdmin}
-            onAddCategory={() => void handleAddCategory()}
-            onAddSubcategory={parentId => void handleAddSubcategory(parentId)}
+            onAddCategory={handleAddCategory}
+            onAddSubcategory={handleAddSubcategory}
           />
         </ScrollArea>
       </div>
@@ -258,6 +247,13 @@ export function EquipmentTab() {
           />
         )}
       </div>
+
+      <EquipmentCategoryModal
+        isOpen={categoryModal.isOpen}
+        parentId={categoryModal.parentId}
+        parentName={categoryModal.parentName}
+        onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }
