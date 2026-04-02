@@ -4,7 +4,7 @@
  * Collapsible category sections with nested subcategories and equipment item cards.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
@@ -27,6 +27,8 @@ interface EquipmentCategoryPanelProps {
   onAddSubcategory: (parentId: string) => void;
   onRenameCategory: (category: EquipmentCategory) => void;
   onDeleteCategory: (category: EquipmentCategory) => void;
+  sortField: 'name' | 'manufacturer' | 'dateAdded';
+  sortDirection: 'asc' | 'desc';
 }
 
 export function EquipmentCategoryPanel({
@@ -41,6 +43,8 @@ export function EquipmentCategoryPanel({
   onAddSubcategory,
   onRenameCategory,
   onDeleteCategory,
+  sortField,
+  sortDirection,
 }: EquipmentCategoryPanelProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
@@ -90,6 +94,32 @@ export function EquipmentCategoryPanel({
     return result;
   }, [items, showDecommissioned, searchQuery]);
 
+  const sortItems = useCallback(
+    (a: EquipmentItem, b: EquipmentItem): number => {
+      const dir = sortDirection === 'asc' ? 1 : -1;
+      switch (sortField) {
+        case 'name': {
+          const nameCompare = a.name.localeCompare(b.name);
+          if (nameCompare !== 0) return nameCompare * dir;
+          return (a.manufacturer ?? '').localeCompare(b.manufacturer ?? '') * dir;
+        }
+        case 'manufacturer': {
+          const mfgCompare = (a.manufacturer ?? '').localeCompare(b.manufacturer ?? '');
+          if (mfgCompare !== 0) return mfgCompare * dir;
+          return a.name.localeCompare(b.name) * dir;
+        }
+        case 'dateAdded': {
+          const aDate = new Date(a.createdAt).getTime();
+          const bDate = new Date(b.createdAt).getTime();
+          return (bDate - aDate) * dir;
+        }
+        default:
+          return 0;
+      }
+    },
+    [sortField, sortDirection]
+  );
+
   const itemsByCategoryId = useMemo(() => {
     const map = new Map<string, EquipmentItem[]>();
     filteredItems.forEach(item => {
@@ -97,8 +127,11 @@ export function EquipmentCategoryPanel({
       list.push(item);
       map.set(item.categoryId, list);
     });
+    for (const [key, list] of map) {
+      map.set(key, list.sort(sortItems));
+    }
     return map;
-  }, [filteredItems]);
+  }, [filteredItems, sortItems]);
 
   const toggleCategory = (id: string) => {
     setExpandedCategories(prev => {

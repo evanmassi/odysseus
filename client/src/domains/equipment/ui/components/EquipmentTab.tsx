@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Plus, Search, Eye, EyeOff } from 'lucide-react';
+import { Plus, Search, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
@@ -16,7 +16,7 @@ import {
   useAddEquipmentDocumentMutation,
   useDeleteEquipmentCategoryMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button } from '@shared/ui';
+import { Button, Select, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
@@ -32,6 +32,15 @@ import type {
   EquipmentItem,
   EquipmentMaintenanceLog,
 } from '@odysseus/shared-schemas';
+import type { SelectOption } from '@shared/ui';
+
+type SortField = 'name' | 'manufacturer' | 'dateAdded';
+
+const SORT_OPTIONS: SelectOption[] = [
+  { value: 'name', label: 'Name' },
+  { value: 'manufacturer', label: 'Manufacturer' },
+  { value: 'dateAdded', label: 'Date Added' },
+];
 
 type RightPanelView =
   | { type: 'info'; itemId: string }
@@ -53,6 +62,8 @@ export function EquipmentTab() {
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDecommissioned, setShowDecommissioned] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [categoryModal, setCategoryModal] = useState<{
     isOpen: boolean;
     parentId?: string;
@@ -181,21 +192,55 @@ export function EquipmentTab() {
     <div className="flex gap-4 h-full min-h-0 p-4">
       {/* Left Panel: Category Browser */}
       <div className="w-[60%] min-w-0 flex flex-col">
-        {/* Top bar */}
-        <div className="flex items-center gap-2 mb-3 flex-shrink-0 px-0.5">
-          <div className="relative flex-1">
-            <Search
-              size={14}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+        {/* Row 1: Search + Add Equipment */}
+        <div className="flex items-center justify-between mb-2 flex-shrink-0 px-0.5">
+          <div className="relative w-96">
+            <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search equipment..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-8 pl-8 pr-3 text-sm rounded-md border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="input-search w-full pl-8"
             />
           </div>
+          {isAdmin && (
+            <Button
+              size="sm"
+              onClick={handleAddEquipment}
+              className="h-8"
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+            >
+              Add Equipment
+            </Button>
+          )}
+        </div>
+
+        {/* Row 2: Sort + Show Decommissioned */}
+        <div className="flex items-center gap-2 h-8 px-0.5 mb-2 flex-shrink-0">
+          <span className="text-xs font-medium text-secondary-foreground">Sort:</span>
+          <Select
+            options={SORT_OPTIONS}
+            value={sortField}
+            onChange={value => setSortField(value as SortField)}
+            size="xs"
+            variant="default"
+            aria-label="Sort field"
+            className="w-32"
+          />
+          <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
+            <button
+              type="button"
+              onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+              className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors"
+            >
+              {sortDirection === 'asc' ? (
+                <ArrowUp className="w-4 h-4" />
+              ) : (
+                <ArrowDown className="w-4 h-4" />
+              )}
+            </button>
+          </Tooltip>
           <Button
             variant="ghost"
             size="sm"
@@ -211,16 +256,6 @@ export function EquipmentTab() {
           >
             {showDecommissioned ? 'Hide' : 'Show'} Decommissioned
           </Button>
-          {isAdmin && (
-            <Button
-              size="sm"
-              onClick={handleAddEquipment}
-              className="h-8"
-              leftIcon={<Plus className="w-3.5 h-3.5" />}
-            >
-              Add Equipment
-            </Button>
-          )}
         </div>
 
         {/* Category list */}
@@ -237,6 +272,8 @@ export function EquipmentTab() {
             onAddSubcategory={handleAddSubcategory}
             onRenameCategory={handleRenameCategory}
             onDeleteCategory={handleDeleteCategory}
+            sortField={sortField}
+            sortDirection={sortDirection}
           />
         </ScrollArea>
       </div>
