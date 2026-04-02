@@ -27,6 +27,7 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   source: 'sources',
   media: 'media types',
   specimen_type: 'specimen types',
+  equipment_maintenance_type: 'equipment maintenance types',
 };
 
 interface CategorySectionProps {
@@ -288,6 +289,9 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
   const [mediaValues, setMediaValues] = useState<LookupValueWithCount[]>([]);
   const [specimenTypeValues, setSpecimenTypeValues] = useState<LookupValueWithCount[]>([]);
+  const [equipmentMaintenanceTypeValues, setEquipmentMaintenanceTypeValues] = useState<
+    LookupValueWithCount[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -305,6 +309,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       source: setSourceValues,
       media: setMediaValues,
       specimen_type: setSpecimenTypeValues,
+      equipment_maintenance_type: setEquipmentMaintenanceTypeValues,
     }),
     []
   );
@@ -312,16 +317,20 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const loadValues = useCallback(async () => {
     setLoading(true);
     try {
-      const [species, sources, media, specimenTypes] = await Promise.all([
-        adminService.getLookupValues('species'),
-        adminService.getLookupValues('source'),
-        adminService.getLookupValues('media'),
-        adminService.getLookupValues('specimen_type'),
-      ]);
+      const [species, sources, media, specimenTypes, equipmentMaintenanceTypes] = await Promise.all(
+        [
+          adminService.getLookupValues('species'),
+          adminService.getLookupValues('source'),
+          adminService.getLookupValues('media'),
+          adminService.getLookupValues('specimen_type'),
+          adminService.getLookupValues('equipment_maintenance_type'),
+        ]
+      );
       setSpeciesValues(species);
       setSourceValues(sources);
       setMediaValues(media);
       setSpecimenTypeValues(specimenTypes);
+      setEquipmentMaintenanceTypeValues(equipmentMaintenanceTypes);
     } catch (error) {
       logger.error('Failed to load lookup values', { error });
       notifications.error('Failed to load catalog values');
@@ -469,13 +478,25 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
           deletingId={deletingId}
           readOnly={readOnly}
         />
+
+        <CategorySection
+          category="equipment_maintenance_type"
+          title="Equipment Maintenance Types"
+          values={equipmentMaintenanceTypeValues}
+          loading={loading}
+          onAdd={value => handleAdd('equipment_maintenance_type', value)}
+          onRename={(id, newValue) => handleRename('equipment_maintenance_type', id, newValue)}
+          onDelete={(id, value) => handleDeleteRequest('equipment_maintenance_type', id, value)}
+          deletingId={deletingId}
+          readOnly={readOnly}
+        />
       </div>
 
       {confirmDialog && (
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : confirmDialog.category === 'source' ? 'Source' : confirmDialog.category === 'specimen_type' ? 'Specimen Type' : 'Media Type'}`}
+          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : confirmDialog.category === 'source' ? 'Source' : confirmDialog.category === 'specimen_type' ? 'Specimen Type' : confirmDialog.category === 'equipment_maintenance_type' ? 'Maintenance Type' : 'Media Type'}`}
           message={`Are you sure you want to delete "${confirmDialog.value}" from ${confirmDialog.category}? This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => void executeDelete()}

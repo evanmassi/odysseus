@@ -104,6 +104,18 @@ export const queryKeys = {
       [...queryKeys.donors.all(labId), 'search', query] as const,
   },
 
+  // Equipment (lab-scoped)
+  equipment: {
+    all: (labId = '') => ['equipment', labId] as const,
+    categories: (labId = '') => [...queryKeys.equipment.all(labId), 'categories'] as const,
+    items: (labId = '') => [...queryKeys.equipment.all(labId), 'items'] as const,
+    detail: (labId = '', id: string) => [...queryKeys.equipment.all(labId), 'detail', id] as const,
+    documents: (labId = '', itemId: string) =>
+      [...queryKeys.equipment.all(labId), 'documents', itemId] as const,
+    maintenance: (labId = '', itemId: string) =>
+      [...queryKeys.equipment.all(labId), 'maintenance', itemId] as const,
+  },
+
   // Lookups (lab-scoped)
   lookups: {
     all: (labId = '') => ['lookups', labId] as const,

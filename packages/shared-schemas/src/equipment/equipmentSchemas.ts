@@ -42,6 +42,10 @@ export const updateEquipmentCategoryRequestSchema = z.object({
   sortOrder: z.number().int().nullish(),
 });
 
+export const equipmentCategoryResponseSchema = z.object({
+  category: equipmentCategorySchema,
+});
+
 export const equipmentCategoryListResponseSchema = z.object({
   categories: z.array(equipmentCategorySchema),
 });
@@ -143,6 +147,10 @@ export const createEquipmentDocumentRequestSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+export const equipmentDocumentResponseSchema = z.object({
+  document: equipmentDocumentSchema,
+});
+
 export const equipmentDocumentListResponseSchema = z.object({
   documents: z.array(equipmentDocumentSchema),
 });
@@ -184,6 +192,10 @@ export const updateEquipmentMaintenanceLogRequestSchema = z.object({
   nextScheduledDate: z.string().nullish(),
   cost: z.number().min(0).nullish(),
   notes: z.string().max(5000).nullish(),
+});
+
+export const equipmentMaintenanceLogEntryResponseSchema = z.object({
+  entry: equipmentMaintenanceLogSchema,
 });
 
 export const equipmentMaintenanceLogListResponseSchema = z.object({

@@ -1,0 +1,210 @@
+/**
+ * Equipment Mutation Hooks
+ *
+ * Create, update, delete mutations for equipment categories, items, documents, and maintenance logs.
+ */
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
+
+import { EquipmentService } from '../services/EquipmentService';
+
+import type {
+  CreateEquipmentCategoryRequest,
+  UpdateEquipmentCategoryRequest,
+  CreateEquipmentItemRequest,
+  UpdateEquipmentItemRequest,
+  DecommissionEquipmentItemRequest,
+  CreateEquipmentDocumentRequest,
+  CreateEquipmentMaintenanceLogRequest,
+  UpdateEquipmentMaintenanceLogRequest,
+} from '@odysseus/shared-schemas';
+
+// Categories
+
+export function useCreateEquipmentCategoryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateEquipmentCategoryRequest) => EquipmentService.createCategory(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.categories(labId) });
+    },
+  });
+}
+
+export function useUpdateEquipmentCategoryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateEquipmentCategoryRequest }) =>
+      EquipmentService.updateCategory(id, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.categories(labId) });
+    },
+  });
+}
+
+export function useDeleteEquipmentCategoryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => EquipmentService.deleteCategory(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.categories(labId) });
+    },
+  });
+}
+
+// Items
+
+export function useCreateEquipmentItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateEquipmentItemRequest) => EquipmentService.create(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+    },
+  });
+}
+
+export function useUpdateEquipmentItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateEquipmentItemRequest }) =>
+      EquipmentService.update(id, data),
+    onSuccess: (_, { id }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, id) });
+    },
+  });
+}
+
+export function useDecommissionEquipmentItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: DecommissionEquipmentItemRequest }) =>
+      EquipmentService.decommission(id, data),
+    onSuccess: (_, { id }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, id) });
+    },
+  });
+}
+
+export function useDeleteEquipmentItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => EquipmentService.delete(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+    },
+  });
+}
+
+// Documents
+
+export function useAddEquipmentDocumentMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: CreateEquipmentDocumentRequest }) =>
+      EquipmentService.addDocument(itemId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
+    },
+  });
+}
+
+export function useRemoveEquipmentDocumentMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, docId }: { itemId: string; docId: string }) =>
+      EquipmentService.removeDocument(itemId, docId),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
+    },
+  });
+}
+
+// Maintenance log
+
+export function useAddEquipmentMaintenanceEntryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      data,
+    }: {
+      itemId: string;
+      data: CreateEquipmentMaintenanceLogRequest;
+    }) => EquipmentService.addMaintenanceEntry(itemId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.equipment.maintenance(labId, itemId),
+      });
+      // Item's next_maintenance_date may have changed
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+    },
+  });
+}
+
+export function useUpdateEquipmentMaintenanceEntryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      entryId,
+      data,
+    }: {
+      itemId: string;
+      entryId: string;
+      data: UpdateEquipmentMaintenanceLogRequest;
+    }) => EquipmentService.updateMaintenanceEntry(itemId, entryId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.equipment.maintenance(labId, itemId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+    },
+  });
+}
+
+export function useDeleteEquipmentMaintenanceEntryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, entryId }: { itemId: string; entryId: string }) =>
+      EquipmentService.deleteMaintenanceEntry(itemId, entryId),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.equipment.maintenance(labId, itemId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+    },
+  });
+}
