@@ -90,7 +90,7 @@ export function DropdownMenu({
     : '';
 
   const alignClass = portal ? '' : align === 'start' ? 'left-0' : 'right-0';
-  const positionClass = portal ? 'fixed' : 'absolute';
+  const positionClass = portal ? 'fixed z-[9999]' : 'absolute z-50';
 
   const menu = (
     <div
@@ -101,7 +101,7 @@ export function DropdownMenu({
       tabIndex={-1}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
-      className={`${positionClass} z-50 bg-popover rounded-lg shadow-lg border border-border py-1.5 ${alignClass} ${animationClass} ${className}`}
+      className={`${positionClass} bg-popover rounded-lg shadow-lg border border-border py-1.5 ${alignClass} ${animationClass} ${className}`}
       style={style}
     >
       {children}

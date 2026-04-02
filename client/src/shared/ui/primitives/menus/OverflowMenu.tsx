@@ -1,59 +1,18 @@
 /**
  * Overflow Menu
  *
- * Three-dot dropdown menu with portal rendering and WAI-ARIA keyboard navigation.
+ * Three-dot dropdown menu with portal rendering and viewport collision detection.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { MoreVertical } from 'lucide-react';
-import { createPortal } from 'react-dom';
 
-import { useMenuKeyboardNavigation } from '@shared/hooks';
+import { DropdownMenu } from './DropdownMenu';
+import { MenuDivider } from './MenuDivider';
+import { MenuItem } from './MenuItem';
 
-import type { OverflowMenuProps, OverflowMenuItem } from './types';
-
-function MenuDivider() {
-  return <div className="h-px bg-border my-1" />;
-}
-
-function MenuItem({ item, onClose }: { item: OverflowMenuItem; onClose: () => void }) {
-  const Icon = item.icon;
-
-  const handleClick = () => {
-    if (!item.disabled) {
-      item.onClick();
-      onClose();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick();
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      tabIndex={0}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      disabled={item.disabled}
-      className={`
-        w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm
-        transition-colors duration-150
-        disabled:opacity-40 disabled:cursor-not-allowed
-        ${item.danger ? 'text-danger-text hover:bg-danger-light' : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'}
-      `}
-    >
-      <Icon size={16} className={item.danger ? 'text-danger-text' : 'text-muted-foreground'} />
-      <span>{item.label}</span>
-    </button>
-  );
-}
+import type { OverflowMenuProps } from './types';
 
 export function OverflowMenu({
   items,
@@ -63,47 +22,35 @@ export function OverflowMenu({
 }: OverflowMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
   }, []);
 
-  // Keyboard navigation (WAI-ARIA Menu Button pattern)
-  const { handleKeyDown, handleBlur } = useMenuKeyboardNavigation({
-    menuRef,
-    triggerRef,
-    isOpen,
-    onClose: handleClose,
-  });
-
   // Calculate position when menu opens
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
 
     const rect = triggerRef.current.getBoundingClientRect();
-    const menuWidth = 160; // min-w-40 = 10rem = 160px
-    const menuHeight = items.length * 40 + dividerBefore.length * 8 + 12; // Estimated height
+    const menuWidth = 160;
+    const menuHeight = items.length * 40 + dividerBefore.length * 8 + 12;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     let top = rect.bottom + 4;
-    let left = rect.right - menuWidth; // Align right edge with trigger
+    let left = rect.right - menuWidth;
 
-    // Adjust if menu would go off-screen to the left
     if (left < 10) {
       left = rect.left;
     }
 
-    // Adjust if menu would go off-screen to the right
     if (left + menuWidth > viewportWidth - 10) {
       left = viewportWidth - menuWidth - 10;
     }
 
-    // Adjust if menu would go off-screen at the bottom
     if (top + menuHeight > viewportHeight - 10) {
-      top = rect.top - menuHeight - 4; // Position above trigger
+      top = rect.top - menuHeight - 4;
     }
 
     setPosition({ top, left });
@@ -126,33 +73,13 @@ export function OverflowMenu({
     };
   }, [isOpen, updatePosition]);
 
-  // Handle click outside to close
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      const clickedTrigger = triggerRef.current?.contains(target);
-      const clickedMenu = menuRef.current?.contains(target);
-
-      if (!clickedTrigger && !clickedMenu) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
   const handleToggle = () => {
     setIsOpen(prev => !prev);
   };
 
-  // Size classes for trigger button
   const sizeClasses = size === 'sm' ? 'p-0.5' : 'p-1';
   const iconSize = size === 'sm' ? 14 : 16;
 
-  // Build items with dividers
   const dividerSet = new Set(dividerBefore);
 
   if (items.length === 0) return null;
@@ -171,34 +98,33 @@ export function OverflowMenu({
         <MoreVertical size={iconSize} />
       </button>
 
-      {createPortal(
-        <div
-          ref={menuRef}
-          className={`fixed z-[9999] bg-popover rounded-lg shadow-lg border border-border py-1.5 min-w-40 transition-opacity duration-150 ${
-            isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-          style={{
-            top: position.top,
-            left: position.left,
-          }}
-          role="menu"
-          aria-label={ariaLabel}
-          aria-hidden={!isOpen}
-          tabIndex={-1}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-        >
-          <div className="px-1">
-            {items.map((item, index) => (
-              <div key={item.label}>
-                {dividerSet.has(item.label) && index > 0 && <MenuDivider />}
-                <MenuItem item={item} onClose={handleClose} />
-              </div>
-            ))}
-          </div>
-        </div>,
-        document.body
-      )}
+      <DropdownMenu
+        isOpen={isOpen}
+        onClose={handleClose}
+        triggerRef={triggerRef}
+        portal
+        aria-label={ariaLabel}
+        className="min-w-40"
+        style={{ top: position.top, left: position.left }}
+      >
+        <div className="px-1">
+          {items.map((item, index) => (
+            <div key={item.label}>
+              {dividerSet.has(item.label) && index > 0 && <MenuDivider />}
+              <MenuItem
+                icon={item.icon}
+                label={item.label}
+                onClick={() => {
+                  item.onClick();
+                  handleClose();
+                }}
+                danger={item.danger}
+                disabled={item.disabled}
+              />
+            </div>
+          ))}
+        </div>
+      </DropdownMenu>
     </>
   );
 }
