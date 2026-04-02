@@ -26,6 +26,7 @@ interface ValidatedInputProps {
   disabled?: boolean;
   required?: boolean;
   maxLength?: number;
+  step?: string;
   children?: React.ReactNode;
   options?: Array<{ value: string; label: string }>;
   autoFocus?: boolean;
@@ -48,6 +49,7 @@ export function ValidatedInput({
   disabled = false,
   required = false,
   maxLength,
+  step,
   children,
   options,
   autoFocus = false,
@@ -164,6 +166,7 @@ export function ValidatedInput({
           state={getInputState()}
           disabled={disabled}
           maxLength={maxLength}
+          step={step}
           fullWidth
           {...ariaProps}
         />

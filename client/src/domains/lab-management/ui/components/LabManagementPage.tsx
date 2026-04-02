@@ -81,7 +81,7 @@ export function LabManagementPage() {
         </aside>
 
         <main className="lab-management-content">
-          <div className="h-full bg-card rounded-lg">
+          <div className="h-full">
             <Routes>
               <Route path="equipment" element={<EquipmentTab />} />
               <Route path="*" element={<Navigate to="/lab/equipment" replace />} />

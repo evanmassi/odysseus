@@ -13,7 +13,7 @@ export interface EquipmentCategoryResponse {
   id: string;
   labId: string;
   name: string;
-  parentId?: string;
+  parentId: string | null;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -24,7 +24,6 @@ export interface EquipmentItemResponse {
   labId: string;
   categoryId: string;
   name: string;
-  internalId?: string;
   serialNumber?: string;
   manufacturer?: string;
   model?: string;
@@ -82,7 +81,7 @@ export class EquipmentDto {
       id: category.id,
       labId: category.labId,
       name: category.name,
-      parentId: category.parentId,
+      parentId: category.parentId ?? null,
       sortOrder: category.sortOrder,
       createdAt: category.createdAt.toISOString(),
       updatedAt: category.updatedAt.toISOString(),
@@ -95,7 +94,6 @@ export class EquipmentDto {
       labId: item.labId,
       categoryId: item.categoryId,
       name: item.name,
-      internalId: item.internalId,
       serialNumber: item.serialNumber,
       manufacturer: item.manufacturer,
       model: item.model,

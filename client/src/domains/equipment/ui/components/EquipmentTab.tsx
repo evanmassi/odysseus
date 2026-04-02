@@ -156,11 +156,11 @@ export function EquipmentTab() {
   }, [selectedItemId, addDocumentMutation]);
 
   return (
-    <div className="flex gap-4 h-full min-h-0 overflow-hidden p-4">
+    <div className="flex gap-4 h-full min-h-0 p-4">
       {/* Left Panel: Category Browser */}
-      <div className="w-[60%] min-w-0 flex flex-col overflow-hidden">
+      <div className="w-[60%] min-w-0 flex flex-col">
         {/* Top bar */}
-        <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+        <div className="flex items-center gap-2 mb-3 flex-shrink-0 px-0.5">
           <div className="relative flex-1">
             <Search
               size={14}
@@ -179,17 +179,23 @@ export function EquipmentTab() {
             size="sm"
             onClick={() => setShowDecommissioned(!showDecommissioned)}
             className="h-8 text-xs"
+            leftIcon={
+              showDecommissioned ? (
+                <EyeOff className="w-3.5 h-3.5" />
+              ) : (
+                <Eye className="w-3.5 h-3.5" />
+              )
+            }
           >
-            {showDecommissioned ? (
-              <EyeOff size={14} className="mr-1" />
-            ) : (
-              <Eye size={14} className="mr-1" />
-            )}
             {showDecommissioned ? 'Hide' : 'Show'} Decommissioned
           </Button>
           {isAdmin && (
-            <Button size="sm" onClick={handleAddEquipment} className="h-8">
-              <Plus size={14} className="mr-1" />
+            <Button
+              size="sm"
+              onClick={handleAddEquipment}
+              className="h-8"
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+            >
               Add Equipment
             </Button>
           )}

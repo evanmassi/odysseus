@@ -47,7 +47,6 @@ export const migration020: Migration = {
         lab_id TEXT NOT NULL REFERENCES labs(id),
         category_id TEXT NOT NULL REFERENCES equipment_categories(id) ON DELETE RESTRICT,
         name TEXT NOT NULL,
-        internal_id TEXT,
         serial_number TEXT,
         manufacturer TEXT,
         model TEXT,
@@ -73,11 +72,11 @@ export const migration020: Migration = {
     await pool.query(`CREATE INDEX idx_equipment_items_lab_status ON equipment_items(lab_id, status)`);
     await pool.query(`CREATE INDEX idx_equipment_items_category ON equipment_items(category_id)`);
 
-    // Lab tracking numbers must be unique when set
+    // Asset tags must be unique per lab when set
     await pool.query(`
-      CREATE UNIQUE INDEX uq_equipment_items_internal_id
-      ON equipment_items(lab_id, internal_id)
-      WHERE internal_id IS NOT NULL
+      CREATE UNIQUE INDEX uq_equipment_items_asset_tag
+      ON equipment_items(lab_id, asset_tag)
+      WHERE asset_tag IS NOT NULL
     `);
 
     await pool.query(`

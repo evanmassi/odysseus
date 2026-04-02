@@ -16,7 +16,7 @@ import type { EquipmentMaintenanceLogRow } from '@infrastructure/database/mapper
 import { EquipmentMaintenanceLogMapper } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
-const ITEM_COLUMNS = 'id, lab_id, category_id, name, internal_id, serial_number, manufacturer, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
+const ITEM_COLUMNS = 'id, lab_id, category_id, name, serial_number, manufacturer, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
 const DOC_COLUMNS = 'id, item_id, label, url, notes, created_at';
 const LOG_COLUMNS = 'id, item_id, date_performed, maintenance_type, performed_by, technician, description, next_scheduled_date, cost, notes, created_at, updated_at';
 
@@ -54,11 +54,10 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     const row = EquipmentItemMapper.toRow(item);
     await this.db.execute(`
       INSERT INTO equipment_items (${ITEM_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
       ON CONFLICT (id) DO UPDATE SET
         category_id = EXCLUDED.category_id,
         name = EXCLUDED.name,
-        internal_id = EXCLUDED.internal_id,
         serial_number = EXCLUDED.serial_number,
         manufacturer = EXCLUDED.manufacturer,
         model = EXCLUDED.model,
@@ -78,7 +77,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
         updated_at = EXCLUDED.updated_at
     `, [
       row.id, row.lab_id, row.category_id, row.name,
-      row.internal_id, row.serial_number, row.manufacturer, row.model,
+      row.serial_number, row.manufacturer, row.model,
       row.description, row.location, row.status, row.condition_notes,
       row.purchase_date, row.warranty_expiration, row.purchase_cost, row.asset_tag,
       row.next_maintenance_date, row.decommission_date, row.decommission_reason, row.disposal_method,

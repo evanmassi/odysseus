@@ -15,7 +15,6 @@ export interface EquipmentItemRow {
   lab_id: string;
   category_id: string;
   name: string;
-  internal_id: string | null;
   serial_number: string | null;
   manufacturer: string | null;
   model: string | null;
@@ -44,7 +43,6 @@ export class EquipmentItemMapper {
       lab_id: item.labId,
       category_id: item.categoryId,
       name: item.name,
-      internal_id: item.internalId ?? null,
       serial_number: item.serialNumber ?? null,
       manufacturer: item.manufacturer ?? null,
       model: item.model ?? null,
@@ -72,7 +70,6 @@ export class EquipmentItemMapper {
       labId: row.lab_id,
       categoryId: row.category_id,
       name: row.name,
-      internalId: row.internal_id ?? undefined,
       serialNumber: row.serial_number ?? undefined,
       manufacturer: row.manufacturer ?? undefined,
       model: row.model ?? undefined,

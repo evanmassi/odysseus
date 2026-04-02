@@ -16,7 +16,6 @@ interface ItemCreateData {
   labId: string;
   categoryId: string;
   name: string;
-  internalId?: string;
   serialNumber?: string;
   manufacturer?: string;
   model?: string;
@@ -36,7 +35,6 @@ interface ItemCreateData {
 interface ItemUpdateData {
   categoryId?: string | null;
   name?: string | null;
-  internalId?: string | null;
   serialNumber?: string | null;
   manufacturer?: string | null;
   model?: string | null;
@@ -58,7 +56,6 @@ export class EquipmentItem {
     private readonly _labId: string,
     private _categoryId: string,
     private _name: string,
-    private _internalId: string | undefined,
     private _serialNumber: string | undefined,
     private _manufacturer: string | undefined,
     private _model: string | undefined,
@@ -87,7 +84,6 @@ export class EquipmentItem {
       data.labId,
       data.categoryId,
       data.name,
-      data.internalId,
       data.serialNumber,
       data.manufacturer,
       data.model,
@@ -114,7 +110,6 @@ export class EquipmentItem {
     labId: string;
     categoryId: string;
     name: string;
-    internalId?: string;
     serialNumber?: string;
     manufacturer?: string;
     model?: string;
@@ -139,7 +134,6 @@ export class EquipmentItem {
       data.labId,
       data.categoryId,
       data.name,
-      data.internalId,
       data.serialNumber,
       data.manufacturer,
       data.model,
@@ -176,7 +170,6 @@ export class EquipmentItem {
   update(data: ItemUpdateData): void {
     if (data.categoryId !== undefined) this._categoryId = data.categoryId ?? this._categoryId;
     if (data.name !== undefined) this._name = data.name ?? this._name;
-    if (data.internalId !== undefined) this._internalId = data.internalId ?? undefined;
     if (data.serialNumber !== undefined) this._serialNumber = data.serialNumber ?? undefined;
     if (data.manufacturer !== undefined) this._manufacturer = data.manufacturer ?? undefined;
     if (data.model !== undefined) this._model = data.model ?? undefined;
@@ -213,7 +206,6 @@ export class EquipmentItem {
   get labId(): string { return this._labId; }
   get categoryId(): string { return this._categoryId; }
   get name(): string { return this._name; }
-  get internalId(): string | undefined { return this._internalId; }
   get serialNumber(): string | undefined { return this._serialNumber; }
   get manufacturer(): string | undefined { return this._manufacturer; }
   get model(): string | undefined { return this._model; }

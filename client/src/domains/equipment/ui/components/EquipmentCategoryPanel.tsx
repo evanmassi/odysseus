@@ -76,7 +76,7 @@ export function EquipmentCategoryPanel({
           i.manufacturer?.toLowerCase().includes(query) ||
           i.model?.toLowerCase().includes(query) ||
           i.serialNumber?.toLowerCase().includes(query) ||
-          i.internalId?.toLowerCase().includes(query) ||
+          i.assetTag?.toLowerCase().includes(query) ||
           i.location?.toLowerCase().includes(query)
       );
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
@@ -122,8 +122,13 @@ export function EquipmentCategoryPanel({
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
         <p className="text-sm">No equipment categories yet.</p>
         {isAdmin && (
-          <Button variant="secondary" size="sm" className="mt-3" onClick={onAddCategory}>
-            <Plus size={14} className="mr-1" />
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-3"
+            onClick={onAddCategory}
+            leftIcon={<Plus className="w-3.5 h-3.5" />}
+          >
             Add Category
           </Button>
         )}
@@ -132,11 +137,15 @@ export function EquipmentCategoryPanel({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 pt-1">
       {isAdmin && (
         <div className="flex justify-end px-1">
-          <Button variant="secondary" size="sm" onClick={onAddCategory}>
-            <Plus size={14} className="mr-1" />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onAddCategory}
+            leftIcon={<Plus className="w-3.5 h-3.5" />}
+          >
             Add Category
           </Button>
         </div>
@@ -151,10 +160,14 @@ export function EquipmentCategoryPanel({
         return (
           <div key={category.id} className="rounded-lg border border-border overflow-hidden">
             {/* Category header */}
-            <button
-              type="button"
-              className="w-full flex items-center justify-between px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left"
+            <div
+              className="w-full flex items-center justify-between px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left cursor-pointer"
               onClick={() => toggleCategory(category.id)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') toggleCategory(category.id);
+              }}
+              role="button"
+              tabIndex={0}
             >
               <div className="flex items-center gap-2">
                 {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -163,7 +176,7 @@ export function EquipmentCategoryPanel({
                 </span>
                 <span className="text-xs text-muted-foreground">({totalCount})</span>
               </div>
-              {isAdmin && subs.length === 0 && (
+              {isAdmin && (
                 <div
                   role="presentation"
                   onClick={e => e.stopPropagation()}
@@ -174,13 +187,13 @@ export function EquipmentCategoryPanel({
                     size="sm"
                     onClick={() => onAddSubcategory(category.id)}
                     className="h-6 text-xs"
+                    leftIcon={<Plus className="w-3 h-3" />}
                   >
-                    <Plus size={12} className="mr-1" />
                     Subcategory
                   </Button>
                 </div>
               )}
-            </button>
+            </div>
 
             {/* Expanded content */}
             {isExpanded && (
@@ -210,23 +223,8 @@ export function EquipmentCategoryPanel({
                   </div>
                 )}
 
-                {/* Add subcategory button when subcategories exist */}
-                {isAdmin && subs.length > 0 && (
-                  <div className="flex justify-center pt-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onAddSubcategory(category.id)}
-                      className="h-6 text-xs text-muted-foreground"
-                    >
-                      <Plus size={12} className="mr-1" />
-                      Add Subcategory
-                    </Button>
-                  </div>
-                )}
-
                 {totalCount === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-3">
+                  <p className="text-xs text-card-foreground/30 italic text-center py-3">
                     No equipment in this category
                   </p>
                 )}
@@ -280,7 +278,7 @@ function SubcategorySection({
       )}
 
       {isExpanded && items.length === 0 && (
-        <p className="ml-4 text-xs text-muted-foreground py-2">No equipment</p>
+        <p className="ml-4 text-xs text-card-foreground/30 italic py-2">No equipment</p>
       )}
     </div>
   );

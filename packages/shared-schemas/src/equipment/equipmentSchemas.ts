@@ -57,7 +57,6 @@ export const equipmentItemSchema = z.object({
   labId: z.string(),
   categoryId: z.string(),
   name: z.string(),
-  internalId: z.string().optional(),
   serialNumber: z.string().optional(),
   manufacturer: z.string().optional(),
   model: z.string().optional(),
@@ -81,7 +80,6 @@ export const equipmentItemSchema = z.object({
 export const createEquipmentItemRequestSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   name: z.string().min(1, 'Equipment name is required').max(200),
-  internalId: z.string().max(200).optional(),
   serialNumber: z.string().max(200).optional(),
   manufacturer: z.string().max(200).optional(),
   model: z.string().max(200).optional(),
@@ -100,7 +98,6 @@ export const createEquipmentItemRequestSchema = z.object({
 export const updateEquipmentItemRequestSchema = z.object({
   categoryId: z.string().min(1).nullish(),
   name: z.string().min(1).max(200).nullish(),
-  internalId: z.string().max(200).nullish(),
   serialNumber: z.string().max(200).nullish(),
   manufacturer: z.string().max(200).nullish(),
   model: z.string().max(200).nullish(),

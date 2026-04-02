@@ -7,13 +7,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createEquipmentItemRequestSchema } from '@odysseus/shared-schemas';
 import { Save, X } from 'lucide-react';
-import { useForm, type FieldValues } from 'react-hook-form';
+import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import {
   useCreateEquipmentItemMutation,
   useUpdateEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button } from '@shared/ui';
+import { Button, Select, DatePicker } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { notifications } from '@shared/utils/notifications';
 
@@ -22,6 +22,7 @@ import type {
   EquipmentCategory,
   CreateEquipmentItemRequest,
 } from '@odysseus/shared-schemas';
+import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface EquipmentEditFormProps {
   item?: EquipmentItem;
@@ -46,7 +47,7 @@ export function EquipmentEditForm({
   const createMutation = useCreateEquipmentItemMutation();
   const updateMutation = useUpdateEquipmentItemMutation();
 
-  const categoryOptions = categories.map(c => ({
+  const categoryOptions: SelectOption[] = categories.map(c => ({
     value: c.id,
     label: c.parentId
       ? `${categories.find(p => p.id === c.parentId)?.name ?? ''} > ${c.name}`
@@ -56,6 +57,7 @@ export function EquipmentEditForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(createEquipmentItemRequestSchema) as never,
@@ -63,7 +65,6 @@ export function EquipmentEditForm({
       ? {
           categoryId: item.categoryId,
           name: item.name,
-          internalId: item.internalId ?? '',
           serialNumber: item.serialNumber ?? '',
           manufacturer: item.manufacturer ?? '',
           model: item.model ?? '',
@@ -120,55 +121,34 @@ export function EquipmentEditForm({
           registration={register('name')}
         />
 
-        <div>
-          <label
-            htmlFor="eq-categoryId"
-            className="text-xs font-medium text-secondary-foreground mb-1 block"
-          >
-            Category <span className="text-danger">*</span>
-          </label>
-          <select
-            id="eq-categoryId"
-            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            {...register('categoryId')}
-          >
-            <option value="">Select category...</option>
-            {categoryOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          {errors.categoryId && (
-            <p className="text-xs text-danger mt-0.5">{errors.categoryId.message}</p>
+        <Controller
+          name="categoryId"
+          control={control}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <Select
+              label="Category"
+              options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
+              value={value ?? ''}
+              onChange={v => onChange(v)}
+              state={error ? 'error' : 'default'}
+              error={error?.message}
+              fullWidth
+            />
           )}
-        </div>
+        />
 
-        <div>
-          <label
-            htmlFor="eq-status"
-            className="text-xs font-medium text-secondary-foreground mb-1 block"
-          >
-            Status
-          </label>
-          <select
-            id="eq-status"
-            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            {...register('status')}
-          >
-            {STATUS_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <ValidatedInput
-          label="Internal ID"
-          error={!!errors.internalId}
-          helperText={errors.internalId?.message}
-          registration={register('internalId')}
+        <Controller
+          name="status"
+          control={control}
+          render={({ field: { value, onChange } }) => (
+            <Select
+              label="Status"
+              options={STATUS_OPTIONS}
+              value={value ?? 'operational'}
+              onChange={v => onChange(v)}
+              fullWidth
+            />
+          )}
         />
 
         <ValidatedInput
@@ -199,28 +179,55 @@ export function EquipmentEditForm({
           registration={register('location')}
         />
 
-        <ValidatedInput
-          label="Purchase Date"
-          type="date"
-          error={!!errors.purchaseDate}
-          helperText={errors.purchaseDate?.message}
-          registration={register('purchaseDate')}
+        <Controller
+          name="purchaseDate"
+          control={control}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <div>
+              <span className="block text-sm font-medium text-secondary-foreground mb-1">
+                Purchase Date
+              </span>
+              <DatePicker
+                value={(value as string) ?? ''}
+                onChange={onChange}
+                state={error ? 'error' : 'default'}
+                fullWidth
+                clearable
+              />
+              {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+            </div>
+          )}
         />
 
-        <ValidatedInput
-          label="Warranty Expiration"
-          type="date"
-          error={!!errors.warrantyExpiration}
-          helperText={errors.warrantyExpiration?.message}
-          registration={register('warrantyExpiration')}
+        <Controller
+          name="warrantyExpiration"
+          control={control}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <div>
+              <span className="block text-sm font-medium text-secondary-foreground mb-1">
+                Warranty Expiration
+              </span>
+              <DatePicker
+                value={(value as string) ?? ''}
+                onChange={onChange}
+                state={error ? 'error' : 'default'}
+                fullWidth
+                clearable
+              />
+              {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+            </div>
+          )}
         />
 
         <ValidatedInput
           label="Purchase Cost"
           type="number"
+          step="0.01"
           error={!!errors.purchaseCost}
           helperText={errors.purchaseCost?.message}
-          registration={register('purchaseCost', { valueAsNumber: true })}
+          registration={register('purchaseCost', {
+            setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+          })}
         />
 
         <ValidatedInput
@@ -230,12 +237,24 @@ export function EquipmentEditForm({
           registration={register('assetTag')}
         />
 
-        <ValidatedInput
-          label="Next Maintenance Date"
-          type="date"
-          error={!!errors.nextMaintenanceDate}
-          helperText={errors.nextMaintenanceDate?.message}
-          registration={register('nextMaintenanceDate')}
+        <Controller
+          name="nextMaintenanceDate"
+          control={control}
+          render={({ field: { value, onChange }, fieldState: { error } }) => (
+            <div>
+              <span className="block text-sm font-medium text-secondary-foreground mb-1">
+                Next Maintenance Date
+              </span>
+              <DatePicker
+                value={(value as string) ?? ''}
+                onChange={onChange}
+                state={error ? 'error' : 'default'}
+                fullWidth
+                clearable
+              />
+              {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+            </div>
+          )}
         />
 
         <ValidatedInput
@@ -277,12 +296,21 @@ export function EquipmentEditForm({
       </div>
 
       <div className="flex items-center gap-2 pt-2">
-        <Button type="submit" size="sm" disabled={isSubmitting}>
-          <Save size={14} className="mr-1" />
+        <Button
+          type="submit"
+          size="sm"
+          disabled={isSubmitting}
+          leftIcon={<Save className="w-3.5 h-3.5" />}
+        >
           {isEditing ? 'Save Changes' : 'Create'}
         </Button>
-        <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
-          <X size={14} className="mr-1" />
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={onCancel}
+          leftIcon={<X className="w-3.5 h-3.5" />}
+        >
           Cancel
         </Button>
       </div>

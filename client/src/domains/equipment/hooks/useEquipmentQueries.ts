@@ -45,6 +45,7 @@ export function useEquipmentItemDetailQuery(id: string | undefined) {
     enabled: !!labId && !!id,
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,
+    refetchOnMount: 'always',
   });
 }
 
