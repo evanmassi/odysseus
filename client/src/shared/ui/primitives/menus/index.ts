@@ -4,6 +4,7 @@
  * Barrel export for menu components.
  */
 
+export { DropdownMenu } from './DropdownMenu';
 export { MenuItem } from './MenuItem';
 export { MenuDivider } from './MenuDivider';
 export { OverflowMenu } from './OverflowMenu';
