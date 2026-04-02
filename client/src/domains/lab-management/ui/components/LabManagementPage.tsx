@@ -9,6 +9,7 @@ import { Wrench, Package, FlaskConical } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 
 import { AppHeader } from '@app/components/layout/AppHeader';
+import { EquipmentTab } from '@domains/equipment/ui/components/EquipmentTab';
 
 import '@shared/styles/base/layout.css';
 
@@ -33,18 +34,6 @@ const TABS: TabConfig[] = [
   },
   { id: 'reagents', label: 'Reagents', icon: FlaskConical, path: '/lab/reagents', enabled: false },
 ];
-
-function EquipmentPlaceholder() {
-  return (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-center text-muted-foreground">
-        <Wrench size={48} className="mx-auto mb-3 opacity-30" />
-        <p className="text-lg font-medium">Equipment Management</p>
-        <p className="text-sm">Coming in Phase 7</p>
-      </div>
-    </div>
-  );
-}
 
 export function LabManagementPage() {
   return (
@@ -94,7 +83,7 @@ export function LabManagementPage() {
         <main className="lab-management-content">
           <div className="h-full bg-card rounded-lg">
             <Routes>
-              <Route path="equipment" element={<EquipmentPlaceholder />} />
+              <Route path="equipment" element={<EquipmentTab />} />
               <Route path="*" element={<Navigate to="/lab/equipment" replace />} />
             </Routes>
           </div>
