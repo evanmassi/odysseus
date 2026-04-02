@@ -6,13 +6,14 @@
 
 import { useState, useMemo } from 'react';
 
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
-import { Button } from '@shared/ui';
+import { Button, OverflowMenu } from '@shared/ui';
 
 import { EquipmentItemRow } from './EquipmentItemRow';
 
 import type { EquipmentCategory, EquipmentItem } from '@odysseus/shared-schemas';
+import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
 
 interface EquipmentCategoryPanelProps {
   categories: EquipmentCategory[];
@@ -24,6 +25,8 @@ interface EquipmentCategoryPanelProps {
   isAdmin: boolean;
   onAddCategory: () => void;
   onAddSubcategory: (parentId: string) => void;
+  onRenameCategory: (category: EquipmentCategory) => void;
+  onDeleteCategory: (category: EquipmentCategory) => void;
 }
 
 export function EquipmentCategoryPanel({
@@ -36,6 +39,8 @@ export function EquipmentCategoryPanel({
   isAdmin,
   onAddCategory,
   onAddSubcategory,
+  onRenameCategory,
+  onDeleteCategory,
 }: EquipmentCategoryPanelProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
@@ -117,6 +122,21 @@ export function EquipmentCategoryPanel({
     return directCount + subCount;
   };
 
+  const getCategoryMenuItems = (cat: EquipmentCategory, itemCount: number): OverflowMenuItem[] => [
+    {
+      icon: Edit3,
+      label: 'Rename',
+      onClick: () => onRenameCategory(cat),
+    },
+    {
+      icon: Trash2,
+      label: 'Remove',
+      onClick: () => onDeleteCategory(cat),
+      danger: true,
+      disabled: itemCount > 0,
+    },
+  ];
+
   if (topLevelCategories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
@@ -169,8 +189,22 @@ export function EquipmentCategoryPanel({
               role="button"
               tabIndex={0}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                {isAdmin && (
+                  <div
+                    role="presentation"
+                    onClick={e => e.stopPropagation()}
+                    onKeyDown={e => e.stopPropagation()}
+                  >
+                    <OverflowMenu
+                      items={getCategoryMenuItems(category, totalCount)}
+                      dividerBefore={['Remove']}
+                      size="sm"
+                      aria-label={`Actions for ${category.name}`}
+                    />
+                  </div>
+                )}
                 <span className="text-sm font-semibold text-secondary-foreground">
                   {category.name}
                 </span>
@@ -206,6 +240,9 @@ export function EquipmentCategoryPanel({
                     items={itemsByCategoryId.get(sub.id) ?? []}
                     selectedItemId={selectedItemId}
                     onSelectItem={onSelectItem}
+                    isAdmin={isAdmin}
+                    onRename={onRenameCategory}
+                    onDelete={onDeleteCategory}
                   />
                 ))}
 
@@ -242,6 +279,9 @@ interface SubcategorySectionProps {
   items: EquipmentItem[];
   selectedItemId?: string;
   onSelectItem: (id: string) => void;
+  isAdmin: boolean;
+  onRename: (category: EquipmentCategory) => void;
+  onDelete: (category: EquipmentCategory) => void;
 }
 
 function SubcategorySection({
@@ -249,20 +289,52 @@ function SubcategorySection({
   items,
   selectedItemId,
   onSelectItem,
+  isAdmin,
+  onRename,
+  onDelete,
 }: SubcategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  const menuItems: OverflowMenuItem[] = [
+    { icon: Edit3, label: 'Rename', onClick: () => onRename(subcategory) },
+    {
+      icon: Trash2,
+      label: 'Remove',
+      onClick: () => onDelete(subcategory),
+      danger: true,
+      disabled: items.length > 0,
+    },
+  ];
+
   return (
     <div className="ml-2">
-      <button
-        type="button"
-        className="w-full flex items-center gap-1.5 px-2 py-1 text-left hover:bg-accent/30 rounded transition-colors"
+      <div
+        className="w-full flex items-center gap-1.5 px-2 py-1 text-left hover:bg-accent/30 rounded transition-colors cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
+        onKeyDown={e => {
+          if (e.key === 'Enter') setIsExpanded(!isExpanded);
+        }}
+        role="button"
+        tabIndex={0}
       >
         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        {isAdmin && (
+          <div
+            role="presentation"
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+          >
+            <OverflowMenu
+              items={menuItems}
+              dividerBefore={['Remove']}
+              size="sm"
+              aria-label={`Actions for ${subcategory.name}`}
+            />
+          </div>
+        )}
         <span className="text-xs font-medium text-secondary-foreground">{subcategory.name}</span>
         <span className="text-xs text-muted-foreground">({items.length})</span>
-      </button>
+      </div>
 
       {isExpanded && items.length > 0 && (
         <div className="ml-4 mt-1 space-y-1.5">

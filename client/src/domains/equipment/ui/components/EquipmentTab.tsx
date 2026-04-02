@@ -12,8 +12,12 @@ import { Plus, Search, Eye, EyeOff } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
-import { useAddEquipmentDocumentMutation } from '@domains/equipment/hooks/useEquipmentMutations';
+import {
+  useAddEquipmentDocumentMutation,
+  useDeleteEquipmentCategoryMutation,
+} from '@domains/equipment/hooks/useEquipmentMutations';
 import { Button } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
@@ -23,7 +27,11 @@ import { EquipmentEditForm } from './EquipmentEditForm';
 import { EquipmentItemInfoPanel } from './EquipmentItemInfoPanel';
 import { EquipmentMaintenanceForm } from './EquipmentMaintenanceForm';
 
-import type { EquipmentItem, EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
+import type {
+  EquipmentCategory,
+  EquipmentItem,
+  EquipmentMaintenanceLog,
+} from '@odysseus/shared-schemas';
 
 type RightPanelView =
   | { type: 'info'; itemId: string }
@@ -39,6 +47,7 @@ export function EquipmentTab() {
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
   const addDocumentMutation = useAddEquipmentDocumentMutation();
+  const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
@@ -48,6 +57,11 @@ export function EquipmentTab() {
     isOpen: boolean;
     parentId?: string;
     parentName?: string;
+    category?: EquipmentCategory;
+  }>({ isOpen: false });
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    category?: EquipmentCategory;
   }>({ isOpen: false });
 
   const categoryNameMap = useMemo(() => {
@@ -126,6 +140,25 @@ export function EquipmentTab() {
     [categories]
   );
 
+  const handleRenameCategory = useCallback((category: EquipmentCategory) => {
+    setCategoryModal({ isOpen: true, parentId: category.parentId ?? undefined, category });
+  }, []);
+
+  const handleDeleteCategory = useCallback((category: EquipmentCategory) => {
+    setDeleteConfirm({ isOpen: true, category });
+  }, []);
+
+  const executeDeleteCategory = useCallback(async () => {
+    if (!deleteConfirm.category) return;
+    try {
+      await deleteCategoryMutation.mutateAsync(deleteConfirm.category.id);
+      notifications.success(`"${deleteConfirm.category.name}" removed`);
+    } catch {
+      notifications.error('Cannot remove — category still contains equipment');
+    }
+    setDeleteConfirm({ isOpen: false });
+  }, [deleteConfirm.category, deleteCategoryMutation]);
+
   const handleAddDocumentSubmit = useCallback(async () => {
     if (!selectedItemId) return;
     const label = window.prompt('Document label (e.g., "User Manual"):');
@@ -202,6 +235,8 @@ export function EquipmentTab() {
             isAdmin={isAdmin}
             onAddCategory={handleAddCategory}
             onAddSubcategory={handleAddSubcategory}
+            onRenameCategory={handleRenameCategory}
+            onDeleteCategory={handleDeleteCategory}
           />
         </ScrollArea>
       </div>
@@ -252,7 +287,18 @@ export function EquipmentTab() {
         isOpen={categoryModal.isOpen}
         parentId={categoryModal.parentId}
         parentName={categoryModal.parentName}
+        category={categoryModal.category}
         onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        variant="danger"
+        title="Remove Category"
+        message={`Are you sure you want to remove "${deleteConfirm.category?.name ?? ''}"? This action cannot be undone.`}
+        confirmText="Remove"
+        onConfirm={() => void executeDeleteCategory()}
+        onCancel={() => setDeleteConfirm({ isOpen: false })}
       />
     </div>
   );
