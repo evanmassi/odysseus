@@ -7,7 +7,18 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, Pencil, Plus, RefreshCw, Trash2, X, BookOpen } from 'lucide-react';
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+  X,
+  BookOpen,
+} from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
@@ -26,8 +37,8 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   species: 'species',
   source: 'sources',
   media: 'media types',
-  specimen_type: 'specimen types',
-  equipment_maintenance_type: 'equipment maintenance types',
+  specimen_type: 'specimens',
+  equipment_maintenance_type: 'maintenance activities',
 };
 
 interface CategorySectionProps {
@@ -285,6 +296,10 @@ interface CatalogTabProps {
 export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const queryClient = useQueryClient();
   const labId = useLabId();
+  const location = useLocation();
+  const isBiobankRoute = !location.pathname.startsWith('/lab');
+  const [biobankExpanded, setBiobankExpanded] = useState(isBiobankRoute);
+  const [equipmentExpanded, setEquipmentExpanded] = useState(!isBiobankRoute);
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
   const [mediaValues, setMediaValues] = useState<LookupValueWithCount[]>([]);
@@ -430,73 +445,104 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
         </Button>
       </div>
 
-      <div className="space-y-6">
-        <CategorySection
-          category="species"
-          title="Species"
-          values={speciesValues}
-          loading={loading}
-          onAdd={value => handleAdd('species', value)}
-          onRename={(id, newValue) => handleRename('species', id, newValue)}
-          onDelete={(id, value) => handleDeleteRequest('species', id, value)}
-          deletingId={deletingId}
-          readOnly={readOnly}
-        />
+      <div className="space-y-4">
+        {/* Biobank Catalogs */}
+        <div className="rounded-lg border border-border overflow-hidden">
+          <button
+            type="button"
+            className="w-full flex items-center gap-2 px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left"
+            onClick={() => setBiobankExpanded(!biobankExpanded)}
+          >
+            {biobankExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            <span className="text-sm font-semibold text-secondary-foreground">Biobank</span>
+          </button>
+          {biobankExpanded && (
+            <div className="p-3 space-y-6">
+              <CategorySection
+                category="species"
+                title="Species"
+                values={speciesValues}
+                loading={loading}
+                onAdd={value => handleAdd('species', value)}
+                onRename={(id, newValue) => handleRename('species', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('species', id, value)}
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+              <CategorySection
+                category="source"
+                title="Sources"
+                values={sourceValues}
+                loading={loading}
+                onAdd={value => handleAdd('source', value)}
+                onRename={(id, newValue) => handleRename('source', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('source', id, value)}
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+              <CategorySection
+                category="media"
+                title="Media Types"
+                values={mediaValues}
+                loading={loading}
+                onAdd={value => handleAdd('media', value)}
+                onRename={(id, newValue) => handleRename('media', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('media', id, value)}
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+              <CategorySection
+                category="specimen_type"
+                title="Specimens"
+                values={specimenTypeValues}
+                loading={loading}
+                onAdd={value => handleAdd('specimen_type', value)}
+                onRename={(id, newValue) => handleRename('specimen_type', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('specimen_type', id, value)}
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+            </div>
+          )}
+        </div>
 
-        <CategorySection
-          category="source"
-          title="Sources"
-          values={sourceValues}
-          loading={loading}
-          onAdd={value => handleAdd('source', value)}
-          onRename={(id, newValue) => handleRename('source', id, newValue)}
-          onDelete={(id, value) => handleDeleteRequest('source', id, value)}
-          deletingId={deletingId}
-          readOnly={readOnly}
-        />
-
-        <CategorySection
-          category="media"
-          title="Media Types"
-          values={mediaValues}
-          loading={loading}
-          onAdd={value => handleAdd('media', value)}
-          onRename={(id, newValue) => handleRename('media', id, newValue)}
-          onDelete={(id, value) => handleDeleteRequest('media', id, value)}
-          deletingId={deletingId}
-          readOnly={readOnly}
-        />
-
-        <CategorySection
-          category="specimen_type"
-          title="Specimen Types"
-          values={specimenTypeValues}
-          loading={loading}
-          onAdd={value => handleAdd('specimen_type', value)}
-          onRename={(id, newValue) => handleRename('specimen_type', id, newValue)}
-          onDelete={(id, value) => handleDeleteRequest('specimen_type', id, value)}
-          deletingId={deletingId}
-          readOnly={readOnly}
-        />
-
-        <CategorySection
-          category="equipment_maintenance_type"
-          title="Equipment Maintenance Types"
-          values={equipmentMaintenanceTypeValues}
-          loading={loading}
-          onAdd={value => handleAdd('equipment_maintenance_type', value)}
-          onRename={(id, newValue) => handleRename('equipment_maintenance_type', id, newValue)}
-          onDelete={(id, value) => handleDeleteRequest('equipment_maintenance_type', id, value)}
-          deletingId={deletingId}
-          readOnly={readOnly}
-        />
+        {/* Equipment Catalogs */}
+        <div className="rounded-lg border border-border overflow-hidden">
+          <button
+            type="button"
+            className="w-full flex items-center gap-2 px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left"
+            onClick={() => setEquipmentExpanded(!equipmentExpanded)}
+          >
+            {equipmentExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            <span className="text-sm font-semibold text-secondary-foreground">Equipment</span>
+          </button>
+          {equipmentExpanded && (
+            <div className="p-3 space-y-6">
+              <CategorySection
+                category="equipment_maintenance_type"
+                title="Maintenance Activities"
+                values={equipmentMaintenanceTypeValues}
+                loading={loading}
+                onAdd={value => handleAdd('equipment_maintenance_type', value)}
+                onRename={(id, newValue) =>
+                  handleRename('equipment_maintenance_type', id, newValue)
+                }
+                onDelete={(id, value) =>
+                  handleDeleteRequest('equipment_maintenance_type', id, value)
+                }
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {confirmDialog && (
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : confirmDialog.category === 'source' ? 'Source' : confirmDialog.category === 'specimen_type' ? 'Specimen Type' : confirmDialog.category === 'equipment_maintenance_type' ? 'Maintenance Type' : 'Media Type'}`}
+          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : confirmDialog.category === 'source' ? 'Source' : confirmDialog.category === 'specimen_type' ? 'Specimen' : confirmDialog.category === 'equipment_maintenance_type' ? 'Maintenance Activity' : 'Media Type'}`}
           message={`Are you sure you want to delete "${confirmDialog.value}" from ${confirmDialog.category}? This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => void executeDelete()}

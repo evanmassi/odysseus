@@ -7,7 +7,7 @@
 import { Save } from 'lucide-react';
 
 import { useEditModalForm } from '@shared/hooks';
-import { Button, Checkbox, Input } from '@shared/ui';
+import { AlertBanner, Button, Checkbox, Input } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
 
@@ -64,7 +64,7 @@ export function RackEditModal({
             htmlFor="rack-name"
             className="block text-sm font-medium mb-1 text-secondary-foreground"
           >
-            Rack Name
+            System Name
           </label>
           <Input
             id="rack-name"
@@ -75,6 +75,9 @@ export function RackEditModal({
             fullWidth
             aria-required
           />
+          <AlertBanner variant="info" spacing="none" className="mt-2 text-xs">
+            Custom labels display alongside this name.
+          </AlertBanner>
         </div>
 
         <div className="flex items-center gap-2">

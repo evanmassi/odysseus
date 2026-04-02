@@ -620,8 +620,8 @@ export function AppHeader({
                     triggerProps={userSettingsTriggerProps}
                   />
 
-                  {/* Storage Manager - requires lab context */}
-                  {hasLab && (
+                  {/* Storage Manager - biobank only */}
+                  {hasLab && isBiobankRoute && (
                     <HamburgerMenuItem
                       icon={TankIcon}
                       label="Storage Manager"
@@ -633,8 +633,8 @@ export function AppHeader({
                     />
                   )}
 
-                  {/* Donor Registry - requires lab context */}
-                  {hasLab && (
+                  {/* Donor Registry - biobank only */}
+                  {hasLab && isBiobankRoute && (
                     <HamburgerMenuItem
                       icon={BookUser}
                       label="Donor Registry"
