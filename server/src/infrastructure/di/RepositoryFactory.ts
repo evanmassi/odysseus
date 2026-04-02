@@ -6,6 +6,8 @@
 
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
+import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
+import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
@@ -20,6 +22,8 @@ import type { DatabaseConnectionConfig } from '@infrastructure/database/Postgres
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
+import { EquipmentCategoryRepository as EquipmentCategoryRepositoryImpl } from '@infrastructure/repositories/EquipmentCategoryRepository';
+import { EquipmentItemRepository as EquipmentItemRepositoryImpl } from '@infrastructure/repositories/EquipmentItemRepository';
 import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
 import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
 import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
@@ -45,6 +49,8 @@ export class RepositoryFactory {
   private labRepository?: LabRepository;
   private inviteCodeRepository?: InviteCodeRepository;
   private donorRepository?: DonorRepository;
+  private equipmentCategoryRepository?: EquipmentCategoryRepository;
+  private equipmentItemRepository?: EquipmentItemRepository;
 
   constructor(databaseConfig: DatabaseConnectionConfig) {
     this.postgresContext = new PostgresContext(databaseConfig);
@@ -139,6 +145,20 @@ export class RepositoryFactory {
     return this.donorRepository;
   }
 
+  getEquipmentCategoryRepository(): EquipmentCategoryRepository {
+    if (!this.equipmentCategoryRepository) {
+      this.equipmentCategoryRepository = new EquipmentCategoryRepositoryImpl(this.postgresContext);
+    }
+    return this.equipmentCategoryRepository;
+  }
+
+  getEquipmentItemRepository(): EquipmentItemRepository {
+    if (!this.equipmentItemRepository) {
+      this.equipmentItemRepository = new EquipmentItemRepositoryImpl(this.postgresContext);
+    }
+    return this.equipmentItemRepository;
+  }
+
   getRepositories() {
     return {
       tubes: this.getTubeRepository(),
@@ -152,7 +172,9 @@ export class RepositoryFactory {
       lookupValues: this.getLookupValueRepository(),
       labs: this.getLabRepository(),
       inviteCodes: this.getInviteCodeRepository(),
-      donors: this.getDonorRepository()
+      donors: this.getDonorRepository(),
+      equipmentCategories: this.getEquipmentCategoryRepository(),
+      equipmentItems: this.getEquipmentItemRepository(),
     };
   }
 

@@ -19,6 +19,14 @@ import {
   updateDonorRequestSchema,
   createCollectionHistoryRequestSchema,
   updateCollectionHistoryRequestSchema,
+  createEquipmentCategoryRequestSchema,
+  updateEquipmentCategoryRequestSchema,
+  createEquipmentItemRequestSchema,
+  updateEquipmentItemRequestSchema,
+  decommissionEquipmentItemRequestSchema,
+  createEquipmentDocumentRequestSchema,
+  createEquipmentMaintenanceLogRequestSchema,
+  updateEquipmentMaintenanceLogRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -147,6 +155,20 @@ export const DonorSearchQuery = z.object({
   q: z.string().min(1),
   limit: z.coerce.number().int().min(1).max(50).optional(),
 });
+
+// Equipment schemas
+
+export const EquipmentCategoryIdParams = z.object({ categoryId: z.string().min(1) });
+export const EquipmentDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
+export const EquipmentMaintenanceEntryIdParams = z.object({ id: z.string().min(1), entryId: z.string().min(1) });
+export const CreateEquipmentCategoryHttpSchema = createEquipmentCategoryRequestSchema;
+export const UpdateEquipmentCategoryHttpSchema = updateEquipmentCategoryRequestSchema;
+export const CreateEquipmentItemHttpSchema = createEquipmentItemRequestSchema;
+export const UpdateEquipmentItemHttpSchema = updateEquipmentItemRequestSchema;
+export const DecommissionEquipmentItemHttpSchema = decommissionEquipmentItemRequestSchema;
+export const CreateEquipmentDocumentHttpSchema = createEquipmentDocumentRequestSchema;
+export const CreateEquipmentMaintenanceLogHttpSchema = createEquipmentMaintenanceLogRequestSchema;
+export const UpdateEquipmentMaintenanceLogHttpSchema = updateEquipmentMaintenanceLogRequestSchema;
 
 // Search schemas
 

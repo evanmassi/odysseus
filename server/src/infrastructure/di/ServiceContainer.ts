@@ -13,6 +13,7 @@ import type { SocketEventHandler } from '@application/event-handlers/SocketEvent
 import type { AuditRetentionService } from '@application/services/AuditRetentionService';
 import type { AuditService } from '@application/services/AuditService';
 import type { DonorApplicationService } from '@application/services/DonorApplicationService';
+import type { EquipmentApplicationService } from '@application/services/EquipmentApplicationService';
 import type { ExportService } from '@application/services/ExportService';
 import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import type { PresenceService } from '@application/services/PresenceService';
@@ -26,6 +27,7 @@ import { ValidationService } from '@domain/services/ValidationService';
 import { AuditModule } from '@infrastructure/di/modules/AuditModule';
 import { AuthModule } from '@infrastructure/di/modules/AuthModule';
 import { DonorModule } from '@infrastructure/di/modules/DonorModule';
+import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
 import { LabModule } from '@infrastructure/di/modules/LabModule';
 import { StorageModule } from '@infrastructure/di/modules/StorageModule';
@@ -45,6 +47,7 @@ import type { AuditController } from '@presentation/controllers/AuditController'
 import type { AuthController } from '@presentation/controllers/auth/AuthController';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import type { DonorController } from '@presentation/controllers/DonorController';
+import type { EquipmentController } from '@presentation/controllers/EquipmentController';
 import type { ExportController } from '@presentation/controllers/ExportController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import type { LabController } from '@presentation/controllers/LabController';
@@ -86,6 +89,7 @@ export class ServiceContainer {
   private _storageModule?: StorageModule;
   private _authModule?: AuthModule;
   private _donorModule?: DonorModule;
+  private _equipmentModule?: EquipmentModule;
 
   constructor(repositoryFactory: RepositoryFactory, configurationService: ConfigurationService) {
     this.repositoryFactory = repositoryFactory;
@@ -207,6 +211,13 @@ export class ServiceContainer {
       this._donorModule = new DonorModule(this.getShared(), this.repositoryFactory);
     }
     return this._donorModule;
+  }
+
+  private getEquipmentModule(): EquipmentModule {
+    if (!this._equipmentModule) {
+      this._equipmentModule = new EquipmentModule(this.getShared(), this.repositoryFactory);
+    }
+    return this._equipmentModule;
   }
 
   private getTubeModule(): TubeModule {
@@ -373,6 +384,16 @@ export class ServiceContainer {
 
   getDonorController(): DonorController {
     return this.getDonorModule().getDonorController();
+  }
+
+  // Public API — EquipmentModule
+
+  getEquipmentApplicationService(): EquipmentApplicationService {
+    return this.getEquipmentModule().getEquipmentApplicationService();
+  }
+
+  getEquipmentController(): EquipmentController {
+    return this.getEquipmentModule().getEquipmentController();
   }
 
   // Public API — StorageModule

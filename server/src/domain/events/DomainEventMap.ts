@@ -10,6 +10,13 @@ import type {
   DonorDeletedEvent
 } from './DonorEvents';
 import type {
+  EquipmentItemCreatedEvent,
+  EquipmentItemUpdatedEvent,
+  EquipmentItemDecommissionedEvent,
+  EquipmentItemDeletedEvent,
+  EquipmentMaintenanceLoggedEvent,
+} from './EquipmentEvents';
+import type {
   VerificationEmailSentEvent,
   EmailVerifiedEvent,
   VerificationEmailResentEvent
@@ -157,6 +164,13 @@ export interface DomainEventMap {
   'DonorCreated': DonorCreatedEvent;
   'DonorUpdated': DonorUpdatedEvent;
   'DonorDeleted': DonorDeletedEvent;
+
+  // Equipment events
+  'EquipmentItemCreated': EquipmentItemCreatedEvent;
+  'EquipmentItemUpdated': EquipmentItemUpdatedEvent;
+  'EquipmentItemDecommissioned': EquipmentItemDecommissionedEvent;
+  'EquipmentItemDeleted': EquipmentItemDeletedEvent;
+  'EquipmentMaintenanceLogged': EquipmentMaintenanceLoggedEvent;
 
   // Lab events
   'LabCreated': LabCreatedEvent;

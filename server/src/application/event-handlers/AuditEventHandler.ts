@@ -12,6 +12,13 @@ import type {
   DonorDeletedEvent,
 } from '@domain/events/DonorEvents';
 import type {
+  EquipmentItemCreatedEvent,
+  EquipmentItemUpdatedEvent,
+  EquipmentItemDecommissionedEvent,
+  EquipmentItemDeletedEvent,
+  EquipmentMaintenanceLoggedEvent,
+} from '@domain/events/EquipmentEvents';
+import type {
   LabCreatedEvent,
   LabRenamedEvent,
   LabActivatedEvent,
@@ -237,6 +244,13 @@ export class AuditEventHandler {
     this.eventBus.subscribe('DonorCreated', (e) => this.handleDonorCreated(e));
     this.eventBus.subscribe('DonorUpdated', (e) => this.handleDonorUpdated(e));
     this.eventBus.subscribe('DonorDeleted', (e) => this.handleDonorDeleted(e));
+
+    // Equipment events
+    this.eventBus.subscribe('EquipmentItemCreated', (e) => this.handleEquipmentItemCreated(e));
+    this.eventBus.subscribe('EquipmentItemUpdated', (e) => this.handleEquipmentItemUpdated(e));
+    this.eventBus.subscribe('EquipmentItemDecommissioned', (e) => this.handleEquipmentItemDecommissioned(e));
+    this.eventBus.subscribe('EquipmentItemDeleted', (e) => this.handleEquipmentItemDeleted(e));
+    this.eventBus.subscribe('EquipmentMaintenanceLogged', (e) => this.handleEquipmentMaintenanceLogged(e));
 
     // Lab events
     this.eventBus.subscribe('LabCreated', (e) => this.handleLabCreated(e));
@@ -1023,6 +1037,64 @@ export class AuditEventHandler {
       buildDetails: (username) => ({
         donorId: event.donorId, donorSourceId: event.donorSourceId,
         donorInternalId: event.donorInternalId, deletedBy: username,
+      }),
+    });
+  }
+
+  // EQUIPMENT EVENT HANDLERS
+
+  private async handleEquipmentItemCreated(event: EquipmentItemCreatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment item created', context: { itemId: event.itemId },
+      actorId: event.createdBy, action: 'equipment_item_created', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, name: event.name, categoryId: event.categoryId, createdBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentItemUpdated(event: EquipmentItemUpdatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment item updated', context: { itemId: event.itemId },
+      actorId: event.updatedBy, action: 'equipment_item_updated', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, changes: event.changes, updatedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentItemDecommissioned(event: EquipmentItemDecommissionedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment item decommissioned', context: { itemId: event.itemId },
+      actorId: event.decommissionedBy, action: 'equipment_item_decommissioned', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, reason: event.reason, decommissionedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentItemDeleted(event: EquipmentItemDeletedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment item deleted', context: { itemId: event.itemId },
+      actorId: event.deletedBy, action: 'equipment_item_deleted', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, name: event.name, deletedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentMaintenanceLogged(event: EquipmentMaintenanceLoggedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment maintenance logged', context: { itemId: event.itemId },
+      actorId: event.loggedBy, action: 'equipment_maintenance_logged', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, maintenanceType: event.maintenanceType,
+        datePerformed: event.datePerformed, loggedBy: username,
       }),
     });
   }

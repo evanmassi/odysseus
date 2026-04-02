@@ -8,10 +8,14 @@ import { LookupValue } from '@domain/entities/LookupValue';
 import type { LookupCategory } from '@domain/entities/LookupValue';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
+import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 
 export class LookupValueApplicationService {
-  constructor(private lookupValueRepository: LookupValueRepository) {}
+  constructor(
+    private lookupValueRepository: LookupValueRepository,
+    private equipmentItemRepository?: EquipmentItemRepository,
+  ) {}
 
   async getActiveByCategory(labId: string, category: LookupCategory): Promise<ReturnType<LookupValue['toData']>[]> {
     const values = await this.lookupValueRepository.findActiveByCategoryForDropdown(category, labId);
@@ -58,7 +62,12 @@ export class LookupValueApplicationService {
     entity.rename(newValue);
     await this.lookupValueRepository.save(entity);
 
-    await this.lookupValueRepository.renameTubeValues(entity.category, oldValue, entity.value, labId);
+    // Cascade rename to the appropriate table based on category
+    if (entity.category === 'equipment_maintenance_type' && this.equipmentItemRepository) {
+      await this.equipmentItemRepository.renameMaintenanceType(oldValue, entity.value, labId);
+    } else {
+      await this.lookupValueRepository.renameTubeValues(entity.category, oldValue, entity.value, labId);
+    }
 
     return entity.toData();
   }
@@ -69,10 +78,22 @@ export class LookupValueApplicationService {
       throw new NotFoundError('Lookup value not found');
     }
 
-    const tubeCount = await this.lookupValueRepository.countTubesUsingValue(entity.category, entity.value, labId);
-    if (tubeCount > 0) {
+    // Check usage in the appropriate table based on category
+    let usageCount: number;
+    if (entity.category === 'equipment_maintenance_type' && this.equipmentItemRepository) {
+      usageCount = await this.equipmentItemRepository.countMaintenanceEntriesUsingType(entity.value, labId);
+    } else {
+      usageCount = await this.lookupValueRepository.countTubesUsingValue(entity.category, entity.value, labId);
+    }
+
+    if (usageCount > 0) {
+      const isEquipment = entity.category === 'equipment_maintenance_type';
+      const label = isEquipment
+        ? (usageCount === 1 ? 'maintenance log entry' : 'maintenance log entries')
+        : (usageCount === 1 ? 'tube' : 'tubes');
+      const verb = usageCount === 1 ? 'references' : 'reference';
       throw new ValidationError(
-        `Cannot delete "${entity.value}" — ${tubeCount} tube${tubeCount === 1 ? '' : 's'} still reference it`
+        `Cannot delete "${entity.value}" — ${usageCount} ${label} still ${verb} it`
       );
     }
 

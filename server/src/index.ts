@@ -24,6 +24,7 @@ import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth'
 import { AdminRouteModule } from '@presentation/routes/AdminRouteModule';
 import { AuthRouteModule } from '@presentation/routes/AuthRouteModule';
 import { DonorRouteModule } from '@presentation/routes/DonorRouteModule';
+import { EquipmentRouteModule } from '@presentation/routes/EquipmentRouteModule';
 import { PublicRouteModule } from '@presentation/routes/PublicRouteModule';
 import { ResourceRouteModule } from '@presentation/routes/ResourceRouteModule';
 import { RouteRegistry } from '@presentation/routes/RouteRegistry';
@@ -155,6 +156,7 @@ class OdysseusServer {
     const labController = this.serviceContainer.getLabController();
     const inviteCodeController = this.serviceContainer.getInviteCodeController();
     const donorController = this.serviceContainer.getDonorController();
+    const equipmentController = this.serviceContainer.getEquipmentController();
     const securityMonitoringController = this.serviceContainer.getSecurityMonitoringController();
     const storageAnalyticsController = this.serviceContainer.getStorageAnalyticsController();
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
@@ -173,6 +175,7 @@ class OdysseusServer {
     registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, storageRepository));
     registry.registerModule(new StorageRouteModule(storageController, authMiddleware));
     registry.registerModule(new DonorRouteModule(donorController, authMiddleware));
+    registry.registerModule(new EquipmentRouteModule(equipmentController, authMiddleware));
     registry.registerModule(new SearchRouteModule(searchController, authMiddleware, storageRepository));
     registry.registerModule(new UserRouteModule(userController, personController, sessionController, authMiddleware));
 

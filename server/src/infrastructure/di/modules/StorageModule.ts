@@ -410,7 +410,8 @@ export class StorageModule {
     if (!this.lookupValueApplicationService) {
       const repositories = this.repositoryFactory.getRepositories();
       this.lookupValueApplicationService = new LookupValueApplicationService(
-        repositories.lookupValues
+        repositories.lookupValues,
+        repositories.equipmentItems,
       );
     }
     return this.lookupValueApplicationService;

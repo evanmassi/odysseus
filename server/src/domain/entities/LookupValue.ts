@@ -7,7 +7,7 @@
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
-export type LookupCategory = 'species' | 'source' | 'media' | 'specimen_type';
+export type LookupCategory = 'species' | 'source' | 'media' | 'specimen_type' | 'equipment_maintenance_type';
 
 export class LookupValue {
   private constructor(
