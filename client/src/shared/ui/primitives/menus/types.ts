@@ -1,10 +1,25 @@
 /**
- * Overflow Menu Types
+ * Menu Types
  *
- * Type definitions for the overflow menu component.
+ * Type definitions for menu primitives.
  */
 
 import type { LucideIcon } from 'lucide-react';
+
+export type MenuIconComponent =
+  | LucideIcon
+  | React.ComponentType<{ size?: number; className?: string }>;
+
+export interface MenuItemProps {
+  icon?: MenuIconComponent;
+  label: string;
+  onClick?: () => void;
+  danger?: boolean;
+  disabled?: boolean;
+  shortcut?: string;
+  isActive?: boolean;
+  children?: React.ReactNode;
+}
 
 export interface OverflowMenuItem {
   icon: LucideIcon;

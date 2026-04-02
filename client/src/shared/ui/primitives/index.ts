@@ -49,8 +49,15 @@ export type {
   InputRef,
 } from './input/types';
 
+export { MenuItem } from './menus/MenuItem';
+export { MenuDivider } from './menus/MenuDivider';
 export { OverflowMenu } from './menus/OverflowMenu';
-export type { OverflowMenuProps, OverflowMenuItem } from './menus/types';
+export type {
+  MenuItemProps,
+  MenuIconComponent,
+  OverflowMenuProps,
+  OverflowMenuItem,
+} from './menus/types';
 
 export { ScrollArea } from './scroll-area/ScrollArea';
 export type { ScrollAreaProps } from './scroll-area/ScrollArea';
