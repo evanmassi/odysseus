@@ -455,6 +455,44 @@ export {
   type DonorSearchResult,
 } from './donors';
 
+// Equipment
+export {
+  equipmentStatusValues,
+  equipmentStatusSchema,
+  equipmentCategorySchema,
+  createEquipmentCategoryRequestSchema,
+  updateEquipmentCategoryRequestSchema,
+  equipmentCategoryListResponseSchema,
+  equipmentItemSchema,
+  createEquipmentItemRequestSchema,
+  updateEquipmentItemRequestSchema,
+  decommissionEquipmentItemRequestSchema,
+  equipmentItemResponseSchema,
+  equipmentItemListResponseSchema,
+  equipmentItemDetailResponseSchema,
+  equipmentDocumentSchema,
+  createEquipmentDocumentRequestSchema,
+  equipmentDocumentListResponseSchema,
+  equipmentMaintenanceLogSchema,
+  createEquipmentMaintenanceLogRequestSchema,
+  updateEquipmentMaintenanceLogRequestSchema,
+  equipmentMaintenanceLogListResponseSchema,
+  type EquipmentStatus,
+  type EquipmentCategory,
+  type EquipmentItem,
+  type EquipmentDocument,
+  type EquipmentMaintenanceLog,
+  type EquipmentItemDetail,
+  type CreateEquipmentCategoryRequest,
+  type UpdateEquipmentCategoryRequest,
+  type CreateEquipmentItemRequest,
+  type UpdateEquipmentItemRequest,
+  type DecommissionEquipmentItemRequest,
+  type CreateEquipmentDocumentRequest,
+  type CreateEquipmentMaintenanceLogRequest,
+  type UpdateEquipmentMaintenanceLogRequest,
+} from './equipment';
+
 // Persons
 export {
   personSchema,
