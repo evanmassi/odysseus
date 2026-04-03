@@ -179,14 +179,25 @@ export function EquipmentItemInfoPanel({
               <span className="text-card-foreground font-semibold text-sm">{item.name}</span>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-              <InfoField label="Manufacturer" value={item.manufacturer} inline={false} />
-              <InfoField label="Model" value={item.model} inline={false} />
-              <InfoField label="Serial Number" value={item.serialNumber} inline={false} />
-              <InfoField label="Asset Tag" value={item.assetTag} inline={false} />
+              <InfoField
+                label="Manufacturer"
+                value={item.manufacturer}
+                inline={false}
+                emptyText="—"
+              />
+              <InfoField label="Model" value={item.model} inline={false} emptyText="—" />
+              <InfoField
+                label="Serial Number"
+                value={item.serialNumber}
+                inline={false}
+                emptyText="—"
+              />
+              <InfoField label="Asset Tag" value={item.assetTag} inline={false} emptyText="—" />
               <InfoField
                 label="Description"
                 value={item.description}
                 inline={false}
+                emptyText="—"
                 className="col-span-2"
               />
             </div>
@@ -199,16 +210,19 @@ export function EquipmentItemInfoPanel({
                 label="Purchase Date"
                 value={formatDate(item.purchaseDate)}
                 inline={false}
+                emptyText="—"
               />
               <InfoField
                 label="Purchase Cost"
                 value={formatCurrency(item.purchaseCost)}
                 inline={false}
+                emptyText="—"
               />
               <InfoField
                 label="Warranty Expiration"
                 value={formatDate(item.warrantyExpiration)}
                 inline={false}
+                emptyText="—"
               />
             </div>
           </InfoGroup>
@@ -216,13 +230,17 @@ export function EquipmentItemInfoPanel({
           {/* Maintenance */}
           <InfoGroup title="Maintenance">
             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-              {item.conditionNotes && (
-                <InfoField label="Condition" value={item.conditionNotes} inline={false} />
-              )}
+              <InfoField
+                label="Condition"
+                value={item.conditionNotes}
+                inline={false}
+                emptyText="—"
+              />
               <InfoField
                 label="Maintenance Due"
                 value={formatDate(item.nextMaintenanceDate)}
                 inline={false}
+                emptyText="—"
               />
             </div>
             {maintenanceLog.length === 0 && (
@@ -320,9 +338,24 @@ export function EquipmentItemInfoPanel({
           {isDecommissioned && (
             <InfoGroup title="Decommission Information">
               <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-                <InfoField label="Date" value={formatDate(item.decommissionDate)} inline={false} />
-                <InfoField label="Reason" value={item.decommissionReason} inline={false} />
-                <InfoField label="Disposal Method" value={item.disposalMethod} inline={false} />
+                <InfoField
+                  label="Date"
+                  value={formatDate(item.decommissionDate)}
+                  inline={false}
+                  emptyText="—"
+                />
+                <InfoField
+                  label="Reason"
+                  value={item.decommissionReason}
+                  inline={false}
+                  emptyText="—"
+                />
+                <InfoField
+                  label="Disposal Method"
+                  value={item.disposalMethod}
+                  inline={false}
+                  emptyText="—"
+                />
               </div>
             </InfoGroup>
           )}

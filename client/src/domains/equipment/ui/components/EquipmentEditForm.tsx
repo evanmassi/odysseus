@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createEquipmentItemRequestSchema } from '@odysseus/shared-schemas';
-import { Save, X } from 'lucide-react';
+import { Plus, Save, X } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import {
@@ -209,13 +209,6 @@ export function EquipmentEditForm({
           />
 
           <ValidatedInput
-            label="Serial Number"
-            error={!!errors.serialNumber}
-            helperText={errors.serialNumber?.message}
-            registration={register('serialNumber')}
-          />
-
-          <ValidatedInput
             label="Manufacturer"
             error={!!errors.manufacturer}
             helperText={errors.manufacturer?.message}
@@ -228,6 +221,35 @@ export function EquipmentEditForm({
             helperText={errors.model?.message}
             registration={register('model')}
           />
+
+          <ValidatedInput
+            label="Serial Number"
+            error={!!errors.serialNumber}
+            helperText={errors.serialNumber?.message}
+            registration={register('serialNumber')}
+          />
+
+          <ValidatedInput
+            label="Asset Tag"
+            error={!!errors.assetTag}
+            helperText={errors.assetTag?.message}
+            registration={register('assetTag')}
+          />
+
+          <div>
+            <label
+              htmlFor="eq-description"
+              className="text-xs font-medium text-secondary-foreground mb-1 block"
+            >
+              Description
+            </label>
+            <textarea
+              id="eq-description"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              rows={3}
+              {...register('description')}
+            />
+          </div>
 
           <ValidatedInput
             label="Location"
@@ -256,6 +278,17 @@ export function EquipmentEditForm({
             )}
           />
 
+          <ValidatedInput
+            label="Purchase Cost"
+            type="number"
+            step="0.01"
+            error={!!errors.purchaseCost}
+            helperText={errors.purchaseCost?.message}
+            registration={register('purchaseCost', {
+              setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+            })}
+          />
+
           <Controller
             name="warrantyExpiration"
             control={control}
@@ -274,24 +307,6 @@ export function EquipmentEditForm({
                 {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
               </div>
             )}
-          />
-
-          <ValidatedInput
-            label="Purchase Cost"
-            type="number"
-            step="0.01"
-            error={!!errors.purchaseCost}
-            helperText={errors.purchaseCost?.message}
-            registration={register('purchaseCost', {
-              setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-            })}
-          />
-
-          <ValidatedInput
-            label="Asset Tag"
-            error={!!errors.assetTag}
-            helperText={errors.assetTag?.message}
-            registration={register('assetTag')}
           />
 
           <Controller
@@ -323,21 +338,6 @@ export function EquipmentEditForm({
 
           <div>
             <label
-              htmlFor="eq-description"
-              className="text-xs font-medium text-secondary-foreground mb-1 block"
-            >
-              Description
-            </label>
-            <textarea
-              id="eq-description"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              rows={3}
-              {...register('description')}
-            />
-          </div>
-
-          <div>
-            <label
               htmlFor="eq-notes"
               className="text-xs font-medium text-secondary-foreground mb-1 block"
             >
@@ -357,9 +357,11 @@ export function EquipmentEditForm({
             type="submit"
             size="sm"
             disabled={isSubmitting}
-            leftIcon={<Save className="w-3.5 h-3.5" />}
+            leftIcon={
+              isEditing ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />
+            }
           >
-            {isEditing ? 'Save Changes' : 'Create'}
+            {isEditing ? 'Save Changes' : 'Add'}
           </Button>
           <Button
             type="button"
