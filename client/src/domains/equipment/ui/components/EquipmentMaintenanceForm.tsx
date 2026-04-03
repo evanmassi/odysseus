@@ -17,6 +17,7 @@ import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { Button, Select, DatePicker } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { formatDateForInput } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
 import type {
@@ -57,16 +58,12 @@ export function EquipmentMaintenanceForm({
     resolver: zodResolver(createEquipmentMaintenanceLogRequestSchema) as never,
     defaultValues: isEditing
       ? {
-          datePerformed: entry.datePerformed
-            ? new Date(entry.datePerformed).toISOString().split('T')[0]
-            : '',
+          datePerformed: formatDateForInput(entry.datePerformed),
           maintenanceType: entry.maintenanceType,
           performedBy: entry.performedBy ?? '',
           technician: entry.technician ?? '',
           description: entry.description ?? '',
-          nextScheduledDate: entry.nextScheduledDate
-            ? new Date(entry.nextScheduledDate).toISOString().split('T')[0]
-            : '',
+          nextScheduledDate: formatDateForInput(entry.nextScheduledDate),
           cost: entry.cost,
           notes: entry.notes ?? '',
         }

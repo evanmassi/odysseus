@@ -82,9 +82,9 @@ export function useUpdateEquipmentItemMutation() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateEquipmentItemRequest }) =>
       EquipmentService.update(id, data),
-    onSuccess: async (_, { id }) => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, id) });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+    onSuccess: (_, { id }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, id) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
     },
   });
 }

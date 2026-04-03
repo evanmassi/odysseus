@@ -6,7 +6,7 @@
  */
 
 import { EquipmentItem } from '@domain/entities/EquipmentItem';
-import { toISOString } from '@infrastructure/database/PostgresContext';
+import { toISOString, parseDateString } from '@infrastructure/database/PostgresContext';
 
 import type { EquipmentStatus } from '@odysseus/shared-schemas';
 
@@ -50,12 +50,12 @@ export class EquipmentItemMapper {
       location: item.location ?? null,
       status: item.status,
       condition_notes: item.conditionNotes ?? null,
-      purchase_date: item.purchaseDate ?? null,
-      warranty_expiration: item.warrantyExpiration ?? null,
+      purchase_date: item.purchaseDate ? dateToString(item.purchaseDate) : null,
+      warranty_expiration: item.warrantyExpiration ? dateToString(item.warrantyExpiration) : null,
       purchase_cost: item.purchaseCost != null ? String(item.purchaseCost) : null,
       asset_tag: item.assetTag ?? null,
-      next_maintenance_date: item.nextMaintenanceDate ?? null,
-      decommission_date: item.decommissionDate ?? null,
+      next_maintenance_date: item.nextMaintenanceDate ? dateToString(item.nextMaintenanceDate) : null,
+      decommission_date: item.decommissionDate ? dateToString(item.decommissionDate) : null,
       decommission_reason: item.decommissionReason ?? null,
       disposal_method: item.disposalMethod ?? null,
       notes: item.notes ?? null,
@@ -97,5 +97,13 @@ export class EquipmentItemMapper {
 }
 
 function toDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
+  if (value instanceof Date) return value;
+  return parseDateString(value);
+}
+
+function dateToString(date: Date): string {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }

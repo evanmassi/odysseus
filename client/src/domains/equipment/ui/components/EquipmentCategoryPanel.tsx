@@ -295,7 +295,7 @@ export function EquipmentCategoryPanel({
 
                 {totalCount === 0 && (
                   <p className="text-xs text-card-foreground/30 italic text-center py-3">
-                    No equipment in this category
+                    No equipment
                   </p>
                 )}
               </div>
@@ -340,7 +340,7 @@ function SubcategorySection({
   ];
 
   return (
-    <div className="ml-2">
+    <div>
       <div
         className="w-full flex items-center gap-1.5 px-2 py-1 text-left hover:bg-accent/30 rounded transition-colors cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -370,7 +370,7 @@ function SubcategorySection({
       </div>
 
       {isExpanded && items.length > 0 && (
-        <div className="ml-4 mt-1 space-y-1.5">
+        <div className="ml-2 mt-1 space-y-1.5">
           {items.map(item => (
             <EquipmentItemRow
               key={item.id}
@@ -383,7 +383,7 @@ function SubcategorySection({
       )}
 
       {isExpanded && items.length === 0 && (
-        <p className="ml-4 text-xs text-card-foreground/30 italic py-2">No equipment</p>
+        <p className="text-xs text-card-foreground/30 italic py-2 text-center">No equipment</p>
       )}
     </div>
   );

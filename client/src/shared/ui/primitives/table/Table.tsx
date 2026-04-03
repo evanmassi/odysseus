@@ -56,7 +56,7 @@ const tableVariants = cva(['w-full border-separate border-spacing-0'], {
 });
 
 const headerVariants = cva(
-  ['px-4 py-3 text-left font-semibold text-foreground', 'border-b border-border bg-muted'],
+  ['px-4 text-left font-semibold text-foreground', 'border-b border-border bg-muted'],
   {
     variants: {
       sortable: {
@@ -72,25 +72,37 @@ const headerVariants = cva(
         center: 'text-center',
         right: 'text-right',
       },
+      density: {
+        compact: 'py-1.5',
+        default: 'py-3',
+        comfortable: 'py-4',
+      },
     },
     defaultVariants: {
       sortable: false,
       sticky: false,
       align: 'left',
+      density: 'default',
     },
   }
 );
 
-const cellVariants = cva(['px-4 py-3 border-b border-border'], {
+const cellVariants = cva(['px-4 border-b border-border'], {
   variants: {
     align: {
       left: 'text-left',
       center: 'text-center',
       right: 'text-right',
     },
+    density: {
+      compact: 'py-1.5',
+      default: 'py-3',
+      comfortable: 'py-4',
+    },
   },
   defaultVariants: {
     align: 'left',
+    density: 'default',
   },
 });
 
@@ -200,6 +212,7 @@ export const TableHeader = <T,>({
     onSelectionChange,
     sortConfig,
     onSort,
+    density,
   } = useTableContext();
 
   const handleSelectAll = (checked: boolean) => {
@@ -219,7 +232,7 @@ export const TableHeader = <T,>({
     <thead className={className}>
       <tr>
         {selectable && (
-          <th className={headerVariants({})}>
+          <th className={headerVariants({ density })}>
             {multiSelect && (
               <TableCheckbox
                 checked={selectedRows.length > 0}
@@ -242,6 +255,7 @@ export const TableHeader = <T,>({
                 sortable: column.sortable,
                 sticky: column.sticky,
                 align: column.align,
+                density,
               })}
               style={{
                 width: column.width,
@@ -288,7 +302,7 @@ export const TableBody = <T extends TableRowBase>({
   onRowClick?: (row: T, index: number) => void;
   className?: string;
 }) => {
-  const { selectable, selectedRows, onSelectionChange } = useTableContext();
+  const { selectable, selectedRows, onSelectionChange, density } = useTableContext();
 
   const handleRowSelect = (rowId: string | number, checked: boolean) => {
     const newSelection = checked
@@ -341,7 +355,7 @@ export const TableBody = <T extends TableRowBase>({
             onClick={onRowClick ? () => onRowClick(row, index) : undefined}
           >
             {selectable && (
-              <td className={cellVariants({})}>
+              <td className={cellVariants({ density })}>
                 <TableCheckbox
                   checked={isSelected}
                   onChange={checked => handleRowSelect(row.id, checked)}
@@ -353,7 +367,7 @@ export const TableBody = <T extends TableRowBase>({
             {columns.map(column => (
               <td
                 key={column.id}
-                className={cellVariants({ align: column.align })}
+                className={cellVariants({ align: column.align, density })}
                 style={{
                   width: column.width,
                   minWidth: column.minWidth,
@@ -389,6 +403,7 @@ export function Table<T extends TableRowBase = TableRow>({
   loading = defaultTableProps.loading,
   variant = defaultTableProps.variant,
   size = defaultTableProps.size,
+  density = 'default' as const,
   state = defaultTableProps.state,
   stickyHeader = defaultTableProps.stickyHeader,
   rounded = defaultTableProps.rounded,
@@ -421,6 +436,7 @@ export function Table<T extends TableRowBase = TableRow>({
     onSelectionChange,
     sortConfig,
     onSort: sortable ? onSort : undefined,
+    density,
   };
 
   // Loading state

@@ -33,6 +33,8 @@ import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItem
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
+import { parseDateString } from '@infrastructure/database/PostgresContext';
+
 import type {
   CreateEquipmentCategoryRequest,
   UpdateEquipmentCategoryRequest,
@@ -193,11 +195,11 @@ export class EquipmentApplicationService {
       location: data.location || undefined,
       status: data.status,
       conditionNotes: data.conditionNotes || undefined,
-      purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : undefined,
-      warrantyExpiration: data.warrantyExpiration ? new Date(data.warrantyExpiration) : undefined,
+      purchaseDate: data.purchaseDate ? parseDateString(data.purchaseDate) : undefined,
+      warrantyExpiration: data.warrantyExpiration ? parseDateString(data.warrantyExpiration) : undefined,
       purchaseCost: data.purchaseCost,
       assetTag: data.assetTag || undefined,
-      nextMaintenanceDate: data.nextMaintenanceDate ? new Date(data.nextMaintenanceDate) : undefined,
+      nextMaintenanceDate: data.nextMaintenanceDate ? parseDateString(data.nextMaintenanceDate) : undefined,
       notes: data.notes || undefined,
     });
 
@@ -240,15 +242,15 @@ export class EquipmentApplicationService {
       status: data.status,
       conditionNotes: data.conditionNotes,
       purchaseDate: data.purchaseDate !== undefined
-        ? (data.purchaseDate ? new Date(data.purchaseDate) : null)
+        ? (data.purchaseDate ? parseDateString(data.purchaseDate) : null)
         : undefined,
       warrantyExpiration: data.warrantyExpiration !== undefined
-        ? (data.warrantyExpiration ? new Date(data.warrantyExpiration) : null)
+        ? (data.warrantyExpiration ? parseDateString(data.warrantyExpiration) : null)
         : undefined,
       purchaseCost: data.purchaseCost,
       assetTag: data.assetTag,
       nextMaintenanceDate: data.nextMaintenanceDate !== undefined
-        ? (data.nextMaintenanceDate ? new Date(data.nextMaintenanceDate) : null)
+        ? (data.nextMaintenanceDate ? parseDateString(data.nextMaintenanceDate) : null)
         : undefined,
       notes: data.notes,
     });
@@ -279,7 +281,7 @@ export class EquipmentApplicationService {
     }
 
     item.decommission(
-      new Date(data.decommissionDate),
+      parseDateString(data.decommissionDate),
       data.decommissionReason,
       data.disposalMethod
     );
@@ -360,12 +362,12 @@ export class EquipmentApplicationService {
 
     const entry = EquipmentMaintenanceLog.create({
       itemId,
-      datePerformed: new Date(data.datePerformed),
+      datePerformed: parseDateString(data.datePerformed),
       maintenanceType: data.maintenanceType,
       performedBy: data.performedBy,
       technician: data.technician,
       description: data.description,
-      nextScheduledDate: data.nextScheduledDate ? new Date(data.nextScheduledDate) : undefined,
+      nextScheduledDate: data.nextScheduledDate ? parseDateString(data.nextScheduledDate) : undefined,
       cost: data.cost,
       notes: data.notes,
     });
@@ -374,7 +376,7 @@ export class EquipmentApplicationService {
 
     // Auto-update item's next maintenance date
     if (data.nextScheduledDate) {
-      item.updateNextMaintenanceDate(new Date(data.nextScheduledDate));
+      item.updateNextMaintenanceDate(parseDateString(data.nextScheduledDate));
       await this.itemRepository.save(item);
     }
 
@@ -402,14 +404,14 @@ export class EquipmentApplicationService {
 
     entry.update({
       datePerformed: data.datePerformed !== undefined
-        ? (data.datePerformed ? new Date(data.datePerformed) : null)
+        ? (data.datePerformed ? parseDateString(data.datePerformed) : null)
         : undefined,
       maintenanceType: data.maintenanceType,
       performedBy: data.performedBy,
       technician: data.technician,
       description: data.description,
       nextScheduledDate: data.nextScheduledDate !== undefined
-        ? (data.nextScheduledDate ? new Date(data.nextScheduledDate) : null)
+        ? (data.nextScheduledDate ? parseDateString(data.nextScheduledDate) : null)
         : undefined,
       cost: data.cost,
       notes: data.notes,
@@ -419,7 +421,7 @@ export class EquipmentApplicationService {
 
     // Auto-update item's next maintenance date if nextScheduledDate changed
     if (data.nextScheduledDate !== undefined) {
-      const nextDate = data.nextScheduledDate ? new Date(data.nextScheduledDate) : undefined;
+      const nextDate = data.nextScheduledDate ? parseDateString(data.nextScheduledDate) : undefined;
       item.updateNextMaintenanceDate(nextDate);
       await this.itemRepository.save(item);
     }

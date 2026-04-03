@@ -23,8 +23,10 @@ import { notifications } from '@shared/utils/notifications';
 
 import { EquipmentCategoryModal } from './EquipmentCategoryModal';
 import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
+import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
 import { EquipmentEditForm } from './EquipmentEditForm';
 import { EquipmentItemInfoPanel } from './EquipmentItemInfoPanel';
+import { EquipmentMaintenanceAlertPanel } from './EquipmentMaintenanceAlertPanel';
 import { EquipmentMaintenanceForm } from './EquipmentMaintenanceForm';
 
 import type {
@@ -46,7 +48,6 @@ type RightPanelView =
   | { type: 'info'; itemId: string }
   | { type: 'edit'; item?: EquipmentItem }
   | { type: 'decommission'; itemId: string }
-  | { type: 'addDocument'; itemId: string }
   | { type: 'maintenance'; itemId: string; entry?: EquipmentMaintenanceLog };
 
 export function EquipmentTab() {
@@ -258,6 +259,13 @@ export function EquipmentTab() {
           </Button>
         </div>
 
+        <EquipmentMaintenanceAlertPanel
+          items={items}
+          categoryNameMap={categoryNameMap}
+          selectedItemId={selectedItemId}
+          onSelectItem={handleSelectItem}
+        />
+
         {/* Category list */}
         <ScrollArea className="flex-1">
           <EquipmentCategoryPanel
@@ -305,6 +313,15 @@ export function EquipmentTab() {
           <EquipmentEditForm
             item={rightPanel.item}
             categories={categories}
+            onSubmit={handleFormComplete}
+            onCancel={handleFormComplete}
+          />
+        )}
+
+        {rightPanel?.type === 'decommission' && (
+          <EquipmentDecommissionForm
+            itemId={rightPanel.itemId}
+            itemName={items.find(i => i.id === rightPanel.itemId)?.name ?? ''}
             onSubmit={handleFormComplete}
             onCancel={handleFormComplete}
           />

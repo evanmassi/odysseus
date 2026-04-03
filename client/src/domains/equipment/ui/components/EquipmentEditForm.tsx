@@ -1,16 +1,19 @@
 /**
  * Equipment Edit Form
  *
- * React Hook Form for creating and editing equipment items with inline category creation.
+ * React Hook Form for creating and editing equipment items with category tree dropdown.
  */
 
 import { useMemo } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createEquipmentItemRequestSchema } from '@odysseus/shared-schemas';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Save, X } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
+import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 import {
   useCreateEquipmentItemMutation,
   useUpdateEquipmentItemMutation,
@@ -18,6 +21,7 @@ import {
 import { Button, Select, DatePicker } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { formatDateForInput } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
 import type {
@@ -48,6 +52,8 @@ export function EquipmentEditForm({
   onCancel,
 }: EquipmentEditFormProps) {
   const isEditing = !!item;
+  const queryClient = useQueryClient();
+  const labId = useLabId();
   const createMutation = useCreateEquipmentItemMutation();
   const updateMutation = useUpdateEquipmentItemMutation();
 
@@ -98,17 +104,11 @@ export function EquipmentEditForm({
           location: item.location ?? '',
           status: item.status,
           conditionNotes: item.conditionNotes ?? '',
-          purchaseDate: item.purchaseDate
-            ? new Date(item.purchaseDate).toISOString().split('T')[0]
-            : '',
-          warrantyExpiration: item.warrantyExpiration
-            ? new Date(item.warrantyExpiration).toISOString().split('T')[0]
-            : '',
+          purchaseDate: formatDateForInput(item.purchaseDate),
+          warrantyExpiration: formatDateForInput(item.warrantyExpiration),
           purchaseCost: item.purchaseCost,
           assetTag: item.assetTag ?? '',
-          nextMaintenanceDate: item.nextMaintenanceDate
-            ? new Date(item.nextMaintenanceDate).toISOString().split('T')[0]
-            : '',
+          nextMaintenanceDate: formatDateForInput(item.nextMaintenanceDate),
           notes: item.notes ?? '',
         }
       : {
@@ -126,6 +126,7 @@ export function EquipmentEditForm({
         await createMutation.mutateAsync(validated);
         notifications.success('Equipment created');
       }
+      await queryClient.refetchQueries({ queryKey: queryKeys.equipment.items(labId) });
       onSubmit();
     } catch {
       notifications.error(isEditing ? 'Failed to update equipment' : 'Failed to create equipment');

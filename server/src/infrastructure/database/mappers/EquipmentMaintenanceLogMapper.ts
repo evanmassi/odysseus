@@ -6,7 +6,7 @@
  */
 
 import { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
-import { toISOString } from '@infrastructure/database/PostgresContext';
+import { toISOString, parseDateString } from '@infrastructure/database/PostgresContext';
 
 export interface EquipmentMaintenanceLogRow {
   id: string;
@@ -29,12 +29,12 @@ export class EquipmentMaintenanceLogMapper {
     return {
       id: entry.id,
       item_id: entry.itemId,
-      date_performed: entry.datePerformed,
+      date_performed: dateToString(entry.datePerformed),
       maintenance_type: entry.maintenanceType,
       performed_by: entry.performedBy ?? null,
       technician: entry.technician ?? null,
       description: entry.description ?? null,
-      next_scheduled_date: entry.nextScheduledDate ?? null,
+      next_scheduled_date: entry.nextScheduledDate ? dateToString(entry.nextScheduledDate) : null,
       cost: entry.cost != null ? String(entry.cost) : null,
       notes: entry.notes ?? null,
       created_at: entry.createdAt,
@@ -65,5 +65,13 @@ export class EquipmentMaintenanceLogMapper {
 }
 
 function toDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
+  if (value instanceof Date) return value;
+  return parseDateString(value);
+}
+
+function dateToString(date: Date): string {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }

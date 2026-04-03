@@ -14,6 +14,8 @@ export type TableState = 'default' | 'error' | 'warning' | 'success';
 
 export type TableRounded = 'none' | 'sm' | 'md' | 'lg';
 
+export type TableDensity = 'compact' | 'default' | 'comfortable';
+
 export type SortDirection = 'asc' | 'desc';
 
 export interface SortConfig {
@@ -54,6 +56,7 @@ export interface TableProps<T extends TableRowBase = TableRow> {
   loading?: boolean;
   variant?: TableVariant;
   size?: TableSize;
+  density?: TableDensity;
   state?: TableState;
   stickyHeader?: boolean;
   rounded?: TableRounded;
@@ -81,6 +84,7 @@ export interface TableContextValue {
   onSelectionChange: (selectedIds: (string | number)[]) => void;
   sortConfig?: SortConfig;
   onSort?: (config: SortConfig) => void;
+  density: TableDensity;
 }
 
 export const defaultTableProps: Partial<TableProps> = {

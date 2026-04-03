@@ -9,7 +9,7 @@ import { MapPin, Tag, Wrench } from 'lucide-react';
 
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
-import { formatDateForDisplay } from '@shared/utils/dateFormatters';
+import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
 
 import type { EquipmentItem } from '@odysseus/shared-schemas';
 
@@ -19,38 +19,45 @@ interface EquipmentItemRowProps {
   onSelect: (id: string) => void;
 }
 
-function getMaintenanceChip(date: Date): {
-  color: 'info' | 'warning' | 'danger';
-  label: string;
-  tooltip: string;
-} {
-  const now = new Date();
-  const daysUntil = (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+function getMaintenanceChip(nextMaintenanceDate: Date | string):
+  | {
+      color: 'info' | 'warning' | 'danger';
+      label: string;
+      tooltip: string;
+    }
+  | undefined {
+  const dateStr = normalizeDateString(nextMaintenanceDate);
+  if (!dateStr) return undefined;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntil = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
   if (daysUntil < 0) {
     return {
       color: 'danger',
       label: 'Needs Maintenance',
-      tooltip: `Was due: ${formatDateForDisplay(date)}`,
+      tooltip: `Was due: ${formatDateForDisplay(dateStr)}`,
     };
   }
   if (daysUntil <= 7) {
     return {
       color: 'danger',
-      label: `Due: ${formatDateForDisplay(date)}`,
-      tooltip: `Due in ${Math.ceil(daysUntil)} day${Math.ceil(daysUntil) === 1 ? '' : 's'}`,
+      label: `Due: ${formatDateForDisplay(dateStr)}`,
+      tooltip: `Due in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`,
     };
   }
   if (daysUntil <= 30) {
     return {
       color: 'warning',
-      label: `Due: ${formatDateForDisplay(date)}`,
-      tooltip: `Due in ${Math.ceil(daysUntil)} days`,
+      label: `Due: ${formatDateForDisplay(dateStr)}`,
+      tooltip: `Due in ${daysUntil} days`,
     };
   }
   return {
     color: 'info',
-    label: `Due: ${formatDateForDisplay(date)}`,
+    label: `Due: ${formatDateForDisplay(dateStr)}`,
     tooltip: `Next maintenance scheduled`,
   };
 }
@@ -58,17 +65,18 @@ function getMaintenanceChip(date: Date): {
 export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRowProps) {
   const isDecommissioned = item.status === 'decommissioned';
   const subtitle = [item.manufacturer, item.model].filter(Boolean).join(' ');
-  const nextMaintDate = item.nextMaintenanceDate ? new Date(item.nextMaintenanceDate) : undefined;
-  const maintChip = nextMaintDate ? getMaintenanceChip(nextMaintDate) : undefined;
+  const maintChip = item.nextMaintenanceDate
+    ? getMaintenanceChip(item.nextMaintenanceDate)
+    : undefined;
 
   return (
     <div
-      className={`bg-card border border-border rounded-lg px-3 py-2 cursor-pointer transition-colors ${
+      className={`rounded-lg px-3 py-2 cursor-pointer transition-all duration-200 ${
         isSelected
-          ? 'outline outline-1 outline-offset-4 outline-primary/70'
+          ? 'bg-card brightness-125 border-l-2 border-l-primary border-y border-r border-border shadow-sm'
           : isDecommissioned
-            ? 'opacity-50'
-            : 'hover:bg-accent/50'
+            ? 'bg-card border border-border opacity-50 hover:opacity-65'
+            : 'bg-card border border-border hover:bg-accent/50'
       }`}
       onClick={() => onSelect(item.id)}
       onKeyDown={e => {
@@ -80,7 +88,14 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
       <div className="flex items-start justify-between gap-2">
         {/* Left: Identity */}
         <div className="min-w-0">
-          <h4 className="text-sm font-semibold text-card-foreground truncate">{item.name}</h4>
+          <div className="flex items-center gap-1.5">
+            <h4 className="text-sm font-semibold text-card-foreground truncate">{item.name}</h4>
+            {isDecommissioned && (
+              <Chip color="danger" size="sm" className="uppercase tracking-wide flex-shrink-0">
+                Decommissioned
+              </Chip>
+            )}
+          </div>
           {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
           {item.serialNumber && (
             <p className="text-xs text-muted-foreground/60 truncate">SN: {item.serialNumber}</p>
@@ -89,13 +104,6 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
 
         {/* Right: Chips stacked */}
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
-          {maintChip && (
-            <Tooltip content={maintChip.tooltip}>
-              <Chip color={maintChip.color} size="sm" leftIcon={<Wrench />} className="cursor-help">
-                {maintChip.label}
-              </Chip>
-            </Tooltip>
-          )}
           {(item.location != null || item.assetTag != null) && (
             <div className="flex items-center gap-1.5">
               {item.location && (
@@ -109,6 +117,13 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
                 </Chip>
               )}
             </div>
+          )}
+          {maintChip && (
+            <Tooltip content={maintChip.tooltip}>
+              <Chip color={maintChip.color} size="sm" leftIcon={<Wrench />} className="cursor-help">
+                {maintChip.label}
+              </Chip>
+            </Tooltip>
           )}
         </div>
       </div>

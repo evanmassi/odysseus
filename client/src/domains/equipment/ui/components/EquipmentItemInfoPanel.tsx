@@ -11,7 +11,7 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import {
   Edit,
   Trash2,
-  XCircle,
+  Power,
   Plus,
   ExternalLink,
   X,
@@ -52,7 +52,7 @@ const STATUS_LABELS: Record<
   inactive: { color: 'default', label: 'Inactive' },
   under_maintenance: { color: 'warning', label: 'Under Maintenance' },
   out_of_service: { color: 'danger', label: 'Out of Service' },
-  decommissioned: { color: 'default', label: 'Decommissioned' },
+  decommissioned: { color: 'danger', label: 'Decommissioned' },
 };
 
 function formatDate(date: Date | string | undefined): string | undefined {
@@ -97,10 +97,10 @@ export function EquipmentItemInfoPanel({
   const handleDelete = async () => {
     try {
       await deleteItemMutation.mutateAsync(itemId);
-      notifications.success('Equipment item deleted');
+      notifications.success('Equipment removed');
       onDeleted();
     } catch {
-      notifications.error('Failed to delete equipment item');
+      notifications.error('Failed to remove equipment');
     }
     setShowDeleteConfirm(false);
   };
@@ -136,10 +136,10 @@ export function EquipmentItemInfoPanel({
             </Button>
             {!isDecommissioned && (
               <Button
-                variant="ghost"
+                variant="ghost-danger"
                 size="sm"
                 onClick={onDecommission}
-                leftIcon={<XCircle className="w-3.5 h-3.5" />}
+                leftIcon={<Power className="w-3.5 h-3.5" />}
               >
                 Decommission
               </Button>
@@ -155,9 +155,6 @@ export function EquipmentItemInfoPanel({
           </div>
         )}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
-            {statusConfig.label}
-          </Chip>
           {item.location && (
             <Chip color="info" size="sm" leftIcon={<MapPin />}>
               {item.location}
@@ -175,8 +172,11 @@ export function EquipmentItemInfoPanel({
         <div className="space-y-4">
           {/* Product Details */}
           <InfoGroup title="Product Details">
-            <div className="flex items-baseline gap-1.5 mb-2.5">
+            <div className="flex items-center gap-2 mb-2.5">
               <span className="text-card-foreground font-semibold text-sm">{item.name}</span>
+              <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
+                {statusConfig.label}
+              </Chip>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
               <InfoField
@@ -365,9 +365,9 @@ export function EquipmentItemInfoPanel({
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         variant="danger"
-        title="Delete Equipment"
-        message={`Are you sure you want to delete "${item.name}"? This will also delete all documents and maintenance logs. This action cannot be undone.`}
-        confirmText="Delete"
+        title="Remove Equipment"
+        message={`Are you sure you want to remove "${item.name}"? This will also remove all documents and maintenance logs. This action cannot be undone.`}
+        confirmText="Remove"
         onConfirm={() => void handleDelete()}
         onCancel={() => setShowDeleteConfirm(false)}
       />
