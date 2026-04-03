@@ -10,8 +10,9 @@ import { dateField, optionalDateField } from '../utils/dateFields';
 // Status and category enums
 
 export const equipmentStatusValues = [
-  'operational',
-  'maintenance',
+  'active',
+  'inactive',
+  'under_maintenance',
   'out_of_service',
   'decommissioned',
 ] as const;
@@ -85,7 +86,7 @@ export const createEquipmentItemRequestSchema = z.object({
   model: z.string().max(200).optional(),
   description: z.string().max(2000).optional(),
   location: z.string().max(500).optional(),
-  status: equipmentStatusSchema.default('operational'),
+  status: equipmentStatusSchema.default('active'),
   conditionNotes: z.string().max(2000).optional(),
   purchaseDate: z.string().optional(),
   warrantyExpiration: z.string().optional(),

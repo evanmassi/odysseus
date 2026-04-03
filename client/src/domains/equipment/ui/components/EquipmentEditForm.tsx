@@ -35,8 +35,9 @@ interface EquipmentEditFormProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'operational', label: 'In Use' },
-  { value: 'maintenance', label: 'Under Maintenance' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'under_maintenance', label: 'Under Maintenance' },
   { value: 'out_of_service', label: 'Out of Service' },
 ];
 
@@ -111,7 +112,7 @@ export function EquipmentEditForm({
           notes: item.notes ?? '',
         }
       : {
-          status: 'operational',
+          status: 'active',
         },
   });
 
@@ -200,7 +201,7 @@ export function EquipmentEditForm({
               <Select
                 label="Status"
                 options={STATUS_OPTIONS}
-                value={value ?? 'operational'}
+                value={value ?? 'active'}
                 onChange={v => onChange(v)}
                 fullWidth
               />

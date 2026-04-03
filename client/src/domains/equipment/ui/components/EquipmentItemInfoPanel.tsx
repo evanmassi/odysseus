@@ -48,8 +48,9 @@ const STATUS_LABELS: Record<
   string,
   { color: 'success' | 'warning' | 'danger' | 'default'; label: string }
 > = {
-  operational: { color: 'success', label: 'In Use' },
-  maintenance: { color: 'warning', label: 'Under Maintenance' },
+  active: { color: 'success', label: 'Active' },
+  inactive: { color: 'default', label: 'Inactive' },
+  under_maintenance: { color: 'warning', label: 'Under Maintenance' },
   out_of_service: { color: 'danger', label: 'Out of Service' },
   decommissioned: { color: 'default', label: 'Decommissioned' },
 };
@@ -90,7 +91,7 @@ export function EquipmentItemInfoPanel({
   }
 
   const { item, documents, maintenanceLog } = detail;
-  const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['operational'];
+  const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['active'];
   const isDecommissioned = item.status === 'decommissioned';
 
   const handleDelete = async () => {
@@ -154,15 +155,9 @@ export function EquipmentItemInfoPanel({
           </div>
         )}
         <div className="flex items-center gap-1.5 flex-wrap">
-          {item.status === 'operational' ? (
-            <Chip color="success" size="sm">
-              In Use
-            </Chip>
-          ) : (
-            <Chip color={statusConfig.color} size="sm">
-              {statusConfig.label}
-            </Chip>
-          )}
+          <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
+            {statusConfig.label}
+          </Chip>
           {item.location && (
             <Chip color="info" size="sm" leftIcon={<MapPin />}>
               {item.location}

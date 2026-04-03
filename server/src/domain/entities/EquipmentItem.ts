@@ -10,7 +10,7 @@ import { generateId } from '@domain/utils/generateId';
 
 import type { EquipmentStatus } from '@odysseus/shared-schemas';
 
-const VALID_STATUSES: EquipmentStatus[] = ['operational', 'maintenance', 'out_of_service', 'decommissioned'];
+const VALID_STATUSES: EquipmentStatus[] = ['active', 'inactive', 'under_maintenance', 'out_of_service', 'decommissioned'];
 
 interface ItemCreateData {
   labId: string;
@@ -89,7 +89,7 @@ export class EquipmentItem {
       data.model,
       data.description,
       data.location,
-      data.status ?? 'operational',
+      data.status ?? 'active',
       data.conditionNotes,
       data.purchaseDate,
       data.warrantyExpiration,

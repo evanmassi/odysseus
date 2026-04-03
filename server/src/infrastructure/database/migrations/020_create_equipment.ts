@@ -52,7 +52,7 @@ export const migration020: Migration = {
         model TEXT,
         description TEXT,
         location TEXT,
-        status TEXT NOT NULL DEFAULT 'operational',
+        status TEXT NOT NULL DEFAULT 'active',
         condition_notes TEXT,
         purchase_date DATE,
         warranty_expiration DATE,
