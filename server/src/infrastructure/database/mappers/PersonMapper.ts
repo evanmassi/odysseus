@@ -5,7 +5,7 @@
  */
 
 import { Person } from '@domain/entities/Person';
-import { toDate, toISOString } from '@infrastructure/database/PostgresContext';
+import { toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface PersonRow {
   id: string;
@@ -28,8 +28,8 @@ export class PersonMapper {
       email: person.email ?? null,
       position: person.position,
       department: person.department,
-      created_at: toDate(person.createdAt),
-      updated_at: toDate(person.updatedAt)
+      created_at: person.createdAt,
+      updated_at: person.updatedAt
     };
   }
 
