@@ -5,7 +5,7 @@
  * detection, keyboard navigation, animated open/close, and optional portal rendering.
  */
 
-import { useState, useRef, useEffect, type RefObject } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, type RefObject } from 'react';
 
 import { createPortal } from 'react-dom';
 
@@ -37,20 +37,26 @@ export function DropdownMenu({
   'aria-label': ariaLabel,
 }: DropdownMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
-  const [isClosing, setIsClosing] = useState(false);
-  const wasOpenRef = useRef(false);
+  const [visible, setVisible] = useState(false);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Animated close: detect isOpen transitioning from true → false
-  useEffect(() => {
-    if (wasOpenRef.current && !isOpen && animated) {
-      setIsClosing(true);
-      closeTimeoutRef.current = setTimeout(() => setIsClosing(false), 200);
+  // Reacts to isOpen changes only — visible and animated are read but intentionally
+  // excluded to avoid re-triggering when visible changes (would cancel our own timeout)
+  useLayoutEffect(() => {
+    if (isOpen) {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
+      setVisible(true);
+    } else if (visible && animated) {
+      closeTimeoutRef.current = setTimeout(() => setVisible(false), 200);
+    } else {
+      setVisible(false);
     }
-    wasOpenRef.current = isOpen;
-  }, [isOpen, animated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
@@ -80,9 +86,9 @@ export function DropdownMenu({
     onClose,
   });
 
-  const shouldRender = isOpen || isClosing;
-  if (!shouldRender) return null;
+  if (!visible) return null;
 
+  const isClosing = !isOpen && visible;
   const animationClass = animated
     ? isClosing
       ? 'animate-dropdown-reveal-out'

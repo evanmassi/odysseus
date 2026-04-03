@@ -246,7 +246,6 @@ export function AppHeader({
                 <MenuItem
                   icon={FlaskConical}
                   label="Biobank"
-                  isActive={isBiobankRoute}
                   onClick={() => {
                     void navigate('/');
                     setShowSuiteDropdown(false);
@@ -266,8 +265,8 @@ export function AppHeader({
                     labSubmenuTimeoutRef.current = setTimeout(() => setShowLabSubmenu(false), 150);
                   }}
                 >
-                  <MenuItem icon={Wrench} label="Lab Management" isActive={!isBiobankRoute}>
-                    <ChevronRight size={14} className="text-muted-foreground" />
+                  <MenuItem icon={Wrench} label="Lab Management">
+                    <ChevronRight size={14} className="text-muted-foreground ml-3" />
                   </MenuItem>
 
                   {showLabSubmenu && (
