@@ -23,11 +23,11 @@ interface ItemCreateData {
   location?: string;
   status?: EquipmentStatus;
   conditionNotes?: string;
-  purchaseDate?: Date;
-  warrantyExpiration?: Date;
+  purchaseDate?: string;
+  warrantyExpiration?: string;
   purchaseCost?: number;
   assetTag?: string;
-  nextMaintenanceDate?: Date;
+  nextMaintenanceDate?: string;
   notes?: string;
 }
 
@@ -42,11 +42,11 @@ interface ItemUpdateData {
   location?: string | null;
   status?: EquipmentStatus | null;
   conditionNotes?: string | null;
-  purchaseDate?: Date | null;
-  warrantyExpiration?: Date | null;
+  purchaseDate?: string | null;
+  warrantyExpiration?: string | null;
   purchaseCost?: number | null;
   assetTag?: string | null;
-  nextMaintenanceDate?: Date | null;
+  nextMaintenanceDate?: string | null;
   notes?: string | null;
 }
 
@@ -63,12 +63,12 @@ export class EquipmentItem {
     private _location: string | undefined,
     private _status: EquipmentStatus,
     private _conditionNotes: string | undefined,
-    private _purchaseDate: Date | undefined,
-    private _warrantyExpiration: Date | undefined,
+    private _purchaseDate: string | undefined,
+    private _warrantyExpiration: string | undefined,
     private _purchaseCost: number | undefined,
     private _assetTag: string | undefined,
-    private _nextMaintenanceDate: Date | undefined,
-    private _decommissionDate: Date | undefined,
+    private _nextMaintenanceDate: string | undefined,
+    private _decommissionDate: string | undefined,
     private _decommissionReason: string | undefined,
     private _disposalMethod: string | undefined,
     private _notes: string | undefined,
@@ -117,12 +117,12 @@ export class EquipmentItem {
     location?: string;
     status: EquipmentStatus;
     conditionNotes?: string;
-    purchaseDate?: Date;
-    warrantyExpiration?: Date;
+    purchaseDate?: string;
+    warrantyExpiration?: string;
     purchaseCost?: number;
     assetTag?: string;
-    nextMaintenanceDate?: Date;
-    decommissionDate?: Date;
+    nextMaintenanceDate?: string;
+    decommissionDate?: string;
     decommissionReason?: string;
     disposalMethod?: string;
     notes?: string;
@@ -188,7 +188,7 @@ export class EquipmentItem {
     this._updatedAt = new Date();
   }
 
-  decommission(date: Date, reason?: string, disposalMethod?: string): void {
+  decommission(date: string, reason?: string, disposalMethod?: string): void {
     this._status = 'decommissioned';
     this._decommissionDate = date;
     this._decommissionReason = reason;
@@ -197,7 +197,7 @@ export class EquipmentItem {
   }
 
   /** Updates next maintenance date from latest maintenance log entry. */
-  updateNextMaintenanceDate(date: Date | undefined): void {
+  updateNextMaintenanceDate(date: string | undefined): void {
     this._nextMaintenanceDate = date;
     this._updatedAt = new Date();
   }
@@ -213,12 +213,12 @@ export class EquipmentItem {
   get location(): string | undefined { return this._location; }
   get status(): EquipmentStatus { return this._status; }
   get conditionNotes(): string | undefined { return this._conditionNotes; }
-  get purchaseDate(): Date | undefined { return this._purchaseDate ? new Date(this._purchaseDate) : undefined; }
-  get warrantyExpiration(): Date | undefined { return this._warrantyExpiration ? new Date(this._warrantyExpiration) : undefined; }
+  get purchaseDate(): string | undefined { return this._purchaseDate; }
+  get warrantyExpiration(): string | undefined { return this._warrantyExpiration; }
   get purchaseCost(): number | undefined { return this._purchaseCost; }
   get assetTag(): string | undefined { return this._assetTag; }
-  get nextMaintenanceDate(): Date | undefined { return this._nextMaintenanceDate ? new Date(this._nextMaintenanceDate) : undefined; }
-  get decommissionDate(): Date | undefined { return this._decommissionDate ? new Date(this._decommissionDate) : undefined; }
+  get nextMaintenanceDate(): string | undefined { return this._nextMaintenanceDate; }
+  get decommissionDate(): string | undefined { return this._decommissionDate; }
   get decommissionReason(): string | undefined { return this._decommissionReason; }
   get disposalMethod(): string | undefined { return this._disposalMethod; }
   get notes(): string | undefined { return this._notes; }

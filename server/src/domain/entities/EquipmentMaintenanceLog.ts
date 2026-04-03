@@ -9,24 +9,24 @@ import { generateId } from '@domain/utils/generateId';
 
 interface MaintenanceLogCreateData {
   itemId: string;
-  datePerformed: Date;
+  datePerformed: string;
   maintenanceType: string;
   performedBy?: string;
   technician?: string;
   description?: string;
-  nextScheduledDate?: Date;
+  nextScheduledDate?: string;
   cost?: number;
   notes?: string;
 }
 
 // null = clear field, undefined = preserve current value
 interface MaintenanceLogUpdateData {
-  datePerformed?: Date | null;
+  datePerformed?: string | null;
   maintenanceType?: string | null;
   performedBy?: string | null;
   technician?: string | null;
   description?: string | null;
-  nextScheduledDate?: Date | null;
+  nextScheduledDate?: string | null;
   cost?: number | null;
   notes?: string | null;
 }
@@ -35,12 +35,12 @@ export class EquipmentMaintenanceLog {
   private constructor(
     private readonly _id: string,
     private readonly _itemId: string,
-    private _datePerformed: Date,
+    private _datePerformed: string,
     private _maintenanceType: string,
     private _performedBy: string | undefined,
     private _technician: string | undefined,
     private _description: string | undefined,
-    private _nextScheduledDate: Date | undefined,
+    private _nextScheduledDate: string | undefined,
     private _cost: number | undefined,
     private _notes: string | undefined,
     private readonly _createdAt: Date,
@@ -69,12 +69,12 @@ export class EquipmentMaintenanceLog {
   static fromData(data: {
     id: string;
     itemId: string;
-    datePerformed: Date;
+    datePerformed: string;
     maintenanceType: string;
     performedBy?: string;
     technician?: string;
     description?: string;
-    nextScheduledDate?: Date;
+    nextScheduledDate?: string;
     cost?: number;
     notes?: string;
     createdAt: string | Date;
@@ -118,12 +118,12 @@ export class EquipmentMaintenanceLog {
 
   get id(): string { return this._id; }
   get itemId(): string { return this._itemId; }
-  get datePerformed(): Date { return new Date(this._datePerformed); }
+  get datePerformed(): string { return this._datePerformed; }
   get maintenanceType(): string { return this._maintenanceType; }
   get performedBy(): string | undefined { return this._performedBy; }
   get technician(): string | undefined { return this._technician; }
   get description(): string | undefined { return this._description; }
-  get nextScheduledDate(): Date | undefined { return this._nextScheduledDate ? new Date(this._nextScheduledDate) : undefined; }
+  get nextScheduledDate(): string | undefined { return this._nextScheduledDate; }
   get cost(): number | undefined { return this._cost; }
   get notes(): string | undefined { return this._notes; }
   get createdAt(): Date { return new Date(this._createdAt); }

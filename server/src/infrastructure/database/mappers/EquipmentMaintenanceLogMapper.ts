@@ -6,7 +6,7 @@
  */
 
 import { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
-import { toISOString, parseDateString } from '@infrastructure/database/PostgresContext';
+import { toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface EquipmentMaintenanceLogRow {
   id: string;
@@ -29,12 +29,12 @@ export class EquipmentMaintenanceLogMapper {
     return {
       id: entry.id,
       item_id: entry.itemId,
-      date_performed: dateToString(entry.datePerformed),
+      date_performed: entry.datePerformed,
       maintenance_type: entry.maintenanceType,
       performed_by: entry.performedBy ?? null,
       technician: entry.technician ?? null,
       description: entry.description ?? null,
-      next_scheduled_date: entry.nextScheduledDate ? dateToString(entry.nextScheduledDate) : null,
+      next_scheduled_date: entry.nextScheduledDate ?? null,
       cost: entry.cost != null ? String(entry.cost) : null,
       notes: entry.notes ?? null,
       created_at: entry.createdAt,
@@ -46,12 +46,12 @@ export class EquipmentMaintenanceLogMapper {
     return EquipmentMaintenanceLog.fromData({
       id: row.id,
       itemId: row.item_id,
-      datePerformed: toDate(row.date_performed),
+      datePerformed: toISOString(row.date_performed),
       maintenanceType: row.maintenance_type,
       performedBy: row.performed_by ?? undefined,
       technician: row.technician ?? undefined,
       description: row.description ?? undefined,
-      nextScheduledDate: row.next_scheduled_date ? toDate(row.next_scheduled_date) : undefined,
+      nextScheduledDate: row.next_scheduled_date ? toISOString(row.next_scheduled_date) : undefined,
       cost: row.cost != null ? parseFloat(row.cost) : undefined,
       notes: row.notes ?? undefined,
       createdAt: toISOString(row.created_at),
@@ -62,16 +62,4 @@ export class EquipmentMaintenanceLogMapper {
   static fromRows(rows: EquipmentMaintenanceLogRow[]): EquipmentMaintenanceLog[] {
     return rows.map(row => this.fromRow(row));
   }
-}
-
-function toDate(value: Date | string): Date {
-  if (value instanceof Date) return value;
-  return parseDateString(value);
-}
-
-function dateToString(date: Date): string {
-  const y = date.getUTCFullYear();
-  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(date.getUTCDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
 }
