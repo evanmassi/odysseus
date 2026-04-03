@@ -15,10 +15,10 @@ import {
   Lock,
   Unlock,
   Share2,
-  type LucideIcon,
 } from 'lucide-react';
 
 import { useMenuKeyboardNavigation } from '@shared/hooks';
+import { MenuItem, MenuDivider } from '@shared/ui';
 
 interface TubeGridContextMenuProps {
   isVisible: boolean;
@@ -44,64 +44,6 @@ interface TubeGridContextMenuProps {
 
 const ANIMATION_DURATION = 50;
 const VIEWPORT_PADDING = 8;
-
-function MenuDivider() {
-  return <div className="h-px bg-border my-1" />;
-}
-
-function MenuItem({
-  icon: Icon,
-  label,
-  shortcut,
-  onClick,
-  disabled = false,
-  danger = false,
-}: {
-  icon: LucideIcon;
-  label: string;
-  shortcut?: string;
-  onClick: () => void;
-  disabled?: boolean;
-  danger?: boolean;
-}) {
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      if (!disabled) {
-        onClick();
-      }
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={handleKeyDown}
-      disabled={disabled}
-      className={`
-        w-full flex items-center justify-between py-2 px-3 rounded-md text-sm
-        transition-colors duration-150
-        disabled:opacity-40 disabled:cursor-not-allowed
-        ${danger ? 'text-danger-text hover:bg-danger-light' : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'}
-      `}
-    >
-      <div className="flex items-center gap-3">
-        <Icon size={16} className={danger ? 'text-danger-text' : 'text-muted-foreground'} />
-        <span>{label}</span>
-      </div>
-      {shortcut && (
-        <span
-          className={`text-xs font-mono ml-4 ${danger ? 'text-danger-text' : 'text-muted-foreground'}`}
-        >
-          {shortcut}
-        </span>
-      )}
-    </button>
-  );
-}
 
 export function TubeGridContextMenu({
   isVisible,
