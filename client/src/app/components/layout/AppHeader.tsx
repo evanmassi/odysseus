@@ -23,9 +23,11 @@ import {
   Share2,
   TestTube,
   FlaskConical,
+  Biohazard,
+  Microscope,
+  Package,
   CircleHelp,
   BookUser,
-  Wrench,
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
@@ -244,7 +246,7 @@ export function AppHeader({
             >
               <div className="px-1">
                 <MenuItem
-                  icon={FlaskConical}
+                  icon={TestTube}
                   label="Biobank"
                   onClick={() => {
                     void navigate('/');
@@ -265,7 +267,7 @@ export function AppHeader({
                     labSubmenuTimeoutRef.current = setTimeout(() => setShowLabSubmenu(false), 150);
                   }}
                 >
-                  <MenuItem icon={Wrench} label="Lab Management">
+                  <MenuItem icon={FlaskConical} label="Lab Management">
                     <ChevronRight size={14} className="text-muted-foreground ml-3" />
                   </MenuItem>
 
@@ -273,6 +275,7 @@ export function AppHeader({
                     <div className="absolute left-[calc(100%+4px)] top-0 bg-popover rounded-lg shadow-lg border border-border py-1.5 min-w-[160px]">
                       <div className="px-1">
                         <MenuItem
+                          icon={Microscope}
                           label="Equipment"
                           onClick={() => {
                             void navigate('/lab/equipment');
@@ -280,8 +283,8 @@ export function AppHeader({
                             setShowLabSubmenu(false);
                           }}
                         />
-                        <MenuItem label="Consumables" disabled />
-                        <MenuItem label="Reagents" disabled />
+                        <MenuItem icon={Package} label="Consumables" disabled />
+                        <MenuItem icon={Biohazard} label="Reagents" disabled />
                       </div>
                     </div>
                   )}

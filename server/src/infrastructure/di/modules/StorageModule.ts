@@ -412,6 +412,7 @@ export class StorageModule {
       this.lookupValueApplicationService = new LookupValueApplicationService(
         repositories.lookupValues,
         repositories.equipmentItems,
+        repositories.donors,
       );
     }
     return this.lookupValueApplicationService;

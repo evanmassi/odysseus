@@ -227,4 +227,23 @@ export class DonorRepository implements IDonorRepository {
     const result = await this.db.execute('DELETE FROM donor_collection_history WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
+
+  async countCollectionEntriesUsingSpecimenType(value: string, labId: string): Promise<number> {
+    const result = await this.db.queryOne<{ count: string }>(
+      `SELECT COUNT(*) as count FROM donor_collection_history dch
+       JOIN donors d ON d.id = dch.donor_id
+       WHERE dch.specimen_type = $1 AND d.lab_id = $2`,
+      [value, labId]
+    );
+    return parseInt(result?.count ?? '0', 10);
+  }
+
+  async renameSpecimenType(oldValue: string, newValue: string, labId: string): Promise<number> {
+    const result = await this.db.execute(
+      `UPDATE donor_collection_history SET specimen_type = $1
+       WHERE specimen_type = $2 AND donor_id IN (SELECT id FROM donors WHERE lab_id = $3)`,
+      [newValue, oldValue, labId]
+    );
+    return result.rowCount ?? 0;
+  }
 }

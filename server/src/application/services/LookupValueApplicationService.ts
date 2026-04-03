@@ -8,6 +8,7 @@ import { LookupValue } from '@domain/entities/LookupValue';
 import type { LookupCategory } from '@domain/entities/LookupValue';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
+import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 
@@ -15,6 +16,7 @@ export class LookupValueApplicationService {
   constructor(
     private lookupValueRepository: LookupValueRepository,
     private equipmentItemRepository?: EquipmentItemRepository,
+    private donorRepository?: DonorRepository,
   ) {}
 
   async getActiveByCategory(labId: string, category: LookupCategory): Promise<ReturnType<LookupValue['toData']>[]> {
@@ -22,14 +24,32 @@ export class LookupValueApplicationService {
     return values.map(v => v.toData());
   }
 
-  async getAllByCategory(labId: string, category: LookupCategory): Promise<Array<ReturnType<LookupValue['toData']> & { tubeCount: number }>> {
+  async getAllByCategory(labId: string, category: LookupCategory): Promise<Array<ReturnType<LookupValue['toData']> & { usageCount: number }>> {
     const values = await this.lookupValueRepository.findByCategory(category, labId);
-    const tubeCountMap = await this.lookupValueRepository.countTubesUsingValues(
-      category,
-      values.map(v => v.value),
-      labId
-    );
-    return values.map(v => ({ ...v.toData(), tubeCount: tubeCountMap.get(v.value) ?? 0 }));
+    const countMap = await this.getUsageCounts(category, values.map(v => v.value), labId);
+    return values.map(v => ({ ...v.toData(), usageCount: countMap.get(v.value) ?? 0 }));
+  }
+
+  private async getUsageCounts(category: LookupCategory, values: string[], labId: string): Promise<Map<string, number>> {
+    if (values.length === 0) return new Map();
+
+    if (category === 'equipment_maintenance_type' && this.equipmentItemRepository) {
+      const counts = new Map<string, number>();
+      for (const value of values) {
+        counts.set(value, await this.equipmentItemRepository.countMaintenanceEntriesUsingType(value, labId));
+      }
+      return counts;
+    }
+
+    if (category === 'specimen_type' && this.donorRepository) {
+      const counts = new Map<string, number>();
+      for (const value of values) {
+        counts.set(value, await this.donorRepository.countCollectionEntriesUsingSpecimenType(value, labId));
+      }
+      return counts;
+    }
+
+    return this.lookupValueRepository.countTubesUsingValues(category, values, labId);
   }
 
   async create(labId: string, category: LookupCategory, value: string): Promise<ReturnType<LookupValue['toData']>> {
@@ -62,9 +82,10 @@ export class LookupValueApplicationService {
     entity.rename(newValue);
     await this.lookupValueRepository.save(entity);
 
-    // Cascade rename to the appropriate table based on category
     if (entity.category === 'equipment_maintenance_type' && this.equipmentItemRepository) {
       await this.equipmentItemRepository.renameMaintenanceType(oldValue, entity.value, labId);
+    } else if (entity.category === 'specimen_type' && this.donorRepository) {
+      await this.donorRepository.renameSpecimenType(oldValue, entity.value, labId);
     } else {
       await this.lookupValueRepository.renameTubeValues(entity.category, oldValue, entity.value, labId);
     }
@@ -78,19 +99,15 @@ export class LookupValueApplicationService {
       throw new NotFoundError('Lookup value not found');
     }
 
-    // Check usage in the appropriate table based on category
-    let usageCount: number;
-    if (entity.category === 'equipment_maintenance_type' && this.equipmentItemRepository) {
-      usageCount = await this.equipmentItemRepository.countMaintenanceEntriesUsingType(entity.value, labId);
-    } else {
-      usageCount = await this.lookupValueRepository.countTubesUsingValue(entity.category, entity.value, labId);
-    }
+    const usageCount = (await this.getUsageCounts(entity.category, [entity.value], labId)).get(entity.value) ?? 0;
 
     if (usageCount > 0) {
-      const isEquipment = entity.category === 'equipment_maintenance_type';
-      const label = isEquipment
-        ? (usageCount === 1 ? 'maintenance log entry' : 'maintenance log entries')
-        : (usageCount === 1 ? 'tube' : 'tubes');
+      const labelMap: Partial<Record<LookupCategory, [string, string]>> = {
+        equipment_maintenance_type: ['maintenance log entry', 'maintenance log entries'],
+        specimen_type: ['collection entry', 'collection entries'],
+      };
+      const [singular, plural] = labelMap[entity.category] ?? ['tube', 'tubes'];
+      const label = usageCount === 1 ? singular : plural;
       const verb = usageCount === 1 ? 'references' : 'reference';
       throw new ValidationError(
         `Cannot delete "${entity.value}" — ${usageCount} ${label} still ${verb} it`

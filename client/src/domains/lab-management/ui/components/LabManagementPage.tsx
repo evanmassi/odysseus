@@ -5,7 +5,7 @@
  * consumables, and reagents management.
  */
 
-import { Wrench, Package, FlaskConical } from 'lucide-react';
+import { Microscope, Package, Biohazard } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 
 import { AppHeader } from '@app/components/layout/AppHeader';
@@ -24,7 +24,7 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { id: 'equipment', label: 'Equipment', icon: Wrench, path: '/lab/equipment', enabled: true },
+  { id: 'equipment', label: 'Equipment', icon: Microscope, path: '/lab/equipment', enabled: true },
   {
     id: 'consumables',
     label: 'Consumables',
@@ -32,7 +32,7 @@ const TABS: TabConfig[] = [
     path: '/lab/consumables',
     enabled: false,
   },
-  { id: 'reagents', label: 'Reagents', icon: FlaskConical, path: '/lab/reagents', enabled: false },
+  { id: 'reagents', label: 'Reagents', icon: Biohazard, path: '/lab/reagents', enabled: false },
 ];
 
 export function LabManagementPage() {

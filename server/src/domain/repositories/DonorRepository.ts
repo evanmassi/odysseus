@@ -40,4 +40,9 @@ export interface DonorRepository {
   saveCollectionHistory(entry: DonorCollectionHistory): Promise<void>;
   updateCollectionHistory(entry: DonorCollectionHistory): Promise<void>;
   deleteCollectionHistory(id: string): Promise<boolean>;
+
+  // Lookup value support
+
+  countCollectionEntriesUsingSpecimenType(value: string, labId: string): Promise<number>;
+  renameSpecimenType(oldValue: string, newValue: string, labId: string): Promise<number>;
 }

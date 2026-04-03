@@ -22,7 +22,7 @@ export const lookupValueSchema = z.object({
 });
 
 export const lookupValueWithCountSchema = lookupValueSchema.extend({
-  tubeCount: z.number().int().min(0),
+  usageCount: z.number().int().min(0),
 });
 
 export const createLookupValueRequestSchema = z.object({

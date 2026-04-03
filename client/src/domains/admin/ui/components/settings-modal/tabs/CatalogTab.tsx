@@ -33,12 +33,35 @@ import { adminService } from '../../../../services/AdminService';
 import type { LookupCategory, LookupValueWithCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
+const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
+  species: 'species',
+  source: 'source',
+  media: 'media type',
+  specimen_type: 'specimen',
+  equipment_maintenance_type: 'maintenance activity',
+};
+
 const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   species: 'species',
   source: 'sources',
   media: 'media types',
   specimen_type: 'specimens',
   equipment_maintenance_type: 'maintenance activities',
+};
+
+const CATEGORY_USAGE_LABELS: Record<
+  LookupCategory,
+  { header: string; singular: string; plural: string }
+> = {
+  species: { header: 'Tubes', singular: 'tube', plural: 'tubes' },
+  source: { header: 'Tubes', singular: 'tube', plural: 'tubes' },
+  media: { header: 'Tubes', singular: 'tube', plural: 'tubes' },
+  specimen_type: {
+    header: 'Collections',
+    singular: 'collection entry',
+    plural: 'collection entries',
+  },
+  equipment_maintenance_type: { header: 'Entries', singular: 'log entry', plural: 'log entries' },
 };
 
 interface CategorySectionProps {
@@ -115,8 +138,8 @@ function CategorySection({
       switch (sortConfig.columnId) {
         case 'value':
           return a.value.localeCompare(b.value) * dir;
-        case 'tubeCount':
-          return (a.tubeCount - b.tubeCount) * dir;
+        case 'usageCount':
+          return (a.usageCount - b.usageCount) * dir;
         default:
           return 0;
       }
@@ -149,18 +172,18 @@ function CategorySection({
       },
     },
     {
-      id: 'tubeCount',
-      header: 'Tubes',
+      id: 'usageCount',
+      header: CATEGORY_USAGE_LABELS[category].header,
       sortable: true,
       width: 80,
       render: (_, item) => {
         return (
           <Chip
             size="sm"
-            color={item.tubeCount > 0 ? 'primary' : 'default'}
-            className={item.tubeCount > 0 ? 'border border-action' : 'border border-border'}
+            color={item.usageCount > 0 ? 'primary' : 'default'}
+            className={item.usageCount > 0 ? 'border border-action' : 'border border-border'}
           >
-            {item.tubeCount}
+            {item.usageCount}
           </Chip>
         );
       },
@@ -170,7 +193,7 @@ function CategorySection({
       header: 'Actions',
       width: 100,
       render: (_, item) => {
-        const canDelete = item.tubeCount === 0;
+        const canDelete = item.usageCount === 0;
         if (editingId === item.id) {
           return (
             <div className="flex items-center gap-1">
@@ -214,7 +237,7 @@ function CategorySection({
               content={
                 canDelete
                   ? 'Delete'
-                  : `${item.tubeCount} tube${item.tubeCount === 1 ? '' : 's'} reference this ${category}`
+                  : `${item.usageCount} ${item.usageCount === 1 ? CATEGORY_USAGE_LABELS[category].singular : CATEGORY_USAGE_LABELS[category].plural} reference this`
               }
               side="bottom"
             >
@@ -251,7 +274,7 @@ function CategorySection({
             onKeyDown={e => {
               if (e.key === 'Enter' && !readOnly) void handleAdd();
             }}
-            placeholder={`Add new ${category}...`}
+            placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category] ?? category}...`}
             size="sm"
             disabled={readOnly}
           />
@@ -373,12 +396,12 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.lookups.byCategory(labId, category),
       });
-      setterForCategory[category](prev => [...prev, { ...created, tubeCount: 0 }]);
-      notifications.success(`Added "${value}" to ${category}`);
+      setterForCategory[category](prev => [...prev, { ...created, usageCount: 0 }]);
+      notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category] ?? category}`);
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to add ${category}`;
+        `Failed to add ${CATEGORY_SINGULAR_LABELS[category] ?? category}`;
       notifications.error(msg);
     }
   };
@@ -389,13 +412,13 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.all(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
       setterForCategory[category](prev =>
-        prev.map(item => (item.id === id ? { ...updated, tubeCount: item.tubeCount } : item))
+        prev.map(item => (item.id === id ? { ...updated, usageCount: item.usageCount } : item))
       );
       notifications.success(`Renamed to "${newValue}"`);
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to rename ${category}`;
+        `Failed to rename ${CATEGORY_SINGULAR_LABELS[category] ?? category}`;
       notifications.error(msg);
     }
   };
@@ -420,7 +443,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to delete ${confirmDialog.category}`;
+        `Failed to delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`;
       notifications.error(msg);
       setConfirmDialog(null);
     } finally {

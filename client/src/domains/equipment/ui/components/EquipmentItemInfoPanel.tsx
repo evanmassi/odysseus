@@ -125,7 +125,7 @@ export function EquipmentItemInfoPanel({
 
       <div className="bg-muted rounded-md px-3 py-2 mx-4 mb-3 flex-shrink-0 space-y-2">
         {isAdmin && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-center gap-1">
             <Button
               variant="ghost"
               size="sm"
@@ -154,7 +154,9 @@ export function EquipmentItemInfoPanel({
             </Button>
           </div>
         )}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div
+          className={`flex items-center gap-1.5 flex-wrap ${isAdmin ? 'pt-2 mt-2 border-t border-border' : ''}`}
+        >
           {item.location && (
             <Chip color="info" size="sm" leftIcon={<MapPin />}>
               {item.location}
