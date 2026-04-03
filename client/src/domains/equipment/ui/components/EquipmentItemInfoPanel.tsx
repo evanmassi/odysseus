@@ -16,7 +16,6 @@ import {
   ExternalLink,
   X,
   Wrench,
-  CircleCheckBig,
   MapPin,
   FolderOpen,
 } from 'lucide-react';
@@ -49,8 +48,8 @@ const STATUS_LABELS: Record<
   string,
   { color: 'success' | 'warning' | 'danger' | 'default'; label: string }
 > = {
-  operational: { color: 'success', label: 'Operational' },
-  maintenance: { color: 'warning', label: 'Maintenance' },
+  operational: { color: 'success', label: 'In Use' },
+  maintenance: { color: 'warning', label: 'Under Maintenance' },
   out_of_service: { color: 'danger', label: 'Out of Service' },
   decommissioned: { color: 'default', label: 'Decommissioned' },
 };
@@ -116,23 +115,14 @@ export function EquipmentItemInfoPanel({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="pb-2 flex-shrink-0 px-4 pt-4">
+      <div className="pb-2 flex-shrink-0 px-4">
         <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
           <Wrench size={16} className="text-secondary-foreground" />
           Equipment Information
         </h4>
       </div>
 
-      <div className="bg-muted rounded-md px-3 py-2 mx-4 mb-3 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2">
-          {item.status === 'operational' ? (
-            <CircleCheckBig size={18} className="text-success-text" />
-          ) : (
-            <Chip color={statusConfig.color} size="sm">
-              {statusConfig.label}
-            </Chip>
-          )}
-        </div>
+      <div className="bg-muted rounded-md px-3 py-2 mx-4 mb-3 flex-shrink-0 space-y-2">
         {isAdmin && (
           <div className="flex items-center gap-1">
             <Button
@@ -159,15 +149,20 @@ export function EquipmentItemInfoPanel({
               onClick={() => setShowDeleteConfirm(true)}
               leftIcon={<Trash2 className="w-3.5 h-3.5" />}
             >
-              Delete
+              Remove
             </Button>
           </div>
         )}
-      </div>
-
-      {/* Location & Category chips */}
-      {(item.location != null || categoryName != null) && (
-        <div className="flex items-center gap-1.5 px-4 mb-3 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {item.status === 'operational' ? (
+            <Chip color="success" size="sm">
+              In Use
+            </Chip>
+          ) : (
+            <Chip color={statusConfig.color} size="sm">
+              {statusConfig.label}
+            </Chip>
+          )}
           {item.location && (
             <Chip color="info" size="sm" leftIcon={<MapPin />}>
               {item.location}
@@ -179,33 +174,62 @@ export function EquipmentItemInfoPanel({
             </Chip>
           )}
         </div>
-      )}
+      </div>
 
       <ScrollArea className="flex-1 min-h-0 px-4 pb-4">
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Product Details */}
           <InfoGroup title="Product Details">
-            <div className="flex items-baseline gap-1.5 -mt-0.5 mb-2">
+            <div className="flex items-baseline gap-1.5 mb-2.5">
               <span className="text-card-foreground font-semibold text-sm">{item.name}</span>
             </div>
-            <InfoField label="Manufacturer" value={item.manufacturer} />
-            <InfoField label="Model" value={item.model} />
-            <InfoField label="Serial Number" value={item.serialNumber} />
-            <InfoField label="Asset Tag" value={item.assetTag} />
-            <InfoField label="Description" value={item.description} />
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <InfoField label="Manufacturer" value={item.manufacturer} inline={false} />
+              <InfoField label="Model" value={item.model} inline={false} />
+              <InfoField label="Serial Number" value={item.serialNumber} inline={false} />
+              <InfoField label="Asset Tag" value={item.assetTag} inline={false} />
+              <InfoField
+                label="Description"
+                value={item.description}
+                inline={false}
+                className="col-span-2"
+              />
+            </div>
           </InfoGroup>
 
           {/* Procurement & Warranty */}
           <InfoGroup title="Procurement & Warranty">
-            <InfoField label="Purchase Date" value={formatDate(item.purchaseDate)} />
-            <InfoField label="Purchase Cost" value={formatCurrency(item.purchaseCost)} />
-            <InfoField label="Warranty Expiration" value={formatDate(item.warrantyExpiration)} />
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <InfoField
+                label="Purchase Date"
+                value={formatDate(item.purchaseDate)}
+                inline={false}
+              />
+              <InfoField
+                label="Purchase Cost"
+                value={formatCurrency(item.purchaseCost)}
+                inline={false}
+              />
+              <InfoField
+                label="Warranty Expiration"
+                value={formatDate(item.warrantyExpiration)}
+                inline={false}
+              />
+            </div>
           </InfoGroup>
 
           {/* Maintenance */}
           <InfoGroup title="Maintenance">
-            {item.conditionNotes && <InfoField label="Condition" value={item.conditionNotes} />}
-            <InfoField label="Maintenance Due" value={formatDate(item.nextMaintenanceDate)} />
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              {item.conditionNotes && (
+                <InfoField label="Condition" value={item.conditionNotes} inline={false} />
+              )}
+              <InfoField
+                label="Maintenance Due"
+                value={formatDate(item.nextMaintenanceDate)}
+                inline={false}
+              />
+            </div>
             {maintenanceLog.length === 0 && (
               <p className="text-xs text-card-foreground/30 italic mt-2">No maintenance entries</p>
             )}
@@ -300,9 +324,11 @@ export function EquipmentItemInfoPanel({
           {/* Decommission Information */}
           {isDecommissioned && (
             <InfoGroup title="Decommission Information">
-              <InfoField label="Date" value={formatDate(item.decommissionDate)} />
-              <InfoField label="Reason" value={item.decommissionReason} />
-              <InfoField label="Disposal Method" value={item.disposalMethod} />
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                <InfoField label="Date" value={formatDate(item.decommissionDate)} inline={false} />
+                <InfoField label="Reason" value={item.decommissionReason} inline={false} />
+                <InfoField label="Disposal Method" value={item.disposalMethod} inline={false} />
+              </div>
             </InfoGroup>
           )}
         </div>
