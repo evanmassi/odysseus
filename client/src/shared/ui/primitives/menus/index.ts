@@ -5,6 +5,7 @@
  */
 
 export { DropdownMenu } from './DropdownMenu';
+export type { DropdownMenuProps } from './DropdownMenu';
 export { MenuItem } from './MenuItem';
 export { MenuDivider } from './MenuDivider';
 export { OverflowMenu } from './OverflowMenu';
