@@ -4,7 +4,7 @@
  * Top navigation bar with contextual tube action toolbar, search, and hamburger menu.
  */
 
-import { useState, lazy, useEffect, useRef, useCallback } from 'react';
+import { useState, lazy, useRef, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
@@ -27,6 +27,7 @@ import {
   BookUser,
   Wrench,
   ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -37,7 +38,7 @@ import { useStorageData } from '@domains/storage';
 import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
 import { useUserProfile } from '@domains/users/hooks/useUserProfile';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
-import { Button, DropdownMenu, MenuDivider, SuspenseBoundary, Tooltip } from '@shared/ui';
+import { Button, DropdownMenu, MenuDivider, MenuItem, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
@@ -170,7 +171,9 @@ export function AppHeader({
   const navigate = useNavigate();
   const isBiobankRoute = !location.pathname.startsWith('/lab');
   const [showSuiteDropdown, setShowSuiteDropdown] = useState(false);
-  const suiteDropdownRef = useRef<HTMLDivElement>(null);
+  const [showLabSubmenu, setShowLabSubmenu] = useState(false);
+  const suiteButtonRef = useRef<HTMLButtonElement>(null);
+  const labSubmenuTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const displayName = user
     ? getUserDisplayName(user.username, profile?.firstName, profile?.lastName)
@@ -178,18 +181,6 @@ export function AppHeader({
   const initials = user
     ? getUserInitials(user.username, profile?.firstName, profile?.lastName)
     : '';
-
-  // Close suite dropdown on outside click
-  useEffect(() => {
-    if (!showSuiteDropdown) return;
-    const handleClick = (e: MouseEvent) => {
-      if (suiteDropdownRef.current && !suiteDropdownRef.current.contains(e.target as Node)) {
-        setShowSuiteDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [showSuiteDropdown]);
 
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
   const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
@@ -217,11 +208,12 @@ export function AppHeader({
     <header className="bg-background px-4 h-full flex items-center">
       <div className="flex justify-between items-center w-full">
         {/* Far Left: Logo + Suite Selector */}
-        <div className="flex items-center gap-2" ref={suiteDropdownRef}>
+        <div className="flex items-center gap-2">
           <div className="relative">
             <button
+              ref={suiteButtonRef}
               type="button"
-              onClick={() => hasLab && setShowSuiteDropdown(!showSuiteDropdown)}
+              onClick={() => hasLab && setShowSuiteDropdown(prev => !prev)}
               className="flex items-center gap-1.5 group"
               aria-haspopup="menu"
               aria-expanded={showSuiteDropdown}
@@ -239,37 +231,69 @@ export function AppHeader({
               )}
             </button>
 
-            {showSuiteDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-lg shadow-lg py-1 z-50 min-w-[180px]">
-                <button
-                  type="button"
+            <DropdownMenu
+              isOpen={showSuiteDropdown}
+              onClose={() => {
+                setShowSuiteDropdown(false);
+                setShowLabSubmenu(false);
+              }}
+              triggerRef={suiteButtonRef}
+              align="start"
+              aria-label="Switch management suite"
+              className="min-w-[180px] mt-1 top-full"
+            >
+              <div className="px-1">
+                <MenuItem
+                  icon={FlaskConical}
+                  label="Biobank"
+                  isActive={isBiobankRoute}
                   onClick={() => {
                     void navigate('/');
                     setShowSuiteDropdown(false);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${isBiobankRoute ? 'bg-accent text-accent-foreground font-medium' : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'}`}
-                >
-                  <FlaskConical size={16} />
-                  Biobank
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    void navigate('/lab/equipment');
-                    setShowSuiteDropdown(false);
+                />
+
+                <div
+                  className="relative"
+                  onMouseEnter={() => {
+                    if (labSubmenuTimeoutRef.current) {
+                      clearTimeout(labSubmenuTimeoutRef.current);
+                      labSubmenuTimeoutRef.current = null;
+                    }
+                    setShowLabSubmenu(true);
                   }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${!isBiobankRoute ? 'bg-accent text-accent-foreground font-medium' : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                  onMouseLeave={() => {
+                    labSubmenuTimeoutRef.current = setTimeout(() => setShowLabSubmenu(false), 150);
+                  }}
                 >
-                  <Wrench size={16} />
-                  Equipment
-                </button>
+                  <MenuItem icon={Wrench} label="Lab Management" isActive={!isBiobankRoute}>
+                    <ChevronRight size={14} className="text-muted-foreground" />
+                  </MenuItem>
+
+                  {showLabSubmenu && (
+                    <div className="absolute left-[calc(100%+4px)] top-0 bg-popover rounded-lg shadow-lg border border-border py-1.5 min-w-[160px]">
+                      <div className="px-1">
+                        <MenuItem
+                          label="Equipment"
+                          onClick={() => {
+                            void navigate('/lab/equipment');
+                            setShowSuiteDropdown(false);
+                            setShowLabSubmenu(false);
+                          }}
+                        />
+                        <MenuItem label="Consumables" disabled />
+                        <MenuItem label="Reagents" disabled />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </DropdownMenu>
           </div>
 
           {hasLab && (
             <span className="text-xs text-muted-foreground font-medium">
-              {isBiobankRoute ? 'Biobank' : 'Equipment'}
+              {isBiobankRoute ? 'Biobank' : 'Lab Management'}
             </span>
           )}
         </div>
