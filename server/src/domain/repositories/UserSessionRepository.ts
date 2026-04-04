@@ -30,9 +30,9 @@ export interface UserSessionRepository {
 
   updateLastUsed(sessionId: string, timestamp: Date): Promise<boolean>;
 
-  // BATCH OPERATIONS
+  // BULK OPERATIONS
 
-  batchRevoke(sessionIds: string[]): Promise<number>;
+  bulkRevoke(sessionIds: string[]): Promise<number>;
 
   // SYSTEM-WIDE MONITORING
 

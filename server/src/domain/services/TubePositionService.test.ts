@@ -189,7 +189,7 @@ describe('TubePositionService', () => {
     });
   });
 
-  describe('validatePositionBatch', () => {
+  describe('validatePositionBulk', () => {
     const config = Storage.fromData({
       tanks: [{ id: 'T1', name: 'Tank 1', racks: [{ id: '1', name: 'R1', boxes: [{ name: 'A', gridConfig: { rows: 9, cols: 9 } }] }] }],
       systemSettings: { labName: 'Lab', defaultResearcher: '', autoSave: true, auditTrailEnabled: true, syncEnabled: false },
@@ -202,7 +202,7 @@ describe('TubePositionService', () => {
       ];
       const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
 
-      const results = createService().validatePositionBatch(positions, preloaded);
+      const results = createService().validatePositionBulk(positions, preloaded);
       expect(results.get(1)?.isValid).toBe(true);
       expect(results.get(2)?.isValid).toBe(true);
     });
@@ -211,7 +211,7 @@ describe('TubePositionService', () => {
       const positions = [{ tankId: 'T1', rackId: '1', boxId: 'A', position: 1 }];
       const preloaded = { config, occupiedPositions: new Set([1]), maxPosition: 81, tubesInBox: [] };
 
-      const results = createService().validatePositionBatch(positions, preloaded);
+      const results = createService().validatePositionBulk(positions, preloaded);
       expect(results.get(1)?.isValid).toBe(false);
       expect(results.get(1)?.reason).toContain('already occupied');
     });
@@ -220,26 +220,26 @@ describe('TubePositionService', () => {
       const positions = [{ tankId: 'T1', rackId: '1', boxId: 'A', position: 100 }];
       const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
 
-      const results = createService().validatePositionBatch(positions, preloaded);
+      const results = createService().validatePositionBulk(positions, preloaded);
       expect(results.get(100)?.isValid).toBe(false);
       expect(results.get(100)?.reason).toContain('exceeds box capacity');
     });
 
-    it('should detect duplicate positions within batch', () => {
+    it('should detect duplicate positions within bulk operation', () => {
       const positions = [
         { tankId: 'T1', rackId: '1', boxId: 'A', position: 1 },
         { tankId: 'T1', rackId: '1', boxId: 'A', position: 1 },
       ];
       const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
 
-      const results = createService().validatePositionBatch(positions, preloaded);
+      const results = createService().validatePositionBulk(positions, preloaded);
       const entries = [...results.entries()].filter(([pos]) => pos === 1);
       expect(entries.some(([_, r]) => r.reason?.includes('claimed by another tube'))).toBe(true);
     });
 
     it('should return empty map for empty input', () => {
       const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
-      const results = createService().validatePositionBatch([], preloaded);
+      const results = createService().validatePositionBulk([], preloaded);
       expect(results.size).toBe(0);
     });
   });

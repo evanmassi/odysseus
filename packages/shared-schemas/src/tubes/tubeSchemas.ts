@@ -215,7 +215,7 @@ export const tubeQueryFiltersSchema = z.object({
   offset: z.number().int().min(0).optional()
 });
 
-export const batchTubeOperationSchema = z.object({
+export const bulkTubeOperationSchema = z.object({
   action: z.enum(['create', 'update', 'delete']),
   tubes: z.union([
     z.array(createTubeRequestSchema),
@@ -253,7 +253,7 @@ export type TubeValidationResult = z.infer<typeof tubeValidationResultSchema>;
  */
 export type CreateTubeRequest = z.output<typeof createTubeRequestSchema>;
 export type UpdateTubeRequest = z.output<typeof updateTubeRequestSchema>;
-export type BatchTubeOperation = z.infer<typeof batchTubeOperationSchema>;
+export type BulkTubeOperation = z.infer<typeof bulkTubeOperationSchema>;
 
 /**
  * Form Input Types (input to preprocessing - raw form data)

@@ -1,7 +1,7 @@
 /**
  * Bulk Tube Editor
  *
- * Modal for batch-editing multiple tubes with conflict detection and partial updates.
+ * Modal for bulk-editing multiple tubes with conflict detection and partial updates.
  */
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -22,7 +22,7 @@ import {
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
 import { analyzeFieldConflict, TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useTubeFieldResolver';
-import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
+import { useBulkEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useBulkUpdateTubesMutation,
   useBulkDeleteTubesMutation,
@@ -60,7 +60,7 @@ export interface TubeBulkEditorModalProps {
   onClose: () => void;
 }
 
-interface BatchEditConflictAnalysis {
+interface BulkEditConflictAnalysis {
   cellType: FieldConflictAnalysis<string>;
   donorInternalId: FieldConflictAnalysis<string>;
   donorSourceId: FieldConflictAnalysis<string>;
@@ -169,7 +169,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       passageNumber: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.passageNumber),
       notes: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.notes),
       researcherId: analyzeFieldConflict(tubes, TUBE_FIELD_PATHS.researcherId),
-    } satisfies BatchEditConflictAnalysis;
+    } satisfies BulkEditConflictAnalysis;
 
     // Partial updates to concentration/unit pair corrupt data — treat as joint conflict
     if (
@@ -273,7 +273,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const [result, setResult] = useState<BulkUpdateResult | null>(null);
   const [dataReady, setDataReady] = useState(false);
 
-  const { form, isSubmitting: formSubmitting } = useBatchEditTubeForm({
+  const { form, isSubmitting: formSubmitting } = useBulkEditTubeForm({
     initialData: resolvedData,
   });
 
@@ -362,7 +362,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         notifications.error('Some tubes failed to update');
       }
     } catch (error) {
-      logger.error('Batch update error', { error });
+      logger.error('Bulk update error', { error });
       notifications.error('Failed to update tubes');
       setShowProgress(false);
     }
@@ -428,7 +428,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
     }
   };
 
-  const handleBatchDelete = async () => {
+  const handleBulkDelete = async () => {
     try {
       const firstTube = tubes[0];
       const deleteLocation = firstTube
@@ -463,7 +463,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         );
       }
     } catch (error) {
-      logger.error('Batch delete error', { error });
+      logger.error('Bulk delete error', { error });
       notifications.error('Failed to remove tubes');
     } finally {
       setShowDeleteConfirm(false);
@@ -570,7 +570,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         icon={<Edit className="w-5 h-5" />}
         onClose={onClose}
         size="md-lg"
-        dataAttribute="data-batch-edit-modal"
+        dataAttribute="data-bulk-edit-modal"
         contentClassName="p-5"
         footer={
           <div className="flex justify-end space-x-4">
@@ -587,7 +587,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
             </Button>
             <Button
               type="submit"
-              form="tube-batch-edit-form"
+              form="tube-bulk-edit-form"
               variant="primary"
               disabled={!canSubmit}
               isLoading={isSubmitting}
@@ -599,7 +599,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
           </div>
         }
       >
-        <form id="tube-batch-edit-form" onSubmit={handleSubmit} className="space-y-3">
+        <form id="tube-bulk-edit-form" onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-3">
             <TubeLocationDisplay
               tankName={tankName}
@@ -694,7 +694,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         title="Remove All Tubes"
         message={`Are you sure you want to remove all ${tubes.length} tubes? This action cannot be undone and will permanently remove all selected tubes from your inventory.`}
         confirmText={`Remove All ${tubes.length}`}
-        onConfirm={handleBatchDelete}
+        onConfirm={handleBulkDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         isLoading={isSubmitting}
       />

@@ -45,7 +45,7 @@ export function canModifyTube(
   return true;
 }
 
-export interface BatchModifyResult {
+export interface BulkModifyResult {
   canModifyAll: boolean;
   blockedCount: number;
   lockedCount: number;
@@ -72,7 +72,7 @@ function isBlockedByLock(
 }
 
 /**
- * Requires ALL tubes to be modifiable — prevents partial batch operations
+ * Requires ALL tubes to be modifiable — prevents partial bulk operations
  * that confuse users.
  */
 export function canModifyAllTubes(
@@ -80,7 +80,7 @@ export function canModifyAllTubes(
   currentUserId: string | undefined,
   isViewOnlySpace: boolean,
   isAdmin = false
-): BatchModifyResult {
+): BulkModifyResult {
   const modifiable: TubeData[] = [];
   const blocked: TubeData[] = [];
   let lockedCount = 0;
@@ -106,7 +106,7 @@ export function canModifyAllTubes(
 }
 
 /** Distinguishes between lock-based and container-based blocking */
-export function getBlockedModificationMessage(result: BatchModifyResult): string {
+export function getBlockedModificationMessage(result: BulkModifyResult): string {
   const { blockedCount, lockedCount } = result;
   const containerBlockedCount = blockedCount - lockedCount;
 

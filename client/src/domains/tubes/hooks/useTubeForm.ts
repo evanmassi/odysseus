@@ -1,7 +1,7 @@
 /**
  * Tube Form Hooks
  *
- * Generic factory with public wrappers for create, edit, and batch tube forms.
+ * Generic factory with public wrappers for create, edit, and bulk tube forms.
  */
 
 import { useCallback } from 'react';
@@ -249,7 +249,7 @@ export function useEditTubeForm(
   });
 }
 
-export function useBatchEditTubeForm(config?: {
+export function useBulkEditTubeForm(config?: {
   initialData?: Partial<UpdateTubeFormInput>;
   onSuccess?: (data: TubeData) => void;
   onError?: (error: Error) => void;
@@ -260,7 +260,7 @@ export function useBatchEditTubeForm(config?: {
 } {
   const base = useTubeForm<UpdateTubeFormInput, UpdateTubeRequest>(updateTubeRequestSchema, {
     mode: 'edit',
-    // No tubeId - batch operations handle tube IDs separately via mutations
+    // No tubeId - bulk operations handle tube IDs separately via mutations
     ...config,
   });
 
@@ -268,7 +268,7 @@ export function useBatchEditTubeForm(config?: {
     form: base.form,
     isSubmitting: base.isSubmitting,
     submitError: base.submitError,
-    // Note: submitTube not exposed - batch editor uses bulk mutations directly
+    // Note: submitTube not exposed - bulk editor uses bulk mutations directly
   };
 }
 

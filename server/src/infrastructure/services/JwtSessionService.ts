@@ -118,7 +118,7 @@ export class JwtSessionService implements SessionService {
         .map(session => session.id);
 
       if (sessionsToRevokeIds.length > 0) {
-        const revokedCount = await this.userSessionRepository.batchRevoke(sessionsToRevokeIds);
+        const revokedCount = await this.userSessionRepository.bulkRevoke(sessionsToRevokeIds);
         logger.info(`Revoked ${revokedCount} old sessions for user ${userId} (limit: ${maxSessions})`);
         return revokedCount;
       }

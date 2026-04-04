@@ -2,7 +2,7 @@
  * Tube Lock Domain Events
  *
  * Events related to tube locking and access sharing.
- * All events are batch-oriented for efficient socket and audit handling.
+ * All events are bulk-oriented for efficient socket and audit handling.
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';

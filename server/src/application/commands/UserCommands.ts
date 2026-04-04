@@ -237,7 +237,7 @@ export class ChangeUserPasswordCommandHandler {
         .map(s => s.id);
 
       if (otherSessionIds.length > 0) {
-        const revokedCount = await this.userSessionRepository.batchRevoke(otherSessionIds);
+        const revokedCount = await this.userSessionRepository.bulkRevoke(otherSessionIds);
         logger.info(`Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`);
       }
     }

@@ -282,7 +282,7 @@ export class TubePositionService {
     }
   }
 
-  validatePositionBatch(
+  validatePositionBulk(
     positions: Array<{ tankId: string; rackId: string; boxId: string; position: number }>,
     preloadedData: {
       config: Storage;
@@ -305,7 +305,7 @@ export class TubePositionService {
       return results;
     }
 
-    const claimedInBatch = new Set<number>();
+    const claimedInBulk = new Set<number>();
 
     for (const pos of positions) {
       if (pos.position > preloadedData.maxPosition) {
@@ -324,26 +324,26 @@ export class TubePositionService {
         continue;
       }
 
-      if (claimedInBatch.has(pos.position)) {
+      if (claimedInBulk.has(pos.position)) {
         results.set(pos.position, {
           isValid: false,
-          reason: `Position ${pos.position} is claimed by another tube in this batch`
+          reason: `Position ${pos.position} is claimed by another tube in this bulk operation`
         });
         continue;
       }
 
-      claimedInBatch.add(pos.position);
+      claimedInBulk.add(pos.position);
       results.set(pos.position, { isValid: true });
     }
 
-    const totalOccupied = preloadedData.occupiedPositions.size + claimedInBatch.size;
+    const totalOccupied = preloadedData.occupiedPositions.size + claimedInBulk.size;
     const occupancyRate = totalOccupied / preloadedData.maxPosition;
     if (occupancyRate > 0.9) {
       for (const [position, result] of results) {
         if (result.isValid) {
           results.set(position, {
             isValid: true,
-            reason: `Warning: Box ${boxId} will be ${Math.round(occupancyRate * 100)}% full after this batch`
+            reason: `Warning: Box ${boxId} will be ${Math.round(occupancyRate * 100)}% full after this bulk operation`
           });
         }
       }

@@ -1,7 +1,7 @@
 /**
  * Tube Lock and Access Operations
  *
- * Schemas for batch locking, unlocking, and shared access grant/revoke requests and results.
+ * Schemas for bulk locking, unlocking, and shared access grant/revoke requests and results.
  */
 
 import { z } from 'zod';
@@ -42,19 +42,19 @@ export const skippedTubeSchema = z.object({
 });
 
 /**
- * Batch lock result schema
+ * Bulk lock result schema
  * Supports partial success pattern
  */
-export const batchLockResultSchema = z.object({
+export const bulkLockResultSchema = z.object({
   locked: z.array(z.string()),
   skipped: z.array(skippedTubeSchema),
 });
 
 /**
- * Batch unlock result schema
+ * Bulk unlock result schema
  * Supports partial success pattern
  */
-export const batchUnlockResultSchema = z.object({
+export const bulkUnlockResultSchema = z.object({
   unlocked: z.array(z.string()),
   skipped: z.array(skippedTubeSchema),
 });
@@ -77,7 +77,7 @@ export type RevokeTubeAccessRequest = z.infer<typeof revokeTubeAccessRequestSche
 
 // Result types
 export type SkippedTube = z.infer<typeof skippedTubeSchema>;
-export type BatchLockResult = z.infer<typeof batchLockResultSchema>;
-export type BatchUnlockResult = z.infer<typeof batchUnlockResultSchema>;
+export type BulkLockResult = z.infer<typeof bulkLockResultSchema>;
+export type BulkUnlockResult = z.infer<typeof bulkUnlockResultSchema>;
 export type ShareAccessResult = z.infer<typeof shareAccessResultSchema>;
 export type RevokeAccessResult = z.infer<typeof revokeAccessResultSchema>;

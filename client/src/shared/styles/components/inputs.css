@@ -80,7 +80,7 @@
     transition: border-color 0.3s;
   }
 
-  /* Conflict state - for batch edit fields with mixed values */
+  /* Conflict state - for bulk edit fields with mixed values */
   .input-field-conflict {
     @apply border-2 border-warning-border;
   }

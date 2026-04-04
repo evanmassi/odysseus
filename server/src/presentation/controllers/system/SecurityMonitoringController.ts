@@ -147,7 +147,7 @@ export class SecurityMonitoringController extends BaseController {
       }
 
       const activeIds = sessions.map(s => s.id);
-      const revokedCount = await this.deps.userSessionRepository.batchRevoke(activeIds);
+      const revokedCount = await this.deps.userSessionRepository.bulkRevoke(activeIds);
 
       // Revoke associated refresh tokens
       for (const session of sessions) {

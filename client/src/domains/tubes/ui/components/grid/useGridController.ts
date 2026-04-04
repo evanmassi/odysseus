@@ -192,7 +192,7 @@ export const useGridController = ({
         });
       } else {
         modalService.showTubeEditorModal({
-          mode: 'batch',
+          mode: 'bulk',
           tubeIds: selectedTubeIds,
           preserveSelection: true,
         });

@@ -47,8 +47,8 @@ import type {
   UnlockTubesRequest,
   ShareTubeAccessRequest,
   RevokeTubeAccessRequest,
-  BatchLockResult,
-  BatchUnlockResult,
+  BulkLockResult,
+  BulkUnlockResult,
   ShareAccessResult,
   RevokeAccessResult,
   SkippedTube
@@ -241,7 +241,7 @@ export class TubeApplicationService {
         const boxInfo = config.getBox(tankId, rackId, boxId);
         const maxPosition = boxInfo?.box.maxPositions ?? 0;
 
-        const batchResults = this.tubePositionService.validatePositionBatch(
+        const bulkResults = this.tubePositionService.validatePositionBulk(
           group.map(g => ({
             tankId,
             rackId,
@@ -252,7 +252,7 @@ export class TubeApplicationService {
         );
 
         for (const { index, req } of group) {
-          const result = batchResults.get(req.location.position);
+          const result = bulkResults.get(req.location.position);
           if (result) {
             positionValidations.set(index, result);
           }
@@ -260,7 +260,7 @@ export class TubeApplicationService {
       }
     }
 
-    const { succeeded: created, failed } = await this.executeBatch(
+    const { succeeded: created, failed } = await this.executeBulk(
       requests,
       (req, index) => this.createTube(req, authenticatedUser, {
         config,
@@ -643,7 +643,7 @@ export class TubeApplicationService {
     const tubes = await this.tubeRepository.findByIds(tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
-    const { succeeded: updated, failed } = await this.executeBatch(
+    const { succeeded: updated, failed } = await this.executeBulk(
       request.updates,
       async (item) => {
         const preloadedTube = tubeMap.get(item.id);
@@ -872,7 +872,7 @@ export class TubeApplicationService {
   async lockTubes(
     request: LockTubesRequest,
     authenticatedUser: User
-  ): Promise<BatchLockResult> {
+  ): Promise<BulkLockResult> {
     const locked: string[] = [];
     const skipped: SkippedTube[] = [];
 
@@ -957,7 +957,7 @@ export class TubeApplicationService {
   async unlockTubes(
     request: UnlockTubesRequest,
     authenticatedUser: User
-  ): Promise<BatchUnlockResult> {
+  ): Promise<BulkUnlockResult> {
     const unlocked: string[] = [];
     const skipped: SkippedTube[] = [];
 
@@ -1179,7 +1179,7 @@ export class TubeApplicationService {
    * Execute an operation on each item, collecting successes and failures.
    * Shared scaffold for createTubes, bulkUpdateTubes, and bulkDeleteTubes.
    */
-  private async executeBatch<TItem, TSuccess, TFailure>(
+  private async executeBulk<TItem, TSuccess, TFailure>(
     items: TItem[],
     operation: (item: TItem, index: number) => Promise<TSuccess>,
     onFailure: (item: TItem, index: number, error: string) => TFailure

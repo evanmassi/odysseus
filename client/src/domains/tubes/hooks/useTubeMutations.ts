@@ -451,7 +451,7 @@ export const useBulkUpdateTubesMutation = (
         });
       }
 
-      // Invalidate bulk query so the batch editor refetches if still open
+      // Invalidate bulk query so the bulk editor refetches if still open
       void queryClient.invalidateQueries({
         queryKey: queryKeys.tubes.bulk(labId, variables.tubeIds),
       });

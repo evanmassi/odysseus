@@ -475,7 +475,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     };
   }, [parsedPositions, allTubes]);
 
-  const batchLocationDisplay = useMemo(() => {
+  const bulkLocationDisplay = useMemo(() => {
     if (parsedPositions.length === 0) return null;
 
     const firstLocation = parsedPositions[0].location;
@@ -536,7 +536,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     [parsedPositions]
   );
 
-  // Only show individual notifications for single tube creation, not batch operations
+  // Only show individual notifications for single tube creation, not bulk operations
   const isSingleTube = parsedPositions.length === 1;
   const { form, submitTube, isSubmitting } = useCreateTubeForm({
     initialData: defaultValues,
@@ -545,7 +545,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
           notifications.success(`Successfully created tube at position ${data.location.position}`);
           onClose();
         }
-      : undefined, // Batch mode: notification handled after all tubes are created
+      : undefined, // Bulk mode: notification handled after all tubes are created
     onError: isSingleTube
       ? error => {
           // Skip notification for offline errors - global handler already shows it
@@ -553,7 +553,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
             notifications.error(`Failed to create tube: ${error.message}`);
           }
         }
-      : undefined, // Batch mode: errors handled in handleFormSubmit
+      : undefined, // Bulk mode: errors handled in handleFormSubmit
   });
 
   // Reset form when modal opens to clear any stale data
@@ -587,7 +587,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
       let errorCount = 0;
       const errors: string[] = [];
 
-      // Batch create all empty positions in a single request
+      // Bulk create all empty positions in a single request
       if (positionAnalysis.emptyPositions.length > 0) {
         try {
           const createRequests: CreateTubeRequest[] = positionAnalysis.emptyPositions.map(
@@ -646,7 +646,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         const updateCount = positionAnalysis.occupiedPositions.length;
 
         // Build position range display for notification
-        const positionRange = batchLocationDisplay?.positionRanges ?? '';
+        const positionRange = bulkLocationDisplay?.positionRanges ?? '';
 
         if (createCount > 0 && updateCount > 0) {
           notifications.success(
@@ -736,12 +736,12 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
               position={parsedPositions[0].location.position}
             />
           )}
-          {parsedPositions.length > 1 && batchLocationDisplay && (
+          {parsedPositions.length > 1 && bulkLocationDisplay && (
             <TubeLocationDisplay
-              tankName={batchLocationDisplay.tankName}
-              rackName={batchLocationDisplay.rackName}
-              boxName={batchLocationDisplay.boxName}
-              positionLabel={batchLocationDisplay.positionRanges}
+              tankName={bulkLocationDisplay.tankName}
+              rackName={bulkLocationDisplay.rackName}
+              boxName={bulkLocationDisplay.boxName}
+              positionLabel={bulkLocationDisplay.positionRanges}
             />
           )}
 

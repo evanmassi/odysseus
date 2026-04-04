@@ -53,7 +53,7 @@ export function GettingStartedTab() {
         </div>
         <p className="text-xs text-muted-foreground">
           Click an empty position to add a tube. Double-click an existing tube to edit it, or
-          right-click for more options. Select multiple tubes to batch add or edit. You can also
+          right-click for more options. Select multiple tubes to bulk add or edit. You can also
           copy, cut, and paste tubes between positions. You can only add or edit tubes in boxes
           assigned to you or marked as common.
         </p>

@@ -163,9 +163,9 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
     return result.rowCount ?? 0;
   }
 
-  // Batch operations
+  // Bulk operations
 
-  async batchRevoke(tokenIds: string[]): Promise<number> {
+  async bulkRevoke(tokenIds: string[]): Promise<number> {
     if (tokenIds.length === 0) return 0;
 
     const placeholders = tokenIds.map((_, i) => `$${i + 1}`).join(',');
@@ -176,7 +176,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
     return result.rowCount ?? 0;
   }
 
-  async batchDelete(tokenIds: string[]): Promise<number> {
+  async bulkDelete(tokenIds: string[]): Promise<number> {
     if (tokenIds.length === 0) return 0;
 
     const placeholders = tokenIds.map((_, i) => `$${i + 1}`).join(',');

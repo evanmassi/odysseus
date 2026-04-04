@@ -1,7 +1,7 @@
 /**
  * Bulk Assignment CQRS Commands
  *
- * Batch operations for clearing or transferring user resource assignments.
+ * Bulk operations for clearing or transferring user resource assignments.
  */
 
 import type { EventBus } from '@application/contracts/EventBus';

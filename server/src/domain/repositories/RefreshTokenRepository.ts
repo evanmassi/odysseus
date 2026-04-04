@@ -44,10 +44,10 @@ export interface RefreshTokenRepository {
   /** Permanent deletion — should be called periodically by maintenance job. */
   cleanupExpiredTokens(olderThanDays?: number): Promise<number>;
 
-  // BATCH OPERATIONS
+  // BULK OPERATIONS
 
-  batchRevoke(tokenIds: string[]): Promise<number>;
-  batchDelete(tokenIds: string[]): Promise<number>;
+  bulkRevoke(tokenIds: string[]): Promise<number>;
+  bulkDelete(tokenIds: string[]): Promise<number>;
 
   // SYSTEM-WIDE MONITORING
 

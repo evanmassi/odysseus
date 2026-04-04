@@ -31,7 +31,7 @@ interface ValidatedInputProps {
   options?: Array<{ value: string; label: string }>;
   autoFocus?: boolean;
   badge?: React.ReactNode;
-  hasConflict?: boolean; // Applies amber highlight for conflicting values in batch edit
+  hasConflict?: boolean; // Applies amber highlight for conflicting values in bulk edit
   'aria-invalid'?: boolean;
   'data-testid'?: string;
 }

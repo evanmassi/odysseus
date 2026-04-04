@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
 
-/** Batch operations set preserveSelection to skip focus return, avoiding clearing grid selection. */
+/** Bulk operations set preserveSelection to skip focus return, avoiding clearing grid selection. */
 export function useTubeModalFocusReturn() {
   const modalService = useModalStore();
 

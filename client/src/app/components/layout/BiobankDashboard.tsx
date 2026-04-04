@@ -571,7 +571,7 @@ function BiobankWorkspace() {
       )}
 
       {modalService.tubeEditorModal.isOpen &&
-        modalService.tubeEditorModal.mode === 'batch' &&
+        modalService.tubeEditorModal.mode === 'bulk' &&
         (modalService.tubeEditorModal.tubeIds ?? []).length > 0 && (
           <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeBulkEditorModal">
             <TubeBulkEditorModal

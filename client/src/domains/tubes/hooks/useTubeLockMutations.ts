@@ -16,15 +16,15 @@ import type {
   UnlockTubesRequest,
   ShareTubeAccessRequest,
   RevokeTubeAccessRequest,
-  BatchLockResult,
-  BatchUnlockResult,
+  BulkLockResult,
+  BulkUnlockResult,
   ShareAccessResult,
   RevokeAccessResult,
 } from '@odysseus/shared-schemas';
 
 /** Partial success pattern — returns locked tubeIds and skipped tubes with reasons. */
 export const useLockTubesMutation = (
-  options: UseMutationOptions<BatchLockResult, Error, LockTubesRequest> = {}
+  options: UseMutationOptions<BulkLockResult, Error, LockTubesRequest> = {}
 ) => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -48,7 +48,7 @@ export const useLockTubesMutation = (
 
 /** Partial success pattern — returns unlocked tubeIds and skipped tubes with reasons. */
 export const useUnlockTubesMutation = (
-  options: UseMutationOptions<BatchUnlockResult, Error, UnlockTubesRequest> = {}
+  options: UseMutationOptions<BulkUnlockResult, Error, UnlockTubesRequest> = {}
 ) => {
   const queryClient = useQueryClient();
   const labId = useLabId();

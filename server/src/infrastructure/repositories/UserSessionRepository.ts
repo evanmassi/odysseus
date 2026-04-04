@@ -132,9 +132,9 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  // BATCH OPERATIONS
+  // BULK OPERATIONS
 
-  async batchRevoke(sessionIds: string[]): Promise<number> {
+  async bulkRevoke(sessionIds: string[]): Promise<number> {
     if (sessionIds.length === 0) return 0;
 
     const placeholders = sessionIds.map((_, i) => `$${i + 1}`).join(',');

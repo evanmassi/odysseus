@@ -13,8 +13,8 @@ import {
   type UnlockTubesRequest,
   type ShareTubeAccessRequest,
   type RevokeTubeAccessRequest,
-  type BatchLockResult,
-  type BatchUnlockResult,
+  type BulkLockResult,
+  type BulkUnlockResult,
   type ShareAccessResult,
   type RevokeAccessResult,
   type BulkDeleteResponse,
@@ -23,8 +23,8 @@ import {
   tubeDataSchema,
   createTubeRequestSchema,
   updateTubeRequestSchema,
-  batchLockResultSchema,
-  batchUnlockResultSchema,
+  bulkLockResultSchema,
+  bulkUnlockResultSchema,
   shareAccessResultSchema,
   revokeAccessResultSchema,
   bulkDeleteResponseSchema,
@@ -156,12 +156,12 @@ export class TubeService {
 
   // Tube locking
 
-  static async lockTubes(request: LockTubesRequest): Promise<BatchLockResult> {
-    return await httpClient.postData(`${this.BASE_PATH}/lock`, request, batchLockResultSchema);
+  static async lockTubes(request: LockTubesRequest): Promise<BulkLockResult> {
+    return await httpClient.postData(`${this.BASE_PATH}/lock`, request, bulkLockResultSchema);
   }
 
-  static async unlockTubes(request: UnlockTubesRequest): Promise<BatchUnlockResult> {
-    return await httpClient.postData(`${this.BASE_PATH}/unlock`, request, batchUnlockResultSchema);
+  static async unlockTubes(request: UnlockTubesRequest): Promise<BulkUnlockResult> {
+    return await httpClient.postData(`${this.BASE_PATH}/unlock`, request, bulkUnlockResultSchema);
   }
 
   static async shareTubeAccess(request: ShareTubeAccessRequest): Promise<ShareAccessResult> {

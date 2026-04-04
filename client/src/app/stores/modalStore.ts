@@ -31,14 +31,14 @@ interface UnsavedConfirmState {
 
 interface TubeEditorModalState {
   isOpen: boolean;
-  mode: 'add' | 'edit' | 'batch';
+  mode: 'add' | 'edit' | 'bulk';
   tubeId?: string; // Single edit mode - tube ID only
-  tubeIds?: string[]; // Batch edit mode - tube IDs only
+  tubeIds?: string[]; // Bulk edit mode - tube IDs only
   positions?: PositionKey[]; // Add mode - position keys
   rackId?: string;
   boxId?: string;
   previousFocusElement?: HTMLElement | null;
-  preserveSelection?: boolean; // Don't restore focus to specific position (for batch operations)
+  preserveSelection?: boolean; // Don't restore focus to specific position (for bulk operations)
 }
 
 interface LockTubesModalState {
@@ -94,13 +94,13 @@ interface ModalActions {
   hideUnsavedConfirm: () => void;
 
   showTubeEditorModal: (config: {
-    mode: 'add' | 'edit' | 'batch';
+    mode: 'add' | 'edit' | 'bulk';
     tubeId?: string; // Single edit mode
-    tubeIds?: string[]; // Batch edit mode
+    tubeIds?: string[]; // Bulk edit mode
     positions?: PositionKey[]; // Add mode
     rackId?: string;
     boxId?: string;
-    preserveSelection?: boolean; // Don't restore focus to specific position (for batch operations)
+    preserveSelection?: boolean; // Don't restore focus to specific position (for bulk operations)
   }) => void;
   hideTubeEditorModal: () => void;
 
@@ -231,7 +231,7 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   // Tube modal actions
   showTubeEditorModal: config => {
     // Capture focus BEFORE modal opens (before React renders)
-    // For batch operations with preserveSelection, don't capture focus element
+    // For bulk operations with preserveSelection, don't capture focus element
     const previousFocusElement = config.preserveSelection
       ? null
       : (document.activeElement as HTMLElement);

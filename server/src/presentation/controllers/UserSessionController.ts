@@ -93,7 +93,7 @@ export class UserSessionController extends BaseController {
         .filter(s => s.id !== currentSessionId)
         .map(s => s.id);
 
-      const revokedCount = await this.deps.userSessionRepository.batchRevoke(otherSessionIds);
+      const revokedCount = await this.deps.userSessionRepository.bulkRevoke(otherSessionIds);
 
       logger.debug('All other sessions revoked', { userId: user.id, revokedCount, requestId: req.requestId });
 
