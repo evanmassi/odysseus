@@ -27,6 +27,9 @@ import {
   createEquipmentDocumentRequestSchema,
   createEquipmentMaintenanceLogRequestSchema,
   updateEquipmentMaintenanceLogRequestSchema,
+  equipmentBulkMaintenanceRequestSchema,
+  equipmentBulkStatusRequestSchema,
+  equipmentBulkRelocateRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -169,6 +172,9 @@ export const DecommissionEquipmentItemHttpSchema = decommissionEquipmentItemRequ
 export const CreateEquipmentDocumentHttpSchema = createEquipmentDocumentRequestSchema;
 export const CreateEquipmentMaintenanceLogHttpSchema = createEquipmentMaintenanceLogRequestSchema;
 export const UpdateEquipmentMaintenanceLogHttpSchema = updateEquipmentMaintenanceLogRequestSchema;
+export const EquipmentBulkMaintenanceHttpSchema = equipmentBulkMaintenanceRequestSchema;
+export const EquipmentBulkStatusHttpSchema = equipmentBulkStatusRequestSchema;
+export const EquipmentBulkRelocateHttpSchema = equipmentBulkRelocateRequestSchema;
 
 // Search schemas
 

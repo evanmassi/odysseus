@@ -21,6 +21,9 @@ import {
   CreateEquipmentDocumentHttpSchema,
   CreateEquipmentMaintenanceLogHttpSchema,
   UpdateEquipmentMaintenanceLogHttpSchema,
+  EquipmentBulkMaintenanceHttpSchema,
+  EquipmentBulkStatusHttpSchema,
+  EquipmentBulkRelocateHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -64,6 +67,23 @@ export class EquipmentRouteModule implements RouteModule {
     router.delete('/categories/:categoryId',
       validateParams(EquipmentCategoryIdParams),
       this.equipmentController.deleteCategory.bind(this.equipmentController)
+    );
+
+    // Bulk operations — registered before /:id to avoid "bulk" matching as an ID
+
+    router.post('/bulk/maintenance',
+      validateBody(EquipmentBulkMaintenanceHttpSchema),
+      this.equipmentController.bulkLogMaintenance.bind(this.equipmentController)
+    );
+
+    router.post('/bulk/status',
+      validateBody(EquipmentBulkStatusHttpSchema),
+      this.equipmentController.bulkChangeStatus.bind(this.equipmentController)
+    );
+
+    router.post('/bulk/relocate',
+      validateBody(EquipmentBulkRelocateHttpSchema),
+      this.equipmentController.bulkRelocate.bind(this.equipmentController)
     );
 
     // Items

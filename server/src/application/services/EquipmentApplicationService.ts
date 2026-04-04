@@ -42,6 +42,7 @@ import type {
   CreateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
+  EquipmentStatus,
 } from '@odysseus/shared-schemas';
 
 export class EquipmentApplicationService {
@@ -454,7 +455,87 @@ export class EquipmentApplicationService {
     }
   }
 
+  // Bulk operations
+
+  async bulkLogMaintenance(
+    labId: string,
+    itemIds: string[],
+    data: CreateEquipmentMaintenanceLogRequest,
+    user: User
+  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+    await this.accessControlService.requireAdminAccess(user);
+
+    return this.executeBulk(
+      itemIds,
+      async (itemId) => {
+        await this.addMaintenanceEntry(labId, itemId, data, user);
+        return itemId;
+      },
+      (itemId, _index, error) => ({ id: itemId, error })
+    );
+  }
+
+  async bulkChangeStatus(
+    labId: string,
+    itemIds: string[],
+    data: { status: EquipmentStatus; conditionNotes?: string },
+    user: User
+  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+    await this.accessControlService.requireAdminAccess(user);
+
+    return this.executeBulk(
+      itemIds,
+      async (itemId) => {
+        await this.updateItem(labId, itemId, { status: data.status, conditionNotes: data.conditionNotes }, user);
+        return itemId;
+      },
+      (itemId, _index, error) => ({ id: itemId, error })
+    );
+  }
+
+  async bulkRelocate(
+    labId: string,
+    itemIds: string[],
+    data: { categoryId: string },
+    user: User
+  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+    await this.accessControlService.requireAdminAccess(user);
+
+    const category = await this.categoryRepository.findById(data.categoryId, labId);
+    if (!category) {
+      throw new NotFoundError('Target category not found');
+    }
+
+    return this.executeBulk(
+      itemIds,
+      async (itemId) => {
+        await this.updateItem(labId, itemId, { categoryId: data.categoryId }, user);
+        return itemId;
+      },
+      (itemId, _index, error) => ({ id: itemId, error })
+    );
+  }
+
   // Helpers
+
+  private async executeBulk<TItem, TSuccess, TFailure>(
+    items: TItem[],
+    operation: (item: TItem, index: number) => Promise<TSuccess>,
+    onFailure: (item: TItem, index: number, error: string) => TFailure
+  ): Promise<{ succeeded: TSuccess[]; failed: TFailure[] }> {
+    const succeeded: TSuccess[] = [];
+    const failed: TFailure[] = [];
+
+    for (let i = 0; i < items.length; i++) {
+      try {
+        succeeded.push(await operation(items[i], i));
+      } catch (error) {
+        failed.push(onFailure(items[i], i, error instanceof Error ? error.message : 'Unknown error'));
+      }
+    }
+
+    return { succeeded, failed };
+  }
 
   private async getItemOrThrow(id: string, labId: string): Promise<EquipmentItem> {
     const item = await this.itemRepository.findById(id, labId);

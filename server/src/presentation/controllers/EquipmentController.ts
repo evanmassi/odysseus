@@ -165,6 +165,47 @@ export class EquipmentController extends BaseController {
     }
   }
 
+  // Bulk operations
+
+  async bulkLogMaintenance(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const { itemIds, data } = req.body;
+      const result = await this.deps.equipmentApplicationService.bulkLogMaintenance(labId, itemIds, data, user);
+      const status = result.failed.length > 0 ? 207 : 201;
+      res.status(status).json(ResponseBuilder.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to bulk log maintenance', req.requestId);
+    }
+  }
+
+  async bulkChangeStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const { itemIds, data } = req.body;
+      const result = await this.deps.equipmentApplicationService.bulkChangeStatus(labId, itemIds, data, user);
+      const status = result.failed.length > 0 ? 207 : 201;
+      res.status(status).json(ResponseBuilder.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to bulk change status', req.requestId);
+    }
+  }
+
+  async bulkRelocate(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const { itemIds, data } = req.body;
+      const result = await this.deps.equipmentApplicationService.bulkRelocate(labId, itemIds, data, user);
+      const status = result.failed.length > 0 ? 207 : 201;
+      res.status(status).json(ResponseBuilder.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to bulk relocate equipment', req.requestId);
+    }
+  }
+
   // Maintenance log
 
   async getMaintenanceLog(req: Request, res: Response): Promise<void> {
