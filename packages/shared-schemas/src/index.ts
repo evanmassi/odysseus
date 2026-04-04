@@ -480,7 +480,14 @@ export {
   updateEquipmentMaintenanceLogRequestSchema,
   equipmentMaintenanceLogEntryResponseSchema,
   equipmentMaintenanceLogListResponseSchema,
+  equipmentBulkMaintenanceRequestSchema,
+  equipmentBulkStatusValues,
+  equipmentBulkStatusSchema,
+  equipmentBulkStatusRequestSchema,
+  equipmentBulkRelocateRequestSchema,
+  equipmentBulkResponseSchema,
   type EquipmentStatus,
+  type EquipmentBulkStatus,
   type EquipmentCategory,
   type EquipmentItem,
   type EquipmentDocument,
@@ -494,6 +501,10 @@ export {
   type CreateEquipmentDocumentRequest,
   type CreateEquipmentMaintenanceLogRequest,
   type UpdateEquipmentMaintenanceLogRequest,
+  type EquipmentBulkMaintenanceRequest,
+  type EquipmentBulkStatusRequest,
+  type EquipmentBulkRelocateRequest,
+  type EquipmentBulkResponse,
 } from './equipment';
 
 // Persons

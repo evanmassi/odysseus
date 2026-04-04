@@ -208,9 +208,46 @@ export const equipmentItemDetailResponseSchema = z.object({
   maintenanceLog: z.array(equipmentMaintenanceLogSchema),
 });
 
+// Bulk operation schemas
+
+const itemIdsField = z.array(z.string().min(1)).min(1, 'At least one item is required').max(100);
+
+export const equipmentBulkMaintenanceRequestSchema = z.object({
+  itemIds: itemIdsField,
+  data: createEquipmentMaintenanceLogRequestSchema,
+});
+
+export const equipmentBulkStatusValues = equipmentStatusValues.filter(
+  (s): s is Exclude<(typeof equipmentStatusValues)[number], 'decommissioned'> => s !== 'decommissioned'
+);
+export const equipmentBulkStatusSchema = z.enum(
+  equipmentBulkStatusValues as unknown as [string, ...string[]]
+);
+
+export const equipmentBulkStatusRequestSchema = z.object({
+  itemIds: itemIdsField,
+  data: z.object({
+    status: equipmentBulkStatusSchema,
+    conditionNotes: z.string().max(2000).optional(),
+  }),
+});
+
+export const equipmentBulkRelocateRequestSchema = z.object({
+  itemIds: itemIdsField,
+  data: z.object({
+    categoryId: z.string().min(1, 'Target category is required'),
+  }),
+});
+
+export const equipmentBulkResponseSchema = z.object({
+  succeeded: z.array(z.string()),
+  failed: z.array(z.object({ id: z.string(), error: z.string() })),
+});
+
 // Type exports
 
 export type EquipmentStatus = z.infer<typeof equipmentStatusSchema>;
+export type EquipmentBulkStatus = z.infer<typeof equipmentBulkStatusSchema>;
 export type EquipmentCategory = z.infer<typeof equipmentCategorySchema>;
 export type EquipmentItem = z.infer<typeof equipmentItemSchema>;
 export type EquipmentDocument = z.infer<typeof equipmentDocumentSchema>;
@@ -224,3 +261,7 @@ export type DecommissionEquipmentItemRequest = z.infer<typeof decommissionEquipm
 export type CreateEquipmentDocumentRequest = z.infer<typeof createEquipmentDocumentRequestSchema>;
 export type CreateEquipmentMaintenanceLogRequest = z.infer<typeof createEquipmentMaintenanceLogRequestSchema>;
 export type UpdateEquipmentMaintenanceLogRequest = z.infer<typeof updateEquipmentMaintenanceLogRequestSchema>;
+export type EquipmentBulkMaintenanceRequest = z.infer<typeof equipmentBulkMaintenanceRequestSchema>;
+export type EquipmentBulkStatusRequest = z.infer<typeof equipmentBulkStatusRequestSchema>;
+export type EquipmentBulkRelocateRequest = z.infer<typeof equipmentBulkRelocateRequestSchema>;
+export type EquipmentBulkResponse = z.infer<typeof equipmentBulkResponseSchema>;
