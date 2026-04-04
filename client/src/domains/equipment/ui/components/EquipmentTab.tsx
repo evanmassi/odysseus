@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Plus, Search, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
+import { Layers, Plus, Search, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
@@ -21,6 +21,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
+import { EquipmentBatchUpdateModal } from './EquipmentBatchUpdateModal';
 import { EquipmentCategoryModal } from './EquipmentCategoryModal';
 import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
 import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
@@ -60,6 +61,7 @@ export function EquipmentTab() {
   const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDecommissioned, setShowDecommissioned] = useState(false);
@@ -201,14 +203,25 @@ export function EquipmentTab() {
             />
           </div>
           {isAdmin && (
-            <Button
-              size="sm"
-              onClick={handleAddEquipment}
-              className="h-8"
-              leftIcon={<Plus className="w-3.5 h-3.5" />}
-            >
-              Add Equipment
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsBatchModalOpen(true)}
+                className="h-8"
+                leftIcon={<Layers className="w-3.5 h-3.5" />}
+              >
+                Batch Update
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleAddEquipment}
+                className="h-8"
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+              >
+                Add Equipment
+              </Button>
+            </div>
           )}
         </div>
 
@@ -348,6 +361,13 @@ export function EquipmentTab() {
         confirmText="Remove"
         onConfirm={() => void executeDeleteCategory()}
         onCancel={() => setDeleteConfirm({ isOpen: false })}
+      />
+
+      <EquipmentBatchUpdateModal
+        isOpen={isBatchModalOpen}
+        onClose={() => setIsBatchModalOpen(false)}
+        items={items}
+        categories={categories}
       />
     </div>
   );
