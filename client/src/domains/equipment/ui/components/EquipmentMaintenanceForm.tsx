@@ -131,6 +131,7 @@ export function EquipmentMaintenanceForm({
 
           <ValidatedInput
             label="Performed By (Vendor/Service)"
+            placeholder="e.g., TSS, In-house"
             error={!!errors.performedBy}
             helperText={errors.performedBy?.message}
             registration={register('performedBy')}
@@ -138,25 +139,18 @@ export function EquipmentMaintenanceForm({
 
           <ValidatedInput
             label="Technician"
+            placeholder="e.g., John Smith"
             error={!!errors.technician}
             helperText={errors.technician?.message}
             registration={register('technician')}
           />
 
-          <div>
-            <label
-              htmlFor="maint-description"
-              className="text-xs font-medium text-secondary-foreground mb-1 block"
-            >
-              Description
-            </label>
-            <textarea
-              id="maint-description"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              rows={3}
-              {...register('description')}
-            />
-          </div>
+          <ValidatedInput
+            label="Description"
+            type="textarea"
+            placeholder="Work performed, parts replaced, etc."
+            registration={register('description')}
+          />
 
           <Controller
             name="nextScheduledDate"
@@ -179,7 +173,7 @@ export function EquipmentMaintenanceForm({
           />
 
           <ValidatedInput
-            label="Cost"
+            label="Cost ($)"
             type="number"
             step="0.01"
             error={!!errors.cost}
@@ -189,20 +183,12 @@ export function EquipmentMaintenanceForm({
             })}
           />
 
-          <div>
-            <label
-              htmlFor="maint-notes"
-              className="text-xs font-medium text-secondary-foreground mb-1 block"
-            >
-              Notes
-            </label>
-            <textarea
-              id="maint-notes"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              rows={2}
-              {...register('notes')}
-            />
-          </div>
+          <ValidatedInput
+            label="Notes"
+            type="textarea"
+            placeholder="Additional notes and observations..."
+            registration={register('notes')}
+          />
         </div>
 
         <div className="flex items-center gap-2 pt-2">

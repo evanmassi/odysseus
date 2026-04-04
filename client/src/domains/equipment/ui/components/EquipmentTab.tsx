@@ -21,7 +21,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
-import { EquipmentBatchUpdateModal } from './EquipmentBatchUpdateModal';
+import { EquipmentBulkUpdateModal } from './EquipmentBulkUpdateModal';
 import { EquipmentCategoryModal } from './EquipmentCategoryModal';
 import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
 import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
@@ -61,7 +61,7 @@ export function EquipmentTab() {
   const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
-  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDecommissioned, setShowDecommissioned] = useState(false);
@@ -191,7 +191,7 @@ export function EquipmentTab() {
       {/* Left Panel: Category Browser */}
       <div className="w-[60%] min-w-0 flex flex-col">
         {/* Row 1: Search + Add Equipment */}
-        <div className="flex items-center justify-between mb-2 flex-shrink-0 px-0.5">
+        <div className="flex items-center justify-between gap-4 mb-2 flex-shrink-0 px-0.5">
           <div className="relative w-96">
             <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
             <input
@@ -207,11 +207,11 @@ export function EquipmentTab() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => setIsBatchModalOpen(true)}
+                onClick={() => setIsBulkModalOpen(true)}
                 className="h-8"
                 leftIcon={<Layers className="w-3.5 h-3.5" />}
               >
-                Batch Update
+                Bulk Update
               </Button>
               <Button
                 size="sm"
@@ -363,9 +363,9 @@ export function EquipmentTab() {
         onCancel={() => setDeleteConfirm({ isOpen: false })}
       />
 
-      <EquipmentBatchUpdateModal
-        isOpen={isBatchModalOpen}
-        onClose={() => setIsBatchModalOpen(false)}
+      <EquipmentBulkUpdateModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
         items={items}
         categories={categories}
       />

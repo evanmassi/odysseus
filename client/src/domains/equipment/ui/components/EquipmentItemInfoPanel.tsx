@@ -249,6 +249,7 @@ export function EquipmentItemInfoPanel({
               />
             </div>
             <EquipmentMaintenanceTimeline
+              className="mt-3 pt-3 border-t border-border/50"
               maintenanceLog={maintenanceLog}
               itemId={itemId}
               isAdmin={isAdmin}

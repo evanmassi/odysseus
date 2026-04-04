@@ -1,11 +1,11 @@
 /**
- * Equipment Batch Update Modal
+ * Equipment Bulk Update Modal
  *
  * Multi-select equipment items across categories and apply a bulk action:
  * log maintenance, change status, or relocate to a different category.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -35,9 +35,9 @@ import type {
 import type { SelectOption } from '@shared/ui';
 import type { FieldValues } from 'react-hook-form';
 
-type BatchActionType = 'maintenance' | 'status' | 'relocate';
+type BulkActionType = 'maintenance' | 'status' | 'relocate';
 
-interface EquipmentBatchUpdateModalProps {
+interface EquipmentBulkUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: EquipmentItem[];
@@ -145,35 +145,34 @@ function ItemSelector({
     [selectedIds, onSelectionChange]
   );
 
+  const selectedCount = allSelectableIds.filter(id => selectedIds.has(id)).length;
+
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex items-center justify-between mb-2 flex-shrink-0">
-        <span className="text-xs font-medium text-secondary-foreground">Equipment</span>
-        <button type="button" onClick={toggleAll} className="text-xs text-primary hover:underline">
-          {allSelected ? 'Deselect All' : 'Select All'}
-        </button>
-      </div>
-      <div className="flex items-center gap-2 mb-2 flex-shrink-0">
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50 flex-shrink-0">
         <Checkbox
           checked={allSelected}
           indeterminate={someSelected && !allSelected}
           onChange={toggleAll}
           aria-label="Select all equipment"
         />
-        <span className="text-sm text-card-foreground">
-          All Equipment ({allSelectableIds.length})
+        <span className="text-sm font-medium text-card-foreground flex-1">All Equipment</span>
+        <span className="text-xs text-muted-foreground">
+          {selectedCount}/{allSelectableIds.length}
         </span>
       </div>
       <ScrollArea className="flex-1 min-h-0">
-        <div className="space-y-1 pr-2">
+        <div className="space-y-2 pr-2">
           {groups.map(group => {
             const groupIds = getAllItemIds(group);
             const groupAllChecked = groupIds.every(id => selectedIds.has(id));
             const groupSomeChecked = groupIds.some(id => selectedIds.has(id));
+            const hasChildren =
+              group.items.length > 0 || group.subcategories.some(s => s.items.length > 0);
 
             return (
               <div key={group.category.id}>
-                <div className="flex items-center gap-2 py-1">
+                <div className="flex items-center gap-2 py-1 px-1 rounded hover:bg-accent/30 transition-colors">
                   <Checkbox
                     checked={groupAllChecked}
                     indeterminate={groupSomeChecked && !groupAllChecked}
@@ -183,53 +182,88 @@ function ItemSelector({
                   <span className="text-sm font-medium text-card-foreground">
                     {group.category.name}
                   </span>
+                  <span className="text-xs text-muted-foreground ml-auto">{groupIds.length}</span>
                 </div>
 
-                {group.items.map(item => (
-                  <div key={item.id} className="flex items-center gap-2 py-0.5 pl-6">
-                    <Checkbox
-                      checked={selectedIds.has(item.id)}
-                      onChange={() => toggleItem(item.id)}
-                      aria-label={`Select ${item.name}`}
-                    />
-                    <span className="text-sm text-card-foreground/80 truncate">{item.name}</span>
-                  </div>
-                ))}
-
-                {group.subcategories.map(sub => {
-                  if (sub.items.length === 0) return null;
-                  const subIds = sub.items.map(i => i.id);
-                  const subAllChecked = subIds.every(id => selectedIds.has(id));
-                  const subSomeChecked = subIds.some(id => selectedIds.has(id));
-
-                  return (
-                    <div key={sub.category.id} className="pl-4">
-                      <div className="flex items-center gap-2 py-1">
+                {hasChildren && (
+                  <div className="ml-3 border-l border-muted-foreground/30">
+                    {group.items.map(item => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors relative"
+                      >
+                        <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
                         <Checkbox
-                          checked={subAllChecked}
-                          indeterminate={subSomeChecked && !subAllChecked}
-                          onChange={() => toggleCategory(subIds)}
-                          aria-label={`Select all in ${sub.category.name}`}
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleItem(item.id)}
+                          aria-label={`Select ${item.name}`}
                         />
-                        <span className="text-sm font-medium text-card-foreground/80">
-                          {sub.category.name}
-                        </span>
-                      </div>
-                      {sub.items.map(item => (
-                        <div key={item.id} className="flex items-center gap-2 py-0.5 pl-6">
-                          <Checkbox
-                            checked={selectedIds.has(item.id)}
-                            onChange={() => toggleItem(item.id)}
-                            aria-label={`Select ${item.name}`}
-                          />
-                          <span className="text-sm text-card-foreground/80 truncate">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-sm text-card-foreground/80 truncate block">
                             {item.name}
                           </span>
+                          {item.manufacturer && (
+                            <span className="text-xs text-muted-foreground truncate block">
+                              {item.manufacturer}
+                            </span>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  );
-                })}
+                      </div>
+                    ))}
+
+                    {group.subcategories.map(sub => {
+                      if (sub.items.length === 0) return null;
+                      const subIds = sub.items.map(i => i.id);
+                      const subAllChecked = subIds.every(id => selectedIds.has(id));
+                      const subSomeChecked = subIds.some(id => selectedIds.has(id));
+
+                      return (
+                        <div key={sub.category.id}>
+                          <div className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors">
+                            <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
+                            <Checkbox
+                              checked={subAllChecked}
+                              indeterminate={subSomeChecked && !subAllChecked}
+                              onChange={() => toggleCategory(subIds)}
+                              aria-label={`Select all in ${sub.category.name}`}
+                            />
+                            <span className="text-sm font-medium text-card-foreground/80">
+                              {sub.category.name}
+                            </span>
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {subIds.length}
+                            </span>
+                          </div>
+                          <div className="ml-[30px] border-l border-muted-foreground/30">
+                            {sub.items.map(item => (
+                              <div
+                                key={item.id}
+                                className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors"
+                              >
+                                <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
+                                <Checkbox
+                                  checked={selectedIds.has(item.id)}
+                                  onChange={() => toggleItem(item.id)}
+                                  aria-label={`Select ${item.name}`}
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <span className="text-sm text-card-foreground/80 truncate block">
+                                    {item.name}
+                                  </span>
+                                  {item.manufacturer && (
+                                    <span className="text-xs text-muted-foreground truncate block">
+                                      {item.manufacturer}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -242,13 +276,11 @@ function ItemSelector({
 // Action forms
 
 function MaintenanceForm({
-  selectedCount,
-  isPending,
   onSubmit,
+  onValidityChange,
 }: {
-  selectedCount: number;
-  isPending: boolean;
   onSubmit: (data: CreateEquipmentMaintenanceLogRequest) => void;
+  onValidityChange: (valid: boolean) => void;
 }) {
   const { data: maintenanceTypes = [] } = useLookupValuesQuery('equipment_maintenance_type');
 
@@ -267,12 +299,16 @@ function MaintenanceForm({
     mode: 'onChange',
   });
 
+  useEffect(() => {
+    onValidityChange(isValid);
+  }, [isValid, onValidityChange]);
+
   const onFormSubmit = (data: FieldValues) => {
     onSubmit(data as CreateEquipmentMaintenanceLogRequest);
   };
 
   return (
-    <form id="batch-action-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3">
+    <form id="bulk-action-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3">
       <Controller
         name="datePerformed"
         control={control}
@@ -297,7 +333,7 @@ function MaintenanceForm({
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <Select
-            label="Maintenance Type *"
+            label="Maintenance Type"
             options={typeOptions}
             value={value ?? ''}
             onChange={v => onChange(v)}
@@ -310,6 +346,7 @@ function MaintenanceForm({
 
       <ValidatedInput
         label="Performed By (Vendor/Service)"
+        placeholder="e.g., TSS, In-house"
         error={!!errors['performedBy']}
         helperText={errors['performedBy']?.message as string}
         registration={register('performedBy')}
@@ -317,25 +354,18 @@ function MaintenanceForm({
 
       <ValidatedInput
         label="Technician"
+        placeholder="e.g., John Smith"
         error={!!errors['technician']}
         helperText={errors['technician']?.message as string}
         registration={register('technician')}
       />
 
-      <div>
-        <label
-          htmlFor="batch-description"
-          className="text-xs font-medium text-secondary-foreground mb-1 block"
-        >
-          Description
-        </label>
-        <textarea
-          id="batch-description"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          rows={3}
-          {...register('description')}
-        />
-      </div>
+      <ValidatedInput
+        label="Description"
+        type="textarea"
+        placeholder="Work performed, parts replaced, etc."
+        registration={register('description')}
+      />
 
       <Controller
         name="nextScheduledDate"
@@ -358,7 +388,7 @@ function MaintenanceForm({
       />
 
       <ValidatedInput
-        label="Cost"
+        label="Cost ($)"
         type="number"
         step="0.01"
         error={!!errors['cost']}
@@ -368,31 +398,12 @@ function MaintenanceForm({
         })}
       />
 
-      <div>
-        <label
-          htmlFor="batch-notes"
-          className="text-xs font-medium text-secondary-foreground mb-1 block"
-        >
-          Notes
-        </label>
-        <textarea
-          id="batch-notes"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          rows={2}
-          {...register('notes')}
-        />
-      </div>
-
-      <Button
-        type="submit"
-        variant="primary"
-        size="sm"
-        fullWidth
-        disabled={selectedCount === 0 || !isValid}
-        isLoading={isPending}
-      >
-        Log Maintenance for {selectedCount} {selectedCount === 1 ? 'item' : 'items'}
-      </Button>
+      <ValidatedInput
+        label="Notes"
+        type="textarea"
+        placeholder="Additional notes and observations..."
+        registration={register('notes')}
+      />
     </form>
   );
 }
@@ -400,13 +411,11 @@ function MaintenanceForm({
 const bulkStatusFormSchema = equipmentBulkStatusRequestSchema.shape.data;
 
 function StatusForm({
-  selectedCount,
-  isPending,
   onSubmit,
+  onValidityChange,
 }: {
-  selectedCount: number;
-  isPending: boolean;
   onSubmit: (data: { status: EquipmentStatus; conditionNotes?: string }) => void;
+  onValidityChange: (valid: boolean) => void;
 }) {
   const statusOptions: SelectOption[] = equipmentBulkStatusValues.map(s => ({
     value: s,
@@ -414,6 +423,7 @@ function StatusForm({
   }));
 
   const {
+    register,
     handleSubmit,
     control,
     formState: { isValid },
@@ -422,19 +432,23 @@ function StatusForm({
     mode: 'onChange',
   });
 
+  useEffect(() => {
+    onValidityChange(isValid);
+  }, [isValid, onValidityChange]);
+
   const onFormSubmit = (data: FieldValues) => {
     onSubmit(data as { status: EquipmentStatus; conditionNotes?: string });
   };
 
   return (
-    <form id="batch-action-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3">
+    <form id="bulk-action-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3">
       <Controller
         name="status"
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <Select
-            label="Status *"
-            options={statusOptions}
+            label="Status"
+            options={[{ value: '', label: 'Select status...' }, ...statusOptions]}
             value={value ?? ''}
             onChange={v => onChange(v)}
             state={error ? 'error' : 'default'}
@@ -444,38 +458,12 @@ function StatusForm({
         )}
       />
 
-      <Controller
-        name="conditionNotes"
-        control={control}
-        render={({ field: { value, onChange } }) => (
-          <div>
-            <label
-              htmlFor="batch-condition"
-              className="text-xs font-medium text-secondary-foreground mb-1 block"
-            >
-              Condition Notes
-            </label>
-            <textarea
-              id="batch-condition"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              rows={3}
-              value={(value as string) ?? ''}
-              onChange={e => onChange(e.target.value)}
-            />
-          </div>
-        )}
+      <ValidatedInput
+        label="Condition Notes"
+        type="textarea"
+        placeholder="Current condition or issues..."
+        registration={register('conditionNotes')}
       />
-
-      <Button
-        type="submit"
-        variant="primary"
-        size="sm"
-        fullWidth
-        disabled={selectedCount === 0 || !isValid}
-        isLoading={isPending}
-      >
-        Change Status for {selectedCount} {selectedCount === 1 ? 'item' : 'items'}
-      </Button>
     </form>
   );
 }
@@ -483,16 +471,25 @@ function StatusForm({
 const bulkRelocateFormSchema = equipmentBulkRelocateRequestSchema.shape.data;
 
 function RelocateForm({
-  selectedCount,
-  isPending,
   categories,
   onSubmit,
+  onValidityChange,
 }: {
-  selectedCount: number;
-  isPending: boolean;
   categories: EquipmentCategory[];
   onSubmit: (data: { categoryId: string }) => void;
+  onValidityChange: (valid: boolean) => void;
 }) {
+  const parentNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    categories.forEach(c => {
+      if (c.parentId) {
+        const parent = categories.find(p => p.id === c.parentId);
+        if (parent) map.set(c.id, parent.name);
+      }
+    });
+    return map;
+  }, [categories]);
+
   const categoryOptions: SelectOption[] = useMemo(() => {
     const topLevel = categories
       .filter(c => !c.parentId)
@@ -520,52 +517,74 @@ function RelocateForm({
     mode: 'onChange',
   });
 
+  useEffect(() => {
+    onValidityChange(isValid);
+  }, [isValid, onValidityChange]);
+
   const onFormSubmit = (data: FieldValues) => {
     onSubmit(data as { categoryId: string });
   };
 
   return (
-    <form id="batch-action-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3">
+    <form id="bulk-action-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3">
       <Controller
         name="categoryId"
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <Select
-            label="Target Category *"
-            options={categoryOptions}
+            label="Category"
+            options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
             value={value ?? ''}
             onChange={v => onChange(v)}
             state={error ? 'error' : 'default'}
             error={error?.message}
             fullWidth
+            renderOption={option => {
+              const isSub = !!option.description;
+              return (
+                <div className="w-full">
+                  {isSub ? (
+                    <span className="pl-4 text-sm">{option.label}</span>
+                  ) : (
+                    <span className="text-sm font-semibold">{option.label}</span>
+                  )}
+                </div>
+              );
+            }}
+            renderValue={selected => {
+              const opt = selected[0];
+              if (!opt)
+                return <span className="text-muted-foreground opacity-40">Select category...</span>;
+              const parentName = parentNameMap.get(opt.value as string);
+              if (parentName) {
+                return (
+                  <span className="text-foreground text-sm">
+                    <span className="text-muted-foreground">{parentName}</span>
+                    <span className="text-muted-foreground mx-1">›</span>
+                    {opt.label}
+                  </span>
+                );
+              }
+              return <span className="text-foreground text-sm">{opt.label}</span>;
+            }}
           />
         )}
       />
-
-      <Button
-        type="submit"
-        variant="primary"
-        size="sm"
-        fullWidth
-        disabled={selectedCount === 0 || !isValid}
-        isLoading={isPending}
-      >
-        Relocate {selectedCount} {selectedCount === 1 ? 'item' : 'items'}
-      </Button>
     </form>
   );
 }
 
 // Main modal
 
-export function EquipmentBatchUpdateModal({
+export function EquipmentBulkUpdateModal({
   isOpen,
   onClose,
   items,
   categories,
-}: EquipmentBatchUpdateModalProps) {
+}: EquipmentBulkUpdateModalProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [actionType, setActionType] = useState<BatchActionType>('maintenance');
+  const [actionType, setActionType] = useState<BulkActionType>('maintenance');
+  const [isFormValid, setIsFormValid] = useState(false);
   const bulkMutation = useEquipmentBulkUpdateMutation();
 
   const handleResult = useCallback(
@@ -618,21 +637,49 @@ export function EquipmentBatchUpdateModal({
   const handleClose = useCallback(() => {
     setSelectedIds(new Set());
     setActionType('maintenance');
+    setIsFormValid(false);
     onClose();
   }, [onClose]);
+
+  const actionLabels: Record<BulkActionType, string> = {
+    maintenance: 'Log Maintenance',
+    status: 'Change Status',
+    relocate: 'Relocate',
+  };
+
+  const itemLabel = selectedIds.size === 1 ? 'item' : 'items';
+
+  const footer = (
+    <div className="flex items-center justify-end gap-2">
+      <Button variant="secondary" size="sm" onClick={handleClose}>
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        form="bulk-action-form"
+        variant="primary"
+        size="sm"
+        disabled={selectedIds.size === 0 || !isFormValid}
+        isLoading={bulkMutation.isPending}
+      >
+        {actionLabels[actionType]} for {selectedIds.size} {itemLabel}
+      </Button>
+    </div>
+  );
 
   return (
     <BaseModal
       isOpen={isOpen}
-      title="Batch Update"
+      title="Bulk Update"
       icon={<Layers className="w-4 h-4" />}
       onClose={handleClose}
-      size="lg"
+      size="md-lg"
       fixedHeight
-      contentClassName="p-0"
+      contentClassName="p-0 h-full"
+      footer={footer}
     >
       <div className="flex h-full min-h-0">
-        <div className="w-1/2 border-r border-border p-4 flex flex-col min-h-0">
+        <div className="w-2/5 border-r border-border p-4 flex flex-col min-h-0 overflow-auto bg-muted/30">
           <ItemSelector
             categories={categories}
             items={items}
@@ -641,11 +688,11 @@ export function EquipmentBatchUpdateModal({
           />
         </div>
 
-        <div className="w-1/2 flex flex-col min-h-0">
+        <div className="w-3/5 flex flex-col min-h-0">
           <div className="flex-shrink-0 border-b border-border">
             <Tabs
               value={actionType}
-              onChange={v => setActionType(v as BatchActionType)}
+              onChange={v => setActionType(v as BulkActionType)}
               orientation="horizontal"
             >
               <Tab id="maintenance" icon={<Wrench className="w-3.5 h-3.5" />}>
@@ -663,24 +710,18 @@ export function EquipmentBatchUpdateModal({
           <ScrollArea className="flex-1 min-h-0 p-4">
             {actionType === 'maintenance' && (
               <MaintenanceForm
-                selectedCount={selectedIds.size}
-                isPending={bulkMutation.isPending}
                 onSubmit={handleMaintenanceSubmit}
+                onValidityChange={setIsFormValid}
               />
             )}
             {actionType === 'status' && (
-              <StatusForm
-                selectedCount={selectedIds.size}
-                isPending={bulkMutation.isPending}
-                onSubmit={handleStatusSubmit}
-              />
+              <StatusForm onSubmit={handleStatusSubmit} onValidityChange={setIsFormValid} />
             )}
             {actionType === 'relocate' && (
               <RelocateForm
-                selectedCount={selectedIds.size}
-                isPending={bulkMutation.isPending}
                 categories={categories}
                 onSubmit={handleRelocateSubmit}
+                onValidityChange={setIsFormValid}
               />
             )}
           </ScrollArea>

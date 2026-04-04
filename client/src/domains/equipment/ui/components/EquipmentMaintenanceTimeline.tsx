@@ -23,6 +23,7 @@ interface EquipmentMaintenanceTimelineProps {
   isAdmin: boolean;
   onEditEntry: (entry: EquipmentMaintenanceLog) => void;
   onAddEntry: () => void;
+  className?: string;
 }
 
 function formatCost(cost: number | undefined): string | undefined {
@@ -36,6 +37,7 @@ export function EquipmentMaintenanceTimeline({
   isAdmin,
   onEditEntry,
   onAddEntry,
+  className,
 }: EquipmentMaintenanceTimelineProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -57,7 +59,7 @@ export function EquipmentMaintenanceTimeline({
   };
 
   return (
-    <div className="space-y-1">
+    <div className={`space-y-1 ${className ?? ''}`}>
       {maintenanceLog.length === 0 ? (
         <p className="text-xs text-card-foreground/30 italic">No maintenance entries</p>
       ) : (
@@ -77,7 +79,7 @@ export function EquipmentMaintenanceTimeline({
           return (
             <div key={entry.id} className="rounded-md border border-border/50 overflow-hidden">
               <div
-                className="group flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-accent/30 transition-colors"
+                className="group flex items-center gap-2 px-2 py-1 text-sm cursor-pointer hover:bg-accent/30 transition-colors"
                 onClick={() => hasDetails && toggleExpand(entry.id)}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && hasDetails) toggleExpand(entry.id);

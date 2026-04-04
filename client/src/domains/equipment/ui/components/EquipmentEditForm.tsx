@@ -144,6 +144,7 @@ export function EquipmentEditForm({
           <ValidatedInput
             label="Name"
             required
+            placeholder="e.g., P200 Pipette"
             error={!!errors.name}
             helperText={errors.name?.message}
             registration={register('name')}
@@ -211,6 +212,7 @@ export function EquipmentEditForm({
 
           <ValidatedInput
             label="Manufacturer"
+            placeholder="e.g., Eppendorf, Thermo Fisher"
             error={!!errors.manufacturer}
             helperText={errors.manufacturer?.message}
             registration={register('manufacturer')}
@@ -218,6 +220,7 @@ export function EquipmentEditForm({
 
           <ValidatedInput
             label="Model"
+            placeholder="e.g., Research Plus"
             error={!!errors.model}
             helperText={errors.model?.message}
             registration={register('model')}
@@ -225,6 +228,7 @@ export function EquipmentEditForm({
 
           <ValidatedInput
             label="Serial Number"
+            placeholder="e.g., SN-2024-001"
             error={!!errors.serialNumber}
             helperText={errors.serialNumber?.message}
             registration={register('serialNumber')}
@@ -232,28 +236,22 @@ export function EquipmentEditForm({
 
           <ValidatedInput
             label="Asset Tag"
+            placeholder="e.g., EQ-0042"
             error={!!errors.assetTag}
             helperText={errors.assetTag?.message}
             registration={register('assetTag')}
           />
 
-          <div>
-            <label
-              htmlFor="eq-description"
-              className="text-xs font-medium text-secondary-foreground mb-1 block"
-            >
-              Description
-            </label>
-            <textarea
-              id="eq-description"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              rows={3}
-              {...register('description')}
-            />
-          </div>
+          <ValidatedInput
+            label="Description"
+            type="textarea"
+            placeholder="Brief description of the equipment..."
+            registration={register('description')}
+          />
 
           <ValidatedInput
             label="Location"
+            placeholder="e.g., Room 204, Bench 3"
             error={!!errors.location}
             helperText={errors.location?.message}
             registration={register('location')}
@@ -332,25 +330,18 @@ export function EquipmentEditForm({
 
           <ValidatedInput
             label="Condition Notes"
+            placeholder="Current condition or issues..."
             error={!!errors.conditionNotes}
             helperText={errors.conditionNotes?.message}
             registration={register('conditionNotes')}
           />
 
-          <div>
-            <label
-              htmlFor="eq-notes"
-              className="text-xs font-medium text-secondary-foreground mb-1 block"
-            >
-              Notes
-            </label>
-            <textarea
-              id="eq-notes"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              rows={3}
-              {...register('notes')}
-            />
-          </div>
+          <ValidatedInput
+            label="Notes"
+            type="textarea"
+            placeholder="Additional notes and observations..."
+            registration={register('notes')}
+          />
         </div>
 
         <div className="flex items-center gap-2 pt-2">
