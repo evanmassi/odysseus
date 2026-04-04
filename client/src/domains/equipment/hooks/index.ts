@@ -18,4 +18,6 @@ export {
   useAddEquipmentMaintenanceEntryMutation,
   useUpdateEquipmentMaintenanceEntryMutation,
   useDeleteEquipmentMaintenanceEntryMutation,
+  useEquipmentBulkUpdateMutation,
+  type EquipmentBulkAction,
 } from './useEquipmentMutations';

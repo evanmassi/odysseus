@@ -18,6 +18,8 @@ import {
   type CreateEquipmentDocumentRequest,
   type CreateEquipmentMaintenanceLogRequest,
   type UpdateEquipmentMaintenanceLogRequest,
+  type EquipmentBulkResponse,
+  type EquipmentStatus,
   equipmentCategoryResponseSchema,
   equipmentCategoryListResponseSchema,
   equipmentItemResponseSchema,
@@ -27,6 +29,7 @@ import {
   equipmentDocumentListResponseSchema,
   equipmentMaintenanceLogEntryResponseSchema,
   equipmentMaintenanceLogListResponseSchema,
+  equipmentBulkResponseSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -173,5 +176,40 @@ export class EquipmentService {
 
   static async deleteMaintenanceEntry(itemId: string, entryId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/maintenance/${entryId}`);
+  }
+
+  // Bulk operations
+
+  static async bulkLogMaintenance(
+    itemIds: string[],
+    data: CreateEquipmentMaintenanceLogRequest
+  ): Promise<EquipmentBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/maintenance`,
+      { itemIds, data },
+      equipmentBulkResponseSchema
+    );
+  }
+
+  static async bulkChangeStatus(
+    itemIds: string[],
+    data: { status: EquipmentStatus; conditionNotes?: string }
+  ): Promise<EquipmentBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/status`,
+      { itemIds, data },
+      equipmentBulkResponseSchema
+    );
+  }
+
+  static async bulkRelocate(
+    itemIds: string[],
+    data: { categoryId: string }
+  ): Promise<EquipmentBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/relocate`,
+      { itemIds, data },
+      equipmentBulkResponseSchema
+    );
   }
 }

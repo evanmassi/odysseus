@@ -20,6 +20,7 @@ import type {
   CreateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
+  EquipmentStatus,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -188,6 +189,38 @@ export function useUpdateEquipmentMaintenanceEntryMutation() {
         queryKey: queryKeys.equipment.maintenance(labId, itemId),
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
+    },
+  });
+}
+
+// Bulk operations
+
+export type EquipmentBulkAction =
+  | { type: 'maintenance'; itemIds: string[]; data: CreateEquipmentMaintenanceLogRequest }
+  | {
+      type: 'status';
+      itemIds: string[];
+      data: { status: EquipmentStatus; conditionNotes?: string };
+    }
+  | { type: 'relocate'; itemIds: string[]; data: { categoryId: string } };
+
+export function useEquipmentBulkUpdateMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (action: EquipmentBulkAction) => {
+      switch (action.type) {
+        case 'maintenance':
+          return EquipmentService.bulkLogMaintenance(action.itemIds, action.data);
+        case 'status':
+          return EquipmentService.bulkChangeStatus(action.itemIds, action.data);
+        case 'relocate':
+          return EquipmentService.bulkRelocate(action.itemIds, action.data);
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.all(labId) });
     },
   });
 }
