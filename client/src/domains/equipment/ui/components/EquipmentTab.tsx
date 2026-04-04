@@ -115,14 +115,9 @@ export function EquipmentTab() {
   }, [selectedItemId]);
 
   const handleEditMaintenance = useCallback(
-    (entryId: string) => {
+    (entry: EquipmentMaintenanceLog) => {
       if (!selectedItemId) return;
-      // The entry details will be fetched by the form via the detail query
-      setRightPanel({
-        type: 'maintenance',
-        itemId: selectedItemId,
-        entry: { id: entryId } as EquipmentMaintenanceLog,
-      });
+      setRightPanel({ type: 'maintenance', itemId: selectedItemId, entry });
     },
     [selectedItemId]
   );

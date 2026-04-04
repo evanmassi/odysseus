@@ -254,13 +254,13 @@ export function CollectionHistoryTimeline({
                         <Pencil className="w-3 h-3" />
                       </Button>
                     </Tooltip>
-                    <Tooltip content="Delete entry" side="left">
+                    <Tooltip content="Remove entry" side="left">
                       <Button
                         variant="ghost-danger"
                         size="xs"
                         iconOnly
                         onClick={() => handleDelete(entry.id)}
-                        aria-label="Delete entry"
+                        aria-label="Remove entry"
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -288,9 +288,9 @@ export function CollectionHistoryTimeline({
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title="Delete Entry"
-          message="Are you sure you want to delete this collection history entry? This action cannot be undone."
-          confirmText="Delete"
+          title="Remove Entry"
+          message="Are you sure you want to remove this collection history entry? This action cannot be undone."
+          confirmText="Remove"
           onConfirm={confirmDelete}
           onCancel={() => setPendingDeleteId(null)}
           isLoading={deleteMutation.isPending}

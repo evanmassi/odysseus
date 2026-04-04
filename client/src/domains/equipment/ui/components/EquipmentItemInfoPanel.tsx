@@ -26,6 +26,7 @@ import {
   useRemoveEquipmentDocumentMutation,
   useDeleteEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
+import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
 import { Button, InfoField, InfoGroup } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
@@ -33,13 +34,15 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
+import type { EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
+
 interface EquipmentItemInfoPanelProps {
   itemId: string;
   onEdit: () => void;
   onDecommission: () => void;
   onAddDocument: () => void;
   onAddMaintenance: () => void;
-  onEditMaintenance: (entryId: string) => void;
+  onEditMaintenance: (entry: EquipmentMaintenanceLog) => void;
   onDeleted: () => void;
   categoryName?: string;
 }
@@ -245,47 +248,13 @@ export function EquipmentItemInfoPanel({
                 emptyText="—"
               />
             </div>
-            {maintenanceLog.length === 0 && (
-              <p className="text-xs text-card-foreground/30 italic mt-2">No maintenance entries</p>
-            )}
-            {maintenanceLog.map(entry => (
-              <div
-                key={entry.id}
-                className="border-l-2 border-border pl-3 py-2 text-sm cursor-pointer hover:bg-accent/30 rounded-r transition-colors"
-                onClick={() => isAdmin && onEditMaintenance(entry.id)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && isAdmin) onEditMaintenance(entry.id);
-                }}
-                role={isAdmin ? 'button' : undefined}
-                tabIndex={isAdmin ? 0 : undefined}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-secondary-foreground">
-                    {entry.maintenanceType}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(entry.datePerformed)}
-                  </span>
-                </div>
-                {entry.performedBy && (
-                  <p className="text-xs text-muted-foreground">By: {entry.performedBy}</p>
-                )}
-                {entry.description && (
-                  <p className="text-xs text-muted-foreground mt-1">{entry.description}</p>
-                )}
-              </div>
-            ))}
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onAddMaintenance}
-                className="mt-1"
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
-              >
-                Add Entry
-              </Button>
-            )}
+            <EquipmentMaintenanceTimeline
+              maintenanceLog={maintenanceLog}
+              itemId={itemId}
+              isAdmin={isAdmin}
+              onEditEntry={onEditMaintenance}
+              onAddEntry={onAddMaintenance}
+            />
           </InfoGroup>
 
           {/* Documents */}
