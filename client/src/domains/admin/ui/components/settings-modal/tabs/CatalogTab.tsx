@@ -11,7 +11,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  Pencil,
+  SquarePen,
   Plus,
   RefreshCw,
   Trash2,
@@ -230,7 +230,7 @@ function CategorySection({
                 disabled={readOnly}
                 aria-label={`Rename ${item.value}`}
               >
-                <Pencil size={14} />
+                <SquarePen size={14} />
               </Button>
             </Tooltip>
             <Tooltip

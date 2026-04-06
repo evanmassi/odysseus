@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Edit3, Lock, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, Lock, Plus, SquarePen, Trash2 } from 'lucide-react';
 
 import { Button, NumberInput, Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
@@ -60,7 +60,7 @@ export function TankRow({
 
     const items: OverflowMenuItem[] = [
       {
-        icon: Edit3,
+        icon: SquarePen,
         label: 'Edit Tank',
         onClick: () => onEditTank(tank),
       },

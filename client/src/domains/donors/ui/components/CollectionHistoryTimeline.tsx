@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Plus, SquarePen, Trash2 } from 'lucide-react';
 
 import {
   useAddCollectionHistoryMutation,
@@ -251,7 +251,7 @@ export function CollectionHistoryTimeline({
                         onClick={() => handleEditStart(entry)}
                         aria-label="Edit entry"
                       >
-                        <Pencil className="w-3 h-3" />
+                        <SquarePen className="w-3 h-3" />
                       </Button>
                     </Tooltip>
                     <Tooltip content="Remove entry" side="left">

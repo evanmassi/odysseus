@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 
-import { ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ChevronRight, Plus, SquarePen, Trash2 } from 'lucide-react';
 
 import { useDeleteEquipmentMaintenanceEntryMutation } from '@domains/equipment/hooks/useEquipmentMutations';
 import { Button, InfoField, Tooltip } from '@shared/ui';
@@ -95,9 +95,11 @@ export function EquipmentMaintenanceTimeline({
                   {formatDateForDisplay(entry.datePerformed)}
                 </span>
                 <span className="text-card-foreground/30">·</span>
-                <span className="text-card-foreground font-medium truncate">
-                  {entry.maintenanceType}
-                </span>
+                <Tooltip content={entry.maintenanceType} side="top">
+                  <span className="text-card-foreground font-medium truncate">
+                    {entry.maintenanceType}
+                  </span>
+                </Tooltip>
                 {isAdmin && (
                   <div
                     className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto flex gap-0.5 flex-shrink-0"
@@ -113,7 +115,7 @@ export function EquipmentMaintenanceTimeline({
                         onClick={() => onEditEntry(entry)}
                         aria-label="Edit entry"
                       >
-                        <Pencil className="w-3 h-3" />
+                        <SquarePen className="w-3 h-3" />
                       </Button>
                     </Tooltip>
                     <Tooltip content="Remove entry" side="left">

@@ -6,7 +6,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 
-import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, SquarePen, Trash2 } from 'lucide-react';
 
 import { Button, OverflowMenu } from '@shared/ui';
 
@@ -157,7 +157,7 @@ export function EquipmentCategoryPanel({
 
   const getCategoryMenuItems = (cat: EquipmentCategory, itemCount: number): OverflowMenuItem[] => [
     {
-      icon: Edit3,
+      icon: SquarePen,
       label: 'Rename',
       onClick: () => onRenameCategory(cat),
     },
@@ -329,7 +329,7 @@ function SubcategorySection({
   const [isExpanded, setIsExpanded] = useState(true);
 
   const menuItems: OverflowMenuItem[] = [
-    { icon: Edit3, label: 'Rename', onClick: () => onRename(subcategory) },
+    { icon: SquarePen, label: 'Rename', onClick: () => onRename(subcategory) },
     {
       icon: Trash2,
       label: 'Remove',

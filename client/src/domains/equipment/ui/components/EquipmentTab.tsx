@@ -298,7 +298,7 @@ export function EquipmentTab() {
         {/* Right Panel: Detail / Edit / Maintenance */}
         <div
           className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden bg-card rounded-lg"
-          style={{ width: 'clamp(420px, 40%, 560px)' }}
+          style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
           {!rightPanel && (
             <div className="flex items-center justify-center h-full">

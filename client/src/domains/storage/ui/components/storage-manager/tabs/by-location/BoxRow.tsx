@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 
 import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
-import { Edit3, Lock, Tag, Trash2 } from 'lucide-react';
+import { Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
 
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
@@ -66,7 +66,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
     }
 
     items.push({
-      icon: Edit3,
+      icon: SquarePen,
       label: 'Change Grid',
       onClick: () => onEditBox(tankId, rackId, box),
     });

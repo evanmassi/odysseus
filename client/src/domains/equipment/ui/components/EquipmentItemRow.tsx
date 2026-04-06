@@ -1,7 +1,7 @@
 /**
  * Equipment Item Row
  *
- * Compact card-row for an individual equipment item with maintenance
+ * Single-line row for an individual equipment item with maintenance
  * status indicator and key identifying information.
  */
 
@@ -19,12 +19,10 @@ interface EquipmentItemRowProps {
   onSelect: (id: string) => void;
 }
 
-function getMaintenanceChip(nextMaintenanceDate: Date | string):
-  | {
-      color: 'info' | 'warning' | 'danger';
-      label: string;
-      tooltip: string;
-    }
+function getMaintenanceIndicator(
+  nextMaintenanceDate: Date | string
+):
+  | { color: 'text-primary' | 'text-warning-text' | 'text-danger-text'; tooltip: string }
   | undefined {
   const dateStr = normalizeDateString(nextMaintenanceDate);
   if (!dateStr) return undefined;
@@ -36,42 +34,40 @@ function getMaintenanceChip(nextMaintenanceDate: Date | string):
 
   if (daysUntil < 0) {
     return {
-      color: 'danger',
-      label: 'Needs Maintenance',
-      tooltip: `Was due: ${formatDateForDisplay(dateStr)}`,
+      color: 'text-danger-text',
+      tooltip: `Overdue — was due ${formatDateForDisplay(dateStr)}`,
     };
   }
   if (daysUntil <= 7) {
     return {
-      color: 'danger',
-      label: `Due: ${formatDateForDisplay(dateStr)}`,
-      tooltip: `Due in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`,
+      color: 'text-danger-text',
+      tooltip: `Due in ${daysUntil} day${daysUntil === 1 ? '' : 's'} — ${formatDateForDisplay(dateStr)}`,
     };
   }
   if (daysUntil <= 30) {
     return {
-      color: 'warning',
-      label: `Due: ${formatDateForDisplay(dateStr)}`,
-      tooltip: `Due in ${daysUntil} days`,
+      color: 'text-warning-text',
+      tooltip: `Due in ${daysUntil} days — ${formatDateForDisplay(dateStr)}`,
     };
   }
   return {
-    color: 'info',
-    label: `Due: ${formatDateForDisplay(dateStr)}`,
-    tooltip: `Next maintenance scheduled`,
+    color: 'text-primary',
+    tooltip: `Next maintenance: ${formatDateForDisplay(dateStr)}`,
   };
 }
 
 export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRowProps) {
   const isDecommissioned = item.status === 'decommissioned';
-  const subtitle = [item.manufacturer, item.model].filter(Boolean).join(' ');
-  const maintChip = item.nextMaintenanceDate
-    ? getMaintenanceChip(item.nextMaintenanceDate)
+  const maintIndicator = item.nextMaintenanceDate
+    ? getMaintenanceIndicator(item.nextMaintenanceDate)
     : undefined;
+
+  const detailParts = [item.manufacturer, item.model].filter(Boolean);
+  const snPart = item.serialNumber ? `SN: ${item.serialNumber}` : undefined;
 
   return (
     <div
-      className={`rounded-lg px-3 py-2 cursor-pointer transition-all duration-200 ${
+      className={`rounded-lg px-3 py-1.5 cursor-pointer transition-all duration-200 ${
         isSelected
           ? 'bg-card brightness-125 border-l-2 border-l-primary border-y border-r border-border shadow-sm'
           : isDecommissioned
@@ -85,45 +81,46 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
       role="button"
       tabIndex={0}
     >
-      <div className="flex items-start justify-between gap-2">
-        {/* Left: Identity */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h4 className="text-sm font-semibold text-card-foreground truncate">{item.name}</h4>
-            {isDecommissioned && (
-              <Chip color="danger" size="sm" className="uppercase tracking-wide flex-shrink-0">
-                Decommissioned
-              </Chip>
-            )}
-          </div>
-          {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
-          {item.serialNumber && (
-            <p className="text-xs text-muted-foreground/60 truncate">SN: {item.serialNumber}</p>
+      <div className="flex items-center gap-2">
+        {maintIndicator && (
+          <Tooltip content={maintIndicator.tooltip}>
+            <Wrench className={`w-3.5 h-3.5 flex-shrink-0 cursor-help ${maintIndicator.color}`} />
+          </Tooltip>
+        )}
+
+        <div className="flex items-center gap-1 min-w-0 flex-1 truncate">
+          <span className="text-sm font-semibold text-card-foreground truncate">{item.name}</span>
+          {detailParts.length > 0 && (
+            <>
+              <span className="text-card-foreground/30 flex-shrink-0">·</span>
+              <span className="text-xs text-muted-foreground truncate">
+                {detailParts.join(' · ')}
+              </span>
+            </>
+          )}
+          {snPart && (
+            <>
+              <span className="text-card-foreground/30 flex-shrink-0">·</span>
+              <span className="text-xs text-muted-foreground/60 truncate">{snPart}</span>
+            </>
+          )}
+          {isDecommissioned && (
+            <Chip color="danger" size="sm" className="uppercase tracking-wide flex-shrink-0 ml-1">
+              Decommissioned
+            </Chip>
           )}
         </div>
 
-        {/* Right: Chips stacked */}
-        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-          {(item.location != null || item.assetTag != null) && (
-            <div className="flex items-center gap-1.5">
-              {item.location && (
-                <Chip color="info" size="sm" leftIcon={<MapPin />}>
-                  {item.location}
-                </Chip>
-              )}
-              {item.assetTag && (
-                <Chip color="info" size="sm" leftIcon={<Tag />}>
-                  {item.assetTag}
-                </Chip>
-              )}
-            </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {item.location && (
+            <Chip color="info" size="sm" leftIcon={<MapPin />}>
+              {item.location}
+            </Chip>
           )}
-          {maintChip && (
-            <Tooltip content={maintChip.tooltip}>
-              <Chip color={maintChip.color} size="sm" leftIcon={<Wrench />} className="cursor-help">
-                {maintChip.label}
-              </Chip>
-            </Tooltip>
+          {item.assetTag && (
+            <Chip color="info" size="sm" leftIcon={<Tag />}>
+              {item.assetTag}
+            </Chip>
           )}
         </div>
       </div>

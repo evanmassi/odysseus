@@ -4,7 +4,7 @@
  * Read-only display of selected donor profile and collection history.
  */
 
-import { BookUser, Pencil, Trash2 } from 'lucide-react';
+import { BookUser, SquarePen, Trash2 } from 'lucide-react';
 
 import { Button, Chip } from '@shared/ui';
 import { InfoField, InfoGroup } from '@shared/ui/components/info-display';
@@ -59,7 +59,7 @@ export function DonorInfoPanel({
               variant="ghost"
               size="sm"
               onClick={onEdit}
-              leftIcon={<Pencil className="w-3.5 h-3.5" />}
+              leftIcon={<SquarePen className="w-3.5 h-3.5" />}
             >
               Edit
             </Button>

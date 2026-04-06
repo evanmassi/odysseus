@@ -10,7 +10,15 @@ import {
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
 } from '@odysseus/shared-schemas';
-import { AlertTriangle, Lock, MapPin, Notebook, Pencil, TestTube, UsersRound } from 'lucide-react';
+import {
+  AlertTriangle,
+  Lock,
+  MapPin,
+  Notebook,
+  SquarePen,
+  TestTube,
+  UsersRound,
+} from 'lucide-react';
 
 import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
 import { useResearchersQuery } from '@domains/researchers';
@@ -408,17 +416,17 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                     <>
                       <Notebook className="w-2.5 h-2.5" />
                       <span className="italic">Mixed notes</span>
-                      <Pencil className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                      <SquarePen className="w-2.5 h-2.5 ml-0.5 opacity-60" />
                     </>
                   ) : lockNoteDisplay?.note ? (
                     <>
                       <Notebook className="w-2.5 h-2.5" />
                       {lockNoteDisplay.note}
-                      <Pencil className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                      <SquarePen className="w-2.5 h-2.5 ml-0.5 opacity-60" />
                     </>
                   ) : (
                     <>
-                      <Pencil className="w-2.5 h-2.5" />
+                      <SquarePen className="w-2.5 h-2.5" />
                       Add note
                     </>
                   )}

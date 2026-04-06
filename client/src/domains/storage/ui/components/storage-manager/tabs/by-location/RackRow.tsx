@@ -12,7 +12,7 @@ import {
   isAdminRole,
 } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Edit3, Lock, Plus, Tag, Trash2 } from 'lucide-react';
+import { ChevronDown, Lock, Plus, SquarePen, Tag, Trash2 } from 'lucide-react';
 
 import { Button, NumberInput, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
@@ -85,7 +85,7 @@ export function RackRow({
     }
 
     items.push({
-      icon: Edit3,
+      icon: SquarePen,
       label: 'Edit Rack',
       onClick: () => onEditRack(tankId, rack),
     });

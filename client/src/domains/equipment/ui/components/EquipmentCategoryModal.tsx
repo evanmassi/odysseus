@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-import { FolderOpen, Plus, Pencil } from 'lucide-react';
+import { FolderOpen, Plus, SquarePen } from 'lucide-react';
 
 import {
   useCreateEquipmentCategoryMutation,
@@ -82,7 +82,7 @@ export function EquipmentCategoryModal({
     <BaseModal
       isOpen={isOpen}
       title={title}
-      icon={isEditing ? <Pencil size={24} /> : <FolderOpen size={24} />}
+      icon={isEditing ? <SquarePen size={24} /> : <FolderOpen size={24} />}
       onClose={onClose}
       className="max-w-md"
     >
@@ -123,7 +123,7 @@ export function EquipmentCategoryModal({
             disabled={!hasChanges}
             isLoading={isPending}
             loadingText={isEditing ? 'Saving...' : 'Adding...'}
-            leftIcon={isEditing ? <Pencil size={16} /> : <Plus size={16} />}
+            leftIcon={isEditing ? <SquarePen size={16} /> : <Plus size={16} />}
           >
             {isEditing ? 'Save' : 'Add'}
           </Button>

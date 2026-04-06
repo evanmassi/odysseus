@@ -14,7 +14,7 @@ import {
   Dna,
   Icon,
   OctagonX,
-  Pencil,
+  SquarePen,
   Power,
   Rows3,
   ShieldUser,
@@ -138,7 +138,7 @@ export function LabInfoPanel({
                     setIsRenaming(true);
                   }}
                 >
-                  <Pencil size={12} />
+                  <SquarePen size={12} />
                 </Button>
               </div>
             )}

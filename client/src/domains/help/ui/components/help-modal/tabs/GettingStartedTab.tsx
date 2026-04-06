@@ -10,7 +10,7 @@ import {
   Lock,
   MousePointerClick,
   Navigation,
-  PenLine,
+  SquarePen,
   Search,
   Share2,
   ShieldUser,
@@ -48,7 +48,7 @@ export function GettingStartedTab() {
       {/* Section B: Adding & Editing Tubes */}
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <PenLine size={16} className="text-secondary-foreground" />
+          <SquarePen size={16} className="text-secondary-foreground" />
           <h3 className="text-sm font-semibold text-card-foreground">Adding & Editing Tubes</h3>
         </div>
         <p className="text-xs text-muted-foreground">

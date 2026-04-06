@@ -6,7 +6,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 
-import { Pencil, Notebook } from 'lucide-react';
+import { Notebook, SquarePen } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
 import { AlertBanner, Button, Input } from '@shared/ui';
@@ -96,7 +96,7 @@ export function TubeLockNoteModal({
     <BaseModal
       isOpen={isOpen}
       title={title}
-      icon={<Pencil size={24} />}
+      icon={<SquarePen size={24} />}
       onClose={onClose}
       className="max-w-md"
     >
@@ -146,7 +146,7 @@ export function TubeLockNoteModal({
             disabled={!hasChanges}
             isLoading={bulkUpdateMutation.isPending}
             loadingText="Saving..."
-            leftIcon={<Pencil size={16} />}
+            leftIcon={<SquarePen size={16} />}
           >
             {isSingleTube ? 'Save' : `Update ${tubeCount} Tubes`}
           </Button>
