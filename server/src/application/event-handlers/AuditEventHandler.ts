@@ -16,7 +16,14 @@ import type {
   EquipmentItemUpdatedEvent,
   EquipmentItemDecommissionedEvent,
   EquipmentItemDeletedEvent,
+  EquipmentCategoryCreatedEvent,
+  EquipmentCategoryUpdatedEvent,
+  EquipmentCategoryDeletedEvent,
+  EquipmentDocumentAddedEvent,
+  EquipmentDocumentRemovedEvent,
   EquipmentMaintenanceLoggedEvent,
+  EquipmentMaintenanceUpdatedEvent,
+  EquipmentMaintenanceDeletedEvent,
 } from '@domain/events/EquipmentEvents';
 import type {
   LabCreatedEvent,
@@ -251,6 +258,13 @@ export class AuditEventHandler {
     this.eventBus.subscribe('EquipmentItemDecommissioned', (e) => this.handleEquipmentItemDecommissioned(e));
     this.eventBus.subscribe('EquipmentItemDeleted', (e) => this.handleEquipmentItemDeleted(e));
     this.eventBus.subscribe('EquipmentMaintenanceLogged', (e) => this.handleEquipmentMaintenanceLogged(e));
+    this.eventBus.subscribe('EquipmentMaintenanceUpdated', (e) => this.handleEquipmentMaintenanceUpdated(e));
+    this.eventBus.subscribe('EquipmentMaintenanceDeleted', (e) => this.handleEquipmentMaintenanceDeleted(e));
+    this.eventBus.subscribe('EquipmentCategoryCreated', (e) => this.handleEquipmentCategoryCreated(e));
+    this.eventBus.subscribe('EquipmentCategoryUpdated', (e) => this.handleEquipmentCategoryUpdated(e));
+    this.eventBus.subscribe('EquipmentCategoryDeleted', (e) => this.handleEquipmentCategoryDeleted(e));
+    this.eventBus.subscribe('EquipmentDocumentAdded', (e) => this.handleEquipmentDocumentAdded(e));
+    this.eventBus.subscribe('EquipmentDocumentRemoved', (e) => this.handleEquipmentDocumentRemoved(e));
 
     // Lab events
     this.eventBus.subscribe('LabCreated', (e) => this.handleLabCreated(e));
@@ -1095,6 +1109,83 @@ export class AuditEventHandler {
       buildDetails: (username) => ({
         itemId: event.itemId, maintenanceType: event.maintenanceType,
         datePerformed: event.datePerformed, loggedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentMaintenanceUpdated(event: EquipmentMaintenanceUpdatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment maintenance updated', context: { itemId: event.itemId },
+      actorId: event.updatedBy, action: 'equipment_maintenance_updated', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, maintenanceType: event.maintenanceType, updatedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentMaintenanceDeleted(event: EquipmentMaintenanceDeletedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment maintenance deleted', context: { itemId: event.itemId },
+      actorId: event.deletedBy, action: 'equipment_maintenance_deleted', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, maintenanceType: event.maintenanceType, deletedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentCategoryCreated(event: EquipmentCategoryCreatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment category created', context: { categoryId: event.categoryId },
+      actorId: event.createdBy, action: 'equipment_category_created', entityType: 'equipment_item',
+      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        categoryId: event.categoryId, name: event.name, parentId: event.parentId, createdBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentCategoryUpdated(event: EquipmentCategoryUpdatedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment category updated', context: { categoryId: event.categoryId },
+      actorId: event.updatedBy, action: 'equipment_category_updated', entityType: 'equipment_item',
+      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        categoryId: event.categoryId, name: event.name, updatedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentCategoryDeleted(event: EquipmentCategoryDeletedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment category deleted', context: { categoryId: event.categoryId },
+      actorId: event.deletedBy, action: 'equipment_category_deleted', entityType: 'equipment_item',
+      entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        categoryId: event.categoryId, name: event.name, deletedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentDocumentAdded(event: EquipmentDocumentAddedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment document added', context: { itemId: event.itemId },
+      actorId: event.addedBy, action: 'equipment_document_added', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, label: event.label, addedBy: username,
+      }),
+    });
+  }
+
+  private async handleEquipmentDocumentRemoved(event: EquipmentDocumentRemovedEvent): Promise<void> {
+    await this.logAuditEvent({
+      eventName: 'equipment document removed', context: { itemId: event.itemId },
+      actorId: event.removedBy, action: 'equipment_document_removed', entityType: 'equipment_item',
+      entityId: event.itemId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({
+        itemId: event.itemId, removedBy: username,
       }),
     });
   }

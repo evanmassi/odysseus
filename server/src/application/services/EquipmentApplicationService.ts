@@ -26,7 +26,14 @@ import {
   EquipmentItemUpdatedEvent,
   EquipmentItemDecommissionedEvent,
   EquipmentItemDeletedEvent,
+  EquipmentCategoryCreatedEvent,
+  EquipmentCategoryUpdatedEvent,
+  EquipmentCategoryDeletedEvent,
+  EquipmentDocumentAddedEvent,
+  EquipmentDocumentRemovedEvent,
   EquipmentMaintenanceLoggedEvent,
+  EquipmentMaintenanceUpdatedEvent,
+  EquipmentMaintenanceDeletedEvent,
 } from '@domain/events/EquipmentEvents';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
@@ -87,6 +94,11 @@ export class EquipmentApplicationService {
     });
 
     await this.categoryRepository.save(category);
+
+    await this.eventBus.publish(new EquipmentCategoryCreatedEvent(
+      category.id, category.name, data.parentId, user.id, labId
+    ));
+
     return EquipmentDto.categoryToResponse(category);
   }
 
@@ -128,6 +140,11 @@ export class EquipmentApplicationService {
     });
 
     await this.categoryRepository.save(category);
+
+    await this.eventBus.publish(new EquipmentCategoryUpdatedEvent(
+      category.id, category.name, user.id, labId
+    ));
+
     return EquipmentDto.categoryToResponse(category);
   }
 
@@ -155,6 +172,10 @@ export class EquipmentApplicationService {
     }
 
     await this.categoryRepository.delete(id, labId);
+
+    await this.eventBus.publish(new EquipmentCategoryDeletedEvent(
+      id, category.name, user.id, labId
+    ));
   }
 
   // Items
@@ -330,6 +351,11 @@ export class EquipmentApplicationService {
     });
 
     await this.itemRepository.saveDocument(document);
+
+    await this.eventBus.publish(new EquipmentDocumentAddedEvent(
+      itemId, data.label, user.id, labId
+    ));
+
     return EquipmentDto.documentToResponse(document);
   }
 
@@ -340,6 +366,10 @@ export class EquipmentApplicationService {
     if (!deleted) {
       throw new NotFoundError('Document not found');
     }
+
+    await this.eventBus.publish(new EquipmentDocumentRemovedEvent(
+      itemId, user.id, labId
+    ));
   }
 
   // Maintenance log
@@ -423,6 +453,10 @@ export class EquipmentApplicationService {
       await this.itemRepository.save(item);
     }
 
+    await this.eventBus.publish(new EquipmentMaintenanceUpdatedEvent(
+      itemId, entry.maintenanceType, user.id, labId
+    ));
+
     return EquipmentDto.maintenanceEntryToResponse(entry);
   }
 
@@ -453,6 +487,10 @@ export class EquipmentApplicationService {
       item.updateNextMaintenanceDate(latestNextDate);
       await this.itemRepository.save(item);
     }
+
+    await this.eventBus.publish(new EquipmentMaintenanceDeletedEvent(
+      itemId, entry.maintenanceType, user.id, labId
+    ));
   }
 
   // Bulk operations

@@ -117,6 +117,195 @@ export class EquipmentItemDeletedEvent extends DomainEvent {
   }
 }
 
+export class EquipmentCategoryCreatedEvent extends DomainEvent {
+  constructor(
+    public readonly categoryId: string,
+    public readonly name: string,
+    public readonly parentId: string | undefined,
+    public readonly createdBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentCategoryCreated';
+  }
+
+  getAggregateId(): string {
+    return this.categoryId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      categoryId: this.categoryId,
+      name: this.name,
+      parentId: this.parentId,
+      createdBy: this.createdBy,
+    };
+  }
+}
+
+export class EquipmentCategoryUpdatedEvent extends DomainEvent {
+  constructor(
+    public readonly categoryId: string,
+    public readonly name: string,
+    public readonly updatedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentCategoryUpdated';
+  }
+
+  getAggregateId(): string {
+    return this.categoryId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      categoryId: this.categoryId,
+      name: this.name,
+      updatedBy: this.updatedBy,
+    };
+  }
+}
+
+export class EquipmentCategoryDeletedEvent extends DomainEvent {
+  constructor(
+    public readonly categoryId: string,
+    public readonly name: string,
+    public readonly deletedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentCategoryDeleted';
+  }
+
+  getAggregateId(): string {
+    return this.categoryId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      categoryId: this.categoryId,
+      name: this.name,
+      deletedBy: this.deletedBy,
+    };
+  }
+}
+
+export class EquipmentDocumentAddedEvent extends DomainEvent {
+  constructor(
+    public readonly itemId: string,
+    public readonly label: string,
+    public readonly addedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentDocumentAdded';
+  }
+
+  getAggregateId(): string {
+    return this.itemId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      itemId: this.itemId,
+      label: this.label,
+      addedBy: this.addedBy,
+    };
+  }
+}
+
+export class EquipmentDocumentRemovedEvent extends DomainEvent {
+  constructor(
+    public readonly itemId: string,
+    public readonly removedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentDocumentRemoved';
+  }
+
+  getAggregateId(): string {
+    return this.itemId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      itemId: this.itemId,
+      removedBy: this.removedBy,
+    };
+  }
+}
+
+export class EquipmentMaintenanceUpdatedEvent extends DomainEvent {
+  constructor(
+    public readonly itemId: string,
+    public readonly maintenanceType: string,
+    public readonly updatedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentMaintenanceUpdated';
+  }
+
+  getAggregateId(): string {
+    return this.itemId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      itemId: this.itemId,
+      maintenanceType: this.maintenanceType,
+      updatedBy: this.updatedBy,
+    };
+  }
+}
+
+export class EquipmentMaintenanceDeletedEvent extends DomainEvent {
+  constructor(
+    public readonly itemId: string,
+    public readonly maintenanceType: string,
+    public readonly deletedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentMaintenanceDeleted';
+  }
+
+  getAggregateId(): string {
+    return this.itemId;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      itemId: this.itemId,
+      maintenanceType: this.maintenanceType,
+      deletedBy: this.deletedBy,
+    };
+  }
+}
+
 export class EquipmentMaintenanceLoggedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,

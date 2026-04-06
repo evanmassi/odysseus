@@ -66,6 +66,13 @@ const ACTION_SECTIONS: ActionSection[] = [
       { value: 'equipment_item_decommissioned', label: 'Decommissioned' },
       { value: 'equipment_item_deleted', label: 'Removed' },
       { value: 'equipment_maintenance_logged', label: 'Maintenance Logged' },
+      { value: 'equipment_maintenance_updated', label: 'Maintenance Updated' },
+      { value: 'equipment_maintenance_deleted', label: 'Maintenance Removed' },
+      { value: 'equipment_category_created', label: 'Category Created' },
+      { value: 'equipment_category_updated', label: 'Category Updated' },
+      { value: 'equipment_category_deleted', label: 'Category Removed' },
+      { value: 'equipment_document_added', label: 'Document Added' },
+      { value: 'equipment_document_removed', label: 'Document Removed' },
     ],
   },
   {

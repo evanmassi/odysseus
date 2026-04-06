@@ -702,6 +702,44 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         return plain(parts.length > 0 ? parts.join(' — ') : 'Maintenance logged');
       }
 
+      if (action === 'equipment_maintenance_updated') {
+        const maintenanceType = getStringProperty(details, 'maintenanceType');
+        return plain(
+          maintenanceType ? `${maintenanceType} entry updated` : 'Maintenance entry updated'
+        );
+      }
+
+      if (action === 'equipment_maintenance_deleted') {
+        const maintenanceType = getStringProperty(details, 'maintenanceType');
+        return plain(
+          maintenanceType ? `${maintenanceType} entry removed` : 'Maintenance entry removed'
+        );
+      }
+
+      if (action === 'equipment_category_created') {
+        const categoryName = getStringProperty(details, 'name');
+        return plain(categoryName ? `Category "${categoryName}" created` : 'Category created');
+      }
+
+      if (action === 'equipment_category_updated') {
+        const categoryName = getStringProperty(details, 'name');
+        return plain(categoryName ? `Category "${categoryName}" updated` : 'Category updated');
+      }
+
+      if (action === 'equipment_category_deleted') {
+        const categoryName = getStringProperty(details, 'name');
+        return plain(categoryName ? `Category "${categoryName}" removed` : 'Category removed');
+      }
+
+      if (action === 'equipment_document_added') {
+        const label = getStringProperty(details, 'label');
+        return plain(label ? `Document "${label}" added` : 'Document added');
+      }
+
+      if (action === 'equipment_document_removed') {
+        return plain('Document removed');
+      }
+
       return plain(name ? name : '-');
     }
 

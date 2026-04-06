@@ -14,7 +14,14 @@ import type {
   EquipmentItemUpdatedEvent,
   EquipmentItemDecommissionedEvent,
   EquipmentItemDeletedEvent,
+  EquipmentCategoryCreatedEvent,
+  EquipmentCategoryUpdatedEvent,
+  EquipmentCategoryDeletedEvent,
+  EquipmentDocumentAddedEvent,
+  EquipmentDocumentRemovedEvent,
   EquipmentMaintenanceLoggedEvent,
+  EquipmentMaintenanceUpdatedEvent,
+  EquipmentMaintenanceDeletedEvent,
 } from './EquipmentEvents';
 import type {
   VerificationEmailSentEvent,
@@ -171,6 +178,13 @@ export interface DomainEventMap {
   'EquipmentItemDecommissioned': EquipmentItemDecommissionedEvent;
   'EquipmentItemDeleted': EquipmentItemDeletedEvent;
   'EquipmentMaintenanceLogged': EquipmentMaintenanceLoggedEvent;
+  'EquipmentMaintenanceUpdated': EquipmentMaintenanceUpdatedEvent;
+  'EquipmentMaintenanceDeleted': EquipmentMaintenanceDeletedEvent;
+  'EquipmentCategoryCreated': EquipmentCategoryCreatedEvent;
+  'EquipmentCategoryUpdated': EquipmentCategoryUpdatedEvent;
+  'EquipmentCategoryDeleted': EquipmentCategoryDeletedEvent;
+  'EquipmentDocumentAdded': EquipmentDocumentAddedEvent;
+  'EquipmentDocumentRemoved': EquipmentDocumentRemovedEvent;
 
   // Lab events
   'LabCreated': LabCreatedEvent;
