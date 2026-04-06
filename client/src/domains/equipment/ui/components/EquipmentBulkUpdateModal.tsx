@@ -14,14 +14,15 @@ import {
   equipmentBulkStatusRequestSchema,
   equipmentBulkRelocateRequestSchema,
 } from '@odysseus/shared-schemas';
-import { Layers, Wrench, RefreshCw, FolderInput } from 'lucide-react';
+import { Layers, Search, Wrench, RefreshCw, FolderInput } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 
-import { useEquipmentBulkUpdateMutation } from '@domains/equipment/hooks';
+import { useEquipmentBulkUpdateMutation, type EquipmentBulkAction } from '@domains/equipment/hooks';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { Button, Checkbox, DatePicker, Select, Tabs, Tab } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
@@ -106,7 +107,22 @@ function ItemSelector({
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
 }) {
-  const groups = useMemo(() => buildCategoryGroups(categories, items), [categories, items]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredItems = useMemo(() => {
+    if (!searchQuery) return items;
+    const q = searchQuery.toLowerCase();
+    return items.filter(
+      i =>
+        i.name.toLowerCase().includes(q) ||
+        (i.manufacturer && i.manufacturer.toLowerCase().includes(q))
+    );
+  }, [items, searchQuery]);
+
+  const groups = useMemo(
+    () => buildCategoryGroups(categories, filteredItems),
+    [categories, filteredItems]
+  );
 
   const allSelectableIds = useMemo(() => groups.flatMap(getAllItemIds), [groups]);
 
@@ -149,6 +165,16 @@ function ItemSelector({
 
   return (
     <div className="flex flex-col h-full min-h-0">
+      <div className="relative mb-2 flex-shrink-0">
+        <Search className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Filter equipment..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="input-search w-full pl-7 text-xs"
+        />
+      </div>
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50 flex-shrink-0">
         <Checkbox
           checked={allSelected}
@@ -585,6 +611,7 @@ export function EquipmentBulkUpdateModal({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [actionType, setActionType] = useState<BulkActionType>('maintenance');
   const [isFormValid, setIsFormValid] = useState(false);
+  const [pendingAction, setPendingAction] = useState<EquipmentBulkAction | null>(null);
   const bulkMutation = useEquipmentBulkUpdateMutation();
 
   const handleResult = useCallback(
@@ -606,38 +633,40 @@ export function EquipmentBulkUpdateModal({
 
   const handleMaintenanceSubmit = useCallback(
     (data: CreateEquipmentMaintenanceLogRequest) => {
-      bulkMutation.mutate(
-        { type: 'maintenance', itemIds: Array.from(selectedIds), data },
-        { onSuccess: handleResult }
-      );
+      setPendingAction({ type: 'maintenance', itemIds: Array.from(selectedIds), data });
     },
-    [selectedIds, bulkMutation, handleResult]
+    [selectedIds]
   );
 
   const handleStatusSubmit = useCallback(
     (data: { status: EquipmentStatus; conditionNotes?: string }) => {
-      bulkMutation.mutate(
-        { type: 'status', itemIds: Array.from(selectedIds), data },
-        { onSuccess: handleResult }
-      );
+      setPendingAction({ type: 'status', itemIds: Array.from(selectedIds), data });
     },
-    [selectedIds, bulkMutation, handleResult]
+    [selectedIds]
   );
 
   const handleRelocateSubmit = useCallback(
     (data: { categoryId: string }) => {
-      bulkMutation.mutate(
-        { type: 'relocate', itemIds: Array.from(selectedIds), data },
-        { onSuccess: handleResult }
-      );
+      setPendingAction({ type: 'relocate', itemIds: Array.from(selectedIds), data });
     },
-    [selectedIds, bulkMutation, handleResult]
+    [selectedIds]
   );
+
+  const confirmAction = useCallback(() => {
+    if (!pendingAction) return;
+    bulkMutation.mutate(pendingAction, {
+      onSuccess: result => {
+        handleResult(result);
+        setPendingAction(null);
+      },
+    });
+  }, [pendingAction, bulkMutation, handleResult]);
 
   const handleClose = useCallback(() => {
     setSelectedIds(new Set());
     setActionType('maintenance');
     setIsFormValid(false);
+    setPendingAction(null);
     onClose();
   }, [onClose]);
 
@@ -668,65 +697,80 @@ export function EquipmentBulkUpdateModal({
   );
 
   return (
-    <BaseModal
-      isOpen={isOpen}
-      title="Bulk Update"
-      icon={<Layers className="w-4 h-4" />}
-      onClose={handleClose}
-      size="md-lg"
-      fixedHeight
-      contentClassName="p-0 h-full"
-      footer={footer}
-    >
-      <div className="flex h-full min-h-0">
-        <div className="w-2/5 border-r border-border p-4 flex flex-col min-h-0 overflow-auto bg-muted/30">
-          <ItemSelector
-            categories={categories}
-            items={items}
-            selectedIds={selectedIds}
-            onSelectionChange={setSelectedIds}
-          />
-        </div>
-
-        <div className="w-3/5 flex flex-col min-h-0">
-          <div className="flex-shrink-0 border-b border-border">
-            <Tabs
-              value={actionType}
-              onChange={v => setActionType(v as BulkActionType)}
-              orientation="horizontal"
-            >
-              <Tab id="maintenance" icon={<Wrench className="w-3.5 h-3.5" />}>
-                Maintenance
-              </Tab>
-              <Tab id="status" icon={<RefreshCw className="w-3.5 h-3.5" />}>
-                Status
-              </Tab>
-              <Tab id="relocate" icon={<FolderInput className="w-3.5 h-3.5" />}>
-                Relocate
-              </Tab>
-            </Tabs>
+    <>
+      <BaseModal
+        isOpen={isOpen}
+        title="Bulk Update"
+        icon={<Layers className="w-4 h-4" />}
+        onClose={handleClose}
+        size="md-lg"
+        fixedHeight
+        contentClassName="p-0 h-full"
+        footer={footer}
+      >
+        <div className="flex h-full min-h-0">
+          <div className="w-2/5 border-r border-border p-4 flex flex-col min-h-0 overflow-auto bg-muted/30">
+            <ItemSelector
+              categories={categories}
+              items={items}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+            />
           </div>
 
-          <ScrollArea className="flex-1 min-h-0 p-4">
-            {actionType === 'maintenance' && (
-              <MaintenanceForm
-                onSubmit={handleMaintenanceSubmit}
-                onValidityChange={setIsFormValid}
-              />
-            )}
-            {actionType === 'status' && (
-              <StatusForm onSubmit={handleStatusSubmit} onValidityChange={setIsFormValid} />
-            )}
-            {actionType === 'relocate' && (
-              <RelocateForm
-                categories={categories}
-                onSubmit={handleRelocateSubmit}
-                onValidityChange={setIsFormValid}
-              />
-            )}
-          </ScrollArea>
+          <div className="w-3/5 flex flex-col min-h-0">
+            <div className="flex-shrink-0 border-b border-border">
+              <Tabs
+                value={actionType}
+                onChange={v => setActionType(v as BulkActionType)}
+                orientation="horizontal"
+              >
+                <Tab id="maintenance" icon={<Wrench className="w-3.5 h-3.5" />}>
+                  Maintenance
+                </Tab>
+                <Tab id="status" icon={<RefreshCw className="w-3.5 h-3.5" />}>
+                  Status
+                </Tab>
+                <Tab id="relocate" icon={<FolderInput className="w-3.5 h-3.5" />}>
+                  Relocate
+                </Tab>
+              </Tabs>
+            </div>
+
+            <ScrollArea className="flex-1 min-h-0 p-4">
+              {actionType === 'maintenance' && (
+                <MaintenanceForm
+                  onSubmit={handleMaintenanceSubmit}
+                  onValidityChange={setIsFormValid}
+                />
+              )}
+              {actionType === 'status' && (
+                <StatusForm onSubmit={handleStatusSubmit} onValidityChange={setIsFormValid} />
+              )}
+              {actionType === 'relocate' && (
+                <RelocateForm
+                  categories={categories}
+                  onSubmit={handleRelocateSubmit}
+                  onValidityChange={setIsFormValid}
+                />
+              )}
+            </ScrollArea>
+          </div>
         </div>
-      </div>
-    </BaseModal>
+      </BaseModal>
+
+      {pendingAction && (
+        <ConfirmDialog
+          isOpen={true}
+          variant="warning"
+          title="Confirm Bulk Update"
+          message={`${actionLabels[pendingAction.type as BulkActionType]} for ${pendingAction.itemIds.length} ${pendingAction.itemIds.length === 1 ? 'item' : 'items'}?`}
+          confirmText="Apply"
+          onConfirm={confirmAction}
+          onCancel={() => setPendingAction(null)}
+          isLoading={bulkMutation.isPending}
+        />
+      )}
+    </>
   );
 }

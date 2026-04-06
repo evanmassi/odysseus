@@ -5,7 +5,7 @@
  * maintenance log timeline, and admin action buttons.
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
@@ -35,6 +35,7 @@ import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
 import type { EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
+import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface EquipmentItemInfoPanelProps {
   itemId: string;
@@ -80,6 +81,12 @@ export function EquipmentItemInfoPanel({
 }: EquipmentItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
+  const scrollRef = useRef<OverlayScrollbarsComponentRef>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current?.getElement();
+    if (el) el.scrollTop = 0;
+  }, [itemId]);
   const { data: detail } = useEquipmentItemDetailQuery(itemId);
   const deleteItemMutation = useDeleteEquipmentItemMutation();
   const removeDocumentMutation = useRemoveEquipmentDocumentMutation();
@@ -173,7 +180,7 @@ export function EquipmentItemInfoPanel({
         </div>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 px-4 pb-4">
+      <ScrollArea ref={scrollRef} className="flex-1 min-h-0 px-4 pb-4">
         <div className="space-y-4">
           {/* Product Details */}
           <InfoGroup title="Product Details">
