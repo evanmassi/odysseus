@@ -99,7 +99,9 @@ export class AuditModule {
         repositories.researchers,
         repositories.persons,
         repositories.storage,
-        this.shared.configurationService.get('app').version
+        this.shared.configurationService.get('app').version,
+        repositories.equipmentItems,
+        repositories.equipmentCategories,
       );
     }
     return this.exportService;

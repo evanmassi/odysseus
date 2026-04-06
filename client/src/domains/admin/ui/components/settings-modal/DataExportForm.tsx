@@ -14,7 +14,7 @@ import { notifications } from '@shared/utils';
 
 import { exportService } from '../../../services/ExportService';
 
-type ExportType = 'tubes' | 'users' | 'researchers' | 'system-backup';
+type ExportType = 'tubes' | 'users' | 'researchers' | 'equipment' | 'system-backup';
 type ExportFormat = 'csv' | 'json';
 
 interface ExportOption {
@@ -42,6 +42,12 @@ const exportOptions: ExportOption[] = [
     value: 'researchers',
     label: 'Researchers',
     description: 'All researchers with tube counts',
+    defaultFormat: 'csv',
+  },
+  {
+    value: 'equipment',
+    label: 'Equipment Inventory',
+    description: 'All equipment items with categories',
     defaultFormat: 'csv',
   },
   {
@@ -108,6 +114,9 @@ export function DataExportForm() {
         case 'researchers':
           blob = await exportService.exportResearchers(format);
           break;
+        case 'equipment':
+          blob = await exportService.exportEquipment(format);
+          break;
         case 'system-backup':
           blob = await exportService.exportSystemBackup();
           break;
@@ -134,7 +143,7 @@ export function DataExportForm() {
           <Download size={18} className="text-muted-foreground flex-shrink-0" />
 
           {/* Type Selection */}
-          <div className="w-40">
+          <div className="w-52">
             <Select
               value={selectedType}
               onChange={value => handleTypeChange(String(value))}

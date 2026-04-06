@@ -6,12 +6,17 @@
 
 import { toDate } from '@infrastructure/database/PostgresContext';
 
-function escapeValue(value: unknown): string {
+function escapeValue(value: unknown, forceText = false): string {
   if (value === null || value === undefined) {
     return '';
   }
 
   const stringValue = String(value);
+  if (!stringValue) return '';
+
+  if (forceText && /^\d/.test(stringValue)) {
+    return `="${stringValue.replace(/"/g, '""')}"`;
+  }
 
   if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
     return `"${stringValue.replace(/"/g, '""')}"`;
@@ -23,7 +28,7 @@ function escapeValue(value: unknown): string {
 /** If columns not provided, uses keys from first object. */
 export function generateCsv<T extends object>(
   data: T[],
-  columns?: Array<{ key: keyof T; header: string }>
+  columns?: Array<{ key: keyof T; header: string; forceText?: boolean }>
 ): string {
   if (data.length === 0) {
     return '';
@@ -37,7 +42,7 @@ export function generateCsv<T extends object>(
   const headerRow = columnConfig.map(col => escapeValue(col.header)).join(',');
 
   const dataRows = data.map(row =>
-    columnConfig.map(col => escapeValue(row[col.key])).join(',')
+    columnConfig.map(col => escapeValue(row[col.key], 'forceText' in col ? (col as { forceText?: boolean }).forceText : false)).join(',')
   );
 
   return [headerRow, ...dataRows].join('\n');

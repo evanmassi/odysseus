@@ -35,6 +35,15 @@ export class ExportService {
     }
   }
 
+  async exportEquipment(format: 'csv' | 'json'): Promise<Blob> {
+    try {
+      return await httpClient.getBlob(`/admin/export/equipment?format=${format}`);
+    } catch (error) {
+      logger.error('Failed to export equipment', { error });
+      throw error;
+    }
+  }
+
   async exportSystemBackup(): Promise<Blob> {
     try {
       return await httpClient.getBlob('/admin/export/system-backup');

@@ -5,6 +5,8 @@
  */
 
 import type { Person } from '@domain/entities/Person';
+import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
+import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -12,6 +14,15 @@ import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import { logger } from '@infrastructure/logging/logger';
 import { generateCsv, formatDateForCsv } from '@infrastructure/utils/csvGenerator';
+
+function formatConcentration(value: number | undefined): string {
+  if (value === undefined) return '';
+  if (value === 0) return '0';
+  if (Math.abs(value) < 0.001 || Math.abs(value) >= 1e9) {
+    return value.toExponential();
+  }
+  return value.toString();
+}
 
 interface TubeExportRow {
   id: string;
@@ -68,6 +79,27 @@ interface ResearcherExportRow {
   createdAt: string;
 }
 
+interface EquipmentExportRow {
+  id: string;
+  name: string;
+  category: string;
+  serialNumber: string;
+  manufacturer: string;
+  model: string;
+  status: string;
+  location: string;
+  assetTag: string;
+  description: string;
+  conditionNotes: string;
+  purchaseDate: string;
+  purchaseCost: string;
+  warrantyExpiration: string;
+  nextMaintenanceDate: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface SystemBackup {
   exportedAt: string;
   version: string;
@@ -82,7 +114,9 @@ export class ExportService {
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository,
     private storageRepository: StorageRepository,
-    private appVersion: string
+    private appVersion: string,
+    private equipmentItemRepository?: EquipmentItemRepository,
+    private equipmentCategoryRepository?: EquipmentCategoryRepository,
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;
@@ -91,6 +125,7 @@ export class ExportService {
     logger.info('[ExportService] Exporting tubes', { format, labId });
 
     const tubes = await this.tubeRepository.findAllByLabId(labId);
+    const storageConfig = await this.storageRepository.getForLab(labId);
 
     const researcherIds = [...new Set(tubes.map(t => t.researcherId).filter(Boolean))] as string[];
     const researchers = await this.researcherRepository.findByIds(researcherIds);
@@ -104,10 +139,21 @@ export class ExportService {
       }
     }
 
+    const tankNameMap = new Map<string, string>();
+    const rackNameMap = new Map<string, string>();
+    if (storageConfig) {
+      for (const tank of storageConfig.equipment.tanks) {
+        tankNameMap.set(tank.id, tank.name);
+        for (const rack of tank.racks) {
+          rackNameMap.set(rack.id, rack.name);
+        }
+      }
+    }
+
     const exportData: TubeExportRow[] = tubes.map(tube => ({
       id: tube.id,
-      tankId: tube.location.tankId,
-      rackId: tube.location.rackId,
+      tankId: tankNameMap.get(tube.location.tankId) ?? tube.location.tankId,
+      rackId: rackNameMap.get(tube.location.rackId) ?? tube.location.rackId,
       boxId: tube.location.boxId,
       position: tube.location.position,
       researcherId: tube.researcherId ?? '',
@@ -115,9 +161,9 @@ export class ExportService {
       cellType: tube.sample.cellType ?? '',
       donorInternalId: tube.sample.donorInternalId ?? '',
       donorSourceId: tube.sample.donorSourceId ?? '',
-      concentration: tube.sample.concentration?.toString() ?? '',
+      concentration: formatConcentration(tube.sample.concentration),
       concentrationUnit: tube.sample.concentrationUnit ?? '',
-      date: tube.sample.date ?? '',
+      date: formatDateForCsv(tube.sample.date),
       media: tube.sample.mediaType ?? '',
       cultureCondition: tube.sample.cultureCondition ?? '',
       species: tube.sample.species ?? '',
@@ -144,13 +190,13 @@ export class ExportService {
       { key: 'position', header: 'Position' },
       { key: 'researcherName', header: 'Researcher' },
       { key: 'cellType', header: 'Cell Type' },
-      { key: 'donorInternalId', header: 'Donor Internal ID' },
-      { key: 'donorSourceId', header: 'Donor Source ID' },
+      { key: 'donorInternalId', header: 'Donor Internal ID', forceText: true },
+      { key: 'donorSourceId', header: 'Donor Source ID', forceText: true },
       { key: 'concentration', header: 'Concentration' },
       { key: 'concentrationUnit', header: 'Concentration Unit' },
       { key: 'date', header: 'Date' },
       { key: 'media', header: 'Media' },
-      { key: 'cultureCondition', header: 'Culture Condition' },
+      { key: 'cultureCondition', header: 'Culture Condition', forceText: true },
       { key: 'species', header: 'Species' },
       { key: 'source', header: 'Source' },
       { key: 'catalogNumber', header: 'Catalog Number' },
@@ -259,6 +305,69 @@ export class ExportService {
       { key: 'tubeCount', header: 'Tube Count' },
       { key: 'linkedUserId', header: 'Linked User ID' },
       { key: 'createdAt', header: 'Created At' }
+    ]);
+  }
+
+  async exportEquipment(labId: string, format: 'csv'): Promise<string>;
+  async exportEquipment(labId: string, format: 'json'): Promise<EquipmentExportRow[]>;
+  async exportEquipment(labId: string, format: 'csv' | 'json'): Promise<string | EquipmentExportRow[]> {
+    logger.info('[ExportService] Exporting equipment', { labId, format });
+
+    if (!this.equipmentItemRepository || !this.equipmentCategoryRepository) {
+      throw new Error('Equipment repositories not configured');
+    }
+
+    const items = await this.equipmentItemRepository.findByLabId(labId);
+    const categories = await this.equipmentCategoryRepository.findByLabId(labId);
+
+    const categoryMap = new Map<string, string>();
+    categories.forEach(c => {
+      const parent = c.parentId ? categories.find(p => p.id === c.parentId) : undefined;
+      categoryMap.set(c.id, parent ? `${parent.name} > ${c.name}` : c.name);
+    });
+
+    const rows: EquipmentExportRow[] = items.map(item => ({
+      id: item.id,
+      name: item.name,
+      category: categoryMap.get(item.categoryId) ?? '',
+      serialNumber: item.serialNumber ?? '',
+      manufacturer: item.manufacturer ?? '',
+      model: item.model ?? '',
+      status: item.status,
+      location: item.location ?? '',
+      assetTag: item.assetTag ?? '',
+      description: item.description ?? '',
+      conditionNotes: item.conditionNotes ?? '',
+      purchaseDate: formatDateForCsv(item.purchaseDate),
+      purchaseCost: item.purchaseCost !== undefined ? item.purchaseCost.toString() : '',
+      warrantyExpiration: formatDateForCsv(item.warrantyExpiration),
+      nextMaintenanceDate: formatDateForCsv(item.nextMaintenanceDate),
+      notes: item.notes ?? '',
+      createdAt: formatDateForCsv(item.createdAt),
+      updatedAt: formatDateForCsv(item.updatedAt),
+    }));
+
+    if (format === 'json') return rows;
+
+    return generateCsv(rows, [
+      { key: 'id', header: 'ID' },
+      { key: 'name', header: 'Name' },
+      { key: 'category', header: 'Category' },
+      { key: 'serialNumber', header: 'Serial Number' },
+      { key: 'manufacturer', header: 'Manufacturer' },
+      { key: 'model', header: 'Model' },
+      { key: 'status', header: 'Status' },
+      { key: 'location', header: 'Location' },
+      { key: 'assetTag', header: 'Asset Tag' },
+      { key: 'description', header: 'Description' },
+      { key: 'conditionNotes', header: 'Condition Notes' },
+      { key: 'purchaseDate', header: 'Purchase Date' },
+      { key: 'purchaseCost', header: 'Purchase Cost' },
+      { key: 'warrantyExpiration', header: 'Warranty Expiration' },
+      { key: 'nextMaintenanceDate', header: 'Next Maintenance Date' },
+      { key: 'notes', header: 'Notes' },
+      { key: 'createdAt', header: 'Created At' },
+      { key: 'updatedAt', header: 'Updated At' },
     ]);
   }
 
