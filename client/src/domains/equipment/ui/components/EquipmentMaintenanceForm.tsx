@@ -6,7 +6,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createEquipmentMaintenanceLogRequestSchema } from '@odysseus/shared-schemas';
-import { Save, X } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import {
@@ -87,130 +87,127 @@ export function EquipmentMaintenanceForm({
   };
 
   return (
-    <ScrollArea className="h-full">
-      <form onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-secondary-foreground">
-          {isEditing ? 'Edit Maintenance Entry' : 'Add Maintenance Entry'}
-        </h3>
+    <div className="flex flex-col h-full min-h-0">
+      <ScrollArea className="flex-1 min-h-0">
+        <form id="maintenance-form" onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-secondary-foreground">
+            {isEditing ? 'Edit Maintenance Entry' : 'Add Maintenance Entry'}
+          </h3>
 
-        <div className="space-y-3">
-          <Controller
-            name="datePerformed"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                  Date Performed *
-                </span>
-                <DatePicker
-                  value={(value as string) ?? ''}
-                  onChange={onChange}
+          <div className="space-y-3">
+            <Controller
+              name="datePerformed"
+              control={control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <div>
+                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
+                    Date Performed *
+                  </span>
+                  <DatePicker
+                    value={(value as string) ?? ''}
+                    onChange={onChange}
+                    state={error ? 'error' : 'default'}
+                    fullWidth
+                  />
+                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                </div>
+              )}
+            />
+
+            <Controller
+              name="maintenanceType"
+              control={control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <Select
+                  label="Maintenance Type"
+                  options={typeOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
                   state={error ? 'error' : 'default'}
+                  error={error?.message}
                   fullWidth
                 />
-                {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
-              </div>
-            )}
-          />
+              )}
+            />
 
-          <Controller
-            name="maintenanceType"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <Select
-                label="Maintenance Type"
-                options={typeOptions}
-                value={value ?? ''}
-                onChange={v => onChange(v)}
-                state={error ? 'error' : 'default'}
-                error={error?.message}
-                fullWidth
-              />
-            )}
-          />
+            <ValidatedInput
+              label="Performed By (Vendor/Service)"
+              placeholder="e.g., TSS, In-house"
+              error={!!errors.performedBy}
+              helperText={errors.performedBy?.message}
+              registration={register('performedBy')}
+            />
 
-          <ValidatedInput
-            label="Performed By (Vendor/Service)"
-            placeholder="e.g., TSS, In-house"
-            error={!!errors.performedBy}
-            helperText={errors.performedBy?.message}
-            registration={register('performedBy')}
-          />
+            <ValidatedInput
+              label="Technician"
+              placeholder="e.g., John Smith"
+              error={!!errors.technician}
+              helperText={errors.technician?.message}
+              registration={register('technician')}
+            />
 
-          <ValidatedInput
-            label="Technician"
-            placeholder="e.g., John Smith"
-            error={!!errors.technician}
-            helperText={errors.technician?.message}
-            registration={register('technician')}
-          />
+            <ValidatedInput
+              label="Description"
+              type="textarea"
+              placeholder="Work performed, parts replaced, etc."
+              registration={register('description')}
+            />
 
-          <ValidatedInput
-            label="Description"
-            type="textarea"
-            placeholder="Work performed, parts replaced, etc."
-            registration={register('description')}
-          />
+            <Controller
+              name="nextScheduledDate"
+              control={control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <div>
+                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
+                    Next Scheduled Date
+                  </span>
+                  <DatePicker
+                    value={(value as string) ?? ''}
+                    onChange={onChange}
+                    state={error ? 'error' : 'default'}
+                    fullWidth
+                    clearable
+                  />
+                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                </div>
+              )}
+            />
 
-          <Controller
-            name="nextScheduledDate"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                  Next Scheduled Date
-                </span>
-                <DatePicker
-                  value={(value as string) ?? ''}
-                  onChange={onChange}
-                  state={error ? 'error' : 'default'}
-                  fullWidth
-                  clearable
-                />
-                {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
-              </div>
-            )}
-          />
+            <ValidatedInput
+              label="Cost ($)"
+              type="number"
+              step="0.01"
+              error={!!errors.cost}
+              helperText={errors.cost?.message}
+              registration={register('cost', {
+                setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+              })}
+            />
 
-          <ValidatedInput
-            label="Cost ($)"
-            type="number"
-            step="0.01"
-            error={!!errors.cost}
-            helperText={errors.cost?.message}
-            registration={register('cost', {
-              setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-            })}
-          />
+            <ValidatedInput
+              label="Notes"
+              type="textarea"
+              placeholder="Additional notes and observations..."
+              registration={register('notes')}
+            />
+          </div>
+        </form>
+      </ScrollArea>
 
-          <ValidatedInput
-            label="Notes"
-            type="textarea"
-            placeholder="Additional notes and observations..."
-            registration={register('notes')}
-          />
-        </div>
-
-        <div className="flex items-center gap-2 pt-2">
-          <Button
-            type="submit"
-            size="sm"
-            disabled={isSubmitting}
-            leftIcon={<Save className="w-3.5 h-3.5" />}
-          >
-            {isEditing ? 'Save Changes' : 'Add Entry'}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={onCancel}
-            leftIcon={<X className="w-3.5 h-3.5" />}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </ScrollArea>
+      <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          form="maintenance-form"
+          size="sm"
+          disabled={isSubmitting}
+          leftIcon={<Save className="w-3.5 h-3.5" />}
+        >
+          {isEditing ? 'Save Changes' : 'Add Entry'}
+        </Button>
+      </div>
+    </div>
   );
 }

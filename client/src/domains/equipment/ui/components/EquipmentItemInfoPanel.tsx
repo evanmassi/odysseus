@@ -15,7 +15,7 @@ import {
   Plus,
   ExternalLink,
   X,
-  Wrench,
+  Microscope,
   MapPin,
   FolderOpen,
 } from 'lucide-react';
@@ -121,7 +121,7 @@ export function EquipmentItemInfoPanel({
     <div className="flex flex-col h-full min-h-0">
       <div className="px-4 pt-4 pb-2 flex-shrink-0">
         <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
-          <Wrench size={16} className="text-secondary-foreground" />
+          <Microscope size={16} className="text-secondary-foreground" />
           Equipment Information
         </h4>
       </div>

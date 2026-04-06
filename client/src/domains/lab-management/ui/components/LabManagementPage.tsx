@@ -43,7 +43,7 @@ export function LabManagementPage() {
       </div>
 
       <div className="lab-management-layout">
-        <aside className="lab-management-sidebar">
+        <aside className="lab-management-sidebar pt-2 pb-4">
           <div className="h-full bg-card rounded-lg p-3 flex flex-col gap-1">
             {TABS.map(tab => {
               const Icon = tab.icon;

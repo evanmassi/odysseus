@@ -8,6 +8,7 @@ import { BookUser, Pencil, Trash2 } from 'lucide-react';
 
 import { Button, Chip } from '@shared/ui';
 import { InfoField, InfoGroup } from '@shared/ui/components/info-display';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { CollectionHistoryTimeline } from './CollectionHistoryTimeline';
 
@@ -74,8 +75,8 @@ export function DonorInfoPanel({
         )}
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden pr-1">
-        <div className="space-y-4 pb-4">
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="space-y-4 pb-4 pr-1">
           <InfoGroup title="Identifiers">
             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
               <InfoField
@@ -155,7 +156,7 @@ export function DonorInfoPanel({
             </InfoGroup>
           )}
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

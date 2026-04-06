@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Layers, Plus, Search, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
+import { Layers, Plus, Search, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
@@ -187,184 +187,191 @@ export function EquipmentTab() {
   }, [selectedItemId, addDocumentMutation]);
 
   return (
-    <div className="flex gap-4 h-full min-h-0 px-4 pb-4 pt-2">
-      {/* Left Panel: Category Browser */}
-      <div className="flex-1 min-w-0 flex flex-col">
-        {/* Row 1: Search + Add Equipment */}
-        <div className="flex items-center justify-between gap-4 mb-2 flex-shrink-0 px-0.5">
-          <div className="relative w-96">
-            <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search equipment..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="input-search w-full pl-8"
-            />
-          </div>
-          {isAdmin && (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsBulkModalOpen(true)}
-                className="h-8"
-                leftIcon={<Layers className="w-3.5 h-3.5" />}
-              >
-                Bulk Update
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleAddEquipment}
-                className="h-8"
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
-              >
-                Add Equipment
-              </Button>
+    <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
+      <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
+        {/* Left Panel: Category Browser */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Row 1: Search + Add Equipment */}
+          <div className="flex items-center justify-between gap-4 mb-2 flex-shrink-0 px-0.5">
+            <div className="relative w-96">
+              <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search equipment..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="input-search w-full pl-8"
+              />
             </div>
+            {isAdmin && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsBulkModalOpen(true)}
+                  className="h-8"
+                  leftIcon={<Layers className="w-3.5 h-3.5" />}
+                >
+                  Bulk Update
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleAddEquipment}
+                  className="h-8"
+                  leftIcon={<Plus className="w-3.5 h-3.5" />}
+                >
+                  Add Equipment
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Row 2: Sort + Show Decommissioned */}
+          <div className="flex items-center gap-2 h-8 px-0.5 mb-2 flex-shrink-0">
+            <span className="text-xs font-medium text-secondary-foreground">Sort:</span>
+            <Select
+              options={SORT_OPTIONS}
+              value={sortField}
+              onChange={value => setSortField(value as SortField)}
+              size="xs"
+              variant="default"
+              aria-label="Sort field"
+              className="w-32"
+            />
+            <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
+              <button
+                type="button"
+                onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+                className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors"
+              >
+                {sortDirection === 'asc' ? (
+                  <ArrowUp className="w-4 h-4" />
+                ) : (
+                  <ArrowDown className="w-4 h-4" />
+                )}
+              </button>
+            </Tooltip>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDecommissioned(!showDecommissioned)}
+              className="h-8 text-xs"
+              leftIcon={
+                showDecommissioned ? (
+                  <EyeOff className="w-3.5 h-3.5" />
+                ) : (
+                  <Eye className="w-3.5 h-3.5" />
+                )
+              }
+            >
+              {showDecommissioned ? 'Hide' : 'Show'} Decommissioned
+            </Button>
+          </div>
+
+          <EquipmentMaintenanceAlertPanel
+            items={items}
+            categoryNameMap={categoryNameMap}
+            selectedItemId={selectedItemId}
+            onSelectItem={handleSelectItem}
+          />
+
+          {/* Category list */}
+          <ScrollArea className="flex-1">
+            <EquipmentCategoryPanel
+              categories={categories}
+              items={items}
+              selectedItemId={selectedItemId}
+              onSelectItem={handleSelectItem}
+              showDecommissioned={showDecommissioned}
+              searchQuery={searchQuery}
+              isAdmin={isAdmin}
+              onAddCategory={handleAddCategory}
+              onAddSubcategory={handleAddSubcategory}
+              onRenameCategory={handleRenameCategory}
+              onDeleteCategory={handleDeleteCategory}
+              sortField={sortField}
+              sortDirection={sortDirection}
+            />
+          </ScrollArea>
+        </div>
+
+        {/* Right Panel: Detail / Edit / Maintenance */}
+        <div
+          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden bg-card rounded-lg"
+          style={{ width: 'clamp(420px, 40%, 580px)' }}
+        >
+          {!rightPanel && (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
+                  <Microscope className="w-6 h-6 text-card-foreground/30" />
+                </div>
+                <p className="text-card-foreground/40 text-sm">Select equipment to view details</p>
+              </div>
+            </div>
+          )}
+
+          {rightPanel?.type === 'info' && (
+            <EquipmentItemInfoPanel
+              itemId={rightPanel.itemId}
+              onEdit={handleEditItem}
+              onDecommission={handleDecommission}
+              onAddDocument={() => void handleAddDocumentSubmit()}
+              onAddMaintenance={handleAddMaintenance}
+              onEditMaintenance={handleEditMaintenance}
+              onDeleted={handleItemDeleted}
+              categoryName={categoryNameMap.get(
+                items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
+              )}
+            />
+          )}
+
+          {rightPanel?.type === 'edit' && (
+            <EquipmentEditForm
+              item={rightPanel.item}
+              categories={categories}
+              onSubmit={handleFormComplete}
+              onCancel={handleFormComplete}
+            />
+          )}
+
+          {rightPanel?.type === 'decommission' && (
+            <EquipmentDecommissionForm
+              itemId={rightPanel.itemId}
+              itemName={items.find(i => i.id === rightPanel.itemId)?.name ?? ''}
+              onSubmit={handleFormComplete}
+              onCancel={handleFormComplete}
+            />
+          )}
+
+          {rightPanel?.type === 'maintenance' && (
+            <EquipmentMaintenanceForm
+              itemId={rightPanel.itemId}
+              entry={rightPanel.entry}
+              onSubmit={handleFormComplete}
+              onCancel={handleFormComplete}
+            />
           )}
         </div>
 
-        {/* Row 2: Sort + Show Decommissioned */}
-        <div className="flex items-center gap-2 h-8 px-0.5 mb-2 flex-shrink-0">
-          <span className="text-xs font-medium text-secondary-foreground">Sort:</span>
-          <Select
-            options={SORT_OPTIONS}
-            value={sortField}
-            onChange={value => setSortField(value as SortField)}
-            size="xs"
-            variant="default"
-            aria-label="Sort field"
-            className="w-32"
-          />
-          <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
-            <button
-              type="button"
-              onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
-              className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors"
-            >
-              {sortDirection === 'asc' ? (
-                <ArrowUp className="w-4 h-4" />
-              ) : (
-                <ArrowDown className="w-4 h-4" />
-              )}
-            </button>
-          </Tooltip>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowDecommissioned(!showDecommissioned)}
-            className="h-8 text-xs"
-            leftIcon={
-              showDecommissioned ? (
-                <EyeOff className="w-3.5 h-3.5" />
-              ) : (
-                <Eye className="w-3.5 h-3.5" />
-              )
-            }
-          >
-            {showDecommissioned ? 'Hide' : 'Show'} Decommissioned
-          </Button>
-        </div>
-
-        <EquipmentMaintenanceAlertPanel
-          items={items}
-          categoryNameMap={categoryNameMap}
-          selectedItemId={selectedItemId}
-          onSelectItem={handleSelectItem}
+        <EquipmentCategoryModal
+          isOpen={categoryModal.isOpen}
+          parentId={categoryModal.parentId}
+          parentName={categoryModal.parentName}
+          category={categoryModal.category}
+          onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
         />
 
-        {/* Category list */}
-        <ScrollArea className="flex-1">
-          <EquipmentCategoryPanel
-            categories={categories}
-            items={items}
-            selectedItemId={selectedItemId}
-            onSelectItem={handleSelectItem}
-            showDecommissioned={showDecommissioned}
-            searchQuery={searchQuery}
-            isAdmin={isAdmin}
-            onAddCategory={handleAddCategory}
-            onAddSubcategory={handleAddSubcategory}
-            onRenameCategory={handleRenameCategory}
-            onDeleteCategory={handleDeleteCategory}
-            sortField={sortField}
-            sortDirection={sortDirection}
-          />
-        </ScrollArea>
+        <ConfirmDialog
+          isOpen={deleteConfirm.isOpen}
+          variant="danger"
+          title="Remove Category"
+          message={`Are you sure you want to remove "${deleteConfirm.category?.name ?? ''}"? This action cannot be undone.`}
+          confirmText="Remove"
+          onConfirm={() => void executeDeleteCategory()}
+          onCancel={() => setDeleteConfirm({ isOpen: false })}
+        />
       </div>
-
-      {/* Right Panel: Detail / Edit / Maintenance */}
-      <div
-        className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden bg-card rounded-lg"
-        style={{ width: 'clamp(420px, 40%, 580px)' }}
-      >
-        {!rightPanel && (
-          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-            Select an equipment item to view details
-          </div>
-        )}
-
-        {rightPanel?.type === 'info' && (
-          <EquipmentItemInfoPanel
-            itemId={rightPanel.itemId}
-            onEdit={handleEditItem}
-            onDecommission={handleDecommission}
-            onAddDocument={() => void handleAddDocumentSubmit()}
-            onAddMaintenance={handleAddMaintenance}
-            onEditMaintenance={handleEditMaintenance}
-            onDeleted={handleItemDeleted}
-            categoryName={categoryNameMap.get(
-              items.find(i => i.id === rightPanel.itemId)?.categoryId ?? ''
-            )}
-          />
-        )}
-
-        {rightPanel?.type === 'edit' && (
-          <EquipmentEditForm
-            item={rightPanel.item}
-            categories={categories}
-            onSubmit={handleFormComplete}
-            onCancel={handleFormComplete}
-          />
-        )}
-
-        {rightPanel?.type === 'decommission' && (
-          <EquipmentDecommissionForm
-            itemId={rightPanel.itemId}
-            itemName={items.find(i => i.id === rightPanel.itemId)?.name ?? ''}
-            onSubmit={handleFormComplete}
-            onCancel={handleFormComplete}
-          />
-        )}
-
-        {rightPanel?.type === 'maintenance' && (
-          <EquipmentMaintenanceForm
-            itemId={rightPanel.itemId}
-            entry={rightPanel.entry}
-            onSubmit={handleFormComplete}
-            onCancel={handleFormComplete}
-          />
-        )}
-      </div>
-
-      <EquipmentCategoryModal
-        isOpen={categoryModal.isOpen}
-        parentId={categoryModal.parentId}
-        parentName={categoryModal.parentName}
-        category={categoryModal.category}
-        onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
-      />
-
-      <ConfirmDialog
-        isOpen={deleteConfirm.isOpen}
-        variant="danger"
-        title="Remove Category"
-        message={`Are you sure you want to remove "${deleteConfirm.category?.name ?? ''}"? This action cannot be undone.`}
-        confirmText="Remove"
-        onConfirm={() => void executeDeleteCategory()}
-        onCancel={() => setDeleteConfirm({ isOpen: false })}
-      />
 
       <EquipmentBulkUpdateModal
         isOpen={isBulkModalOpen}

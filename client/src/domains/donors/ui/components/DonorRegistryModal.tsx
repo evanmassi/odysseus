@@ -157,7 +157,7 @@ export function DonorRegistryModal({
             />
           </div>
 
-          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden">
+          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden pt-[42px]">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <LoadingSpinner />

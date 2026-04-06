@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createEquipmentItemRequestSchema } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Save, X } from 'lucide-react';
+import { Plus, Save, SquarePen } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -134,238 +134,243 @@ export function EquipmentEditForm({
   };
 
   return (
-    <ScrollArea className="h-full">
-      <form onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-secondary-foreground">
-          {isEditing ? 'Edit Equipment' : 'Add Equipment'}
-        </h3>
+    <div className="flex flex-col h-full min-h-0">
+      <ScrollArea className="flex-1 min-h-0">
+        <form id="equipment-form" onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
+          <h3 className="text-sm font-semibold text-secondary-foreground inline-flex items-center gap-1.5">
+            {isEditing ? (
+              <>
+                <SquarePen size={14} className="text-muted-foreground" />
+                Edit Equipment Information
+              </>
+            ) : (
+              <>
+                <Plus size={14} className="text-muted-foreground" />
+                Add Equipment
+              </>
+            )}
+          </h3>
 
-        <div className="space-y-3">
-          <ValidatedInput
-            label="Name"
-            required
-            placeholder="e.g., P200 Pipette"
-            error={!!errors.name}
-            helperText={errors.name?.message}
-            registration={register('name')}
-          />
+          <div className="space-y-3">
+            <ValidatedInput
+              label="Name"
+              required
+              placeholder="e.g., P200 Pipette"
+              error={!!errors.name}
+              helperText={errors.name?.message}
+              registration={register('name')}
+            />
 
-          <Controller
-            name="categoryId"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <Select
-                label="Category"
-                options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
-                value={value ?? ''}
-                onChange={v => onChange(v)}
-                state={error ? 'error' : 'default'}
-                error={error?.message}
-                fullWidth
-                renderOption={option => {
-                  const isSub = !!option.description;
-                  return (
-                    <div className="w-full">
-                      {isSub ? (
-                        <span className="pl-4 text-sm">{option.label}</span>
-                      ) : (
-                        <span className="text-sm font-semibold">{option.label}</span>
-                      )}
-                    </div>
-                  );
-                }}
-                renderValue={selected => {
-                  const opt = selected[0];
-                  if (!opt)
+            <Controller
+              name="categoryId"
+              control={control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <Select
+                  label="Category"
+                  options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  state={error ? 'error' : 'default'}
+                  error={error?.message}
+                  fullWidth
+                  renderOption={option => {
+                    const isSub = !!option.description;
                     return (
-                      <span className="text-muted-foreground opacity-40">Select category...</span>
+                      <div className="w-full">
+                        {isSub ? (
+                          <span className="pl-4 text-sm">{option.label}</span>
+                        ) : (
+                          <span className="text-sm font-semibold">{option.label}</span>
+                        )}
+                      </div>
                     );
-                  const parentName = parentNameMap.get(opt.value as string);
-                  if (parentName) {
-                    return (
-                      <span className="text-foreground text-sm">
-                        <span className="text-muted-foreground">{parentName}</span>
-                        <span className="text-muted-foreground mx-1">›</span>
-                        {opt.label}
-                      </span>
-                    );
-                  }
-                  return <span className="text-foreground text-sm">{opt.label}</span>;
-                }}
-              />
-            )}
-          />
-
-          <Controller
-            name="status"
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <Select
-                label="Status"
-                options={STATUS_OPTIONS}
-                value={value ?? 'active'}
-                onChange={v => onChange(v)}
-                fullWidth
-              />
-            )}
-          />
-
-          <ValidatedInput
-            label="Manufacturer"
-            placeholder="e.g., Eppendorf, Thermo Fisher"
-            error={!!errors.manufacturer}
-            helperText={errors.manufacturer?.message}
-            registration={register('manufacturer')}
-          />
-
-          <ValidatedInput
-            label="Model"
-            placeholder="e.g., Research Plus"
-            error={!!errors.model}
-            helperText={errors.model?.message}
-            registration={register('model')}
-          />
-
-          <ValidatedInput
-            label="Serial Number"
-            placeholder="e.g., SN-2024-001"
-            error={!!errors.serialNumber}
-            helperText={errors.serialNumber?.message}
-            registration={register('serialNumber')}
-          />
-
-          <ValidatedInput
-            label="Asset Tag"
-            placeholder="e.g., EQ-0042"
-            error={!!errors.assetTag}
-            helperText={errors.assetTag?.message}
-            registration={register('assetTag')}
-          />
-
-          <ValidatedInput
-            label="Description"
-            type="textarea"
-            placeholder="Brief description of the equipment..."
-            registration={register('description')}
-          />
-
-          <ValidatedInput
-            label="Location"
-            placeholder="e.g., Room 204, Bench 3"
-            error={!!errors.location}
-            helperText={errors.location?.message}
-            registration={register('location')}
-          />
-
-          <Controller
-            name="purchaseDate"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                  Purchase Date
-                </span>
-                <DatePicker
-                  value={(value as string) ?? ''}
-                  onChange={onChange}
-                  state={error ? 'error' : 'default'}
-                  fullWidth
-                  clearable
+                  }}
+                  renderValue={selected => {
+                    const opt = selected[0];
+                    if (!opt)
+                      return (
+                        <span className="text-muted-foreground opacity-40">Select category...</span>
+                      );
+                    const parentName = parentNameMap.get(opt.value as string);
+                    if (parentName) {
+                      return (
+                        <span className="text-foreground text-sm">
+                          <span className="text-muted-foreground">{parentName}</span>
+                          <span className="text-muted-foreground mx-1">›</span>
+                          {opt.label}
+                        </span>
+                      );
+                    }
+                    return <span className="text-foreground text-sm">{opt.label}</span>;
+                  }}
                 />
-                {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
-              </div>
-            )}
-          />
+              )}
+            />
 
-          <ValidatedInput
-            label="Purchase Cost"
-            type="number"
-            step="0.01"
-            error={!!errors.purchaseCost}
-            helperText={errors.purchaseCost?.message}
-            registration={register('purchaseCost', {
-              setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-            })}
-          />
-
-          <Controller
-            name="warrantyExpiration"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                  Warranty Expiration
-                </span>
-                <DatePicker
-                  value={(value as string) ?? ''}
-                  onChange={onChange}
-                  state={error ? 'error' : 'default'}
+            <Controller
+              name="status"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <Select
+                  label="Status"
+                  options={STATUS_OPTIONS}
+                  value={value ?? 'active'}
+                  onChange={v => onChange(v)}
                   fullWidth
-                  clearable
                 />
-                {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
-              </div>
-            )}
-          />
+              )}
+            />
 
-          <Controller
-            name="nextMaintenanceDate"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                  Next Maintenance Date
-                </span>
-                <DatePicker
-                  value={(value as string) ?? ''}
-                  onChange={onChange}
-                  state={error ? 'error' : 'default'}
-                  fullWidth
-                  clearable
-                />
-                {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
-              </div>
-            )}
-          />
+            <ValidatedInput
+              label="Manufacturer"
+              placeholder="e.g., Eppendorf, Thermo Fisher"
+              error={!!errors.manufacturer}
+              helperText={errors.manufacturer?.message}
+              registration={register('manufacturer')}
+            />
 
-          <ValidatedInput
-            label="Condition Notes"
-            placeholder="Current condition or issues..."
-            error={!!errors.conditionNotes}
-            helperText={errors.conditionNotes?.message}
-            registration={register('conditionNotes')}
-          />
+            <ValidatedInput
+              label="Model"
+              placeholder="e.g., Research Plus"
+              error={!!errors.model}
+              helperText={errors.model?.message}
+              registration={register('model')}
+            />
 
-          <ValidatedInput
-            label="Notes"
-            type="textarea"
-            placeholder="Additional notes and observations..."
-            registration={register('notes')}
-          />
-        </div>
+            <ValidatedInput
+              label="Serial Number"
+              placeholder="e.g., SN-2024-001"
+              error={!!errors.serialNumber}
+              helperText={errors.serialNumber?.message}
+              registration={register('serialNumber')}
+            />
 
-        <div className="flex items-center gap-2 pt-2">
-          <Button
-            type="submit"
-            size="sm"
-            disabled={isSubmitting}
-            leftIcon={
-              isEditing ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />
-            }
-          >
-            {isEditing ? 'Save Changes' : 'Add'}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={onCancel}
-            leftIcon={<X className="w-3.5 h-3.5" />}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </ScrollArea>
+            <ValidatedInput
+              label="Asset Tag"
+              placeholder="e.g., EQ-0042"
+              error={!!errors.assetTag}
+              helperText={errors.assetTag?.message}
+              registration={register('assetTag')}
+            />
+
+            <ValidatedInput
+              label="Description"
+              type="textarea"
+              placeholder="Brief description of the equipment..."
+              registration={register('description')}
+            />
+
+            <ValidatedInput
+              label="Location"
+              placeholder="e.g., Room 204, Bench 3"
+              error={!!errors.location}
+              helperText={errors.location?.message}
+              registration={register('location')}
+            />
+
+            <Controller
+              name="purchaseDate"
+              control={control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <div>
+                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
+                    Purchase Date
+                  </span>
+                  <DatePicker
+                    value={(value as string) ?? ''}
+                    onChange={onChange}
+                    state={error ? 'error' : 'default'}
+                    fullWidth
+                    clearable
+                  />
+                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                </div>
+              )}
+            />
+
+            <ValidatedInput
+              label="Purchase Cost"
+              type="number"
+              step="0.01"
+              error={!!errors.purchaseCost}
+              helperText={errors.purchaseCost?.message}
+              registration={register('purchaseCost', {
+                setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+              })}
+            />
+
+            <Controller
+              name="warrantyExpiration"
+              control={control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <div>
+                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
+                    Warranty Expiration
+                  </span>
+                  <DatePicker
+                    value={(value as string) ?? ''}
+                    onChange={onChange}
+                    state={error ? 'error' : 'default'}
+                    fullWidth
+                    clearable
+                  />
+                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                </div>
+              )}
+            />
+
+            <Controller
+              name="nextMaintenanceDate"
+              control={control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <div>
+                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
+                    Next Maintenance Date
+                  </span>
+                  <DatePicker
+                    value={(value as string) ?? ''}
+                    onChange={onChange}
+                    state={error ? 'error' : 'default'}
+                    fullWidth
+                    clearable
+                  />
+                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                </div>
+              )}
+            />
+
+            <ValidatedInput
+              label="Condition Notes"
+              placeholder="Current condition or issues..."
+              error={!!errors.conditionNotes}
+              helperText={errors.conditionNotes?.message}
+              registration={register('conditionNotes')}
+            />
+
+            <ValidatedInput
+              label="Notes"
+              type="textarea"
+              placeholder="Additional notes and observations..."
+              registration={register('notes')}
+            />
+          </div>
+        </form>
+      </ScrollArea>
+
+      <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          form="equipment-form"
+          size="sm"
+          disabled={isSubmitting}
+          leftIcon={isEditing ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+        >
+          {isEditing ? 'Save Changes' : 'Add Equipment'}
+        </Button>
+      </div>
+    </div>
   );
 }
