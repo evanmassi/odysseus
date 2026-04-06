@@ -109,15 +109,31 @@ function ItemSelector({
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const matchingCategoryIds = useMemo(() => {
+    if (!searchQuery) return new Set<string>();
+    const q = searchQuery.toLowerCase();
+    const directMatches = categories.filter(c => c.name.toLowerCase().includes(q));
+    const ids = new Set<string>();
+    for (const cat of directMatches) {
+      ids.add(cat.id);
+      if (!cat.parentId) {
+        categories.filter(c => c.parentId === cat.id).forEach(c => ids.add(c.id));
+      }
+    }
+    return ids;
+  }, [categories, searchQuery]);
+
   const filteredItems = useMemo(() => {
     if (!searchQuery) return items;
     const q = searchQuery.toLowerCase();
     return items.filter(
       i =>
         i.name.toLowerCase().includes(q) ||
-        (i.manufacturer && i.manufacturer.toLowerCase().includes(q))
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR for search matching
+        (i.manufacturer && i.manufacturer.toLowerCase().includes(q)) ||
+        matchingCategoryIds.has(i.categoryId)
     );
-  }, [items, searchQuery]);
+  }, [items, searchQuery, matchingCategoryIds]);
 
   const groups = useMemo(
     () => buildCategoryGroups(categories, filteredItems),
@@ -189,6 +205,11 @@ function ItemSelector({
       </div>
       <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-2 pr-2">
+          {groups.length === 0 && searchQuery && (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No equipment matching &ldquo;{searchQuery}&rdquo;
+            </p>
+          )}
           {groups.map(group => {
             const groupIds = getAllItemIds(group);
             const groupAllChecked = groupIds.every(id => selectedIds.has(id));

@@ -69,6 +69,22 @@ export function EquipmentCategoryPanel({
     return map;
   }, [categories]);
 
+  const isSearching = searchQuery.trim().length > 0;
+
+  const matchingCategoryIds = useMemo(() => {
+    if (!isSearching) return new Set<string>();
+    const query = searchQuery.toLowerCase();
+    const directMatches = categories.filter(c => c.name.toLowerCase().includes(query));
+    const ids = new Set<string>();
+    for (const cat of directMatches) {
+      ids.add(cat.id);
+      if (!cat.parentId) {
+        categories.filter(c => c.parentId === cat.id).forEach(c => ids.add(c.id));
+      }
+    }
+    return ids;
+  }, [categories, searchQuery, isSearching]);
+
   const filteredItems = useMemo(() => {
     let result = items;
 
@@ -76,7 +92,7 @@ export function EquipmentCategoryPanel({
       result = result.filter(i => i.status !== 'decommissioned');
     }
 
-    if (searchQuery.trim()) {
+    if (isSearching) {
       const query = searchQuery.toLowerCase();
       /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Boolean OR for search matching */
       result = result.filter(
@@ -86,13 +102,14 @@ export function EquipmentCategoryPanel({
           i.model?.toLowerCase().includes(query) ||
           i.serialNumber?.toLowerCase().includes(query) ||
           i.assetTag?.toLowerCase().includes(query) ||
-          i.location?.toLowerCase().includes(query)
+          i.location?.toLowerCase().includes(query) ||
+          matchingCategoryIds.has(i.categoryId)
       );
       /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     }
 
     return result;
-  }, [items, showDecommissioned, searchQuery]);
+  }, [items, showDecommissioned, searchQuery, isSearching, matchingCategoryIds]);
 
   const sortItems = useCallback(
     (a: EquipmentItem, b: EquipmentItem): number => {
@@ -204,11 +221,19 @@ export function EquipmentCategoryPanel({
         </div>
       )}
 
+      {filteredItems.length === 0 && isSearching && (
+        <p className="text-sm text-muted-foreground text-center py-6">
+          No equipment matching &ldquo;{searchQuery}&rdquo;
+        </p>
+      )}
+
       {topLevelCategories.map(category => {
-        const isExpanded = expandedCategories.has(category.id);
         const subs = subcategoriesByParent.get(category.id) ?? [];
         const totalCount = getCategoryItemCount(category.id);
         const directItems = itemsByCategoryId.get(category.id) ?? [];
+        const isExpanded = isSearching ? totalCount > 0 : expandedCategories.has(category.id);
+
+        if (isSearching && totalCount === 0) return null;
 
         return (
           <div key={category.id} className="rounded-lg border border-border overflow-hidden">
@@ -266,18 +291,23 @@ export function EquipmentCategoryPanel({
             {isExpanded && (
               <div className="px-2 py-2 space-y-2">
                 {/* Subcategories */}
-                {subs.map(sub => (
-                  <SubcategorySection
-                    key={sub.id}
-                    subcategory={sub}
-                    items={itemsByCategoryId.get(sub.id) ?? []}
-                    selectedItemId={selectedItemId}
-                    onSelectItem={onSelectItem}
-                    isAdmin={isAdmin}
-                    onRename={onRenameCategory}
-                    onDelete={onDeleteCategory}
-                  />
-                ))}
+                {subs.map(sub => {
+                  const subItems = itemsByCategoryId.get(sub.id) ?? [];
+                  if (isSearching && subItems.length === 0) return null;
+                  return (
+                    <SubcategorySection
+                      key={sub.id}
+                      subcategory={sub}
+                      items={subItems}
+                      selectedItemId={selectedItemId}
+                      onSelectItem={onSelectItem}
+                      isAdmin={isAdmin}
+                      onRename={onRenameCategory}
+                      onDelete={onDeleteCategory}
+                      forceExpanded={isSearching ? true : undefined}
+                    />
+                  );
+                })}
 
                 {/* Direct items (categories without subcategories) */}
                 {subs.length === 0 && directItems.length > 0 && (
@@ -315,6 +345,7 @@ interface SubcategorySectionProps {
   isAdmin: boolean;
   onRename: (category: EquipmentCategory) => void;
   onDelete: (category: EquipmentCategory) => void;
+  forceExpanded?: boolean;
 }
 
 function SubcategorySection({
@@ -325,8 +356,10 @@ function SubcategorySection({
   isAdmin,
   onRename,
   onDelete,
+  forceExpanded,
 }: SubcategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const effectiveExpanded = forceExpanded ?? isExpanded;
 
   const menuItems: OverflowMenuItem[] = [
     { icon: SquarePen, label: 'Rename', onClick: () => onRename(subcategory) },
@@ -350,7 +383,7 @@ function SubcategorySection({
         role="button"
         tabIndex={0}
       >
-        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        {effectiveExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         {isAdmin && (
           <div
             role="presentation"
@@ -369,7 +402,7 @@ function SubcategorySection({
         <span className="text-xs text-muted-foreground">({items.length})</span>
       </div>
 
-      {isExpanded && items.length > 0 && (
+      {effectiveExpanded && items.length > 0 && (
         <div className="ml-2 mt-1 space-y-1.5">
           {items.map(item => (
             <EquipmentItemRow
