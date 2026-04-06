@@ -187,9 +187,9 @@ export function EquipmentTab() {
   }, [selectedItemId, addDocumentMutation]);
 
   return (
-    <div className="flex gap-4 h-full min-h-0 p-4">
+    <div className="flex gap-4 h-full min-h-0 px-4 pb-4 pt-2">
       {/* Left Panel: Category Browser */}
-      <div className="w-[60%] min-w-0 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col">
         {/* Row 1: Search + Add Equipment */}
         <div className="flex items-center justify-between gap-4 mb-2 flex-shrink-0 px-0.5">
           <div className="relative w-96">
@@ -295,7 +295,10 @@ export function EquipmentTab() {
       </div>
 
       {/* Right Panel: Detail / Edit / Maintenance */}
-      <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden border-l border-border">
+      <div
+        className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden bg-card rounded-lg"
+        style={{ width: 'clamp(420px, 40%, 580px)' }}
+      >
         {!rightPanel && (
           <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             Select an equipment item to view details
