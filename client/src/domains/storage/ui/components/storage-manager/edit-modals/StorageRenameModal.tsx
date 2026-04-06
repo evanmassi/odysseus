@@ -68,6 +68,23 @@ export function StorageRenameModal({
 
   const handleSubmit = createSubmitHandler(handleSave);
 
+  const footer = (
+    <div className="flex justify-end gap-2">
+      <Button variant="ghost" size="sm" onClick={onClose}>
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        form="storage-rename-form"
+        variant="primary"
+        size="sm"
+        leftIcon={<Save size={16} />}
+      >
+        Save Changes
+      </Button>
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -75,8 +92,9 @@ export function StorageRenameModal({
       icon={<Tag size={24} />}
       onClose={onClose}
       className="max-w-sm"
+      footer={footer}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form id="storage-rename-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <div className="block text-sm font-medium mb-1 text-secondary-foreground">
             System Name
@@ -113,15 +131,6 @@ export function StorageRenameModal({
           <span className="font-semibold text-secondary-foreground">{previewName}</span>
         </div>
       </form>
-
-      <div className="flex justify-end gap-3 mt-6">
-        <Button variant="secondary" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button variant="primary" onClick={() => void handleSave()} leftIcon={<Save size={16} />}>
-          Save
-        </Button>
-      </div>
     </BaseModal>
   );
 }

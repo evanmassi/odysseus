@@ -50,6 +50,24 @@ export function RackEditModal({
     if (editedRack.name.trim()) await handleSave();
   });
 
+  const footer = (
+    <div className="flex justify-end gap-2">
+      <Button variant="ghost" size="sm" onClick={onClose}>
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        form="rack-edit-form"
+        variant="primary"
+        size="sm"
+        disabled={!editedRack.name.trim()}
+        leftIcon={<Save size={16} />}
+      >
+        Save Changes
+      </Button>
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -57,8 +75,9 @@ export function RackEditModal({
       icon={<RackIcon size={24} />}
       onClose={onClose}
       className="max-w-sm"
+      footer={footer}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form id="rack-edit-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="rack-name"
@@ -91,15 +110,6 @@ export function RackEditModal({
           </label>
         </div>
       </form>
-
-      <div className="flex justify-end gap-3 mt-6">
-        <Button variant="secondary" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button variant="primary" onClick={() => void handleSave()} leftIcon={<Save size={16} />}>
-          Save Changes
-        </Button>
-      </div>
     </BaseModal>
   );
 }

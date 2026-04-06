@@ -68,6 +68,23 @@ export function BoxEditModal({
 
   const handleSubmit = createSubmitHandler(handleSave);
 
+  const footer = (
+    <div className="flex justify-end gap-2">
+      <Button variant="ghost" size="sm" onClick={onClose}>
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        form="box-edit-form"
+        variant="primary"
+        size="sm"
+        leftIcon={<Save size={16} />}
+      >
+        Save Changes
+      </Button>
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -75,27 +92,17 @@ export function BoxEditModal({
       icon={<BoxIcon size={24} />}
       onClose={onClose}
       className="max-w-md"
+      footer={footer}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Select
-            label={`Grid Size (${initialBox.name})`}
-            options={gridOptions}
-            value={`${selectedGridConfig.rows}x${selectedGridConfig.cols}`}
-            onChange={handleGridChange}
-            aria-label="Select grid template for box"
-            fullWidth
-          />
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" leftIcon={<Save size={16} />}>
-            Save Changes
-          </Button>
-        </div>
+      <form id="box-edit-form" onSubmit={handleSubmit} className="space-y-4">
+        <Select
+          label={`Grid Size (${initialBox.name})`}
+          options={gridOptions}
+          value={`${selectedGridConfig.rows}x${selectedGridConfig.cols}`}
+          onChange={handleGridChange}
+          aria-label="Select grid template for box"
+          fullWidth
+        />
       </form>
     </BaseModal>
   );

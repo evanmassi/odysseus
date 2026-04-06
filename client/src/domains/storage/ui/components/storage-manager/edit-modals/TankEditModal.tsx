@@ -43,6 +43,24 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
     if (editedTank.name.trim()) await handleSave();
   });
 
+  const footer = (
+    <div className="flex justify-end gap-2">
+      <Button variant="ghost" size="sm" onClick={onClose}>
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        form="tank-edit-form"
+        variant="primary"
+        size="sm"
+        disabled={!editedTank.name.trim()}
+        leftIcon={<Save size={16} />}
+      >
+        Save Changes
+      </Button>
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -50,8 +68,9 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
       icon={<TankIcon size={24} />}
       onClose={onClose}
       className="max-w-md"
+      footer={footer}
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form id="tank-edit-form" onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="tank-name"
@@ -134,20 +153,6 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
           </label>
         </div>
       </form>
-
-      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-        <Button variant="secondary" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          onClick={() => void handleSave()}
-          disabled={!editedTank.name.trim()}
-          leftIcon={<Save size={16} />}
-        >
-          Save Changes
-        </Button>
-      </div>
     </BaseModal>
   );
 }
