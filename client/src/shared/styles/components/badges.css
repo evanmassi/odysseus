@@ -64,6 +64,12 @@
     color: hsl(var(--color-audit-entity-system));
   }
 
+  .badge-audit-entity-equipment {
+    @apply badge-audit;
+    border-left-color: hsl(var(--color-audit-entity-storage));
+    color: hsl(var(--color-audit-entity-storage));
+  }
+
   .badge-audit-entity-default {
     @apply badge-audit;
     border-left-color: hsl(var(--color-audit-entity-system));

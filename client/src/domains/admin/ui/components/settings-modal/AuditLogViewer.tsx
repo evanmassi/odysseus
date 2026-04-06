@@ -19,6 +19,7 @@ import {
   Rows3,
   Box,
   Dna,
+  Microscope,
 } from 'lucide-react';
 
 import { auditService } from '@domains/admin/services/AuditService';
@@ -214,8 +215,14 @@ export function AuditLogViewer({
     return SUFFIX_BADGE_MAP[suffix] ?? 'badge-audit-action-default';
   };
 
+  const ENTITY_TYPE_LABELS: Record<string, string> = {
+    equipment_item: 'Equipment',
+  };
+
   const formatEntityType = (entityType: string) => {
-    return entityType.charAt(0).toUpperCase() + entityType.slice(1);
+    return (
+      ENTITY_TYPE_LABELS[entityType] ?? entityType.charAt(0).toUpperCase() + entityType.slice(1)
+    );
   };
 
   const getEntityBadgeClass = (entityType: string) => {
@@ -227,6 +234,7 @@ export function AuditLogViewer({
     if (entityType === 'box') return 'badge-audit-entity-box';
     if (entityType === 'lab') return 'badge-audit-entity-lab';
     if (entityType === 'configuration') return 'badge-audit-entity-configuration';
+    if (entityType === 'equipment_item') return 'badge-audit-entity-equipment';
     return 'badge-audit-entity-default';
   };
 
@@ -244,6 +252,8 @@ export function AuditLogViewer({
         return Rows3;
       case 'box':
         return Box;
+      case 'equipment_item':
+        return Microscope;
       default:
         return null;
     }

@@ -115,6 +115,21 @@ const FIELD_LABELS: Record<string, string> = {
   diagnosis: 'Diagnosis',
   diseaseStage: 'Disease Stage',
   isCurated: 'Curated',
+  categoryId: 'Category',
+  serialNumber: 'Serial Number',
+  manufacturer: 'Manufacturer',
+  model: 'Model',
+  description: 'Description',
+  status: 'Status',
+  conditionNotes: 'Condition Notes',
+  purchaseDate: 'Purchase Date',
+  warrantyExpiration: 'Warranty Expiration',
+  purchaseCost: 'Purchase Cost',
+  assetTag: 'Asset Tag',
+  nextMaintenanceDate: 'Next Maintenance Date',
+  decommissionDate: 'Decommission Date',
+  decommissionReason: 'Decommission Reason',
+  disposalMethod: 'Disposal Method',
 };
 
 function getFieldLabel(field: string): string {
@@ -645,6 +660,49 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         );
       }
       return plain(resourceSummary);
+    }
+
+    // ── EQUIPMENT EVENTS ──
+
+    if (entityType === 'equipment_item') {
+      const name = getStringProperty(details, 'name');
+
+      if (action === 'equipment_item_created') {
+        return plain(name ? `${name} added` : 'Equipment added');
+      }
+
+      if (action === 'equipment_item_updated') {
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          const label = name ? `${name} — ` : '';
+          return {
+            text: `${label}${fields.text} changed`,
+            fullText: fields.full ? `${label}${fields.full} changed` : undefined,
+          };
+        }
+        return plain(name ? `${name} updated` : 'Equipment updated');
+      }
+
+      if (action === 'equipment_item_decommissioned') {
+        const reason = getStringProperty(details, 'reason');
+        if (name && reason) return plain(`${name} — ${reason}`);
+        if (name) return plain(name);
+        return plain('Equipment decommissioned');
+      }
+
+      if (action === 'equipment_item_deleted') {
+        return plain(name ? `${name} removed` : 'Equipment removed');
+      }
+
+      if (action === 'equipment_maintenance_logged') {
+        const maintenanceType = getStringProperty(details, 'maintenanceType');
+        const datePerformed = getStringProperty(details, 'datePerformed');
+        const parts = [maintenanceType, datePerformed].filter(Boolean);
+        return plain(parts.length > 0 ? parts.join(' — ') : 'Maintenance logged');
+      }
+
+      return plain(name ? name : '-');
     }
 
     return plain('-');

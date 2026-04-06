@@ -1,7 +1,7 @@
 /**
  * Audit Log Filter Panel
  *
- * Multi-select filters for actions, entity types, users, and date ranges
+ * Multi-select filters for actions, entity types, users, and date ranges.
  */
 import React, { useState, useCallback, useMemo } from 'react';
 
@@ -19,55 +19,111 @@ export interface AuditFilterState {
   datePreset?: string;
 }
 
-const ACTION_GROUPS = {
-  tube: [
-    { value: 'tube_created', label: 'Created' },
-    { value: 'tube_updated', label: 'Updated' },
-    { value: 'tube_moved', label: 'Moved' },
-    { value: 'tube_deleted', label: 'Deleted' },
-    { value: 'tube_bulk_updated', label: 'Bulk Updated' },
-  ],
-  storage: [
-    { value: 'tank_created', label: 'Tank Created' },
-    { value: 'tank_updated', label: 'Tank Updated' },
-    { value: 'tank_deleted', label: 'Tank Deleted' },
-    { value: 'rack_created', label: 'Rack Created' },
-    { value: 'rack_updated', label: 'Rack Updated' },
-    { value: 'rack_deleted', label: 'Rack Deleted' },
-    { value: 'box_created', label: 'Box Created' },
-    { value: 'box_updated', label: 'Box Updated' },
-    { value: 'box_deleted', label: 'Box Deleted' },
-    { value: 'lab_name_changed', label: 'Lab Name Changed' },
-  ],
-  researcher: [
-    { value: 'researcher_created', label: 'Created' },
-    { value: 'researcher_updated', label: 'Updated' },
-    { value: 'researcher_deactivated', label: 'Deactivated' },
-    { value: 'researcher_reactivated', label: 'Reactivated' },
-  ],
-  donor: [
-    { value: 'donor_created', label: 'Created' },
-    { value: 'donor_updated', label: 'Updated' },
-    { value: 'donor_deleted', label: 'Deleted' },
-  ],
-  user: [
-    { value: 'user_created', label: 'Created' },
-    { value: 'user_logged_in', label: 'Login' },
-    { value: 'user_logged_out', label: 'Logout' },
-    { value: 'user_role_changed', label: 'Role Changed' },
-    { value: 'user_password_changed', label: 'Password Changed' },
-    { value: 'user_linked_to_researcher', label: 'Linked' },
-    { value: 'user_unlinked_from_researcher', label: 'Unlinked' },
-    { value: 'user_deleted', label: 'Deleted' },
-  ],
-};
+interface ActionSection {
+  key: string;
+  label: string;
+  prefixes: string[];
+  actions: Array<{ value: string; label: string }>;
+}
+
+const ACTION_SECTIONS: ActionSection[] = [
+  {
+    key: 'tube',
+    label: 'Tube',
+    prefixes: ['tube_'],
+    actions: [
+      { value: 'tube_created', label: 'Created' },
+      { value: 'tube_updated', label: 'Updated' },
+      { value: 'tube_moved', label: 'Moved' },
+      { value: 'tube_deleted', label: 'Deleted' },
+      { value: 'tube_bulk_updated', label: 'Bulk Updated' },
+    ],
+  },
+  {
+    key: 'storage',
+    label: 'Storage',
+    prefixes: ['tank_', 'rack_', 'box_', 'lab_'],
+    actions: [
+      { value: 'tank_created', label: 'Tank Created' },
+      { value: 'tank_updated', label: 'Tank Updated' },
+      { value: 'tank_deleted', label: 'Tank Deleted' },
+      { value: 'rack_created', label: 'Rack Created' },
+      { value: 'rack_updated', label: 'Rack Updated' },
+      { value: 'rack_deleted', label: 'Rack Deleted' },
+      { value: 'box_created', label: 'Box Created' },
+      { value: 'box_updated', label: 'Box Updated' },
+      { value: 'box_deleted', label: 'Box Deleted' },
+      { value: 'lab_name_changed', label: 'Lab Name Changed' },
+    ],
+  },
+  {
+    key: 'equipment',
+    label: 'Equipment',
+    prefixes: ['equipment_'],
+    actions: [
+      { value: 'equipment_item_created', label: 'Created' },
+      { value: 'equipment_item_updated', label: 'Updated' },
+      { value: 'equipment_item_decommissioned', label: 'Decommissioned' },
+      { value: 'equipment_item_deleted', label: 'Removed' },
+      { value: 'equipment_maintenance_logged', label: 'Maintenance Logged' },
+    ],
+  },
+  {
+    key: 'donor',
+    label: 'Donor',
+    prefixes: ['donor_'],
+    actions: [
+      { value: 'donor_created', label: 'Created' },
+      { value: 'donor_updated', label: 'Updated' },
+      { value: 'donor_deleted', label: 'Deleted' },
+    ],
+  },
+  {
+    key: 'researcher',
+    label: 'Researcher',
+    prefixes: ['researcher_'],
+    actions: [
+      { value: 'researcher_created', label: 'Created' },
+      { value: 'researcher_updated', label: 'Updated' },
+      { value: 'researcher_deactivated', label: 'Deactivated' },
+      { value: 'researcher_reactivated', label: 'Reactivated' },
+    ],
+  },
+  {
+    key: 'user',
+    label: 'User',
+    prefixes: ['user_'],
+    actions: [
+      { value: 'user_created', label: 'Created' },
+      { value: 'user_logged_in', label: 'Login' },
+      { value: 'user_logged_out', label: 'Logout' },
+      { value: 'user_role_changed', label: 'Role Changed' },
+      { value: 'user_password_changed', label: 'Password Changed' },
+      { value: 'user_linked_to_researcher', label: 'Linked' },
+      { value: 'user_unlinked_from_researcher', label: 'Unlinked' },
+      { value: 'user_deleted', label: 'Deleted' },
+    ],
+  },
+];
+
+const ALL_ACTIONS = ACTION_SECTIONS.flatMap(s => s.actions);
 
 const ENTITY_TYPES = [
   { value: 'tube', label: 'Tube' },
   { value: 'storage', label: 'Storage' },
+  { value: 'equipment_item', label: 'Equipment' },
   { value: 'donor', label: 'Donor' },
   { value: 'user', label: 'User' },
   { value: 'researcher', label: 'Researcher' },
+];
+
+const DATE_PRESETS = [
+  { value: 'today', label: 'Today' },
+  { value: 'last7days', label: 'Last 7 Days' },
+  { value: 'last30days', label: 'Last 30 Days' },
+  { value: 'last6months', label: 'Last 6 Months' },
+  { value: 'lastyear', label: 'Last Year' },
+  { value: 'alltime', label: 'All Time' },
 ];
 
 interface AuditLogFilterPanelProps {
@@ -123,28 +179,60 @@ function CollapsibleSection({
   );
 }
 
-export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilterPanelProps) {
-  const [openSections, setOpenSections] = useState({
-    actions: false,
-    entityTypes: false,
-    user: false,
-    date: false,
-    // Action subsections
-    tubeActions: false,
-    storageActions: false,
-    userActions: false,
-    researcherActions: false,
-    donorActions: false,
-  });
+function ActionSubsection({
+  section,
+  isOpen,
+  onToggle,
+  selectedActions,
+  onToggleAction,
+}: {
+  section: ActionSection;
+  isOpen: boolean;
+  onToggle: () => void;
+  selectedActions: string[];
+  onToggleAction: (action: string) => void;
+}) {
+  const count = selectedActions.filter(a => section.prefixes.some(p => a.startsWith(p))).length;
 
-  const datePresets = [
-    { value: 'today', label: 'Today' },
-    { value: 'last7days', label: 'Last 7 Days' },
-    { value: 'last30days', label: 'Last 30 Days' },
-    { value: 'last6months', label: 'Last 6 Months' },
-    { value: 'lastyear', label: 'Last Year' },
-    { value: 'alltime', label: 'All Time' },
-  ];
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        className="flex items-center space-x-1 mb-2 hover:text-action transition-colors"
+      >
+        {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+        <span className="text-xs font-medium text-secondary-foreground">{section.label}</span>
+        {count > 0 && (
+          <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
+            {count}
+          </span>
+        )}
+      </button>
+      {isOpen && (
+        <div className="flex flex-wrap gap-1 ml-4">
+          {section.actions.map(action => (
+            <Chip
+              key={action.value}
+              behavior="selectable"
+              size="sm"
+              selected={selectedActions.includes(action.value)}
+              onSelect={() => onToggleAction(action.value)}
+            >
+              {action.label}
+            </Chip>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilterPanelProps) {
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+
+  const toggleSection = useCallback((section: string) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  }, []);
 
   const toggleAction = useCallback(
     (action: string) => {
@@ -201,11 +289,6 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
     });
   };
 
-  const toggleSection = (section: keyof typeof openSections) => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
-
-  // Count active filters per section
   const getSectionCount = (section: string): number => {
     switch (section) {
       case 'actions':
@@ -221,46 +304,23 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
     }
   };
 
-  // Count actions per entity group
-  const getEntityActionCount = (entity: string): number => {
-    if (!filters.actions) return 0;
-    const prefix = entity === 'storage' ? ['tank_', 'rack_', 'box_', 'lab_'] : [`${entity}_`];
-    return filters.actions.filter(action => prefix.some(p => action.startsWith(p))).length;
-  };
-
-  // Build active filters list
   const activeFilters = useMemo(() => {
     const result: Array<{ label: string; onRemove: () => void }> = [];
 
-    // Action filters
     filters.actions?.forEach(action => {
-      const allActions = [
-        ...ACTION_GROUPS.tube,
-        ...ACTION_GROUPS.storage,
-        ...ACTION_GROUPS.researcher,
-        ...ACTION_GROUPS.user,
-      ];
-      const actionDef = allActions.find(a => a.value === action);
+      const actionDef = ALL_ACTIONS.find(a => a.value === action);
       if (actionDef) {
-        result.push({
-          label: actionDef.label,
-          onRemove: () => toggleAction(action),
-        });
+        result.push({ label: actionDef.label, onRemove: () => toggleAction(action) });
       }
     });
 
-    // Entity type filters
     filters.entityTypes?.forEach(entityType => {
       const entity = ENTITY_TYPES.find(e => e.value === entityType);
       if (entity) {
-        result.push({
-          label: entity.label,
-          onRemove: () => toggleEntityType(entityType),
-        });
+        result.push({ label: entity.label, onRemove: () => toggleEntityType(entityType) });
       }
     });
 
-    // Username filter
     if (filters.username) {
       result.push({
         label: `User: ${filters.username}`,
@@ -268,7 +328,6 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
       });
     }
 
-    // Date filters
     if (filters.dateFrom) {
       result.push({
         label: `From: ${filters.dateFrom.slice(0, 10)}`,
@@ -287,16 +346,14 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
   }, [filters, toggleAction, toggleEntityType, onChange]);
 
   const hasActiveFilters = activeFilters.length > 0;
-
-  // Smart truncation for active filters
   const [showAllFilters, setShowAllFilters] = useState(false);
   const TRUNCATE_LIMIT = 6;
   const visibleFilters = showAllFilters ? activeFilters : activeFilters.slice(0, TRUNCATE_LIMIT);
   const hiddenCount = activeFilters.length - TRUNCATE_LIMIT;
+  const selectedActions = filters.actions ?? [];
 
   return (
     <div className="bg-card rounded-lg border border-border">
-      {/* Header */}
       <div className="flex items-center justify-between p-3 border-b bg-muted rounded-t-lg">
         <h4 className="text-sm font-bold text-card-foreground">Filters</h4>
         <Tooltip content="Clear all filters" side="bottom">
@@ -306,17 +363,14 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
         </Tooltip>
       </div>
 
-      {/* Filter Sections - 2 Column Grid */}
       <ScrollArea className="max-h-96 p-1" tabIndex={-1}>
         <div className="grid grid-cols-2">
-          {/* Left Column: User & Action */}
           <div className="border-r border-border">
-            {/* USER SECTION */}
             <CollapsibleSection
               title="User"
               icon={<UserRound className="w-4 h-4 text-muted-foreground" />}
               count={getSectionCount('user')}
-              isOpen={openSections.user}
+              isOpen={openSections['user'] ?? false}
               onToggle={() => toggleSection('user')}
             >
               <Input
@@ -329,284 +383,34 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
               />
             </CollapsibleSection>
 
-            {/* ACTION SECTION */}
             <CollapsibleSection
               title="Action"
               icon={<Zap className="w-4 h-4 text-muted-foreground" />}
               count={getSectionCount('actions')}
-              isOpen={openSections.actions}
+              isOpen={openSections['actions'] ?? false}
               onToggle={() => toggleSection('actions')}
             >
               <div className="space-y-3">
-                {/* Tube */}
-                <div>
-                  <button
-                    onClick={() => toggleSection('tubeActions')}
-                    className="flex items-center space-x-1 mb-2 hover:text-action transition-colors"
-                  >
-                    {openSections.tubeActions ? (
-                      <ChevronDown className="w-3 h-3" />
-                    ) : (
-                      <ChevronRight className="w-3 h-3" />
-                    )}
-                    <span className="text-xs font-medium text-secondary-foreground">Tube</span>
-                    {getEntityActionCount('tube') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
-                        {getEntityActionCount('tube')}
-                      </span>
-                    )}
-                  </button>
-                  {openSections.tubeActions && (
-                    <div className="flex flex-wrap gap-1 ml-4">
-                      {ACTION_GROUPS.tube.map(action => (
-                        <Chip
-                          key={action.value}
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes(action.value) ?? false}
-                          onSelect={() => toggleAction(action.value)}
-                        >
-                          {action.label}
-                        </Chip>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Storage */}
-                <div>
-                  <button
-                    onClick={() => toggleSection('storageActions')}
-                    className="flex items-center space-x-1 mb-2 hover:text-action transition-colors"
-                  >
-                    {openSections.storageActions ? (
-                      <ChevronDown className="w-3 h-3" />
-                    ) : (
-                      <ChevronRight className="w-3 h-3" />
-                    )}
-                    <span className="text-xs font-medium text-secondary-foreground">Storage</span>
-                    {getEntityActionCount('storage') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
-                        {getEntityActionCount('storage')}
-                      </span>
-                    )}
-                  </button>
-                  {openSections.storageActions && (
-                    <div className="ml-4 space-y-1">
-                      {/* Tank actions */}
-                      <div className="flex flex-wrap gap-1">
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('tank_created') ?? false}
-                          onSelect={() => toggleAction('tank_created')}
-                        >
-                          Tank Created
-                        </Chip>
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('tank_updated') ?? false}
-                          onSelect={() => toggleAction('tank_updated')}
-                        >
-                          Tank Updated
-                        </Chip>
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('tank_deleted') ?? false}
-                          onSelect={() => toggleAction('tank_deleted')}
-                        >
-                          Tank Deleted
-                        </Chip>
-                      </div>
-                      {/* Rack actions */}
-                      <div className="flex flex-wrap gap-1">
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('rack_created') ?? false}
-                          onSelect={() => toggleAction('rack_created')}
-                        >
-                          Rack Created
-                        </Chip>
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('rack_updated') ?? false}
-                          onSelect={() => toggleAction('rack_updated')}
-                        >
-                          Rack Updated
-                        </Chip>
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('rack_deleted') ?? false}
-                          onSelect={() => toggleAction('rack_deleted')}
-                        >
-                          Rack Deleted
-                        </Chip>
-                      </div>
-                      {/* Box actions */}
-                      <div className="flex flex-wrap gap-1">
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('box_created') ?? false}
-                          onSelect={() => toggleAction('box_created')}
-                        >
-                          Box Created
-                        </Chip>
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('box_updated') ?? false}
-                          onSelect={() => toggleAction('box_updated')}
-                        >
-                          Box Updated
-                        </Chip>
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('box_deleted') ?? false}
-                          onSelect={() => toggleAction('box_deleted')}
-                        >
-                          Box Deleted
-                        </Chip>
-                      </div>
-                      {/* Lab name change */}
-                      <div className="flex flex-wrap gap-1">
-                        <Chip
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes('lab_name_changed') ?? false}
-                          onSelect={() => toggleAction('lab_name_changed')}
-                        >
-                          Lab Name Changed
-                        </Chip>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* User */}
-                <div>
-                  <button
-                    onClick={() => toggleSection('userActions')}
-                    className="flex items-center space-x-1 mb-2 hover:text-action transition-colors"
-                  >
-                    {openSections.userActions ? (
-                      <ChevronDown className="w-3 h-3" />
-                    ) : (
-                      <ChevronRight className="w-3 h-3" />
-                    )}
-                    <span className="text-xs font-medium text-secondary-foreground">User</span>
-                    {getEntityActionCount('user') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
-                        {getEntityActionCount('user')}
-                      </span>
-                    )}
-                  </button>
-                  {openSections.userActions && (
-                    <div className="flex flex-wrap gap-1 ml-4">
-                      {ACTION_GROUPS.user.map(action => (
-                        <Chip
-                          key={action.value}
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes(action.value) ?? false}
-                          onSelect={() => toggleAction(action.value)}
-                        >
-                          {action.label}
-                        </Chip>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Researcher */}
-                <div>
-                  <button
-                    onClick={() => toggleSection('researcherActions')}
-                    className="flex items-center space-x-1 mb-2 hover:text-action transition-colors"
-                  >
-                    {openSections.researcherActions ? (
-                      <ChevronDown className="w-3 h-3" />
-                    ) : (
-                      <ChevronRight className="w-3 h-3" />
-                    )}
-                    <span className="text-xs font-medium text-secondary-foreground">
-                      Researcher
-                    </span>
-                    {getEntityActionCount('researcher') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
-                        {getEntityActionCount('researcher')}
-                      </span>
-                    )}
-                  </button>
-                  {openSections.researcherActions && (
-                    <div className="flex flex-wrap gap-1 ml-4">
-                      {ACTION_GROUPS.researcher.map(action => (
-                        <Chip
-                          key={action.value}
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes(action.value) ?? false}
-                          onSelect={() => toggleAction(action.value)}
-                        >
-                          {action.label}
-                        </Chip>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Donor */}
-                <div>
-                  <button
-                    onClick={() => toggleSection('donorActions')}
-                    className="flex items-center space-x-1 mb-2 hover:text-action transition-colors"
-                  >
-                    {openSections.donorActions ? (
-                      <ChevronDown className="w-3 h-3" />
-                    ) : (
-                      <ChevronRight className="w-3 h-3" />
-                    )}
-                    <span className="text-xs font-medium text-secondary-foreground">Donor</span>
-                    {getEntityActionCount('donor') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
-                        {getEntityActionCount('donor')}
-                      </span>
-                    )}
-                  </button>
-                  {openSections.donorActions && (
-                    <div className="flex flex-wrap gap-1 ml-4">
-                      {ACTION_GROUPS.donor.map(action => (
-                        <Chip
-                          key={action.value}
-                          behavior="selectable"
-                          size="sm"
-                          selected={filters.actions?.includes(action.value) ?? false}
-                          onSelect={() => toggleAction(action.value)}
-                        >
-                          {action.label}
-                        </Chip>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {ACTION_SECTIONS.map(section => (
+                  <ActionSubsection
+                    key={section.key}
+                    section={section}
+                    isOpen={openSections[`${section.key}Actions`] ?? false}
+                    onToggle={() => toggleSection(`${section.key}Actions`)}
+                    selectedActions={selectedActions}
+                    onToggleAction={toggleAction}
+                  />
+                ))}
               </div>
             </CollapsibleSection>
           </div>
 
-          {/* Right Column: Item & Date */}
           <div>
-            {/* ITEM SECTION */}
             <CollapsibleSection
               title="Item"
               icon={<Box className="w-4 h-4 text-muted-foreground" />}
               count={getSectionCount('entityTypes')}
-              isOpen={openSections.entityTypes}
+              isOpen={openSections['entityTypes'] ?? false}
               onToggle={() => toggleSection('entityTypes')}
             >
               <div className="flex flex-wrap gap-2">
@@ -624,16 +428,14 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
               </div>
             </CollapsibleSection>
 
-            {/* DATE SECTION */}
             <CollapsibleSection
               title="Date Range"
               icon={<Calendar className="w-4 h-4 text-muted-foreground" />}
               count={getSectionCount('date')}
-              isOpen={openSections.date}
+              isOpen={openSections['date'] ?? false}
               onToggle={() => toggleSection('date')}
             >
               <div className="space-y-3">
-                {/* Quick Presets */}
                 <div>
                   <div className="text-xs font-medium text-secondary-foreground mb-2">
                     Quick Ranges
@@ -643,7 +445,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                     role="group"
                     aria-label="Quick date range presets"
                   >
-                    {datePresets.map(preset => (
+                    {DATE_PRESETS.map(preset => (
                       <Chip
                         key={preset.value}
                         behavior="selectable"
@@ -657,7 +459,6 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                   </div>
                 </div>
 
-                {/* Custom Date Range */}
                 <fieldset className="border-0 p-0 m-0">
                   <legend className="text-xs font-medium text-secondary-foreground mb-1">
                     Custom Range
@@ -695,7 +496,6 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
         </div>
       </ScrollArea>
 
-      {/* Active Filters Summary - Footer */}
       {hasActiveFilters && (
         <div className="px-3 py-2 bg-muted border-t border-border rounded-b-lg">
           <div className="flex flex-wrap gap-1 items-center">
