@@ -5,6 +5,8 @@
  * consumables, and reagents management.
  */
 
+import { useState, useCallback } from 'react';
+
 import { Microscope, Package, Biohazard } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 
@@ -35,6 +37,35 @@ const TABS: TabConfig[] = [
   { id: 'reagents', label: 'Reagents', icon: Biohazard, path: '/lab/reagents', enabled: false },
 ];
 
+function SidebarNavItem({ tab }: { tab: TabConfig }) {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const Icon = tab.icon;
+
+  const handleMouseEnter = useCallback(() => {
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 350);
+  }, []);
+
+  return (
+    <NavLink
+      to={tab.path}
+      onMouseEnter={handleMouseEnter}
+      className={({ isActive }) =>
+        `flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+          isActive
+            ? 'bg-accent text-accent-foreground font-medium'
+            : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'
+        }`
+      }
+    >
+      <span className={isAnimating ? 'animate-icon-pop' : ''}>
+        <Icon size={16} />
+      </span>
+      <span>{tab.label}</span>
+    </NavLink>
+  );
+}
+
 export function LabManagementPage() {
   return (
     <div className="app-container">
@@ -60,22 +91,7 @@ export function LabManagementPage() {
                 );
               }
 
-              return (
-                <NavLink
-                  key={tab.id}
-                  to={tab.path}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
-                      isActive
-                        ? 'bg-accent text-accent-foreground font-medium'
-                        : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'
-                    }`
-                  }
-                >
-                  <Icon size={16} />
-                  <span>{tab.label}</span>
-                </NavLink>
-              );
+              return <SidebarNavItem key={tab.id} tab={tab} />;
             })}
           </div>
         </aside>

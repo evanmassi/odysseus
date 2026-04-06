@@ -4,6 +4,8 @@
  * Shared item component for dropdown menus, overflow menus, and context menus.
  */
 
+import { useState, useCallback } from 'react';
+
 import type { MenuItemProps } from './types';
 
 export function MenuItem({
@@ -16,6 +18,13 @@ export function MenuItem({
   isActive = false,
   children,
 }: MenuItemProps) {
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleMouseEnter = useCallback(() => {
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 350);
+  }, []);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.key === 'Enter' || e.key === ' ') && !disabled && onClick) {
       e.preventDefault();
@@ -30,6 +39,7 @@ export function MenuItem({
       tabIndex={0}
       onClick={onClick}
       onKeyDown={handleKeyDown}
+      onMouseEnter={handleMouseEnter}
       disabled={disabled}
       className={`
         w-full flex items-center justify-between py-2 px-3 rounded-md text-sm
@@ -46,16 +56,18 @@ export function MenuItem({
     >
       <div className="flex items-center gap-3">
         {Icon && (
-          <Icon
-            size={16}
-            className={
-              isActive
-                ? 'text-accent-foreground'
-                : danger
-                  ? 'text-danger-text'
-                  : 'text-muted-foreground'
-            }
-          />
+          <span className={isAnimating ? 'animate-icon-pop' : ''}>
+            <Icon
+              size={16}
+              className={
+                isActive
+                  ? 'text-accent-foreground'
+                  : danger
+                    ? 'text-danger-text'
+                    : 'text-muted-foreground'
+              }
+            />
+          </span>
         )}
         <span>{label}</span>
       </div>
