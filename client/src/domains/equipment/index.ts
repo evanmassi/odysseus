@@ -8,5 +8,4 @@ export {
   useEquipmentCategoriesQuery,
   useEquipmentItemsQuery,
   useEquipmentItemDetailQuery,
-  useEquipmentMaintenanceLogQuery,
 } from './hooks';
