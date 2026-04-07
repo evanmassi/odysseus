@@ -13,6 +13,7 @@ import type { SocketEventHandler } from '@application/event-handlers/SocketEvent
 import type { AuditRetentionService } from '@application/services/AuditRetentionService';
 import type { AuditService } from '@application/services/AuditService';
 import type { DonorApplicationService } from '@application/services/DonorApplicationService';
+import type { ConsumableApplicationService } from '@application/services/ConsumableApplicationService';
 import type { EquipmentApplicationService } from '@application/services/EquipmentApplicationService';
 import type { ExportService } from '@application/services/ExportService';
 import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
@@ -27,6 +28,7 @@ import { ValidationService } from '@domain/services/ValidationService';
 import { AuditModule } from '@infrastructure/di/modules/AuditModule';
 import { AuthModule } from '@infrastructure/di/modules/AuthModule';
 import { DonorModule } from '@infrastructure/di/modules/DonorModule';
+import { ConsumableModule } from '@infrastructure/di/modules/ConsumableModule';
 import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
 import { LabModule } from '@infrastructure/di/modules/LabModule';
@@ -47,6 +49,7 @@ import type { AuditController } from '@presentation/controllers/AuditController'
 import type { AuthController } from '@presentation/controllers/auth/AuthController';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import type { DonorController } from '@presentation/controllers/DonorController';
+import type { ConsumableController } from '@presentation/controllers/ConsumableController';
 import type { EquipmentController } from '@presentation/controllers/EquipmentController';
 import type { ExportController } from '@presentation/controllers/ExportController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
@@ -89,6 +92,7 @@ export class ServiceContainer {
   private _storageModule?: StorageModule;
   private _authModule?: AuthModule;
   private _donorModule?: DonorModule;
+  private _consumableModule?: ConsumableModule;
   private _equipmentModule?: EquipmentModule;
 
   constructor(repositoryFactory: RepositoryFactory, configurationService: ConfigurationService) {
@@ -211,6 +215,13 @@ export class ServiceContainer {
       this._donorModule = new DonorModule(this.getShared(), this.repositoryFactory);
     }
     return this._donorModule;
+  }
+
+  private getConsumableModule(): ConsumableModule {
+    if (!this._consumableModule) {
+      this._consumableModule = new ConsumableModule(this.getShared(), this.repositoryFactory);
+    }
+    return this._consumableModule;
   }
 
   private getEquipmentModule(): EquipmentModule {
@@ -384,6 +395,16 @@ export class ServiceContainer {
 
   getDonorController(): DonorController {
     return this.getDonorModule().getDonorController();
+  }
+
+  // Public API — ConsumableModule
+
+  getConsumableApplicationService(): ConsumableApplicationService {
+    return this.getConsumableModule().getConsumableApplicationService();
+  }
+
+  getConsumableController(): ConsumableController {
+    return this.getConsumableModule().getConsumableController();
   }
 
   // Public API — EquipmentModule

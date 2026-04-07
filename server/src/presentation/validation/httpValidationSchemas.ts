@@ -30,6 +30,20 @@ import {
   equipmentBulkMaintenanceRequestSchema,
   equipmentBulkStatusRequestSchema,
   equipmentBulkRelocateRequestSchema,
+  createConsumableCategoryRequestSchema,
+  updateConsumableCategoryRequestSchema,
+  createConsumableLocationRequestSchema,
+  updateConsumableLocationRequestSchema,
+  createConsumableProductRequestSchema,
+  updateConsumableProductRequestSchema,
+  createConsumableBarcodeRequestSchema,
+  createConsumableDocumentRequestSchema,
+  recordConsumableTransactionRequestSchema,
+  recordConsumableStockCountRequestSchema,
+  consumableBulkReceiveRequestSchema,
+  consumableBulkConsumeRequestSchema,
+  consumableBulkReassignCategoryRequestSchema,
+  consumableBulkArchiveRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -175,6 +189,27 @@ export const UpdateEquipmentMaintenanceLogHttpSchema = updateEquipmentMaintenanc
 export const EquipmentBulkMaintenanceHttpSchema = equipmentBulkMaintenanceRequestSchema;
 export const EquipmentBulkStatusHttpSchema = equipmentBulkStatusRequestSchema;
 export const EquipmentBulkRelocateHttpSchema = equipmentBulkRelocateRequestSchema;
+
+// Consumable schemas
+
+export const ConsumableCategoryIdParams = z.object({ categoryId: z.string().min(1) });
+export const ConsumableLocationIdParams = z.object({ locationId: z.string().min(1) });
+export const ConsumableDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
+export const ConsumableBarcodeIdParams = z.object({ id: z.string().min(1), barcodeId: z.string().min(1) });
+export const CreateConsumableCategoryHttpSchema = createConsumableCategoryRequestSchema;
+export const UpdateConsumableCategoryHttpSchema = updateConsumableCategoryRequestSchema;
+export const CreateConsumableLocationHttpSchema = createConsumableLocationRequestSchema;
+export const UpdateConsumableLocationHttpSchema = updateConsumableLocationRequestSchema;
+export const CreateConsumableProductHttpSchema = createConsumableProductRequestSchema;
+export const UpdateConsumableProductHttpSchema = updateConsumableProductRequestSchema;
+export const CreateConsumableBarcodeHttpSchema = createConsumableBarcodeRequestSchema;
+export const CreateConsumableDocumentHttpSchema = createConsumableDocumentRequestSchema;
+export const RecordConsumableTransactionHttpSchema = recordConsumableTransactionRequestSchema;
+export const RecordConsumableStockCountHttpSchema = recordConsumableStockCountRequestSchema;
+export const ConsumableBulkReceiveHttpSchema = consumableBulkReceiveRequestSchema;
+export const ConsumableBulkConsumeHttpSchema = consumableBulkConsumeRequestSchema;
+export const ConsumableBulkReassignCategoryHttpSchema = consumableBulkReassignCategoryRequestSchema;
+export const ConsumableBulkArchiveHttpSchema = consumableBulkArchiveRequestSchema;
 
 // Search schemas
 
