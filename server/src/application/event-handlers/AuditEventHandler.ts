@@ -5,7 +5,7 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
-import type { AuditService } from '@application/services/AuditService';
+import type { AuditService, LogActionParams } from '@application/services/AuditService';
 import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
@@ -24,6 +24,9 @@ import type {
   EquipmentMaintenanceLoggedEvent,
   EquipmentMaintenanceUpdatedEvent,
   EquipmentMaintenanceDeletedEvent,
+  EquipmentBulkMaintenanceLoggedEvent,
+  EquipmentBulkStatusChangedEvent,
+  EquipmentBulkRelocatedEvent,
 } from '@domain/events/EquipmentEvents';
 import type {
   LabCreatedEvent,
@@ -265,6 +268,9 @@ export class AuditEventHandler {
     this.eventBus.subscribe('EquipmentCategoryDeleted', (e) => this.handleEquipmentCategoryDeleted(e));
     this.eventBus.subscribe('EquipmentDocumentAdded', (e) => this.handleEquipmentDocumentAdded(e));
     this.eventBus.subscribe('EquipmentDocumentRemoved', (e) => this.handleEquipmentDocumentRemoved(e));
+    this.eventBus.subscribe('EquipmentBulkMaintenanceLogged', (e) => this.handleEquipmentBulkMaintenanceLogged(e));
+    this.eventBus.subscribe('EquipmentBulkStatusChanged', (e) => this.handleEquipmentBulkStatusChanged(e));
+    this.eventBus.subscribe('EquipmentBulkRelocated', (e) => this.handleEquipmentBulkRelocated(e));
 
     // Lab events
     this.eventBus.subscribe('LabCreated', (e) => this.handleLabCreated(e));
@@ -1069,6 +1075,7 @@ export class AuditEventHandler {
   }
 
   private async handleEquipmentItemUpdated(event: EquipmentItemUpdatedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
       eventName: 'equipment item updated', context: { itemId: event.itemId },
       actorId: event.updatedBy, action: 'equipment_item_updated', entityType: 'equipment_item',
@@ -1102,6 +1109,7 @@ export class AuditEventHandler {
   }
 
   private async handleEquipmentMaintenanceLogged(event: EquipmentMaintenanceLoggedEvent): Promise<void> {
+    if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
       eventName: 'equipment maintenance logged', context: { itemId: event.itemId },
       actorId: event.loggedBy, action: 'equipment_maintenance_logged', entityType: 'equipment_item',
@@ -1187,6 +1195,93 @@ export class AuditEventHandler {
       buildDetails: (username) => ({
         itemId: event.itemId, removedBy: username,
       }),
+    });
+  }
+
+  private async handleEquipmentBulkMaintenanceLogged(event: EquipmentBulkMaintenanceLoggedEvent): Promise<void> {
+    await this.safeLogAudit('equipment bulk maintenance logged', { count: event.itemIds.length }, async () => {
+      const { username, isDemo } = await this.resolveUser(event.loggedBy);
+      if (isDemo) return;
+
+      const timestamp = event.occurredOn.toISOString();
+      const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+        userId: event.loggedBy,
+        username,
+        action: 'equipment_maintenance_logged',
+        entityType: 'equipment_item',
+        entityId: itemId,
+        labId: event.labId,
+        details: { itemId, maintenanceType: event.maintenanceType, datePerformed: event.datePerformed, loggedBy: username, timestamp },
+      }));
+
+      entries.push({
+        userId: event.loggedBy,
+        username,
+        action: 'equipment_bulk_maintenance_logged',
+        entityType: 'equipment_item',
+        labId: event.labId,
+        details: { count: event.itemIds.length, maintenanceType: event.maintenanceType, datePerformed: event.datePerformed, loggedBy: username, timestamp },
+      });
+
+      await this.auditService.logActions(entries);
+    });
+  }
+
+  private async handleEquipmentBulkStatusChanged(event: EquipmentBulkStatusChangedEvent): Promise<void> {
+    await this.safeLogAudit('equipment bulk status changed', { count: event.itemIds.length }, async () => {
+      const { username, isDemo } = await this.resolveUser(event.changedBy);
+      if (isDemo) return;
+
+      const timestamp = event.occurredOn.toISOString();
+      const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+        userId: event.changedBy,
+        username,
+        action: 'equipment_item_updated',
+        entityType: 'equipment_item',
+        entityId: itemId,
+        labId: event.labId,
+        details: { itemId, changes: [{ field: 'status', newValue: event.status }], updatedBy: username, timestamp },
+      }));
+
+      entries.push({
+        userId: event.changedBy,
+        username,
+        action: 'equipment_bulk_status_changed',
+        entityType: 'equipment_item',
+        labId: event.labId,
+        details: { count: event.itemIds.length, status: event.status, changedBy: username, timestamp },
+      });
+
+      await this.auditService.logActions(entries);
+    });
+  }
+
+  private async handleEquipmentBulkRelocated(event: EquipmentBulkRelocatedEvent): Promise<void> {
+    await this.safeLogAudit('equipment bulk relocated', { count: event.itemIds.length }, async () => {
+      const { username, isDemo } = await this.resolveUser(event.relocatedBy);
+      if (isDemo) return;
+
+      const timestamp = event.occurredOn.toISOString();
+      const entries: LogActionParams[] = event.itemIds.map(itemId => ({
+        userId: event.relocatedBy,
+        username,
+        action: 'equipment_item_updated',
+        entityType: 'equipment_item',
+        entityId: itemId,
+        labId: event.labId,
+        details: { itemId, changes: [{ field: 'categoryId', newValue: event.categoryId }], updatedBy: username, timestamp },
+      }));
+
+      entries.push({
+        userId: event.relocatedBy,
+        username,
+        action: 'equipment_bulk_relocated',
+        entityType: 'equipment_item',
+        labId: event.labId,
+        details: { count: event.itemIds.length, categoryId: event.categoryId, relocatedBy: username, timestamp },
+      });
+
+      await this.auditService.logActions(entries);
     });
   }
 

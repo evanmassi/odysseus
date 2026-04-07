@@ -73,6 +73,9 @@ const ACTION_SECTIONS: ActionSection[] = [
       { value: 'equipment_category_deleted', label: 'Category Removed' },
       { value: 'equipment_document_added', label: 'Document Added' },
       { value: 'equipment_document_removed', label: 'Document Removed' },
+      { value: 'equipment_bulk_maintenance_logged', label: 'Bulk Maintenance' },
+      { value: 'equipment_bulk_status_changed', label: 'Bulk Status Change' },
+      { value: 'equipment_bulk_relocated', label: 'Bulk Relocate' },
     ],
   },
   {

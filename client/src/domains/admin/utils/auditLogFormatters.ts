@@ -740,6 +740,31 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         return plain('Document removed');
       }
 
+      if (action === 'equipment_bulk_maintenance_logged') {
+        const count = getNumberProperty(details, 'count');
+        const maintenanceType = getStringProperty(details, 'maintenanceType');
+        return plain(
+          maintenanceType
+            ? `${maintenanceType} logged for ${count} items`
+            : `Maintenance logged for ${count} items`
+        );
+      }
+
+      if (action === 'equipment_bulk_status_changed') {
+        const count = getNumberProperty(details, 'count');
+        const status = getStringProperty(details, 'status');
+        return plain(
+          status
+            ? `Status changed to ${status} for ${count} items`
+            : `Status changed for ${count} items`
+        );
+      }
+
+      if (action === 'equipment_bulk_relocated') {
+        const count = getNumberProperty(details, 'count');
+        return plain(`Relocated ${count} items`);
+      }
+
       return plain(name ? name : '-');
     }
 

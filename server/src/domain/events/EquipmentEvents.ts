@@ -306,6 +306,89 @@ export class EquipmentMaintenanceDeletedEvent extends DomainEvent {
   }
 }
 
+export class EquipmentBulkMaintenanceLoggedEvent extends DomainEvent {
+  constructor(
+    public readonly itemIds: string[],
+    public readonly maintenanceType: string,
+    public readonly datePerformed: string,
+    public readonly loggedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentBulkMaintenanceLogged';
+  }
+
+  getAggregateId(): string {
+    return `bulk-${this.itemIds.length}`;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      itemIds: this.itemIds,
+      maintenanceType: this.maintenanceType,
+      datePerformed: this.datePerformed,
+      loggedBy: this.loggedBy,
+    };
+  }
+}
+
+export class EquipmentBulkStatusChangedEvent extends DomainEvent {
+  constructor(
+    public readonly itemIds: string[],
+    public readonly status: string,
+    public readonly changedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentBulkStatusChanged';
+  }
+
+  getAggregateId(): string {
+    return `bulk-${this.itemIds.length}`;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      itemIds: this.itemIds,
+      status: this.status,
+      changedBy: this.changedBy,
+    };
+  }
+}
+
+export class EquipmentBulkRelocatedEvent extends DomainEvent {
+  constructor(
+    public readonly itemIds: string[],
+    public readonly categoryId: string,
+    public readonly relocatedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string {
+    return 'EquipmentBulkRelocated';
+  }
+
+  getAggregateId(): string {
+    return `bulk-${this.itemIds.length}`;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      itemIds: this.itemIds,
+      categoryId: this.categoryId,
+      relocatedBy: this.relocatedBy,
+    };
+  }
+}
+
 export class EquipmentMaintenanceLoggedEvent extends DomainEvent {
   constructor(
     public readonly itemId: string,
