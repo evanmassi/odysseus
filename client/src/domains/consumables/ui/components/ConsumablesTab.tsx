@@ -39,6 +39,7 @@ import { ConsumableBulkUpdateModal } from './ConsumableBulkUpdateModal';
 import { ConsumableCategoryModal } from './ConsumableCategoryModal';
 import { ConsumableCategoryPanel } from './ConsumableCategoryPanel';
 import { ConsumableLocationModal } from './ConsumableLocationModal';
+import { ConsumableLowStockAlertPanel } from './ConsumableLowStockAlertPanel';
 import { ConsumableProductForm } from './ConsumableProductForm';
 import { ConsumableProductInfoPanel } from './ConsumableProductInfoPanel';
 import { ConsumableTransactionForm } from './ConsumableTransactionForm';
@@ -250,7 +251,7 @@ export function ConsumablesTab() {
             </Button>
           </div>
 
-          {/* Low stock alert panel placeholder — Phase 9 */}
+          <ConsumableLowStockAlertPanel onSelectProduct={handleSelectProduct} />
 
           {/* Category list */}
           <ScrollArea className="flex-1">

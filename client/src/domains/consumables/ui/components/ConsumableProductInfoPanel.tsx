@@ -28,6 +28,8 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 
+import { ConsumableTransactionTimeline } from './ConsumableTransactionTimeline';
+
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 const STATUS_LABELS: Record<
@@ -370,7 +372,13 @@ export function ConsumableProductInfoPanel({
             </InfoGroup>
           )}
 
-          {/* Transaction history placeholder — Phase 9 */}
+          {/* Transaction history */}
+          <InfoGroup title="Recent Transactions">
+            <ConsumableTransactionTimeline
+              transactions={detail.recentTransactions}
+              stockUnit={product.stockUnit}
+            />
+          </InfoGroup>
         </div>
       </ScrollArea>
 
