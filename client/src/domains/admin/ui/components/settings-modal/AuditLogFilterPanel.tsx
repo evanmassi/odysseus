@@ -36,7 +36,10 @@ const ACTION_SECTIONS: ActionSection[] = [
       { value: 'tube_updated', label: 'Updated' },
       { value: 'tube_moved', label: 'Moved' },
       { value: 'tube_deleted', label: 'Deleted' },
+      { value: 'tube_bulk_created', label: 'Bulk Created' },
       { value: 'tube_bulk_updated', label: 'Bulk Updated' },
+      { value: 'tube_bulk_deleted', label: 'Bulk Removed' },
+      { value: 'tube_bulk_moved', label: 'Bulk Moved' },
     ],
   },
   {
@@ -73,6 +76,9 @@ const ACTION_SECTIONS: ActionSection[] = [
       { value: 'equipment_category_deleted', label: 'Category Removed' },
       { value: 'equipment_document_added', label: 'Document Added' },
       { value: 'equipment_document_removed', label: 'Document Removed' },
+      { value: 'equipment_bulk_maintenance_logged', label: 'Bulk Maintenance' },
+      { value: 'equipment_bulk_status_changed', label: 'Bulk Status Change' },
+      { value: 'equipment_bulk_relocated', label: 'Bulk Relocate' },
     ],
   },
   {

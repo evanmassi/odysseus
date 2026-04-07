@@ -24,7 +24,11 @@ import {
   BulkTubesCreatedEvent,
   BulkTubesUpdatedEvent,
   BulkTubesDeletedEvent,
-  BulkTubesMovedEvent
+  BulkTubesMovedEvent,
+  type BulkTubeCreatedDetail,
+  type BulkTubeUpdatedDetail,
+  type BulkTubeDeletedDetail,
+  type BulkTubeMovedDetail,
 } from '@domain/events/TubeEvents';
 import {
   TubesLockedEvent,
@@ -273,11 +277,17 @@ export class TubeApplicationService {
 
     if (created.length > 0) {
       const tankIds = [...new Set(created.map(t => t.location.tankId))];
+      const perItemData: BulkTubeCreatedDetail[] = created.map(t => ({
+        tubeId: t.id,
+        location: t.location as BulkTubeCreatedDetail['location'],
+        sampleData: t.sample as BulkTubeCreatedDetail['sampleData'],
+      }));
       const bulkCreatedEvent = new BulkTubesCreatedEvent(
         created.map(t => t.id),
         tankIds,
         authenticatedUser.id,
-        authenticatedUser.labId!
+        authenticatedUser.labId!,
+        perItemData
       );
       await this.eventBus.publish(bulkCreatedEvent);
     }
@@ -655,12 +665,22 @@ export class TubeApplicationService {
 
     if (updated.length > 0) {
       const tankIds = [...new Set(updated.map(id => tubeMap.get(id)!.location.tankId))];
+      const updateMap = new Map(request.updates.map(u => [u.id, u.updates]));
+      const perItemData: BulkTubeUpdatedDetail[] = updated.map(id => {
+        const tube = tubeMap.get(id)!;
+        const updates = updateMap.get(id) ?? {};
+        const changes: Array<{ field: string; oldValue: unknown; newValue: unknown }> = Object.entries(updates)
+          .filter(([, v]) => v !== undefined)
+          .map(([field, newValue]) => ({ field, oldValue: undefined, newValue }));
+        return { tubeId: id, changes, location: tube.location.toData() };
+      });
       const bulkUpdateEvent = new BulkTubesUpdatedEvent(
         updated,
         tankIds,
         authenticatedUser.id,
         { updated: updated.length, failed: failed.length },
-        authenticatedUser.labId!
+        authenticatedUser.labId!,
+        perItemData
       );
       await this.eventBus.publish(bulkUpdateEvent);
     }
@@ -742,11 +762,17 @@ export class TubeApplicationService {
       }
 
       const tankIds = [...new Set(validatedTubes.map(t => t.location.tankId))];
+      const perItemData: BulkTubeDeletedDetail[] = validatedTubes.map(tube => ({
+        tubeId: tube.id,
+        location: tube.location.toData(),
+        sampleData: tube.sample.toData(),
+      }));
       const bulkDeletedEvent = new BulkTubesDeletedEvent(
         validatedIds,
         tankIds,
         authenticatedUser.id,
-        authenticatedUser.labId!
+        authenticatedUser.labId!,
+        perItemData
       );
       await this.eventBus.publish(bulkDeletedEvent);
     }
@@ -774,6 +800,7 @@ export class TubeApplicationService {
 
     const moved: TubeResponse[] = [];
     const failed: Array<{ tubeId: string; error: string }> = [];
+    const moveDetails: BulkTubeMovedDetail[] = [];
     const sourceTankIds = new Set<string>();
     const destinationTankIds = new Set<string>();
 
@@ -845,6 +872,11 @@ export class TubeApplicationService {
         if (moves.length > 1) locationEvent.partOfBulkOperation = true;
         await this.eventBus.publish(locationEvent);
 
+        moveDetails.push({
+          tubeId: tube.id,
+          oldLocation: oldLocation.toData(),
+          newLocation: newLocation.toData(),
+        });
         moved.push(TubeDto.toResponse(tube));
       } catch (error) {
         if (error instanceof ConflictError) {
@@ -861,7 +893,8 @@ export class TubeApplicationService {
         [...sourceTankIds],
         [...destinationTankIds],
         authenticatedUser.id,
-        labId
+        labId,
+        moveDetails
       );
       await this.eventBus.publish(bulkMovedEvent);
     }

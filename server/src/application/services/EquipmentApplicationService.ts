@@ -34,6 +34,9 @@ import {
   EquipmentMaintenanceLoggedEvent,
   EquipmentMaintenanceUpdatedEvent,
   EquipmentMaintenanceDeletedEvent,
+  EquipmentBulkMaintenanceLoggedEvent,
+  EquipmentBulkStatusChangedEvent,
+  EquipmentBulkRelocatedEvent,
 } from '@domain/events/EquipmentEvents';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
@@ -236,7 +239,8 @@ export class EquipmentApplicationService {
     labId: string,
     id: string,
     data: UpdateEquipmentItemRequest,
-    user: User
+    user: User,
+    options?: { bulkOperation?: boolean }
   ): Promise<EquipmentItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
@@ -278,9 +282,9 @@ export class EquipmentApplicationService {
     await this.itemRepository.save(item);
 
     if (changes.length > 0) {
-      await this.eventBus.publish(new EquipmentItemUpdatedEvent(
-        item.id, changes, user.id, labId
-      ));
+      const event = new EquipmentItemUpdatedEvent(item.id, changes, user.id, labId);
+      if (options?.bulkOperation) event.partOfBulkOperation = true;
+      await this.eventBus.publish(event);
     }
 
     return EquipmentDto.itemToResponse(item);
@@ -384,7 +388,8 @@ export class EquipmentApplicationService {
     labId: string,
     itemId: string,
     data: CreateEquipmentMaintenanceLogRequest,
-    user: User
+    user: User,
+    options?: { bulkOperation?: boolean }
   ): Promise<EquipmentMaintenanceLogResponse> {
     await this.accessControlService.requireAdminAccess(user);
     const item = await this.getItemOrThrow(itemId, labId);
@@ -408,9 +413,11 @@ export class EquipmentApplicationService {
       await this.itemRepository.save(item);
     }
 
-    await this.eventBus.publish(new EquipmentMaintenanceLoggedEvent(
+    const event = new EquipmentMaintenanceLoggedEvent(
       itemId, data.maintenanceType, data.datePerformed, user.id, labId
-    ));
+    );
+    if (options?.bulkOperation) event.partOfBulkOperation = true;
+    await this.eventBus.publish(event);
 
     return EquipmentDto.maintenanceEntryToResponse(entry);
   }
@@ -503,14 +510,22 @@ export class EquipmentApplicationService {
   ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
     await this.accessControlService.requireAdminAccess(user);
 
-    return this.executeBulk(
+    const result = await this.executeBulk(
       itemIds,
       async (itemId) => {
-        await this.addMaintenanceEntry(labId, itemId, data, user);
+        await this.addMaintenanceEntry(labId, itemId, data, user, { bulkOperation: true });
         return itemId;
       },
       (itemId, _index, error) => ({ id: itemId, error })
     );
+
+    if (result.succeeded.length > 0) {
+      await this.eventBus.publish(new EquipmentBulkMaintenanceLoggedEvent(
+        result.succeeded, data.maintenanceType, data.datePerformed, user.id, labId
+      ));
+    }
+
+    return result;
   }
 
   async bulkChangeStatus(
@@ -521,14 +536,22 @@ export class EquipmentApplicationService {
   ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
     await this.accessControlService.requireAdminAccess(user);
 
-    return this.executeBulk(
+    const result = await this.executeBulk(
       itemIds,
       async (itemId) => {
-        await this.updateItem(labId, itemId, { status: data.status, conditionNotes: data.conditionNotes }, user);
+        await this.updateItem(labId, itemId, { status: data.status, conditionNotes: data.conditionNotes }, user, { bulkOperation: true });
         return itemId;
       },
       (itemId, _index, error) => ({ id: itemId, error })
     );
+
+    if (result.succeeded.length > 0) {
+      await this.eventBus.publish(new EquipmentBulkStatusChangedEvent(
+        result.succeeded, data.status, user.id, labId
+      ));
+    }
+
+    return result;
   }
 
   async bulkRelocate(
@@ -544,14 +567,22 @@ export class EquipmentApplicationService {
       throw new NotFoundError('Target category not found');
     }
 
-    return this.executeBulk(
+    const result = await this.executeBulk(
       itemIds,
       async (itemId) => {
-        await this.updateItem(labId, itemId, { categoryId: data.categoryId }, user);
+        await this.updateItem(labId, itemId, { categoryId: data.categoryId }, user, { bulkOperation: true });
         return itemId;
       },
       (itemId, _index, error) => ({ id: itemId, error })
     );
+
+    if (result.succeeded.length > 0) {
+      await this.eventBus.publish(new EquipmentBulkRelocatedEvent(
+        result.succeeded, data.categoryId, user.id, labId
+      ));
+    }
+
+    return result;
   }
 
   // Helpers

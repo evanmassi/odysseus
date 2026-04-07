@@ -208,6 +208,16 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     // ── TUBE EVENTS ──
 
     if (entityType === 'tube') {
+      if (action === 'tube_bulk_created') {
+        const count = getNumberProperty(details, 'count');
+        return plain(`${count} tube${count !== 1 ? 's' : ''} created`);
+      }
+
+      if (action === 'tube_bulk_deleted') {
+        const count = getNumberProperty(details, 'count');
+        return plain(`${count} tube${count !== 1 ? 's' : ''} removed`);
+      }
+
       if (action === 'tube_bulk_updated') {
         const count = getNumberProperty(details, 'count');
         const summary = getStringProperty(details, 'changesSummary');
@@ -738,6 +748,31 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
 
       if (action === 'equipment_document_removed') {
         return plain('Document removed');
+      }
+
+      if (action === 'equipment_bulk_maintenance_logged') {
+        const count = getNumberProperty(details, 'count');
+        const maintenanceType = getStringProperty(details, 'maintenanceType');
+        return plain(
+          maintenanceType
+            ? `${maintenanceType} logged for ${count} items`
+            : `Maintenance logged for ${count} items`
+        );
+      }
+
+      if (action === 'equipment_bulk_status_changed') {
+        const count = getNumberProperty(details, 'count');
+        const status = getStringProperty(details, 'status');
+        return plain(
+          status
+            ? `Status changed to ${status} for ${count} items`
+            : `Status changed for ${count} items`
+        );
+      }
+
+      if (action === 'equipment_bulk_relocated') {
+        const count = getNumberProperty(details, 'count');
+        return plain(`Relocated ${count} items`);
       }
 
       return plain(name ? name : '-');
