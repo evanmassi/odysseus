@@ -208,6 +208,16 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     // ── TUBE EVENTS ──
 
     if (entityType === 'tube') {
+      if (action === 'tube_bulk_created') {
+        const count = getNumberProperty(details, 'count');
+        return plain(`${count} tube${count !== 1 ? 's' : ''} created`);
+      }
+
+      if (action === 'tube_bulk_deleted') {
+        const count = getNumberProperty(details, 'count');
+        return plain(`${count} tube${count !== 1 ? 's' : ''} removed`);
+      }
+
       if (action === 'tube_bulk_updated') {
         const count = getNumberProperty(details, 'count');
         const summary = getStringProperty(details, 'changesSummary');

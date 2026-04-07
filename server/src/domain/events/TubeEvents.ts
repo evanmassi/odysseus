@@ -5,8 +5,33 @@
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
+import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import type { Location } from '@domain/value-objects/Location';
 import type { SampleData } from '@domain/value-objects/SampleData';
+
+export interface BulkTubeCreatedDetail {
+  tubeId: string;
+  location: ReturnType<Location['toData']>;
+  sampleData: ReturnType<SampleData['toData']>;
+}
+
+export interface BulkTubeUpdatedDetail {
+  tubeId: string;
+  changes: FieldChange[];
+  location: ReturnType<Location['toData']>;
+}
+
+export interface BulkTubeDeletedDetail {
+  tubeId: string;
+  location: ReturnType<Location['toData']>;
+  sampleData: ReturnType<SampleData['toData']>;
+}
+
+export interface BulkTubeMovedDetail {
+  tubeId: string;
+  oldLocation: ReturnType<Location['toData']>;
+  newLocation: ReturnType<Location['toData']>;
+}
 
 export class TubeCreatedEvent extends DomainEvent {
   constructor(
@@ -133,7 +158,8 @@ export class BulkTubesCreatedEvent extends DomainEvent {
     public readonly tubeIds: string[],
     public readonly tankIds: string[],
     public readonly createdBy: string,
-    labId: string
+    labId: string,
+    public readonly perItemData: BulkTubeCreatedDetail[] = []
   ) {
     super(1, labId);
   }
@@ -160,7 +186,8 @@ export class BulkTubesDeletedEvent extends DomainEvent {
     public readonly tubeIds: string[],
     public readonly tankIds: string[],
     public readonly deletedBy: string,
-    labId: string
+    labId: string,
+    public readonly perItemData: BulkTubeDeletedDetail[] = []
   ) {
     super(1, labId);
   }
@@ -188,7 +215,8 @@ export class BulkTubesMovedEvent extends DomainEvent {
     public readonly sourceTankIds: string[],
     public readonly destinationTankIds: string[],
     public readonly movedBy: string,
-    labId: string
+    labId: string,
+    public readonly perItemData: BulkTubeMovedDetail[] = []
   ) {
     super(1, labId);
   }
@@ -217,7 +245,8 @@ export class BulkTubesUpdatedEvent extends DomainEvent {
     public readonly tankIds: string[],
     public readonly updatedBy: string,
     public readonly changesSummary: Record<string, unknown>,
-    labId: string
+    labId: string,
+    public readonly perItemData: BulkTubeUpdatedDetail[] = []
   ) {
     super(1, labId);
   }
