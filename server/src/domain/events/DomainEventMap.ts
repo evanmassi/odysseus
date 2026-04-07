@@ -29,6 +29,11 @@ import type {
   DonorDeletedEvent
 } from './DonorEvents';
 import type {
+  VerificationEmailSentEvent,
+  EmailVerifiedEvent,
+  VerificationEmailResentEvent
+} from './EmailVerificationEvents';
+import type {
   EquipmentItemCreatedEvent,
   EquipmentItemUpdatedEvent,
   EquipmentItemDecommissionedEvent,
@@ -45,11 +50,6 @@ import type {
   EquipmentBulkStatusChangedEvent,
   EquipmentBulkRelocatedEvent,
 } from './EquipmentEvents';
-import type {
-  VerificationEmailSentEvent,
-  EmailVerifiedEvent,
-  VerificationEmailResentEvent
-} from './EmailVerificationEvents';
 import type {
   LabCreatedEvent,
   LabRenamedEvent,

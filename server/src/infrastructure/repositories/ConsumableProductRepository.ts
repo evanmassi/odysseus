@@ -5,8 +5,8 @@
  * stock levels, transactions, and lookup value support.
  */
 
-import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
 import type { ConsumableDocument } from '@domain/entities/ConsumableDocument';
+import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
 import type {
   ConsumableProductRepository as IConsumableProductRepository,
   ConsumableStockRow,
@@ -15,18 +15,18 @@ import type {
   ProductWithStock,
   RecordTransactionData,
 } from '@domain/repositories/ConsumableProductRepository';
-import type { ConsumableProductRow } from '@infrastructure/database/mappers/ConsumableProductMapper';
-import { ConsumableProductMapper } from '@infrastructure/database/mappers/ConsumableProductMapper';
-import type { ConsumableDocumentRow } from '@infrastructure/database/mappers/ConsumableDocumentMapper';
-import { ConsumableDocumentMapper } from '@infrastructure/database/mappers/ConsumableDocumentMapper';
-import type { ConsumableStockDbRow } from '@infrastructure/database/mappers/ConsumableStockMapper';
-import { ConsumableStockMapper } from '@infrastructure/database/mappers/ConsumableStockMapper';
+import { generateId } from '@domain/utils/generateId';
 import type { ConsumableBarcodeDbRow } from '@infrastructure/database/mappers/ConsumableBarcodeMapper';
 import { ConsumableBarcodeMapper } from '@infrastructure/database/mappers/ConsumableBarcodeMapper';
+import type { ConsumableDocumentRow } from '@infrastructure/database/mappers/ConsumableDocumentMapper';
+import { ConsumableDocumentMapper } from '@infrastructure/database/mappers/ConsumableDocumentMapper';
+import type { ConsumableProductRow } from '@infrastructure/database/mappers/ConsumableProductMapper';
+import { ConsumableProductMapper } from '@infrastructure/database/mappers/ConsumableProductMapper';
+import type { ConsumableStockDbRow } from '@infrastructure/database/mappers/ConsumableStockMapper';
+import { ConsumableStockMapper } from '@infrastructure/database/mappers/ConsumableStockMapper';
 import type { ConsumableTransactionDbRow } from '@infrastructure/database/mappers/ConsumableTransactionMapper';
 import { ConsumableTransactionMapper } from '@infrastructure/database/mappers/ConsumableTransactionMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { generateId } from '@domain/utils/generateId';
 
 const PRODUCT_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
   vendor_name, vendor_catalog_number, stock_unit, units_per_stock_unit,

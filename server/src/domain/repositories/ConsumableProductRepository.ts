@@ -5,8 +5,8 @@
  * stock levels, transactions, and lookup value support.
  */
 
-import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
 import type { ConsumableDocument } from '@domain/entities/ConsumableDocument';
+import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
 
 export interface ConsumableStockRow {
   id: string;

@@ -5,9 +5,9 @@
  */
 
 import type { ConsumableCategory } from '@domain/entities/ConsumableCategory';
-import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
-import type { ConsumableLocation } from '@domain/entities/ConsumableLocation';
 import type { ConsumableDocument } from '@domain/entities/ConsumableDocument';
+import type { ConsumableLocation } from '@domain/entities/ConsumableLocation';
+import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
 import type {
   ConsumableStockRow,
   ConsumableBarcodeRow,

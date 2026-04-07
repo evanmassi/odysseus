@@ -5,6 +5,8 @@
  * stock operations, category/location/document management, and bulk operations.
  */
 
+import { nanoid } from 'nanoid';
+
 import type { EventBus } from '@application/contracts/EventBus';
 import {
   ConsumableDto,
@@ -18,9 +20,9 @@ import {
   type ConsumableTransactionResponse,
 } from '@application/dto/ConsumableDto';
 import { ConsumableCategory } from '@domain/entities/ConsumableCategory';
-import { ConsumableProduct } from '@domain/entities/ConsumableProduct';
-import { ConsumableLocation } from '@domain/entities/ConsumableLocation';
 import { ConsumableDocument } from '@domain/entities/ConsumableDocument';
+import { ConsumableLocation } from '@domain/entities/ConsumableLocation';
+import { ConsumableProduct } from '@domain/entities/ConsumableProduct';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -50,7 +52,6 @@ import type { AccessControlService } from '@domain/services/AccessControlService
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
-import { nanoid } from 'nanoid';
 
 import type {
   CreateConsumableCategoryRequest,
@@ -569,7 +570,7 @@ export class ConsumableApplicationService {
       const newValue = data[key];
       if (newValue !== undefined) {
         const oldValue = getter();
-        const normalizedNew = newValue === null ? undefined : newValue;
+        const normalizedNew = newValue ?? undefined;
         if (oldValue !== normalizedNew) {
           changes.push({ field: key, oldValue, newValue: normalizedNew });
         }
@@ -578,7 +579,7 @@ export class ConsumableApplicationService {
 
     if (data.properties !== undefined) {
       const oldProps = JSON.stringify(product.properties);
-      const newProps = JSON.stringify(data.properties === null ? [] : data.properties);
+      const newProps = JSON.stringify(data.properties ?? []);
       if (oldProps !== newProps) {
         changes.push({ field: 'properties', oldValue: product.properties, newValue: data.properties ?? [] });
       }

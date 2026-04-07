@@ -116,6 +116,19 @@ export const queryKeys = {
       [...queryKeys.equipment.all(labId), 'maintenance', itemId] as const,
   },
 
+  // Consumables (lab-scoped)
+  consumables: {
+    all: (labId = '') => ['consumables', labId] as const,
+    categories: (labId = '') => [...queryKeys.consumables.all(labId), 'categories'] as const,
+    products: (labId = '') => [...queryKeys.consumables.all(labId), 'products'] as const,
+    detail: (labId = '', id: string) =>
+      [...queryKeys.consumables.all(labId), 'detail', id] as const,
+    locations: (labId = '') => [...queryKeys.consumables.all(labId), 'locations'] as const,
+    transactions: (labId = '', productId: string) =>
+      [...queryKeys.consumables.all(labId), 'transactions', productId] as const,
+    reorderList: (labId = '') => [...queryKeys.consumables.all(labId), 'reorder-list'] as const,
+  },
+
   // Lookups (lab-scoped)
   lookups: {
     all: (labId = '') => ['lookups', labId] as const,

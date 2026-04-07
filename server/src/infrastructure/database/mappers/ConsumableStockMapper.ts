@@ -5,9 +5,8 @@
  * Handles NUMERIC → number conversion for quantity.
  */
 
-import { toISOString } from '@infrastructure/database/PostgresContext';
-
 import type { ConsumableStockRow } from '@domain/repositories/ConsumableProductRepository';
+import { toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface ConsumableStockDbRow {
   id: string;
