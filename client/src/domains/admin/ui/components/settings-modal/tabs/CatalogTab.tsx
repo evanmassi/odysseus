@@ -39,6 +39,10 @@ const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   media: 'media type',
   specimen_type: 'specimen',
   equipment_maintenance_type: 'maintenance activity',
+  consumable_product_property: 'product property',
+  consumable_stock_unit: 'stock unit',
+  consumable_vendor: 'vendor',
+  consumable_manufacturer: 'manufacturer',
 };
 
 const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
@@ -47,6 +51,10 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   media: 'media types',
   specimen_type: 'specimens',
   equipment_maintenance_type: 'maintenance activities',
+  consumable_product_property: 'product properties',
+  consumable_stock_unit: 'stock units',
+  consumable_vendor: 'vendors',
+  consumable_manufacturer: 'manufacturers',
 };
 
 const CATEGORY_USAGE_LABELS: Record<
@@ -62,6 +70,10 @@ const CATEGORY_USAGE_LABELS: Record<
     plural: 'collection entries',
   },
   equipment_maintenance_type: { header: 'Entries', singular: 'log entry', plural: 'log entries' },
+  consumable_product_property: { header: 'Products', singular: 'product', plural: 'products' },
+  consumable_stock_unit: { header: 'Products', singular: 'product', plural: 'products' },
+  consumable_vendor: { header: 'Products', singular: 'product', plural: 'products' },
+  consumable_manufacturer: { header: 'Products', singular: 'product', plural: 'products' },
 };
 
 interface CategorySectionProps {
@@ -320,14 +332,27 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const queryClient = useQueryClient();
   const labId = useLabId();
   const location = useLocation();
-  const isBiobankRoute = !location.pathname.startsWith('/lab');
+  const isConsumablesRoute = location.pathname.startsWith('/lab/consumables');
+  const isLabRoute = location.pathname.startsWith('/lab');
+  const isBiobankRoute = !isLabRoute;
   const [biobankExpanded, setBiobankExpanded] = useState(isBiobankRoute);
-  const [equipmentExpanded, setEquipmentExpanded] = useState(!isBiobankRoute);
+  const [equipmentExpanded, setEquipmentExpanded] = useState(isLabRoute && !isConsumablesRoute);
+  const [consumablesExpanded, setConsumablesExpanded] = useState(isConsumablesRoute);
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
   const [mediaValues, setMediaValues] = useState<LookupValueWithCount[]>([]);
   const [specimenTypeValues, setSpecimenTypeValues] = useState<LookupValueWithCount[]>([]);
   const [equipmentMaintenanceTypeValues, setEquipmentMaintenanceTypeValues] = useState<
+    LookupValueWithCount[]
+  >([]);
+  const [consumableProductPropertyValues, setConsumableProductPropertyValues] = useState<
+    LookupValueWithCount[]
+  >([]);
+  const [consumableStockUnitValues, setConsumableStockUnitValues] = useState<
+    LookupValueWithCount[]
+  >([]);
+  const [consumableVendorValues, setConsumableVendorValues] = useState<LookupValueWithCount[]>([]);
+  const [consumableManufacturerValues, setConsumableManufacturerValues] = useState<
     LookupValueWithCount[]
   >([]);
   const [loading, setLoading] = useState(false);
@@ -348,6 +373,10 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       media: setMediaValues,
       specimen_type: setSpecimenTypeValues,
       equipment_maintenance_type: setEquipmentMaintenanceTypeValues,
+      consumable_product_property: setConsumableProductPropertyValues,
+      consumable_stock_unit: setConsumableStockUnitValues,
+      consumable_vendor: setConsumableVendorValues,
+      consumable_manufacturer: setConsumableManufacturerValues,
     }),
     []
   );
@@ -355,20 +384,36 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const loadValues = useCallback(async () => {
     setLoading(true);
     try {
-      const [species, sources, media, specimenTypes, equipmentMaintenanceTypes] = await Promise.all(
-        [
-          adminService.getLookupValues('species'),
-          adminService.getLookupValues('source'),
-          adminService.getLookupValues('media'),
-          adminService.getLookupValues('specimen_type'),
-          adminService.getLookupValues('equipment_maintenance_type'),
-        ]
-      );
+      const [
+        species,
+        sources,
+        media,
+        specimenTypes,
+        equipmentMaintenanceTypes,
+        consumableProductProperties,
+        consumableStockUnits,
+        consumableVendors,
+        consumableManufacturers,
+      ] = await Promise.all([
+        adminService.getLookupValues('species'),
+        adminService.getLookupValues('source'),
+        adminService.getLookupValues('media'),
+        adminService.getLookupValues('specimen_type'),
+        adminService.getLookupValues('equipment_maintenance_type'),
+        adminService.getLookupValues('consumable_product_property'),
+        adminService.getLookupValues('consumable_stock_unit'),
+        adminService.getLookupValues('consumable_vendor'),
+        adminService.getLookupValues('consumable_manufacturer'),
+      ]);
       setSpeciesValues(species);
       setSourceValues(sources);
       setMediaValues(media);
       setSpecimenTypeValues(specimenTypes);
       setEquipmentMaintenanceTypeValues(equipmentMaintenanceTypes);
+      setConsumableProductPropertyValues(consumableProductProperties);
+      setConsumableStockUnitValues(consumableStockUnits);
+      setConsumableVendorValues(consumableVendors);
+      setConsumableManufacturerValues(consumableManufacturers);
     } catch (error) {
       logger.error('Failed to load lookup values', { error });
       notifications.error('Failed to load catalog values');
@@ -559,13 +604,77 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
             </div>
           )}
         </div>
+
+        {/* Consumables Catalogs */}
+        <div className="rounded-lg border border-border overflow-hidden">
+          <button
+            type="button"
+            className="w-full flex items-center gap-2 px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left"
+            onClick={() => setConsumablesExpanded(!consumablesExpanded)}
+          >
+            {consumablesExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            <span className="text-sm font-semibold text-secondary-foreground">Consumables</span>
+          </button>
+          {consumablesExpanded && (
+            <div className="p-3 space-y-6">
+              <CategorySection
+                category="consumable_product_property"
+                title="Product Properties"
+                values={consumableProductPropertyValues}
+                loading={loading}
+                onAdd={value => handleAdd('consumable_product_property', value)}
+                onRename={(id, newValue) =>
+                  handleRename('consumable_product_property', id, newValue)
+                }
+                onDelete={(id, value) =>
+                  handleDeleteRequest('consumable_product_property', id, value)
+                }
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+              <CategorySection
+                category="consumable_stock_unit"
+                title="Stock Units"
+                values={consumableStockUnitValues}
+                loading={loading}
+                onAdd={value => handleAdd('consumable_stock_unit', value)}
+                onRename={(id, newValue) => handleRename('consumable_stock_unit', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('consumable_stock_unit', id, value)}
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+              <CategorySection
+                category="consumable_vendor"
+                title="Vendors"
+                values={consumableVendorValues}
+                loading={loading}
+                onAdd={value => handleAdd('consumable_vendor', value)}
+                onRename={(id, newValue) => handleRename('consumable_vendor', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('consumable_vendor', id, value)}
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+              <CategorySection
+                category="consumable_manufacturer"
+                title="Manufacturers"
+                values={consumableManufacturerValues}
+                loading={loading}
+                onAdd={value => handleAdd('consumable_manufacturer', value)}
+                onRename={(id, newValue) => handleRename('consumable_manufacturer', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('consumable_manufacturer', id, value)}
+                deletingId={deletingId}
+                readOnly={readOnly}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {confirmDialog && (
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : confirmDialog.category === 'source' ? 'Source' : confirmDialog.category === 'specimen_type' ? 'Specimen' : confirmDialog.category === 'equipment_maintenance_type' ? 'Maintenance Activity' : 'Media Type'}`}
+          title={`Delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`}
           message={`Are you sure you want to delete "${confirmDialog.value}" from ${confirmDialog.category}? This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => void executeDelete()}
