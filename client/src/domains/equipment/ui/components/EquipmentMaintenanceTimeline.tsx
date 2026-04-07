@@ -13,6 +13,7 @@ import { useDeleteEquipmentMaintenanceEntryMutation } from '@domains/equipment/h
 import { Button, InfoField, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
+import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 
 import type { EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
@@ -24,11 +25,6 @@ interface EquipmentMaintenanceTimelineProps {
   onEditEntry: (entry: EquipmentMaintenanceLog) => void;
   onAddEntry: () => void;
   className?: string;
-}
-
-function formatCost(cost: number | undefined): string | undefined {
-  if (cost === undefined) return undefined;
-  return `$${cost.toFixed(2)}`;
 }
 
 export function EquipmentMaintenanceTimeline({
@@ -143,7 +139,7 @@ export function EquipmentMaintenanceTimeline({
                       <InfoField label="Technician" value={entry.technician} inline={false} />
                     )}
                     {entry.cost !== undefined && (
-                      <InfoField label="Cost" value={formatCost(entry.cost)} inline={false} />
+                      <InfoField label="Cost" value={formatCurrency(entry.cost)} inline={false} />
                     )}
                     {entry.nextScheduledDate && (
                       <InfoField

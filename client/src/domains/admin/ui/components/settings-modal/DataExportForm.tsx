@@ -11,6 +11,7 @@ import { Download, FileSpreadsheet, FileJson } from 'lucide-react';
 import { logger } from '@infra/logger';
 import { Button, Chip, Select } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { downloadBlob } from '@shared/utils/downloadBlob';
 
 import { exportService } from '../../../services/ExportService';
 
@@ -58,20 +59,6 @@ const exportOptions: ExportOption[] = [
     jsonOnly: true,
   },
 ];
-
-/**
- * Trigger browser download of a blob
- */
-function downloadBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
 
 function generateFilename(type: ExportType, format: ExportFormat): string {
   const date = new Date().toISOString().split('T')[0];

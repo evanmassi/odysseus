@@ -32,6 +32,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
+import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 
 import type { EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
@@ -62,11 +63,6 @@ const STATUS_LABELS: Record<
 function formatDate(date: Date | string | undefined): string | undefined {
   if (!date) return undefined;
   return formatDateForDisplay(date) || undefined;
-}
-
-function formatCurrency(amount: number | undefined): string | undefined {
-  if (amount === undefined) return undefined;
-  return `$${amount.toFixed(2)}`;
 }
 
 export function EquipmentItemInfoPanel({

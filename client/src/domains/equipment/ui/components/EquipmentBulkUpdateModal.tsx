@@ -24,7 +24,7 @@ import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { notifications } from '@shared/utils/notifications';
+import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
 import type {
   EquipmentItem,
@@ -637,15 +637,7 @@ export function EquipmentBulkUpdateModal({
 
   const handleResult = useCallback(
     (result: EquipmentBulkResponse) => {
-      if (result.failed.length === 0) {
-        notifications.success(`Updated ${result.succeeded.length} items`);
-      } else if (result.succeeded.length === 0) {
-        notifications.error(`All ${result.failed.length} items failed`);
-      } else {
-        notifications.warning(
-          `${result.succeeded.length} succeeded, ${result.failed.length} failed`
-        );
-      }
+      notifyBulkResult(result, 'items');
       setSelectedIds(new Set());
       onClose();
     },
