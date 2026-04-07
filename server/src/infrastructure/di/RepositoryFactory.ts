@@ -5,6 +5,9 @@
  */
 
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { ConsumableCategoryRepository } from '@domain/repositories/ConsumableCategoryRepository';
+import type { ConsumableLocationRepository } from '@domain/repositories/ConsumableLocationRepository';
+import type { ConsumableProductRepository } from '@domain/repositories/ConsumableProductRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
@@ -21,6 +24,9 @@ import type { UserSessionRepository } from '@domain/repositories/UserSessionRepo
 import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
+import { ConsumableCategoryRepository as ConsumableCategoryRepositoryImpl } from '@infrastructure/repositories/ConsumableCategoryRepository';
+import { ConsumableLocationRepository as ConsumableLocationRepositoryImpl } from '@infrastructure/repositories/ConsumableLocationRepository';
+import { ConsumableProductRepository as ConsumableProductRepositoryImpl } from '@infrastructure/repositories/ConsumableProductRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
 import { EquipmentCategoryRepository as EquipmentCategoryRepositoryImpl } from '@infrastructure/repositories/EquipmentCategoryRepository';
 import { EquipmentItemRepository as EquipmentItemRepositoryImpl } from '@infrastructure/repositories/EquipmentItemRepository';
@@ -51,6 +57,9 @@ export class RepositoryFactory {
   private donorRepository?: DonorRepository;
   private equipmentCategoryRepository?: EquipmentCategoryRepository;
   private equipmentItemRepository?: EquipmentItemRepository;
+  private consumableCategoryRepository?: ConsumableCategoryRepository;
+  private consumableProductRepository?: ConsumableProductRepository;
+  private consumableLocationRepository?: ConsumableLocationRepository;
 
   constructor(databaseConfig: DatabaseConnectionConfig) {
     this.postgresContext = new PostgresContext(databaseConfig);
@@ -159,6 +168,27 @@ export class RepositoryFactory {
     return this.equipmentItemRepository;
   }
 
+  getConsumableCategoryRepository(): ConsumableCategoryRepository {
+    if (!this.consumableCategoryRepository) {
+      this.consumableCategoryRepository = new ConsumableCategoryRepositoryImpl(this.postgresContext);
+    }
+    return this.consumableCategoryRepository;
+  }
+
+  getConsumableProductRepository(): ConsumableProductRepository {
+    if (!this.consumableProductRepository) {
+      this.consumableProductRepository = new ConsumableProductRepositoryImpl(this.postgresContext);
+    }
+    return this.consumableProductRepository;
+  }
+
+  getConsumableLocationRepository(): ConsumableLocationRepository {
+    if (!this.consumableLocationRepository) {
+      this.consumableLocationRepository = new ConsumableLocationRepositoryImpl(this.postgresContext);
+    }
+    return this.consumableLocationRepository;
+  }
+
   getRepositories() {
     return {
       tubes: this.getTubeRepository(),
@@ -175,6 +205,9 @@ export class RepositoryFactory {
       donors: this.getDonorRepository(),
       equipmentCategories: this.getEquipmentCategoryRepository(),
       equipmentItems: this.getEquipmentItemRepository(),
+      consumableCategories: this.getConsumableCategoryRepository(),
+      consumableProducts: this.getConsumableProductRepository(),
+      consumableLocations: this.getConsumableLocationRepository(),
     };
   }
 
