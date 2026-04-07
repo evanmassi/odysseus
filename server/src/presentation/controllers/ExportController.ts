@@ -48,6 +48,13 @@ export class ExportController extends BaseController {
     });
   }
 
+  async exportConsumableReorderList(req: Request, res: Response): Promise<void> {
+    await this.handleExport(req, res, 'consumable-reorder-list', {
+      csv: (labId) => this.deps.exportService.exportConsumableReorderList(labId, 'csv'),
+      json: (labId) => this.deps.exportService.exportConsumableReorderList(labId, 'json'),
+    });
+  }
+
   async exportSystemBackup(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);

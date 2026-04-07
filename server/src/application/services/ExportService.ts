@@ -5,6 +5,7 @@
  */
 
 import type { Person } from '@domain/entities/Person';
+import type { ConsumableProductRepository } from '@domain/repositories/ConsumableProductRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
@@ -100,6 +101,18 @@ interface EquipmentExportRow {
   updatedAt: string;
 }
 
+interface ConsumableReorderExportRow {
+  name: string;
+  manufacturer: string;
+  catalogNumber: string;
+  vendorName: string;
+  vendorCatalogNumber: string;
+  currentStock: number;
+  reorderQuantity: number;
+  reorderUnit: string;
+  unitPrice: number;
+}
+
 interface SystemBackup {
   exportedAt: string;
   version: string;
@@ -117,6 +130,7 @@ export class ExportService {
     private appVersion: string,
     private equipmentItemRepository?: EquipmentItemRepository,
     private equipmentCategoryRepository?: EquipmentCategoryRepository,
+    private consumableProductRepository?: ConsumableProductRepository,
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;
@@ -412,6 +426,44 @@ export class ExportService {
       } : null,
       securityConfig: securityConfig ?? null
     };
+  }
+
+  async exportConsumableReorderList(labId: string, format: 'csv'): Promise<string>;
+  async exportConsumableReorderList(labId: string, format: 'json'): Promise<ConsumableReorderExportRow[]>;
+  async exportConsumableReorderList(labId: string, format: 'csv' | 'json'): Promise<string | ConsumableReorderExportRow[]> {
+    logger.info('[ExportService] Exporting consumable reorder list', { labId, format });
+
+    if (!this.consumableProductRepository) {
+      throw new Error('Consumable product repository not configured');
+    }
+
+    const productsWithStock = await this.consumableProductRepository.findProductsBelowThreshold(labId);
+
+    const rows: ConsumableReorderExportRow[] = productsWithStock.map(({ product, totalStock }) => ({
+      name: product.name,
+      manufacturer: product.manufacturer ?? '',
+      catalogNumber: product.catalogNumber ?? '',
+      vendorName: product.vendorName ?? '',
+      vendorCatalogNumber: product.vendorCatalogNumber ?? '',
+      currentStock: totalStock,
+      reorderQuantity: product.reorderQuantity ?? 0,
+      reorderUnit: product.reorderUnit ?? product.stockUnit ?? '',
+      unitPrice: product.unitPrice ?? 0,
+    }));
+
+    if (format === 'json') return rows;
+
+    return generateCsv(rows, [
+      { key: 'name', header: 'Product Name' },
+      { key: 'manufacturer', header: 'Manufacturer' },
+      { key: 'catalogNumber', header: 'Catalog #' },
+      { key: 'vendorName', header: 'Vendor' },
+      { key: 'vendorCatalogNumber', header: 'Vendor Catalog #' },
+      { key: 'currentStock', header: 'Current Stock' },
+      { key: 'reorderQuantity', header: 'Reorder Qty' },
+      { key: 'reorderUnit', header: 'Reorder Unit' },
+      { key: 'unitPrice', header: 'Unit Price' },
+    ]);
   }
 
   private async buildPersonMap(personIds: string[]): Promise<Map<string, Person>> {
