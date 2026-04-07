@@ -33,6 +33,9 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
+import { ConsumableBulkConsumeModal } from './ConsumableBulkConsumeModal';
+import { ConsumableBulkReceiveModal } from './ConsumableBulkReceiveModal';
+import { ConsumableBulkUpdateModal } from './ConsumableBulkUpdateModal';
 import { ConsumableCategoryModal } from './ConsumableCategoryModal';
 import { ConsumableCategoryPanel } from './ConsumableCategoryPanel';
 import { ConsumableLocationModal } from './ConsumableLocationModal';
@@ -82,6 +85,9 @@ export function ConsumablesTab() {
     category?: ConsumableCategory;
   }>({ isOpen: false });
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isBulkReceiveOpen, setIsBulkReceiveOpen] = useState(false);
+  const [isBulkConsumeOpen, setIsBulkConsumeOpen] = useState(false);
+  const [isBulkUpdateOpen, setIsBulkUpdateOpen] = useState(false);
 
   const categoryNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -160,27 +166,9 @@ export function ConsumablesTab() {
   }, [deleteConfirm.category, deleteCategoryMutation]);
 
   const bulkMenuItems: OverflowMenuItem[] = [
-    {
-      icon: PackagePlus,
-      label: 'Bulk Receive',
-      onClick: () => {
-        /* Phase 8 */
-      },
-    },
-    {
-      icon: PackageMinus,
-      label: 'Bulk Consume',
-      onClick: () => {
-        /* Phase 8 */
-      },
-    },
-    {
-      icon: Layers,
-      label: 'Bulk Update',
-      onClick: () => {
-        /* Phase 8 */
-      },
-    },
+    { icon: PackagePlus, label: 'Bulk Receive', onClick: () => setIsBulkReceiveOpen(true) },
+    { icon: PackageMinus, label: 'Bulk Consume', onClick: () => setIsBulkConsumeOpen(true) },
+    { icon: Layers, label: 'Bulk Update', onClick: () => setIsBulkUpdateOpen(true) },
   ];
 
   return (
@@ -354,6 +342,25 @@ export function ConsumablesTab() {
           onClose={() => setIsLocationModalOpen(false)}
         />
       </div>
+
+      <ConsumableBulkReceiveModal
+        isOpen={isBulkReceiveOpen}
+        onClose={() => setIsBulkReceiveOpen(false)}
+        products={products}
+      />
+
+      <ConsumableBulkConsumeModal
+        isOpen={isBulkConsumeOpen}
+        onClose={() => setIsBulkConsumeOpen(false)}
+        products={products}
+      />
+
+      <ConsumableBulkUpdateModal
+        isOpen={isBulkUpdateOpen}
+        onClose={() => setIsBulkUpdateOpen(false)}
+        products={products}
+        categories={categories}
+      />
     </div>
   );
 }
