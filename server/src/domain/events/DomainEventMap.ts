@@ -5,6 +5,25 @@
  */
 
 import type {
+  ConsumableProductCreatedEvent,
+  ConsumableProductUpdatedEvent,
+  ConsumableProductArchivedEvent,
+  ConsumableProductDeletedEvent,
+  ConsumableCategoryCreatedEvent,
+  ConsumableCategoryUpdatedEvent,
+  ConsumableCategoryDeletedEvent,
+  ConsumableDocumentAddedEvent,
+  ConsumableDocumentRemovedEvent,
+  ConsumableStockReceivedEvent,
+  ConsumableStockConsumedEvent,
+  ConsumableStockCountAdjustedEvent,
+  ConsumableStockDisposedEvent,
+  ConsumableBulkReceivedEvent,
+  ConsumableBulkConsumedEvent,
+  ConsumableBulkCategoryReassignedEvent,
+  ConsumableBulkArchivedEvent,
+} from './ConsumableEvents';
+import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
   DonorDeletedEvent
@@ -191,6 +210,25 @@ export interface DomainEventMap {
   'EquipmentBulkMaintenanceLogged': EquipmentBulkMaintenanceLoggedEvent;
   'EquipmentBulkStatusChanged': EquipmentBulkStatusChangedEvent;
   'EquipmentBulkRelocated': EquipmentBulkRelocatedEvent;
+
+  // Consumable events
+  'ConsumableProductCreated': ConsumableProductCreatedEvent;
+  'ConsumableProductUpdated': ConsumableProductUpdatedEvent;
+  'ConsumableProductArchived': ConsumableProductArchivedEvent;
+  'ConsumableProductDeleted': ConsumableProductDeletedEvent;
+  'ConsumableCategoryCreated': ConsumableCategoryCreatedEvent;
+  'ConsumableCategoryUpdated': ConsumableCategoryUpdatedEvent;
+  'ConsumableCategoryDeleted': ConsumableCategoryDeletedEvent;
+  'ConsumableDocumentAdded': ConsumableDocumentAddedEvent;
+  'ConsumableDocumentRemoved': ConsumableDocumentRemovedEvent;
+  'ConsumableStockReceived': ConsumableStockReceivedEvent;
+  'ConsumableStockConsumed': ConsumableStockConsumedEvent;
+  'ConsumableStockCountAdjusted': ConsumableStockCountAdjustedEvent;
+  'ConsumableStockDisposed': ConsumableStockDisposedEvent;
+  'ConsumableBulkReceived': ConsumableBulkReceivedEvent;
+  'ConsumableBulkConsumed': ConsumableBulkConsumedEvent;
+  'ConsumableBulkCategoryReassigned': ConsumableBulkCategoryReassignedEvent;
+  'ConsumableBulkArchived': ConsumableBulkArchivedEvent;
 
   // Lab events
   'LabCreated': LabCreatedEvent;
