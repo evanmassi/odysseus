@@ -35,7 +35,10 @@ import { notifications } from '@shared/utils/notifications';
 
 import { ConsumableCategoryModal } from './ConsumableCategoryModal';
 import { ConsumableCategoryPanel } from './ConsumableCategoryPanel';
+import { ConsumableLocationModal } from './ConsumableLocationModal';
+import { ConsumableProductForm } from './ConsumableProductForm';
 import { ConsumableProductInfoPanel } from './ConsumableProductInfoPanel';
+import { ConsumableTransactionForm } from './ConsumableTransactionForm';
 
 import type { ConsumableCategory, ConsumableProductWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui';
@@ -78,6 +81,7 @@ export function ConsumablesTab() {
     isOpen: boolean;
     category?: ConsumableCategory;
   }>({ isOpen: false });
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   const categoryNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -108,6 +112,14 @@ export function ConsumablesTab() {
   const handleRecordTransaction = useCallback(() => {
     if (selectedProductId) {
       setRightPanel({ type: 'transaction', productId: selectedProductId });
+    }
+  }, [selectedProductId]);
+
+  const handleFormComplete = useCallback(() => {
+    if (selectedProductId) {
+      setRightPanel({ type: 'info', productId: selectedProductId });
+    } else {
+      setRightPanel(undefined);
     }
   }, [selectedProductId]);
 
@@ -194,6 +206,7 @@ export function ConsumablesTab() {
                   variant="secondary"
                   size="sm"
                   className="h-8"
+                  onClick={() => setIsLocationModalOpen(true)}
                   leftIcon={<MapPin className="w-3.5 h-3.5" />}
                 >
                   Locations
@@ -300,15 +313,21 @@ export function ConsumablesTab() {
           )}
 
           {rightPanel?.type === 'edit' && (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              Product form — Phase 7
-            </div>
+            <ConsumableProductForm
+              product={rightPanel.product}
+              categories={categories}
+              onSubmit={handleFormComplete}
+              onCancel={handleFormComplete}
+            />
           )}
 
           {rightPanel?.type === 'transaction' && (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              Transaction form — Phase 7
-            </div>
+            <ConsumableTransactionForm
+              productId={rightPanel.productId}
+              productName={products.find(p => p.id === rightPanel.productId)?.name ?? ''}
+              onSubmit={handleFormComplete}
+              onCancel={handleFormComplete}
+            />
           )}
         </div>
 
@@ -328,6 +347,11 @@ export function ConsumablesTab() {
           confirmText="Remove"
           onConfirm={() => void executeDeleteCategory()}
           onCancel={() => setDeleteConfirm({ isOpen: false })}
+        />
+
+        <ConsumableLocationModal
+          isOpen={isLocationModalOpen}
+          onClose={() => setIsLocationModalOpen(false)}
         />
       </div>
     </div>

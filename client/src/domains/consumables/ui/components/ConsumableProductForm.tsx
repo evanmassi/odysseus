@@ -1,0 +1,392 @@
+/**
+ * Consumable Product Form
+ *
+ * React Hook Form for creating and editing consumable products with lookup-driven
+ * dropdowns for manufacturer, vendor, stock unit, and multi-select properties.
+ */
+
+import { useMemo } from 'react';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createConsumableProductRequestSchema } from '@odysseus/shared-schemas';
+import { Plus, Save, SquarePen } from 'lucide-react';
+import { useForm, Controller, type FieldValues } from 'react-hook-form';
+
+import {
+  useCreateConsumableProductMutation,
+  useUpdateConsumableProductMutation,
+} from '@domains/consumables/hooks/useConsumableMutations';
+import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
+import { Button, Select, Checkbox } from '@shared/ui';
+import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { Chip } from '@shared/ui/primitives/chip/Chip';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { notifications } from '@shared/utils/notifications';
+
+import type {
+  ConsumableCategory,
+  ConsumableProductWithStock,
+  CreateConsumableProductRequest,
+} from '@odysseus/shared-schemas';
+import type { SelectOption } from '@shared/ui/primitives/select/types';
+
+interface ConsumableProductFormProps {
+  product?: ConsumableProductWithStock;
+  categories: ConsumableCategory[];
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+export function ConsumableProductForm({
+  product,
+  categories,
+  onSubmit,
+  onCancel,
+}: ConsumableProductFormProps) {
+  const isEditing = !!product;
+  const createMutation = useCreateConsumableProductMutation();
+  const updateMutation = useUpdateConsumableProductMutation();
+
+  const { data: manufacturers = [] } = useLookupValuesQuery('consumable_manufacturer');
+  const { data: vendors = [] } = useLookupValuesQuery('consumable_vendor');
+  const { data: stockUnits = [] } = useLookupValuesQuery('consumable_stock_unit');
+  const { data: productProperties = [] } = useLookupValuesQuery('consumable_product_property');
+
+  const manufacturerOptions: SelectOption[] = useMemo(
+    () => [
+      { value: '', label: 'Select...' },
+      ...manufacturers.map((m: { value: string }) => ({ value: m.value, label: m.value })),
+    ],
+    [manufacturers]
+  );
+
+  const vendorOptions: SelectOption[] = useMemo(
+    () => [
+      { value: '', label: 'Select...' },
+      ...vendors.map((v: { value: string }) => ({ value: v.value, label: v.value })),
+    ],
+    [vendors]
+  );
+
+  const stockUnitOptions: SelectOption[] = useMemo(
+    () => [
+      { value: '', label: 'Select...' },
+      ...stockUnits.map((u: { value: string }) => ({ value: u.value, label: u.value })),
+    ],
+    [stockUnits]
+  );
+
+  const categoryOptions: SelectOption[] = useMemo(() => {
+    const topLevel = categories
+      .filter(c => !c.parentId)
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+
+    const options: SelectOption[] = [{ value: '', label: 'Select category...' }];
+    topLevel.forEach(parent => {
+      options.push({ value: parent.id, label: parent.name });
+      const subs = categories
+        .filter(c => c.parentId === parent.id)
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+      subs.forEach(sub => {
+        options.push({ value: sub.id, label: sub.name, description: parent.name });
+      });
+    });
+    return options;
+  }, [categories]);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(createConsumableProductRequestSchema) as never,
+    defaultValues: isEditing
+      ? {
+          categoryId: product.categoryId,
+          name: product.name,
+          manufacturer: product.manufacturer ?? '',
+          catalogNumber: product.catalogNumber ?? '',
+          vendorName: product.vendorName ?? '',
+          vendorCatalogNumber: product.vendorCatalogNumber ?? '',
+          stockUnit: product.stockUnit ?? '',
+          unitsPerStockUnit: product.unitsPerStockUnit,
+          reorderThreshold: product.reorderThreshold,
+          reorderQuantity: product.reorderQuantity,
+          reorderUnit: product.reorderUnit ?? '',
+          unitPrice: product.unitPrice,
+          properties: product.properties,
+          description: product.description ?? '',
+          notes: product.notes ?? '',
+        }
+      : {
+          properties: [] as string[],
+        },
+  });
+
+  const onFormSubmit = async (data: FieldValues) => {
+    const validated = data as CreateConsumableProductRequest;
+    try {
+      if (isEditing) {
+        await updateMutation.mutateAsync({ id: product.id, data: validated });
+        notifications.success('Product updated');
+      } else {
+        await createMutation.mutateAsync(validated);
+        notifications.success('Product created');
+      }
+      onSubmit();
+    } catch {
+      notifications.error(isEditing ? 'Failed to update product' : 'Failed to create product');
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      <ScrollArea className="flex-1 min-h-0">
+        <form
+          id="consumable-product-form"
+          onSubmit={handleSubmit(onFormSubmit)}
+          className="p-4 space-y-4"
+        >
+          <h3 className="text-sm font-semibold text-secondary-foreground inline-flex items-center gap-1.5">
+            {isEditing ? (
+              <>
+                <SquarePen size={14} className="text-muted-foreground" />
+                Edit Product
+              </>
+            ) : (
+              <>
+                <Plus size={14} className="text-muted-foreground" />
+                Add Product
+              </>
+            )}
+          </h3>
+
+          <ValidatedInput
+            label="Name"
+            required
+            placeholder="e.g., 200μL Filter Tips"
+            error={!!errors.name}
+            helperText={(errors.name?.message as string) ?? undefined}
+            registration={register('name')}
+          />
+
+          <Controller
+            name="categoryId"
+            control={control}
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <Select
+                label="Category"
+                options={categoryOptions}
+                value={value ?? ''}
+                onChange={v => onChange(v)}
+                state={error ? 'error' : 'default'}
+                error={error?.message}
+                fullWidth
+                renderOption={option => {
+                  const isSub = !!option.description;
+                  return (
+                    <div className="w-full">
+                      {isSub ? (
+                        <span className="pl-4 text-sm">{option.label}</span>
+                      ) : (
+                        <span className="text-sm font-semibold">{option.label}</span>
+                      )}
+                    </div>
+                  );
+                }}
+                renderValue={selected => {
+                  const opt = selected[0];
+                  if (!opt?.value) return 'Select category...';
+                  return opt.description ? `${opt.description} > ${opt.label}` : opt.label;
+                }}
+              />
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <Controller
+              name="manufacturer"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <Select
+                  label="Manufacturer"
+                  options={manufacturerOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  fullWidth
+                />
+              )}
+            />
+            <ValidatedInput
+              label="Catalog #"
+              placeholder="e.g., 4806"
+              error={!!errors.catalogNumber}
+              helperText={(errors.catalogNumber?.message as string) ?? undefined}
+              registration={register('catalogNumber')}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Controller
+              name="vendorName"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <Select
+                  label="Vendor"
+                  options={vendorOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  fullWidth
+                />
+              )}
+            />
+            <ValidatedInput
+              label="Vendor Catalog #"
+              placeholder="e.g., 07-200-XXX"
+              registration={register('vendorCatalogNumber')}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Controller
+              name="stockUnit"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <Select
+                  label="Stock Unit"
+                  options={stockUnitOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  fullWidth
+                />
+              )}
+            />
+            <ValidatedInput
+              label="Units per Stock Unit"
+              type="number"
+              placeholder="e.g., 96"
+              registration={register('unitsPerStockUnit', { valueAsNumber: true })}
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <ValidatedInput
+              label="Reorder Threshold"
+              type="number"
+              placeholder="e.g., 3"
+              registration={register('reorderThreshold', { valueAsNumber: true })}
+            />
+            <ValidatedInput
+              label="Reorder Qty"
+              type="number"
+              placeholder="e.g., 5"
+              registration={register('reorderQuantity', { valueAsNumber: true })}
+            />
+            <Controller
+              name="reorderUnit"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <Select
+                  label="Reorder Unit"
+                  options={stockUnitOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  fullWidth
+                />
+              )}
+            />
+          </div>
+
+          <ValidatedInput
+            label="Unit Price ($)"
+            type="number"
+            step="0.01"
+            placeholder="e.g., 45.00"
+            registration={register('unitPrice', { valueAsNumber: true })}
+          />
+
+          {/* Properties multi-select */}
+          {productProperties.length > 0 && (
+            <div>
+              <span className="text-sm font-medium text-secondary-foreground mb-1.5 block">
+                Properties
+              </span>
+              <Controller
+                name="properties"
+                control={control}
+                render={({ field: { value = [], onChange } }) => (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-1 min-h-[24px]">
+                      {(value as string[]).map((prop: string) => (
+                        <Chip
+                          key={prop}
+                          color="default"
+                          size="sm"
+                          onRemove={() =>
+                            onChange((value as string[]).filter((p: string) => p !== prop))
+                          }
+                        >
+                          {prop}
+                        </Chip>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-1">
+                      {productProperties.map((pp: { id: string; value: string }) => (
+                        <label
+                          key={pp.id}
+                          className="flex items-center gap-1.5 text-sm cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={(value as string[]).includes(pp.value)}
+                            onChange={checked => {
+                              if (checked) {
+                                onChange([...(value as string[]), pp.value]);
+                              } else {
+                                onChange((value as string[]).filter((p: string) => p !== pp.value));
+                              }
+                            }}
+                          />
+                          {pp.value}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              />
+            </div>
+          )}
+
+          <ValidatedInput
+            label="Description"
+            type="textarea"
+            placeholder="Optional description"
+            registration={register('description')}
+          />
+
+          <ValidatedInput
+            label="Notes"
+            type="textarea"
+            placeholder="Admin notes"
+            registration={register('notes')}
+          />
+        </form>
+      </ScrollArea>
+
+      <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          form="consumable-product-form"
+          isLoading={isSubmitting}
+          loadingText={isEditing ? 'Saving...' : 'Adding...'}
+          leftIcon={isEditing ? <Save size={16} /> : <Plus size={16} />}
+        >
+          {isEditing ? 'Save' : 'Add Product'}
+        </Button>
+      </div>
+    </div>
+  );
+}
