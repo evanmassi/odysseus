@@ -11,6 +11,7 @@ import { Microscope, Package, Biohazard } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 
 import { AppHeader } from '@app/components/layout/AppHeader';
+import { ConsumablesTab } from '@domains/consumables/ui/components/ConsumablesTab';
 import { EquipmentTab } from '@domains/equipment/ui/components/EquipmentTab';
 
 import '@shared/styles/base/layout.css';
@@ -32,7 +33,7 @@ const TABS: TabConfig[] = [
     label: 'Consumables',
     icon: Package,
     path: '/lab/consumables',
-    enabled: false,
+    enabled: true,
   },
   { id: 'reagents', label: 'Reagents', icon: Biohazard, path: '/lab/reagents', enabled: false },
 ];
@@ -100,6 +101,7 @@ export function LabManagementPage() {
           <div className="h-full">
             <Routes>
               <Route path="equipment" element={<EquipmentTab />} />
+              <Route path="consumables" element={<ConsumablesTab />} />
               <Route path="*" element={<Navigate to="/lab/equipment" replace />} />
             </Routes>
           </div>
