@@ -7,8 +7,6 @@
 
 import { useMemo } from 'react';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { recordConsumableTransactionRequestSchema } from '@odysseus/shared-schemas';
 import { PackagePlus, PackageMinus, ClipboardCheck, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
@@ -64,7 +62,6 @@ export function ConsumableTransactionForm({
     reset,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(recordConsumableTransactionRequestSchema) as never,
     defaultValues: {
       productId,
       locationId: '',
@@ -93,6 +90,13 @@ export function ConsumableTransactionForm({
       : undefined;
 
   const onFormSubmit = async (data: FieldValues) => {
+    const quantity = Number(data['quantity']);
+    const locationId = data['locationId'] as string;
+    if (!locationId || isNaN(quantity)) {
+      notifications.error('Quantity and location are required');
+      return;
+    }
+
     try {
       if (mode === 'count') {
         await recordStockCountMutation.mutateAsync({

@@ -21,7 +21,7 @@ import {
   useRemoveConsumableDocumentMutation,
   useRemoveConsumableBarcodeMutation,
 } from '@domains/consumables/hooks/useConsumableMutations';
-import { Button, InfoField, InfoGroup } from '@shared/ui';
+import { Button, InfoField, InfoGroup, OverflowMenu } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -137,41 +137,44 @@ export function ConsumableProductInfoPanel({
 
       <div className="bg-muted rounded-md px-3 py-2 mx-4 mb-3 flex-shrink-0 space-y-2">
         {isAdmin && (
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onEdit}
-              leftIcon={<Edit className="w-3.5 h-3.5" />}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onRecordTransaction}
-              leftIcon={<ClipboardList className="w-3.5 h-3.5" />}
-            >
-              Record Transaction
-            </Button>
-            {!isArchived && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
               <Button
-                variant="ghost-danger"
+                variant="ghost"
                 size="sm"
-                onClick={() => void handleArchive()}
-                leftIcon={<Archive className="w-3.5 h-3.5" />}
+                onClick={onEdit}
+                leftIcon={<Edit className="w-3.5 h-3.5" />}
               >
-                Archive
+                Edit
               </Button>
-            )}
-            <Button
-              variant="ghost-danger"
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onRecordTransaction}
+                leftIcon={<ClipboardList className="w-3.5 h-3.5" />}
+              >
+                Record Transaction
+              </Button>
+            </div>
+            <OverflowMenu
+              items={[
+                ...(!isArchived ? [{
+                  icon: Archive,
+                  label: 'Archive',
+                  onClick: () => void handleArchive(),
+                  danger: true,
+                }] : []),
+                {
+                  icon: Trash2,
+                  label: 'Remove',
+                  onClick: () => setShowDeleteConfirm(true),
+                  danger: true,
+                },
+              ]}
+              dividerBefore={['Remove']}
               size="sm"
-              onClick={() => setShowDeleteConfirm(true)}
-              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-            >
-              Remove
-            </Button>
+              aria-label="More product actions"
+            />
           </div>
         )}
         <div
@@ -182,16 +185,18 @@ export function ConsumableProductInfoPanel({
               {categoryName}
             </Chip>
           )}
-          <Chip color={statusConfig.color} size="sm">
-            {statusConfig.label}
-          </Chip>
         </div>
       </div>
 
       <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
         <div className="px-4 pb-4 space-y-5">
-          {/* Product name */}
-          <h3 className="text-lg font-bold text-card-foreground">{product.name}</h3>
+          {/* Product name + status */}
+          <div className="flex items-center gap-2 mb-2.5">
+            <span className="text-card-foreground font-semibold text-sm">{product.name}</span>
+            <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
+              {statusConfig.label}
+            </Chip>
+          </div>
 
           {/* Product details */}
           <InfoGroup title="Product Details">

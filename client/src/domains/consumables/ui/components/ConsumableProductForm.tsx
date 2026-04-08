@@ -120,6 +120,8 @@ export function ConsumableProductForm({
           notes: product.notes ?? '',
         }
       : {
+          categoryId: '',
+          name: '',
           properties: [] as string[],
         },
   });
@@ -266,36 +268,44 @@ export function ConsumableProductForm({
               label="Units per Stock Unit"
               type="number"
               placeholder="e.g., 96"
-              registration={register('unitsPerStockUnit', { valueAsNumber: true })}
+              registration={register('unitsPerStockUnit', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <ValidatedInput
-              label="Reorder Threshold"
-              type="number"
-              placeholder="e.g., 3"
-              registration={register('reorderThreshold', { valueAsNumber: true })}
-            />
-            <ValidatedInput
-              label="Reorder Qty"
-              type="number"
-              placeholder="e.g., 5"
-              registration={register('reorderQuantity', { valueAsNumber: true })}
-            />
-            <Controller
-              name="reorderUnit"
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <Select
-                  label="Reorder Unit"
-                  options={stockUnitOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  fullWidth
+          <div>
+            <div className="flex items-center gap-3 mb-2.5">
+              <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">
+                Reorder Settings
+              </span>
+              <div className="h-px flex-1 bg-muted-foreground/60" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <ValidatedInput
+                label="Threshold"
+                type="number"
+                placeholder="e.g., 3"
+                registration={register('reorderThreshold', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
+              />
+              <ValidatedInput
+                label="Quantity"
+                type="number"
+                placeholder="e.g., 5"
+                registration={register('reorderQuantity', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
+              />
+              <Controller
+                name="reorderUnit"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    label="Unit"
+                    options={stockUnitOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    fullWidth
                 />
               )}
             />
+            </div>
           </div>
 
           <ValidatedInput
@@ -303,34 +313,36 @@ export function ConsumableProductForm({
             type="number"
             step="0.01"
             placeholder="e.g., 45.00"
-            registration={register('unitPrice', { valueAsNumber: true })}
+            registration={register('unitPrice', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
           />
 
           {/* Properties multi-select */}
           {productProperties.length > 0 && (
             <div>
-              <span className="text-sm font-medium text-secondary-foreground mb-1.5 block">
+              <span className="text-sm font-medium text-secondary-foreground mb-1 block">
                 Properties
               </span>
               <Controller
                 name="properties"
                 control={control}
                 render={({ field: { value = [], onChange } }) => (
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap gap-1 min-h-[24px]">
-                      {(value as string[]).map((prop: string) => (
-                        <Chip
-                          key={prop}
-                          color="default"
-                          size="sm"
-                          onRemove={() =>
-                            onChange((value as string[]).filter((p: string) => p !== prop))
-                          }
-                        >
-                          {prop}
-                        </Chip>
-                      ))}
-                    </div>
+                  <div className="space-y-1.5">
+                    {(value as string[]).length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {(value as string[]).map((prop: string) => (
+                          <Chip
+                            key={prop}
+                            color="default"
+                            size="sm"
+                            onRemove={() =>
+                              onChange((value as string[]).filter((p: string) => p !== prop))
+                            }
+                          >
+                            {prop}
+                          </Chip>
+                        ))}
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-1">
                       {productProperties.map((pp: { id: string; value: string }) => (
                         <label
