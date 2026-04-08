@@ -185,6 +185,11 @@ export const createConsumableBarcodeRequestSchema = z.object({
   label: z.string().max(200).optional(),
 });
 
+export const updateConsumableBarcodeRequestSchema = z.object({
+  label: z.string().max(200).nullish(),
+  isPrimary: z.boolean().optional(),
+});
+
 export const consumableBarcodeResponseSchema = z.object({
   barcode: consumableBarcodeSchema,
 });
@@ -364,6 +369,7 @@ export type UpdateConsumableLocationRequest = z.infer<typeof updateConsumableLoc
 export type CreateConsumableProductRequest = z.infer<typeof createConsumableProductRequestSchema>;
 export type UpdateConsumableProductRequest = z.infer<typeof updateConsumableProductRequestSchema>;
 export type CreateConsumableBarcodeRequest = z.infer<typeof createConsumableBarcodeRequestSchema>;
+export type UpdateConsumableBarcodeRequest = z.infer<typeof updateConsumableBarcodeRequestSchema>;
 export type RecordConsumableTransactionRequest = z.infer<typeof recordConsumableTransactionRequestSchema>;
 export type RecordConsumableStockCountRequest = z.infer<typeof recordConsumableStockCountRequestSchema>;
 export type CreateConsumableDocumentRequest = z.infer<typeof createConsumableDocumentRequestSchema>;

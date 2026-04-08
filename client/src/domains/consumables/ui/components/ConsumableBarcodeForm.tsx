@@ -96,7 +96,7 @@ export function ConsumableBarcodeForm({ productId, onAdded }: ConsumableBarcodeF
           options={BARCODE_TYPE_OPTIONS}
           value={barcodeType}
           onChange={v => setBarcodeType(v as ConsumableBarcodeType)}
-          size="sm"
+          size="xs"
           fullWidth
         />
         <div>

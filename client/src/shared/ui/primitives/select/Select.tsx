@@ -467,7 +467,9 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         {label && (
           <label
             id={labelId}
-            className="block text-sm font-medium text-secondary-foreground mb-1.5"
+            className={`block font-medium text-secondary-foreground ${
+              size === 'xs' ? 'text-xs mb-0.5' : 'text-sm mb-1.5'
+            }`}
           >
             {label}
           </label>

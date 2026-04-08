@@ -214,6 +214,19 @@ export class ConsumableController extends BaseController {
     }
   }
 
+  async updateBarcode(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const barcode = await this.deps.consumableApplicationService.updateBarcode(
+        labId, req.params.id, req.params.barcodeId, req.body, user
+      );
+      res.json(ResponseBuilder.success({ barcode }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to update consumable barcode', req.requestId);
+    }
+  }
+
   async removeBarcode(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);

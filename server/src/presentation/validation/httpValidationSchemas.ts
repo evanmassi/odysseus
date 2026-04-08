@@ -37,6 +37,7 @@ import {
   createConsumableProductRequestSchema,
   updateConsumableProductRequestSchema,
   createConsumableBarcodeRequestSchema,
+  updateConsumableBarcodeRequestSchema,
   createConsumableDocumentRequestSchema,
   createConsumablePackagingLevelRequestSchema,
   updateConsumablePackagingLevelRequestSchema,
@@ -206,6 +207,7 @@ export const UpdateConsumableLocationHttpSchema = updateConsumableLocationReques
 export const CreateConsumableProductHttpSchema = createConsumableProductRequestSchema;
 export const UpdateConsumableProductHttpSchema = updateConsumableProductRequestSchema;
 export const CreateConsumableBarcodeHttpSchema = createConsumableBarcodeRequestSchema;
+export const UpdateConsumableBarcodeHttpSchema = updateConsumableBarcodeRequestSchema;
 export const CreateConsumableDocumentHttpSchema = createConsumableDocumentRequestSchema;
 export const RecordConsumableTransactionHttpSchema = recordConsumableTransactionRequestSchema;
 export const RecordConsumableStockCountHttpSchema = recordConsumableStockCountRequestSchema;

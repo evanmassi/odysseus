@@ -20,6 +20,7 @@ import type {
   CreateConsumableProductRequest,
   UpdateConsumableProductRequest,
   CreateConsumableBarcodeRequest,
+  UpdateConsumableBarcodeRequest,
   CreateConsumableDocumentRequest,
   RecordConsumableTransactionRequest,
   RecordConsumableStockCountRequest,
@@ -217,6 +218,28 @@ export function useAddConsumableBarcodeMutation() {
   });
 }
 
+export function useUpdateConsumableBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      productId,
+      barcodeId,
+      data,
+    }: {
+      productId: string;
+      barcodeId: string;
+      data: UpdateConsumableBarcodeRequest;
+    }) => ConsumableService.updateBarcode(productId, barcodeId, data),
+    onSuccess: (_, { productId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.consumables.detail(labId, productId),
+      });
+    },
+  });
+}
+
 export function useRemoveConsumableBarcodeMutation() {
   const labId = useLabId();
   const queryClient = useQueryClient();
@@ -275,8 +298,15 @@ export function useUpdateConsumablePackagingLevelMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, levelId, quantity }: { productId: string; levelId: string; quantity: number }) =>
-      ConsumableService.updatePackagingLevel(productId, levelId, quantity),
+    mutationFn: ({
+      productId,
+      levelId,
+      quantity,
+    }: {
+      productId: string;
+      levelId: string;
+      quantity: number;
+    }) => ConsumableService.updatePackagingLevel(productId, levelId, quantity),
     onSuccess: (_, { productId }) => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.consumables.detail(labId, productId),

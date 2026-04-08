@@ -63,7 +63,7 @@ export function ConsumableProductForm({
   // Packaging — local state for create, server data for edit
   const [localPackagingLevels, setLocalPackagingLevels] = useState<LocalPackagingLevel[]>([]);
   const packagingLevels = useMemo(
-    () => isEditing ? (detail?.packagingLevels ?? []) : localPackagingLevels,
+    () => (isEditing ? (detail?.packagingLevels ?? []) : localPackagingLevels),
     [isEditing, detail?.packagingLevels, localPackagingLevels]
   );
 
@@ -71,6 +71,7 @@ export function ConsumableProductForm({
   const [newLevelUnit, setNewLevelUnit] = useState('');
   const [newLevelParent, setNewLevelParent] = useState<string | null>(null);
   const [manufacturerBarcode, setManufacturerBarcode] = useState('');
+  const [manufacturerBarcodeLabel, setManufacturerBarcodeLabel] = useState('');
 
   const { data: manufacturers = [] } = useLookupValuesQuery('consumable_manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('consumable_vendor');
@@ -78,17 +79,26 @@ export function ConsumableProductForm({
   const { data: productProperties = [] } = useLookupValuesQuery('consumable_product_property');
 
   const manufacturerOptions: SelectOption[] = useMemo(
-    () => [{ value: '', label: 'Select...' }, ...manufacturers.map((m: { value: string }) => ({ value: m.value, label: m.value }))],
+    () => [
+      { value: '', label: 'Select...' },
+      ...manufacturers.map((m: { value: string }) => ({ value: m.value, label: m.value })),
+    ],
     [manufacturers]
   );
 
   const vendorOptions: SelectOption[] = useMemo(
-    () => [{ value: '', label: 'Select...' }, ...vendors.map((v: { value: string }) => ({ value: v.value, label: v.value }))],
+    () => [
+      { value: '', label: 'Select...' },
+      ...vendors.map((v: { value: string }) => ({ value: v.value, label: v.value })),
+    ],
     [vendors]
   );
 
   const stockUnitOptions: SelectOption[] = useMemo(
-    () => [{ value: '', label: 'Select...' }, ...stockUnits.map((u: { value: string }) => ({ value: u.value, label: u.value }))],
+    () => [
+      { value: '', label: 'Select...' },
+      ...stockUnits.map((u: { value: string }) => ({ value: u.value, label: u.value })),
+    ],
     [stockUnits]
   );
 
@@ -119,10 +129,16 @@ export function ConsumableProductForm({
   }, [stockUnits, packagingLevels]);
 
   // Parent options for the add-level "per" dropdown
-  const parentOptions: SelectOption[] = useMemo(() => [
-    { value: '__base__', label: 'base item' },
-    ...packagingLevels.map(l => ({ value: 'unitName' in l ? l.unitName : '', label: 'unitName' in l ? l.unitName : '' })),
-  ], [packagingLevels]);
+  const parentOptions: SelectOption[] = useMemo(
+    () => [
+      { value: '__base__', label: 'base item' },
+      ...packagingLevels.map(l => ({
+        value: 'unitName' in l ? l.unitName : '',
+        label: 'unitName' in l ? l.unitName : '',
+      })),
+    ],
+    [packagingLevels]
+  );
 
   const {
     register,
@@ -164,29 +180,37 @@ export function ConsumableProductForm({
     if (!newLevelUnit || qty <= 0) return;
 
     if (isEditing && product) {
-      void addPackagingMutation.mutateAsync({
-        productId: product.id,
-        data: { unitName: newLevelUnit, quantity: qty, parentUnit: newLevelParent },
-      }).then(() => {
-        setNewLevelQty('');
-        setNewLevelUnit('');
-        setNewLevelParent(null);
-      });
+      void addPackagingMutation
+        .mutateAsync({
+          productId: product.id,
+          data: { unitName: newLevelUnit, quantity: qty, parentUnit: newLevelParent },
+        })
+        .then(() => {
+          setNewLevelQty('');
+          setNewLevelUnit('');
+          setNewLevelParent(null);
+        });
     } else {
-      setLocalPackagingLevels(prev => [...prev, { unitName: newLevelUnit, quantity: qty, parentUnit: newLevelParent }]);
+      setLocalPackagingLevels(prev => [
+        ...prev,
+        { unitName: newLevelUnit, quantity: qty, parentUnit: newLevelParent },
+      ]);
       setNewLevelQty('');
       setNewLevelUnit('');
       setNewLevelParent(null);
     }
   }, [isEditing, product, newLevelQty, newLevelUnit, newLevelParent, addPackagingMutation]);
 
-  const handleRemoveLevel = useCallback((index: number, levelId?: string) => {
-    if (isEditing && product && levelId) {
-      void removePackagingMutation.mutateAsync({ productId: product.id, levelId });
-    } else {
-      setLocalPackagingLevels(prev => prev.filter((_, i) => i !== index));
-    }
-  }, [isEditing, product, removePackagingMutation]);
+  const handleRemoveLevel = useCallback(
+    (index: number, levelId?: string) => {
+      if (isEditing && product && levelId) {
+        void removePackagingMutation.mutateAsync({ productId: product.id, levelId });
+      } else {
+        setLocalPackagingLevels(prev => prev.filter((_, i) => i !== index));
+      }
+    },
+    [isEditing, product, removePackagingMutation]
+  );
 
   const onFormSubmit = async (data: FieldValues) => {
     const validated = data as CreateConsumableProductRequest;
@@ -203,6 +227,7 @@ export function ConsumableProductForm({
             await ConsumableService.addBarcode(created.id, {
               barcodeValue: manufacturerBarcode.trim(),
               barcodeType: 'manufacturer_sku',
+              label: manufacturerBarcodeLabel.trim() || undefined,
             });
           } catch {
             notifications.warning('Product created but failed to save manufacturer barcode');
@@ -218,7 +243,9 @@ export function ConsumableProductForm({
               parentUnit: level.parentUnit,
             });
           } catch {
-            notifications.warning(`Product created but failed to save packaging level "${level.unitName}"`);
+            notifications.warning(
+              `Product created but failed to save packaging level "${level.unitName}"`
+            );
           }
         }
 
@@ -230,7 +257,11 @@ export function ConsumableProductForm({
     }
   };
 
-  const formatLevelDisplay = (level: { unitName: string; quantity: number; parentUnit: string | null }) => {
+  const formatLevelDisplay = (level: {
+    unitName: string;
+    quantity: number;
+    parentUnit: string | null;
+  }) => {
     const parentName = level.parentUnit ?? currentBaseItemName ?? 'item';
     return `${level.quantity} ${parentName}${level.quantity !== 1 ? 's' : ''} per ${level.unitName}`;
   };
@@ -238,12 +269,20 @@ export function ConsumableProductForm({
   return (
     <div className="flex flex-col h-full min-h-0">
       <ScrollArea className="flex-1 min-h-0">
-        <form id="consumable-product-form" onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
+        <form
+          id="consumable-product-form"
+          onSubmit={handleSubmit(onFormSubmit)}
+          className="p-4 space-y-4"
+        >
           <h3 className="text-sm font-semibold text-secondary-foreground inline-flex items-center gap-1.5">
             {isEditing ? (
-              <><SquarePen size={14} className="text-muted-foreground" /> Edit Product</>
+              <>
+                <SquarePen size={14} className="text-muted-foreground" /> Edit Product
+              </>
             ) : (
-              <><Plus size={14} className="text-muted-foreground" /> Add Product</>
+              <>
+                <Plus size={14} className="text-muted-foreground" /> Add Product
+              </>
             )}
           </h3>
 
@@ -272,9 +311,11 @@ export function ConsumableProductForm({
                 fullWidth
                 renderOption={option => (
                   <div className="w-full">
-                    {option.description
-                      ? <span className="pl-4 text-sm">{option.label}</span>
-                      : <span className="text-sm font-semibold">{option.label}</span>}
+                    {option.description ? (
+                      <span className="pl-4 text-sm">{option.label}</span>
+                    ) : (
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    )}
                   </div>
                 )}
                 renderValue={selected => {
@@ -289,17 +330,40 @@ export function ConsumableProductForm({
           {/* Manufacturer Barcode — create only */}
           {!isEditing && (
             <div>
-              <label htmlFor="mfg-barcode" className="text-sm font-medium text-secondary-foreground block mb-1">
-                Manufacturer Barcode
-              </label>
-              <Input
-                id="mfg-barcode"
-                type="text"
-                value={manufacturerBarcode}
-                onValueChange={setManufacturerBarcode}
-                placeholder="Scan or type barcode from packaging..."
-                fullWidth
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    htmlFor="mfg-barcode"
+                    className="text-sm font-medium text-secondary-foreground block mb-1"
+                  >
+                    Manufacturer Barcode
+                  </label>
+                  <Input
+                    id="mfg-barcode"
+                    type="text"
+                    value={manufacturerBarcode}
+                    onValueChange={setManufacturerBarcode}
+                    placeholder="Scan or type barcode..."
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="mfg-barcode-label"
+                    className="text-sm font-medium text-secondary-foreground block mb-1"
+                  >
+                    Barcode Label
+                  </label>
+                  <Input
+                    id="mfg-barcode-label"
+                    type="text"
+                    value={manufacturerBarcodeLabel}
+                    onValueChange={setManufacturerBarcodeLabel}
+                    placeholder="e.g., Fisher Cat #"
+                    fullWidth
+                  />
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Optional — scan the barcode on the physical box to link it automatically
               </p>
@@ -312,10 +376,20 @@ export function ConsumableProductForm({
               name="manufacturer"
               control={control}
               render={({ field: { value, onChange } }) => (
-                <Select label="Manufacturer" options={manufacturerOptions} value={value ?? ''} onChange={v => onChange(v)} fullWidth />
+                <Select
+                  label="Manufacturer"
+                  options={manufacturerOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  fullWidth
+                />
               )}
             />
-            <ValidatedInput label="Catalog #" placeholder="e.g., 4806" registration={register('catalogNumber')} />
+            <ValidatedInput
+              label="Catalog #"
+              placeholder="e.g., 4806"
+              registration={register('catalogNumber')}
+            />
           </div>
 
           {/* Vendor / Vendor Catalog # */}
@@ -324,10 +398,20 @@ export function ConsumableProductForm({
               name="vendorName"
               control={control}
               render={({ field: { value, onChange } }) => (
-                <Select label="Vendor" options={vendorOptions} value={value ?? ''} onChange={v => onChange(v)} fullWidth />
+                <Select
+                  label="Vendor"
+                  options={vendorOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  fullWidth
+                />
               )}
             />
-            <ValidatedInput label="Vendor Catalog #" placeholder="e.g., 07-200-XXX" registration={register('vendorCatalogNumber')} />
+            <ValidatedInput
+              label="Vendor Catalog #"
+              placeholder="e.g., 07-200-XXX"
+              registration={register('vendorCatalogNumber')}
+            />
           </div>
 
           {/* Item / Stock Unit */}
@@ -341,7 +425,13 @@ export function ConsumableProductForm({
               name="stockUnit"
               control={control}
               render={({ field: { value, onChange } }) => (
-                <Select label="Stock Unit" options={stockUnitOptions} value={value ?? ''} onChange={v => onChange(v)} fullWidth />
+                <Select
+                  label="Stock Unit"
+                  options={stockUnitOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  fullWidth
+                />
               )}
             />
           </div>
@@ -349,7 +439,9 @@ export function ConsumableProductForm({
           {/* Properties */}
           {productProperties.length > 0 && (
             <div>
-              <span className="text-sm font-medium text-secondary-foreground mb-1 block">Properties</span>
+              <span className="text-sm font-medium text-secondary-foreground mb-1 block">
+                Properties
+              </span>
               <Controller
                 name="properties"
                 control={control}
@@ -358,7 +450,14 @@ export function ConsumableProductForm({
                     {(value as string[]).length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {(value as string[]).map((prop: string) => (
-                          <Chip key={prop} color="default" size="sm" onRemove={() => onChange((value as string[]).filter((p: string) => p !== prop))}>
+                          <Chip
+                            key={prop}
+                            color="default"
+                            size="sm"
+                            onRemove={() =>
+                              onChange((value as string[]).filter((p: string) => p !== prop))
+                            }
+                          >
                             {prop}
                           </Chip>
                         ))}
@@ -366,12 +465,16 @@ export function ConsumableProductForm({
                     )}
                     <div className="grid grid-cols-2 gap-1">
                       {productProperties.map((pp: { id: string; value: string }) => (
-                        <label key={pp.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                        <label
+                          key={pp.id}
+                          className="flex items-center gap-1.5 text-sm cursor-pointer"
+                        >
                           <Checkbox
                             checked={(value as string[]).includes(pp.value)}
                             onChange={checked => {
                               if (checked) onChange([...(value as string[]), pp.value]);
-                              else onChange((value as string[]).filter((p: string) => p !== pp.value));
+                              else
+                                onChange((value as string[]).filter((p: string) => p !== pp.value));
                             }}
                           />
                           {pp.value}
@@ -387,18 +490,29 @@ export function ConsumableProductForm({
           {/* Packaging */}
           <div>
             <div className="flex items-center gap-3 mb-2.5">
-              <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">Packaging</span>
+              <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">
+                Packaging
+              </span>
               <div className="h-px flex-1 bg-muted-foreground/60" />
             </div>
 
             {packagingLevels.length > 0 && (
               <div className="space-y-1 mb-2">
                 {packagingLevels.map((level, index) => {
-                  const levelData = { unitName: level.unitName, quantity: level.quantity, parentUnit: ('parentUnit' in level ? level.parentUnit : null) as string | null };
+                  const levelData = {
+                    unitName: level.unitName,
+                    quantity: level.quantity,
+                    parentUnit: ('parentUnit' in level ? level.parentUnit : null) as string | null,
+                  };
                   const levelId = 'id' in level ? (level.id as string) : undefined;
-                  const hasChildren = packagingLevels.some(l => ('parentUnit' in l ? l.parentUnit : null) === levelData.unitName);
+                  const hasChildren = packagingLevels.some(
+                    l => ('parentUnit' in l ? l.parentUnit : null) === levelData.unitName
+                  );
                   return (
-                    <div key={levelId ?? `local-${index}`} className="flex items-center justify-between text-sm px-2 py-1 bg-muted rounded">
+                    <div
+                      key={levelId ?? `local-${index}`}
+                      className="flex items-center justify-between text-sm px-2 py-1 bg-muted rounded"
+                    >
                       <span>{formatLevelDisplay(levelData)}</span>
                       <button
                         type="button"
@@ -460,15 +574,27 @@ export function ConsumableProductForm({
           </div>
 
           {/* Description */}
-          <ValidatedInput label="Description" type="textarea" placeholder="Optional description" registration={register('description')} />
+          <ValidatedInput
+            label="Description"
+            type="textarea"
+            placeholder="Optional description"
+            registration={register('description')}
+          />
 
           {/* Notes */}
-          <ValidatedInput label="Notes" type="textarea" placeholder="Admin notes" registration={register('notes')} />
+          <ValidatedInput
+            label="Notes"
+            type="textarea"
+            placeholder="Admin notes"
+            registration={register('notes')}
+          />
 
           {/* Reorder Settings — at the bottom */}
           <div>
             <div className="flex items-center gap-3 mb-2.5">
-              <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">Reorder Settings</span>
+              <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">
+                Reorder Settings
+              </span>
               <div className="h-px flex-1 bg-muted-foreground/60" />
             </div>
             <div className="grid grid-cols-4 gap-3">
@@ -476,19 +602,29 @@ export function ConsumableProductForm({
                 label="Threshold"
                 type="number"
                 placeholder="e.g., 3"
-                registration={register('reorderThreshold', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
+                registration={register('reorderThreshold', {
+                  setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                })}
               />
               <ValidatedInput
                 label="Quantity"
                 type="number"
                 placeholder="e.g., 5"
-                registration={register('reorderQuantity', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
+                registration={register('reorderQuantity', {
+                  setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                })}
               />
               <Controller
                 name="reorderUnit"
                 control={control}
                 render={({ field: { value, onChange } }) => (
-                  <Select label="Unit" options={stockUnitOptions} value={value ?? ''} onChange={v => onChange(v)} fullWidth />
+                  <Select
+                    label="Unit"
+                    options={stockUnitOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    fullWidth
+                  />
                 )}
               />
               <ValidatedInput
@@ -496,7 +632,9 @@ export function ConsumableProductForm({
                 type="number"
                 step="0.01"
                 placeholder="e.g., 45"
-                registration={register('unitPrice', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
+                registration={register('unitPrice', {
+                  setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                })}
               />
             </div>
           </div>
@@ -504,7 +642,9 @@ export function ConsumableProductForm({
       </ScrollArea>
 
       <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
-        <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
         <Button
           type="submit"
           form="consumable-product-form"

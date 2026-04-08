@@ -22,6 +22,7 @@ import {
   type CreateConsumableProductRequest,
   type UpdateConsumableProductRequest,
   type CreateConsumableBarcodeRequest,
+  type UpdateConsumableBarcodeRequest,
   type CreateConsumableDocumentRequest,
   type RecordConsumableTransactionRequest,
   type RecordConsumableStockCountRequest,
@@ -196,6 +197,19 @@ export class ConsumableService {
     return response.barcode;
   }
 
+  static async updateBarcode(
+    productId: string,
+    barcodeId: string,
+    data: UpdateConsumableBarcodeRequest
+  ): Promise<ConsumableBarcode> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${productId}/barcodes/${barcodeId}`,
+      data,
+      consumableBarcodeResponseSchema
+    );
+    return response.barcode;
+  }
+
   static async removeBarcode(productId: string, barcodeId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${productId}/barcodes/${barcodeId}`);
   }
@@ -214,7 +228,11 @@ export class ConsumableService {
     return response.packagingLevel;
   }
 
-  static async updatePackagingLevel(productId: string, levelId: string, quantity: number): Promise<void> {
+  static async updatePackagingLevel(
+    productId: string,
+    levelId: string,
+    quantity: number
+  ): Promise<void> {
     await httpClient.putData(
       `${this.BASE_PATH}/${productId}/packaging-levels/${levelId}`,
       { quantity },

@@ -23,6 +23,7 @@ import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForInput } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
@@ -241,8 +242,11 @@ export function ConsumableTransactionForm({
               />
               {receivingUnit && selectedMultiplier > 1 && (
                 <p className="text-xs text-muted-foreground mt-1 px-1">
-                  = {((watch('quantity') as number) || 0) * selectedMultiplier} {stockUnit}
-                  {((watch('quantity') as number) || 0) * selectedMultiplier !== 1 ? 's' : ''}
+                  = {((watch('quantity') as number) || 0) * selectedMultiplier}{' '}
+                  {pluralizeUnit(
+                    stockUnit,
+                    ((watch('quantity') as number) || 0) * selectedMultiplier
+                  )}
                 </p>
               )}
             </div>

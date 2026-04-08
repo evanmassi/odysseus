@@ -7,18 +7,13 @@
 
 import { useState, useMemo } from 'react';
 
-import {
-  ChevronRight,
-  PackagePlus,
-  PackageMinus,
-  ClipboardCheck,
-  Trash2,
-} from 'lucide-react';
+import { ChevronRight, PackagePlus, PackageMinus, ClipboardCheck, Trash2 } from 'lucide-react';
 
 import { useConsumableLocationsQuery } from '@domains/consumables/hooks';
 import { InfoField } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { ConsumableTransaction } from '@odysseus/shared-schemas';
 
@@ -39,10 +34,7 @@ export function ConsumableTransactionTimeline({
   stockUnit,
 }: ConsumableTransactionTimelineProps) {
   const { data: locations = [] } = useConsumableLocationsQuery();
-  const locationNameMap = useMemo(
-    () => new Map(locations.map(l => [l.id, l.name])),
-    [locations]
-  );
+  const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
 
   if (transactions.length === 0) {
     return (
@@ -79,20 +71,28 @@ function TransactionEntry({
 
   const config = TYPE_CONFIG[transaction.type] ?? TYPE_CONFIG['received'];
   const Icon = config.icon;
-  const unit = stockUnit ?? 'units';
-  const quantityDisplay = transaction.quantityChange >= 0
-    ? `+${transaction.quantityChange}`
-    : String(transaction.quantityChange);
+  const unit = pluralizeUnit(stockUnit ?? 'unit', Math.abs(transaction.quantityChange));
+  const quantityDisplay =
+    transaction.quantityChange >= 0
+      ? `+${transaction.quantityChange}`
+      : String(transaction.quantityChange);
 
   /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean truthiness check */
-  const hasDetails = !!(transaction.lotNumber || transaction.poNumber || transaction.cost || transaction.notes);
+  const hasDetails = !!(
+    transaction.lotNumber ||
+    transaction.poNumber ||
+    transaction.cost ||
+    transaction.notes
+  );
 
   return (
     <div className="border border-border rounded-md overflow-hidden">
       <div
         className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-accent/30 transition-colors cursor-pointer"
         onClick={() => hasDetails && setIsExpanded(!isExpanded)}
-        onKeyDown={e => { if (e.key === 'Enter' && hasDetails) setIsExpanded(!isExpanded); }}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && hasDetails) setIsExpanded(!isExpanded);
+        }}
         role={hasDetails ? 'button' : undefined}
         tabIndex={hasDetails ? 0 : undefined}
       >
@@ -118,9 +118,7 @@ function TransactionEntry({
 
         <span className="text-card-foreground/30 flex-shrink-0">·</span>
 
-        <span className="text-xs text-muted-foreground truncate">
-          {locationName}
-        </span>
+        <span className="text-xs text-muted-foreground truncate">{locationName}</span>
       </div>
 
       {isExpanded && hasDetails && (
@@ -136,11 +134,17 @@ function TransactionEntry({
               <InfoField label="Cost" value={formatCurrency(transaction.cost)} inline={false} />
             )}
             {transaction.expirationDate && (
-              <InfoField label="Expires" value={formatDateForDisplay(transaction.expirationDate)} inline={false} />
+              <InfoField
+                label="Expires"
+                value={formatDateForDisplay(transaction.expirationDate)}
+                inline={false}
+              />
             )}
           </div>
           {transaction.notes && (
-            <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{transaction.notes}</p>
+            <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
+              {transaction.notes}
+            </p>
           )}
         </div>
       )}

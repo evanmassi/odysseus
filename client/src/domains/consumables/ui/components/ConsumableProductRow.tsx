@@ -6,6 +6,7 @@
  */
 
 import { Chip } from '@shared/ui/primitives/chip/Chip';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { ConsumableProductWithStock } from '@odysseus/shared-schemas';
 
@@ -15,13 +16,14 @@ interface ConsumableProductRowProps {
   onSelect: (id: string) => void;
 }
 
-function getStockIndicator(totalStock: number, threshold: number | undefined) {
-  if (threshold === undefined) return undefined;
-  if (totalStock <= 0) return { color: 'text-danger-text', bg: 'bg-danger-bg/20' } as const;
-  if (totalStock <= threshold) return { color: 'text-danger-text', bg: 'bg-danger-bg/20' } as const;
-  if (totalStock <= threshold * 2)
-    return { color: 'text-warning-text', bg: 'bg-warning-bg/20' } as const;
-  return { color: 'text-success-text', bg: 'bg-success-bg/20' } as const;
+function getStockChipColor(
+  totalStock: number,
+  threshold: number | undefined
+): 'success' | 'warning' | 'danger' | 'default' {
+  if (threshold === undefined) return 'default';
+  if (totalStock <= 0 || totalStock <= threshold) return 'danger';
+  if (totalStock <= threshold * 2) return 'warning';
+  return 'success';
 }
 
 const STATUS_CHIP: Record<
@@ -35,7 +37,7 @@ const STATUS_CHIP: Record<
 
 export function ConsumableProductRow({ product, isSelected, onSelect }: ConsumableProductRowProps) {
   const isArchived = product.status === 'archived';
-  const stockIndicator = getStockIndicator(product.totalStock, product.reorderThreshold);
+  const stockColor = getStockChipColor(product.totalStock, product.reorderThreshold);
   const detailParts = [product.manufacturer, product.catalogNumber].filter(Boolean);
   const statusInfo = STATUS_CHIP[product.status];
 
@@ -79,23 +81,10 @@ export function ConsumableProductRow({ product, isSelected, onSelect }: Consumab
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {product.stockUnit && (
-            <span
-              className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                stockIndicator
-                  ? `${stockIndicator.color} ${stockIndicator.bg}`
-                  : 'text-muted-foreground bg-muted'
-              }`}
-            >
-              {product.totalStock} {product.stockUnit}
-              {product.totalStock !== 1 ? 's' : ''}
-            </span>
-          )}
-          {!product.stockUnit && (
-            <span className="text-xs text-muted-foreground">{product.totalStock} in stock</span>
-          )}
-        </div>
+        <Chip color={stockColor} size="sm" shape="pill" className="flex-shrink-0">
+          {product.totalStock}{' '}
+          {product.stockUnit ? pluralizeUnit(product.stockUnit, product.totalStock) : 'in stock'}
+        </Chip>
       </div>
     </div>
   );

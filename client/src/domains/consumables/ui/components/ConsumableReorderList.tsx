@@ -1,22 +1,35 @@
 /**
  * Consumable Reorder List
  *
- * Full reorder list modal with all products below threshold and CSV export.
+ * Full reorder list modal with sortable table and CSV export.
  */
 
-import { useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import { Download, ShoppingCart } from 'lucide-react';
 
 import { httpClient } from '@infra/api';
-import { Button } from '@shared/ui';
+import { Button, Table } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
-import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { downloadBlob } from '@shared/utils/downloadBlob';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { ConsumableProductWithStock } from '@odysseus/shared-schemas';
+import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
+
+interface ReorderRow {
+  id: string;
+  name: string;
+  manufacturer: string;
+  catalogNumber: string;
+  vendorName: string;
+  stock: string;
+  totalStock: number;
+  reorder: string;
+  price: string;
+}
 
 interface ConsumableReorderListProps {
   isOpen: boolean;
@@ -25,6 +38,107 @@ interface ConsumableReorderListProps {
 }
 
 export function ConsumableReorderList({ isOpen, onClose, products }: ConsumableReorderListProps) {
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    columnId: 'totalStock',
+    direction: 'asc',
+  });
+
+  const rows: ReorderRow[] = useMemo(
+    () =>
+      products.map(p => {
+        const unit = p.stockUnit ?? 'unit';
+        const reorderUnit = p.reorderUnit ?? unit;
+        return {
+          id: p.id,
+          name: p.name,
+          manufacturer: p.manufacturer ?? '—',
+          catalogNumber: p.catalogNumber ?? '—',
+          vendorName: p.vendorName ?? '—',
+          stock: `${p.totalStock} ${pluralizeUnit(unit, p.totalStock)}`,
+          totalStock: p.totalStock,
+          reorder: p.reorderQuantity
+            ? `${p.reorderQuantity} ${pluralizeUnit(reorderUnit, p.reorderQuantity)}`
+            : '—',
+          price: formatCurrency(p.unitPrice) ?? '—',
+        };
+      }),
+    [products]
+  );
+
+  const sortedRows = useMemo(() => {
+    const sorted = [...rows];
+    const { columnId, direction } = sortConfig;
+    const multiplier = direction === 'asc' ? 1 : -1;
+
+    sorted.sort((a, b) => {
+      if (columnId === 'totalStock') return (a.totalStock - b.totalStock) * multiplier;
+      if (columnId === 'name') return a.name.localeCompare(b.name) * multiplier;
+      if (columnId === 'manufacturer')
+        return a.manufacturer.localeCompare(b.manufacturer) * multiplier;
+      if (columnId === 'catalogNumber')
+        return a.catalogNumber.localeCompare(b.catalogNumber) * multiplier;
+      if (columnId === 'vendorName') return a.vendorName.localeCompare(b.vendorName) * multiplier;
+      return 0;
+    });
+
+    return sorted;
+  }, [rows, sortConfig]);
+
+  const columns: TableColumn<ReorderRow>[] = useMemo(
+    () => [
+      {
+        id: 'name',
+        header: 'Product',
+        sortable: true,
+        render: (_value, row) => <span className="font-medium">{row.name}</span>,
+      },
+      {
+        id: 'manufacturer',
+        header: 'Manufacturer',
+        sortable: true,
+        render: (_value, row) => <span className="text-muted-foreground">{row.manufacturer}</span>,
+      },
+      {
+        id: 'catalogNumber',
+        header: 'Cat #',
+        sortable: true,
+        render: (_value, row) => <span className="text-muted-foreground">{row.catalogNumber}</span>,
+      },
+      {
+        id: 'vendorName',
+        header: 'Vendor',
+        sortable: true,
+        render: (_value, row) => <span className="text-muted-foreground">{row.vendorName}</span>,
+      },
+      {
+        id: 'totalStock',
+        header: 'Stock',
+        sortable: true,
+        align: 'left',
+        render: (_value, row) => (
+          <span
+            className={`font-medium ${row.totalStock <= 0 ? 'text-danger-text' : 'text-warning-text'}`}
+          >
+            {row.stock}
+          </span>
+        ),
+      },
+      {
+        id: 'reorder',
+        header: 'Reorder Qty',
+        align: 'left',
+        render: (_value, row) => row.reorder,
+      },
+      {
+        id: 'price',
+        header: 'Price',
+        align: 'left',
+        render: (_value, row) => <span className="text-muted-foreground">{row.price}</span>,
+      },
+    ],
+    []
+  );
+
   const handleExportCsv = useCallback(async () => {
     try {
       const blob = await httpClient.getBlob('/admin/export/consumable-reorder-list?format=csv');
@@ -36,7 +150,14 @@ export function ConsumableReorderList({ isOpen, onClose, products }: ConsumableR
   }, []);
 
   return (
-    <BaseModal isOpen={isOpen} title="Reorder List" icon={<ShoppingCart size={24} />} onClose={onClose} size="lg" fixedHeight>
+    <BaseModal
+      isOpen={isOpen}
+      title="Reorder List"
+      icon={<ShoppingCart size={24} />}
+      onClose={onClose}
+      size="lg"
+      fixedHeight
+    >
       <div className="flex flex-col h-full min-h-0">
         <div className="flex items-center justify-between px-4 pb-3 flex-shrink-0">
           <span className="text-sm text-muted-foreground">
@@ -52,42 +173,22 @@ export function ConsumableReorderList({ isOpen, onClose, products }: ConsumableR
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="px-4">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="py-2 font-medium text-muted-foreground">Product</th>
-                  <th className="py-2 font-medium text-muted-foreground">Manufacturer</th>
-                  <th className="py-2 font-medium text-muted-foreground">Cat #</th>
-                  <th className="py-2 font-medium text-muted-foreground">Vendor</th>
-                  <th className="py-2 font-medium text-muted-foreground text-right">Stock</th>
-                  <th className="py-2 font-medium text-muted-foreground text-right">Reorder</th>
-                  <th className="py-2 font-medium text-muted-foreground text-right">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map(product => (
-                  <tr key={product.id} className="border-b border-border/50">
-                    <td className="py-2 font-medium text-card-foreground">{product.name}</td>
-                    <td className="py-2 text-muted-foreground">{product.manufacturer ?? '—'}</td>
-                    <td className="py-2 text-muted-foreground">{product.catalogNumber ?? '—'}</td>
-                    <td className="py-2 text-muted-foreground">{product.vendorName ?? '—'}</td>
-                    <td className={`py-2 text-right font-medium ${product.totalStock <= 0 ? 'text-danger-text' : 'text-warning-text'}`}>
-                      {product.totalStock} {product.stockUnit ?? ''}
-                    </td>
-                    <td className="py-2 text-right">
-                      {product.reorderQuantity ?? '—'} {product.reorderUnit ?? product.stockUnit ?? ''}
-                    </td>
-                    <td className="py-2 text-right text-muted-foreground">
-                      {formatCurrency(product.unitPrice) ?? '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </ScrollArea>
+        <div className="flex-1 min-h-0 overflow-auto">
+          <Table
+            columns={columns}
+            data={sortedRows}
+            size="sm"
+            hoverable
+            sortable
+            sortConfig={sortConfig}
+            onSort={setSortConfig}
+            variant="default"
+            density="compact"
+            className="text-xs"
+            stickyHeader
+            aria-label="Reorder list"
+          />
+        </div>
       </div>
     </BaseModal>
   );

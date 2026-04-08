@@ -184,6 +184,28 @@ export class ConsumableProductRepository implements IConsumableProductRepository
     `, [barcode.id, barcode.productId, barcode.barcodeValue, barcode.barcodeType, barcode.isPrimary, barcode.label ?? null]);
   }
 
+  async updateBarcode(id: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<void> {
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    let idx = 1;
+
+    if (fields.label !== undefined) {
+      sets.push(`label = $${idx++}`);
+      params.push(fields.label);
+    }
+    if (fields.isPrimary !== undefined) {
+      sets.push(`is_primary = $${idx++}`);
+      params.push(fields.isPrimary);
+    }
+    if (sets.length === 0) return;
+
+    params.push(id);
+    await this.db.execute(
+      `UPDATE consumable_barcodes SET ${sets.join(', ')} WHERE id = $${idx}`,
+      params
+    );
+  }
+
   async deleteBarcode(id: string): Promise<boolean> {
     const result = await this.db.execute('DELETE FROM consumable_barcodes WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;

@@ -22,6 +22,7 @@ import {
   CreateConsumableProductHttpSchema,
   UpdateConsumableProductHttpSchema,
   CreateConsumableBarcodeHttpSchema,
+  UpdateConsumableBarcodeHttpSchema,
   CreateConsumableDocumentHttpSchema,
   RecordConsumableTransactionHttpSchema,
   RecordConsumableStockCountHttpSchema,
@@ -201,6 +202,12 @@ export class ConsumableRouteModule implements RouteModule {
     router.post('/:id/barcodes/regenerate-internal',
       validateParams(IdParams),
       this.consumableController.regenerateInternalBarcode.bind(this.consumableController)
+    );
+
+    router.put('/:id/barcodes/:barcodeId',
+      validateParams(ConsumableBarcodeIdParams),
+      validateBody(UpdateConsumableBarcodeHttpSchema),
+      this.consumableController.updateBarcode.bind(this.consumableController)
     );
 
     router.delete('/:id/barcodes/:barcodeId',

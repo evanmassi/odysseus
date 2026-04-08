@@ -62,6 +62,7 @@ import type {
   CreateConsumableProductRequest,
   UpdateConsumableProductRequest,
   CreateConsumableBarcodeRequest,
+  UpdateConsumableBarcodeRequest,
   CreateConsumableDocumentRequest,
   CreateConsumablePackagingLevelRequest,
   RecordConsumableTransactionRequest,
@@ -287,6 +288,25 @@ export class ConsumableApplicationService {
     };
     await this.productRepository.saveBarcode(barcode);
     return ConsumableDto.barcodeToResponse(barcode);
+  }
+
+  async updateBarcode(
+    labId: string,
+    productId: string,
+    barcodeId: string,
+    data: UpdateConsumableBarcodeRequest,
+    user: User
+  ): Promise<ConsumableBarcodeResponse> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getProductOrThrow(productId, labId);
+    await this.productRepository.updateBarcode(barcodeId, {
+      label: data.label,
+      isPrimary: data.isPrimary,
+    });
+    const barcodes = await this.productRepository.findBarcodesByProductId(productId);
+    const updated = barcodes.find(b => b.id === barcodeId);
+    if (!updated) throw new NotFoundError(`Barcode ${barcodeId} not found`);
+    return ConsumableDto.barcodeToResponse(updated);
   }
 
   async removeBarcode(labId: string, productId: string, barcodeId: string, user: User): Promise<void> {

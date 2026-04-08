@@ -1,80 +1,180 @@
 /**
  * Consumable Low Stock Alert Panel
  *
- * Collapsible panel showing products below their reorder threshold.
- * Matches EquipmentMaintenanceAlertPanel structure.
+ * Collapsible panel showing products below their reorder threshold
+ * with a sortable table matching the equipment maintenance alert pattern.
  */
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 import { AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
 
 import { useConsumableReorderListQuery } from '@domains/consumables/hooks';
-import { Button } from '@shared/ui';
+import { Button, Table } from '@shared/ui';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { ConsumableReorderList } from './ConsumableReorderList';
 
 import type { ConsumableProductWithStock } from '@odysseus/shared-schemas';
+import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
+
+interface LowStockRow {
+  id: string;
+  name: string;
+  manufacturer: string;
+  catalogNumber: string;
+  stock: string;
+  totalStock: number;
+  threshold: number;
+}
 
 interface ConsumableLowStockAlertPanelProps {
   onSelectProduct: (id: string) => void;
 }
 
-export function ConsumableLowStockAlertPanel({ onSelectProduct }: ConsumableLowStockAlertPanelProps) {
+export function ConsumableLowStockAlertPanel({
+  onSelectProduct,
+}: ConsumableLowStockAlertPanelProps) {
   const { data: lowStockProducts = [] } = useConsumableReorderListQuery();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [manuallyCollapsed, setManuallyCollapsed] = useState(false);
   const [showReorderList, setShowReorderList] = useState(false);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    columnId: 'totalStock',
+    direction: 'asc',
+  });
 
-  if (lowStockProducts.length === 0) return null;
+  const totalAlerts = lowStockProducts.length;
+  const outOfStockCount = lowStockProducts.filter(p => p.totalStock <= 0).length;
+
+  useEffect(() => {
+    if (totalAlerts > 0 && !manuallyCollapsed) {
+      setIsExpanded(true);
+    }
+  }, [totalAlerts, manuallyCollapsed]);
+
+  const rows: LowStockRow[] = useMemo(
+    () =>
+      lowStockProducts.map((p: ConsumableProductWithStock) => ({
+        id: p.id,
+        name: p.name,
+        manufacturer: p.manufacturer ?? '—',
+        catalogNumber: p.catalogNumber ?? '—',
+        stock: `${p.totalStock} ${pluralizeUnit(p.stockUnit ?? 'unit', p.totalStock)}`,
+        totalStock: p.totalStock,
+        threshold: p.reorderThreshold ?? 0,
+      })),
+    [lowStockProducts]
+  );
+
+  const sortedRows = useMemo(() => {
+    const sorted = [...rows];
+    const { columnId, direction } = sortConfig;
+    const multiplier = direction === 'asc' ? 1 : -1;
+
+    sorted.sort((a, b) => {
+      if (columnId === 'totalStock') return (a.totalStock - b.totalStock) * multiplier;
+      if (columnId === 'name') return a.name.localeCompare(b.name) * multiplier;
+      if (columnId === 'manufacturer')
+        return a.manufacturer.localeCompare(b.manufacturer) * multiplier;
+      if (columnId === 'catalogNumber')
+        return a.catalogNumber.localeCompare(b.catalogNumber) * multiplier;
+      return 0;
+    });
+
+    return sorted;
+  }, [rows, sortConfig]);
+
+  const columns: TableColumn<LowStockRow>[] = useMemo(
+    () => [
+      {
+        id: 'name',
+        header: 'Product',
+        sortable: true,
+        render: (_value, row) => <span className="font-medium">{row.name}</span>,
+      },
+      {
+        id: 'manufacturer',
+        header: 'Manufacturer',
+        sortable: true,
+        render: (_value, row) => <span className="text-muted-foreground">{row.manufacturer}</span>,
+      },
+      {
+        id: 'catalogNumber',
+        header: 'Cat #',
+        sortable: true,
+        render: (_value, row) => <span className="text-muted-foreground">{row.catalogNumber}</span>,
+      },
+      {
+        id: 'totalStock',
+        header: 'Stock',
+        sortable: true,
+        render: (_value, row) => (
+          <span
+            className={`font-medium ${row.totalStock <= 0 ? 'text-danger-text' : 'text-warning-text'}`}
+          >
+            {row.stock}
+          </span>
+        ),
+      },
+    ],
+    []
+  );
+
+  if (totalAlerts === 0) return null;
+
+  const toggleExpanded = () => {
+    const next = !isExpanded;
+    setIsExpanded(next);
+    setManuallyCollapsed(!next);
+  };
 
   return (
     <>
-      <div className="mb-2 rounded-lg border border-warning-border bg-warning-bg/10 overflow-hidden flex-shrink-0">
-        <button
-          type="button"
-          className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-warning-bg/20 transition-colors"
-          onClick={() => setIsExpanded(!isExpanded)}
+      <div className="rounded-lg border border-border mb-2 flex-shrink-0 overflow-hidden">
+        <div
+          className="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-accent/30 transition-colors"
+          onClick={toggleExpanded}
+          onKeyDown={e => {
+            if (e.key === 'Enter') toggleExpanded();
+          }}
+          role="button"
+          tabIndex={0}
         >
-          {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          <AlertTriangle size={16} className="text-warning-text flex-shrink-0" />
-          <span className="text-sm font-medium text-warning-text">
-            {lowStockProducts.length} product{lowStockProducts.length !== 1 ? 's' : ''} low on stock
+          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          <AlertTriangle size={14} className="text-warning-text" />
+          <span className="text-xs font-semibold text-warning-text">
+            Low Stock Alerts ({totalAlerts})
           </span>
-        </button>
+          {!isExpanded && outOfStockCount > 0 && (
+            <span className="text-xs text-danger-text font-medium ml-auto">
+              {outOfStockCount} out of stock
+            </span>
+          )}
+        </div>
 
         {isExpanded && (
-          <div className="px-3 pb-3">
-            <div className="space-y-1 mb-2">
-              {lowStockProducts.slice(0, 10).map((product: ConsumableProductWithStock) => (
-                <button
-                  key={product.id}
-                  type="button"
-                  className="w-full flex items-center justify-between text-left px-2 py-1 rounded hover:bg-accent/50 transition-colors"
-                  onClick={() => onSelectProduct(product.id)}
-                >
-                  <span className="text-xs text-card-foreground truncate">{product.name}</span>
-                  <span className={`text-xs font-medium flex-shrink-0 ml-2 ${
-                    product.totalStock <= 0 ? 'text-danger-text' : 'text-warning-text'
-                  }`}>
-                    {product.totalStock} / {product.reorderThreshold}
-                  </span>
-                </button>
-              ))}
-              {lowStockProducts.length > 10 && (
-                <p className="text-xs text-muted-foreground text-center">
-                  +{lowStockProducts.length - 10} more
-                </p>
-              )}
-            </div>
-            <Button
-              variant="secondary"
+          <>
+            <Table
+              columns={columns}
+              data={sortedRows}
               size="sm"
-              onClick={() => setShowReorderList(true)}
-              className="w-full"
-            >
-              View Full Reorder List
-            </Button>
-          </div>
+              hoverable
+              sortable
+              sortConfig={sortConfig}
+              onSort={setSortConfig}
+              onRowClick={row => onSelectProduct(row.id)}
+              variant="borderless"
+              density="compact"
+              className="text-xs"
+              aria-label="Low stock alerts"
+            />
+            <div className="flex justify-center px-3 py-3">
+              <Button variant="secondary" size="sm" onClick={() => setShowReorderList(true)}>
+                View Full Reorder List
+              </Button>
+            </div>
+          </>
         )}
       </div>
 

@@ -8,7 +8,15 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Edit, Trash2, Archive, ExternalLink, Package, ClipboardList, RefreshCw } from 'lucide-react';
+import {
+  Edit,
+  Trash2,
+  Archive,
+  ExternalLink,
+  Package,
+  ClipboardList,
+  RefreshCw,
+} from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import {
@@ -20,14 +28,16 @@ import {
   useArchiveConsumableProductMutation,
   useRemoveConsumableDocumentMutation,
   useRemoveConsumableBarcodeMutation,
+  useUpdateConsumableBarcodeMutation,
   useRegenerateInternalBarcodeMutation,
 } from '@domains/consumables/hooks/useConsumableMutations';
-import { Button, InfoField, InfoGroup, OverflowMenu } from '@shared/ui';
+import { Button, InfoField, InfoGroup, Input, OverflowMenu, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { ConsumableBarcodeForm } from './ConsumableBarcodeForm';
 import { ConsumableDocumentForm } from './ConsumableDocumentForm';
@@ -42,6 +52,12 @@ const STATUS_LABELS: Record<
   active: { color: 'success', label: 'Active' },
   discontinued: { color: 'warning', label: 'Discontinued' },
   archived: { color: 'danger', label: 'Archived' },
+};
+
+const BARCODE_TYPE_LABELS: Record<string, string> = {
+  internal: 'Internal',
+  manufacturer_sku: 'Mfr SKU',
+  upc: 'UPC',
 };
 
 interface ConsumableProductInfoPanelProps {
@@ -75,8 +91,11 @@ export function ConsumableProductInfoPanel({
   const archiveProductMutation = useArchiveConsumableProductMutation();
   const removeDocumentMutation = useRemoveConsumableDocumentMutation();
   const removeBarcodeMutation = useRemoveConsumableBarcodeMutation();
+  const updateBarcodeMutation = useUpdateConsumableBarcodeMutation();
   const regenerateBarcodeMutation = useRegenerateInternalBarcodeMutation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editingBarcodeId, setEditingBarcodeId] = useState<string | null>(null);
+  const [editingLabel, setEditingLabel] = useState('');
 
   if (!detail) {
     return (
@@ -130,6 +149,19 @@ export function ConsumableProductInfoPanel({
     }
   };
 
+  const handleSaveBarcodeLabel = async (barcodeId: string) => {
+    try {
+      await updateBarcodeMutation.mutateAsync({
+        productId,
+        barcodeId,
+        data: { label: editingLabel.trim() || null },
+      });
+      setEditingBarcodeId(null);
+    } catch {
+      notifications.error('Failed to update barcode label');
+    }
+  };
+
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="px-4 pt-4 pb-2 flex-shrink-0">
@@ -162,12 +194,16 @@ export function ConsumableProductInfoPanel({
             </div>
             <OverflowMenu
               items={[
-                ...(!isArchived ? [{
-                  icon: Archive,
-                  label: 'Archive',
-                  onClick: () => void handleArchive(),
-                  danger: true,
-                }] : []),
+                ...(!isArchived
+                  ? [
+                      {
+                        icon: Archive,
+                        label: 'Archive',
+                        onClick: () => void handleArchive(),
+                        danger: true,
+                      },
+                    ]
+                  : []),
                 {
                   icon: Trash2,
                   label: 'Remove',
@@ -252,9 +288,9 @@ export function ConsumableProductInfoPanel({
                     return (
                       <span key={level.id}>
                         {i > 0 && <span className="text-muted-foreground/40 mx-1.5">·</span>}
-                        {level.quantity} {parentName}{level.quantity !== 1 ? 's' : ''}{' '}
-                        <span className="text-muted-foreground">per</span>{' '}
-                        {level.unitName}
+                        {level.quantity} {parentName}
+                        {level.quantity !== 1 ? 's' : ''}{' '}
+                        <span className="text-muted-foreground">per</span> {level.unitName}
                       </span>
                     );
                   });
@@ -273,14 +309,14 @@ export function ConsumableProductInfoPanel({
                       {locationNameMap.get(s.locationId) ?? s.locationId}
                     </span>
                     <span className="font-medium">
-                      {s.quantity} {product.stockUnit ?? 'units'}
+                      {s.quantity} {pluralizeUnit(product.stockUnit ?? 'unit', s.quantity)}
                     </span>
                   </div>
                 ))}
                 <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border">
                   <span>Total</span>
                   <span>
-                    {totalStock} {product.stockUnit ?? 'units'}
+                    {totalStock} {pluralizeUnit(product.stockUnit ?? 'unit', totalStock)}
                   </span>
                 </div>
               </div>
@@ -297,28 +333,95 @@ export function ConsumableProductInfoPanel({
           {/* Barcodes */}
           <InfoGroup title="Barcodes">
             {barcodes.length > 0 ? (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {barcodes.map(bc => (
-                  <div key={bc.id} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs">{bc.barcodeValue}</span>
-                      <Chip color="default" size="sm">
-                        {bc.barcodeType.replace('_', ' ')}
-                      </Chip>
-                      {bc.isPrimary && (
-                        <Chip color="info" size="sm">
-                          Primary
-                        </Chip>
-                      )}
-                    </div>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        className="text-xs text-danger-text hover:underline"
-                        onClick={() => void handleRemoveBarcode(bc.id)}
-                      >
-                        Remove
-                      </button>
+                  <div key={bc.id}>
+                    {editingBarcodeId === bc.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <Input
+                          type="text"
+                          value={editingLabel}
+                          onValueChange={setEditingLabel}
+                          placeholder="Label (e.g., Fisher Cat #)"
+                          size="sm"
+                          fullWidth
+                          /* eslint-disable-next-line jsx-a11y/no-autofocus -- Inline edit: user-initiated, focus is expected */
+                          autoFocus
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') void handleSaveBarcodeLabel(bc.id);
+                            if (e.key === 'Escape') setEditingBarcodeId(null);
+                          }}
+                        />
+                        <Button
+                          size="xs"
+                          onClick={() => void handleSaveBarcodeLabel(bc.id)}
+                          isLoading={updateBarcodeMutation.isPending}
+                        >
+                          Save
+                        </Button>
+                        <Button variant="ghost" size="xs" onClick={() => setEditingBarcodeId(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-muted-foreground">
+                            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string should fallback to type label */}
+                            {bc.label || (BARCODE_TYPE_LABELS[bc.barcodeType] ?? bc.barcodeType)}:
+                          </span>
+                          <span className="font-mono text-xs text-card-foreground">
+                            {bc.barcodeValue}
+                          </span>
+                          {bc.isPrimary && (
+                            <Chip color="info" size="xs">
+                              Primary
+                            </Chip>
+                          )}
+                        </div>
+                        {isAdmin && (
+                          <div className="flex items-center gap-0.5">
+                            {bc.barcodeType === 'internal' && (
+                              <Tooltip content="Regenerate internal barcode" side="bottom">
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  iconOnly
+                                  onClick={() =>
+                                    void regenerateBarcodeMutation.mutateAsync(productId)
+                                  }
+                                  isLoading={regenerateBarcodeMutation.isPending}
+                                >
+                                  <RefreshCw className="w-3 h-3" />
+                                </Button>
+                              </Tooltip>
+                            )}
+                            <Tooltip content="Edit label" side="bottom">
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                iconOnly
+                                onClick={() => {
+                                  setEditingBarcodeId(bc.id);
+                                  setEditingLabel(bc.label ?? '');
+                                }}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </Tooltip>
+                            <Tooltip content="Remove" side="bottom">
+                              <Button
+                                variant="ghost-danger"
+                                size="xs"
+                                iconOnly
+                                onClick={() => void handleRemoveBarcode(bc.id)}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </Tooltip>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -327,17 +430,8 @@ export function ConsumableProductInfoPanel({
               <p className="text-xs text-muted-foreground italic">No barcodes</p>
             )}
             {isAdmin && (
-              <div className="flex items-center gap-2 mt-2">
+              <div className="mt-2">
                 <ConsumableBarcodeForm productId={productId} onAdded={() => {}} />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => void regenerateBarcodeMutation.mutateAsync(productId)}
-                  isLoading={regenerateBarcodeMutation.isPending}
-                  leftIcon={<RefreshCw className="w-3 h-3" />}
-                >
-                  Regenerate Internal
-                </Button>
               </div>
             )}
           </InfoGroup>
@@ -372,9 +466,7 @@ export function ConsumableProductInfoPanel({
             ) : (
               <p className="text-xs text-muted-foreground italic">No documents</p>
             )}
-            {isAdmin && (
-              <ConsumableDocumentForm productId={productId} onAdded={() => {}} />
-            )}
+            {isAdmin && <ConsumableDocumentForm productId={productId} onAdded={() => {}} />}
           </InfoGroup>
 
           {/* Description */}
@@ -396,7 +488,11 @@ export function ConsumableProductInfoPanel({
           {/* Reorder settings */}
           <InfoGroup title="Reorder Settings">
             <div className="grid grid-cols-4 gap-x-3">
-              <InfoField label="Threshold" value={product.reorderThreshold?.toString()} inline={false} />
+              <InfoField
+                label="Threshold"
+                value={product.reorderThreshold?.toString()}
+                inline={false}
+              />
               <InfoField label="Qty" value={product.reorderQuantity?.toString()} inline={false} />
               <InfoField label="Unit" value={product.reorderUnit} inline={false} />
               <InfoField label="Price" value={formatCurrency(product.unitPrice)} inline={false} />

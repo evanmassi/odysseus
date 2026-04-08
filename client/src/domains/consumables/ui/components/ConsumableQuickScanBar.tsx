@@ -25,6 +25,7 @@ import { DropdownMenu } from '@shared/ui/primitives/menus/DropdownMenu';
 import { MenuDivider } from '@shared/ui/primitives/menus/MenuDivider';
 import { MenuItem } from '@shared/ui/primitives/menus/MenuItem';
 import { notifications } from '@shared/utils/notifications';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { ConsumableProduct, ConsumableProductWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -162,7 +163,8 @@ export function ConsumableQuickScanBar({
                 </p>
                 {stockInfo && (
                   <p className="text-xs text-muted-foreground">
-                    {stockInfo.totalStock} {stockInfo.stockUnit ?? 'units'} in stock
+                    {stockInfo.totalStock}{' '}
+                    {pluralizeUnit(stockInfo.stockUnit ?? 'unit', stockInfo.totalStock)} in stock
                   </p>
                 )}
               </div>

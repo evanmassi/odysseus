@@ -92,6 +92,7 @@ export interface ConsumableProductRepository {
   findBarcodesByProductId(productId: string): Promise<ConsumableBarcodeRow[]>;
   findByBarcodeValue(barcodeValue: string): Promise<ConsumableBarcodeRow | null>;
   saveBarcode(barcode: ConsumableBarcodeRow): Promise<void>;
+  updateBarcode(id: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<void>;
   deleteBarcode(id: string): Promise<boolean>;
 
   // Stock
