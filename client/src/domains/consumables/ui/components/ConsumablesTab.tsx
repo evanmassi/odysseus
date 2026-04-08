@@ -42,6 +42,7 @@ import { ConsumableLocationModal } from './ConsumableLocationModal';
 import { ConsumableLowStockAlertPanel } from './ConsumableLowStockAlertPanel';
 import { ConsumableProductForm } from './ConsumableProductForm';
 import { ConsumableProductInfoPanel } from './ConsumableProductInfoPanel';
+import { ConsumableQuickScanBar } from './ConsumableQuickScanBar';
 import { ConsumableTransactionForm } from './ConsumableTransactionForm';
 
 import type { ConsumableCategory, ConsumableProductWithStock } from '@odysseus/shared-schemas';
@@ -56,10 +57,12 @@ const SORT_OPTIONS: SelectOption[] = [
   { value: 'dateAdded', label: 'Date Added' },
 ];
 
+type TransactionTab = 'received' | 'consumed' | 'count' | 'disposed';
+
 type RightPanelView =
   | { type: 'info'; productId: string }
   | { type: 'edit'; product?: ConsumableProductWithStock }
-  | { type: 'transaction'; productId: string };
+  | { type: 'transaction'; productId: string; initialTab?: TransactionTab };
 
 export function ConsumablesTab() {
   const { user } = useAuthStore();
@@ -122,6 +125,19 @@ export function ConsumablesTab() {
     }
   }, [selectedProductId]);
 
+  const handleScanViewProduct = useCallback((productId: string) => {
+    setSelectedProductId(productId);
+    setRightPanel({ type: 'info', productId });
+  }, []);
+
+  const handleScanRecordTransaction = useCallback(
+    (productId: string, initialTab: TransactionTab) => {
+      setSelectedProductId(productId);
+      setRightPanel({ type: 'transaction', productId, initialTab });
+    },
+    []
+  );
+
   const handleFormComplete = useCallback(() => {
     if (selectedProductId) {
       setRightPanel({ type: 'info', productId: selectedProductId });
@@ -167,6 +183,7 @@ export function ConsumablesTab() {
   }, [deleteConfirm.category, deleteCategoryMutation]);
 
   const bulkMenuItems: OverflowMenuItem[] = [
+    { icon: MapPin, label: 'Manage Locations', onClick: () => setIsLocationModalOpen(true) },
     { icon: PackagePlus, label: 'Bulk Receive', onClick: () => setIsBulkReceiveOpen(true) },
     { icon: PackageMinus, label: 'Bulk Consume', onClick: () => setIsBulkConsumeOpen(true) },
     { icon: Layers, label: 'Bulk Update', onClick: () => setIsBulkUpdateOpen(true) },
@@ -179,28 +196,26 @@ export function ConsumablesTab() {
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Row 1: Search + Actions */}
           <div className="flex items-center justify-between gap-4 mb-2 flex-shrink-0 px-0.5">
-            <div className="relative w-96">
-              <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="input-search w-full pl-8"
+            <div className="flex items-center gap-2">
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="input-search w-full pl-8"
+                />
+              </div>
+              <ConsumableQuickScanBar
+                products={products}
+                onViewProduct={handleScanViewProduct}
+                onRecordTransaction={handleScanRecordTransaction}
               />
             </div>
             {isAdmin && (
               <div className="flex items-center gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="h-8"
-                  onClick={() => setIsLocationModalOpen(true)}
-                  leftIcon={<MapPin className="w-3.5 h-3.5" />}
-                >
-                  Locations
-                </Button>
-                <OverflowMenu items={bulkMenuItems} size="sm" aria-label="Bulk operations" />
+                <OverflowMenu items={bulkMenuItems} size="sm" aria-label="Actions" />
                 <Button
                   size="sm"
                   onClick={handleAddProduct}
@@ -314,6 +329,7 @@ export function ConsumablesTab() {
             <ConsumableTransactionForm
               productId={rightPanel.productId}
               productName={products.find(p => p.id === rightPanel.productId)?.name ?? ''}
+              initialTab={rightPanel.initialTab}
               onSubmit={handleFormComplete}
               onCancel={handleFormComplete}
             />

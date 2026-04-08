@@ -31,6 +31,7 @@ type TransactionMode = 'received' | 'consumed' | 'count' | 'disposed';
 interface ConsumableTransactionFormProps {
   productId: string;
   productName: string;
+  initialTab?: TransactionMode;
   onSubmit: () => void;
   onCancel: () => void;
 }
@@ -38,6 +39,7 @@ interface ConsumableTransactionFormProps {
 export function ConsumableTransactionForm({
   productId,
   productName,
+  initialTab,
   onSubmit,
   onCancel,
 }: ConsumableTransactionFormProps) {
@@ -97,7 +99,7 @@ export function ConsumableTransactionForm({
     defaultValues: {
       productId,
       locationId: '',
-      type: 'received' as string,
+      type: (initialTab ?? 'received') as string,
       quantity: undefined as number | undefined,
       lotNumber: '',
       expirationDate: '',
@@ -239,7 +241,8 @@ export function ConsumableTransactionForm({
               />
               {receivingUnit && selectedMultiplier > 1 && (
                 <p className="text-xs text-muted-foreground mt-1 px-1">
-                  = {(watch('quantity') as number || 0) * selectedMultiplier} {stockUnit}{((watch('quantity') as number || 0) * selectedMultiplier) !== 1 ? 's' : ''}
+                  = {((watch('quantity') as number) || 0) * selectedMultiplier} {stockUnit}
+                  {((watch('quantity') as number) || 0) * selectedMultiplier !== 1 ? 's' : ''}
                 </p>
               )}
             </div>
