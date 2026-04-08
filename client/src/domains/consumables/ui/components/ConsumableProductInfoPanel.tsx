@@ -194,12 +194,23 @@ export function ConsumableProductInfoPanel({
 
       <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
         <div className="px-4 pb-4 space-y-5">
-          {/* Product name + status */}
-          <div className="flex items-center gap-2 mb-2.5">
-            <span className="text-card-foreground font-semibold text-sm">{product.name}</span>
-            <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
-              {statusConfig.label}
-            </Chip>
+          {/* Product name + status + properties */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-card-foreground font-semibold text-sm">{product.name}</span>
+              <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
+                {statusConfig.label}
+              </Chip>
+            </div>
+            {product.properties.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {product.properties.map(prop => (
+                  <Chip key={prop} color="default" size="sm">
+                    {prop}
+                  </Chip>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product details */}
@@ -214,34 +225,14 @@ export function ConsumableProductInfoPanel({
                 inline={false}
               />
               <InfoField label="Stock Unit" value={product.stockUnit} inline={false} />
-              <InfoField label="Base Item" value={product.baseItemName} inline={false} />
+              <InfoField label="Item" value={product.baseItemName} inline={false} />
             </div>
           </InfoGroup>
-
-          {/* Properties */}
-          {product.properties.length > 0 && (
-            <div>
-              <h5 className="text-xs font-semibold text-muted-foreground mb-1.5">Properties</h5>
-              <div className="flex flex-wrap gap-1">
-                {product.properties.map(prop => (
-                  <Chip key={prop} color="default" size="sm">
-                    {prop}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Packaging chain */}
           {detail.packagingLevels.length > 0 && (
             <InfoGroup title="Packaging">
-              <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-                {product.baseItemName && (
-                  <>
-                    <span className="font-medium text-card-foreground">{product.baseItemName}</span>
-                    <span>→</span>
-                  </>
-                )}
+              <div className="text-sm text-card-foreground">
                 {(() => {
                   const levels = detail.packagingLevels;
                   const ordered: typeof levels = [];
@@ -256,13 +247,17 @@ export function ConsumableProductInfoPanel({
                       current = next;
                     }
                   }
-                  return ordered.map((level, i) => (
-                    <span key={level.id} className="inline-flex items-center gap-1">
-                      {i > 0 && <span>→</span>}
-                      <span>{level.quantity} per</span>
-                      <span className="font-medium text-card-foreground">{level.unitName}</span>
-                    </span>
-                  ));
+                  return ordered.map((level, i) => {
+                    const parentName = level.parentUnit ?? product.baseItemName ?? 'item';
+                    return (
+                      <span key={level.id}>
+                        {i > 0 && <span className="text-muted-foreground/40 mx-1.5">·</span>}
+                        {level.quantity} {parentName}{level.quantity !== 1 ? 's' : ''}{' '}
+                        <span className="text-muted-foreground">per</span>{' '}
+                        {level.unitName}
+                      </span>
+                    );
+                  });
                 })()}
               </div>
             </InfoGroup>
@@ -292,28 +287,6 @@ export function ConsumableProductInfoPanel({
             ) : (
               <p className="text-xs text-muted-foreground italic">No stock entries</p>
             )}
-          </InfoGroup>
-
-          {/* Reorder settings */}
-          <InfoGroup title="Reorder Settings">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <InfoField
-                label="Threshold"
-                value={product.reorderThreshold?.toString()}
-                inline={false}
-              />
-              <InfoField
-                label="Reorder Qty"
-                value={product.reorderQuantity?.toString()}
-                inline={false}
-              />
-              <InfoField label="Reorder Unit" value={product.reorderUnit} inline={false} />
-              <InfoField
-                label="Unit Price"
-                value={formatCurrency(product.unitPrice)}
-                inline={false}
-              />
-            </div>
           </InfoGroup>
 
           {/* Current lot number */}
@@ -354,19 +327,17 @@ export function ConsumableProductInfoPanel({
               <p className="text-xs text-muted-foreground italic">No barcodes</p>
             )}
             {isAdmin && (
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => void regenerateBarcodeMutation.mutateAsync(productId)}
-                    isLoading={regenerateBarcodeMutation.isPending}
-                    leftIcon={<RefreshCw className="w-3 h-3" />}
-                  >
-                    Regenerate Internal
-                  </Button>
-                </div>
+              <div className="flex items-center gap-2 mt-2">
                 <ConsumableBarcodeForm productId={productId} onAdded={() => {}} />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void regenerateBarcodeMutation.mutateAsync(productId)}
+                  isLoading={regenerateBarcodeMutation.isPending}
+                  leftIcon={<RefreshCw className="w-3 h-3" />}
+                >
+                  Regenerate Internal
+                </Button>
               </div>
             )}
           </InfoGroup>
@@ -421,6 +392,16 @@ export function ConsumableProductInfoPanel({
               <p className="text-sm text-card-foreground whitespace-pre-wrap">{product.notes}</p>
             </InfoGroup>
           )}
+
+          {/* Reorder settings */}
+          <InfoGroup title="Reorder Settings">
+            <div className="grid grid-cols-4 gap-x-3">
+              <InfoField label="Threshold" value={product.reorderThreshold?.toString()} inline={false} />
+              <InfoField label="Qty" value={product.reorderQuantity?.toString()} inline={false} />
+              <InfoField label="Unit" value={product.reorderUnit} inline={false} />
+              <InfoField label="Price" value={formatCurrency(product.unitPrice)} inline={false} />
+            </div>
+          </InfoGroup>
 
           {/* Transaction history */}
           <InfoGroup title="Recent Transactions">
