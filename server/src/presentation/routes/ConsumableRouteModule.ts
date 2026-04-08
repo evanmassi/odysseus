@@ -29,6 +29,8 @@ import {
   ConsumableBulkConsumeHttpSchema,
   ConsumableBulkReassignCategoryHttpSchema,
   ConsumableBulkArchiveHttpSchema,
+  ConsumableConversionIdParams,
+  CreateConsumableUnitConversionHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -198,6 +200,19 @@ export class ConsumableRouteModule implements RouteModule {
     router.delete('/:id/barcodes/:barcodeId',
       validateParams(ConsumableBarcodeIdParams),
       this.consumableController.removeBarcode.bind(this.consumableController)
+    );
+
+    // Unit conversions
+
+    router.post('/:id/conversions',
+      validateParams(IdParams),
+      validateBody(CreateConsumableUnitConversionHttpSchema),
+      this.consumableController.addConversion.bind(this.consumableController)
+    );
+
+    router.delete('/:id/conversions/:conversionId',
+      validateParams(ConsumableConversionIdParams),
+      this.consumableController.removeConversion.bind(this.consumableController)
     );
 
     // Transaction history

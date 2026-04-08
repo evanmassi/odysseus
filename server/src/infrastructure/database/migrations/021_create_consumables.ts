@@ -164,6 +164,20 @@ export const migration021: Migration = {
 
     await pool.query(`CREATE INDEX idx_consumable_documents_product ON consumable_documents(product_id)`);
 
+    // Unit conversions — per-product multipliers for receiving in different units
+
+    await pool.query(`
+      CREATE TABLE consumable_unit_conversions (
+        id TEXT PRIMARY KEY,
+        product_id TEXT NOT NULL REFERENCES consumable_products(id) ON DELETE CASCADE,
+        unit_name TEXT NOT NULL,
+        multiplier NUMERIC NOT NULL,
+        UNIQUE(product_id, unit_name)
+      )
+    `);
+
+    await pool.query(`CREATE INDEX idx_consumable_unit_conversions_product ON consumable_unit_conversions(product_id)`);
+
     // Extend lookup category constraint to include consumable categories
 
     await pool.query(`

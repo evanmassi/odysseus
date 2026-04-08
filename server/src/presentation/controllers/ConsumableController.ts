@@ -240,6 +240,30 @@ export class ConsumableController extends BaseController {
     }
   }
 
+  // Unit conversions
+
+  async addConversion(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const conversion = await this.deps.consumableApplicationService.addConversion(labId, req.params.id, req.body, user);
+      res.status(201).json(ResponseBuilder.success({ conversion }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to add unit conversion', req.requestId);
+    }
+  }
+
+  async removeConversion(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      await this.deps.consumableApplicationService.removeConversion(labId, req.params.id, req.params.conversionId, user);
+      res.json(ResponseBuilder.success({ message: 'Conversion removed' }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to remove unit conversion', req.requestId);
+    }
+  }
+
   // Stock operations
 
   async recordTransaction(req: Request, res: Response): Promise<void> {

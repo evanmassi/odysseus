@@ -34,6 +34,9 @@ export {
   createConsumableDocumentRequestSchema,
   consumableDocumentResponseSchema,
   consumableDocumentListResponseSchema,
+  consumableUnitConversionSchema,
+  createConsumableUnitConversionRequestSchema,
+  consumableUnitConversionResponseSchema,
   consumableProductDetailResponseSchema,
   consumableBulkReceiveRequestSchema,
   consumableBulkConsumeRequestSchema,
@@ -68,4 +71,6 @@ export {
   type ConsumableBulkReassignCategoryRequest,
   type ConsumableBulkArchiveRequest,
   type ConsumableBulkResponse,
+  type ConsumableUnitConversion,
+  type CreateConsumableUnitConversionRequest,
 } from './consumablesSchemas';

@@ -21,6 +21,8 @@ export {
   useRemoveConsumableDocumentMutation,
   useAddConsumableBarcodeMutation,
   useRemoveConsumableBarcodeMutation,
+  useAddConsumableConversionMutation,
+  useRemoveConsumableConversionMutation,
   useRecordConsumableTransactionMutation,
   useRecordConsumableStockCountMutation,
   useConsumableBulkReceiveMutation,

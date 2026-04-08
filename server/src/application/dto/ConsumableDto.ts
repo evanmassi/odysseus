@@ -12,6 +12,7 @@ import type {
   ConsumableStockRow,
   ConsumableBarcodeRow,
   ConsumableTransactionRow,
+  ConsumableUnitConversionRow,
 } from '@domain/repositories/ConsumableProductRepository';
 
 export interface ConsumableCategoryResponse {
@@ -52,12 +53,20 @@ export interface ConsumableProductWithStockResponse extends ConsumableProductRes
   totalStock: number;
 }
 
+export interface ConsumableUnitConversionResponse {
+  id: string;
+  productId: string;
+  unitName: string;
+  multiplier: number;
+}
+
 export interface ConsumableProductDetailResponse {
   product: ConsumableProductResponse;
   documents: ConsumableDocumentResponse[];
   barcodes: ConsumableBarcodeResponse[];
   stock: ConsumableStockResponse[];
   recentTransactions: ConsumableTransactionResponse[];
+  unitConversions: ConsumableUnitConversionResponse[];
 }
 
 export interface ConsumableLocationResponse {
@@ -165,7 +174,8 @@ export class ConsumableDto {
     documents: ConsumableDocument[],
     barcodes: ConsumableBarcodeRow[],
     stock: ConsumableStockRow[],
-    recentTransactions: ConsumableTransactionRow[]
+    recentTransactions: ConsumableTransactionRow[],
+    conversions: ConsumableUnitConversionRow[]
   ): ConsumableProductDetailResponse {
     return {
       product: this.productToResponse(product),
@@ -173,6 +183,7 @@ export class ConsumableDto {
       barcodes: barcodes.map(b => this.barcodeToResponse(b)),
       stock: stock.map(s => this.stockToResponse(s)),
       recentTransactions: recentTransactions.map(t => this.transactionToResponse(t)),
+      unitConversions: conversions.map(c => this.conversionToResponse(c)),
     };
   }
 
@@ -236,6 +247,15 @@ export class ConsumableDto {
       performedBy: txn.performedBy,
       notes: txn.notes,
       createdAt: typeof txn.createdAt === 'string' ? txn.createdAt : (txn.createdAt as Date).toISOString(),
+    };
+  }
+
+  static conversionToResponse(conversion: ConsumableUnitConversionRow): ConsumableUnitConversionResponse {
+    return {
+      id: conversion.id,
+      productId: conversion.productId,
+      unitName: conversion.unitName,
+      multiplier: conversion.multiplier,
     };
   }
 }

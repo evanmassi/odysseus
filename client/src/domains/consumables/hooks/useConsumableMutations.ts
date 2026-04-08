@@ -25,6 +25,7 @@ import type {
   RecordConsumableStockCountRequest,
   ConsumableBulkReceiveRequest,
   ConsumableBulkConsumeRequest,
+  CreateConsumableUnitConversionRequest,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -223,6 +224,43 @@ export function useRemoveConsumableBarcodeMutation() {
   return useMutation({
     mutationFn: ({ productId, barcodeId }: { productId: string; barcodeId: string }) =>
       ConsumableService.removeBarcode(productId, barcodeId),
+    onSuccess: (_, { productId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.consumables.detail(labId, productId),
+      });
+    },
+  });
+}
+
+// Unit conversions
+
+export function useAddConsumableConversionMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      productId,
+      data,
+    }: {
+      productId: string;
+      data: CreateConsumableUnitConversionRequest;
+    }) => ConsumableService.addConversion(productId, data),
+    onSuccess: (_, { productId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.consumables.detail(labId, productId),
+      });
+    },
+  });
+}
+
+export function useRemoveConsumableConversionMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ productId, conversionId }: { productId: string; conversionId: string }) =>
+      ConsumableService.removeConversion(productId, conversionId),
     onSuccess: (_, { productId }) => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.consumables.detail(labId, productId),

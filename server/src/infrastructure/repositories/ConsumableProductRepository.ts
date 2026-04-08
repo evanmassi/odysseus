@@ -12,6 +12,7 @@ import type {
   ConsumableStockRow,
   ConsumableBarcodeRow,
   ConsumableTransactionRow,
+  ConsumableUnitConversionRow,
   ProductWithStock,
   RecordTransactionData,
 } from '@domain/repositories/ConsumableProductRepository';
@@ -26,6 +27,8 @@ import type { ConsumableStockDbRow } from '@infrastructure/database/mappers/Cons
 import { ConsumableStockMapper } from '@infrastructure/database/mappers/ConsumableStockMapper';
 import type { ConsumableTransactionDbRow } from '@infrastructure/database/mappers/ConsumableTransactionMapper';
 import { ConsumableTransactionMapper } from '@infrastructure/database/mappers/ConsumableTransactionMapper';
+import type { ConsumableUnitConversionDbRow } from '@infrastructure/database/mappers/ConsumableUnitConversionMapper';
+import { ConsumableUnitConversionMapper } from '@infrastructure/database/mappers/ConsumableUnitConversionMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const PRODUCT_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
@@ -334,5 +337,27 @@ export class ConsumableProductRepository implements IConsumableProductRepository
       [oldValue, newValue, labId]
     );
     return result.rowCount ?? 0;
+  }
+
+  // Unit conversions
+
+  async findConversionsByProductId(productId: string): Promise<ConsumableUnitConversionRow[]> {
+    const rows = await this.db.queryMany<ConsumableUnitConversionDbRow>(
+      'SELECT id, product_id, unit_name, multiplier FROM consumable_unit_conversions WHERE product_id = $1 ORDER BY unit_name',
+      [productId]
+    );
+    return ConsumableUnitConversionMapper.fromRows(rows);
+  }
+
+  async saveConversion(conversion: ConsumableUnitConversionRow): Promise<void> {
+    await this.db.execute(
+      'INSERT INTO consumable_unit_conversions (id, product_id, unit_name, multiplier) VALUES ($1, $2, $3, $4)',
+      [conversion.id, conversion.productId, conversion.unitName, String(conversion.multiplier)]
+    );
+  }
+
+  async deleteConversion(id: string): Promise<boolean> {
+    const result = await this.db.execute('DELETE FROM consumable_unit_conversions WHERE id = $1', [id]);
+    return (result.rowCount ?? 0) > 0;
   }
 }

@@ -61,6 +61,13 @@ export interface RecordTransactionData {
   notes?: string;
 }
 
+export interface ConsumableUnitConversionRow {
+  id: string;
+  productId: string;
+  unitName: string;
+  multiplier: number;
+}
+
 export interface ConsumableProductRepository {
 
   // Products
@@ -110,4 +117,10 @@ export interface ConsumableProductRepository {
   renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number>;
   countProductsUsingStockUnit(value: string, labId: string): Promise<number>;
   renameStockUnit(oldValue: string, newValue: string, labId: string): Promise<number>;
+
+  // Unit conversions
+
+  findConversionsByProductId(productId: string): Promise<ConsumableUnitConversionRow[]>;
+  saveConversion(conversion: ConsumableUnitConversionRow): Promise<void>;
+  deleteConversion(id: string): Promise<boolean>;
 }

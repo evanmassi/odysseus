@@ -5,16 +5,19 @@
  * dropdowns for manufacturer, vendor, stock unit, and multi-select properties.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createConsumableProductRequestSchema } from '@odysseus/shared-schemas';
 import { Plus, Save, SquarePen } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
+import { useConsumableProductDetailQuery } from '@domains/consumables/hooks';
 import {
   useCreateConsumableProductMutation,
   useUpdateConsumableProductMutation,
+  useAddConsumableConversionMutation,
+  useRemoveConsumableConversionMutation,
 } from '@domains/consumables/hooks/useConsumableMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { Button, Select, Checkbox } from '@shared/ui';
@@ -46,6 +49,11 @@ export function ConsumableProductForm({
   const isEditing = !!product;
   const createMutation = useCreateConsumableProductMutation();
   const updateMutation = useUpdateConsumableProductMutation();
+  const addConversionMutation = useAddConsumableConversionMutation();
+  const removeConversionMutation = useRemoveConsumableConversionMutation();
+  const { data: detail } = useConsumableProductDetailQuery(isEditing ? product.id : undefined);
+  const [newConversionUnit, setNewConversionUnit] = useState('');
+  const [newConversionMultiplier, setNewConversionMultiplier] = useState('');
 
   const { data: manufacturers = [] } = useLookupValuesQuery('consumable_manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('consumable_vendor');
@@ -366,6 +374,83 @@ export function ConsumableProductForm({
                   </div>
                 )}
               />
+            </div>
+          )}
+
+          {/* Unit Conversions — edit mode only, requires stock_unit to be set */}
+          {isEditing && product.stockUnit && detail?.unitConversions && (
+            <div>
+              <div className="flex items-center gap-3 mb-2.5">
+                <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">
+                  Unit Conversions
+                </span>
+                <div className="h-px flex-1 bg-muted-foreground/60" />
+              </div>
+
+              {detail.unitConversions.length > 0 && (
+                <div className="space-y-1 mb-2">
+                  {detail.unitConversions.map(c => (
+                    <div key={c.id} className="flex items-center justify-between text-sm px-2 py-1 bg-muted rounded">
+                      <span>1 {c.unitName} = {c.multiplier} {product.stockUnit}{c.multiplier !== 1 ? 's' : ''}</span>
+                      <button
+                        type="button"
+                        className="text-xs text-danger-text hover:underline"
+                        onClick={() => void removeConversionMutation.mutateAsync({ productId: product.id, conversionId: c.id })}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Select
+                    label="Unit"
+                    options={[
+                      { value: '', label: 'Select...' },
+                      ...stockUnits
+                        .filter((u: { value: string }) => u.value !== product.stockUnit)
+                        .map((u: { value: string }) => ({ value: u.value, label: u.value })),
+                    ]}
+                    value={newConversionUnit}
+                    onChange={v => setNewConversionUnit(String(v ?? ''))}
+                    size="sm"
+                    fullWidth
+                  />
+                </div>
+                <div className="w-24">
+                  <ValidatedInput
+                    label="= qty"
+                    type="number"
+                    placeholder="e.g., 10"
+                    registration={{ name: 'conv-mult', onChange: (e: React.ChangeEvent<HTMLInputElement>) => setNewConversionMultiplier(e.target.value), onBlur: () => {}, ref: () => {} } as never}
+                  />
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mb-0.5"
+                  disabled={!newConversionUnit || !newConversionMultiplier || Number(newConversionMultiplier) <= 0}
+                  onClick={() => {
+                    void addConversionMutation.mutateAsync({
+                      productId: product.id,
+                      data: { unitName: newConversionUnit, multiplier: Number(newConversionMultiplier) },
+                    }).then(() => {
+                      setNewConversionUnit('');
+                      setNewConversionMultiplier('');
+                    });
+                  }}
+                >
+                  Add
+                </Button>
+              </div>
+              {product.stockUnit && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Conversions are relative to the stock unit ({product.stockUnit})
+                </p>
+              )}
             </div>
           )}
 

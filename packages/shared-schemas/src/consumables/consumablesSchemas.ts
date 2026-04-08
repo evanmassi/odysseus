@@ -218,6 +218,7 @@ export const recordConsumableTransactionRequestSchema = z.object({
   poNumber: z.string().max(200).optional(),
   cost: z.number().min(0).optional(),
   notes: z.string().max(2000).optional(),
+  receivingUnit: z.string().optional(),
 });
 
 export const recordConsumableStockCountRequestSchema = z.object({
@@ -262,6 +263,24 @@ export const consumableDocumentListResponseSchema = z.object({
   documents: z.array(consumableDocumentSchema),
 });
 
+// Unit conversion schemas
+
+export const consumableUnitConversionSchema = z.object({
+  id: z.string(),
+  productId: z.string(),
+  unitName: z.string(),
+  multiplier: z.number(),
+});
+
+export const createConsumableUnitConversionRequestSchema = z.object({
+  unitName: z.string().min(1, 'Unit name is required').max(100),
+  multiplier: z.number().positive('Multiplier must be greater than 0'),
+});
+
+export const consumableUnitConversionResponseSchema = z.object({
+  conversion: consumableUnitConversionSchema,
+});
+
 // Composed detail response
 
 export const consumableProductDetailResponseSchema = z.object({
@@ -270,6 +289,7 @@ export const consumableProductDetailResponseSchema = z.object({
   barcodes: z.array(consumableBarcodeSchema),
   stock: z.array(consumableStockSchema),
   recentTransactions: z.array(consumableTransactionSchema),
+  unitConversions: z.array(consumableUnitConversionSchema),
 });
 
 // Bulk operation schemas
@@ -285,6 +305,7 @@ export const consumableBulkReceiveRequestSchema = z.object({
     expirationDate: z.string().optional(),
     poNumber: z.string().max(200).optional(),
     cost: z.number().min(0).optional(),
+    receivingUnit: z.string().optional(),
   })).min(1, 'At least one item is required').max(100),
 });
 
@@ -345,3 +366,5 @@ export type ConsumableBulkConsumeRequest = z.infer<typeof consumableBulkConsumeR
 export type ConsumableBulkReassignCategoryRequest = z.infer<typeof consumableBulkReassignCategoryRequestSchema>;
 export type ConsumableBulkArchiveRequest = z.infer<typeof consumableBulkArchiveRequestSchema>;
 export type ConsumableBulkResponse = z.infer<typeof consumableBulkResponseSchema>;
+export type ConsumableUnitConversion = z.infer<typeof consumableUnitConversionSchema>;
+export type CreateConsumableUnitConversionRequest = z.infer<typeof createConsumableUnitConversionRequestSchema>;

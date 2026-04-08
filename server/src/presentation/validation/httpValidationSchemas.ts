@@ -38,6 +38,7 @@ import {
   updateConsumableProductRequestSchema,
   createConsumableBarcodeRequestSchema,
   createConsumableDocumentRequestSchema,
+  createConsumableUnitConversionRequestSchema,
   recordConsumableTransactionRequestSchema,
   recordConsumableStockCountRequestSchema,
   consumableBulkReceiveRequestSchema,
@@ -196,6 +197,7 @@ export const ConsumableCategoryIdParams = z.object({ categoryId: z.string().min(
 export const ConsumableLocationIdParams = z.object({ locationId: z.string().min(1) });
 export const ConsumableDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
 export const ConsumableBarcodeIdParams = z.object({ id: z.string().min(1), barcodeId: z.string().min(1) });
+export const ConsumableConversionIdParams = z.object({ id: z.string().min(1), conversionId: z.string().min(1) });
 export const CreateConsumableCategoryHttpSchema = createConsumableCategoryRequestSchema;
 export const UpdateConsumableCategoryHttpSchema = updateConsumableCategoryRequestSchema;
 export const CreateConsumableLocationHttpSchema = createConsumableLocationRequestSchema;
@@ -210,6 +212,7 @@ export const ConsumableBulkReceiveHttpSchema = consumableBulkReceiveRequestSchem
 export const ConsumableBulkConsumeHttpSchema = consumableBulkConsumeRequestSchema;
 export const ConsumableBulkReassignCategoryHttpSchema = consumableBulkReassignCategoryRequestSchema;
 export const ConsumableBulkArchiveHttpSchema = consumableBulkArchiveRequestSchema;
+export const CreateConsumableUnitConversionHttpSchema = createConsumableUnitConversionRequestSchema;
 
 // Search schemas
 

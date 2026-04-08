@@ -18,6 +18,7 @@ import {
   type ConsumableDocumentResponse,
   type ConsumableBarcodeResponse,
   type ConsumableTransactionResponse,
+  type ConsumableUnitConversionResponse,
 } from '@application/dto/ConsumableDto';
 import { ConsumableCategory } from '@domain/entities/ConsumableCategory';
 import { ConsumableDocument } from '@domain/entities/ConsumableDocument';
@@ -62,6 +63,7 @@ import type {
   UpdateConsumableProductRequest,
   CreateConsumableBarcodeRequest,
   CreateConsumableDocumentRequest,
+  CreateConsumableUnitConversionRequest,
   RecordConsumableTransactionRequest,
   RecordConsumableStockCountRequest,
   ConsumableBulkReceiveRequest,
@@ -172,13 +174,14 @@ export class ConsumableApplicationService {
 
   async getProduct(labId: string, id: string): Promise<ConsumableProductDetailResponse> {
     const product = await this.getProductOrThrow(id, labId);
-    const [documents, barcodes, stock, recentTransactions] = await Promise.all([
+    const [documents, barcodes, stock, recentTransactions, conversions] = await Promise.all([
       this.productRepository.findDocumentsByProductId(id),
       this.productRepository.findBarcodesByProductId(id),
       this.productRepository.findStockByProductId(id),
       this.productRepository.findTransactionsByProductId(id, 50),
+      this.productRepository.findConversionsByProductId(id),
     ]);
-    return ConsumableDto.productDetailToResponse(product, documents, barcodes, stock, recentTransactions);
+    return ConsumableDto.productDetailToResponse(product, documents, barcodes, stock, recentTransactions, conversions);
   }
 
   async createProduct(labId: string, data: CreateConsumableProductRequest, user: User): Promise<ConsumableProductResponse> {
@@ -300,6 +303,37 @@ export class ConsumableApplicationService {
     return ConsumableDto.productToResponse(product);
   }
 
+  // Unit conversions
+
+  async addConversion(labId: string, productId: string, data: CreateConsumableUnitConversionRequest, user: User): Promise<ConsumableUnitConversionResponse> {
+    await this.accessControlService.requireAdminAccess(user);
+    const product = await this.getProductOrThrow(productId, labId);
+
+    if (product.stockUnit && data.unitName === product.stockUnit) {
+      throw new ValidationError('Conversion unit cannot be the same as the stock unit');
+    }
+
+    const existing = await this.productRepository.findConversionsByProductId(productId);
+    if (existing.some(c => c.unitName === data.unitName)) {
+      throw new ValidationError(`A conversion for "${data.unitName}" already exists on this product`);
+    }
+
+    const conversion = {
+      id: generateId('cucv'),
+      productId,
+      unitName: data.unitName,
+      multiplier: data.multiplier,
+    };
+    await this.productRepository.saveConversion(conversion);
+    return ConsumableDto.conversionToResponse(conversion);
+  }
+
+  async removeConversion(labId: string, productId: string, conversionId: string, user: User): Promise<void> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getProductOrThrow(productId, labId);
+    await this.productRepository.deleteConversion(conversionId);
+  }
+
   // Stock operations
 
   async recordTransaction(
@@ -309,11 +343,21 @@ export class ConsumableApplicationService {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(data.productId, labId);
 
+    let effectiveQuantity = data.quantity;
+    if (data.type === 'received' && data.receivingUnit) {
+      const conversions = await this.productRepository.findConversionsByProductId(data.productId);
+      const conversion = conversions.find(c => c.unitName === data.receivingUnit);
+      if (!conversion) {
+        throw new ValidationError(`No conversion found for unit "${data.receivingUnit}" on this product`);
+      }
+      effectiveQuantity = data.quantity * conversion.multiplier;
+    }
+
     const quantityChange = data.type === 'consumed' || data.type === 'disposed'
-      ? -Math.abs(data.quantity)
+      ? -Math.abs(effectiveQuantity)
       : data.type === 'received'
-        ? Math.abs(data.quantity)
-        : data.quantity;
+        ? Math.abs(effectiveQuantity)
+        : effectiveQuantity;
 
     const txn = await this.productRepository.recordTransaction({
       productId: data.productId,
@@ -386,6 +430,7 @@ export class ConsumableApplicationService {
           expirationDate: item.expirationDate,
           poNumber: item.poNumber,
           cost: item.cost,
+          receivingUnit: item.receivingUnit,
         }, user, { bulkOperation: true });
         return item.productId;
       },

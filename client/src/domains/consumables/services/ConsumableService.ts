@@ -27,6 +27,8 @@ import {
   type RecordConsumableStockCountRequest,
   type ConsumableBulkReceiveRequest,
   type ConsumableBulkConsumeRequest,
+  type ConsumableUnitConversion,
+  type CreateConsumableUnitConversionRequest,
   consumableCategoryResponseSchema,
   consumableCategoryListResponseSchema,
   consumableLocationResponseSchema,
@@ -40,6 +42,7 @@ import {
   consumableTransactionListResponseSchema,
   consumableBulkResponseSchema,
   consumableReorderListResponseSchema,
+  consumableUnitConversionResponseSchema,
   messageResponseSchema,
 } from '@odysseus/shared-schemas';
 
@@ -195,6 +198,24 @@ export class ConsumableService {
 
   static async removeBarcode(productId: string, barcodeId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${productId}/barcodes/${barcodeId}`);
+  }
+
+  // Unit conversions
+
+  static async addConversion(
+    productId: string,
+    data: CreateConsumableUnitConversionRequest
+  ): Promise<ConsumableUnitConversion> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${productId}/conversions`,
+      data,
+      consumableUnitConversionResponseSchema
+    );
+    return response.conversion;
+  }
+
+  static async removeConversion(productId: string, conversionId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${productId}/conversions/${conversionId}`);
   }
 
   /** Skips Zod validation — server may return null product for unresolved barcodes */

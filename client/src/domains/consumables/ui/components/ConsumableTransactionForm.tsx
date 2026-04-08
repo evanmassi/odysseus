@@ -5,7 +5,7 @@
  * consumable inventory. Optimized for speed with auto-focused quantity field.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { PackagePlus, PackageMinus, ClipboardCheck, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
@@ -53,6 +53,21 @@ export function ConsumableTransactionForm({
     ],
     [locations]
   );
+
+  const [receivingUnit, setReceivingUnit] = useState('');
+
+  const unitConversions = useMemo(() => detail?.unitConversions ?? [], [detail?.unitConversions]);
+  const hasConversions = unitConversions.length > 0;
+  const selectedConversion = unitConversions.find(c => c.unitName === receivingUnit);
+  const stockUnit = detail?.product.stockUnit ?? '';
+
+  const unitOptions: SelectOption[] = useMemo(() => {
+    if (!hasConversions) return [];
+    return [
+      { value: '', label: stockUnit || 'stock unit' },
+      ...unitConversions.map(c => ({ value: c.unitName, label: c.unitName })),
+    ];
+  }, [hasConversions, stockUnit, unitConversions]);
 
   const {
     register,
@@ -118,6 +133,7 @@ export function ConsumableTransactionForm({
           poNumber: (data['poNumber'] as string) || undefined,
           cost: data['cost'] as number | undefined,
           notes: (data['notes'] as string) || undefined,
+          receivingUnit: receivingUnit || undefined,
         });
       }
       notifications.success(
@@ -137,6 +153,7 @@ export function ConsumableTransactionForm({
   };
 
   const handleModeChange = (newMode: string) => {
+    setReceivingUnit('');
     reset({
       productId,
       locationId: '',
@@ -192,6 +209,24 @@ export function ConsumableTransactionForm({
             helperText={(errors.quantity?.message as string) ?? undefined}
             registration={register('quantity', { valueAsNumber: true })}
           />
+
+          {mode === 'received' && hasConversions && (
+            <div>
+              <Select
+                label="Receiving Unit"
+                options={unitOptions}
+                value={receivingUnit}
+                onChange={v => setReceivingUnit(String(v ?? ''))}
+                size="sm"
+                fullWidth
+              />
+              {receivingUnit && selectedConversion && (
+                <p className="text-xs text-muted-foreground mt-1 px-1">
+                  = {(watch('quantity') as number || 0) * selectedConversion.multiplier} {stockUnit}{((watch('quantity') as number || 0) * selectedConversion.multiplier) !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+          )}
 
           {mode === 'count' && selectedLocationId && actualCount !== undefined && (
             <div className="text-xs space-y-0.5 px-1">
