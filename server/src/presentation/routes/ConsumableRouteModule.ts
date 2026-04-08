@@ -198,6 +198,11 @@ export class ConsumableRouteModule implements RouteModule {
       this.consumableController.addBarcode.bind(this.consumableController)
     );
 
+    router.post('/:id/barcodes/regenerate-internal',
+      validateParams(IdParams),
+      this.consumableController.regenerateInternalBarcode.bind(this.consumableController)
+    );
+
     router.delete('/:id/barcodes/:barcodeId',
       validateParams(ConsumableBarcodeIdParams),
       this.consumableController.removeBarcode.bind(this.consumableController)

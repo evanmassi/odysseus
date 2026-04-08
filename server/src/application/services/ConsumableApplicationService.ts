@@ -303,6 +303,27 @@ export class ConsumableApplicationService {
     return ConsumableDto.productToResponse(product);
   }
 
+  async regenerateInternalBarcode(labId: string, productId: string, user: User): Promise<ConsumableBarcodeResponse> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getProductOrThrow(productId, labId);
+
+    const barcodes = await this.productRepository.findBarcodesByProductId(productId);
+    const existingInternal = barcodes.find(b => b.barcodeType === 'internal');
+    if (existingInternal) {
+      await this.productRepository.deleteBarcode(existingInternal.id);
+    }
+
+    const barcode: ConsumableBarcodeRow = {
+      id: generateId('cbar'),
+      productId,
+      barcodeValue: `CPROD-${nanoid(8)}`,
+      barcodeType: 'internal',
+      isPrimary: true,
+    };
+    await this.productRepository.saveBarcode(barcode);
+    return ConsumableDto.barcodeToResponse(barcode);
+  }
+
   // Packaging levels
 
   async addPackagingLevel(labId: string, productId: string, data: CreateConsumablePackagingLevelRequest, user: User): Promise<ConsumablePackagingLevelResponse> {

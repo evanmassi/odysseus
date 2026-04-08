@@ -222,6 +222,15 @@ export class ConsumableService {
     );
   }
 
+  static async regenerateInternalBarcode(productId: string): Promise<ConsumableBarcode> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${productId}/barcodes/regenerate-internal`,
+      {},
+      consumableBarcodeResponseSchema
+    );
+    return response.barcode;
+  }
+
   static async removePackagingLevel(productId: string, levelId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${productId}/packaging-levels/${levelId}`);
   }

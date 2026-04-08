@@ -21,6 +21,7 @@ export {
   useRemoveConsumableDocumentMutation,
   useAddConsumableBarcodeMutation,
   useRemoveConsumableBarcodeMutation,
+  useRegenerateInternalBarcodeMutation,
   useAddConsumablePackagingLevelMutation,
   useUpdateConsumablePackagingLevelMutation,
   useRemoveConsumablePackagingLevelMutation,

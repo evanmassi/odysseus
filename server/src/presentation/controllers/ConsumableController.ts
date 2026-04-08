@@ -240,6 +240,17 @@ export class ConsumableController extends BaseController {
     }
   }
 
+  async regenerateInternalBarcode(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const barcode = await this.deps.consumableApplicationService.regenerateInternalBarcode(labId, req.params.id, user);
+      res.json(ResponseBuilder.success({ barcode }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to regenerate internal barcode', req.requestId);
+    }
+  }
+
   // Packaging levels
 
   async addPackagingLevel(req: Request, res: Response): Promise<void> {

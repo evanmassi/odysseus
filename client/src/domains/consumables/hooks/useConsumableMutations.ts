@@ -232,7 +232,23 @@ export function useRemoveConsumableBarcodeMutation() {
   });
 }
 
-// Unit conversions
+// Barcode regeneration
+
+export function useRegenerateInternalBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (productId: string) => ConsumableService.regenerateInternalBarcode(productId),
+    onSuccess: (_, productId) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.consumables.detail(labId, productId),
+      });
+    },
+  });
+}
+
+// Packaging levels
 
 export function useAddConsumablePackagingLevelMutation() {
   const labId = useLabId();

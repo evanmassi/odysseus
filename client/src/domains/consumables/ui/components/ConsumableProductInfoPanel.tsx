@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Edit, Trash2, Archive, Plus, ExternalLink, Package, ClipboardList } from 'lucide-react';
+import { Edit, Trash2, Archive, ExternalLink, Package, ClipboardList, RefreshCw } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import {
@@ -20,6 +20,7 @@ import {
   useArchiveConsumableProductMutation,
   useRemoveConsumableDocumentMutation,
   useRemoveConsumableBarcodeMutation,
+  useRegenerateInternalBarcodeMutation,
 } from '@domains/consumables/hooks/useConsumableMutations';
 import { Button, InfoField, InfoGroup, OverflowMenu } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -28,6 +29,8 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 
+import { ConsumableBarcodeForm } from './ConsumableBarcodeForm';
+import { ConsumableDocumentForm } from './ConsumableDocumentForm';
 import { ConsumableTransactionTimeline } from './ConsumableTransactionTimeline';
 
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
@@ -72,6 +75,7 @@ export function ConsumableProductInfoPanel({
   const archiveProductMutation = useArchiveConsumableProductMutation();
   const removeDocumentMutation = useRemoveConsumableDocumentMutation();
   const removeBarcodeMutation = useRemoveConsumableBarcodeMutation();
+  const regenerateBarcodeMutation = useRegenerateInternalBarcodeMutation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!detail) {
@@ -349,6 +353,22 @@ export function ConsumableProductInfoPanel({
             ) : (
               <p className="text-xs text-muted-foreground italic">No barcodes</p>
             )}
+            {isAdmin && (
+              <div className="mt-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void regenerateBarcodeMutation.mutateAsync(productId)}
+                    isLoading={regenerateBarcodeMutation.isPending}
+                    leftIcon={<RefreshCw className="w-3 h-3" />}
+                  >
+                    Regenerate Internal
+                  </Button>
+                </div>
+                <ConsumableBarcodeForm productId={productId} onAdded={() => {}} />
+              </div>
+            )}
           </InfoGroup>
 
           {/* Documents */}
@@ -382,14 +402,7 @@ export function ConsumableProductInfoPanel({
               <p className="text-xs text-muted-foreground italic">No documents</p>
             )}
             {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mt-2"
-                leftIcon={<Plus className="w-3 h-3" />}
-              >
-                Add Document
-              </Button>
+              <ConsumableDocumentForm productId={productId} onAdded={() => {}} />
             )}
           </InfoGroup>
 

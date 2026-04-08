@@ -19,8 +19,9 @@ import {
   useAddConsumablePackagingLevelMutation,
   useRemoveConsumablePackagingLevelMutation,
 } from '@domains/consumables/hooks/useConsumableMutations';
+import { ConsumableService } from '@domains/consumables/services/ConsumableService';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Select, Checkbox } from '@shared/ui';
+import { Button, Select, Checkbox, Input } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -55,6 +56,7 @@ export function ConsumableProductForm({
   const [newLevelUnit, setNewLevelUnit] = useState('');
   const [newLevelQuantity, setNewLevelQuantity] = useState('');
   const [newLevelParent, setNewLevelParent] = useState<string | null>(null);
+  const [manufacturerBarcode, setManufacturerBarcode] = useState('');
 
   const { data: manufacturers = [] } = useLookupValuesQuery('consumable_manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('consumable_vendor');
@@ -142,7 +144,17 @@ export function ConsumableProductForm({
         await updateMutation.mutateAsync({ id: product.id, data: validated });
         notifications.success('Product updated');
       } else {
-        await createMutation.mutateAsync(validated);
+        const created = await createMutation.mutateAsync(validated);
+        if (manufacturerBarcode.trim()) {
+          try {
+            await ConsumableService.addBarcode(created.id, {
+              barcodeValue: manufacturerBarcode.trim(),
+              barcodeType: 'manufacturer_sku',
+            });
+          } catch {
+            notifications.warning('Product created but failed to save manufacturer barcode');
+          }
+        }
         notifications.success('Product created');
       }
       onSubmit();
@@ -214,6 +226,25 @@ export function ConsumableProductForm({
               />
             )}
           />
+
+          {!isEditing && (
+            <div>
+              <label htmlFor="mfg-barcode" className="text-sm font-medium text-secondary-foreground block mb-1">
+                Manufacturer Barcode
+              </label>
+              <Input
+                id="mfg-barcode"
+                type="text"
+                value={manufacturerBarcode}
+                onValueChange={setManufacturerBarcode}
+                placeholder="Scan or type barcode from packaging..."
+                fullWidth
+              />
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Optional — scan the barcode on the physical box to link it automatically
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <Controller
