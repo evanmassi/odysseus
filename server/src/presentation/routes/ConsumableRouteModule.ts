@@ -29,8 +29,9 @@ import {
   ConsumableBulkConsumeHttpSchema,
   ConsumableBulkReassignCategoryHttpSchema,
   ConsumableBulkArchiveHttpSchema,
-  ConsumableConversionIdParams,
-  CreateConsumableUnitConversionHttpSchema,
+  ConsumablePackagingLevelIdParams,
+  CreateConsumablePackagingLevelHttpSchema,
+  UpdateConsumablePackagingLevelHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -202,17 +203,23 @@ export class ConsumableRouteModule implements RouteModule {
       this.consumableController.removeBarcode.bind(this.consumableController)
     );
 
-    // Unit conversions
+    // Packaging levels
 
-    router.post('/:id/conversions',
+    router.post('/:id/packaging-levels',
       validateParams(IdParams),
-      validateBody(CreateConsumableUnitConversionHttpSchema),
-      this.consumableController.addConversion.bind(this.consumableController)
+      validateBody(CreateConsumablePackagingLevelHttpSchema),
+      this.consumableController.addPackagingLevel.bind(this.consumableController)
     );
 
-    router.delete('/:id/conversions/:conversionId',
-      validateParams(ConsumableConversionIdParams),
-      this.consumableController.removeConversion.bind(this.consumableController)
+    router.put('/:id/packaging-levels/:levelId',
+      validateParams(ConsumablePackagingLevelIdParams),
+      validateBody(UpdateConsumablePackagingLevelHttpSchema),
+      this.consumableController.updatePackagingLevel.bind(this.consumableController)
+    );
+
+    router.delete('/:id/packaging-levels/:levelId',
+      validateParams(ConsumablePackagingLevelIdParams),
+      this.consumableController.removePackagingLevel.bind(this.consumableController)
     );
 
     // Transaction history

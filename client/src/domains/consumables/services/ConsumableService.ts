@@ -27,8 +27,8 @@ import {
   type RecordConsumableStockCountRequest,
   type ConsumableBulkReceiveRequest,
   type ConsumableBulkConsumeRequest,
-  type ConsumableUnitConversion,
-  type CreateConsumableUnitConversionRequest,
+  type ConsumablePackagingLevel,
+  type CreateConsumablePackagingLevelRequest,
   consumableCategoryResponseSchema,
   consumableCategoryListResponseSchema,
   consumableLocationResponseSchema,
@@ -42,7 +42,7 @@ import {
   consumableTransactionListResponseSchema,
   consumableBulkResponseSchema,
   consumableReorderListResponseSchema,
-  consumableUnitConversionResponseSchema,
+  consumablePackagingLevelResponseSchema,
   messageResponseSchema,
 } from '@odysseus/shared-schemas';
 
@@ -200,22 +200,30 @@ export class ConsumableService {
     await httpClient.deleteData(`${this.BASE_PATH}/${productId}/barcodes/${barcodeId}`);
   }
 
-  // Unit conversions
+  // Packaging levels
 
-  static async addConversion(
+  static async addPackagingLevel(
     productId: string,
-    data: CreateConsumableUnitConversionRequest
-  ): Promise<ConsumableUnitConversion> {
+    data: CreateConsumablePackagingLevelRequest
+  ): Promise<ConsumablePackagingLevel> {
     const response = await httpClient.postData(
-      `${this.BASE_PATH}/${productId}/conversions`,
+      `${this.BASE_PATH}/${productId}/packaging-levels`,
       data,
-      consumableUnitConversionResponseSchema
+      consumablePackagingLevelResponseSchema
     );
-    return response.conversion;
+    return response.packagingLevel;
   }
 
-  static async removeConversion(productId: string, conversionId: string): Promise<void> {
-    await httpClient.deleteData(`${this.BASE_PATH}/${productId}/conversions/${conversionId}`);
+  static async updatePackagingLevel(productId: string, levelId: string, quantity: number): Promise<void> {
+    await httpClient.putData(
+      `${this.BASE_PATH}/${productId}/packaging-levels/${levelId}`,
+      { quantity },
+      messageResponseSchema
+    );
+  }
+
+  static async removePackagingLevel(productId: string, levelId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${productId}/packaging-levels/${levelId}`);
   }
 
   /** Skips Zod validation — server may return null product for unresolved barcodes */

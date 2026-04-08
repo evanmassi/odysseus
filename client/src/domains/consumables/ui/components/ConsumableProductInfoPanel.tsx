@@ -210,11 +210,7 @@ export function ConsumableProductInfoPanel({
                 inline={false}
               />
               <InfoField label="Stock Unit" value={product.stockUnit} inline={false} />
-              <InfoField
-                label="Units per Stock Unit"
-                value={product.unitsPerStockUnit?.toString()}
-                inline={false}
-              />
+              <InfoField label="Base Item" value={product.baseItemName} inline={false} />
             </div>
           </InfoGroup>
 
@@ -230,6 +226,42 @@ export function ConsumableProductInfoPanel({
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Packaging chain */}
+          {detail.packagingLevels.length > 0 && (
+            <InfoGroup title="Packaging">
+              <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+                {product.baseItemName && (
+                  <>
+                    <span className="font-medium text-card-foreground">{product.baseItemName}</span>
+                    <span>→</span>
+                  </>
+                )}
+                {(() => {
+                  const levels = detail.packagingLevels;
+                  const ordered: typeof levels = [];
+                  const bottom = levels.find(l => l.parentUnit === null);
+                  if (bottom) {
+                    ordered.push(bottom);
+                    let current = bottom;
+                    for (let i = 0; i < levels.length; i++) {
+                      const next = levels.find(l => l.parentUnit === current.unitName);
+                      if (!next) break;
+                      ordered.push(next);
+                      current = next;
+                    }
+                  }
+                  return ordered.map((level, i) => (
+                    <span key={level.id} className="inline-flex items-center gap-1">
+                      {i > 0 && <span>→</span>}
+                      <span>{level.quantity} per</span>
+                      <span className="font-medium text-card-foreground">{level.unitName}</span>
+                    </span>
+                  ));
+                })()}
+              </div>
+            </InfoGroup>
           )}
 
           {/* Stock levels */}

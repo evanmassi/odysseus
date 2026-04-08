@@ -61,11 +61,12 @@ export interface RecordTransactionData {
   notes?: string;
 }
 
-export interface ConsumableUnitConversionRow {
+export interface ConsumablePackagingLevelRow {
   id: string;
   productId: string;
   unitName: string;
-  multiplier: number;
+  quantity: number;
+  parentUnit: string | undefined;
 }
 
 export interface ConsumableProductRepository {
@@ -118,9 +119,10 @@ export interface ConsumableProductRepository {
   countProductsUsingStockUnit(value: string, labId: string): Promise<number>;
   renameStockUnit(oldValue: string, newValue: string, labId: string): Promise<number>;
 
-  // Unit conversions
+  // Packaging levels
 
-  findConversionsByProductId(productId: string): Promise<ConsumableUnitConversionRow[]>;
-  saveConversion(conversion: ConsumableUnitConversionRow): Promise<void>;
-  deleteConversion(id: string): Promise<boolean>;
+  findPackagingLevelsByProductId(productId: string): Promise<ConsumablePackagingLevelRow[]>;
+  savePackagingLevel(level: ConsumablePackagingLevelRow): Promise<void>;
+  updatePackagingLevel(id: string, quantity: number): Promise<void>;
+  deletePackagingLevel(id: string): Promise<boolean>;
 }

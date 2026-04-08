@@ -20,7 +20,7 @@ export interface ConsumableProductRow {
   vendor_name: string | null;
   vendor_catalog_number: string | null;
   stock_unit: string | null;
-  units_per_stock_unit: number | null;
+  base_item_name: string | null;
   reorder_threshold: string | null;
   reorder_quantity: string | null;
   reorder_unit: string | null;
@@ -47,7 +47,7 @@ export class ConsumableProductMapper {
       vendor_name: product.vendorName ?? null,
       vendor_catalog_number: product.vendorCatalogNumber ?? null,
       stock_unit: product.stockUnit ?? null,
-      units_per_stock_unit: product.unitsPerStockUnit ?? null,
+      base_item_name: product.baseItemName ?? null,
       reorder_threshold: product.reorderThreshold != null ? String(product.reorderThreshold) : null,
       reorder_quantity: product.reorderQuantity != null ? String(product.reorderQuantity) : null,
       reorder_unit: product.reorderUnit ?? null,
@@ -73,7 +73,7 @@ export class ConsumableProductMapper {
       vendorName: row.vendor_name ?? undefined,
       vendorCatalogNumber: row.vendor_catalog_number ?? undefined,
       stockUnit: row.stock_unit ?? undefined,
-      unitsPerStockUnit: row.units_per_stock_unit ?? undefined,
+      baseItemName: row.base_item_name ?? undefined,
       reorderThreshold: row.reorder_threshold != null ? parseFloat(row.reorder_threshold) : undefined,
       reorderQuantity: row.reorder_quantity != null ? parseFloat(row.reorder_quantity) : undefined,
       reorderUnit: row.reorder_unit ?? undefined,

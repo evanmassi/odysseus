@@ -551,9 +551,10 @@ export {
   consumableBulkArchiveRequestSchema,
   consumableBulkResponseSchema,
   consumableReorderListResponseSchema,
-  consumableUnitConversionSchema,
-  createConsumableUnitConversionRequestSchema,
-  consumableUnitConversionResponseSchema,
+  consumablePackagingLevelSchema,
+  createConsumablePackagingLevelRequestSchema,
+  updateConsumablePackagingLevelRequestSchema,
+  consumablePackagingLevelResponseSchema,
   type ConsumableProductStatus,
   type ConsumableTransactionType,
   type ConsumableBarcodeType,
@@ -581,8 +582,9 @@ export {
   type ConsumableBulkReassignCategoryRequest,
   type ConsumableBulkArchiveRequest,
   type ConsumableBulkResponse,
-  type ConsumableUnitConversion,
-  type CreateConsumableUnitConversionRequest,
+  type ConsumablePackagingLevel,
+  type CreateConsumablePackagingLevelRequest,
+  type UpdateConsumablePackagingLevelRequest,
 } from './consumables';
 
 // Persons

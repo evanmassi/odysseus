@@ -18,7 +18,7 @@ import {
   type ConsumableDocumentResponse,
   type ConsumableBarcodeResponse,
   type ConsumableTransactionResponse,
-  type ConsumableUnitConversionResponse,
+  type ConsumablePackagingLevelResponse,
 } from '@application/dto/ConsumableDto';
 import { ConsumableCategory } from '@domain/entities/ConsumableCategory';
 import { ConsumableDocument } from '@domain/entities/ConsumableDocument';
@@ -63,7 +63,7 @@ import type {
   UpdateConsumableProductRequest,
   CreateConsumableBarcodeRequest,
   CreateConsumableDocumentRequest,
-  CreateConsumableUnitConversionRequest,
+  CreateConsumablePackagingLevelRequest,
   RecordConsumableTransactionRequest,
   RecordConsumableStockCountRequest,
   ConsumableBulkReceiveRequest,
@@ -174,14 +174,14 @@ export class ConsumableApplicationService {
 
   async getProduct(labId: string, id: string): Promise<ConsumableProductDetailResponse> {
     const product = await this.getProductOrThrow(id, labId);
-    const [documents, barcodes, stock, recentTransactions, conversions] = await Promise.all([
+    const [documents, barcodes, stock, recentTransactions, packagingLevels] = await Promise.all([
       this.productRepository.findDocumentsByProductId(id),
       this.productRepository.findBarcodesByProductId(id),
       this.productRepository.findStockByProductId(id),
       this.productRepository.findTransactionsByProductId(id, 50),
-      this.productRepository.findConversionsByProductId(id),
+      this.productRepository.findPackagingLevelsByProductId(id),
     ]);
-    return ConsumableDto.productDetailToResponse(product, documents, barcodes, stock, recentTransactions, conversions);
+    return ConsumableDto.productDetailToResponse(product, documents, barcodes, stock, recentTransactions, packagingLevels);
   }
 
   async createProduct(labId: string, data: CreateConsumableProductRequest, user: User): Promise<ConsumableProductResponse> {
@@ -303,35 +303,51 @@ export class ConsumableApplicationService {
     return ConsumableDto.productToResponse(product);
   }
 
-  // Unit conversions
+  // Packaging levels
 
-  async addConversion(labId: string, productId: string, data: CreateConsumableUnitConversionRequest, user: User): Promise<ConsumableUnitConversionResponse> {
-    await this.accessControlService.requireAdminAccess(user);
-    const product = await this.getProductOrThrow(productId, labId);
-
-    if (product.stockUnit && data.unitName === product.stockUnit) {
-      throw new ValidationError('Conversion unit cannot be the same as the stock unit');
-    }
-
-    const existing = await this.productRepository.findConversionsByProductId(productId);
-    if (existing.some(c => c.unitName === data.unitName)) {
-      throw new ValidationError(`A conversion for "${data.unitName}" already exists on this product`);
-    }
-
-    const conversion = {
-      id: generateId('cucv'),
-      productId,
-      unitName: data.unitName,
-      multiplier: data.multiplier,
-    };
-    await this.productRepository.saveConversion(conversion);
-    return ConsumableDto.conversionToResponse(conversion);
-  }
-
-  async removeConversion(labId: string, productId: string, conversionId: string, user: User): Promise<void> {
+  async addPackagingLevel(labId: string, productId: string, data: CreateConsumablePackagingLevelRequest, user: User): Promise<ConsumablePackagingLevelResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(productId, labId);
-    await this.productRepository.deleteConversion(conversionId);
+
+    const existing = await this.productRepository.findPackagingLevelsByProductId(productId);
+    if (existing.some(l => l.unitName === data.unitName)) {
+      throw new ValidationError(`A packaging level for "${data.unitName}" already exists on this product`);
+    }
+    if (data.parentUnit !== null && !existing.some(l => l.unitName === data.parentUnit)) {
+      throw new ValidationError(`Parent unit "${data.parentUnit}" does not exist in the packaging chain`);
+    }
+
+    const level = {
+      id: generateId('cpkg'),
+      productId,
+      unitName: data.unitName,
+      quantity: data.quantity,
+      parentUnit: data.parentUnit ?? undefined,
+    };
+    await this.productRepository.savePackagingLevel(level);
+    return ConsumableDto.packagingLevelToResponse(level);
+  }
+
+  async updatePackagingLevel(labId: string, productId: string, levelId: string, quantity: number, user: User): Promise<void> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getProductOrThrow(productId, labId);
+    await this.productRepository.updatePackagingLevel(levelId, quantity);
+  }
+
+  async removePackagingLevel(labId: string, productId: string, levelId: string, user: User): Promise<void> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getProductOrThrow(productId, labId);
+
+    const levels = await this.productRepository.findPackagingLevelsByProductId(productId);
+    const level = levels.find(l => l.id === levelId);
+    if (!level) throw new NotFoundError('Packaging level not found');
+
+    const hasChildren = levels.some(l => l.parentUnit === level.unitName);
+    if (hasChildren) {
+      throw new ValidationError(`Cannot delete "${level.unitName}" — other levels reference it as a parent. Delete from the top of the chain down.`);
+    }
+
+    await this.productRepository.deletePackagingLevel(levelId);
   }
 
   // Stock operations
@@ -345,12 +361,12 @@ export class ConsumableApplicationService {
 
     let effectiveQuantity = data.quantity;
     if (data.type === 'received' && data.receivingUnit) {
-      const conversions = await this.productRepository.findConversionsByProductId(data.productId);
-      const conversion = conversions.find(c => c.unitName === data.receivingUnit);
-      if (!conversion) {
-        throw new ValidationError(`No conversion found for unit "${data.receivingUnit}" on this product`);
+      const product = await this.productRepository.findById(data.productId, labId);
+      if (product?.stockUnit) {
+        const levels = await this.productRepository.findPackagingLevelsByProductId(data.productId);
+        const multiplier = this.computeStockUnitMultiplier(levels, data.receivingUnit, product.stockUnit);
+        effectiveQuantity = data.quantity * multiplier;
       }
-      effectiveQuantity = data.quantity * conversion.multiplier;
     }
 
     const quantityChange = data.type === 'consumed' || data.type === 'disposed'
@@ -592,6 +608,35 @@ export class ConsumableApplicationService {
     }
   }
 
+  /** Walks the packaging chain from fromUnit down to toUnit, multiplying quantities at each step. */
+  private computeStockUnitMultiplier(
+    levels: Array<{ unitName: string; quantity: number; parentUnit: string | undefined }>,
+    fromUnit: string,
+    toUnit: string
+  ): number {
+    if (fromUnit === toUnit) return 1;
+
+    let multiplier = 1;
+    let currentUnit = fromUnit;
+    const maxDepth = levels.length + 1;
+
+    for (let i = 0; i < maxDepth; i++) {
+      const level = levels.find(l => l.unitName === currentUnit);
+      if (!level) {
+        throw new ValidationError(`Unit "${currentUnit}" not found in the packaging chain`);
+      }
+      multiplier *= level.quantity;
+      const nextUnit = level.parentUnit;
+      if (!nextUnit) {
+        throw new ValidationError(`No path from "${fromUnit}" to "${toUnit}" in the packaging chain`);
+      }
+      if (nextUnit === toUnit) return multiplier;
+      currentUnit = nextUnit;
+    }
+
+    throw new ValidationError(`Circular or broken packaging chain detected`);
+  }
+
   private trackProductChanges(product: ConsumableProduct, data: UpdateConsumableProductRequest): FieldChange[] {
     const changes: FieldChange[] = [];
     const fields: Array<{ key: keyof UpdateConsumableProductRequest; getter: () => unknown }> = [
@@ -602,7 +647,7 @@ export class ConsumableApplicationService {
       { key: 'vendorName', getter: () => product.vendorName },
       { key: 'vendorCatalogNumber', getter: () => product.vendorCatalogNumber },
       { key: 'stockUnit', getter: () => product.stockUnit },
-      { key: 'unitsPerStockUnit', getter: () => product.unitsPerStockUnit },
+      { key: 'baseItemName', getter: () => product.baseItemName },
       { key: 'reorderThreshold', getter: () => product.reorderThreshold },
       { key: 'reorderQuantity', getter: () => product.reorderQuantity },
       { key: 'reorderUnit', getter: () => product.reorderUnit },

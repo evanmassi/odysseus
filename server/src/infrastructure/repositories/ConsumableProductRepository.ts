@@ -12,7 +12,7 @@ import type {
   ConsumableStockRow,
   ConsumableBarcodeRow,
   ConsumableTransactionRow,
-  ConsumableUnitConversionRow,
+  ConsumablePackagingLevelRow,
   ProductWithStock,
   RecordTransactionData,
 } from '@domain/repositories/ConsumableProductRepository';
@@ -21,18 +21,18 @@ import type { ConsumableBarcodeDbRow } from '@infrastructure/database/mappers/Co
 import { ConsumableBarcodeMapper } from '@infrastructure/database/mappers/ConsumableBarcodeMapper';
 import type { ConsumableDocumentRow } from '@infrastructure/database/mappers/ConsumableDocumentMapper';
 import { ConsumableDocumentMapper } from '@infrastructure/database/mappers/ConsumableDocumentMapper';
+import type { ConsumablePackagingLevelDbRow } from '@infrastructure/database/mappers/ConsumablePackagingLevelMapper';
+import { ConsumablePackagingLevelMapper } from '@infrastructure/database/mappers/ConsumablePackagingLevelMapper';
 import type { ConsumableProductRow } from '@infrastructure/database/mappers/ConsumableProductMapper';
 import { ConsumableProductMapper } from '@infrastructure/database/mappers/ConsumableProductMapper';
 import type { ConsumableStockDbRow } from '@infrastructure/database/mappers/ConsumableStockMapper';
 import { ConsumableStockMapper } from '@infrastructure/database/mappers/ConsumableStockMapper';
 import type { ConsumableTransactionDbRow } from '@infrastructure/database/mappers/ConsumableTransactionMapper';
 import { ConsumableTransactionMapper } from '@infrastructure/database/mappers/ConsumableTransactionMapper';
-import type { ConsumableUnitConversionDbRow } from '@infrastructure/database/mappers/ConsumableUnitConversionMapper';
-import { ConsumableUnitConversionMapper } from '@infrastructure/database/mappers/ConsumableUnitConversionMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const PRODUCT_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
-  vendor_name, vendor_catalog_number, stock_unit, units_per_stock_unit,
+  vendor_name, vendor_catalog_number, stock_unit, base_item_name,
   reorder_threshold, reorder_quantity, reorder_unit, unit_price, properties,
   current_lot_number, description, notes, status, created_at, updated_at`;
 
@@ -101,7 +101,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
         vendor_name = EXCLUDED.vendor_name,
         vendor_catalog_number = EXCLUDED.vendor_catalog_number,
         stock_unit = EXCLUDED.stock_unit,
-        units_per_stock_unit = EXCLUDED.units_per_stock_unit,
+        base_item_name = EXCLUDED.base_item_name,
         reorder_threshold = EXCLUDED.reorder_threshold,
         reorder_quantity = EXCLUDED.reorder_quantity,
         reorder_unit = EXCLUDED.reorder_unit,
@@ -114,7 +114,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
         updated_at = EXCLUDED.updated_at
     `, [
       row.id, row.lab_id, row.category_id, row.name, row.manufacturer, row.catalog_number,
-      row.vendor_name, row.vendor_catalog_number, row.stock_unit, row.units_per_stock_unit,
+      row.vendor_name, row.vendor_catalog_number, row.stock_unit, row.base_item_name,
       row.reorder_threshold, row.reorder_quantity, row.reorder_unit, row.unit_price, row.properties,
       row.current_lot_number, row.description, row.notes, row.status, row.created_at, row.updated_at,
     ]);
@@ -339,25 +339,32 @@ export class ConsumableProductRepository implements IConsumableProductRepository
     return result.rowCount ?? 0;
   }
 
-  // Unit conversions
+  // Packaging levels
 
-  async findConversionsByProductId(productId: string): Promise<ConsumableUnitConversionRow[]> {
-    const rows = await this.db.queryMany<ConsumableUnitConversionDbRow>(
-      'SELECT id, product_id, unit_name, multiplier FROM consumable_unit_conversions WHERE product_id = $1 ORDER BY unit_name',
+  async findPackagingLevelsByProductId(productId: string): Promise<ConsumablePackagingLevelRow[]> {
+    const rows = await this.db.queryMany<ConsumablePackagingLevelDbRow>(
+      'SELECT id, product_id, unit_name, quantity, parent_unit FROM consumable_packaging_levels WHERE product_id = $1',
       [productId]
     );
-    return ConsumableUnitConversionMapper.fromRows(rows);
+    return ConsumablePackagingLevelMapper.fromRows(rows);
   }
 
-  async saveConversion(conversion: ConsumableUnitConversionRow): Promise<void> {
+  async savePackagingLevel(level: ConsumablePackagingLevelRow): Promise<void> {
     await this.db.execute(
-      'INSERT INTO consumable_unit_conversions (id, product_id, unit_name, multiplier) VALUES ($1, $2, $3, $4)',
-      [conversion.id, conversion.productId, conversion.unitName, String(conversion.multiplier)]
+      'INSERT INTO consumable_packaging_levels (id, product_id, unit_name, quantity, parent_unit) VALUES ($1, $2, $3, $4, $5)',
+      [level.id, level.productId, level.unitName, String(level.quantity), level.parentUnit ?? null]
     );
   }
 
-  async deleteConversion(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM consumable_unit_conversions WHERE id = $1', [id]);
+  async updatePackagingLevel(id: string, quantity: number): Promise<void> {
+    await this.db.execute(
+      'UPDATE consumable_packaging_levels SET quantity = $1 WHERE id = $2',
+      [String(quantity), id]
+    );
+  }
+
+  async deletePackagingLevel(id: string): Promise<boolean> {
+    const result = await this.db.execute('DELETE FROM consumable_packaging_levels WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 }

@@ -16,8 +16,8 @@ import { useConsumableProductDetailQuery } from '@domains/consumables/hooks';
 import {
   useCreateConsumableProductMutation,
   useUpdateConsumableProductMutation,
-  useAddConsumableConversionMutation,
-  useRemoveConsumableConversionMutation,
+  useAddConsumablePackagingLevelMutation,
+  useRemoveConsumablePackagingLevelMutation,
 } from '@domains/consumables/hooks/useConsumableMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { Button, Select, Checkbox } from '@shared/ui';
@@ -49,11 +49,12 @@ export function ConsumableProductForm({
   const isEditing = !!product;
   const createMutation = useCreateConsumableProductMutation();
   const updateMutation = useUpdateConsumableProductMutation();
-  const addConversionMutation = useAddConsumableConversionMutation();
-  const removeConversionMutation = useRemoveConsumableConversionMutation();
+  const addPackagingMutation = useAddConsumablePackagingLevelMutation();
+  const removePackagingMutation = useRemoveConsumablePackagingLevelMutation();
   const { data: detail } = useConsumableProductDetailQuery(isEditing ? product.id : undefined);
-  const [newConversionUnit, setNewConversionUnit] = useState('');
-  const [newConversionMultiplier, setNewConversionMultiplier] = useState('');
+  const [newLevelUnit, setNewLevelUnit] = useState('');
+  const [newLevelQuantity, setNewLevelQuantity] = useState('');
+  const [newLevelParent, setNewLevelParent] = useState<string | null>(null);
 
   const { data: manufacturers = [] } = useLookupValuesQuery('consumable_manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('consumable_vendor');
@@ -118,7 +119,7 @@ export function ConsumableProductForm({
           vendorName: product.vendorName ?? '',
           vendorCatalogNumber: product.vendorCatalogNumber ?? '',
           stockUnit: product.stockUnit ?? '',
-          unitsPerStockUnit: product.unitsPerStockUnit,
+          baseItemName: product.baseItemName ?? '',
           reorderThreshold: product.reorderThreshold,
           reorderQuantity: product.reorderQuantity,
           reorderUnit: product.reorderUnit ?? '',
@@ -273,10 +274,9 @@ export function ConsumableProductForm({
               )}
             />
             <ValidatedInput
-              label="Units per Stock Unit"
-              type="number"
-              placeholder="e.g., 96"
-              registration={register('unitsPerStockUnit', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
+              label="Base Item Name"
+              placeholder="e.g., tip, glove"
+              registration={register('baseItemName')}
             />
           </div>
 
@@ -377,80 +377,96 @@ export function ConsumableProductForm({
             </div>
           )}
 
-          {/* Unit Conversions — edit mode only, requires stock_unit to be set */}
-          {isEditing && product.stockUnit && detail?.unitConversions && (
+          {/* Packaging Levels — edit mode only */}
+          {isEditing && detail?.packagingLevels && (
             <div>
               <div className="flex items-center gap-3 mb-2.5">
                 <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">
-                  Unit Conversions
+                  Packaging
                 </span>
                 <div className="h-px flex-1 bg-muted-foreground/60" />
               </div>
 
-              {detail.unitConversions.length > 0 && (
+              {detail.packagingLevels.length > 0 && (
                 <div className="space-y-1 mb-2">
-                  {detail.unitConversions.map(c => (
-                    <div key={c.id} className="flex items-center justify-between text-sm px-2 py-1 bg-muted rounded">
-                      <span>1 {c.unitName} = {c.multiplier} {product.stockUnit}{c.multiplier !== 1 ? 's' : ''}</span>
-                      <button
-                        type="button"
-                        className="text-xs text-danger-text hover:underline"
-                        onClick={() => void removeConversionMutation.mutateAsync({ productId: product.id, conversionId: c.id })}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
+                  {detail.packagingLevels.map(level => {
+                    const hasChildren = detail.packagingLevels.some(l => l.parentUnit === level.unitName);
+                    return (
+                      <div key={level.id} className="flex items-center justify-between text-sm px-2 py-1 bg-muted rounded">
+                        <span>
+                          {level.quantity} {level.parentUnit ?? product.baseItemName ?? 'base'}{level.quantity !== 1 ? 's' : ''} per {level.unitName}
+                        </span>
+                        <button
+                          type="button"
+                          className={`text-xs ${hasChildren ? 'text-muted-foreground cursor-not-allowed' : 'text-danger-text hover:underline'}`}
+                          disabled={hasChildren}
+                          title={hasChildren ? 'Remove child levels first' : undefined}
+                          onClick={() => void removePackagingMutation.mutateAsync({ productId: product.id, levelId: level.id })}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
               <div className="flex items-end gap-2">
                 <div className="flex-1">
                   <Select
-                    label="Unit"
+                    label="Unit Name"
                     options={[
                       { value: '', label: 'Select...' },
                       ...stockUnits
-                        .filter((u: { value: string }) => u.value !== product.stockUnit)
+                        .filter((u: { value: string }) => !detail.packagingLevels.some(l => l.unitName === u.value))
                         .map((u: { value: string }) => ({ value: u.value, label: u.value })),
                     ]}
-                    value={newConversionUnit}
-                    onChange={v => setNewConversionUnit(String(v ?? ''))}
+                    value={newLevelUnit}
+                    onChange={v => setNewLevelUnit(String(v ?? ''))}
                     size="sm"
                     fullWidth
                   />
                 </div>
-                <div className="w-24">
+                <div className="w-20">
                   <ValidatedInput
-                    label="= qty"
+                    label="Qty"
                     type="number"
-                    placeholder="e.g., 10"
-                    registration={{ name: 'conv-mult', onChange: (e: React.ChangeEvent<HTMLInputElement>) => setNewConversionMultiplier(e.target.value), onBlur: () => {}, ref: () => {} } as never}
+                    placeholder="e.g., 96"
+                    registration={{ name: 'pkg-qty', onChange: (e: React.ChangeEvent<HTMLInputElement>) => setNewLevelQuantity(e.target.value), onBlur: () => {}, ref: () => {} } as never}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Select
+                    label="Per"
+                    options={[
+                      { value: '__base__', label: product.baseItemName ?? 'base item' },
+                      ...detail.packagingLevels.map(l => ({ value: l.unitName, label: l.unitName })),
+                    ]}
+                    value={newLevelParent ?? '__base__'}
+                    onChange={v => setNewLevelParent(v === '__base__' ? null : String(v ?? ''))}
+                    size="sm"
+                    fullWidth
                   />
                 </div>
                 <Button
                   variant="secondary"
                   size="sm"
                   className="mb-0.5"
-                  disabled={!newConversionUnit || !newConversionMultiplier || Number(newConversionMultiplier) <= 0}
+                  disabled={!newLevelUnit || !newLevelQuantity || Number(newLevelQuantity) <= 0}
                   onClick={() => {
-                    void addConversionMutation.mutateAsync({
+                    void addPackagingMutation.mutateAsync({
                       productId: product.id,
-                      data: { unitName: newConversionUnit, multiplier: Number(newConversionMultiplier) },
+                      data: { unitName: newLevelUnit, quantity: Number(newLevelQuantity), parentUnit: newLevelParent },
                     }).then(() => {
-                      setNewConversionUnit('');
-                      setNewConversionMultiplier('');
+                      setNewLevelUnit('');
+                      setNewLevelQuantity('');
+                      setNewLevelParent(null);
                     });
                   }}
                 >
                   Add
                 </Button>
               </div>
-              {product.stockUnit && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Conversions are relative to the stock unit ({product.stockUnit})
-                </p>
-              )}
             </div>
           )}
 

@@ -56,18 +56,35 @@ export function ConsumableTransactionForm({
 
   const [receivingUnit, setReceivingUnit] = useState('');
 
-  const unitConversions = useMemo(() => detail?.unitConversions ?? [], [detail?.unitConversions]);
-  const hasConversions = unitConversions.length > 0;
-  const selectedConversion = unitConversions.find(c => c.unitName === receivingUnit);
+  const packagingLevels = useMemo(() => detail?.packagingLevels ?? [], [detail?.packagingLevels]);
+  const hasPackaging = packagingLevels.length > 0;
   const stockUnit = detail?.product.stockUnit ?? '';
 
+  const computeMultiplier = (fromUnit: string): number => {
+    if (fromUnit === stockUnit) return 1;
+    let multiplier = 1;
+    let current = fromUnit;
+    for (let i = 0; i < packagingLevels.length + 1; i++) {
+      const level = packagingLevels.find(l => l.unitName === current);
+      if (!level) return 1;
+      multiplier *= level.quantity;
+      if (level.parentUnit === null || level.parentUnit === stockUnit) return multiplier;
+      current = level.parentUnit;
+    }
+    return multiplier;
+  };
+
+  const selectedMultiplier = receivingUnit ? computeMultiplier(receivingUnit) : 1;
+
   const unitOptions: SelectOption[] = useMemo(() => {
-    if (!hasConversions) return [];
+    if (!hasPackaging) return [];
     return [
       { value: '', label: stockUnit || 'stock unit' },
-      ...unitConversions.map(c => ({ value: c.unitName, label: c.unitName })),
+      ...packagingLevels
+        .filter(l => l.unitName !== stockUnit)
+        .map(l => ({ value: l.unitName, label: l.unitName })),
     ];
-  }, [hasConversions, stockUnit, unitConversions]);
+  }, [hasPackaging, stockUnit, packagingLevels]);
 
   const {
     register,
@@ -210,7 +227,7 @@ export function ConsumableTransactionForm({
             registration={register('quantity', { valueAsNumber: true })}
           />
 
-          {mode === 'received' && hasConversions && (
+          {mode === 'received' && hasPackaging && (
             <div>
               <Select
                 label="Receiving Unit"
@@ -220,9 +237,9 @@ export function ConsumableTransactionForm({
                 size="sm"
                 fullWidth
               />
-              {receivingUnit && selectedConversion && (
+              {receivingUnit && selectedMultiplier > 1 && (
                 <p className="text-xs text-muted-foreground mt-1 px-1">
-                  = {(watch('quantity') as number || 0) * selectedConversion.multiplier} {stockUnit}{((watch('quantity') as number || 0) * selectedConversion.multiplier) !== 1 ? 's' : ''}
+                  = {(watch('quantity') as number || 0) * selectedMultiplier} {stockUnit}{((watch('quantity') as number || 0) * selectedMultiplier) !== 1 ? 's' : ''}
                 </p>
               )}
             </div>

@@ -240,27 +240,38 @@ export class ConsumableController extends BaseController {
     }
   }
 
-  // Unit conversions
+  // Packaging levels
 
-  async addConversion(req: Request, res: Response): Promise<void> {
+  async addPackagingLevel(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const conversion = await this.deps.consumableApplicationService.addConversion(labId, req.params.id, req.body, user);
-      res.status(201).json(ResponseBuilder.success({ conversion }));
+      const packagingLevel = await this.deps.consumableApplicationService.addPackagingLevel(labId, req.params.id, req.body, user);
+      res.status(201).json(ResponseBuilder.success({ packagingLevel }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to add unit conversion', req.requestId);
+      handleControllerError(error, res, 'Failed to add packaging level', req.requestId);
     }
   }
 
-  async removeConversion(req: Request, res: Response): Promise<void> {
+  async updatePackagingLevel(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.consumableApplicationService.removeConversion(labId, req.params.id, req.params.conversionId, user);
-      res.json(ResponseBuilder.success({ message: 'Conversion removed' }));
+      await this.deps.consumableApplicationService.updatePackagingLevel(labId, req.params.id, req.params.levelId, req.body.quantity, user);
+      res.json(ResponseBuilder.success({ message: 'Packaging level updated' }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to remove unit conversion', req.requestId);
+      handleControllerError(error, res, 'Failed to update packaging level', req.requestId);
+    }
+  }
+
+  async removePackagingLevel(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      await this.deps.consumableApplicationService.removePackagingLevel(labId, req.params.id, req.params.levelId, user);
+      res.json(ResponseBuilder.success({ message: 'Packaging level removed' }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to remove packaging level', req.requestId);
     }
   }
 

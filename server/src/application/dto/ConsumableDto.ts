@@ -12,7 +12,7 @@ import type {
   ConsumableStockRow,
   ConsumableBarcodeRow,
   ConsumableTransactionRow,
-  ConsumableUnitConversionRow,
+  ConsumablePackagingLevelRow,
 } from '@domain/repositories/ConsumableProductRepository';
 
 export interface ConsumableCategoryResponse {
@@ -35,7 +35,7 @@ export interface ConsumableProductResponse {
   vendorName?: string;
   vendorCatalogNumber?: string;
   stockUnit?: string;
-  unitsPerStockUnit?: number;
+  baseItemName?: string;
   reorderThreshold?: number;
   reorderQuantity?: number;
   reorderUnit?: string;
@@ -53,11 +53,12 @@ export interface ConsumableProductWithStockResponse extends ConsumableProductRes
   totalStock: number;
 }
 
-export interface ConsumableUnitConversionResponse {
+export interface ConsumablePackagingLevelResponse {
   id: string;
   productId: string;
   unitName: string;
-  multiplier: number;
+  quantity: number;
+  parentUnit: string | null;
 }
 
 export interface ConsumableProductDetailResponse {
@@ -66,7 +67,7 @@ export interface ConsumableProductDetailResponse {
   barcodes: ConsumableBarcodeResponse[];
   stock: ConsumableStockResponse[];
   recentTransactions: ConsumableTransactionResponse[];
-  unitConversions: ConsumableUnitConversionResponse[];
+  packagingLevels: ConsumablePackagingLevelResponse[];
 }
 
 export interface ConsumableLocationResponse {
@@ -147,7 +148,7 @@ export class ConsumableDto {
       vendorName: product.vendorName,
       vendorCatalogNumber: product.vendorCatalogNumber,
       stockUnit: product.stockUnit,
-      unitsPerStockUnit: product.unitsPerStockUnit,
+      baseItemName: product.baseItemName,
       reorderThreshold: product.reorderThreshold,
       reorderQuantity: product.reorderQuantity,
       reorderUnit: product.reorderUnit,
@@ -175,7 +176,7 @@ export class ConsumableDto {
     barcodes: ConsumableBarcodeRow[],
     stock: ConsumableStockRow[],
     recentTransactions: ConsumableTransactionRow[],
-    conversions: ConsumableUnitConversionRow[]
+    packagingLevels: ConsumablePackagingLevelRow[]
   ): ConsumableProductDetailResponse {
     return {
       product: this.productToResponse(product),
@@ -183,7 +184,7 @@ export class ConsumableDto {
       barcodes: barcodes.map(b => this.barcodeToResponse(b)),
       stock: stock.map(s => this.stockToResponse(s)),
       recentTransactions: recentTransactions.map(t => this.transactionToResponse(t)),
-      unitConversions: conversions.map(c => this.conversionToResponse(c)),
+      packagingLevels: packagingLevels.map(l => this.packagingLevelToResponse(l)),
     };
   }
 
@@ -250,12 +251,13 @@ export class ConsumableDto {
     };
   }
 
-  static conversionToResponse(conversion: ConsumableUnitConversionRow): ConsumableUnitConversionResponse {
+  static packagingLevelToResponse(level: ConsumablePackagingLevelRow): ConsumablePackagingLevelResponse {
     return {
-      id: conversion.id,
-      productId: conversion.productId,
-      unitName: conversion.unitName,
-      multiplier: conversion.multiplier,
+      id: level.id,
+      productId: level.productId,
+      unitName: level.unitName,
+      quantity: level.quantity,
+      parentUnit: level.parentUnit ?? null,
     };
   }
 }

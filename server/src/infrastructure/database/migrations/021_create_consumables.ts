@@ -73,7 +73,7 @@ export const migration021: Migration = {
         vendor_name TEXT,
         vendor_catalog_number TEXT,
         stock_unit TEXT,
-        units_per_stock_unit INTEGER,
+        base_item_name TEXT,
         reorder_threshold NUMERIC,
         reorder_quantity NUMERIC,
         reorder_unit TEXT,
@@ -164,19 +164,20 @@ export const migration021: Migration = {
 
     await pool.query(`CREATE INDEX idx_consumable_documents_product ON consumable_documents(product_id)`);
 
-    // Unit conversions — per-product multipliers for receiving in different units
+    // Packaging levels — per-product hierarchical unit chain
 
     await pool.query(`
-      CREATE TABLE consumable_unit_conversions (
+      CREATE TABLE consumable_packaging_levels (
         id TEXT PRIMARY KEY,
         product_id TEXT NOT NULL REFERENCES consumable_products(id) ON DELETE CASCADE,
         unit_name TEXT NOT NULL,
-        multiplier NUMERIC NOT NULL,
+        quantity NUMERIC NOT NULL,
+        parent_unit TEXT,
         UNIQUE(product_id, unit_name)
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_consumable_unit_conversions_product ON consumable_unit_conversions(product_id)`);
+    await pool.query(`CREATE INDEX idx_consumable_packaging_levels_product ON consumable_packaging_levels(product_id)`);
 
     // Extend lookup category constraint to include consumable categories
 

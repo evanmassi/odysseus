@@ -95,7 +95,7 @@ export const consumableProductSchema = z.object({
   vendorName: z.string().optional(),
   vendorCatalogNumber: z.string().optional(),
   stockUnit: z.string().optional(),
-  unitsPerStockUnit: z.number().int().optional(),
+  baseItemName: z.string().optional(),
   reorderThreshold: z.number().optional(),
   reorderQuantity: z.number().optional(),
   reorderUnit: z.string().optional(),
@@ -121,7 +121,7 @@ export const createConsumableProductRequestSchema = z.object({
   vendorName: z.string().max(200).optional(),
   vendorCatalogNumber: z.string().max(200).optional(),
   stockUnit: z.string().max(100).optional(),
-  unitsPerStockUnit: z.number().int().min(1).optional(),
+  baseItemName: z.string().max(100).optional(),
   reorderThreshold: z.number().min(0).optional(),
   reorderQuantity: z.number().min(0).optional(),
   reorderUnit: z.string().max(100).optional(),
@@ -139,7 +139,7 @@ export const updateConsumableProductRequestSchema = z.object({
   vendorName: z.string().max(200).nullish(),
   vendorCatalogNumber: z.string().max(200).nullish(),
   stockUnit: z.string().max(100).nullish(),
-  unitsPerStockUnit: z.number().int().min(1).nullish(),
+  baseItemName: z.string().max(100).nullish(),
   reorderThreshold: z.number().min(0).nullish(),
   reorderQuantity: z.number().min(0).nullish(),
   reorderUnit: z.string().max(100).nullish(),
@@ -263,22 +263,28 @@ export const consumableDocumentListResponseSchema = z.object({
   documents: z.array(consumableDocumentSchema),
 });
 
-// Unit conversion schemas
+// Packaging level schemas
 
-export const consumableUnitConversionSchema = z.object({
+export const consumablePackagingLevelSchema = z.object({
   id: z.string(),
   productId: z.string(),
   unitName: z.string(),
-  multiplier: z.number(),
+  quantity: z.number(),
+  parentUnit: z.string().nullable(),
 });
 
-export const createConsumableUnitConversionRequestSchema = z.object({
+export const createConsumablePackagingLevelRequestSchema = z.object({
   unitName: z.string().min(1, 'Unit name is required').max(100),
-  multiplier: z.number().positive('Multiplier must be greater than 0'),
+  quantity: z.number().positive('Quantity must be greater than 0'),
+  parentUnit: z.string().nullable(),
 });
 
-export const consumableUnitConversionResponseSchema = z.object({
-  conversion: consumableUnitConversionSchema,
+export const updateConsumablePackagingLevelRequestSchema = z.object({
+  quantity: z.number().positive('Quantity must be greater than 0'),
+});
+
+export const consumablePackagingLevelResponseSchema = z.object({
+  packagingLevel: consumablePackagingLevelSchema,
 });
 
 // Composed detail response
@@ -289,7 +295,7 @@ export const consumableProductDetailResponseSchema = z.object({
   barcodes: z.array(consumableBarcodeSchema),
   stock: z.array(consumableStockSchema),
   recentTransactions: z.array(consumableTransactionSchema),
-  unitConversions: z.array(consumableUnitConversionSchema),
+  packagingLevels: z.array(consumablePackagingLevelSchema),
 });
 
 // Bulk operation schemas
@@ -366,5 +372,6 @@ export type ConsumableBulkConsumeRequest = z.infer<typeof consumableBulkConsumeR
 export type ConsumableBulkReassignCategoryRequest = z.infer<typeof consumableBulkReassignCategoryRequestSchema>;
 export type ConsumableBulkArchiveRequest = z.infer<typeof consumableBulkArchiveRequestSchema>;
 export type ConsumableBulkResponse = z.infer<typeof consumableBulkResponseSchema>;
-export type ConsumableUnitConversion = z.infer<typeof consumableUnitConversionSchema>;
-export type CreateConsumableUnitConversionRequest = z.infer<typeof createConsumableUnitConversionRequestSchema>;
+export type ConsumablePackagingLevel = z.infer<typeof consumablePackagingLevelSchema>;
+export type CreateConsumablePackagingLevelRequest = z.infer<typeof createConsumablePackagingLevelRequestSchema>;
+export type UpdateConsumablePackagingLevelRequest = z.infer<typeof updateConsumablePackagingLevelRequestSchema>;

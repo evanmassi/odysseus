@@ -21,7 +21,7 @@ interface ProductCreateData {
   vendorName?: string;
   vendorCatalogNumber?: string;
   stockUnit?: string;
-  unitsPerStockUnit?: number;
+  baseItemName?: string;
   reorderThreshold?: number;
   reorderQuantity?: number;
   reorderUnit?: string;
@@ -40,7 +40,7 @@ interface ProductUpdateData {
   vendorName?: string | null;
   vendorCatalogNumber?: string | null;
   stockUnit?: string | null;
-  unitsPerStockUnit?: number | null;
+  baseItemName?: string | null;
   reorderThreshold?: number | null;
   reorderQuantity?: number | null;
   reorderUnit?: string | null;
@@ -62,7 +62,7 @@ export class ConsumableProduct {
     private _vendorName: string | undefined,
     private _vendorCatalogNumber: string | undefined,
     private _stockUnit: string | undefined,
-    private _unitsPerStockUnit: number | undefined,
+    private _baseItemName: string | undefined,
     private _reorderThreshold: number | undefined,
     private _reorderQuantity: number | undefined,
     private _reorderUnit: string | undefined,
@@ -89,7 +89,7 @@ export class ConsumableProduct {
       data.vendorName,
       data.vendorCatalogNumber,
       data.stockUnit,
-      data.unitsPerStockUnit,
+      data.baseItemName,
       data.reorderThreshold,
       data.reorderQuantity,
       data.reorderUnit,
@@ -114,7 +114,7 @@ export class ConsumableProduct {
     vendorName?: string;
     vendorCatalogNumber?: string;
     stockUnit?: string;
-    unitsPerStockUnit?: number;
+    baseItemName?: string;
     reorderThreshold?: number;
     reorderQuantity?: number;
     reorderUnit?: string;
@@ -137,7 +137,7 @@ export class ConsumableProduct {
       data.vendorName,
       data.vendorCatalogNumber,
       data.stockUnit,
-      data.unitsPerStockUnit,
+      data.baseItemName,
       data.reorderThreshold,
       data.reorderQuantity,
       data.reorderUnit,
@@ -176,7 +176,7 @@ export class ConsumableProduct {
     if (data.vendorName !== undefined) this._vendorName = data.vendorName ?? undefined;
     if (data.vendorCatalogNumber !== undefined) this._vendorCatalogNumber = data.vendorCatalogNumber ?? undefined;
     if (data.stockUnit !== undefined) this._stockUnit = data.stockUnit ?? undefined;
-    if (data.unitsPerStockUnit !== undefined) this._unitsPerStockUnit = data.unitsPerStockUnit ?? undefined;
+    if (data.baseItemName !== undefined) this._baseItemName = data.baseItemName ?? undefined;
     if (data.reorderThreshold !== undefined) this._reorderThreshold = data.reorderThreshold ?? undefined;
     if (data.reorderQuantity !== undefined) this._reorderQuantity = data.reorderQuantity ?? undefined;
     if (data.reorderUnit !== undefined) this._reorderUnit = data.reorderUnit ?? undefined;
@@ -209,7 +209,7 @@ export class ConsumableProduct {
   get vendorName(): string | undefined { return this._vendorName; }
   get vendorCatalogNumber(): string | undefined { return this._vendorCatalogNumber; }
   get stockUnit(): string | undefined { return this._stockUnit; }
-  get unitsPerStockUnit(): number | undefined { return this._unitsPerStockUnit; }
+  get baseItemName(): string | undefined { return this._baseItemName; }
   get reorderThreshold(): number | undefined { return this._reorderThreshold; }
   get reorderQuantity(): number | undefined { return this._reorderQuantity; }
   get reorderUnit(): string | undefined { return this._reorderUnit; }

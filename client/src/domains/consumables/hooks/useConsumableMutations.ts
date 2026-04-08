@@ -25,7 +25,7 @@ import type {
   RecordConsumableStockCountRequest,
   ConsumableBulkReceiveRequest,
   ConsumableBulkConsumeRequest,
-  CreateConsumableUnitConversionRequest,
+  CreateConsumablePackagingLevelRequest,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -234,7 +234,7 @@ export function useRemoveConsumableBarcodeMutation() {
 
 // Unit conversions
 
-export function useAddConsumableConversionMutation() {
+export function useAddConsumablePackagingLevelMutation() {
   const labId = useLabId();
   const queryClient = useQueryClient();
 
@@ -244,8 +244,8 @@ export function useAddConsumableConversionMutation() {
       data,
     }: {
       productId: string;
-      data: CreateConsumableUnitConversionRequest;
-    }) => ConsumableService.addConversion(productId, data),
+      data: CreateConsumablePackagingLevelRequest;
+    }) => ConsumableService.addPackagingLevel(productId, data),
     onSuccess: (_, { productId }) => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.consumables.detail(labId, productId),
@@ -254,13 +254,28 @@ export function useAddConsumableConversionMutation() {
   });
 }
 
-export function useRemoveConsumableConversionMutation() {
+export function useUpdateConsumablePackagingLevelMutation() {
   const labId = useLabId();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, conversionId }: { productId: string; conversionId: string }) =>
-      ConsumableService.removeConversion(productId, conversionId),
+    mutationFn: ({ productId, levelId, quantity }: { productId: string; levelId: string; quantity: number }) =>
+      ConsumableService.updatePackagingLevel(productId, levelId, quantity),
+    onSuccess: (_, { productId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.consumables.detail(labId, productId),
+      });
+    },
+  });
+}
+
+export function useRemoveConsumablePackagingLevelMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ productId, levelId }: { productId: string; levelId: string }) =>
+      ConsumableService.removePackagingLevel(productId, levelId),
     onSuccess: (_, { productId }) => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.consumables.detail(labId, productId),
