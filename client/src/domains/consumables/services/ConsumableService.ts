@@ -29,6 +29,8 @@ import {
   type RecordConsumableStockCountRequest,
   type ConsumableBulkReceiveRequest,
   type ConsumableBulkConsumeRequest,
+  type VoidConsumableTransactionRequest,
+  type ConsumableBulkVoidRequest,
   type ConsumablePackagingLevel,
   type CreateConsumablePackagingLevelRequest,
   consumableCategoryResponseSchema,
@@ -43,6 +45,7 @@ import {
   consumableTransactionResponseSchema,
   consumableTransactionListResponseSchema,
   consumableBulkResponseSchema,
+  consumableVoidTransactionResponseSchema,
   consumableReorderListResponseSchema,
   consumablePackagingLevelResponseSchema,
   messageResponseSchema,
@@ -308,6 +311,17 @@ export class ConsumableService {
     return response.transactions;
   }
 
+  static async voidTransaction(
+    transactionId: string,
+    data: VoidConsumableTransactionRequest
+  ): Promise<{ original: ConsumableTransaction; reversal: ConsumableTransaction }> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/transactions/${transactionId}/void`,
+      data,
+      consumableVoidTransactionResponseSchema
+    );
+  }
+
   // Bulk operations
 
   static async bulkReceive(data: ConsumableBulkReceiveRequest): Promise<ConsumableBulkResponse> {
@@ -341,6 +355,16 @@ export class ConsumableService {
     return await httpClient.postData(
       `${this.BASE_PATH}/bulk/archive`,
       { productIds },
+      consumableBulkResponseSchema
+    );
+  }
+
+  static async bulkVoidTransactions(
+    data: ConsumableBulkVoidRequest
+  ): Promise<ConsumableBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/void`,
+      data,
       consumableBulkResponseSchema
     );
   }

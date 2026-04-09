@@ -27,6 +27,8 @@ import type {
   RecordConsumableStockCountRequest,
   ConsumableBulkReceiveRequest,
   ConsumableBulkConsumeRequest,
+  VoidConsumableTransactionRequest,
+  ConsumableBulkVoidRequest,
   CreateConsumablePackagingLevelRequest,
 } from '@odysseus/shared-schemas';
 
@@ -438,6 +440,43 @@ export function useConsumableBulkUpdateMutation() {
           return ConsumableService.bulkArchive(action.productIds);
       }
     },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.consumables.all(labId) });
+    },
+  });
+}
+
+export function useVoidConsumableTransactionMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      transactionId,
+      data,
+    }: {
+      transactionId: string;
+      data: VoidConsumableTransactionRequest;
+    }) => ConsumableService.voidTransaction(transactionId, data),
+    onSuccess: result => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.consumables.detail(labId, result.original.productId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.consumables.products(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.consumables.reorderList(labId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.consumables.transactions(labId, result.original.productId),
+      });
+    },
+  });
+}
+
+export function useConsumableBulkVoidMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ConsumableBulkVoidRequest) => ConsumableService.bulkVoidTransactions(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.consumables.all(labId) });
     },

@@ -3,6 +3,7 @@ export {
   useConsumableProductsQuery,
   useConsumableProductDetailQuery,
   useConsumableLocationsQuery,
+  useConsumableTransactionHistoryQuery,
   useConsumableReorderListQuery,
 } from './useConsumableQueries';
 
@@ -30,5 +31,7 @@ export {
   useConsumableBulkReceiveMutation,
   useConsumableBulkConsumeMutation,
   useConsumableBulkUpdateMutation,
+  useVoidConsumableTransactionMutation,
+  useConsumableBulkVoidMutation,
   type ConsumableBulkAction,
 } from './useConsumableMutations';

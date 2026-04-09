@@ -61,6 +61,18 @@ export function useConsumableLocationsQuery() {
   });
 }
 
+export function useConsumableTransactionHistoryQuery(productId: string | undefined) {
+  const labId = useLabId();
+
+  return useQuery({
+    queryKey: queryKeys.consumables.transactions(labId, productId ?? ''),
+    queryFn: () => ConsumableService.getTransactionHistory(productId!),
+    enabled: !!labId && !!productId,
+    staleTime: CACHE_TIMES.STABLE.staleTime,
+    gcTime: CACHE_TIMES.STABLE.gcTime,
+  });
+}
+
 export function useConsumableReorderListQuery() {
   const labId = useLabId();
 
