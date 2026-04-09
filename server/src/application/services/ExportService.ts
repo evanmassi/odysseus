@@ -5,7 +5,7 @@
  */
 
 import type { Person } from '@domain/entities/Person';
-import type { SupplyProductRepository } from '@domain/repositories/SupplyProductRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
@@ -130,7 +130,7 @@ export class ExportService {
     private appVersion: string,
     private equipmentItemRepository?: EquipmentItemRepository,
     private equipmentCategoryRepository?: EquipmentCategoryRepository,
-    private supplyProductRepository?: SupplyProductRepository,
+    private supplyItemRepository?: SupplyItemRepository,
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;
@@ -433,28 +433,28 @@ export class ExportService {
   async exportSupplyReorderList(labId: string, format: 'csv' | 'json'): Promise<string | SupplyReorderExportRow[]> {
     logger.info('[ExportService] Exporting supply reorder list', { labId, format });
 
-    if (!this.supplyProductRepository) {
-      throw new Error('Supply product repository not configured');
+    if (!this.supplyItemRepository) {
+      throw new Error('Supply item repository not configured');
     }
 
-    const productsWithStock = await this.supplyProductRepository.findProductsBelowThreshold(labId);
+    const itemsWithStock = await this.supplyItemRepository.findItemsBelowThreshold(labId);
 
-    const rows: SupplyReorderExportRow[] = productsWithStock.map(({ product, totalStock }) => ({
-      name: product.name,
-      manufacturer: product.manufacturer ?? '',
-      catalogNumber: product.catalogNumber ?? '',
-      vendorName: product.vendorName ?? '',
-      vendorCatalogNumber: product.vendorCatalogNumber ?? '',
+    const rows: SupplyReorderExportRow[] = itemsWithStock.map(({ item, totalStock }) => ({
+      name: item.name,
+      manufacturer: item.manufacturer ?? '',
+      catalogNumber: item.catalogNumber ?? '',
+      vendorName: item.vendorName ?? '',
+      vendorCatalogNumber: item.vendorCatalogNumber ?? '',
       currentStock: totalStock,
-      reorderQuantity: product.reorderQuantity ?? 0,
-      reorderUnit: product.reorderUnit ?? product.stockUnit ?? '',
-      unitPrice: product.unitPrice ?? 0,
+      reorderQuantity: item.reorderQuantity ?? 0,
+      reorderUnit: item.reorderUnit ?? item.stockUnit ?? '',
+      unitPrice: item.unitPrice ?? 0,
     }));
 
     if (format === 'json') return rows;
 
     return generateCsv(rows, [
-      { key: 'name', header: 'Product Name' },
+      { key: 'name', header: 'Item Name' },
       { key: 'manufacturer', header: 'Manufacturer' },
       { key: 'catalogNumber', header: 'Catalog #' },
       { key: 'vendorName', header: 'Vendor' },

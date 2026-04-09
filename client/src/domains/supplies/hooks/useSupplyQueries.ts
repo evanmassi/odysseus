@@ -1,7 +1,7 @@
 /**
  * Supply Query Hooks
  *
- * React Query hooks for fetching supply categories, products, locations, and reorder list.
+ * React Query hooks for fetching supply categories, items, locations, and reorder list.
  */
 
 import { useQuery } from '@tanstack/react-query';
@@ -24,19 +24,19 @@ export function useSupplyCategoriesQuery() {
   });
 }
 
-export function useSupplyProductsQuery() {
+export function useSupplyItemsQuery() {
   const labId = useLabId();
 
   return useQuery({
-    queryKey: queryKeys.supplies.products(labId),
-    queryFn: () => SupplyService.listProducts(),
+    queryKey: queryKeys.supplies.items(labId),
+    queryFn: () => SupplyService.listItems(),
     enabled: !!labId,
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,
   });
 }
 
-export function useSupplyProductDetailQuery(id: string | undefined) {
+export function useSupplyItemDetailQuery(id: string | undefined) {
   const labId = useLabId();
 
   return useQuery({
@@ -61,13 +61,13 @@ export function useSupplyLocationsQuery() {
   });
 }
 
-export function useSupplyTransactionHistoryQuery(productId: string | undefined) {
+export function useSupplyTransactionHistoryQuery(itemId: string | undefined) {
   const labId = useLabId();
 
   return useQuery({
-    queryKey: queryKeys.supplies.transactions(labId, productId ?? ''),
-    queryFn: () => SupplyService.getTransactionHistory(productId!),
-    enabled: !!labId && !!productId,
+    queryKey: queryKeys.supplies.transactions(labId, itemId ?? ''),
+    queryFn: () => SupplyService.getTransactionHistory(itemId!),
+    enabled: !!labId && !!itemId,
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,
   });

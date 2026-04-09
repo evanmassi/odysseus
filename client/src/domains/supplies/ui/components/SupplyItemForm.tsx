@@ -1,21 +1,21 @@
 /**
- * Supply Product Form
+ * Supply Item Form
  *
- * React Hook Form for creating and editing supply products with lookup-driven
+ * React Hook Form for creating and editing supply items with lookup-driven
  * dropdowns, packaging hierarchy management, and multi-select properties.
  */
 
 import { useMemo, useState, useCallback } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createSupplyProductRequestSchema } from '@odysseus/shared-schemas';
+import { createSupplyItemRequestSchema } from '@odysseus/shared-schemas';
 import { Plus, Save, SquarePen, X } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
-import { useSupplyProductDetailQuery } from '@domains/supplies/hooks';
+import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import {
-  useCreateSupplyProductMutation,
-  useUpdateSupplyProductMutation,
+  useCreateSupplyItemMutation,
+  useUpdateSupplyItemMutation,
   useAddSupplyPackagingLevelMutation,
   useRemoveSupplyPackagingLevelMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
@@ -29,13 +29,13 @@ import { notifications } from '@shared/utils/notifications';
 
 import type {
   SupplyCategory,
-  SupplyProductWithStock,
-  CreateSupplyProductRequest,
+  SupplyItemWithStock,
+  CreateSupplyItemRequest,
 } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
-interface SupplyProductFormProps {
-  product?: SupplyProductWithStock;
+interface SupplyItemFormProps {
+  item?: SupplyItemWithStock;
   categories: SupplyCategory[];
   onSubmit: () => void;
   onCancel: () => void;
@@ -47,18 +47,13 @@ interface LocalPackagingLevel {
   parentUnit: string | null;
 }
 
-export function SupplyProductForm({
-  product,
-  categories,
-  onSubmit,
-  onCancel,
-}: SupplyProductFormProps) {
-  const isEditing = !!product;
-  const createMutation = useCreateSupplyProductMutation();
-  const updateMutation = useUpdateSupplyProductMutation();
+export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyItemFormProps) {
+  const isEditing = !!item;
+  const createMutation = useCreateSupplyItemMutation();
+  const updateMutation = useUpdateSupplyItemMutation();
   const addPackagingMutation = useAddSupplyPackagingLevelMutation();
   const removePackagingMutation = useRemoveSupplyPackagingLevelMutation();
-  const { data: detail } = useSupplyProductDetailQuery(isEditing ? product.id : undefined);
+  const { data: detail } = useSupplyItemDetailQuery(isEditing ? item.id : undefined);
 
   // Packaging — local state for create, server data for edit
   const [localPackagingLevels, setLocalPackagingLevels] = useState<LocalPackagingLevel[]>([]);
@@ -76,7 +71,7 @@ export function SupplyProductForm({
   const { data: manufacturers = [] } = useLookupValuesQuery('supply_manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('supply_vendor');
   const { data: stockUnits = [] } = useLookupValuesQuery('supply_stock_unit');
-  const { data: productProperties = [] } = useLookupValuesQuery('supply_product_property');
+  const { data: itemProperties = [] } = useLookupValuesQuery('supply_item_property');
 
   const manufacturerOptions: SelectOption[] = useMemo(
     () => [
@@ -156,24 +151,24 @@ export function SupplyProductForm({
     watch,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(createSupplyProductRequestSchema) as never,
+    resolver: zodResolver(createSupplyItemRequestSchema) as never,
     defaultValues: isEditing
       ? {
-          categoryId: product.categoryId,
-          name: product.name,
-          manufacturer: product.manufacturer ?? '',
-          catalogNumber: product.catalogNumber ?? '',
-          vendorName: product.vendorName ?? '',
-          vendorCatalogNumber: product.vendorCatalogNumber ?? '',
-          stockUnit: product.stockUnit ?? '',
-          baseItemName: product.baseItemName ?? '',
-          reorderThreshold: product.reorderThreshold,
-          reorderQuantity: product.reorderQuantity,
-          reorderUnit: product.reorderUnit ?? '',
-          unitPrice: product.unitPrice,
-          properties: product.properties,
-          description: product.description ?? '',
-          notes: product.notes ?? '',
+          categoryId: item.categoryId,
+          name: item.name,
+          manufacturer: item.manufacturer ?? '',
+          catalogNumber: item.catalogNumber ?? '',
+          vendorName: item.vendorName ?? '',
+          vendorCatalogNumber: item.vendorCatalogNumber ?? '',
+          stockUnit: item.stockUnit ?? '',
+          baseItemName: item.baseItemName ?? '',
+          reorderThreshold: item.reorderThreshold,
+          reorderQuantity: item.reorderQuantity,
+          reorderUnit: item.reorderUnit ?? '',
+          unitPrice: item.unitPrice,
+          properties: item.properties,
+          description: item.description ?? '',
+          notes: item.notes ?? '',
         }
       : {
           categoryId: '',
@@ -190,10 +185,10 @@ export function SupplyProductForm({
 
     const resolvedParent = newLevelParent ?? topOfChain;
     const addedUnit = newLevelUnit;
-    if (isEditing && product) {
+    if (isEditing && item) {
       void addPackagingMutation
         .mutateAsync({
-          productId: product.id,
+          itemId: item.id,
           data: { unitName: newLevelUnit, quantity: qty, parentUnit: resolvedParent },
         })
         .then(() => {
@@ -212,7 +207,7 @@ export function SupplyProductForm({
     }
   }, [
     isEditing,
-    product,
+    item,
     newLevelQty,
     newLevelUnit,
     newLevelParent,
@@ -222,21 +217,21 @@ export function SupplyProductForm({
 
   const handleRemoveLevel = useCallback(
     (index: number, levelId?: string) => {
-      if (isEditing && product && levelId) {
-        void removePackagingMutation.mutateAsync({ productId: product.id, levelId });
+      if (isEditing && item && levelId) {
+        void removePackagingMutation.mutateAsync({ itemId: item.id, levelId });
       } else {
         setLocalPackagingLevels(prev => prev.filter((_, i) => i !== index));
       }
     },
-    [isEditing, product, removePackagingMutation]
+    [isEditing, item, removePackagingMutation]
   );
 
   const onFormSubmit = async (data: FieldValues) => {
-    const validated = data as CreateSupplyProductRequest;
+    const validated = data as CreateSupplyItemRequest;
     try {
       if (isEditing) {
-        await updateMutation.mutateAsync({ id: product.id, data: validated });
-        notifications.success('Product updated');
+        await updateMutation.mutateAsync({ id: item.id, data: validated });
+        notifications.success('Item updated');
       } else {
         const created = await createMutation.mutateAsync(validated);
 
@@ -249,7 +244,7 @@ export function SupplyProductForm({
               label: manufacturerBarcodeLabel.trim() || undefined,
             });
           } catch {
-            notifications.warning('Product created but failed to save manufacturer barcode');
+            notifications.warning('Item created but failed to save manufacturer barcode');
           }
         }
 
@@ -263,16 +258,16 @@ export function SupplyProductForm({
             });
           } catch {
             notifications.warning(
-              `Product created but failed to save packaging level "${level.unitName}"`
+              `Item created but failed to save packaging level "${level.unitName}"`
             );
           }
         }
 
-        notifications.success('Product created');
+        notifications.success('Item created');
       }
       onSubmit();
     } catch {
-      notifications.error(isEditing ? 'Failed to update product' : 'Failed to create product');
+      notifications.error(isEditing ? 'Failed to update item' : 'Failed to create item');
     }
   };
 
@@ -288,19 +283,15 @@ export function SupplyProductForm({
   return (
     <div className="flex flex-col h-full min-h-0">
       <ScrollArea className="flex-1 min-h-0">
-        <form
-          id="supply-product-form"
-          onSubmit={handleSubmit(onFormSubmit)}
-          className="p-4 space-y-4"
-        >
+        <form id="supply-item-form" onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
           <h3 className="text-sm font-semibold text-secondary-foreground inline-flex items-center gap-1.5">
             {isEditing ? (
               <>
-                <SquarePen size={14} className="text-muted-foreground" /> Edit Product
+                <SquarePen size={14} className="text-muted-foreground" /> Edit Item
               </>
             ) : (
               <>
-                <Plus size={14} className="text-muted-foreground" /> Add Product
+                <Plus size={14} className="text-muted-foreground" /> Add Item
               </>
             )}
           </h3>
@@ -456,7 +447,7 @@ export function SupplyProductForm({
           </div>
 
           {/* Properties */}
-          {productProperties.length > 0 && (
+          {itemProperties.length > 0 && (
             <div>
               <span className="text-sm font-medium text-secondary-foreground mb-1 block">
                 Properties
@@ -483,7 +474,7 @@ export function SupplyProductForm({
                       </div>
                     )}
                     <div className="grid grid-cols-2 gap-1">
-                      {productProperties.map((pp: { id: string; value: string }) => (
+                      {itemProperties.map((pp: { id: string; value: string }) => (
                         <label
                           key={pp.id}
                           className="flex items-center gap-1.5 text-sm cursor-pointer"
@@ -666,12 +657,12 @@ export function SupplyProductForm({
         </Button>
         <Button
           type="submit"
-          form="supply-product-form"
+          form="supply-item-form"
           isLoading={isSubmitting}
           loadingText={isEditing ? 'Saving...' : 'Adding...'}
           leftIcon={isEditing ? <Save size={16} /> : <Plus size={16} />}
         >
-          {isEditing ? 'Save' : 'Add Product'}
+          {isEditing ? 'Save' : 'Add Item'}
         </Button>
       </div>
     </div>

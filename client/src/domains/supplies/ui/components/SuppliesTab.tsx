@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useSupplyCategoriesQuery, useSupplyProductsQuery } from '@domains/supplies/hooks';
+import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
 import { useDeleteSupplyCategoryMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button, Select, Tooltip, OverflowMenu } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -31,15 +31,15 @@ import { notifications } from '@shared/utils/notifications';
 import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
 import { SupplyCategoryModal } from './SupplyCategoryModal';
 import { SupplyCategoryPanel } from './SupplyCategoryPanel';
+import { SupplyItemForm } from './SupplyItemForm';
+import { SupplyItemInfoPanel } from './SupplyItemInfoPanel';
 import { SupplyLocationModal } from './SupplyLocationModal';
 import { SupplyLowStockAlertPanel } from './SupplyLowStockAlertPanel';
-import { SupplyProductForm } from './SupplyProductForm';
-import { SupplyProductInfoPanel } from './SupplyProductInfoPanel';
 import { SupplyQuickScanBar } from './SupplyQuickScanBar';
 import { SupplyTransactionForm } from './SupplyTransactionForm';
 
 import type { TransactionPrefill } from './SupplyTransactionForm';
-import type { SupplyCategory, SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
 
@@ -54,11 +54,11 @@ const SORT_OPTIONS: SelectOption[] = [
 type TransactionTab = 'received' | 'issued' | 'count' | 'disposed';
 
 type RightPanelView =
-  | { type: 'info'; productId: string }
-  | { type: 'edit'; product?: SupplyProductWithStock }
+  | { type: 'info'; itemId: string }
+  | { type: 'edit'; item?: SupplyItemWithStock }
   | {
       type: 'transaction';
-      productId: string;
+      itemId: string;
       initialTab?: TransactionTab;
       prefill?: TransactionPrefill;
     };
@@ -68,10 +68,10 @@ export function SuppliesTab() {
   const isAdmin = isAdminRole(user?.role);
 
   const { data: categories = [] } = useSupplyCategoriesQuery();
-  const { data: products = [] } = useSupplyProductsQuery();
+  const { data: items = [] } = useSupplyItemsQuery();
   const deleteCategoryMutation = useDeleteSupplyCategoryMutation();
 
-  const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
+  const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
@@ -99,60 +99,57 @@ export function SuppliesTab() {
     return map;
   }, [categories]);
 
-  const handleSelectProduct = useCallback((id: string) => {
-    setSelectedProductId(id);
-    setRightPanel({ type: 'info', productId: id });
+  const handleSelectItem = useCallback((id: string) => {
+    setSelectedItemId(id);
+    setRightPanel({ type: 'info', itemId: id });
   }, []);
 
-  const handleAddProduct = useCallback(() => {
+  const handleAddItem = useCallback(() => {
     setRightPanel({ type: 'edit' });
   }, []);
 
-  const handleEditProduct = useCallback(() => {
-    if (!selectedProductId) return;
-    const product = products.find(p => p.id === selectedProductId);
-    if (product) {
-      setRightPanel({ type: 'edit', product });
+  const handleEditItem = useCallback(() => {
+    if (!selectedItemId) return;
+    const item = items.find(p => p.id === selectedItemId);
+    if (item) {
+      setRightPanel({ type: 'edit', item });
     }
-  }, [selectedProductId, products]);
+  }, [selectedItemId, items]);
 
   const handleRecordTransaction = useCallback(() => {
-    if (selectedProductId) {
-      setRightPanel({ type: 'transaction', productId: selectedProductId });
+    if (selectedItemId) {
+      setRightPanel({ type: 'transaction', itemId: selectedItemId });
     }
-  }, [selectedProductId]);
+  }, [selectedItemId]);
 
-  const handleScanViewProduct = useCallback((productId: string) => {
-    setSelectedProductId(productId);
-    setRightPanel({ type: 'info', productId });
+  const handleScanViewItem = useCallback((itemId: string) => {
+    setSelectedItemId(itemId);
+    setRightPanel({ type: 'info', itemId });
   }, []);
 
-  const handleScanRecordTransaction = useCallback(
-    (productId: string, initialTab: TransactionTab) => {
-      setSelectedProductId(productId);
-      setRightPanel({ type: 'transaction', productId, initialTab });
-    },
-    []
-  );
+  const handleScanRecordTransaction = useCallback((itemId: string, initialTab: TransactionTab) => {
+    setSelectedItemId(itemId);
+    setRightPanel({ type: 'transaction', itemId, initialTab });
+  }, []);
 
   const handleVoidAndReplace = useCallback(
-    (productId: string, initialTab: TransactionTab, prefill: TransactionPrefill) => {
-      setSelectedProductId(productId);
-      setRightPanel({ type: 'transaction', productId, initialTab, prefill });
+    (itemId: string, initialTab: TransactionTab, prefill: TransactionPrefill) => {
+      setSelectedItemId(itemId);
+      setRightPanel({ type: 'transaction', itemId, initialTab, prefill });
     },
     []
   );
 
   const handleFormComplete = useCallback(() => {
-    if (selectedProductId) {
-      setRightPanel({ type: 'info', productId: selectedProductId });
+    if (selectedItemId) {
+      setRightPanel({ type: 'info', itemId: selectedItemId });
     } else {
       setRightPanel(undefined);
     }
-  }, [selectedProductId]);
+  }, [selectedItemId]);
 
-  const handleProductDeleted = useCallback(() => {
-    setSelectedProductId(undefined);
+  const handleItemDeleted = useCallback(() => {
+    setSelectedItemId(undefined);
     setRightPanel(undefined);
   }, []);
 
@@ -182,7 +179,7 @@ export function SuppliesTab() {
       await deleteCategoryMutation.mutateAsync(deleteConfirm.category.id);
       notifications.success(`"${deleteConfirm.category.name}" removed`);
     } catch {
-      notifications.error('Cannot remove — category still contains products');
+      notifications.error('Cannot remove — category still contains items');
     }
     setDeleteConfirm({ isOpen: false });
   }, [deleteConfirm.category, deleteCategoryMutation]);
@@ -204,15 +201,15 @@ export function SuppliesTab() {
                 <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Search supplies..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   className="input-search w-full pl-8"
                 />
               </div>
               <SupplyQuickScanBar
-                products={products}
-                onViewProduct={handleScanViewProduct}
+                items={items}
+                onViewItem={handleScanViewItem}
                 onRecordTransaction={handleScanRecordTransaction}
               />
             </div>
@@ -221,11 +218,11 @@ export function SuppliesTab() {
                 <OverflowMenu items={bulkMenuItems} size="sm" aria-label="Actions" />
                 <Button
                   size="sm"
-                  onClick={handleAddProduct}
+                  onClick={handleAddItem}
                   className="h-8"
                   leftIcon={<Plus className="w-3.5 h-3.5" />}
                 >
-                  Add Product
+                  Add Item
                 </Button>
               </div>
             )}
@@ -269,15 +266,15 @@ export function SuppliesTab() {
             </Button>
           </div>
 
-          <SupplyLowStockAlertPanel onSelectProduct={handleSelectProduct} />
+          <SupplyLowStockAlertPanel onSelectItem={handleSelectItem} />
 
           {/* Category list */}
           <ScrollArea className="flex-1">
             <SupplyCategoryPanel
               categories={categories}
-              products={products}
-              selectedProductId={selectedProductId}
-              onSelectProduct={handleSelectProduct}
+              items={items}
+              selectedItemId={selectedItemId}
+              onSelectItem={handleSelectItem}
               showArchived={showArchived}
               searchQuery={searchQuery}
               isAdmin={isAdmin}
@@ -302,27 +299,27 @@ export function SuppliesTab() {
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
                   <Package className="w-6 h-6 text-card-foreground/30" />
                 </div>
-                <p className="text-card-foreground/40 text-sm">Select a product to view details</p>
+                <p className="text-card-foreground/40 text-sm">Select a item to view details</p>
               </div>
             </div>
           )}
 
           {rightPanel?.type === 'info' && (
-            <SupplyProductInfoPanel
-              productId={rightPanel.productId}
-              onEdit={handleEditProduct}
+            <SupplyItemInfoPanel
+              itemId={rightPanel.itemId}
+              onEdit={handleEditItem}
               onRecordTransaction={handleRecordTransaction}
               onVoidAndReplace={handleVoidAndReplace}
-              onDeleted={handleProductDeleted}
+              onDeleted={handleItemDeleted}
               categoryName={categoryNameMap.get(
-                products.find(p => p.id === rightPanel.productId)?.categoryId ?? ''
+                items.find(p => p.id === rightPanel.itemId)?.categoryId ?? ''
               )}
             />
           )}
 
           {rightPanel?.type === 'edit' && (
-            <SupplyProductForm
-              product={rightPanel.product}
+            <SupplyItemForm
+              item={rightPanel.item}
               categories={categories}
               onSubmit={handleFormComplete}
               onCancel={handleFormComplete}
@@ -331,14 +328,14 @@ export function SuppliesTab() {
 
           {rightPanel?.type === 'transaction' &&
             (() => {
-              const txnProduct = products.find(p => p.id === rightPanel.productId);
+              const txnItem = items.find(p => p.id === rightPanel.itemId);
               return (
                 <SupplyTransactionForm
-                  key={`${rightPanel.productId}-${rightPanel.initialTab ?? 'received'}-${rightPanel.prefill ? 'prefill' : ''}`}
-                  productId={rightPanel.productId}
-                  productName={txnProduct?.name ?? ''}
-                  manufacturer={txnProduct?.manufacturer}
-                  catalogNumber={txnProduct?.catalogNumber}
+                  key={`${rightPanel.itemId}-${rightPanel.initialTab ?? 'received'}-${rightPanel.prefill ? 'prefill' : ''}`}
+                  itemId={rightPanel.itemId}
+                  itemName={txnItem?.name ?? ''}
+                  manufacturer={txnItem?.manufacturer}
+                  catalogNumber={txnItem?.catalogNumber}
                   initialTab={rightPanel.initialTab}
                   prefill={rightPanel.prefill}
                   onSubmit={handleFormComplete}
@@ -375,7 +372,7 @@ export function SuppliesTab() {
       <SupplyBulkUpdateModal
         isOpen={isBulkUpdateOpen}
         onClose={() => setIsBulkUpdateOpen(false)}
-        products={products}
+        items={items}
         categories={categories}
       />
     </div>

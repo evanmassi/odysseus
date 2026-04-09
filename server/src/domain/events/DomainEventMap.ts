@@ -5,10 +5,10 @@
  */
 
 import type {
-  SupplyProductCreatedEvent,
-  SupplyProductUpdatedEvent,
-  SupplyProductArchivedEvent,
-  SupplyProductDeletedEvent,
+  SupplyItemCreatedEvent,
+  SupplyItemUpdatedEvent,
+  SupplyItemArchivedEvent,
+  SupplyItemDeletedEvent,
   SupplyCategoryCreatedEvent,
   SupplyCategoryUpdatedEvent,
   SupplyCategoryDeletedEvent,
@@ -214,10 +214,10 @@ export interface DomainEventMap {
   'EquipmentBulkRelocated': EquipmentBulkRelocatedEvent;
 
   // Supply events
-  'SupplyProductCreated': SupplyProductCreatedEvent;
-  'SupplyProductUpdated': SupplyProductUpdatedEvent;
-  'SupplyProductArchived': SupplyProductArchivedEvent;
-  'SupplyProductDeleted': SupplyProductDeletedEvent;
+  'SupplyItemCreated': SupplyItemCreatedEvent;
+  'SupplyItemUpdated': SupplyItemUpdatedEvent;
+  'SupplyItemArchived': SupplyItemArchivedEvent;
+  'SupplyItemDeleted': SupplyItemDeletedEvent;
   'SupplyCategoryCreated': SupplyCategoryCreatedEvent;
   'SupplyCategoryUpdated': SupplyCategoryUpdatedEvent;
   'SupplyCategoryDeleted': SupplyCategoryDeletedEvent;

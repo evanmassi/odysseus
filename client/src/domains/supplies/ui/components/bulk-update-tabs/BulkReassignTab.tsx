@@ -1,7 +1,7 @@
 /**
  * Bulk Reassign Category Tab
  *
- * Category selector for reassigning selected products to a different category.
+ * Category selector for reassigning selected items to a different category.
  */
 
 import { useMemo } from 'react';
@@ -49,8 +49,7 @@ export function BulkReassignTab({
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Move {selectedCount} selected product{selectedCount !== 1 ? 's' : ''} to a different
-        category.
+        Move {selectedCount} selected item{selectedCount !== 1 ? 's' : ''} to a different category.
       </p>
       <Select
         label="Category"

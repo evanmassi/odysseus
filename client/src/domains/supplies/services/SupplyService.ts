@@ -1,15 +1,15 @@
 /**
  * Supply Data Service
  *
- * HTTP operations for supply categories, locations, products, documents,
+ * HTTP operations for supply categories, locations, items, documents,
  * barcodes, stock transactions, and bulk actions.
  */
 
 import {
   type SupplyCategory,
-  type SupplyProductWithStock,
-  type SupplyProductDetail,
-  type SupplyProduct,
+  type SupplyItemWithStock,
+  type SupplyItemDetail,
+  type SupplyItem,
   type SupplyLocation,
   type SupplyDocument,
   type SupplyBarcode,
@@ -19,8 +19,8 @@ import {
   type UpdateSupplyCategoryRequest,
   type CreateSupplyLocationRequest,
   type UpdateSupplyLocationRequest,
-  type CreateSupplyProductRequest,
-  type UpdateSupplyProductRequest,
+  type CreateSupplyItemRequest,
+  type UpdateSupplyItemRequest,
   type CreateSupplyBarcodeRequest,
   type UpdateSupplyBarcodeRequest,
   type CreateSupplyDocumentRequest,
@@ -37,9 +37,9 @@ import {
   supplyCategoryListResponseSchema,
   supplyLocationResponseSchema,
   supplyLocationListResponseSchema,
-  supplyProductResponseSchema,
-  supplyProductListResponseSchema,
-  supplyProductDetailResponseSchema,
+  supplyItemResponseSchema,
+  supplyItemListResponseSchema,
+  supplyItemDetailResponseSchema,
   supplyDocumentResponseSchema,
   supplyBarcodeResponseSchema,
   supplyTransactionResponseSchema,
@@ -126,47 +126,47 @@ export class SupplyService {
     await httpClient.deleteData(`${this.BASE_PATH}/locations/${id}`);
   }
 
-  // Products
+  // Items
 
-  static async listProducts(): Promise<SupplyProductWithStock[]> {
-    const response = await httpClient.getData(this.BASE_PATH, supplyProductListResponseSchema);
-    return response.products;
+  static async listItems(): Promise<SupplyItemWithStock[]> {
+    const response = await httpClient.getData(this.BASE_PATH, supplyItemListResponseSchema);
+    return response.items;
   }
 
-  static async getById(id: string): Promise<SupplyProductDetail> {
-    return await httpClient.getData(`${this.BASE_PATH}/${id}`, supplyProductDetailResponseSchema);
+  static async getById(id: string): Promise<SupplyItemDetail> {
+    return await httpClient.getData(`${this.BASE_PATH}/${id}`, supplyItemDetailResponseSchema);
   }
 
-  static async createProduct(data: CreateSupplyProductRequest): Promise<SupplyProduct> {
-    const response = await httpClient.postData(this.BASE_PATH, data, supplyProductResponseSchema);
-    return response.product;
+  static async createItem(data: CreateSupplyItemRequest): Promise<SupplyItem> {
+    const response = await httpClient.postData(this.BASE_PATH, data, supplyItemResponseSchema);
+    return response.item;
   }
 
-  static async updateProduct(id: string, data: UpdateSupplyProductRequest): Promise<SupplyProduct> {
+  static async updateItem(id: string, data: UpdateSupplyItemRequest): Promise<SupplyItem> {
     const response = await httpClient.putData(
       `${this.BASE_PATH}/${id}`,
       data,
-      supplyProductResponseSchema
+      supplyItemResponseSchema
     );
-    return response.product;
+    return response.item;
   }
 
-  static async archiveProduct(id: string): Promise<void> {
+  static async archiveItem(id: string): Promise<void> {
     await httpClient.postData(`${this.BASE_PATH}/${id}/archive`, {}, messageResponseSchema);
   }
 
-  static async deleteProduct(id: string): Promise<void> {
+  static async deleteItem(id: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${id}`);
   }
 
   // Documents
 
   static async addDocument(
-    productId: string,
+    itemId: string,
     data: CreateSupplyDocumentRequest
   ): Promise<SupplyDocument> {
     const response = await httpClient.postData(
-      `${this.BASE_PATH}/${productId}/documents`,
+      `${this.BASE_PATH}/${itemId}/documents`,
       data,
       supplyDocumentResponseSchema
     );
@@ -174,30 +174,30 @@ export class SupplyService {
   }
 
   static async updateDocument(
-    productId: string,
+    itemId: string,
     docId: string,
     data: UpdateSupplyDocumentRequest
   ): Promise<SupplyDocument> {
     const response = await httpClient.putData(
-      `${this.BASE_PATH}/${productId}/documents/${docId}`,
+      `${this.BASE_PATH}/${itemId}/documents/${docId}`,
       data,
       supplyDocumentResponseSchema
     );
     return response.document;
   }
 
-  static async removeDocument(productId: string, docId: string): Promise<void> {
-    await httpClient.deleteData(`${this.BASE_PATH}/${productId}/documents/${docId}`);
+  static async removeDocument(itemId: string, docId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/documents/${docId}`);
   }
 
   // Barcodes
 
   static async addBarcode(
-    productId: string,
+    itemId: string,
     data: CreateSupplyBarcodeRequest
   ): Promise<SupplyBarcode> {
     const response = await httpClient.postData(
-      `${this.BASE_PATH}/${productId}/barcodes`,
+      `${this.BASE_PATH}/${itemId}/barcodes`,
       data,
       supplyBarcodeResponseSchema
     );
@@ -205,30 +205,30 @@ export class SupplyService {
   }
 
   static async updateBarcode(
-    productId: string,
+    itemId: string,
     barcodeId: string,
     data: UpdateSupplyBarcodeRequest
   ): Promise<SupplyBarcode> {
     const response = await httpClient.putData(
-      `${this.BASE_PATH}/${productId}/barcodes/${barcodeId}`,
+      `${this.BASE_PATH}/${itemId}/barcodes/${barcodeId}`,
       data,
       supplyBarcodeResponseSchema
     );
     return response.barcode;
   }
 
-  static async removeBarcode(productId: string, barcodeId: string): Promise<void> {
-    await httpClient.deleteData(`${this.BASE_PATH}/${productId}/barcodes/${barcodeId}`);
+  static async removeBarcode(itemId: string, barcodeId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/barcodes/${barcodeId}`);
   }
 
   // Packaging levels
 
   static async addPackagingLevel(
-    productId: string,
+    itemId: string,
     data: CreateSupplyPackagingLevelRequest
   ): Promise<SupplyPackagingLevel> {
     const response = await httpClient.postData(
-      `${this.BASE_PATH}/${productId}/packaging-levels`,
+      `${this.BASE_PATH}/${itemId}/packaging-levels`,
       data,
       supplyPackagingLevelResponseSchema
     );
@@ -236,38 +236,38 @@ export class SupplyService {
   }
 
   static async updatePackagingLevel(
-    productId: string,
+    itemId: string,
     levelId: string,
     quantity: number
   ): Promise<void> {
     await httpClient.putData(
-      `${this.BASE_PATH}/${productId}/packaging-levels/${levelId}`,
+      `${this.BASE_PATH}/${itemId}/packaging-levels/${levelId}`,
       { quantity },
       messageResponseSchema
     );
   }
 
-  static async regenerateInternalBarcode(productId: string): Promise<SupplyBarcode> {
+  static async regenerateInternalBarcode(itemId: string): Promise<SupplyBarcode> {
     const response = await httpClient.postData(
-      `${this.BASE_PATH}/${productId}/barcodes/regenerate-internal`,
+      `${this.BASE_PATH}/${itemId}/barcodes/regenerate-internal`,
       {},
       supplyBarcodeResponseSchema
     );
     return response.barcode;
   }
 
-  static async removePackagingLevel(productId: string, levelId: string): Promise<void> {
-    await httpClient.deleteData(`${this.BASE_PATH}/${productId}/packaging-levels/${levelId}`);
+  static async removePackagingLevel(itemId: string, levelId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/packaging-levels/${levelId}`);
   }
 
-  /** Skips Zod validation — server may return null product for unresolved barcodes */
-  static async resolveBarcode(value: string): Promise<SupplyProduct | null> {
+  /** Skips Zod validation — server may return null item for unresolved barcodes */
+  static async resolveBarcode(value: string): Promise<SupplyItem | null> {
     const response = await httpClient.get(
       `${this.BASE_PATH}/barcodes/resolve?value=${encodeURIComponent(value)}`,
       { 'Cache-Control': 'no-cache' }
     );
-    const data = response.data as { success: boolean; data: { product: SupplyProduct | null } };
-    return data.data.product;
+    const data = response.data as { success: boolean; data: { item: SupplyItem | null } };
+    return data.data.item;
   }
 
   // Stock operations
@@ -290,9 +290,9 @@ export class SupplyService {
     return response.transaction;
   }
 
-  static async getTransactionHistory(productId: string): Promise<SupplyTransaction[]> {
+  static async getTransactionHistory(itemId: string): Promise<SupplyTransaction[]> {
     const response = await httpClient.getData(
-      `${this.BASE_PATH}/${productId}/transactions`,
+      `${this.BASE_PATH}/${itemId}/transactions`,
       supplyTransactionListResponseSchema
     );
     return response.transactions;
@@ -328,20 +328,20 @@ export class SupplyService {
   }
 
   static async bulkReassignCategory(
-    productIds: string[],
+    itemIds: string[],
     categoryId: string
   ): Promise<SupplyBulkResponse> {
     return await httpClient.postData(
       `${this.BASE_PATH}/bulk/reassign-category`,
-      { productIds, categoryId },
+      { itemIds, categoryId },
       supplyBulkResponseSchema
     );
   }
 
-  static async bulkArchive(productIds: string[]): Promise<SupplyBulkResponse> {
+  static async bulkArchive(itemIds: string[]): Promise<SupplyBulkResponse> {
     return await httpClient.postData(
       `${this.BASE_PATH}/bulk/archive`,
-      { productIds },
+      { itemIds },
       supplyBulkResponseSchema
     );
   }
@@ -352,11 +352,11 @@ export class SupplyService {
 
   // Reorder list
 
-  static async getReorderList(): Promise<SupplyProductWithStock[]> {
+  static async getReorderList(): Promise<SupplyItemWithStock[]> {
     const response = await httpClient.getData(
       `${this.BASE_PATH}/reorder-list`,
       supplyReorderListResponseSchema
     );
-    return response.products;
+    return response.items;
   }
 }

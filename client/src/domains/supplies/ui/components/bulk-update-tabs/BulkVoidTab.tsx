@@ -1,7 +1,7 @@
 /**
  * Bulk Void Tab
  *
- * Select a product, view its transactions, check which to void, and submit with a shared reason.
+ * Select a item, view its transactions, check which to void, and submit with a shared reason.
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -20,7 +20,7 @@ import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
-import type { SupplyProductWithStock, SupplyTransaction } from '@odysseus/shared-schemas';
+import type { SupplyItemWithStock, SupplyTransaction } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
 
 const TYPE_ICONS: Record<string, typeof PackagePlus> = {
@@ -38,17 +38,17 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 interface BulkVoidTabProps {
-  products: SupplyProductWithStock[];
+  items: SupplyItemWithStock[];
   onComplete: () => void;
 }
 
-export function BulkVoidTab({ products, onComplete }: BulkVoidTabProps) {
-  const [selectedProductId, setSelectedProductId] = useState<string | undefined>();
+export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
+  const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
   const [selectedTxnIds, setSelectedTxnIds] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const { data: locations = [] } = useSupplyLocationsQuery();
-  const { data: allTransactions = [] } = useSupplyTransactionHistoryQuery(selectedProductId);
+  const { data: allTransactions = [] } = useSupplyTransactionHistoryQuery(selectedItemId);
   const bulkVoidMutation = useSupplyBulkVoidMutation();
 
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
@@ -59,18 +59,18 @@ export function BulkVoidTab({ products, onComplete }: BulkVoidTabProps) {
     [allTransactions]
   );
 
-  const selectedProduct = products.find(p => p.id === selectedProductId);
+  const selectedItem = items.find(p => p.id === selectedItemId);
 
-  const productOptions: AutocompleteOption[] = useMemo(
+  const itemOptions: AutocompleteOption[] = useMemo(
     () =>
-      products
+      items
         .filter(p => p.status === 'active')
         .map(p => ({
           value: p.id,
           label: p.name,
           secondary: [p.manufacturer, p.catalogNumber].filter(Boolean).join(' · '),
         })),
-    [products]
+    [items]
   );
 
   const toggleTransaction = useCallback((id: string) => {
@@ -82,24 +82,24 @@ export function BulkVoidTab({ products, onComplete }: BulkVoidTabProps) {
     });
   }, []);
 
-  const selectProduct = useCallback((productId: string) => {
-    setSelectedProductId(productId);
+  const selectItem = useCallback((itemId: string) => {
+    setSelectedItemId(itemId);
     setSelectedTxnIds(new Set());
   }, []);
 
-  const handleProductSelect = useCallback(
+  const handleItemSelect = useCallback(
     (option: AutocompleteOption) => {
-      selectProduct(String(option.value));
+      selectItem(String(option.value));
       setSearchValue('');
     },
-    [selectProduct]
+    [selectItem]
   );
 
-  const handleScanProduct = useCallback(
-    (productId: string) => {
-      selectProduct(productId);
+  const handleScanItem = useCallback(
+    (itemId: string) => {
+      selectItem(itemId);
     },
-    [selectProduct]
+    [selectItem]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -110,7 +110,7 @@ export function BulkVoidTab({ products, onComplete }: BulkVoidTabProps) {
         reason: reason.trim(),
       });
       notifyBulkResult(result, 'transactions');
-      setSelectedProductId(undefined);
+      setSelectedItemId(undefined);
       setSelectedTxnIds(new Set());
       setReason('');
       onComplete();
@@ -126,24 +126,24 @@ export function BulkVoidTab({ products, onComplete }: BulkVoidTabProps) {
           <div className="flex-1 relative">
             <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground z-10" />
             <Autocomplete
-              options={productOptions}
+              options={itemOptions}
               value={searchValue}
               onChange={setSearchValue}
-              onSelect={handleProductSelect}
-              placeholder="Search products..."
+              onSelect={handleItemSelect}
+              placeholder="Search items..."
               fullWidth
               inputClassName="input-search w-full pl-8"
             />
           </div>
           <div className="flex-1">
-            <SupplyBarcodeScanInput products={products} onProductFound={handleScanProduct} />
+            <SupplyBarcodeScanInput items={items} onItemFound={handleScanItem} />
           </div>
         </div>
-        {selectedProduct && (
+        {selectedItem && (
           <p className="text-xs text-muted-foreground">
             {eligibleTransactions.length} voidable transaction
             {eligibleTransactions.length !== 1 ? 's' : ''} for{' '}
-            <span className="font-medium text-card-foreground">{selectedProduct.name}</span>
+            <span className="font-medium text-card-foreground">{selectedItem.name}</span>
           </p>
         )}
       </div>
@@ -153,7 +153,7 @@ export function BulkVoidTab({ products, onComplete }: BulkVoidTabProps) {
           {eligibleTransactions.map((txn: SupplyTransaction) => {
             const Icon = TYPE_ICONS[txn.type] ?? PackagePlus;
             const unit = pluralizeUnit(
-              selectedProduct?.stockUnit ?? 'unit',
+              selectedItem?.stockUnit ?? 'unit',
               Math.abs(txn.quantityChange)
             );
             const qty =
@@ -183,7 +183,7 @@ export function BulkVoidTab({ products, onComplete }: BulkVoidTabProps) {
               </label>
             );
           })}
-          {selectedProductId && eligibleTransactions.length === 0 && (
+          {selectedItemId && eligibleTransactions.length === 0 && (
             <p className="text-xs text-muted-foreground italic text-center py-4">
               No voidable transactions
             </p>

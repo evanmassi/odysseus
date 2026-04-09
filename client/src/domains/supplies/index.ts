@@ -6,8 +6,8 @@
 
 export {
   useSupplyCategoriesQuery,
-  useSupplyProductsQuery,
-  useSupplyProductDetailQuery,
+  useSupplyItemsQuery,
+  useSupplyItemDetailQuery,
   useSupplyLocationsQuery,
   useSupplyReorderListQuery,
 } from './hooks';

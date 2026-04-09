@@ -1,7 +1,7 @@
 /**
  * Bulk Issue Tab
  *
- * Order-form style issuance with product search and packaging-aware per-row inputs.
+ * Order-form style issuance with item search and packaging-aware per-row inputs.
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -17,25 +17,25 @@ import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
-import { BulkProductRow } from './BulkProductRow';
+import { BulkItemRow } from './BulkItemRow';
 
-import type { SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface IssueRow {
-  productId: string;
-  productName: string;
+  itemId: string;
+  itemName: string;
   quantity: number;
   locationId: string;
 }
 
 interface BulkIssueTabProps {
-  products: SupplyProductWithStock[];
+  items: SupplyItemWithStock[];
   onComplete: () => void;
 }
 
-export function BulkIssueTab({ products, onComplete }: BulkIssueTabProps) {
+export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
   const [rows, setRows] = useState<IssueRow[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [lastLocationId, setLastLocationId] = useState('');
@@ -50,42 +50,39 @@ export function BulkIssueTab({ products, onComplete }: BulkIssueTabProps) {
     [locations]
   );
 
-  const productOptions: AutocompleteOption[] = useMemo(
+  const itemOptions: AutocompleteOption[] = useMemo(
     () =>
-      products
+      items
         .filter(p => p.status === 'active')
         .map(p => ({
           value: p.id,
           label: p.name,
           secondary: [p.manufacturer, p.catalogNumber].filter(Boolean).join(' · '),
         })),
-    [products]
+    [items]
   );
 
-  const addProduct = useCallback(
-    (productId: string, productName: string) => {
-      setRows(prev => [
-        ...prev,
-        { productId, productName, quantity: 0, locationId: lastLocationId },
-      ]);
+  const addItem = useCallback(
+    (itemId: string, itemName: string) => {
+      setRows(prev => [...prev, { itemId, itemName, quantity: 0, locationId: lastLocationId }]);
     },
     [lastLocationId]
   );
 
-  const handleAddProduct = useCallback(
+  const handleAddItem = useCallback(
     (option: AutocompleteOption) => {
-      addProduct(option.value, option.label);
+      addItem(option.value, option.label);
       setSearchValue('');
     },
-    [addProduct]
+    [addItem]
   );
 
-  const handleScanProduct = useCallback(
-    (productId: string) => {
-      const product = products.find(p => p.id === productId);
-      if (product) addProduct(product.id, product.name);
+  const handleScanItem = useCallback(
+    (itemId: string) => {
+      const item = items.find(p => p.id === itemId);
+      if (item) addItem(item.id, item.name);
     },
-    [products, addProduct]
+    [items, addItem]
   );
 
   const updateRow = useCallback((index: number, field: keyof IssueRow, value: string | number) => {
@@ -106,13 +103,13 @@ export function BulkIssueTab({ products, onComplete }: BulkIssueTabProps) {
   const handleSubmit = useCallback(async () => {
     const items = rows
       .filter(r => r.quantity > 0 && r.locationId)
-      .map(r => ({ productId: r.productId, locationId: r.locationId, quantity: r.quantity }));
+      .map(r => ({ itemId: r.itemId, locationId: r.locationId, quantity: r.quantity }));
 
     if (items.length === 0) return;
 
     try {
       const result = await bulkIssueMutation.mutateAsync({ items });
-      notifyBulkResult(result, 'products');
+      notifyBulkResult(result, 'items');
       setRows([]);
       onComplete();
     } catch {
@@ -128,17 +125,17 @@ export function BulkIssueTab({ products, onComplete }: BulkIssueTabProps) {
         <div className="flex-1 relative">
           <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground z-10" />
           <Autocomplete
-            options={productOptions}
+            options={itemOptions}
             value={searchValue}
             onChange={setSearchValue}
-            onSelect={handleAddProduct}
-            placeholder="Search products..."
+            onSelect={handleAddItem}
+            placeholder="Search items..."
             fullWidth
             inputClassName="input-search w-full pl-8"
           />
         </div>
         <div className="flex-1">
-          <SupplyBarcodeScanInput products={products} onProductFound={handleScanProduct} />
+          <SupplyBarcodeScanInput items={items} onItemFound={handleScanItem} />
         </div>
       </div>
 
@@ -146,15 +143,15 @@ export function BulkIssueTab({ products, onComplete }: BulkIssueTabProps) {
         <div className="px-4 space-y-2">
           {rows.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Search for products above to add them.
+              Search for items above to add them.
             </p>
           )}
 
           {rows.map((row, index) => (
-            <BulkProductRow
-              key={`${row.productId}-${index}`}
-              productId={row.productId}
-              productName={row.productName}
+            <BulkItemRow
+              key={`${row.itemId}-${index}`}
+              itemId={row.itemId}
+              itemName={row.itemName}
               locationId={row.locationId}
               locationOptions={locationOptions}
               onLocationChange={v => updateRow(index, 'locationId', v)}
@@ -167,7 +164,7 @@ export function BulkIssueTab({ products, onComplete }: BulkIssueTabProps) {
 
       <div className="flex items-center justify-between px-4 py-3 border-t border-border flex-shrink-0">
         <span className="text-xs text-muted-foreground">
-          {validRowCount} product{validRowCount !== 1 ? 's' : ''} to issue
+          {validRowCount} item{validRowCount !== 1 ? 's' : ''} to issue
         </span>
         <Button
           onClick={() => void handleSubmit()}

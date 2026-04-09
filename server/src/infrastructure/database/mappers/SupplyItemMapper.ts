@@ -1,16 +1,16 @@
 /**
- * Supply Product Mapper
+ * Supply Item Mapper
  *
- * Converts between SupplyProduct domain entities and PostgreSQL rows.
+ * Converts between SupplyItem domain entities and PostgreSQL rows.
  * Handles NUMERIC → number conversion for monetary/quantity fields and TEXT[] for properties.
  */
 
-import { SupplyProduct } from '@domain/entities/SupplyProduct';
+import { SupplyItem } from '@domain/entities/SupplyItem';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
-import type { SupplyProductStatus } from '@odysseus/shared-schemas';
+import type { SupplyItemStatus } from '@odysseus/shared-schemas';
 
-export interface SupplyProductRow {
+export interface SupplyItemRow {
   id: string;
   lab_id: string;
   category_id: string;
@@ -34,36 +34,36 @@ export interface SupplyProductRow {
   updated_at: Date | string;
 }
 
-export class SupplyProductMapper {
+export class SupplyItemMapper {
 
-  static toRow(product: SupplyProduct): SupplyProductRow {
+  static toRow(item: SupplyItem): SupplyItemRow {
     return {
-      id: product.id,
-      lab_id: product.labId,
-      category_id: product.categoryId,
-      name: product.name,
-      manufacturer: product.manufacturer ?? null,
-      catalog_number: product.catalogNumber ?? null,
-      vendor_name: product.vendorName ?? null,
-      vendor_catalog_number: product.vendorCatalogNumber ?? null,
-      stock_unit: product.stockUnit ?? null,
-      base_item_name: product.baseItemName ?? null,
-      reorder_threshold: product.reorderThreshold != null ? String(product.reorderThreshold) : null,
-      reorder_quantity: product.reorderQuantity != null ? String(product.reorderQuantity) : null,
-      reorder_unit: product.reorderUnit ?? null,
-      unit_price: product.unitPrice != null ? String(product.unitPrice) : null,
-      properties: product.properties,
-      current_lot_number: product.currentLotNumber ?? null,
-      description: product.description ?? null,
-      notes: product.notes ?? null,
-      status: product.status,
-      created_at: product.createdAt,
-      updated_at: product.updatedAt,
+      id: item.id,
+      lab_id: item.labId,
+      category_id: item.categoryId,
+      name: item.name,
+      manufacturer: item.manufacturer ?? null,
+      catalog_number: item.catalogNumber ?? null,
+      vendor_name: item.vendorName ?? null,
+      vendor_catalog_number: item.vendorCatalogNumber ?? null,
+      stock_unit: item.stockUnit ?? null,
+      base_item_name: item.baseItemName ?? null,
+      reorder_threshold: item.reorderThreshold != null ? String(item.reorderThreshold) : null,
+      reorder_quantity: item.reorderQuantity != null ? String(item.reorderQuantity) : null,
+      reorder_unit: item.reorderUnit ?? null,
+      unit_price: item.unitPrice != null ? String(item.unitPrice) : null,
+      properties: item.properties,
+      current_lot_number: item.currentLotNumber ?? null,
+      description: item.description ?? null,
+      notes: item.notes ?? null,
+      status: item.status,
+      created_at: item.createdAt,
+      updated_at: item.updatedAt,
     };
   }
 
-  static fromRow(row: SupplyProductRow): SupplyProduct {
-    return SupplyProduct.fromData({
+  static fromRow(row: SupplyItemRow): SupplyItem {
+    return SupplyItem.fromData({
       id: row.id,
       labId: row.lab_id,
       categoryId: row.category_id,
@@ -82,13 +82,13 @@ export class SupplyProductMapper {
       currentLotNumber: row.current_lot_number ?? undefined,
       description: row.description ?? undefined,
       notes: row.notes ?? undefined,
-      status: row.status as SupplyProductStatus,
+      status: row.status as SupplyItemStatus,
       createdAt: toISOString(row.created_at),
       updatedAt: toISOString(row.updated_at),
     });
   }
 
-  static fromRows(rows: SupplyProductRow[]): SupplyProduct[] {
+  static fromRows(rows: SupplyItemRow[]): SupplyItem[] {
     return rows.map(row => this.fromRow(row));
   }
 }

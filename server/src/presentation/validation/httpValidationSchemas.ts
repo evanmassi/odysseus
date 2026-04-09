@@ -34,8 +34,8 @@ import {
   updateSupplyCategoryRequestSchema,
   createSupplyLocationRequestSchema,
   updateSupplyLocationRequestSchema,
-  createSupplyProductRequestSchema,
-  updateSupplyProductRequestSchema,
+  createSupplyItemRequestSchema,
+  updateSupplyItemRequestSchema,
   createSupplyBarcodeRequestSchema,
   updateSupplyBarcodeRequestSchema,
   createSupplyDocumentRequestSchema,
@@ -207,8 +207,8 @@ export const CreateSupplyCategoryHttpSchema = createSupplyCategoryRequestSchema;
 export const UpdateSupplyCategoryHttpSchema = updateSupplyCategoryRequestSchema;
 export const CreateSupplyLocationHttpSchema = createSupplyLocationRequestSchema;
 export const UpdateSupplyLocationHttpSchema = updateSupplyLocationRequestSchema;
-export const CreateSupplyProductHttpSchema = createSupplyProductRequestSchema;
-export const UpdateSupplyProductHttpSchema = updateSupplyProductRequestSchema;
+export const CreateSupplyItemHttpSchema = createSupplyItemRequestSchema;
+export const UpdateSupplyItemHttpSchema = updateSupplyItemRequestSchema;
 export const CreateSupplyBarcodeHttpSchema = createSupplyBarcodeRequestSchema;
 export const UpdateSupplyBarcodeHttpSchema = updateSupplyBarcodeRequestSchema;
 export const CreateSupplyDocumentHttpSchema = createSupplyDocumentRequestSchema;

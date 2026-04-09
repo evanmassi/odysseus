@@ -11,7 +11,7 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import { PackagePlus, PackageMinus, ClipboardCheck, ClipboardList, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
-import { useSupplyProductDetailQuery, useSupplyLocationsQuery } from '@domains/supplies/hooks';
+import { useSupplyItemDetailQuery, useSupplyLocationsQuery } from '@domains/supplies/hooks';
 import {
   useRecordSupplyTransactionMutation,
   useRecordSupplyStockCountMutation,
@@ -45,8 +45,8 @@ export interface TransactionPrefill {
 }
 
 interface SupplyTransactionFormProps {
-  productId: string;
-  productName: string;
+  itemId: string;
+  itemName: string;
   manufacturer?: string;
   catalogNumber?: string;
   initialTab?: TransactionMode;
@@ -56,8 +56,8 @@ interface SupplyTransactionFormProps {
 }
 
 export function SupplyTransactionForm({
-  productId,
-  productName,
+  itemId,
+  itemName,
   manufacturer,
   catalogNumber,
   initialTab,
@@ -65,7 +65,7 @@ export function SupplyTransactionForm({
   onSubmit,
   onCancel,
 }: SupplyTransactionFormProps) {
-  const { data: detail } = useSupplyProductDetailQuery(productId);
+  const { data: detail } = useSupplyItemDetailQuery(itemId);
   const { data: locations = [] } = useSupplyLocationsQuery();
   const recordTransactionMutation = useRecordSupplyTransactionMutation();
   const recordStockCountMutation = useRecordSupplyStockCountMutation();
@@ -80,7 +80,7 @@ export function SupplyTransactionForm({
 
   const packagingLevels = useMemo(() => detail?.packagingLevels ?? [], [detail?.packagingLevels]);
   const hasPackaging = packagingLevels.length > 0;
-  const stockUnit = detail?.product.stockUnit ?? '';
+  const stockUnit = detail?.item.stockUnit ?? '';
   const stockUnitSingular = stockUnit || 'unit';
   const stockUnitLabel = pluralizeUnit(stockUnitSingular, 2);
 
@@ -145,7 +145,7 @@ export function SupplyTransactionForm({
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
-      productId,
+      itemId,
       locationId: prefill?.locationId ?? '',
       type: (initialTab ?? 'received') as string,
       quantity: prefill?.quantity as number | undefined,
@@ -192,7 +192,7 @@ export function SupplyTransactionForm({
     try {
       if (mode === 'count') {
         await recordStockCountMutation.mutateAsync({
-          productId,
+          itemId,
           locationId: data['locationId'] as string,
           actualCount: quantity,
           lotNumber: (data['lotNumber'] as string) || undefined,
@@ -201,7 +201,7 @@ export function SupplyTransactionForm({
         });
       } else {
         await recordTransactionMutation.mutateAsync({
-          productId,
+          itemId,
           locationId: data['locationId'] as string,
           type: data['type'] as 'received' | 'issued' | 'disposed',
           quantity,
@@ -231,7 +231,7 @@ export function SupplyTransactionForm({
   const handleModeChange = (newMode: string) => {
     setQtyByLevel({});
     reset({
-      productId,
+      itemId,
       locationId: '',
       type: newMode,
       quantity: undefined,
@@ -255,7 +255,7 @@ export function SupplyTransactionForm({
           <ClipboardList size={14} className="text-secondary-foreground" />
           Record Transaction
         </h3>
-        <p className="text-sm font-semibold text-card-foreground">{productName}</p>
+        <p className="text-sm font-semibold text-card-foreground">{itemName}</p>
         {(manufacturer ?? catalogNumber) && (
           <p className="text-xs text-muted-foreground truncate">
             {[manufacturer, catalogNumber].filter(Boolean).join(' · ')}
@@ -291,7 +291,7 @@ export function SupplyTransactionForm({
           onSubmit={handleSubmit(onFormSubmit)}
           className="px-4 pb-4 space-y-3"
         >
-          <input type="hidden" {...register('productId')} />
+          <input type="hidden" {...register('itemId')} />
           <input type="hidden" {...register('type')} />
 
           {hasPackaging ? (
@@ -319,7 +319,7 @@ export function SupplyTransactionForm({
                     <span className="text-xs text-muted-foreground/50">
                       ({level.quantity}{' '}
                       {pluralizeUnit(
-                        level.parentUnit ?? detail?.product.baseItemName ?? 'item',
+                        level.parentUnit ?? detail?.item.baseItemName ?? 'item',
                         level.quantity
                       )}{' '}
                       each)

@@ -43,7 +43,7 @@ interface SupplyTransactionTimelineProps {
   transactions: SupplyTransaction[];
   stockUnit?: string;
   onVoidAndReplace?: (
-    productId: string,
+    itemId: string,
     initialTab: 'received' | 'issued' | 'count' | 'disposed',
     prefill: TransactionPrefill
   ) => void;

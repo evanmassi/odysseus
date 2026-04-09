@@ -1,7 +1,7 @@
 /**
- * Supply Product Row
+ * Supply Item Row
  *
- * Single-line row for a supply product with stock level indicator,
+ * Single-line row for a supply item with stock level indicator,
  * category info, and key identifying details.
  */
 
@@ -12,10 +12,10 @@ import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
-import type { SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 
-interface SupplyProductRowProps {
-  product: SupplyProductWithStock;
+interface SupplyItemRowProps {
+  item: SupplyItemWithStock;
   isSelected: boolean;
   onSelect: (id: string) => void;
 }
@@ -39,12 +39,12 @@ const STATUS_CHIP: Record<
   archived: { color: 'danger', label: 'Archived' },
 };
 
-export function SupplyProductRow({ product, isSelected, onSelect }: SupplyProductRowProps) {
-  const isArchived = product.status === 'archived';
-  const stockColor = getStockChipColor(product.totalStock, product.reorderThreshold);
-  const detailParts = [product.manufacturer, product.catalogNumber].filter(Boolean);
-  const statusInfo = STATUS_CHIP[product.status];
-  const { ref: nameRef, isTruncated } = useTextTruncation<HTMLSpanElement>([product.name]);
+export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps) {
+  const isArchived = item.status === 'archived';
+  const stockColor = getStockChipColor(item.totalStock, item.reorderThreshold);
+  const detailParts = [item.manufacturer, item.catalogNumber].filter(Boolean);
+  const statusInfo = STATUS_CHIP[item.status];
+  const { ref: nameRef, isTruncated } = useTextTruncation<HTMLSpanElement>([item.name]);
 
   return (
     <div
@@ -55,21 +55,21 @@ export function SupplyProductRow({ product, isSelected, onSelect }: SupplyProduc
             ? 'bg-card border border-border opacity-50 hover:opacity-65'
             : 'bg-card border border-border hover:bg-accent/50'
       }`}
-      onClick={() => onSelect(product.id)}
+      onClick={() => onSelect(item.id)}
       onKeyDown={e => {
-        if (e.key === 'Enter') onSelect(product.id);
+        if (e.key === 'Enter') onSelect(item.id);
       }}
       role="button"
       tabIndex={0}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1 min-w-0 truncate">
-          <Tooltip content={product.name} side="top" disabled={!isTruncated}>
+          <Tooltip content={item.name} side="top" disabled={!isTruncated}>
             <span ref={nameRef} className="text-sm font-semibold text-card-foreground truncate">
-              {product.name}
+              {item.name}
             </span>
           </Tooltip>
-          {product.status !== 'active' && statusInfo && (
+          {item.status !== 'active' && statusInfo && (
             <Chip
               color={statusInfo.color}
               size="sm"
@@ -80,14 +80,14 @@ export function SupplyProductRow({ product, isSelected, onSelect }: SupplyProduc
           )}
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {product.locationNames.map(name => (
+          {item.locationNames.map(name => (
             <Chip key={name} color="info" size="sm" leftIcon={<MapPin />}>
               {name}
             </Chip>
           ))}
           <Chip color={stockColor} size="sm">
-            {product.totalStock}{' '}
-            {product.stockUnit ? pluralizeUnit(product.stockUnit, product.totalStock) : 'in stock'}
+            {item.totalStock}{' '}
+            {item.stockUnit ? pluralizeUnit(item.stockUnit, item.totalStock) : 'in stock'}
           </Chip>
         </div>
       </div>

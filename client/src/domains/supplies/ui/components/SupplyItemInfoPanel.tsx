@@ -1,7 +1,7 @@
 /**
- * Supply Product Info Panel
+ * Supply Item Info Panel
  *
- * Read-only detail display for a selected supply product with stock levels,
+ * Read-only detail display for a selected supply item with stock levels,
  * barcodes, documents, and admin action buttons.
  */
 
@@ -20,10 +20,10 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useSupplyProductDetailQuery, useSupplyLocationsQuery } from '@domains/supplies/hooks';
+import { useSupplyItemDetailQuery, useSupplyLocationsQuery } from '@domains/supplies/hooks';
 import {
-  useDeleteSupplyProductMutation,
-  useArchiveSupplyProductMutation,
+  useDeleteSupplyItemMutation,
+  useArchiveSupplyItemMutation,
   useRemoveSupplyDocumentMutation,
   useUpdateSupplyDocumentMutation,
   useRemoveSupplyBarcodeMutation,
@@ -60,12 +60,12 @@ const BARCODE_TYPE_LABELS: Record<string, string> = {
   upc: 'UPC',
 };
 
-interface SupplyProductInfoPanelProps {
-  productId: string;
+interface SupplyItemInfoPanelProps {
+  itemId: string;
   onEdit: () => void;
   onRecordTransaction: () => void;
   onVoidAndReplace: (
-    productId: string,
+    itemId: string,
     initialTab: 'received' | 'issued' | 'count' | 'disposed',
     prefill: TransactionPrefill
   ) => void;
@@ -73,14 +73,14 @@ interface SupplyProductInfoPanelProps {
   categoryName?: string;
 }
 
-export function SupplyProductInfoPanel({
-  productId,
+export function SupplyItemInfoPanel({
+  itemId,
   onEdit,
   onRecordTransaction,
   onVoidAndReplace,
   onDeleted,
   categoryName,
-}: SupplyProductInfoPanelProps) {
+}: SupplyItemInfoPanelProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
   const scrollRef = useRef<OverlayScrollbarsComponentRef>(null);
@@ -88,13 +88,13 @@ export function SupplyProductInfoPanel({
   useEffect(() => {
     const el = scrollRef.current?.getElement();
     if (el) el.scrollTop = 0;
-  }, [productId]);
+  }, [itemId]);
 
-  const { data: detail } = useSupplyProductDetailQuery(productId);
+  const { data: detail } = useSupplyItemDetailQuery(itemId);
   const { data: locations = [] } = useSupplyLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
-  const deleteProductMutation = useDeleteSupplyProductMutation();
-  const archiveProductMutation = useArchiveSupplyProductMutation();
+  const deleteItemMutation = useDeleteSupplyItemMutation();
+  const archiveItemMutation = useArchiveSupplyItemMutation();
   const removeDocumentMutation = useRemoveSupplyDocumentMutation();
   const updateDocumentMutation = useUpdateSupplyDocumentMutation();
   const removeBarcodeMutation = useRemoveSupplyBarcodeMutation();
@@ -116,35 +116,35 @@ export function SupplyProductInfoPanel({
     );
   }
 
-  const { product, documents, barcodes, stock } = detail;
-  const statusConfig = STATUS_LABELS[product.status] ?? STATUS_LABELS['active'];
-  const isArchived = product.status === 'archived';
+  const { item, documents, barcodes, stock } = detail;
+  const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['active'];
+  const isArchived = item.status === 'archived';
   const totalStock = stock.reduce((sum, s) => sum + s.quantity, 0);
 
   const handleDelete = async () => {
     try {
-      await deleteProductMutation.mutateAsync(productId);
-      notifications.success('Product removed');
+      await deleteItemMutation.mutateAsync(itemId);
+      notifications.success('Item removed');
       onDeleted();
     } catch {
-      notifications.error('Failed to remove product');
+      notifications.error('Failed to remove item');
     }
     setShowDeleteConfirm(false);
   };
 
   const handleArchive = async () => {
     try {
-      await archiveProductMutation.mutateAsync(productId);
-      notifications.success('Product archived');
+      await archiveItemMutation.mutateAsync(itemId);
+      notifications.success('Item archived');
       onDeleted();
     } catch {
-      notifications.error('Failed to archive product');
+      notifications.error('Failed to archive item');
     }
   };
 
   const handleRemoveDocument = async (docId: string) => {
     try {
-      await removeDocumentMutation.mutateAsync({ productId, docId });
+      await removeDocumentMutation.mutateAsync({ itemId, docId });
       notifications.success('Document removed');
     } catch {
       notifications.error('Failed to remove document');
@@ -155,7 +155,7 @@ export function SupplyProductInfoPanel({
     if (!editingDocLabel.trim() || !editingDocUrl.trim()) return;
     try {
       await updateDocumentMutation.mutateAsync({
-        productId,
+        itemId,
         docId,
         data: {
           label: editingDocLabel.trim(),
@@ -171,7 +171,7 @@ export function SupplyProductInfoPanel({
 
   const handleRemoveBarcode = async (barcodeId: string) => {
     try {
-      await removeBarcodeMutation.mutateAsync({ productId, barcodeId });
+      await removeBarcodeMutation.mutateAsync({ itemId, barcodeId });
       notifications.success('Barcode removed');
     } catch {
       notifications.error('Failed to remove barcode');
@@ -181,7 +181,7 @@ export function SupplyProductInfoPanel({
   const handleSaveBarcodeLabel = async (barcodeId: string) => {
     try {
       await updateBarcodeMutation.mutateAsync({
-        productId,
+        itemId,
         barcodeId,
         data: { label: editingLabel.trim() || null },
       });
@@ -196,7 +196,7 @@ export function SupplyProductInfoPanel({
       <div className="px-4 pt-4 pb-2 flex-shrink-0">
         <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
           <Package size={16} className="text-secondary-foreground" />
-          Product Information
+          Item Information
         </h4>
       </div>
 
@@ -242,7 +242,7 @@ export function SupplyProductInfoPanel({
               ]}
               dividerBefore={['Remove']}
               size="sm"
-              aria-label="More product actions"
+              aria-label="More item actions"
             />
           </div>
         )}
@@ -267,17 +267,17 @@ export function SupplyProductInfoPanel({
 
       <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
         <div className="px-4 pb-4 space-y-5">
-          {/* Product name + status + properties */}
+          {/* Item name + status + properties */}
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="text-card-foreground font-semibold text-sm">{product.name}</span>
+              <span className="text-card-foreground font-semibold text-sm">{item.name}</span>
               <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
                 {statusConfig.label}
               </Chip>
             </div>
-            {product.properties.length > 0 && (
+            {item.properties.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {product.properties.map(prop => (
+                {item.properties.map(prop => (
                   <Chip key={prop} color="default" size="sm">
                     {prop}
                   </Chip>
@@ -286,19 +286,15 @@ export function SupplyProductInfoPanel({
             )}
           </div>
 
-          {/* Product details */}
-          <InfoGroup title="Product Details">
+          {/* Item details */}
+          <InfoGroup title="Item Details">
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <InfoField label="Manufacturer" value={product.manufacturer} inline={false} />
-              <InfoField label="Catalog #" value={product.catalogNumber} inline={false} />
-              <InfoField label="Vendor" value={product.vendorName} inline={false} />
-              <InfoField
-                label="Vendor Catalog #"
-                value={product.vendorCatalogNumber}
-                inline={false}
-              />
-              <InfoField label="Stock Unit" value={product.stockUnit} inline={false} />
-              <InfoField label="Item" value={product.baseItemName} inline={false} />
+              <InfoField label="Manufacturer" value={item.manufacturer} inline={false} />
+              <InfoField label="Catalog #" value={item.catalogNumber} inline={false} />
+              <InfoField label="Vendor" value={item.vendorName} inline={false} />
+              <InfoField label="Vendor Catalog #" value={item.vendorCatalogNumber} inline={false} />
+              <InfoField label="Stock Unit" value={item.stockUnit} inline={false} />
+              <InfoField label="Item" value={item.baseItemName} inline={false} />
             </div>
           </InfoGroup>
 
@@ -321,7 +317,7 @@ export function SupplyProductInfoPanel({
                     }
                   }
                   return ordered.map((level, i) => {
-                    const parentName = level.parentUnit ?? product.baseItemName ?? 'item';
+                    const parentName = level.parentUnit ?? item.baseItemName ?? 'item';
                     return (
                       <span key={level.id}>
                         {i > 0 && <span className="text-muted-foreground/40 mx-1.5">·</span>}
@@ -345,14 +341,14 @@ export function SupplyProductInfoPanel({
                       {locationNameMap.get(s.locationId) ?? s.locationId}
                     </span>
                     <span className="font-medium">
-                      {s.quantity} {pluralizeUnit(product.stockUnit ?? 'unit', s.quantity)}
+                      {s.quantity} {pluralizeUnit(item.stockUnit ?? 'unit', s.quantity)}
                     </span>
                   </div>
                 ))}
                 <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border">
                   <span>Total</span>
                   <span>
-                    {totalStock} {pluralizeUnit(product.stockUnit ?? 'unit', totalStock)}
+                    {totalStock} {pluralizeUnit(item.stockUnit ?? 'unit', totalStock)}
                   </span>
                 </div>
               </div>
@@ -362,8 +358,8 @@ export function SupplyProductInfoPanel({
           </InfoGroup>
 
           {/* Current lot number */}
-          {product.currentLotNumber && (
-            <InfoField label="Current Lot #" value={product.currentLotNumber} inline={false} />
+          {item.currentLotNumber && (
+            <InfoField label="Current Lot #" value={item.currentLotNumber} inline={false} />
           )}
 
           {/* Barcodes */}
@@ -423,9 +419,7 @@ export function SupplyProductInfoPanel({
                                   variant="ghost"
                                   size="xs"
                                   iconOnly
-                                  onClick={() =>
-                                    void regenerateBarcodeMutation.mutateAsync(productId)
-                                  }
+                                  onClick={() => void regenerateBarcodeMutation.mutateAsync(itemId)}
                                   isLoading={regenerateBarcodeMutation.isPending}
                                 >
                                   <RefreshCw className="w-3 h-3" />
@@ -467,7 +461,7 @@ export function SupplyProductInfoPanel({
             )}
             {isAdmin && (
               <div className="mt-2">
-                <SupplyBarcodeForm productId={productId} onAdded={() => {}} />
+                <SupplyBarcodeForm itemId={itemId} onAdded={() => {}} />
               </div>
             )}
           </InfoGroup>
@@ -571,22 +565,20 @@ export function SupplyProductInfoPanel({
             ) : (
               <p className="text-xs text-muted-foreground italic">No documents</p>
             )}
-            {isAdmin && <SupplyDocumentForm productId={productId} onAdded={() => {}} />}
+            {isAdmin && <SupplyDocumentForm itemId={itemId} onAdded={() => {}} />}
           </InfoGroup>
 
           {/* Description */}
-          {product.description && (
+          {item.description && (
             <InfoGroup title="Description">
-              <p className="text-sm text-card-foreground whitespace-pre-wrap">
-                {product.description}
-              </p>
+              <p className="text-sm text-card-foreground whitespace-pre-wrap">{item.description}</p>
             </InfoGroup>
           )}
 
           {/* Notes */}
-          {product.notes && (
+          {item.notes && (
             <InfoGroup title="Notes">
-              <p className="text-sm text-card-foreground whitespace-pre-wrap">{product.notes}</p>
+              <p className="text-sm text-card-foreground whitespace-pre-wrap">{item.notes}</p>
             </InfoGroup>
           )}
 
@@ -595,12 +587,12 @@ export function SupplyProductInfoPanel({
             <div className="grid grid-cols-4 gap-x-3">
               <InfoField
                 label="Threshold"
-                value={product.reorderThreshold?.toString()}
+                value={item.reorderThreshold?.toString()}
                 inline={false}
               />
-              <InfoField label="Qty" value={product.reorderQuantity?.toString()} inline={false} />
-              <InfoField label="Unit" value={product.reorderUnit} inline={false} />
-              <InfoField label="Price" value={formatCurrency(product.unitPrice)} inline={false} />
+              <InfoField label="Qty" value={item.reorderQuantity?.toString()} inline={false} />
+              <InfoField label="Unit" value={item.reorderUnit} inline={false} />
+              <InfoField label="Price" value={formatCurrency(item.unitPrice)} inline={false} />
             </div>
           </InfoGroup>
 
@@ -608,7 +600,7 @@ export function SupplyProductInfoPanel({
           <InfoGroup title="Recent Transactions">
             <SupplyTransactionTimeline
               transactions={detail.recentTransactions}
-              stockUnit={product.stockUnit}
+              stockUnit={item.stockUnit}
               onVoidAndReplace={onVoidAndReplace}
             />
           </InfoGroup>
@@ -618,8 +610,8 @@ export function SupplyProductInfoPanel({
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         variant="danger"
-        title="Remove Product"
-        message={`Are you sure you want to remove "${product.name}"? This will also remove all documents, barcodes, and stock entries. This action cannot be undone.`}
+        title="Remove Item"
+        message={`Are you sure you want to remove "${item.name}"? This will also remove all documents, barcodes, and stock entries. This action cannot be undone.`}
         confirmText="Remove"
         onConfirm={() => void handleDelete()}
         onCancel={() => setShowDeleteConfirm(false)}

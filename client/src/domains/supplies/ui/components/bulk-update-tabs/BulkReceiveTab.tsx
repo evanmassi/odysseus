@@ -1,7 +1,7 @@
 /**
  * Bulk Receive Tab
  *
- * Order-form style receive with product search and packaging-aware per-row inputs.
+ * Order-form style receive with item search and packaging-aware per-row inputs.
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -17,15 +17,15 @@ import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
-import { BulkProductRow } from './BulkProductRow';
+import { BulkItemRow } from './BulkItemRow';
 
-import type { SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface ReceiveRow {
-  productId: string;
-  productName: string;
+  itemId: string;
+  itemName: string;
   quantity: number;
   locationId: string;
   lotNumber: string;
@@ -34,11 +34,11 @@ interface ReceiveRow {
 }
 
 interface BulkReceiveTabProps {
-  products: SupplyProductWithStock[];
+  items: SupplyItemWithStock[];
   onComplete: () => void;
 }
 
-export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
+export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
   const [rows, setRows] = useState<ReceiveRow[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [lastLocationId, setLastLocationId] = useState('');
@@ -53,25 +53,25 @@ export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
     [locations]
   );
 
-  const productOptions: AutocompleteOption[] = useMemo(
+  const itemOptions: AutocompleteOption[] = useMemo(
     () =>
-      products
+      items
         .filter(p => p.status === 'active')
         .map(p => ({
           value: p.id,
           label: p.name,
           secondary: [p.manufacturer, p.catalogNumber].filter(Boolean).join(' · '),
         })),
-    [products]
+    [items]
   );
 
-  const addProduct = useCallback(
-    (productId: string, productName: string) => {
+  const addItem = useCallback(
+    (itemId: string, itemName: string) => {
       setRows(prev => [
         ...prev,
         {
-          productId,
-          productName,
+          itemId,
+          itemName,
           quantity: 0,
           locationId: lastLocationId,
           lotNumber: '',
@@ -83,20 +83,20 @@ export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
     [lastLocationId]
   );
 
-  const handleAddProduct = useCallback(
+  const handleAddItem = useCallback(
     (option: AutocompleteOption) => {
-      addProduct(option.value, option.label);
+      addItem(option.value, option.label);
       setSearchValue('');
     },
-    [addProduct]
+    [addItem]
   );
 
-  const handleScanProduct = useCallback(
-    (productId: string) => {
-      const product = products.find(p => p.id === productId);
-      if (product) addProduct(product.id, product.name);
+  const handleScanItem = useCallback(
+    (itemId: string) => {
+      const item = items.find(p => p.id === itemId);
+      if (item) addItem(item.id, item.name);
     },
-    [products, addProduct]
+    [items, addItem]
   );
 
   const updateRow = useCallback(
@@ -121,7 +121,7 @@ export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
     const items = rows
       .filter(r => r.quantity > 0 && r.locationId)
       .map(r => ({
-        productId: r.productId,
+        itemId: r.itemId,
         locationId: r.locationId,
         quantity: r.quantity,
         lotNumber: r.lotNumber || undefined,
@@ -133,7 +133,7 @@ export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
 
     try {
       const result = await bulkReceiveMutation.mutateAsync({ items });
-      notifyBulkResult(result, 'products');
+      notifyBulkResult(result, 'items');
       setRows([]);
       onComplete();
     } catch {
@@ -149,17 +149,17 @@ export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
         <div className="flex-1 relative">
           <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground z-10" />
           <Autocomplete
-            options={productOptions}
+            options={itemOptions}
             value={searchValue}
             onChange={setSearchValue}
-            onSelect={handleAddProduct}
-            placeholder="Search products..."
+            onSelect={handleAddItem}
+            placeholder="Search items..."
             fullWidth
             inputClassName="input-search w-full pl-8"
           />
         </div>
         <div className="flex-1">
-          <SupplyBarcodeScanInput products={products} onProductFound={handleScanProduct} />
+          <SupplyBarcodeScanInput items={items} onItemFound={handleScanItem} />
         </div>
       </div>
 
@@ -167,15 +167,15 @@ export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
         <div className="px-4 space-y-2">
           {rows.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Search for products above to add them to this receive order.
+              Search for items above to add them to this receive order.
             </p>
           )}
 
           {rows.map((row, index) => (
-            <BulkProductRow
-              key={`${row.productId}-${index}`}
-              productId={row.productId}
-              productName={row.productName}
+            <BulkItemRow
+              key={`${row.itemId}-${index}`}
+              itemId={row.itemId}
+              itemName={row.itemName}
               locationId={row.locationId}
               locationOptions={locationOptions}
               onLocationChange={v => updateRow(index, 'locationId', v)}
@@ -214,14 +214,14 @@ export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
                   />
                 </div>
               </div>
-            </BulkProductRow>
+            </BulkItemRow>
           ))}
         </div>
       </ScrollArea>
 
       <div className="flex items-center justify-between px-4 py-3 border-t border-border flex-shrink-0">
         <span className="text-xs text-muted-foreground">
-          {validRowCount} product{validRowCount !== 1 ? 's' : ''} to receive
+          {validRowCount} item{validRowCount !== 1 ? 's' : ''} to receive
         </span>
         <Button
           onClick={() => void handleSubmit()}

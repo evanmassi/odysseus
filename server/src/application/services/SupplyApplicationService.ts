@@ -1,7 +1,7 @@
 /**
  * Supply Application Service
  *
- * Orchestrates all supply business logic: product CRUD with barcode auto-generation,
+ * Orchestrates all supply business logic: item CRUD with barcode auto-generation,
  * stock operations, category/location/document management, and bulk operations.
  */
 
@@ -11,9 +11,9 @@ import type { EventBus } from '@application/contracts/EventBus';
 import {
   SupplyDto,
   type SupplyCategoryResponse,
-  type SupplyProductResponse,
-  type SupplyProductWithStockResponse,
-  type SupplyProductDetailResponse,
+  type SupplyItemResponse,
+  type SupplyItemWithStockResponse,
+  type SupplyItemDetailResponse,
   type SupplyLocationResponse,
   type SupplyDocumentResponse,
   type SupplyBarcodeResponse,
@@ -23,15 +23,15 @@ import {
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import { SupplyLocation } from '@domain/entities/SupplyLocation';
-import { SupplyProduct } from '@domain/entities/SupplyProduct';
+import { SupplyItem } from '@domain/entities/SupplyItem';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
-  SupplyProductCreatedEvent,
-  SupplyProductUpdatedEvent,
-  SupplyProductArchivedEvent,
-  SupplyProductDeletedEvent,
+  SupplyItemCreatedEvent,
+  SupplyItemUpdatedEvent,
+  SupplyItemArchivedEvent,
+  SupplyItemDeletedEvent,
   SupplyCategoryCreatedEvent,
   SupplyCategoryUpdatedEvent,
   SupplyCategoryDeletedEvent,
@@ -51,7 +51,7 @@ import {
 } from '@domain/events/SupplyEvents';
 import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
 import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
-import type { SupplyProductRepository, SupplyBarcodeRow } from '@domain/repositories/SupplyProductRepository';
+import type { SupplyItemRepository, SupplyBarcodeRow } from '@domain/repositories/SupplyItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
@@ -62,8 +62,8 @@ import type {
   UpdateSupplyCategoryRequest,
   CreateSupplyLocationRequest,
   UpdateSupplyLocationRequest,
-  CreateSupplyProductRequest,
-  UpdateSupplyProductRequest,
+  CreateSupplyItemRequest,
+  UpdateSupplyItemRequest,
   CreateSupplyBarcodeRequest,
   UpdateSupplyBarcodeRequest,
   CreateSupplyDocumentRequest,
@@ -85,7 +85,7 @@ interface BulkResult {
 export class SupplyApplicationService {
   constructor(
     private categoryRepository: SupplyCategoryRepository,
-    private productRepository: SupplyProductRepository,
+    private itemRepository: SupplyItemRepository,
     private locationRepository: SupplyLocationRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
@@ -126,8 +126,8 @@ export class SupplyApplicationService {
     await this.accessControlService.requireAdminAccess(user);
     const category = await this.getCategoryOrThrow(id, labId);
 
-    const hasProducts = await this.categoryRepository.hasProductsIncludingChildren(id, labId);
-    if (hasProducts) throw new ValidationError('Cannot delete category — supply products are still assigned to it or its subcategories');
+    const hasItems = await this.categoryRepository.hasItemsIncludingChildren(id, labId);
+    if (hasItems) throw new ValidationError('Cannot delete category — supply items are still assigned to it or its subcategories');
 
     const hasChildren = await this.categoryRepository.hasChildren(id, labId);
     if (hasChildren) {
@@ -172,213 +172,213 @@ export class SupplyApplicationService {
     await this.locationRepository.delete(id, labId);
   }
 
-  // Products
+  // Items
 
-  async listProducts(labId: string): Promise<SupplyProductWithStockResponse[]> {
-    const productsWithStock = await this.productRepository.findByLabIdWithStock(labId);
-    return productsWithStock.map(({ product, totalStock, locationNames }) => SupplyDto.productWithStockToResponse(product, totalStock, locationNames));
+  async listItems(labId: string): Promise<SupplyItemWithStockResponse[]> {
+    const itemsWithStock = await this.itemRepository.findByLabIdWithStock(labId);
+    return itemsWithStock.map(({ item, totalStock, locationNames }) => SupplyDto.itemWithStockToResponse(item, totalStock, locationNames));
   }
 
-  async getProduct(labId: string, id: string): Promise<SupplyProductDetailResponse> {
-    const product = await this.getProductOrThrow(id, labId);
+  async getItem(labId: string, id: string): Promise<SupplyItemDetailResponse> {
+    const item = await this.getItemOrThrow(id, labId);
     const [documents, barcodes, stock, recentTransactions, packagingLevels] = await Promise.all([
-      this.productRepository.findDocumentsByProductId(id),
-      this.productRepository.findBarcodesByProductId(id),
-      this.productRepository.findStockByProductId(id),
-      this.productRepository.findTransactionsByProductId(id, 50),
-      this.productRepository.findPackagingLevelsByProductId(id),
+      this.itemRepository.findDocumentsByItemId(id),
+      this.itemRepository.findBarcodesByItemId(id),
+      this.itemRepository.findStockByItemId(id),
+      this.itemRepository.findTransactionsByItemId(id, 50),
+      this.itemRepository.findPackagingLevelsByItemId(id),
     ]);
-    return SupplyDto.productDetailToResponse(product, documents, barcodes, stock, recentTransactions, packagingLevels);
+    return SupplyDto.itemDetailToResponse(item, documents, barcodes, stock, recentTransactions, packagingLevels);
   }
 
-  async createProduct(labId: string, data: CreateSupplyProductRequest, user: User): Promise<SupplyProductResponse> {
+  async createItem(labId: string, data: CreateSupplyItemRequest, user: User): Promise<SupplyItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
     if (!category) throw new NotFoundError('Category not found');
 
-    const product = SupplyProduct.create({ labId, ...data });
-    await this.productRepository.save(product);
+    const item = SupplyItem.create({ labId, ...data });
+    await this.itemRepository.save(item);
 
-    await this.generateInternalBarcode(product.id);
+    await this.generateInternalBarcode(item.id);
 
-    await this.eventBus.publish(new SupplyProductCreatedEvent(product.id, product.name, product.categoryId, user.id, labId));
-    return SupplyDto.productToResponse(product);
+    await this.eventBus.publish(new SupplyItemCreatedEvent(item.id,item.name,item.categoryId, user.id, labId));
+    return SupplyDto.itemToResponse(item);
   }
 
-  async updateProduct(
-    labId: string, id: string, data: UpdateSupplyProductRequest, user: User,
+  async updateItem(
+    labId: string, id: string, data: UpdateSupplyItemRequest, user: User,
     options?: { bulkOperation?: boolean }
-  ): Promise<SupplyProductResponse> {
+  ): Promise<SupplyItemResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    const product = await this.getProductOrThrow(id, labId);
+    const item = await this.getItemOrThrow(id, labId);
 
-    if (data.categoryId && data.categoryId !== product.categoryId) {
+    if (data.categoryId && data.categoryId !==item.categoryId) {
       const category = await this.categoryRepository.findById(data.categoryId, labId);
       if (!category) throw new NotFoundError('Category not found');
     }
 
-    const changes = this.trackProductChanges(product, data);
-    product.update(data);
-    await this.productRepository.save(product);
+    const changes = this.trackItemChanges(item, data);
+   item.update(data);
+    await this.itemRepository.save(item);
 
     if (changes.length > 0) {
-      const event = new SupplyProductUpdatedEvent(product.id, changes, user.id, labId);
+      const event = new SupplyItemUpdatedEvent(item.id, changes, user.id, labId);
       if (options?.bulkOperation) event.partOfBulkOperation = true;
       await this.eventBus.publish(event);
     }
 
-    return SupplyDto.productToResponse(product);
+    return SupplyDto.itemToResponse(item);
   }
 
-  async archiveProduct(
+  async archiveItem(
     labId: string, id: string, user: User,
     options?: { bulkOperation?: boolean }
   ): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    const product = await this.getProductOrThrow(id, labId);
+    const item = await this.getItemOrThrow(id, labId);
 
-    const hasTransactions = await this.productRepository.hasTransactions(id);
+    const hasTransactions = await this.itemRepository.hasTransactions(id);
     if (hasTransactions) {
-      product.archive();
-      await this.productRepository.save(product);
-      const event = new SupplyProductArchivedEvent(product.id, product.name, user.id, labId);
+     item.archive();
+      await this.itemRepository.save(item);
+      const event = new SupplyItemArchivedEvent(item.id,item.name, user.id, labId);
       if (options?.bulkOperation) event.partOfBulkOperation = true;
       await this.eventBus.publish(event);
     } else {
-      await this.deleteProduct(labId, id, user);
+      await this.deleteItem(labId, id, user);
     }
   }
 
-  async deleteProduct(labId: string, id: string, user: User): Promise<void> {
+  async deleteItem(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    const product = await this.getProductOrThrow(id, labId);
-    await this.productRepository.delete(id, labId);
-    await this.eventBus.publish(new SupplyProductDeletedEvent(id, product.name, user.id, labId));
+    const item = await this.getItemOrThrow(id, labId);
+    await this.itemRepository.delete(id, labId);
+    await this.eventBus.publish(new SupplyItemDeletedEvent(id,item.name, user.id, labId));
   }
 
   // Documents
 
-  async addDocument(labId: string, productId: string, data: CreateSupplyDocumentRequest, user: User): Promise<SupplyDocumentResponse> {
+  async addDocument(labId: string, itemId: string, data: CreateSupplyDocumentRequest, user: User): Promise<SupplyDocumentResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
-    const document = SupplyDocument.create({ productId, label: data.label, url: data.url, notes: data.notes });
-    await this.productRepository.saveDocument(document);
-    await this.eventBus.publish(new SupplyDocumentAddedEvent(productId, data.label, user.id, labId));
+    await this.getItemOrThrow(itemId, labId);
+    const document = SupplyDocument.create({ itemId, label: data.label, url: data.url, notes: data.notes });
+    await this.itemRepository.saveDocument(document);
+    await this.eventBus.publish(new SupplyDocumentAddedEvent(itemId, data.label, user.id, labId));
     return SupplyDto.documentToResponse(document);
   }
 
   async updateDocument(
     labId: string,
-    productId: string,
+    itemId: string,
     docId: string,
     data: UpdateSupplyDocumentRequest,
     user: User
   ): Promise<SupplyDocumentResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
-    await this.productRepository.updateDocument(docId, {
+    await this.getItemOrThrow(itemId, labId);
+    await this.itemRepository.updateDocument(docId, {
       label: data.label,
       url: data.url,
       notes: data.notes,
     });
-    const docs = await this.productRepository.findDocumentsByProductId(productId);
+    const docs = await this.itemRepository.findDocumentsByItemId(itemId);
     const updated = docs.find(d => d.id === docId);
     if (!updated) throw new NotFoundError(`Document ${docId} not found`);
     return SupplyDto.documentToResponse(updated);
   }
 
-  async removeDocument(labId: string, productId: string, docId: string, user: User): Promise<void> {
+  async removeDocument(labId: string, itemId: string, docId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
-    await this.productRepository.deleteDocument(docId);
-    await this.eventBus.publish(new SupplyDocumentRemovedEvent(productId, user.id, labId));
+    await this.getItemOrThrow(itemId, labId);
+    await this.itemRepository.deleteDocument(docId);
+    await this.eventBus.publish(new SupplyDocumentRemovedEvent(itemId, user.id, labId));
   }
 
   // Barcodes
 
-  async addBarcode(labId: string, productId: string, data: CreateSupplyBarcodeRequest, user: User): Promise<SupplyBarcodeResponse> {
+  async addBarcode(labId: string, itemId: string, data: CreateSupplyBarcodeRequest, user: User): Promise<SupplyBarcodeResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
+    await this.getItemOrThrow(itemId, labId);
 
-    const existing = await this.productRepository.findByBarcodeValue(data.barcodeValue);
-    if (existing) throw new ValidationError(`Barcode "${data.barcodeValue}" is already linked to another product`);
+    const existing = await this.itemRepository.findByBarcodeValue(data.barcodeValue);
+    if (existing) throw new ValidationError(`Barcode "${data.barcodeValue}" is already linked to another item`);
 
     const barcode: SupplyBarcodeRow = {
       id: generateId('sbar'),
-      productId,
+      itemId,
       barcodeValue: data.barcodeValue,
       barcodeType: data.barcodeType,
       isPrimary: data.isPrimary ?? false,
       label: data.label,
     };
-    await this.productRepository.saveBarcode(barcode);
+    await this.itemRepository.saveBarcode(barcode);
     return SupplyDto.barcodeToResponse(barcode);
   }
 
   async updateBarcode(
     labId: string,
-    productId: string,
+    itemId: string,
     barcodeId: string,
     data: UpdateSupplyBarcodeRequest,
     user: User
   ): Promise<SupplyBarcodeResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
-    await this.productRepository.updateBarcode(barcodeId, {
+    await this.getItemOrThrow(itemId, labId);
+    await this.itemRepository.updateBarcode(barcodeId, {
       label: data.label,
       isPrimary: data.isPrimary,
     });
-    const barcodes = await this.productRepository.findBarcodesByProductId(productId);
+    const barcodes = await this.itemRepository.findBarcodesByItemId(itemId);
     const updated = barcodes.find(b => b.id === barcodeId);
     if (!updated) throw new NotFoundError(`Barcode ${barcodeId} not found`);
     return SupplyDto.barcodeToResponse(updated);
   }
 
-  async removeBarcode(labId: string, productId: string, barcodeId: string, user: User): Promise<void> {
+  async removeBarcode(labId: string, itemId: string, barcodeId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
-    await this.productRepository.deleteBarcode(barcodeId);
+    await this.getItemOrThrow(itemId, labId);
+    await this.itemRepository.deleteBarcode(barcodeId);
   }
 
-  async resolveBarcode(labId: string, barcodeValue: string): Promise<SupplyProductResponse | null> {
-    const barcode = await this.productRepository.findByBarcodeValue(barcodeValue);
+  async resolveBarcode(labId: string, barcodeValue: string): Promise<SupplyItemResponse | null> {
+    const barcode = await this.itemRepository.findByBarcodeValue(barcodeValue);
     if (!barcode) return null;
-    const product = await this.productRepository.findById(barcode.productId, labId);
-    if (!product) return null;
-    return SupplyDto.productToResponse(product);
+    const item = await this.itemRepository.findById(barcode.itemId, labId);
+    if (!item) return null;
+    return SupplyDto.itemToResponse(item);
   }
 
-  async regenerateInternalBarcode(labId: string, productId: string, user: User): Promise<SupplyBarcodeResponse> {
+  async regenerateInternalBarcode(labId: string, itemId: string, user: User): Promise<SupplyBarcodeResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
+    await this.getItemOrThrow(itemId, labId);
 
-    const barcodes = await this.productRepository.findBarcodesByProductId(productId);
+    const barcodes = await this.itemRepository.findBarcodesByItemId(itemId);
     const existingInternal = barcodes.find(b => b.barcodeType === 'internal');
     if (existingInternal) {
-      await this.productRepository.deleteBarcode(existingInternal.id);
+      await this.itemRepository.deleteBarcode(existingInternal.id);
     }
 
     const barcode: SupplyBarcodeRow = {
       id: generateId('sbar'),
-      productId,
-      barcodeValue: `SPROD-${nanoid(8)}`,
+      itemId,
+      barcodeValue: `SITM-${nanoid(8)}`,
       barcodeType: 'internal',
       isPrimary: true,
     };
-    await this.productRepository.saveBarcode(barcode);
+    await this.itemRepository.saveBarcode(barcode);
     return SupplyDto.barcodeToResponse(barcode);
   }
 
   // Packaging levels
 
-  async addPackagingLevel(labId: string, productId: string, data: CreateSupplyPackagingLevelRequest, user: User): Promise<SupplyPackagingLevelResponse> {
+  async addPackagingLevel(labId: string, itemId: string, data: CreateSupplyPackagingLevelRequest, user: User): Promise<SupplyPackagingLevelResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
+    await this.getItemOrThrow(itemId, labId);
 
-    const existing = await this.productRepository.findPackagingLevelsByProductId(productId);
+    const existing = await this.itemRepository.findPackagingLevelsByItemId(itemId);
     if (existing.some(l => l.unitName === data.unitName)) {
-      throw new ValidationError(`A packaging level for "${data.unitName}" already exists on this product`);
+      throw new ValidationError(`A packaging level for "${data.unitName}" already exists on this item`);
     }
     if (data.parentUnit !== null && !existing.some(l => l.unitName === data.parentUnit)) {
       throw new ValidationError(`Parent unit "${data.parentUnit}" does not exist in the packaging chain`);
@@ -386,26 +386,26 @@ export class SupplyApplicationService {
 
     const level = {
       id: generateId('spkg'),
-      productId,
+      itemId,
       unitName: data.unitName,
       quantity: data.quantity,
       parentUnit: data.parentUnit ?? undefined,
     };
-    await this.productRepository.savePackagingLevel(level);
+    await this.itemRepository.savePackagingLevel(level);
     return SupplyDto.packagingLevelToResponse(level);
   }
 
-  async updatePackagingLevel(labId: string, productId: string, levelId: string, quantity: number, user: User): Promise<void> {
+  async updatePackagingLevel(labId: string, itemId: string, levelId: string, quantity: number, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
-    await this.productRepository.updatePackagingLevel(levelId, quantity);
+    await this.getItemOrThrow(itemId, labId);
+    await this.itemRepository.updatePackagingLevel(levelId, quantity);
   }
 
-  async removePackagingLevel(labId: string, productId: string, levelId: string, user: User): Promise<void> {
+  async removePackagingLevel(labId: string, itemId: string, levelId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(productId, labId);
+    await this.getItemOrThrow(itemId, labId);
 
-    const levels = await this.productRepository.findPackagingLevelsByProductId(productId);
+    const levels = await this.itemRepository.findPackagingLevelsByItemId(itemId);
     const level = levels.find(l => l.id === levelId);
     if (!level) throw new NotFoundError('Packaging level not found');
 
@@ -414,7 +414,7 @@ export class SupplyApplicationService {
       throw new ValidationError(`Cannot delete "${level.unitName}" — other levels reference it as a parent. Delete from the top of the chain down.`);
     }
 
-    await this.productRepository.deletePackagingLevel(levelId);
+    await this.itemRepository.deletePackagingLevel(levelId);
   }
 
   // Stock operations
@@ -426,14 +426,14 @@ export class SupplyApplicationService {
     options?: { bulkOperation?: boolean }
   ): Promise<SupplyTransactionResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getProductOrThrow(data.productId, labId);
+    await this.getItemOrThrow(data.itemId, labId);
 
     let effectiveQuantity = data.quantity;
     if (data.type === 'received' && data.receivingUnit) {
-      const product = await this.productRepository.findById(data.productId, labId);
-      if (product?.stockUnit) {
-        const levels = await this.productRepository.findPackagingLevelsByProductId(data.productId);
-        const multiplier = this.computeStockUnitMultiplier(levels, data.receivingUnit, product.stockUnit);
+      const item = await this.itemRepository.findById(data.itemId, labId);
+      if (item?.stockUnit) {
+        const levels = await this.itemRepository.findPackagingLevelsByItemId(data.itemId);
+        const multiplier = this.computeStockUnitMultiplier(levels, data.receivingUnit,item.stockUnit);
         effectiveQuantity = data.quantity * multiplier;
       }
     }
@@ -444,8 +444,8 @@ export class SupplyApplicationService {
         ? Math.abs(effectiveQuantity)
         : effectiveQuantity;
 
-    const txn = await this.productRepository.recordTransaction({
-      productId: data.productId,
+    const txn = await this.itemRepository.recordTransaction({
+      itemId: data.itemId,
       locationId: data.locationId,
       labId,
       type: data.type,
@@ -459,14 +459,14 @@ export class SupplyApplicationService {
     });
 
     if (data.type === 'received' && data.lotNumber) {
-      const product = await this.productRepository.findById(data.productId, labId);
-      if (product) {
-        product.updateCurrentLotNumber(data.lotNumber);
-        await this.productRepository.save(product);
+      const item = await this.itemRepository.findById(data.itemId, labId);
+      if (item) {
+       item.updateCurrentLotNumber(data.lotNumber);
+        await this.itemRepository.save(item);
       }
     }
 
-    const event = this.createStockEvent(data.type, data.productId, quantityChange, data.locationId, user.id, labId);
+    const event = this.createStockEvent(data.type, data.itemId, quantityChange, data.locationId, user.id, labId);
     if (options?.bulkOperation) event.partOfBulkOperation = true;
     await this.eventBus.publish(event);
 
@@ -478,12 +478,12 @@ export class SupplyApplicationService {
   ): Promise<SupplyTransactionResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const stockEntries = await this.productRepository.findStockByProductId(data.productId);
+    const stockEntries = await this.itemRepository.findStockByItemId(data.itemId);
     const currentStock = stockEntries.find(s => s.locationId === data.locationId)?.quantity ?? 0;
     const delta = data.actualCount - currentStock;
 
     return this.recordTransaction(labId, {
-      productId: data.productId,
+      itemId: data.itemId,
       locationId: data.locationId,
       type: 'count_adjustment',
       quantity: delta,
@@ -493,8 +493,8 @@ export class SupplyApplicationService {
     }, user);
   }
 
-  async getTransactionHistory(productId: string, limit?: number): Promise<SupplyTransactionResponse[]> {
-    const txns = await this.productRepository.findTransactionsByProductId(productId, limit);
+  async getTransactionHistory(itemId: string, limit?: number): Promise<SupplyTransactionResponse[]> {
+    const txns = await this.itemRepository.findTransactionsByItemId(itemId, limit);
     return txns.map(SupplyDto.transactionToResponse);
   }
 
@@ -507,7 +507,7 @@ export class SupplyApplicationService {
   ): Promise<{ original: SupplyTransactionResponse; reversal: SupplyTransactionResponse }> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const existing = await this.productRepository.findTransactionById(transactionId);
+    const existing = await this.itemRepository.findTransactionById(transactionId);
     if (!existing || existing.labId !== labId) {
       throw new NotFoundError(`Transaction ${transactionId} not found`);
     }
@@ -518,14 +518,14 @@ export class SupplyApplicationService {
       throw new ValidationError('Cannot void a void reversal transaction');
     }
 
-    const { original, reversal } = await this.productRepository.voidTransaction({
+    const { original, reversal } = await this.itemRepository.voidTransaction({
       transactionId,
       voidedBy: user.id,
       voidReason: data.reason,
     });
 
     const event = new SupplyStockVoidedEvent(
-      original.productId, original.id, reversal.id,
+      original.itemId, original.id, reversal.id,
       reversal.quantityChange, original.locationId,
       data.reason, user.id, labId
     );
@@ -547,7 +547,7 @@ export class SupplyApplicationService {
       data.items,
       async (item) => {
         await this.recordTransaction(labId, {
-          productId: item.productId,
+          itemId: item.itemId,
           locationId: item.locationId,
           type: 'received',
           quantity: item.quantity,
@@ -557,15 +557,15 @@ export class SupplyApplicationService {
           cost: item.cost,
           receivingUnit: item.receivingUnit,
         }, user, { bulkOperation: true });
-        return item.productId;
+        return item.itemId;
       },
-      (item, _index, error) => ({ id: item.productId, error })
+      (item, _index, error) => ({ id: item.itemId, error })
     );
 
     if (result.succeeded.length > 0) {
       const perItemData = data.items
-        .filter(item => result.succeeded.includes(item.productId))
-        .map(item => ({ productId: item.productId, quantity: item.quantity, locationId: item.locationId }));
+        .filter(item => result.succeeded.includes(item.itemId))
+        .map(item => ({ itemId: item.itemId, quantity: item.quantity, locationId: item.locationId }));
       await this.eventBus.publish(new SupplyBulkReceivedEvent(perItemData, user.id, labId));
     }
 
@@ -579,39 +579,39 @@ export class SupplyApplicationService {
       data.items,
       async (item) => {
         await this.recordTransaction(labId, {
-          productId: item.productId,
+          itemId: item.itemId,
           locationId: item.locationId,
           type: 'issued',
           quantity: item.quantity,
         }, user, { bulkOperation: true });
-        return item.productId;
+        return item.itemId;
       },
-      (item, _index, error) => ({ id: item.productId, error })
+      (item, _index, error) => ({ id: item.itemId, error })
     );
 
     if (result.succeeded.length > 0) {
       const perItemData = data.items
-        .filter(item => result.succeeded.includes(item.productId))
-        .map(item => ({ productId: item.productId, quantity: item.quantity, locationId: item.locationId }));
+        .filter(item => result.succeeded.includes(item.itemId))
+        .map(item => ({ itemId: item.itemId, quantity: item.quantity, locationId: item.locationId }));
       await this.eventBus.publish(new SupplyBulkIssuedEvent(perItemData, user.id, labId));
     }
 
     return result;
   }
 
-  async bulkReassignCategory(labId: string, productIds: string[], categoryId: string, user: User): Promise<BulkResult> {
+  async bulkReassignCategory(labId: string, itemIds: string[], categoryId: string, user: User): Promise<BulkResult> {
     await this.accessControlService.requireAdminAccess(user);
 
     const category = await this.categoryRepository.findById(categoryId, labId);
     if (!category) throw new NotFoundError('Target category not found');
 
     const result = await this.executeBulk(
-      productIds,
-      async (productId) => {
-        await this.updateProduct(labId, productId, { categoryId }, user, { bulkOperation: true });
-        return productId;
+      itemIds,
+      async (itemId) => {
+        await this.updateItem(labId, itemId, { categoryId }, user, { bulkOperation: true });
+        return itemId;
       },
-      (productId, _index, error) => ({ id: productId, error })
+      (itemId, _index, error) => ({ id: itemId, error })
     );
 
     if (result.succeeded.length > 0) {
@@ -621,16 +621,16 @@ export class SupplyApplicationService {
     return result;
   }
 
-  async bulkArchive(labId: string, productIds: string[], user: User): Promise<BulkResult> {
+  async bulkArchive(labId: string, itemIds: string[], user: User): Promise<BulkResult> {
     await this.accessControlService.requireAdminAccess(user);
 
     const result = await this.executeBulk(
-      productIds,
-      async (productId) => {
-        await this.archiveProduct(labId, productId, user, { bulkOperation: true });
-        return productId;
+      itemIds,
+      async (itemId) => {
+        await this.archiveItem(labId, itemId, user, { bulkOperation: true });
+        return itemId;
       },
-      (productId, _index, error) => ({ id: productId, error })
+      (itemId, _index, error) => ({ id: itemId, error })
     );
 
     if (result.succeeded.length > 0) {
@@ -652,7 +652,7 @@ export class SupplyApplicationService {
         );
         perItemData.push({
           transactionId: original.id,
-          productId: original.productId,
+          itemId: original.itemId,
           quantityReversed: reversal.quantityChange,
           locationId: original.locationId,
         });
@@ -670,9 +670,9 @@ export class SupplyApplicationService {
 
   // Reorder
 
-  async getReorderList(labId: string): Promise<SupplyProductWithStockResponse[]> {
-    const productsWithStock = await this.productRepository.findProductsBelowThreshold(labId);
-    return productsWithStock.map(({ product, totalStock, locationNames }) => SupplyDto.productWithStockToResponse(product, totalStock, locationNames));
+  async getReorderList(labId: string): Promise<SupplyItemWithStockResponse[]> {
+    const itemsWithStock = await this.itemRepository.findItemsBelowThreshold(labId);
+    return itemsWithStock.map(({ item, totalStock, locationNames }) => SupplyDto.itemWithStockToResponse(item, totalStock, locationNames));
   }
 
   // Helpers
@@ -696,10 +696,10 @@ export class SupplyApplicationService {
     return { succeeded, failed };
   }
 
-  private async getProductOrThrow(id: string, labId: string): Promise<SupplyProduct> {
-    const product = await this.productRepository.findById(id, labId);
-    if (!product) throw new NotFoundError(`Supply product not found: ${id}`, { productId: id });
-    return product;
+  private async getItemOrThrow(id: string, labId: string): Promise<SupplyItem> {
+    const item = await this.itemRepository.findById(id, labId);
+    if (!item) throw new NotFoundError(`Supply item not found: ${id}`, { itemId: id });
+    return item;
   }
 
   private async getCategoryOrThrow(id: string, labId: string): Promise<SupplyCategory> {
@@ -714,34 +714,34 @@ export class SupplyApplicationService {
     return location;
   }
 
-  /** Auto-generates an internal barcode on product creation. Retries on collision. */
-  private async generateInternalBarcode(productId: string): Promise<void> {
+  /** Auto-generates an internal barcode on item creation. Retries on collision. */
+  private async generateInternalBarcode(itemId: string): Promise<void> {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const barcode: SupplyBarcodeRow = {
           id: generateId('sbar'),
-          productId,
-          barcodeValue: `SPROD-${nanoid(8)}`,
+          itemId,
+          barcodeValue: `SITM-${nanoid(8)}`,
           barcodeType: 'internal',
           isPrimary: true,
         };
-        await this.productRepository.saveBarcode(barcode);
+        await this.itemRepository.saveBarcode(barcode);
         return;
       } catch (error) {
         if (attempt === 2) {
-          logger.warn('Failed to auto-generate internal barcode after 3 attempts', { productId, error });
+          logger.warn('Failed to auto-generate internal barcode after 3 attempts', { itemId, error });
         }
       }
     }
   }
 
-  private createStockEvent(type: string, productId: string, quantity: number, locationId: string, userId: string, labId: string) {
+  private createStockEvent(type: string, itemId: string, quantity: number, locationId: string, userId: string, labId: string) {
     switch (type) {
-      case 'received': return new SupplyStockReceivedEvent(productId, quantity, locationId, userId, labId);
-      case 'issued': return new SupplyStockIssuedEvent(productId, quantity, locationId, userId, labId);
-      case 'count_adjustment': return new SupplyStockCountAdjustedEvent(productId, quantity, locationId, userId, labId);
-      case 'disposed': return new SupplyStockDisposedEvent(productId, quantity, locationId, userId, labId);
-      default: return new SupplyStockReceivedEvent(productId, quantity, locationId, userId, labId);
+      case 'received': return new SupplyStockReceivedEvent(itemId, quantity, locationId, userId, labId);
+      case 'issued': return new SupplyStockIssuedEvent(itemId, quantity, locationId, userId, labId);
+      case 'count_adjustment': return new SupplyStockCountAdjustedEvent(itemId, quantity, locationId, userId, labId);
+      case 'disposed': return new SupplyStockDisposedEvent(itemId, quantity, locationId, userId, labId);
+      default: return new SupplyStockReceivedEvent(itemId, quantity, locationId, userId, labId);
     }
   }
 
@@ -774,23 +774,23 @@ export class SupplyApplicationService {
     throw new ValidationError(`Circular or broken packaging chain detected`);
   }
 
-  private trackProductChanges(product: SupplyProduct, data: UpdateSupplyProductRequest): FieldChange[] {
+  private trackItemChanges(item: SupplyItem, data: UpdateSupplyItemRequest): FieldChange[] {
     const changes: FieldChange[] = [];
-    const fields: Array<{ key: keyof UpdateSupplyProductRequest; getter: () => unknown }> = [
-      { key: 'categoryId', getter: () => product.categoryId },
-      { key: 'name', getter: () => product.name },
-      { key: 'manufacturer', getter: () => product.manufacturer },
-      { key: 'catalogNumber', getter: () => product.catalogNumber },
-      { key: 'vendorName', getter: () => product.vendorName },
-      { key: 'vendorCatalogNumber', getter: () => product.vendorCatalogNumber },
-      { key: 'stockUnit', getter: () => product.stockUnit },
-      { key: 'baseItemName', getter: () => product.baseItemName },
-      { key: 'reorderThreshold', getter: () => product.reorderThreshold },
-      { key: 'reorderQuantity', getter: () => product.reorderQuantity },
-      { key: 'reorderUnit', getter: () => product.reorderUnit },
-      { key: 'unitPrice', getter: () => product.unitPrice },
-      { key: 'description', getter: () => product.description },
-      { key: 'notes', getter: () => product.notes },
+    const fields: Array<{ key: keyof UpdateSupplyItemRequest; getter: () => unknown }> = [
+      { key: 'categoryId', getter: () =>item.categoryId },
+      { key: 'name', getter: () =>item.name },
+      { key: 'manufacturer', getter: () =>item.manufacturer },
+      { key: 'catalogNumber', getter: () =>item.catalogNumber },
+      { key: 'vendorName', getter: () =>item.vendorName },
+      { key: 'vendorCatalogNumber', getter: () =>item.vendorCatalogNumber },
+      { key: 'stockUnit', getter: () =>item.stockUnit },
+      { key: 'baseItemName', getter: () =>item.baseItemName },
+      { key: 'reorderThreshold', getter: () =>item.reorderThreshold },
+      { key: 'reorderQuantity', getter: () =>item.reorderQuantity },
+      { key: 'reorderUnit', getter: () =>item.reorderUnit },
+      { key: 'unitPrice', getter: () =>item.unitPrice },
+      { key: 'description', getter: () =>item.description },
+      { key: 'notes', getter: () =>item.notes },
     ];
 
     for (const { key, getter } of fields) {
@@ -805,10 +805,10 @@ export class SupplyApplicationService {
     }
 
     if (data.properties !== undefined) {
-      const oldProps = JSON.stringify(product.properties);
+      const oldProps = JSON.stringify(item.properties);
       const newProps = JSON.stringify(data.properties ?? []);
       if (oldProps !== newProps) {
-        changes.push({ field: 'properties', oldValue: product.properties, newValue: data.properties ?? [] });
+        changes.push({ field: 'properties', oldValue:item.properties, newValue: data.properties ?? [] });
       }
     }
 

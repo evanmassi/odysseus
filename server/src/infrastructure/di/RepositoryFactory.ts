@@ -7,7 +7,7 @@
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
 import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
-import type { SupplyProductRepository } from '@domain/repositories/SupplyProductRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
@@ -26,7 +26,7 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
 import { SupplyCategoryRepository as SupplyCategoryRepositoryImpl } from '@infrastructure/repositories/SupplyCategoryRepository';
 import { SupplyLocationRepository as SupplyLocationRepositoryImpl } from '@infrastructure/repositories/SupplyLocationRepository';
-import { SupplyProductRepository as SupplyProductRepositoryImpl } from '@infrastructure/repositories/SupplyProductRepository';
+import { SupplyItemRepository as SupplyItemRepositoryImpl } from '@infrastructure/repositories/SupplyItemRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
 import { EquipmentCategoryRepository as EquipmentCategoryRepositoryImpl } from '@infrastructure/repositories/EquipmentCategoryRepository';
 import { EquipmentItemRepository as EquipmentItemRepositoryImpl } from '@infrastructure/repositories/EquipmentItemRepository';
@@ -58,7 +58,7 @@ export class RepositoryFactory {
   private equipmentCategoryRepository?: EquipmentCategoryRepository;
   private equipmentItemRepository?: EquipmentItemRepository;
   private supplyCategoryRepository?: SupplyCategoryRepository;
-  private supplyProductRepository?: SupplyProductRepository;
+  private supplyItemRepository?: SupplyItemRepository;
   private supplyLocationRepository?: SupplyLocationRepository;
 
   constructor(databaseConfig: DatabaseConnectionConfig) {
@@ -175,11 +175,11 @@ export class RepositoryFactory {
     return this.supplyCategoryRepository;
   }
 
-  getSupplyProductRepository(): SupplyProductRepository {
-    if (!this.supplyProductRepository) {
-      this.supplyProductRepository = new SupplyProductRepositoryImpl(this.postgresContext);
+  getSupplyItemRepository(): SupplyItemRepository {
+    if (!this.supplyItemRepository) {
+      this.supplyItemRepository = new SupplyItemRepositoryImpl(this.postgresContext);
     }
-    return this.supplyProductRepository;
+    return this.supplyItemRepository;
   }
 
   getSupplyLocationRepository(): SupplyLocationRepository {
@@ -206,7 +206,7 @@ export class RepositoryFactory {
       equipmentCategories: this.getEquipmentCategoryRepository(),
       equipmentItems: this.getEquipmentItemRepository(),
       supplyCategories: this.getSupplyCategoryRepository(),
-      supplyProducts: this.getSupplyProductRepository(),
+      supplyItems: this.getSupplyItemRepository(),
       supplyLocations: this.getSupplyLocationRepository(),
     };
   }

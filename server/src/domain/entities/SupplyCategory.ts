@@ -1,7 +1,7 @@
 /**
  * Supply Category
  *
- * Lab-managed grouping for supply products. Supports a two-level hierarchy
+ * Lab-managed grouping for supply items. Supports a two-level hierarchy
  * (top-level categories with optional subcategories).
  */
 

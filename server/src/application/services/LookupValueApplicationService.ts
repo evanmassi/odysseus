@@ -8,7 +8,7 @@ import { LookupValue } from '@domain/entities/LookupValue';
 import type { LookupCategory } from '@domain/entities/LookupValue';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import type { SupplyProductRepository } from '@domain/repositories/SupplyProductRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
@@ -18,7 +18,7 @@ export class LookupValueApplicationService {
     private lookupValueRepository: LookupValueRepository,
     private equipmentItemRepository?: EquipmentItemRepository,
     private donorRepository?: DonorRepository,
-    private supplyProductRepository?: SupplyProductRepository,
+    private supplyItemRepository?: SupplyItemRepository,
   ) {}
 
   async getActiveByCategory(labId: string, category: LookupCategory): Promise<ReturnType<LookupValue['toData']>[]> {
@@ -51,7 +51,7 @@ export class LookupValueApplicationService {
       return counts;
     }
 
-    if (this.supplyProductRepository) {
+    if (this.supplyItemRepository) {
       const countFn = this.getSupplyCountFn(category);
       if (countFn) {
         const counts = new Map<string, number>();
@@ -99,7 +99,7 @@ export class LookupValueApplicationService {
       await this.equipmentItemRepository.renameMaintenanceType(oldValue, entity.value, labId);
     } else if (entity.category === 'specimen_type' && this.donorRepository) {
       await this.donorRepository.renameSpecimenType(oldValue, entity.value, labId);
-    } else if (this.supplyProductRepository) {
+    } else if (this.supplyItemRepository) {
       const renamed = await this.renameSupplyValue(entity.category, oldValue, entity.value, labId);
       if (!renamed) {
         await this.lookupValueRepository.renameTubeValues(entity.category, oldValue, entity.value, labId);
@@ -123,10 +123,10 @@ export class LookupValueApplicationService {
       const labelMap: Partial<Record<LookupCategory, [string, string]>> = {
         equipment_maintenance_type: ['maintenance log entry', 'maintenance log entries'],
         specimen_type: ['collection entry', 'collection entries'],
-        supply_product_property: ['product', 'products'],
-        supply_stock_unit: ['product', 'products'],
-        supply_vendor: ['product', 'products'],
-        supply_manufacturer: ['product', 'products'],
+        supply_item_property: ['item', 'items'],
+        supply_stock_unit: ['item', 'items'],
+        supply_vendor: ['item', 'items'],
+        supply_manufacturer: ['item', 'items'],
       };
       const [singular, plural] = labelMap[entity.category] ?? ['tube', 'tubes'];
       const label = usageCount === 1 ? singular : plural;
@@ -140,22 +140,22 @@ export class LookupValueApplicationService {
   }
 
   private getSupplyCountFn(category: LookupCategory): ((value: string, labId: string) => Promise<number>) | undefined {
-    if (!this.supplyProductRepository) return undefined;
-    const repo = this.supplyProductRepository;
+    if (!this.supplyItemRepository) return undefined;
+    const repo = this.supplyItemRepository;
     switch (category) {
-      case 'supply_product_property': return (v, l) => repo.countProductsUsingProperty(v, l);
-      case 'supply_stock_unit': return (v, l) => repo.countProductsUsingStockUnit(v, l);
-      case 'supply_vendor': return (v, l) => repo.countProductsUsingVendor(v, l);
-      case 'supply_manufacturer': return (v, l) => repo.countProductsUsingManufacturer(v, l);
+      case 'supply_item_property': return (v, l) => repo.countItemsUsingProperty(v, l);
+      case 'supply_stock_unit': return (v, l) => repo.countItemsUsingStockUnit(v, l);
+      case 'supply_vendor': return (v, l) => repo.countItemsUsingVendor(v, l);
+      case 'supply_manufacturer': return (v, l) => repo.countItemsUsingManufacturer(v, l);
       default: return undefined;
     }
   }
 
   private async renameSupplyValue(category: LookupCategory, oldValue: string, newValue: string, labId: string): Promise<boolean> {
-    if (!this.supplyProductRepository) return false;
-    const repo = this.supplyProductRepository;
+    if (!this.supplyItemRepository) return false;
+    const repo = this.supplyItemRepository;
     switch (category) {
-      case 'supply_product_property': await repo.renameProperty(oldValue, newValue, labId); return true;
+      case 'supply_item_property': await repo.renameProperty(oldValue, newValue, labId); return true;
       case 'supply_stock_unit': await repo.renameStockUnit(oldValue, newValue, labId); return true;
       case 'supply_vendor': await repo.renameVendor(oldValue, newValue, labId); return true;
       case 'supply_manufacturer': await repo.renameManufacturer(oldValue, newValue, labId); return true;

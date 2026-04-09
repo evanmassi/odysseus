@@ -9,7 +9,7 @@ import { toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface SupplyDocumentRow {
   id: string;
-  product_id: string;
+  item_id: string;
   label: string;
   url: string;
   notes: string | null;
@@ -21,7 +21,7 @@ export class SupplyDocumentMapper {
   static toRow(document: SupplyDocument): SupplyDocumentRow {
     return {
       id: document.id,
-      product_id: document.productId,
+      item_id: document.itemId,
       label: document.label,
       url: document.url,
       notes: document.notes ?? null,
@@ -32,7 +32,7 @@ export class SupplyDocumentMapper {
   static fromRow(row: SupplyDocumentRow): SupplyDocument {
     return SupplyDocument.fromData({
       id: row.id,
-      productId: row.product_id,
+      itemId: row.item_id,
       label: row.label,
       url: row.url,
       notes: row.notes ?? undefined,

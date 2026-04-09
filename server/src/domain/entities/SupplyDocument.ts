@@ -1,7 +1,7 @@
 /**
  * Supply Document
  *
- * Link to an external document (SOP, spec sheet, product page) associated with a supply product.
+ * Link to an external document (SOP, spec sheet, item page) associated with a supply item.
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -10,7 +10,7 @@ import { generateId } from '@domain/utils/generateId';
 export class SupplyDocument {
   private constructor(
     private readonly _id: string,
-    private readonly _productId: string,
+    private readonly _itemId: string,
     private readonly _label: string,
     private readonly _url: string,
     private readonly _notes: string | undefined,
@@ -20,14 +20,14 @@ export class SupplyDocument {
   }
 
   static create(data: {
-    productId: string;
+    itemId: string;
     label: string;
     url: string;
     notes?: string;
   }): SupplyDocument {
     return new SupplyDocument(
       generateId('sdoc'),
-      data.productId,
+      data.itemId,
       data.label,
       data.url,
       data.notes,
@@ -37,7 +37,7 @@ export class SupplyDocument {
 
   static fromData(data: {
     id: string;
-    productId: string;
+    itemId: string;
     label: string;
     url: string;
     notes?: string;
@@ -45,7 +45,7 @@ export class SupplyDocument {
   }): SupplyDocument {
     return new SupplyDocument(
       data.id,
-      data.productId,
+      data.itemId,
       data.label,
       data.url,
       data.notes,
@@ -63,7 +63,7 @@ export class SupplyDocument {
   }
 
   get id(): string { return this._id; }
-  get productId(): string { return this._productId; }
+  get itemId(): string { return this._itemId; }
   get label(): string { return this._label; }
   get url(): string { return this._url; }
   get notes(): string | undefined { return this._notes; }

@@ -2,7 +2,7 @@
  * Supply Barcode Scan Input
  *
  * Focused input field for barcode scanning. On Enter, resolves the barcode via API.
- * If found, calls onProductFound. If unknown, prompts to link to an existing product.
+ * If found, calls onItemFound. If unknown, prompts to link to an existing item.
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -15,38 +15,38 @@ import { Button, Select } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
-import type { SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface SupplyBarcodeScanInputProps {
-  products: SupplyProductWithStock[];
-  onProductFound: (productId: string) => void;
+  items: SupplyItemWithStock[];
+  onItemFound: (itemId: string) => void;
   placeholder?: string;
 }
 
 export function SupplyBarcodeScanInput({
-  products,
-  onProductFound,
+  items,
+  onItemFound,
   placeholder = 'Scan barcode...',
 }: SupplyBarcodeScanInputProps) {
   const [scanValue, setScanValue] = useState('');
   const [isResolving, setIsResolving] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [unresolvedBarcode, setUnresolvedBarcode] = useState('');
-  const [linkProductId, setLinkProductId] = useState('');
+  const [linkItemId, setLinkItemId] = useState('');
   const addBarcodeMutation = useAddSupplyBarcodeMutation();
 
-  const productOptions: SelectOption[] = useMemo(
+  const itemOptions: SelectOption[] = useMemo(
     () => [
-      { value: '', label: 'Select product...' },
-      ...products
+      { value: '', label: 'Select item...' },
+      ...items
         .filter(p => p.status === 'active')
         .map(p => ({
           value: p.id,
           label: `${p.name}${p.catalogNumber ? ` (${p.catalogNumber})` : ''}`,
         })),
     ],
-    [products]
+    [items]
   );
 
   const handleScan = useCallback(async () => {
@@ -55,9 +55,9 @@ export function SupplyBarcodeScanInput({
 
     setIsResolving(true);
     try {
-      const product = await SupplyService.resolveBarcode(value);
-      if (product) {
-        onProductFound(product.id);
+      const item = await SupplyService.resolveBarcode(value);
+      if (item) {
+        onItemFound(item.id);
         setScanValue('');
       } else {
         setUnresolvedBarcode(value);
@@ -68,7 +68,7 @@ export function SupplyBarcodeScanInput({
     } finally {
       setIsResolving(false);
     }
-  }, [scanValue, onProductFound]);
+  }, [scanValue, onItemFound]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -78,26 +78,26 @@ export function SupplyBarcodeScanInput({
   };
 
   const handleLink = useCallback(async () => {
-    if (!linkProductId || !unresolvedBarcode) return;
+    if (!linkItemId || !unresolvedBarcode) return;
 
     try {
       await addBarcodeMutation.mutateAsync({
-        productId: linkProductId,
+        itemId: linkItemId,
         data: {
           barcodeValue: unresolvedBarcode,
           barcodeType: 'manufacturer_sku',
         },
       });
       notifications.success('Barcode linked');
-      onProductFound(linkProductId);
+      onItemFound(linkItemId);
       setShowLinkDialog(false);
       setUnresolvedBarcode('');
-      setLinkProductId('');
+      setLinkItemId('');
       setScanValue('');
     } catch {
       notifications.error('Failed to link barcode');
     }
-  }, [linkProductId, unresolvedBarcode, addBarcodeMutation, onProductFound]);
+  }, [linkItemId, unresolvedBarcode, addBarcodeMutation, onItemFound]);
 
   return (
     <>
@@ -127,14 +127,14 @@ export function SupplyBarcodeScanInput({
             <span className="font-mono font-semibold text-card-foreground">
               {unresolvedBarcode}
             </span>{' '}
-            isn&apos;t linked to any product. Link it now?
+            isn&apos;t linked to any item. Link it now?
           </p>
 
           <Select
-            label="Link to Product"
-            options={productOptions}
-            value={linkProductId}
-            onChange={v => setLinkProductId(String(v ?? ''))}
+            label="Link to Item"
+            options={itemOptions}
+            value={linkItemId}
+            onChange={v => setLinkItemId(String(v ?? ''))}
             fullWidth
           />
 
@@ -144,7 +144,7 @@ export function SupplyBarcodeScanInput({
             </Button>
             <Button
               onClick={() => void handleLink()}
-              disabled={!linkProductId}
+              disabled={!linkItemId}
               isLoading={addBarcodeMutation.isPending}
             >
               Link Barcode

@@ -1,7 +1,7 @@
 /**
  * Supply Low Stock Alert Panel
  *
- * Collapsible panel showing products below their reorder threshold
+ * Collapsible panel showing items below their reorder threshold
  * with a sortable table matching the equipment maintenance alert pattern.
  */
 
@@ -15,7 +15,7 @@ import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyReorderList } from './SupplyReorderList';
 
-import type { SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
 
 interface LowStockRow {
@@ -29,11 +29,11 @@ interface LowStockRow {
 }
 
 interface SupplyLowStockAlertPanelProps {
-  onSelectProduct: (id: string) => void;
+  onSelectItem: (id: string) => void;
 }
 
-export function SupplyLowStockAlertPanel({ onSelectProduct }: SupplyLowStockAlertPanelProps) {
-  const { data: lowStockProducts = [] } = useSupplyReorderListQuery();
+export function SupplyLowStockAlertPanel({ onSelectItem }: SupplyLowStockAlertPanelProps) {
+  const { data: lowStockItems = [] } = useSupplyReorderListQuery();
   const [isExpanded, setIsExpanded] = useState(false);
   const [manuallyCollapsed, setManuallyCollapsed] = useState(false);
   const [showReorderList, setShowReorderList] = useState(false);
@@ -42,8 +42,8 @@ export function SupplyLowStockAlertPanel({ onSelectProduct }: SupplyLowStockAler
     direction: 'asc',
   });
 
-  const totalAlerts = lowStockProducts.length;
-  const outOfStockCount = lowStockProducts.filter(p => p.totalStock <= 0).length;
+  const totalAlerts = lowStockItems.length;
+  const outOfStockCount = lowStockItems.filter(p => p.totalStock <= 0).length;
 
   useEffect(() => {
     if (totalAlerts > 0 && !manuallyCollapsed) {
@@ -53,7 +53,7 @@ export function SupplyLowStockAlertPanel({ onSelectProduct }: SupplyLowStockAler
 
   const rows: LowStockRow[] = useMemo(
     () =>
-      lowStockProducts.map((p: SupplyProductWithStock) => ({
+      lowStockItems.map((p: SupplyItemWithStock) => ({
         id: p.id,
         name: p.name,
         manufacturer: p.manufacturer ?? '—',
@@ -62,7 +62,7 @@ export function SupplyLowStockAlertPanel({ onSelectProduct }: SupplyLowStockAler
         totalStock: p.totalStock,
         threshold: p.reorderThreshold ?? 0,
       })),
-    [lowStockProducts]
+    [lowStockItems]
   );
 
   const sortedRows = useMemo(() => {
@@ -87,7 +87,7 @@ export function SupplyLowStockAlertPanel({ onSelectProduct }: SupplyLowStockAler
     () => [
       {
         id: 'name',
-        header: 'Product',
+        header: 'Item',
         sortable: true,
         render: (_value, row) => <span className="font-medium">{row.name}</span>,
       },
@@ -161,7 +161,7 @@ export function SupplyLowStockAlertPanel({ onSelectProduct }: SupplyLowStockAler
               sortable
               sortConfig={sortConfig}
               onSort={setSortConfig}
-              onRowClick={row => onSelectProduct(row.id)}
+              onRowClick={row => onSelectItem(row.id)}
               variant="borderless"
               density="compact"
               className="text-xs"
@@ -179,7 +179,7 @@ export function SupplyLowStockAlertPanel({ onSelectProduct }: SupplyLowStockAler
       <SupplyReorderList
         isOpen={showReorderList}
         onClose={() => setShowReorderList(false)}
-        products={lowStockProducts}
+        items={lowStockItems}
       />
     </>
   );

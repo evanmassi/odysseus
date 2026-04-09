@@ -1,7 +1,7 @@
 /**
  * Supply Document Form
  *
- * Inline form for adding a document link (SOP, spec sheet, product page) to a supply product.
+ * Inline form for adding a document link (SOP, spec sheet, item page) to a supply item.
  */
 
 import { useState } from 'react';
@@ -13,11 +13,11 @@ import { Button, Input } from '@shared/ui';
 import { notifications } from '@shared/utils/notifications';
 
 interface SupplyDocumentFormProps {
-  productId: string;
+  itemId: string;
   onAdded: () => void;
 }
 
-export function SupplyDocumentForm({ productId, onAdded }: SupplyDocumentFormProps) {
+export function SupplyDocumentForm({ itemId, onAdded }: SupplyDocumentFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [label, setLabel] = useState('');
   const [url, setUrl] = useState('');
@@ -28,7 +28,7 @@ export function SupplyDocumentForm({ productId, onAdded }: SupplyDocumentFormPro
     if (!label.trim() || !url.trim()) return;
     try {
       await addMutation.mutateAsync({
-        productId,
+        itemId,
         data: { label: label.trim(), url: url.trim(), notes: notes.trim() || undefined },
       });
       notifications.success('Document added');

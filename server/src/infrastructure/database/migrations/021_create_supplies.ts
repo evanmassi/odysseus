@@ -1,7 +1,7 @@
 /**
  * Migration 021 — Supply Inventory Tables
  *
- * Adds `supply_categories`, `supply_locations`, `supply_products`,
+ * Adds `supply_categories`, `supply_locations`, `supply_items`,
  * `supply_stock`, `supply_barcodes`, `supply_transactions`, and
  * `supply_documents` tables, and extends the lookup category constraint
  * to include four supply lookup categories.
@@ -60,10 +60,10 @@ export const migration021: Migration = {
 
     await pool.query(`CREATE INDEX idx_supply_locations_lab_id ON supply_locations(lab_id)`);
 
-    // Products — supply product definitions
+    // Items — supply item definitions
 
     await pool.query(`
-      CREATE TABLE supply_products (
+      CREATE TABLE supply_items (
         id TEXT PRIMARY KEY,
         lab_id TEXT NOT NULL REFERENCES labs(id),
         category_id TEXT NOT NULL REFERENCES supply_categories(id) ON DELETE RESTRICT,
@@ -89,31 +89,31 @@ export const migration021: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_supply_products_lab_id ON supply_products(lab_id)`);
-    await pool.query(`CREATE INDEX idx_supply_products_lab_status ON supply_products(lab_id, status)`);
-    await pool.query(`CREATE INDEX idx_supply_products_category ON supply_products(category_id)`);
+    await pool.query(`CREATE INDEX idx_supply_items_lab_id ON supply_items(lab_id)`);
+    await pool.query(`CREATE INDEX idx_supply_items_lab_status ON supply_items(lab_id, status)`);
+    await pool.query(`CREATE INDEX idx_supply_items_category ON supply_items(category_id)`);
 
-    // Stock — current quantity per product per location
+    // Stock — current quantity per item per location
 
     await pool.query(`
       CREATE TABLE supply_stock (
         id TEXT PRIMARY KEY,
-        product_id TEXT NOT NULL REFERENCES supply_products(id) ON DELETE CASCADE,
+        item_id TEXT NOT NULL REFERENCES supply_items(id) ON DELETE CASCADE,
         location_id TEXT NOT NULL REFERENCES supply_locations(id) ON DELETE RESTRICT,
         quantity NUMERIC NOT NULL DEFAULT 0,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        UNIQUE(product_id, location_id)
+        UNIQUE(item_id, location_id)
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_supply_stock_product ON supply_stock(product_id)`);
+    await pool.query(`CREATE INDEX idx_supply_stock_item ON supply_stock(item_id)`);
 
-    // Barcodes — multiple per product, globally unique values
+    // Barcodes — multiple per item, globally unique values
 
     await pool.query(`
       CREATE TABLE supply_barcodes (
         id TEXT PRIMARY KEY,
-        product_id TEXT NOT NULL REFERENCES supply_products(id) ON DELETE CASCADE,
+        item_id TEXT NOT NULL REFERENCES supply_items(id) ON DELETE CASCADE,
         barcode_value TEXT NOT NULL UNIQUE,
         barcode_type TEXT NOT NULL DEFAULT 'internal',
         is_primary BOOLEAN NOT NULL DEFAULT false,
@@ -122,14 +122,14 @@ export const migration021: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_supply_barcodes_product ON supply_barcodes(product_id)`);
+    await pool.query(`CREATE INDEX idx_supply_barcodes_item ON supply_barcodes(item_id)`);
 
     // Transactions — audit trail of every stock change
 
     await pool.query(`
       CREATE TABLE supply_transactions (
         id TEXT PRIMARY KEY,
-        product_id TEXT NOT NULL REFERENCES supply_products(id),
+        item_id TEXT NOT NULL REFERENCES supply_items(id),
         location_id TEXT NOT NULL REFERENCES supply_locations(id),
         lab_id TEXT NOT NULL REFERENCES labs(id),
         type TEXT NOT NULL,
@@ -150,16 +150,16 @@ export const migration021: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_supply_transactions_product ON supply_transactions(product_id)`);
+    await pool.query(`CREATE INDEX idx_supply_transactions_item ON supply_transactions(item_id)`);
     await pool.query(`CREATE INDEX idx_supply_transactions_lab ON supply_transactions(lab_id)`);
     await pool.query(`CREATE INDEX idx_supply_transactions_related ON supply_transactions(related_transaction_id) WHERE related_transaction_id IS NOT NULL`);
 
-    // Documents — linked docs, SOPs, product page URLs
+    // Documents — linked docs, SOPs, item page URLs
 
     await pool.query(`
       CREATE TABLE supply_documents (
         id TEXT PRIMARY KEY,
-        product_id TEXT NOT NULL REFERENCES supply_products(id) ON DELETE CASCADE,
+        item_id TEXT NOT NULL REFERENCES supply_items(id) ON DELETE CASCADE,
         label TEXT NOT NULL,
         url TEXT NOT NULL,
         notes TEXT,
@@ -167,22 +167,22 @@ export const migration021: Migration = {
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_supply_documents_product ON supply_documents(product_id)`);
+    await pool.query(`CREATE INDEX idx_supply_documents_item ON supply_documents(item_id)`);
 
-    // Packaging levels — per-product hierarchical unit chain
+    // Packaging levels — per-item hierarchical unit chain
 
     await pool.query(`
       CREATE TABLE supply_packaging_levels (
         id TEXT PRIMARY KEY,
-        product_id TEXT NOT NULL REFERENCES supply_products(id) ON DELETE CASCADE,
+        item_id TEXT NOT NULL REFERENCES supply_items(id) ON DELETE CASCADE,
         unit_name TEXT NOT NULL,
         quantity NUMERIC NOT NULL,
         parent_unit TEXT,
-        UNIQUE(product_id, unit_name)
+        UNIQUE(item_id, unit_name)
       )
     `);
 
-    await pool.query(`CREATE INDEX idx_supply_packaging_levels_product ON supply_packaging_levels(product_id)`);
+    await pool.query(`CREATE INDEX idx_supply_packaging_levels_item ON supply_packaging_levels(item_id)`);
 
     // Extend lookup category constraint to include supply categories
 
@@ -197,14 +197,14 @@ export const migration021: Migration = {
         WHERE rel.relname = 'lookup_values'
           AND con.contype = 'c'
           AND pg_get_constraintdef(con.oid) LIKE '%category%'
-          AND pg_get_constraintdef(con.oid) NOT LIKE '%supply_product_property%';
+          AND pg_get_constraintdef(con.oid) NOT LIKE '%supply_item_property%';
 
         IF constraint_name IS NOT NULL THEN
           EXECUTE 'ALTER TABLE lookup_values DROP CONSTRAINT ' || constraint_name;
           ALTER TABLE lookup_values ADD CONSTRAINT lookup_values_category_check
             CHECK (category IN (
               'species', 'source', 'media', 'specimen_type', 'equipment_maintenance_type',
-              'supply_product_property', 'supply_stock_unit', 'supply_vendor', 'supply_manufacturer'
+              'supply_item_property', 'supply_stock_unit', 'supply_vendor', 'supply_manufacturer'
             ));
         END IF;
       END $$

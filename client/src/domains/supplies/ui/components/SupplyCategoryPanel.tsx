@@ -1,7 +1,7 @@
 /**
  * Supply Category Panel
  *
- * Collapsible category sections with nested subcategories and supply product cards.
+ * Collapsible category sections with nested subcategories and supply item cards.
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -10,16 +10,16 @@ import { ChevronDown, ChevronRight, Plus, SquarePen, Trash2 } from 'lucide-react
 
 import { Button, OverflowMenu } from '@shared/ui';
 
-import { SupplyProductRow } from './SupplyProductRow';
+import { SupplyItemRow } from './SupplyItemRow';
 
-import type { SupplyCategory, SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
 
 interface SupplyCategoryPanelProps {
   categories: SupplyCategory[];
-  products: SupplyProductWithStock[];
-  selectedProductId?: string;
-  onSelectProduct: (id: string) => void;
+  items: SupplyItemWithStock[];
+  selectedItemId?: string;
+  onSelectItem: (id: string) => void;
   showArchived: boolean;
   searchQuery: string;
   isAdmin: boolean;
@@ -33,9 +33,9 @@ interface SupplyCategoryPanelProps {
 
 export function SupplyCategoryPanel({
   categories,
-  products,
-  selectedProductId,
-  onSelectProduct,
+  items,
+  selectedItemId,
+  onSelectItem,
   showArchived,
   searchQuery,
   isAdmin,
@@ -85,8 +85,8 @@ export function SupplyCategoryPanel({
     return ids;
   }, [categories, searchQuery, isSearching]);
 
-  const filteredProducts = useMemo(() => {
-    let result = products;
+  const filteredItems = useMemo(() => {
+    let result = items;
 
     if (!showArchived) {
       result = result.filter(p => p.status !== 'archived');
@@ -107,10 +107,10 @@ export function SupplyCategoryPanel({
     }
 
     return result;
-  }, [products, showArchived, searchQuery, isSearching, matchingCategoryIds]);
+  }, [items, showArchived, searchQuery, isSearching, matchingCategoryIds]);
 
-  const sortProducts = useCallback(
-    (a: SupplyProductWithStock, b: SupplyProductWithStock): number => {
+  const sortItems = useCallback(
+    (a: SupplyItemWithStock, b: SupplyItemWithStock): number => {
       const dir = sortDirection === 'asc' ? 1 : -1;
       switch (sortField) {
         case 'name': {
@@ -135,18 +135,18 @@ export function SupplyCategoryPanel({
     [sortField, sortDirection]
   );
 
-  const productsByCategoryId = useMemo(() => {
-    const map = new Map<string, SupplyProductWithStock[]>();
-    filteredProducts.forEach(product => {
-      const list = map.get(product.categoryId) ?? [];
-      list.push(product);
-      map.set(product.categoryId, list);
+  const itemsByCategoryId = useMemo(() => {
+    const map = new Map<string, SupplyItemWithStock[]>();
+    filteredItems.forEach(item => {
+      const list = map.get(item.categoryId) ?? [];
+      list.push(item);
+      map.set(item.categoryId, list);
     });
     for (const [key, list] of map) {
-      map.set(key, list.sort(sortProducts));
+      map.set(key, list.sort(sortItems));
     }
     return map;
-  }, [filteredProducts, sortProducts]);
+  }, [filteredItems, sortItems]);
 
   const toggleCategory = (id: string) => {
     setExpandedCategories(prev => {
@@ -160,17 +160,17 @@ export function SupplyCategoryPanel({
     });
   };
 
-  const getCategoryProductCount = (categoryId: string): number => {
-    const directCount = productsByCategoryId.get(categoryId)?.length ?? 0;
+  const getCategoryItemCount = (categoryId: string): number => {
+    const directCount = itemsByCategoryId.get(categoryId)?.length ?? 0;
     const subs = subcategoriesByParent.get(categoryId) ?? [];
     const subCount = subs.reduce(
-      (sum, sub) => sum + (productsByCategoryId.get(sub.id)?.length ?? 0),
+      (sum, sub) => sum + (itemsByCategoryId.get(sub.id)?.length ?? 0),
       0
     );
     return directCount + subCount;
   };
 
-  const getCategoryMenuItems = (cat: SupplyCategory, productCount: number): OverflowMenuItem[] => [
+  const getCategoryMenuItems = (cat: SupplyCategory, itemCount: number): OverflowMenuItem[] => [
     {
       icon: SquarePen,
       label: 'Rename',
@@ -181,7 +181,7 @@ export function SupplyCategoryPanel({
       label: 'Remove',
       onClick: () => onDeleteCategory(cat),
       danger: true,
-      disabled: productCount > 0,
+      disabled: itemCount > 0,
     },
   ];
 
@@ -219,16 +219,16 @@ export function SupplyCategoryPanel({
         </div>
       )}
 
-      {filteredProducts.length === 0 && isSearching && (
+      {filteredItems.length === 0 && isSearching && (
         <p className="text-sm text-muted-foreground text-center py-6">
-          No products matching &ldquo;{searchQuery}&rdquo;
+          No items matching &ldquo;{searchQuery}&rdquo;
         </p>
       )}
 
       {topLevelCategories.map(category => {
         const subs = subcategoriesByParent.get(category.id) ?? [];
-        const totalCount = getCategoryProductCount(category.id);
-        const directProducts = productsByCategoryId.get(category.id) ?? [];
+        const totalCount = getCategoryItemCount(category.id);
+        const directItems = itemsByCategoryId.get(category.id) ?? [];
         const isExpanded = isSearching ? totalCount > 0 : expandedCategories.has(category.id);
 
         if (isSearching && totalCount === 0) return null;
@@ -287,15 +287,15 @@ export function SupplyCategoryPanel({
             {isExpanded && (
               <div className="px-2 py-2 space-y-2">
                 {subs.map(sub => {
-                  const subProducts = productsByCategoryId.get(sub.id) ?? [];
-                  if (isSearching && subProducts.length === 0) return null;
+                  const subItems = itemsByCategoryId.get(sub.id) ?? [];
+                  if (isSearching && subItems.length === 0) return null;
                   return (
                     <SubcategorySection
                       key={sub.id}
                       subcategory={sub}
-                      products={subProducts}
-                      selectedProductId={selectedProductId}
-                      onSelectProduct={onSelectProduct}
+                      items={subItems}
+                      selectedItemId={selectedItemId}
+                      onSelectItem={onSelectItem}
                       isAdmin={isAdmin}
                       onRename={onRenameCategory}
                       onDelete={onDeleteCategory}
@@ -304,14 +304,14 @@ export function SupplyCategoryPanel({
                   );
                 })}
 
-                {subs.length === 0 && directProducts.length > 0 && (
+                {subs.length === 0 && directItems.length > 0 && (
                   <div className="space-y-1.5">
-                    {directProducts.map(product => (
-                      <SupplyProductRow
-                        key={product.id}
-                        product={product}
-                        isSelected={product.id === selectedProductId}
-                        onSelect={onSelectProduct}
+                    {directItems.map(item => (
+                      <SupplyItemRow
+                        key={item.id}
+                        item={item}
+                        isSelected={item.id === selectedItemId}
+                        onSelect={onSelectItem}
                       />
                     ))}
                   </div>
@@ -319,7 +319,7 @@ export function SupplyCategoryPanel({
 
                 {totalCount === 0 && (
                   <p className="text-xs text-card-foreground/30 italic text-center py-3">
-                    No products
+                    No items
                   </p>
                 )}
               </div>
@@ -333,9 +333,9 @@ export function SupplyCategoryPanel({
 
 interface SubcategorySectionProps {
   subcategory: SupplyCategory;
-  products: SupplyProductWithStock[];
-  selectedProductId?: string;
-  onSelectProduct: (id: string) => void;
+  items: SupplyItemWithStock[];
+  selectedItemId?: string;
+  onSelectItem: (id: string) => void;
   isAdmin: boolean;
   onRename: (category: SupplyCategory) => void;
   onDelete: (category: SupplyCategory) => void;
@@ -344,9 +344,9 @@ interface SubcategorySectionProps {
 
 function SubcategorySection({
   subcategory,
-  products,
-  selectedProductId,
-  onSelectProduct,
+  items,
+  selectedItemId,
+  onSelectItem,
   isAdmin,
   onRename,
   onDelete,
@@ -362,7 +362,7 @@ function SubcategorySection({
       label: 'Remove',
       onClick: () => onDelete(subcategory),
       danger: true,
-      disabled: products.length > 0,
+      disabled: items.length > 0,
     },
   ];
 
@@ -393,17 +393,17 @@ function SubcategorySection({
           </div>
         )}
         <span className="text-xs font-medium text-secondary-foreground">{subcategory.name}</span>
-        <span className="text-xs text-muted-foreground">({products.length})</span>
+        <span className="text-xs text-muted-foreground">({items.length})</span>
       </div>
 
-      {effectiveExpanded && products.length > 0 && (
+      {effectiveExpanded && items.length > 0 && (
         <div className="ml-2 mt-1 space-y-1.5">
-          {products.map(product => (
-            <SupplyProductRow
-              key={product.id}
-              product={product}
-              isSelected={product.id === selectedProductId}
-              onSelect={onSelectProduct}
+          {items.map(item => (
+            <SupplyItemRow
+              key={item.id}
+              item={item}
+              isSelected={item.id === selectedItemId}
+              onSelect={onSelectItem}
             />
           ))}
         </div>

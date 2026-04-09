@@ -2,7 +2,7 @@
  * Supply Quick Scan Bar
  *
  * Barcode scan input in the toolbar that resolves a barcode and shows
- * a quick action dropdown for immediate product viewing or transaction recording.
+ * a quick action dropdown for immediate item viewing or transaction recording.
  */
 
 import { useState, useCallback, useRef } from 'react';
@@ -27,36 +27,36 @@ import { MenuItem } from '@shared/ui/primitives/menus/MenuItem';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
-import type { SupplyProduct, SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyItem, SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 type TransactionTab = 'received' | 'issued' | 'count' | 'disposed';
 
 interface SupplyQuickScanBarProps {
-  products: SupplyProductWithStock[];
-  onViewProduct: (productId: string) => void;
-  onRecordTransaction: (productId: string, initialTab: TransactionTab) => void;
+  items: SupplyItemWithStock[];
+  onViewItem: (itemId: string) => void;
+  onRecordTransaction: (itemId: string, initialTab: TransactionTab) => void;
 }
 
 export function SupplyQuickScanBar({
-  products,
-  onViewProduct,
+  items,
+  onViewItem,
   onRecordTransaction,
 }: SupplyQuickScanBarProps) {
   const [scanValue, setScanValue] = useState('');
   const [isResolving, setIsResolving] = useState(false);
-  const [resolvedProduct, setResolvedProduct] = useState<SupplyProduct | null>(null);
+  const [resolvedItem, setResolvedItem] = useState<SupplyItem | null>(null);
   const [showActions, setShowActions] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [unresolvedBarcode, setUnresolvedBarcode] = useState('');
-  const [linkProductId, setLinkProductId] = useState('');
+  const [linkItemId, setLinkItemId] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const addBarcodeMutation = useAddSupplyBarcodeMutation();
 
-  const productOptions: SelectOption[] = [
-    { value: '', label: 'Select product...' },
-    ...products
+  const itemOptions: SelectOption[] = [
+    { value: '', label: 'Select item...' },
+    ...items
       .filter(p => p.status === 'active')
       .map(p => ({
         value: p.id,
@@ -70,9 +70,9 @@ export function SupplyQuickScanBar({
 
     setIsResolving(true);
     try {
-      const product = await SupplyService.resolveBarcode(value);
-      if (product) {
-        setResolvedProduct(product);
+      const item = await SupplyService.resolveBarcode(value);
+      if (item) {
+        setResolvedItem(item);
         setShowActions(true);
       } else {
         setUnresolvedBarcode(value);
@@ -87,38 +87,38 @@ export function SupplyQuickScanBar({
 
   const handleAction = useCallback(
     (action: 'view' | TransactionTab) => {
-      if (!resolvedProduct) return;
+      if (!resolvedItem) return;
       setShowActions(false);
       setScanValue('');
-      setResolvedProduct(null);
+      setResolvedItem(null);
 
       if (action === 'view') {
-        onViewProduct(resolvedProduct.id);
+        onViewItem(resolvedItem.id);
       } else {
-        onRecordTransaction(resolvedProduct.id, action);
+        onRecordTransaction(resolvedItem.id, action);
       }
 
       inputRef.current?.focus();
     },
-    [resolvedProduct, onViewProduct, onRecordTransaction]
+    [resolvedItem, onViewItem, onRecordTransaction]
   );
 
   const handleLink = useCallback(async () => {
-    if (!linkProductId || !unresolvedBarcode) return;
+    if (!linkItemId || !unresolvedBarcode) return;
     try {
       await addBarcodeMutation.mutateAsync({
-        productId: linkProductId,
+        itemId: linkItemId,
         data: { barcodeValue: unresolvedBarcode, barcodeType: 'manufacturer_sku' },
       });
       notifications.success('Barcode linked');
       setShowLinkDialog(false);
       setUnresolvedBarcode('');
-      setLinkProductId('');
+      setLinkItemId('');
       setScanValue('');
     } catch {
       notifications.error('Failed to link barcode');
     }
-  }, [linkProductId, unresolvedBarcode, addBarcodeMutation]);
+  }, [linkItemId, unresolvedBarcode, addBarcodeMutation]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -127,7 +127,7 @@ export function SupplyQuickScanBar({
     }
   };
 
-  const stockInfo = resolvedProduct ? products.find(p => p.id === resolvedProduct.id) : null;
+  const stockInfo = resolvedItem ? items.find(p => p.id === resolvedItem.id) : null;
 
   return (
     <>
@@ -149,16 +149,16 @@ export function SupplyQuickScanBar({
           onClose={() => {
             setShowActions(false);
             setScanValue('');
-            setResolvedProduct(null);
+            setResolvedItem(null);
           }}
           triggerRef={triggerRef as React.RefObject<HTMLElement>}
           align="start"
           className="w-48"
         >
-          {resolvedProduct && (
+          {resolvedItem && (
             <div className="py-1">
               <div className="px-3 py-2 border-b border-border">
-                <p className="text-sm font-semibold text-card-foreground">{resolvedProduct.name}</p>
+                <p className="text-sm font-semibold text-card-foreground">{resolvedItem.name}</p>
                 {stockInfo && (
                   <p className="text-xs text-muted-foreground">
                     {stockInfo.totalStock}{' '}
@@ -166,7 +166,7 @@ export function SupplyQuickScanBar({
                   </p>
                 )}
               </div>
-              <MenuItem icon={Eye} label="View Product" onClick={() => handleAction('view')} />
+              <MenuItem icon={Eye} label="View Item" onClick={() => handleAction('view')} />
               <MenuDivider />
               <MenuItem icon={ClipboardCheck} label="Count" onClick={() => handleAction('count')} />
               <MenuItem
@@ -197,13 +197,13 @@ export function SupplyQuickScanBar({
             <span className="font-mono font-semibold text-card-foreground">
               {unresolvedBarcode}
             </span>{' '}
-            isn&apos;t linked to any product. Link it now?
+            isn&apos;t linked to any item. Link it now?
           </p>
           <Select
-            label="Link to Product"
-            options={productOptions}
-            value={linkProductId}
-            onChange={v => setLinkProductId(String(v ?? ''))}
+            label="Link to Item"
+            options={itemOptions}
+            value={linkItemId}
+            onChange={v => setLinkItemId(String(v ?? ''))}
             fullWidth
           />
           <div className="flex justify-end gap-2">
@@ -218,7 +218,7 @@ export function SupplyQuickScanBar({
             </Button>
             <Button
               onClick={() => void handleLink()}
-              disabled={!linkProductId}
+              disabled={!linkItemId}
               isLoading={addBarcodeMutation.isPending}
             >
               Link Barcode

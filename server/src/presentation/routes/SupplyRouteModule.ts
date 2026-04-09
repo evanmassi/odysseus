@@ -1,7 +1,7 @@
 /**
  * Supply Route Module
  *
- * Routes for supply categories, locations, products, documents,
+ * Routes for supply categories, locations, items, documents,
  * barcodes, stock operations, and bulk actions.
  */
 
@@ -19,8 +19,8 @@ import {
   UpdateSupplyCategoryHttpSchema,
   CreateSupplyLocationHttpSchema,
   UpdateSupplyLocationHttpSchema,
-  CreateSupplyProductHttpSchema,
-  UpdateSupplyProductHttpSchema,
+  CreateSupplyItemHttpSchema,
+  UpdateSupplyItemHttpSchema,
   CreateSupplyBarcodeHttpSchema,
   UpdateSupplyBarcodeHttpSchema,
   CreateSupplyDocumentHttpSchema,
@@ -143,7 +143,7 @@ export class SupplyRouteModule implements RouteModule {
       this.supplyController.getReorderList.bind(this.supplyController)
     );
 
-    // Stock operations (not scoped to a product)
+    // Stock operations (not scoped to an item)
 
     router.post('/transactions',
       validateBody(RecordSupplyTransactionHttpSchema),
@@ -161,36 +161,36 @@ export class SupplyRouteModule implements RouteModule {
       this.supplyController.voidTransaction.bind(this.supplyController)
     );
 
-    // Products
+    // Items
 
     router.get('/',
-      this.supplyController.listProducts.bind(this.supplyController)
+      this.supplyController.listItems.bind(this.supplyController)
     );
 
     router.post('/',
-      validateBody(CreateSupplyProductHttpSchema),
-      this.supplyController.createProduct.bind(this.supplyController)
+      validateBody(CreateSupplyItemHttpSchema),
+      this.supplyController.createItem.bind(this.supplyController)
     );
 
     router.get('/:id',
       validateParams(IdParams),
-      this.supplyController.getProduct.bind(this.supplyController)
+      this.supplyController.getItem.bind(this.supplyController)
     );
 
     router.put('/:id',
       validateParams(IdParams),
-      validateBody(UpdateSupplyProductHttpSchema),
-      this.supplyController.updateProduct.bind(this.supplyController)
+      validateBody(UpdateSupplyItemHttpSchema),
+      this.supplyController.updateItem.bind(this.supplyController)
     );
 
     router.delete('/:id',
       validateParams(IdParams),
-      this.supplyController.deleteProduct.bind(this.supplyController)
+      this.supplyController.deleteItem.bind(this.supplyController)
     );
 
     router.post('/:id/archive',
       validateParams(IdParams),
-      this.supplyController.archiveProduct.bind(this.supplyController)
+      this.supplyController.archiveItem.bind(this.supplyController)
     );
 
     // Documents

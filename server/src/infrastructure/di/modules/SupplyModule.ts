@@ -22,7 +22,7 @@ export class SupplyModule {
     if (!this.supplyApplicationService) {
       this.supplyApplicationService = new SupplyApplicationService(
         this.repositoryFactory.getSupplyCategoryRepository(),
-        this.repositoryFactory.getSupplyProductRepository(),
+        this.repositoryFactory.getSupplyItemRepository(),
         this.repositoryFactory.getSupplyLocationRepository(),
         this.shared.accessControlService,
         this.shared.eventBus

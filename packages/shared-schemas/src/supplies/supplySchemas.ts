@@ -1,7 +1,7 @@
 /**
  * Supply Inventory Schemas
  *
- * Validation and types for supply categories, products, locations, stock,
+ * Validation and types for supply categories, items, locations, stock,
  * barcodes, transactions, and documents.
  */
 
@@ -10,8 +10,8 @@ import { dateField, optionalDateField } from '../utils/dateFields';
 
 // Enums
 
-export const supplyProductStatusValues = ['active', 'discontinued', 'archived'] as const;
-export const supplyProductStatusSchema = z.enum(supplyProductStatusValues);
+export const supplyItemStatusValues = ['active', 'discontinued', 'archived'] as const;
+export const supplyItemStatusSchema = z.enum(supplyItemStatusValues);
 
 export const supplyTransactionTypeValues = ['received', 'issued', 'count_adjustment', 'disposed', 'void_reversal'] as const;
 export const supplyTransactionTypeSchema = z.enum(supplyTransactionTypeValues);
@@ -83,9 +83,9 @@ export const supplyLocationListResponseSchema = z.object({
   locations: z.array(supplyLocationSchema),
 });
 
-// Product schemas
+// Item schemas
 
-export const supplyProductSchema = z.object({
+export const supplyItemSchema = z.object({
   id: z.string(),
   labId: z.string(),
   categoryId: z.string(),
@@ -104,19 +104,19 @@ export const supplyProductSchema = z.object({
   currentLotNumber: z.string().optional(),
   description: z.string().optional(),
   notes: z.string().optional(),
-  status: supplyProductStatusSchema,
+  status: supplyItemStatusSchema,
   createdAt: dateField,
   updatedAt: dateField,
 });
 
-export const supplyProductWithStockSchema = supplyProductSchema.extend({
+export const supplyItemWithStockSchema = supplyItemSchema.extend({
   totalStock: z.number(),
   locationNames: z.array(z.string()),
 });
 
-export const createSupplyProductRequestSchema = z.object({
+export const createSupplyItemRequestSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
-  name: z.string().min(1, 'Product name is required').max(200),
+  name: z.string().min(1, 'Item name is required').max(200),
   manufacturer: z.string().max(200).optional(),
   catalogNumber: z.string().max(200).optional(),
   vendorName: z.string().max(200).optional(),
@@ -132,7 +132,7 @@ export const createSupplyProductRequestSchema = z.object({
   notes: z.string().max(5000).optional(),
 });
 
-export const updateSupplyProductRequestSchema = z.object({
+export const updateSupplyItemRequestSchema = z.object({
   categoryId: z.string().min(1).nullish(),
   name: z.string().min(1).max(200).nullish(),
   manufacturer: z.string().max(200).nullish(),
@@ -150,19 +150,19 @@ export const updateSupplyProductRequestSchema = z.object({
   notes: z.string().max(5000).nullish(),
 });
 
-export const supplyProductResponseSchema = z.object({
-  product: supplyProductSchema,
+export const supplyItemResponseSchema = z.object({
+  item: supplyItemSchema,
 });
 
-export const supplyProductListResponseSchema = z.object({
-  products: z.array(supplyProductWithStockSchema),
+export const supplyItemListResponseSchema = z.object({
+  items: z.array(supplyItemWithStockSchema),
 });
 
 // Stock schemas
 
 export const supplyStockSchema = z.object({
   id: z.string(),
-  productId: z.string(),
+  itemId: z.string(),
   locationId: z.string(),
   quantity: z.number(),
   updatedAt: dateField,
@@ -172,7 +172,7 @@ export const supplyStockSchema = z.object({
 
 export const supplyBarcodeSchema = z.object({
   id: z.string(),
-  productId: z.string(),
+  itemId: z.string(),
   barcodeValue: z.string(),
   barcodeType: supplyBarcodeTypeSchema,
   isPrimary: z.boolean(),
@@ -199,7 +199,7 @@ export const supplyBarcodeResponseSchema = z.object({
 
 export const supplyTransactionSchema = z.object({
   id: z.string(),
-  productId: z.string(),
+  itemId: z.string(),
   locationId: z.string(),
   labId: z.string(),
   type: supplyTransactionTypeSchema,
@@ -219,7 +219,7 @@ export const supplyTransactionSchema = z.object({
 });
 
 export const recordSupplyTransactionRequestSchema = z.object({
-  productId: z.string().min(1, 'Product is required'),
+  itemId: z.string().min(1, 'Item is required'),
   locationId: z.string().min(1, 'Location is required'),
   type: z.enum(['received', 'issued', 'disposed']),
   quantity: z.number().min(0, 'Quantity must be non-negative'),
@@ -232,7 +232,7 @@ export const recordSupplyTransactionRequestSchema = z.object({
 });
 
 export const recordSupplyStockCountRequestSchema = z.object({
-  productId: z.string().min(1, 'Product is required'),
+  itemId: z.string().min(1, 'Item is required'),
   locationId: z.string().min(1, 'Location is required'),
   actualCount: z.number().min(0, 'Count must be non-negative'),
   lotNumber: z.string().max(200).optional(),
@@ -266,7 +266,7 @@ export const supplyTransactionListResponseSchema = z.object({
 
 export const supplyDocumentSchema = z.object({
   id: z.string(),
-  productId: z.string(),
+  itemId: z.string(),
   label: z.string(),
   url: z.string(),
   notes: z.string().optional(),
@@ -297,7 +297,7 @@ export const supplyDocumentListResponseSchema = z.object({
 
 export const supplyPackagingLevelSchema = z.object({
   id: z.string(),
-  productId: z.string(),
+  itemId: z.string(),
   unitName: z.string(),
   quantity: z.number(),
   parentUnit: z.string().nullable(),
@@ -319,8 +319,8 @@ export const supplyPackagingLevelResponseSchema = z.object({
 
 // Composed detail response
 
-export const supplyProductDetailResponseSchema = z.object({
-  product: supplyProductSchema,
+export const supplyItemDetailResponseSchema = z.object({
+  item: supplyItemSchema,
   documents: z.array(supplyDocumentSchema),
   barcodes: z.array(supplyBarcodeSchema),
   stock: z.array(supplyStockSchema),
@@ -330,11 +330,11 @@ export const supplyProductDetailResponseSchema = z.object({
 
 // Bulk operation schemas
 
-const productIdsField = z.array(z.string().min(1)).min(1, 'At least one product is required').max(100);
+const itemIdsField = z.array(z.string().min(1)).min(1, 'At least one item is required').max(100);
 
 export const supplyBulkReceiveRequestSchema = z.object({
   items: z.array(z.object({
-    productId: z.string().min(1),
+    itemId: z.string().min(1),
     locationId: z.string().min(1),
     quantity: z.number().min(0),
     lotNumber: z.string().max(200).optional(),
@@ -347,19 +347,19 @@ export const supplyBulkReceiveRequestSchema = z.object({
 
 export const supplyBulkIssueRequestSchema = z.object({
   items: z.array(z.object({
-    productId: z.string().min(1),
+    itemId: z.string().min(1),
     locationId: z.string().min(1),
     quantity: z.number().min(0),
   })).min(1, 'At least one item is required').max(100),
 });
 
 export const supplyBulkReassignCategoryRequestSchema = z.object({
-  productIds: productIdsField,
+  itemIds: itemIdsField,
   categoryId: z.string().min(1, 'Target category is required'),
 });
 
 export const supplyBulkArchiveRequestSchema = z.object({
-  productIds: productIdsField,
+  itemIds: itemIdsField,
 });
 
 export const supplyBulkResponseSchema = z.object({
@@ -370,29 +370,29 @@ export const supplyBulkResponseSchema = z.object({
 // Reorder list response
 
 export const supplyReorderListResponseSchema = z.object({
-  products: z.array(supplyProductWithStockSchema),
+  items: z.array(supplyItemWithStockSchema),
 });
 
 // Type exports
 
-export type SupplyProductStatus = z.infer<typeof supplyProductStatusSchema>;
+export type SupplyItemStatus = z.infer<typeof supplyItemStatusSchema>;
 export type SupplyTransactionType = z.infer<typeof supplyTransactionTypeSchema>;
 export type SupplyBarcodeType = z.infer<typeof supplyBarcodeTypeSchema>;
 export type SupplyCategory = z.infer<typeof supplyCategorySchema>;
-export type SupplyProduct = z.infer<typeof supplyProductSchema>;
-export type SupplyProductWithStock = z.infer<typeof supplyProductWithStockSchema>;
+export type SupplyItem = z.infer<typeof supplyItemSchema>;
+export type SupplyItemWithStock = z.infer<typeof supplyItemWithStockSchema>;
 export type SupplyLocation = z.infer<typeof supplyLocationSchema>;
 export type SupplyStock = z.infer<typeof supplyStockSchema>;
 export type SupplyBarcode = z.infer<typeof supplyBarcodeSchema>;
 export type SupplyTransaction = z.infer<typeof supplyTransactionSchema>;
 export type SupplyDocument = z.infer<typeof supplyDocumentSchema>;
-export type SupplyProductDetail = z.infer<typeof supplyProductDetailResponseSchema>;
+export type SupplyItemDetail = z.infer<typeof supplyItemDetailResponseSchema>;
 export type CreateSupplyCategoryRequest = z.infer<typeof createSupplyCategoryRequestSchema>;
 export type UpdateSupplyCategoryRequest = z.infer<typeof updateSupplyCategoryRequestSchema>;
 export type CreateSupplyLocationRequest = z.infer<typeof createSupplyLocationRequestSchema>;
 export type UpdateSupplyLocationRequest = z.infer<typeof updateSupplyLocationRequestSchema>;
-export type CreateSupplyProductRequest = z.infer<typeof createSupplyProductRequestSchema>;
-export type UpdateSupplyProductRequest = z.infer<typeof updateSupplyProductRequestSchema>;
+export type CreateSupplyItemRequest = z.infer<typeof createSupplyItemRequestSchema>;
+export type UpdateSupplyItemRequest = z.infer<typeof updateSupplyItemRequestSchema>;
 export type CreateSupplyBarcodeRequest = z.infer<typeof createSupplyBarcodeRequestSchema>;
 export type UpdateSupplyBarcodeRequest = z.infer<typeof updateSupplyBarcodeRequestSchema>;
 export type RecordSupplyTransactionRequest = z.infer<typeof recordSupplyTransactionRequestSchema>;

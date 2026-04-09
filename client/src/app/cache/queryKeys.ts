@@ -120,11 +120,11 @@ export const queryKeys = {
   supplies: {
     all: (labId = '') => ['supplies', labId] as const,
     categories: (labId = '') => [...queryKeys.supplies.all(labId), 'categories'] as const,
-    products: (labId = '') => [...queryKeys.supplies.all(labId), 'products'] as const,
+    items: (labId = '') => [...queryKeys.supplies.all(labId), 'items'] as const,
     detail: (labId = '', id: string) => [...queryKeys.supplies.all(labId), 'detail', id] as const,
     locations: (labId = '') => [...queryKeys.supplies.all(labId), 'locations'] as const,
-    transactions: (labId = '', productId: string) =>
-      [...queryKeys.supplies.all(labId), 'transactions', productId] as const,
+    transactions: (labId = '', itemId: string) =>
+      [...queryKeys.supplies.all(labId), 'transactions', itemId] as const,
     reorderList: (labId = '') => [...queryKeys.supplies.all(labId), 'reorder-list'] as const,
   },
 

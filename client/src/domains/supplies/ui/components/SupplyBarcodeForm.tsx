@@ -1,7 +1,7 @@
 /**
  * Supply Barcode Form
  *
- * Inline form for adding a barcode (manufacturer SKU, UPC, or internal) to a supply product.
+ * Inline form for adding a barcode (manufacturer SKU, UPC, or internal) to a supply item.
  */
 
 import { useState } from 'react';
@@ -22,11 +22,11 @@ const BARCODE_TYPE_OPTIONS: SelectOption[] = [
 ];
 
 interface SupplyBarcodeFormProps {
-  productId: string;
+  itemId: string;
   onAdded: () => void;
 }
 
-export function SupplyBarcodeForm({ productId, onAdded }: SupplyBarcodeFormProps) {
+export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState('');
   const [barcodeType, setBarcodeType] = useState<SupplyBarcodeType>('manufacturer_sku');
@@ -38,7 +38,7 @@ export function SupplyBarcodeForm({ productId, onAdded }: SupplyBarcodeFormProps
     if (!barcodeValue.trim()) return;
     try {
       await addMutation.mutateAsync({
-        productId,
+        itemId,
         data: {
           barcodeValue: barcodeValue.trim(),
           barcodeType,

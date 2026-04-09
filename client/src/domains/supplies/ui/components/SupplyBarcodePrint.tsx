@@ -1,7 +1,7 @@
 /**
  * Supply Barcode Print
  *
- * Renders Code 128 (1D) and QR code (2D) for a product's barcode value
+ * Renders Code 128 (1D) and QR code (2D) for a item's barcode value
  * with a print-friendly layout.
  */
 
@@ -18,7 +18,7 @@ interface SupplyBarcodePrintProps {
   isOpen: boolean;
   onClose: () => void;
   barcodeValue: string;
-  productName: string;
+  itemName: string;
   catalogNumber?: string;
 }
 
@@ -26,7 +26,7 @@ export function SupplyBarcodePrint({
   isOpen,
   onClose,
   barcodeValue,
-  productName,
+  itemName,
   catalogNumber,
 }: SupplyBarcodePrintProps) {
   const barcodeRef = useRef<SVGSVGElement>(null);
@@ -72,7 +72,7 @@ export function SupplyBarcodePrint({
     >
       <div className="space-y-6">
         <div className="text-center">
-          <h3 className="text-sm font-semibold text-card-foreground">{productName}</h3>
+          <h3 className="text-sm font-semibold text-card-foreground">{itemName}</h3>
           {catalogNumber && <p className="text-xs text-muted-foreground">Cat # {catalogNumber}</p>}
         </div>
 

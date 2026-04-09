@@ -16,7 +16,7 @@ import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
-import type { SupplyProductWithStock } from '@odysseus/shared-schemas';
+import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
 
 interface ReorderRow {
@@ -34,10 +34,10 @@ interface ReorderRow {
 interface SupplyReorderListProps {
   isOpen: boolean;
   onClose: () => void;
-  products: SupplyProductWithStock[];
+  items: SupplyItemWithStock[];
 }
 
-export function SupplyReorderList({ isOpen, onClose, products }: SupplyReorderListProps) {
+export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     columnId: 'totalStock',
     direction: 'asc',
@@ -45,7 +45,7 @@ export function SupplyReorderList({ isOpen, onClose, products }: SupplyReorderLi
 
   const rows: ReorderRow[] = useMemo(
     () =>
-      products.map(p => {
+      items.map(p => {
         const unit = p.stockUnit ?? 'unit';
         const reorderUnit = p.reorderUnit ?? unit;
         return {
@@ -62,7 +62,7 @@ export function SupplyReorderList({ isOpen, onClose, products }: SupplyReorderLi
           price: formatCurrency(p.unitPrice) ?? '—',
         };
       }),
-    [products]
+    [items]
   );
 
   const sortedRows = useMemo(() => {
@@ -88,7 +88,7 @@ export function SupplyReorderList({ isOpen, onClose, products }: SupplyReorderLi
     () => [
       {
         id: 'name',
-        header: 'Product',
+        header: 'Item',
         sortable: true,
         render: (_value, row) => <span className="font-medium">{row.name}</span>,
       },
@@ -161,7 +161,7 @@ export function SupplyReorderList({ isOpen, onClose, products }: SupplyReorderLi
       <div className="flex flex-col h-full min-h-0">
         <div className="flex items-center justify-between px-4 pb-3 flex-shrink-0">
           <span className="text-sm text-muted-foreground">
-            {products.length} product{products.length !== 1 ? 's' : ''} below reorder threshold
+            {items.length} item{items.length !== 1 ? 's' : ''} below reorder threshold
           </span>
           <Button
             variant="secondary"

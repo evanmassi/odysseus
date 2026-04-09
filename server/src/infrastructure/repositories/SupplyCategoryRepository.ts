@@ -61,17 +61,17 @@ export class SupplyCategoryRepository implements ISupplyCategoryRepository {
     return parseInt(row?.count ?? '0', 10) > 0;
   }
 
-  async hasProducts(id: string, labId: string): Promise<boolean> {
+  async hasItems(id: string, labId: string): Promise<boolean> {
     const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM supply_products WHERE category_id = $1 AND lab_id = $2',
+      'SELECT COUNT(*) as count FROM supply_items WHERE category_id = $1 AND lab_id = $2',
       [id, labId]
     );
     return parseInt(row?.count ?? '0', 10) > 0;
   }
 
-  async hasProductsIncludingChildren(id: string, labId: string): Promise<boolean> {
+  async hasItemsIncludingChildren(id: string, labId: string): Promise<boolean> {
     const row = await this.db.queryOne<{ count: string }>(`
-      SELECT COUNT(*) as count FROM supply_products
+      SELECT COUNT(*) as count FROM supply_items
       WHERE lab_id = $2
         AND category_id IN (
           SELECT id FROM supply_categories WHERE id = $1 AND lab_id = $2

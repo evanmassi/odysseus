@@ -778,9 +778,9 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       return plain(name ? name : '-');
     }
 
-    // ── CONSUMABLE EVENTS ──
+    // ── SUPPLY EVENTS ──
 
-    if (entityType === 'supply_product') {
+    if (entityType === 'supply_item') {
       if (action === 'supply_stock_voided') {
         const voidReason = getStringProperty(details, 'voidReason');
         const username = getStringProperty(details, 'voidedBy');

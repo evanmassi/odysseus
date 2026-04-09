@@ -123,7 +123,12 @@
       "Bash(mv ConsumableStockMapper.ts SupplyStockMapper.ts)",
       "Bash(mv ConsumableTransactionMapper.ts SupplyTransactionMapper.ts)",
       "Bash(mv useConsumableQueries.ts useSupplyQueries.ts)",
-      "Bash(mv useConsumableMutations.ts useSupplyMutations.ts)"
+      "Bash(mv useConsumableMutations.ts useSupplyMutations.ts)",
+      "Bash(mv SupplyProductForm.tsx SupplyItemForm.tsx)",
+      "Bash(mv SupplyProductInfoPanel.tsx SupplyItemInfoPanel.tsx)",
+      "Bash(mv SupplyProductRow.tsx SupplyItemRow.tsx)",
+      "Bash(sed -i \"s/CONSUMABLE EVENTS/SUPPLY EVENTS/g\" client/src/domains/admin/utils/auditLogFormatters.ts)",
+      "Bash(sed -i \"s/CONSUMABLE EVENT HANDLERS/SUPPLY EVENT HANDLERS/g\" server/src/application/event-handlers/AuditEventHandler.ts)"
     ]
   }
 }

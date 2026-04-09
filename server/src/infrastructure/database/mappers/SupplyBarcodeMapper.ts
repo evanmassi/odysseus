@@ -4,11 +4,11 @@
  * Converts between supply barcode PostgreSQL rows and the domain row interface.
  */
 
-import type { SupplyBarcodeRow } from '@domain/repositories/SupplyProductRepository';
+import type { SupplyBarcodeRow } from '@domain/repositories/SupplyItemRepository';
 
 export interface SupplyBarcodeDbRow {
   id: string;
-  product_id: string;
+  item_id: string;
   barcode_value: string;
   barcode_type: string;
   is_primary: boolean;
@@ -20,7 +20,7 @@ export class SupplyBarcodeMapper {
   static fromRow(row: SupplyBarcodeDbRow): SupplyBarcodeRow {
     return {
       id: row.id,
-      productId: row.product_id,
+      itemId: row.item_id,
       barcodeValue: row.barcode_value,
       barcodeType: row.barcode_type,
       isPrimary: row.is_primary,

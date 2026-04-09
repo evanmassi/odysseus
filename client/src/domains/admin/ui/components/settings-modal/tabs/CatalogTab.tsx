@@ -39,7 +39,7 @@ const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   media: 'media type',
   specimen_type: 'specimen',
   equipment_maintenance_type: 'maintenance activity',
-  supply_product_property: 'product property',
+  supply_item_property: 'product property',
   supply_stock_unit: 'stock unit',
   supply_vendor: 'vendor',
   supply_manufacturer: 'manufacturer',
@@ -51,7 +51,7 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   media: 'media types',
   specimen_type: 'specimens',
   equipment_maintenance_type: 'maintenance activities',
-  supply_product_property: 'product properties',
+  supply_item_property: 'product properties',
   supply_stock_unit: 'stock units',
   supply_vendor: 'vendors',
   supply_manufacturer: 'manufacturers',
@@ -70,10 +70,10 @@ const CATEGORY_USAGE_LABELS: Record<
     plural: 'collection entries',
   },
   equipment_maintenance_type: { header: 'Entries', singular: 'log entry', plural: 'log entries' },
-  supply_product_property: { header: 'Products', singular: 'product', plural: 'products' },
-  supply_stock_unit: { header: 'Products', singular: 'product', plural: 'products' },
-  supply_vendor: { header: 'Products', singular: 'product', plural: 'products' },
-  supply_manufacturer: { header: 'Products', singular: 'product', plural: 'products' },
+  supply_item_property: { header: 'Items', singular: 'item', plural: 'items' },
+  supply_stock_unit: { header: 'Items', singular: 'item', plural: 'items' },
+  supply_vendor: { header: 'Items', singular: 'item', plural: 'items' },
+  supply_manufacturer: { header: 'Items', singular: 'item', plural: 'items' },
 };
 
 interface CategorySectionProps {
@@ -345,9 +345,9 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const [equipmentMaintenanceTypeValues, setEquipmentMaintenanceTypeValues] = useState<
     LookupValueWithCount[]
   >([]);
-  const [supplyProductPropertyValues, setSupplyProductPropertyValues] = useState<
-    LookupValueWithCount[]
-  >([]);
+  const [supplyItemPropertyValues, setSupplyItemPropertyValues] = useState<LookupValueWithCount[]>(
+    []
+  );
   const [supplyStockUnitValues, setSupplyStockUnitValues] = useState<LookupValueWithCount[]>([]);
   const [supplyVendorValues, setSupplyVendorValues] = useState<LookupValueWithCount[]>([]);
   const [supplyManufacturerValues, setSupplyManufacturerValues] = useState<LookupValueWithCount[]>(
@@ -371,7 +371,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       media: setMediaValues,
       specimen_type: setSpecimenTypeValues,
       equipment_maintenance_type: setEquipmentMaintenanceTypeValues,
-      supply_product_property: setSupplyProductPropertyValues,
+      supply_item_property: setSupplyItemPropertyValues,
       supply_stock_unit: setSupplyStockUnitValues,
       supply_vendor: setSupplyVendorValues,
       supply_manufacturer: setSupplyManufacturerValues,
@@ -388,7 +388,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
         media,
         specimenTypes,
         equipmentMaintenanceTypes,
-        supplyProductProperties,
+        supplyItemProperties,
         supplyStockUnits,
         supplyVendors,
         supplyManufacturers,
@@ -398,7 +398,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
         adminService.getLookupValues('media'),
         adminService.getLookupValues('specimen_type'),
         adminService.getLookupValues('equipment_maintenance_type'),
-        adminService.getLookupValues('supply_product_property'),
+        adminService.getLookupValues('supply_item_property'),
         adminService.getLookupValues('supply_stock_unit'),
         adminService.getLookupValues('supply_vendor'),
         adminService.getLookupValues('supply_manufacturer'),
@@ -408,7 +408,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       setMediaValues(media);
       setSpecimenTypeValues(specimenTypes);
       setEquipmentMaintenanceTypeValues(equipmentMaintenanceTypes);
-      setSupplyProductPropertyValues(supplyProductProperties);
+      setSupplyItemPropertyValues(supplyItemProperties);
       setSupplyStockUnitValues(supplyStockUnits);
       setSupplyVendorValues(supplyVendors);
       setSupplyManufacturerValues(supplyManufacturers);
@@ -616,13 +616,13 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
           {suppliesExpanded && (
             <div className="p-3 space-y-6">
               <CategorySection
-                category="supply_product_property"
-                title="Product Properties"
-                values={supplyProductPropertyValues}
+                category="supply_item_property"
+                title="Item Properties"
+                values={supplyItemPropertyValues}
                 loading={loading}
-                onAdd={value => handleAdd('supply_product_property', value)}
-                onRename={(id, newValue) => handleRename('supply_product_property', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('supply_product_property', id, value)}
+                onAdd={value => handleAdd('supply_item_property', value)}
+                onRename={(id, newValue) => handleRename('supply_item_property', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('supply_item_property', id, value)}
                 deletingId={deletingId}
                 readOnly={readOnly}
               />

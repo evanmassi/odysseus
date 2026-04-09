@@ -2,7 +2,7 @@
  * Supply Bulk Update Modal
  *
  * Unified bulk operations modal with tabbed actions: receive, issue, reassign
- * category, archive, and void. Product selector for reassign/archive tabs;
+ * category, archive, and void. Item selector for reassign/archive tabs;
  * row-based forms for receive/issue; transaction selector for void.
  */
 
@@ -26,7 +26,7 @@ import { BulkVoidTab } from './bulk-update-tabs/BulkVoidTab';
 
 import type {
   SupplyCategory,
-  SupplyProductWithStock,
+  SupplyItemWithStock,
   SupplyBulkResponse,
 } from '@odysseus/shared-schemas';
 
@@ -37,14 +37,14 @@ const SELECTOR_TABS = new Set<BulkActionType>(['reassign-category', 'archive']);
 interface SupplyBulkUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  products: SupplyProductWithStock[];
+  items: SupplyItemWithStock[];
   categories: SupplyCategory[];
 }
 
 export function SupplyBulkUpdateModal({
   isOpen,
   onClose,
-  products,
+  items,
   categories,
 }: SupplyBulkUpdateModalProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -58,7 +58,7 @@ export function SupplyBulkUpdateModal({
 
   const handleResult = useCallback(
     (result: SupplyBulkResponse) => {
-      notifyBulkResult(result, 'products');
+      notifyBulkResult(result, 'items');
       setSelectedIds(new Set());
       onClose();
     },
@@ -66,21 +66,21 @@ export function SupplyBulkUpdateModal({
   );
 
   const handleConfirm = useCallback(async () => {
-    const productIds = Array.from(selectedIds);
+    const itemIds = Array.from(selectedIds);
     try {
       let result: SupplyBulkResponse;
       if (actionType === 'reassign-category') {
         result = await bulkMutation.mutateAsync({
           type: 'reassign-category',
-          productIds,
+          itemIds,
           categoryId: targetCategoryId,
         });
       } else {
-        result = await bulkMutation.mutateAsync({ type: 'archive', productIds });
+        result = await bulkMutation.mutateAsync({ type: 'archive', itemIds });
       }
       handleResult(result);
     } catch {
-      notifications.error('Failed to update products');
+      notifications.error('Failed to update items');
     }
     setPendingAction(false);
   }, [selectedIds, actionType, targetCategoryId, bulkMutation, handleResult]);
@@ -142,8 +142,8 @@ export function SupplyBulkUpdateModal({
           {showSelector ? (
             <div className="flex flex-1 min-h-0">
               <div className="w-2/5 border-r border-border p-4 flex flex-col min-h-0 overflow-auto bg-muted/30">
-                <ProductSelector
-                  products={products}
+                <ItemSelector
+                  items={items}
                   categories={categories}
                   selectedIds={selectedIds}
                   onSelectionChange={setSelectedIds}
@@ -184,14 +184,10 @@ export function SupplyBulkUpdateModal({
           ) : (
             <div className="flex-1 min-h-0">
               {actionType === 'receive' && (
-                <BulkReceiveTab products={products} onComplete={handleClose} />
+                <BulkReceiveTab items={items} onComplete={handleClose} />
               )}
-              {actionType === 'issue' && (
-                <BulkIssueTab products={products} onComplete={handleClose} />
-              )}
-              {actionType === 'void' && (
-                <BulkVoidTab products={products} onComplete={handleClose} />
-              )}
+              {actionType === 'issue' && <BulkIssueTab items={items} onComplete={handleClose} />}
+              {actionType === 'void' && <BulkVoidTab items={items} onComplete={handleClose} />}
             </div>
           )}
         </div>
@@ -203,7 +199,7 @@ export function SupplyBulkUpdateModal({
         title={
           actionType === 'reassign-category' ? 'Confirm Category Reassignment' : 'Confirm Archive'
         }
-        message={`${actionType === 'reassign-category' ? 'Reassign' : 'Archive'} ${selectedIds.size} product${selectedIds.size !== 1 ? 's' : ''}?`}
+        message={`${actionType === 'reassign-category' ? 'Reassign' : 'Archive'} ${selectedIds.size} item${selectedIds.size !== 1 ? 's' : ''}?`}
         confirmText={actionType === 'reassign-category' ? 'Reassign' : 'Archive'}
         onConfirm={() => void handleConfirm()}
         onCancel={() => setPendingAction(false)}
@@ -214,18 +210,18 @@ export function SupplyBulkUpdateModal({
 
 interface CategoryGroup {
   category: SupplyCategory;
-  products: SupplyProductWithStock[];
+  items: SupplyItemWithStock[];
   subcategories: Array<{
     category: SupplyCategory;
-    products: SupplyProductWithStock[];
+    items: SupplyItemWithStock[];
   }>;
 }
 
 function buildCategoryGroups(
   categories: SupplyCategory[],
-  products: SupplyProductWithStock[]
+  items: SupplyItemWithStock[]
 ): CategoryGroup[] {
-  const active = products.filter(p => p.status === 'active');
+  const active = items.filter(p => p.status === 'active');
   const topLevel = categories
     .filter(c => !c.parentId)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
@@ -236,33 +232,33 @@ function buildCategoryGroups(
         .filter(c => c.parentId === parent.id)
         .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
 
-      const directProducts = active.filter(p => p.categoryId === parent.id);
+      const directItems = active.filter(p => p.categoryId === parent.id);
       const subcategories = subs.map(sub => ({
         category: sub,
-        products: active.filter(p => p.categoryId === sub.id),
+        items: active.filter(p => p.categoryId === sub.id),
       }));
 
-      return { category: parent, products: directProducts, subcategories };
+      return { category: parent, items: directItems, subcategories };
     })
-    .filter(g => g.products.length > 0 || g.subcategories.some(s => s.products.length > 0));
+    .filter(g => g.items.length > 0 || g.subcategories.some(s => s.items.length > 0));
 }
 
-function getAllProductIds(group: CategoryGroup): string[] {
+function getAllItemIds(group: CategoryGroup): string[] {
   return [
-    ...group.products.map(p => p.id),
-    ...group.subcategories.flatMap(s => s.products.map(p => p.id)),
+    ...group.items.map(p => p.id),
+    ...group.subcategories.flatMap(s => s.items.map(p => p.id)),
   ];
 }
 
-function ProductSelector({
-  products,
+function ItemSelector({
+  items,
   categories,
   selectedIds,
   onSelectionChange,
   searchQuery,
   onSearchChange,
 }: {
-  products: SupplyProductWithStock[];
+  items: SupplyItemWithStock[];
   categories: SupplyCategory[];
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
@@ -283,24 +279,24 @@ function ProductSelector({
     return ids;
   }, [categories, searchQuery]);
 
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery) return products;
+  const filteredItems = useMemo(() => {
+    if (!searchQuery) return items;
     const q = searchQuery.toLowerCase();
-    return products.filter(
+    return items.filter(
       p =>
         p.name.toLowerCase().includes(q) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR for search matching
         (p.manufacturer && p.manufacturer.toLowerCase().includes(q)) ||
         matchingCategoryIds.has(p.categoryId)
     );
-  }, [products, searchQuery, matchingCategoryIds]);
+  }, [items, searchQuery, matchingCategoryIds]);
 
   const groups = useMemo(
-    () => buildCategoryGroups(categories, filteredProducts),
-    [categories, filteredProducts]
+    () => buildCategoryGroups(categories, filteredItems),
+    [categories, filteredItems]
   );
 
-  const allSelectableIds = useMemo(() => groups.flatMap(getAllProductIds), [groups]);
+  const allSelectableIds = useMemo(() => groups.flatMap(getAllItemIds), [groups]);
 
   const allSelected =
     allSelectableIds.length > 0 && allSelectableIds.every(id => selectedIds.has(id));
@@ -315,20 +311,20 @@ function ProductSelector({
   }, [allSelected, allSelectableIds, onSelectionChange]);
 
   const toggleCategory = useCallback(
-    (categoryProductIds: string[]) => {
+    (categoryItemIds: string[]) => {
       const next = new Set(selectedIds);
-      const allChecked = categoryProductIds.every(id => next.has(id));
-      categoryProductIds.forEach(id => (allChecked ? next.delete(id) : next.add(id)));
+      const allChecked = categoryItemIds.every(id => next.has(id));
+      categoryItemIds.forEach(id => (allChecked ? next.delete(id) : next.add(id)));
       onSelectionChange(next);
     },
     [selectedIds, onSelectionChange]
   );
 
-  const toggleProduct = useCallback(
-    (productId: string) => {
+  const toggleItem = useCallback(
+    (itemId: string) => {
       const next = new Set(selectedIds);
-      if (next.has(productId)) next.delete(productId);
-      else next.add(productId);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
       onSelectionChange(next);
     },
     [selectedIds, onSelectionChange]
@@ -342,7 +338,7 @@ function ProductSelector({
         <Search className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Filter products..."
+          placeholder="Filter items..."
           value={searchQuery}
           onChange={e => onSearchChange(e.target.value)}
           className="input-search w-full pl-7 text-xs"
@@ -353,9 +349,9 @@ function ProductSelector({
           checked={allSelected}
           indeterminate={someSelected && !allSelected}
           onChange={toggleAll}
-          aria-label="Select all products"
+          aria-label="Select all items"
         />
-        <span className="text-sm font-medium text-card-foreground flex-1">All Products</span>
+        <span className="text-sm font-medium text-card-foreground flex-1">All Items</span>
         <span className="text-xs text-muted-foreground">
           {selectedCount}/{allSelectableIds.length}
         </span>
@@ -364,15 +360,15 @@ function ProductSelector({
         <div className="space-y-2 pr-2">
           {groups.length === 0 && searchQuery && (
             <p className="text-sm text-muted-foreground text-center py-4">
-              No products matching &ldquo;{searchQuery}&rdquo;
+              No items matching &ldquo;{searchQuery}&rdquo;
             </p>
           )}
           {groups.map(group => {
-            const groupIds = getAllProductIds(group);
+            const groupIds = getAllItemIds(group);
             const groupAllChecked = groupIds.every(id => selectedIds.has(id));
             const groupSomeChecked = groupIds.some(id => selectedIds.has(id));
             const hasChildren =
-              group.products.length > 0 || group.subcategories.some(s => s.products.length > 0);
+              group.items.length > 0 || group.subcategories.some(s => s.items.length > 0);
 
             return (
               <div key={group.category.id}>
@@ -391,24 +387,24 @@ function ProductSelector({
 
                 {hasChildren && (
                   <div className="ml-3 border-l border-muted-foreground/30">
-                    {group.products.map(product => (
+                    {group.items.map(item => (
                       <div
-                        key={product.id}
+                        key={item.id}
                         className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors"
                       >
                         <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
                         <Checkbox
-                          checked={selectedIds.has(product.id)}
-                          onChange={() => toggleProduct(product.id)}
-                          aria-label={`Select ${product.name}`}
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleItem(item.id)}
+                          aria-label={`Select ${item.name}`}
                         />
                         <div className="min-w-0 flex-1">
                           <span className="text-sm text-card-foreground/80 truncate block">
-                            {product.name}
+                            {item.name}
                           </span>
-                          {product.manufacturer && (
+                          {item.manufacturer && (
                             <span className="text-xs text-muted-foreground truncate block">
-                              {product.manufacturer}
+                              {item.manufacturer}
                             </span>
                           )}
                         </div>
@@ -416,8 +412,8 @@ function ProductSelector({
                     ))}
 
                     {group.subcategories.map(sub => {
-                      if (sub.products.length === 0) return null;
-                      const subIds = sub.products.map(p => p.id);
+                      if (sub.items.length === 0) return null;
+                      const subIds = sub.items.map(p => p.id);
                       const subAllChecked = subIds.every(id => selectedIds.has(id));
                       const subSomeChecked = subIds.some(id => selectedIds.has(id));
 
@@ -439,24 +435,24 @@ function ProductSelector({
                             </span>
                           </div>
                           <div className="ml-[30px] border-l border-muted-foreground/30">
-                            {sub.products.map(product => (
+                            {sub.items.map(item => (
                               <div
-                                key={product.id}
+                                key={item.id}
                                 className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors"
                               >
                                 <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
                                 <Checkbox
-                                  checked={selectedIds.has(product.id)}
-                                  onChange={() => toggleProduct(product.id)}
-                                  aria-label={`Select ${product.name}`}
+                                  checked={selectedIds.has(item.id)}
+                                  onChange={() => toggleItem(item.id)}
+                                  aria-label={`Select ${item.name}`}
                                 />
                                 <div className="min-w-0 flex-1">
                                   <span className="text-sm text-card-foreground/80 truncate block">
-                                    {product.name}
+                                    {item.name}
                                   </span>
-                                  {product.manufacturer && (
+                                  {item.manufacturer && (
                                     <span className="text-xs text-muted-foreground truncate block">
-                                      {product.manufacturer}
+                                      {item.manufacturer}
                                     </span>
                                   )}
                                 </div>

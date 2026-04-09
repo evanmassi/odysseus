@@ -1,7 +1,7 @@
 /**
  * Supply Controller
  *
- * HTTP handlers for supply categories, locations, products, documents,
+ * HTTP handlers for supply categories, locations, items, documents,
  * barcodes, stock operations, and bulk actions.
  */
 
@@ -111,69 +111,69 @@ export class SupplyController extends BaseController {
     }
   }
 
-  // Products
+  // Items
 
-  async listProducts(req: Request, res: Response): Promise<void> {
+  async listItems(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const products = await this.deps.supplyApplicationService.listProducts(labId);
-      res.json(ResponseBuilder.success({ products }));
+      const items = await this.deps.supplyApplicationService.listItems(labId);
+      res.json(ResponseBuilder.success({ items }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to list supply products', req.requestId);
+      handleControllerError(error, res, 'Failed to list supply items', req.requestId);
     }
   }
 
-  async getProduct(req: Request, res: Response): Promise<void> {
+  async getItem(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const detail = await this.deps.supplyApplicationService.getProduct(labId, req.params.id);
+      const detail = await this.deps.supplyApplicationService.getItem(labId, req.params.id);
       res.json(ResponseBuilder.success(detail));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get supply product', req.requestId);
+      handleControllerError(error, res, 'Failed to get supply item', req.requestId);
     }
   }
 
-  async createProduct(req: Request, res: Response): Promise<void> {
+  async createItem(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const product = await this.deps.supplyApplicationService.createProduct(labId, req.body, user);
-      res.status(201).json(ResponseBuilder.success({ product }));
+      const item = await this.deps.supplyApplicationService.createItem(labId, req.body, user);
+      res.status(201).json(ResponseBuilder.success({ item }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to create supply product', req.requestId);
+      handleControllerError(error, res, 'Failed to create supply item', req.requestId);
     }
   }
 
-  async updateProduct(req: Request, res: Response): Promise<void> {
+  async updateItem(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const product = await this.deps.supplyApplicationService.updateProduct(labId, req.params.id, req.body, user);
-      res.json(ResponseBuilder.success({ product }));
+      const item = await this.deps.supplyApplicationService.updateItem(labId, req.params.id, req.body, user);
+      res.json(ResponseBuilder.success({ item }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update supply product', req.requestId);
+      handleControllerError(error, res, 'Failed to update supply item', req.requestId);
     }
   }
 
-  async archiveProduct(req: Request, res: Response): Promise<void> {
+  async archiveItem(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.supplyApplicationService.archiveProduct(labId, req.params.id, user);
-      res.json(ResponseBuilder.success({ message: 'Product archived' }));
+      await this.deps.supplyApplicationService.archiveItem(labId, req.params.id, user);
+      res.json(ResponseBuilder.success({ message: 'Item archived' }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to archive supply product', req.requestId);
+      handleControllerError(error, res, 'Failed to archive supply item', req.requestId);
     }
   }
 
-  async deleteProduct(req: Request, res: Response): Promise<void> {
+  async deleteItem(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      await this.deps.supplyApplicationService.deleteProduct(labId, req.params.id, user);
-      res.json(ResponseBuilder.success({ message: 'Product deleted' }));
+      await this.deps.supplyApplicationService.deleteItem(labId, req.params.id, user);
+      res.json(ResponseBuilder.success({ message: 'Item deleted' }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete supply product', req.requestId);
+      handleControllerError(error, res, 'Failed to delete supply item', req.requestId);
     }
   }
 
@@ -259,8 +259,8 @@ export class SupplyController extends BaseController {
         res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', 'Barcode value is required'));
         return;
       }
-      const product = await this.deps.supplyApplicationService.resolveBarcode(labId, value);
-      res.json(ResponseBuilder.success({ product }));
+      const item = await this.deps.supplyApplicationService.resolveBarcode(labId, value);
+      res.json(ResponseBuilder.success({ item }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to resolve barcode', req.requestId);
     }
@@ -388,8 +388,8 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const { productIds, categoryId } = req.body;
-      const result = await this.deps.supplyApplicationService.bulkReassignCategory(labId, productIds, categoryId, user);
+      const { itemIds, categoryId } = req.body;
+      const result = await this.deps.supplyApplicationService.bulkReassignCategory(labId, itemIds, categoryId, user);
       const status = result.failed.length > 0 ? 207 : 200;
       res.status(status).json(ResponseBuilder.success(result));
     } catch (error) {
@@ -401,8 +401,8 @@ export class SupplyController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const user = this.getAuthenticatedUser(req);
-      const { productIds } = req.body;
-      const result = await this.deps.supplyApplicationService.bulkArchive(labId, productIds, user);
+      const { itemIds } = req.body;
+      const result = await this.deps.supplyApplicationService.bulkArchive(labId, itemIds, user);
       const status = result.failed.length > 0 ? 207 : 200;
       res.status(status).json(ResponseBuilder.success(result));
     } catch (error) {
@@ -427,8 +427,8 @@ export class SupplyController extends BaseController {
   async getReorderList(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const products = await this.deps.supplyApplicationService.getReorderList(labId);
-      res.json(ResponseBuilder.success({ products }));
+      const items = await this.deps.supplyApplicationService.getReorderList(labId);
+      res.json(ResponseBuilder.success({ items }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get reorder list', req.requestId);
     }

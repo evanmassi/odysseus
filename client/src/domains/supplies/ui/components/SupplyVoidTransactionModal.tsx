@@ -34,7 +34,7 @@ interface SupplyVoidTransactionModalProps {
   stockUnit?: string;
   onClose: () => void;
   onVoidAndReplace?: (
-    productId: string,
+    itemId: string,
     initialTab: 'received' | 'issued' | 'count' | 'disposed',
     prefill: TransactionPrefill
   ) => void;
@@ -74,7 +74,7 @@ export function SupplyVoidTransactionModal({
           transaction.type === 'count_adjustment'
             ? 'count'
             : (transaction.type as 'received' | 'issued' | 'disposed');
-        onVoidAndReplace(transaction.productId, initialTab, {
+        onVoidAndReplace(transaction.itemId, initialTab, {
           locationId: transaction.locationId,
           quantity: Math.abs(transaction.quantityChange),
           lotNumber: transaction.lotNumber,

@@ -5,11 +5,11 @@
  * Handles NUMERIC → number conversion for quantity.
  */
 
-import type { SupplyPackagingLevelRow } from '@domain/repositories/SupplyProductRepository';
+import type { SupplyPackagingLevelRow } from '@domain/repositories/SupplyItemRepository';
 
 export interface SupplyPackagingLevelDbRow {
   id: string;
-  product_id: string;
+  item_id: string;
   unit_name: string;
   quantity: string;
   parent_unit: string | null;
@@ -20,7 +20,7 @@ export class SupplyPackagingLevelMapper {
   static fromRow(row: SupplyPackagingLevelDbRow): SupplyPackagingLevelRow {
     return {
       id: row.id,
-      productId: row.product_id,
+      itemId: row.item_id,
       unitName: row.unit_name,
       quantity: parseFloat(row.quantity),
       parentUnit: row.parent_unit ?? undefined,

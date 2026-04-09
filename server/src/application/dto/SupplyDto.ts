@@ -7,13 +7,13 @@
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyLocation } from '@domain/entities/SupplyLocation';
-import type { SupplyProduct } from '@domain/entities/SupplyProduct';
+import type { SupplyItem } from '@domain/entities/SupplyItem';
 import type {
   SupplyStockRow,
   SupplyBarcodeRow,
   SupplyTransactionRow,
   SupplyPackagingLevelRow,
-} from '@domain/repositories/SupplyProductRepository';
+} from '@domain/repositories/SupplyItemRepository';
 
 export interface SupplyCategoryResponse {
   id: string;
@@ -25,7 +25,7 @@ export interface SupplyCategoryResponse {
   updatedAt: string;
 }
 
-export interface SupplyProductResponse {
+export interface SupplyItemResponse {
   id: string;
   labId: string;
   categoryId: string;
@@ -49,21 +49,21 @@ export interface SupplyProductResponse {
   updatedAt: string;
 }
 
-export interface SupplyProductWithStockResponse extends SupplyProductResponse {
+export interface SupplyItemWithStockResponse extends SupplyItemResponse {
   totalStock: number;
   locationNames: string[];
 }
 
 export interface SupplyPackagingLevelResponse {
   id: string;
-  productId: string;
+  itemId: string;
   unitName: string;
   quantity: number;
   parentUnit: string | null;
 }
 
-export interface SupplyProductDetailResponse {
-  product: SupplyProductResponse;
+export interface SupplyItemDetailResponse {
+  item: SupplyItemResponse;
   documents: SupplyDocumentResponse[];
   barcodes: SupplyBarcodeResponse[];
   stock: SupplyStockResponse[];
@@ -83,7 +83,7 @@ export interface SupplyLocationResponse {
 
 export interface SupplyDocumentResponse {
   id: string;
-  productId: string;
+  itemId: string;
   label: string;
   url: string;
   notes?: string;
@@ -92,7 +92,7 @@ export interface SupplyDocumentResponse {
 
 export interface SupplyBarcodeResponse {
   id: string;
-  productId: string;
+  itemId: string;
   barcodeValue: string;
   barcodeType: string;
   isPrimary: boolean;
@@ -101,7 +101,7 @@ export interface SupplyBarcodeResponse {
 
 export interface SupplyStockResponse {
   id: string;
-  productId: string;
+  itemId: string;
   locationId: string;
   quantity: number;
   updatedAt: string;
@@ -109,7 +109,7 @@ export interface SupplyStockResponse {
 
 export interface SupplyTransactionResponse {
   id: string;
-  productId: string;
+  itemId: string;
   locationId: string;
   labId: string;
   type: string;
@@ -142,50 +142,50 @@ export class SupplyDto {
     };
   }
 
-  static productToResponse(product: SupplyProduct): SupplyProductResponse {
+  static itemToResponse(item: SupplyItem): SupplyItemResponse {
     return {
-      id: product.id,
-      labId: product.labId,
-      categoryId: product.categoryId,
-      name: product.name,
-      manufacturer: product.manufacturer,
-      catalogNumber: product.catalogNumber,
-      vendorName: product.vendorName,
-      vendorCatalogNumber: product.vendorCatalogNumber,
-      stockUnit: product.stockUnit,
-      baseItemName: product.baseItemName,
-      reorderThreshold: product.reorderThreshold,
-      reorderQuantity: product.reorderQuantity,
-      reorderUnit: product.reorderUnit,
-      unitPrice: product.unitPrice,
-      properties: product.properties,
-      currentLotNumber: product.currentLotNumber,
-      description: product.description,
-      notes: product.notes,
-      status: product.status,
-      createdAt: product.createdAt.toISOString(),
-      updatedAt: product.updatedAt.toISOString(),
+      id:item.id,
+      labId:item.labId,
+      categoryId:item.categoryId,
+      name:item.name,
+      manufacturer:item.manufacturer,
+      catalogNumber:item.catalogNumber,
+      vendorName:item.vendorName,
+      vendorCatalogNumber:item.vendorCatalogNumber,
+      stockUnit:item.stockUnit,
+      baseItemName:item.baseItemName,
+      reorderThreshold:item.reorderThreshold,
+      reorderQuantity:item.reorderQuantity,
+      reorderUnit:item.reorderUnit,
+      unitPrice:item.unitPrice,
+      properties:item.properties,
+      currentLotNumber:item.currentLotNumber,
+      description:item.description,
+      notes:item.notes,
+      status:item.status,
+      createdAt:item.createdAt.toISOString(),
+      updatedAt:item.updatedAt.toISOString(),
     };
   }
 
-  static productWithStockToResponse(product: SupplyProduct, totalStock: number, locationNames: string[]): SupplyProductWithStockResponse {
+  static itemWithStockToResponse(item: SupplyItem, totalStock: number, locationNames: string[]): SupplyItemWithStockResponse {
     return {
-      ...this.productToResponse(product),
+      ...this.itemToResponse(item),
       totalStock,
       locationNames,
     };
   }
 
-  static productDetailToResponse(
-    product: SupplyProduct,
+  static itemDetailToResponse(
+    item: SupplyItem,
     documents: SupplyDocument[],
     barcodes: SupplyBarcodeRow[],
     stock: SupplyStockRow[],
     recentTransactions: SupplyTransactionRow[],
     packagingLevels: SupplyPackagingLevelRow[]
-  ): SupplyProductDetailResponse {
+  ): SupplyItemDetailResponse {
     return {
-      product: this.productToResponse(product),
+      item: this.itemToResponse(item),
       documents: documents.map(d => this.documentToResponse(d)),
       barcodes: barcodes.map(b => this.barcodeToResponse(b)),
       stock: stock.map(s => this.stockToResponse(s)),
@@ -209,7 +209,7 @@ export class SupplyDto {
   static documentToResponse(document: SupplyDocument): SupplyDocumentResponse {
     return {
       id: document.id,
-      productId: document.productId,
+      itemId: document.itemId,
       label: document.label,
       url: document.url,
       notes: document.notes,
@@ -220,7 +220,7 @@ export class SupplyDto {
   static barcodeToResponse(barcode: SupplyBarcodeRow): SupplyBarcodeResponse {
     return {
       id: barcode.id,
-      productId: barcode.productId,
+      itemId: barcode.itemId,
       barcodeValue: barcode.barcodeValue,
       barcodeType: barcode.barcodeType,
       isPrimary: barcode.isPrimary,
@@ -231,7 +231,7 @@ export class SupplyDto {
   static stockToResponse(stock: SupplyStockRow): SupplyStockResponse {
     return {
       id: stock.id,
-      productId: stock.productId,
+      itemId: stock.itemId,
       locationId: stock.locationId,
       quantity: stock.quantity,
       updatedAt: typeof stock.updatedAt === 'string' ? stock.updatedAt : (stock.updatedAt as Date).toISOString(),
@@ -241,7 +241,7 @@ export class SupplyDto {
   static transactionToResponse(txn: SupplyTransactionRow): SupplyTransactionResponse {
     return {
       id: txn.id,
-      productId: txn.productId,
+      itemId: txn.itemId,
       locationId: txn.locationId,
       labId: txn.labId,
       type: txn.type,
@@ -264,7 +264,7 @@ export class SupplyDto {
   static packagingLevelToResponse(level: SupplyPackagingLevelRow): SupplyPackagingLevelResponse {
     return {
       id: level.id,
-      productId: level.productId,
+      itemId: level.itemId,
       unitName: level.unitName,
       quantity: level.quantity,
       parentUnit: level.parentUnit ?? null,

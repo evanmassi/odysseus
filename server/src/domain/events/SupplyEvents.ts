@@ -10,29 +10,29 @@ import type { FieldChange } from '@domain/types/fieldChangeTypes';
 // Per-item data interfaces for enriched bulk events
 
 export interface BulkReceiveItemDetail {
-  productId: string;
+  itemId: string;
   quantity: number;
   locationId: string;
 }
 
 export interface BulkIssueItemDetail {
-  productId: string;
+  itemId: string;
   quantity: number;
   locationId: string;
 }
 
 export interface BulkVoidItemDetail {
   transactionId: string;
-  productId: string;
+  itemId: string;
   quantityReversed: number;
   locationId: string;
 }
 
-// Product events
+// Item events
 
-export class SupplyProductCreatedEvent extends DomainEvent {
+export class SupplyItemCreatedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly name: string,
     public readonly categoryId: string,
     public readonly createdBy: string,
@@ -41,17 +41,17 @@ export class SupplyProductCreatedEvent extends DomainEvent {
     super(1, labId);
   }
 
-  eventName(): string { return 'SupplyProductCreated'; }
-  getAggregateId(): string { return this.productId; }
+  eventName(): string { return 'SupplyItemCreated'; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, name: this.name, categoryId: this.categoryId, createdBy: this.createdBy };
+    return { itemId: this.itemId, name: this.name, categoryId: this.categoryId, createdBy: this.createdBy };
   }
 }
 
-export class SupplyProductUpdatedEvent extends DomainEvent {
+export class SupplyItemUpdatedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly changes: FieldChange[],
     public readonly updatedBy: string,
     labId: string
@@ -59,17 +59,17 @@ export class SupplyProductUpdatedEvent extends DomainEvent {
     super(1, labId);
   }
 
-  eventName(): string { return 'SupplyProductUpdated'; }
-  getAggregateId(): string { return this.productId; }
+  eventName(): string { return 'SupplyItemUpdated'; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, changes: this.changes, updatedBy: this.updatedBy };
+    return { itemId: this.itemId, changes: this.changes, updatedBy: this.updatedBy };
   }
 }
 
-export class SupplyProductArchivedEvent extends DomainEvent {
+export class SupplyItemArchivedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly name: string,
     public readonly archivedBy: string,
     labId: string
@@ -77,17 +77,17 @@ export class SupplyProductArchivedEvent extends DomainEvent {
     super(1, labId);
   }
 
-  eventName(): string { return 'SupplyProductArchived'; }
-  getAggregateId(): string { return this.productId; }
+  eventName(): string { return 'SupplyItemArchived'; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, name: this.name, archivedBy: this.archivedBy };
+    return { itemId: this.itemId, name: this.name, archivedBy: this.archivedBy };
   }
 }
 
-export class SupplyProductDeletedEvent extends DomainEvent {
+export class SupplyItemDeletedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly name: string,
     public readonly deletedBy: string,
     labId: string
@@ -95,11 +95,11 @@ export class SupplyProductDeletedEvent extends DomainEvent {
     super(1, labId);
   }
 
-  eventName(): string { return 'SupplyProductDeleted'; }
-  getAggregateId(): string { return this.productId; }
+  eventName(): string { return 'SupplyItemDeleted'; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, name: this.name, deletedBy: this.deletedBy };
+    return { itemId: this.itemId, name: this.name, deletedBy: this.deletedBy };
   }
 }
 
@@ -164,7 +164,7 @@ export class SupplyCategoryDeletedEvent extends DomainEvent {
 
 export class SupplyDocumentAddedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly label: string,
     public readonly addedBy: string,
     labId: string
@@ -173,16 +173,16 @@ export class SupplyDocumentAddedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyDocumentAdded'; }
-  getAggregateId(): string { return this.productId; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, label: this.label, addedBy: this.addedBy };
+    return { itemId: this.itemId, label: this.label, addedBy: this.addedBy };
   }
 }
 
 export class SupplyDocumentRemovedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly removedBy: string,
     labId: string
   ) {
@@ -190,10 +190,10 @@ export class SupplyDocumentRemovedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyDocumentRemoved'; }
-  getAggregateId(): string { return this.productId; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, removedBy: this.removedBy };
+    return { itemId: this.itemId, removedBy: this.removedBy };
   }
 }
 
@@ -201,7 +201,7 @@ export class SupplyDocumentRemovedEvent extends DomainEvent {
 
 export class SupplyStockReceivedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly receivedBy: string,
@@ -211,16 +211,16 @@ export class SupplyStockReceivedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyStockReceived'; }
-  getAggregateId(): string { return this.productId; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, quantity: this.quantity, locationId: this.locationId, receivedBy: this.receivedBy };
+    return { itemId: this.itemId, quantity: this.quantity, locationId: this.locationId, receivedBy: this.receivedBy };
   }
 }
 
 export class SupplyStockIssuedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly issuedBy: string,
@@ -230,16 +230,16 @@ export class SupplyStockIssuedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyStockIssued'; }
-  getAggregateId(): string { return this.productId; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, quantity: this.quantity, locationId: this.locationId, issuedBy: this.issuedBy };
+    return { itemId: this.itemId, quantity: this.quantity, locationId: this.locationId, issuedBy: this.issuedBy };
   }
 }
 
 export class SupplyStockCountAdjustedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly delta: number,
     public readonly locationId: string,
     public readonly adjustedBy: string,
@@ -249,16 +249,16 @@ export class SupplyStockCountAdjustedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyStockCountAdjusted'; }
-  getAggregateId(): string { return this.productId; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, delta: this.delta, locationId: this.locationId, adjustedBy: this.adjustedBy };
+    return { itemId: this.itemId, delta: this.delta, locationId: this.locationId, adjustedBy: this.adjustedBy };
   }
 }
 
 export class SupplyStockDisposedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly quantity: number,
     public readonly locationId: string,
     public readonly disposedBy: string,
@@ -268,16 +268,16 @@ export class SupplyStockDisposedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyStockDisposed'; }
-  getAggregateId(): string { return this.productId; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productId: this.productId, quantity: this.quantity, locationId: this.locationId, disposedBy: this.disposedBy };
+    return { itemId: this.itemId, quantity: this.quantity, locationId: this.locationId, disposedBy: this.disposedBy };
   }
 }
 
 export class SupplyStockVoidedEvent extends DomainEvent {
   constructor(
-    public readonly productId: string,
+    public readonly itemId: string,
     public readonly originalTransactionId: string,
     public readonly reversalTransactionId: string,
     public readonly quantityReversed: number,
@@ -290,11 +290,11 @@ export class SupplyStockVoidedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyStockVoided'; }
-  getAggregateId(): string { return this.productId; }
+  getAggregateId(): string { return this.itemId; }
 
   protected getEventData(): Record<string, unknown> {
     return {
-      productId: this.productId, originalTransactionId: this.originalTransactionId,
+      itemId: this.itemId, originalTransactionId: this.originalTransactionId,
       reversalTransactionId: this.reversalTransactionId, quantityReversed: this.quantityReversed,
       locationId: this.locationId, voidReason: this.voidReason, voidedBy: this.voidedBy,
     };
@@ -339,7 +339,7 @@ export class SupplyBulkIssuedEvent extends DomainEvent {
 
 export class SupplyBulkCategoryReassignedEvent extends DomainEvent {
   constructor(
-    public readonly productIds: string[],
+    public readonly itemIds: string[],
     public readonly categoryId: string,
     public readonly reassignedBy: string,
     labId: string
@@ -348,16 +348,16 @@ export class SupplyBulkCategoryReassignedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyBulkCategoryReassigned'; }
-  getAggregateId(): string { return `bulk-${this.productIds.length}`; }
+  getAggregateId(): string { return `bulk-${this.itemIds.length}`; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productIds: this.productIds, categoryId: this.categoryId, reassignedBy: this.reassignedBy };
+    return { itemIds: this.itemIds, categoryId: this.categoryId, reassignedBy: this.reassignedBy };
   }
 }
 
 export class SupplyBulkArchivedEvent extends DomainEvent {
   constructor(
-    public readonly productIds: string[],
+    public readonly itemIds: string[],
     public readonly archivedBy: string,
     labId: string
   ) {
@@ -365,10 +365,10 @@ export class SupplyBulkArchivedEvent extends DomainEvent {
   }
 
   eventName(): string { return 'SupplyBulkArchived'; }
-  getAggregateId(): string { return `bulk-${this.productIds.length}`; }
+  getAggregateId(): string { return `bulk-${this.itemIds.length}`; }
 
   protected getEventData(): Record<string, unknown> {
-    return { productIds: this.productIds, archivedBy: this.archivedBy };
+    return { itemIds: this.itemIds, archivedBy: this.archivedBy };
   }
 }
 

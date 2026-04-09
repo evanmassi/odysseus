@@ -5,12 +5,12 @@
  * Handles NUMERIC → number conversion for quantity and cost fields.
  */
 
-import type { SupplyTransactionRow } from '@domain/repositories/SupplyProductRepository';
+import type { SupplyTransactionRow } from '@domain/repositories/SupplyItemRepository';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
 export interface SupplyTransactionDbRow {
   id: string;
-  product_id: string;
+  item_id: string;
   location_id: string;
   lab_id: string;
   type: string;
@@ -34,7 +34,7 @@ export class SupplyTransactionMapper {
   static fromRow(row: SupplyTransactionDbRow): SupplyTransactionRow {
     return {
       id: row.id,
-      productId: row.product_id,
+      itemId: row.item_id,
       locationId: row.location_id,
       labId: row.lab_id,
       type: row.type,

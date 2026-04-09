@@ -13,6 +13,6 @@ export interface SupplyCategoryRepository {
   delete(id: string, labId: string): Promise<boolean>;
 
   hasChildren(id: string, labId: string): Promise<boolean>;
-  hasProducts(id: string, labId: string): Promise<boolean>;
-  hasProductsIncludingChildren(id: string, labId: string): Promise<boolean>;
+  hasItems(id: string, labId: string): Promise<boolean>;
+  hasItemsIncludingChildren(id: string, labId: string): Promise<boolean>;
 }
