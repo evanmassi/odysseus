@@ -152,15 +152,13 @@ export function ConsumableQuickScanBar({
             setResolvedProduct(null);
           }}
           triggerRef={triggerRef as React.RefObject<HTMLElement>}
-          portal
           align="start"
+          className="w-48"
         >
           {resolvedProduct && (
             <div className="py-1">
               <div className="px-3 py-2 border-b border-border">
-                <p className="text-sm font-semibold text-card-foreground truncate">
-                  {resolvedProduct.name}
-                </p>
+                <p className="text-sm font-semibold text-card-foreground">{resolvedProduct.name}</p>
                 {stockInfo && (
                   <p className="text-xs text-muted-foreground">
                     {stockInfo.totalStock}{' '}

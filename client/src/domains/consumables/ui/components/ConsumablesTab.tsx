@@ -331,6 +331,7 @@ export function ConsumablesTab() {
 
           {rightPanel?.type === 'transaction' && (
             <ConsumableTransactionForm
+              key={`${rightPanel.productId}-${rightPanel.initialTab ?? 'received'}`}
               productId={rightPanel.productId}
               productName={products.find(p => p.id === rightPanel.productId)?.name ?? ''}
               initialTab={rightPanel.initialTab}

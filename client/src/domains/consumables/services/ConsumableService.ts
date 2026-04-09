@@ -273,7 +273,8 @@ export class ConsumableService {
   /** Skips Zod validation — server may return null product for unresolved barcodes */
   static async resolveBarcode(value: string): Promise<ConsumableProduct | null> {
     const response = await httpClient.get(
-      `${this.BASE_PATH}/barcodes/resolve?value=${encodeURIComponent(value)}`
+      `${this.BASE_PATH}/barcodes/resolve?value=${encodeURIComponent(value)}`,
+      { 'Cache-Control': 'no-cache' }
     );
     const data = response.data as { success: boolean; data: { product: ConsumableProduct | null } };
     return data.data.product;
