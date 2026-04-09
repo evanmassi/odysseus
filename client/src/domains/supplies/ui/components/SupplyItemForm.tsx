@@ -68,8 +68,24 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const [newLevelParent, setNewLevelParent] = useState<string | null>(null);
   const [manufacturerBarcode, setManufacturerBarcode] = useState('');
   const [manufacturerBarcodeLabel, setManufacturerBarcodeLabel] = useState('');
-  const [thresholdInputQty, setThresholdInputQty] = useState('');
-  const [thresholdUnit, setThresholdUnit] = useState('');
+  const [thresholdInputQty, setThresholdInputQty] = useState(() => {
+    if (!isEditing || item?.reorderThreshold == null) return '';
+    if (!item.reorderThresholdUnit) return String(item.reorderThreshold);
+    const levels = detail?.packagingLevels ?? [];
+    let multiplier = 1;
+    let current = item.reorderThresholdUnit;
+    for (let i = 0; i < levels.length + 1; i++) {
+      const level = levels.find(l => l.unitName === current);
+      if (!level) break;
+      multiplier *= level.quantity;
+      if (level.parentUnit === null || level.parentUnit === item.stockUnit) break;
+      current = level.parentUnit;
+    }
+    return String(Math.round(item.reorderThreshold / multiplier));
+  });
+  const [thresholdUnit, setThresholdUnit] = useState(
+    isEditing ? (item?.reorderThresholdUnit ?? '') : ''
+  );
 
   const { data: manufacturers = [] } = useLookupValuesQuery('supply_manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('supply_vendor');
@@ -642,8 +658,8 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               <div className="h-px flex-1 bg-muted-foreground/60" />
             </div>
             <div className="space-y-3">
-              <div className="flex items-end gap-2">
-                <div className="w-24">
+              <div className="grid grid-cols-3 gap-3 items-end">
+                <div>
                   <label
                     htmlFor="threshold-qty"
                     className="text-sm font-medium text-secondary-foreground block mb-1"
@@ -671,8 +687,8 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                     fullWidth
                   />
                 </div>
-                {thresholdUnitOptions.length > 0 && (
-                  <div className="flex-1">
+                {thresholdUnitOptions.length > 0 ? (
+                  <div>
                     <Select
                       label="Unit"
                       options={thresholdUnitOptions}
@@ -695,21 +711,25 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                       fullWidth
                     />
                   </div>
+                ) : (
+                  <div />
                 )}
-                {thresholdUnit &&
-                  thresholdInputQty &&
-                  computeThresholdMultiplier(thresholdUnit, currentStockUnit) > 1 && (
-                    <span className="text-xs text-muted-foreground pb-1.5 whitespace-nowrap">
-                      ={' '}
-                      {Number(thresholdInputQty) *
-                        computeThresholdMultiplier(thresholdUnit, currentStockUnit)}{' '}
-                      {pluralizeUnit(
-                        currentStockUnit ?? 'unit',
-                        Number(thresholdInputQty) *
-                          computeThresholdMultiplier(thresholdUnit, currentStockUnit)
-                      )}
-                    </span>
-                  )}
+                <div className="flex items-end pb-1">
+                  {thresholdUnit &&
+                    thresholdInputQty &&
+                    computeThresholdMultiplier(thresholdUnit, currentStockUnit) > 1 && (
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        ={' '}
+                        {Number(thresholdInputQty) *
+                          computeThresholdMultiplier(thresholdUnit, currentStockUnit)}{' '}
+                        {pluralizeUnit(
+                          currentStockUnit ?? 'unit',
+                          Number(thresholdInputQty) *
+                            computeThresholdMultiplier(thresholdUnit, currentStockUnit)
+                        )}
+                      </span>
+                    )}
+                </div>
               </div>
               <input
                 type="hidden"

@@ -585,17 +585,41 @@ export function SupplyItemInfoPanel({
           {/* Reorder settings */}
           <InfoGroup title="Reorder Settings">
             <div className="grid grid-cols-3 gap-x-3 gap-y-1">
-              <InfoField
-                label="Threshold"
-                value={
-                  item.reorderThreshold != null
-                    ? item.reorderThresholdUnit
-                      ? `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)} (${item.reorderThresholdUnit})`
-                      : `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)}`
-                    : undefined
-                }
-                inline={false}
-              />
+              <div>
+                <span className="text-xs text-muted-foreground block mb-0.5">Threshold</span>
+                {item.reorderThreshold != null ? (
+                  <div>
+                    <span className="text-sm text-card-foreground">
+                      {(() => {
+                        if (!item.reorderThresholdUnit) {
+                          return `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)}`;
+                        }
+                        const levels = detail?.packagingLevels ?? [];
+                        let multiplier = 1;
+                        let current = item.reorderThresholdUnit;
+                        for (let i = 0; i < levels.length + 1; i++) {
+                          const level = levels.find(l => l.unitName === current);
+                          if (!level) break;
+                          multiplier *= level.quantity;
+                          if (level.parentUnit === null || level.parentUnit === item.stockUnit)
+                            break;
+                          current = level.parentUnit;
+                        }
+                        const inputQty = Math.round(item.reorderThreshold / multiplier);
+                        return `${inputQty} ${pluralizeUnit(item.reorderThresholdUnit, inputQty)}`;
+                      })()}
+                    </span>
+                    {item.reorderThresholdUnit && (
+                      <span className="text-xs text-muted-foreground block">
+                        ({item.reorderThreshold}{' '}
+                        {pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)})
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
+              </div>
               <InfoField
                 label="Reorder Qty"
                 value={
