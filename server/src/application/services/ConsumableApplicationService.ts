@@ -415,7 +415,9 @@ export class ConsumableApplicationService {
   // Stock operations
 
   async recordTransaction(
-    labId: string, data: RecordConsumableTransactionRequest | (Omit<RecordConsumableTransactionRequest, 'type'> & { type: 'count_adjustment' }), user: User,
+    labId: string,
+    data: RecordConsumableTransactionRequest | (Omit<RecordConsumableTransactionRequest, 'type'> & { type: 'count_adjustment' }),
+    user: User,
     options?: { bulkOperation?: boolean }
   ): Promise<ConsumableTransactionResponse> {
     await this.accessControlService.requireAdminAccess(user);
