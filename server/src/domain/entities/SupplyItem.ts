@@ -23,6 +23,7 @@ interface ItemCreateData {
   stockUnit?: string;
   baseItemName?: string;
   reorderThreshold?: number;
+  reorderThresholdUnit?: string;
   reorderQuantity?: number;
   reorderUnit?: string;
   unitPrice?: number;
@@ -42,6 +43,7 @@ interface ItemUpdateData {
   stockUnit?: string | null;
   baseItemName?: string | null;
   reorderThreshold?: number | null;
+  reorderThresholdUnit?: string | null;
   reorderQuantity?: number | null;
   reorderUnit?: string | null;
   unitPrice?: number | null;
@@ -64,6 +66,7 @@ export class SupplyItem {
     private _stockUnit: string | undefined,
     private _baseItemName: string | undefined,
     private _reorderThreshold: number | undefined,
+    private _reorderThresholdUnit: string | undefined,
     private _reorderQuantity: number | undefined,
     private _reorderUnit: string | undefined,
     private _unitPrice: number | undefined,
@@ -91,6 +94,7 @@ export class SupplyItem {
       data.stockUnit,
       data.baseItemName,
       data.reorderThreshold,
+      data.reorderThresholdUnit,
       data.reorderQuantity,
       data.reorderUnit,
       data.unitPrice,
@@ -116,6 +120,7 @@ export class SupplyItem {
     stockUnit?: string;
     baseItemName?: string;
     reorderThreshold?: number;
+    reorderThresholdUnit?: string;
     reorderQuantity?: number;
     reorderUnit?: string;
     unitPrice?: number;
@@ -139,6 +144,7 @@ export class SupplyItem {
       data.stockUnit,
       data.baseItemName,
       data.reorderThreshold,
+      data.reorderThresholdUnit,
       data.reorderQuantity,
       data.reorderUnit,
       data.unitPrice,
@@ -178,6 +184,7 @@ export class SupplyItem {
     if (data.stockUnit !== undefined) this._stockUnit = data.stockUnit ?? undefined;
     if (data.baseItemName !== undefined) this._baseItemName = data.baseItemName ?? undefined;
     if (data.reorderThreshold !== undefined) this._reorderThreshold = data.reorderThreshold ?? undefined;
+    if (data.reorderThresholdUnit !== undefined) this._reorderThresholdUnit = data.reorderThresholdUnit ?? undefined;
     if (data.reorderQuantity !== undefined) this._reorderQuantity = data.reorderQuantity ?? undefined;
     if (data.reorderUnit !== undefined) this._reorderUnit = data.reorderUnit ?? undefined;
     if (data.unitPrice !== undefined) this._unitPrice = data.unitPrice ?? undefined;
@@ -211,6 +218,7 @@ export class SupplyItem {
   get stockUnit(): string | undefined { return this._stockUnit; }
   get baseItemName(): string | undefined { return this._baseItemName; }
   get reorderThreshold(): number | undefined { return this._reorderThreshold; }
+  get reorderThresholdUnit(): string | undefined { return this._reorderThresholdUnit; }
   get reorderQuantity(): number | undefined { return this._reorderQuantity; }
   get reorderUnit(): string | undefined { return this._reorderUnit; }
   get unitPrice(): number | undefined { return this._unitPrice; }

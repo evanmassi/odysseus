@@ -584,14 +584,27 @@ export function SupplyItemInfoPanel({
 
           {/* Reorder settings */}
           <InfoGroup title="Reorder Settings">
-            <div className="grid grid-cols-4 gap-x-3">
+            <div className="grid grid-cols-3 gap-x-3 gap-y-1">
               <InfoField
                 label="Threshold"
-                value={item.reorderThreshold?.toString()}
+                value={
+                  item.reorderThreshold != null
+                    ? item.reorderThresholdUnit
+                      ? `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)} (${item.reorderThresholdUnit})`
+                      : `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)}`
+                    : undefined
+                }
                 inline={false}
               />
-              <InfoField label="Qty" value={item.reorderQuantity?.toString()} inline={false} />
-              <InfoField label="Unit" value={item.reorderUnit} inline={false} />
+              <InfoField
+                label="Reorder Qty"
+                value={
+                  item.reorderQuantity != null
+                    ? `${item.reorderQuantity} ${item.reorderUnit ? pluralizeUnit(item.reorderUnit, item.reorderQuantity) : ''}`
+                    : undefined
+                }
+                inline={false}
+              />
               <InfoField label="Price" value={formatCurrency(item.unitPrice)} inline={false} />
             </div>
           </InfoGroup>

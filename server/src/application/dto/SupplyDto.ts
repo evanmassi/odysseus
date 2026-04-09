@@ -37,6 +37,7 @@ export interface SupplyItemResponse {
   stockUnit?: string;
   baseItemName?: string;
   reorderThreshold?: number;
+  reorderThresholdUnit?: string;
   reorderQuantity?: number;
   reorderUnit?: string;
   unitPrice?: number;
@@ -155,6 +156,7 @@ export class SupplyDto {
       stockUnit:item.stockUnit,
       baseItemName:item.baseItemName,
       reorderThreshold:item.reorderThreshold,
+      reorderThresholdUnit:item.reorderThresholdUnit,
       reorderQuantity:item.reorderQuantity,
       reorderUnit:item.reorderUnit,
       unitPrice:item.unitPrice,

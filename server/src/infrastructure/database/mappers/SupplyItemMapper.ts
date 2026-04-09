@@ -22,6 +22,7 @@ export interface SupplyItemRow {
   stock_unit: string | null;
   base_item_name: string | null;
   reorder_threshold: string | null;
+  reorder_threshold_unit: string | null;
   reorder_quantity: string | null;
   reorder_unit: string | null;
   unit_price: string | null;
@@ -49,6 +50,7 @@ export class SupplyItemMapper {
       stock_unit: item.stockUnit ?? null,
       base_item_name: item.baseItemName ?? null,
       reorder_threshold: item.reorderThreshold != null ? String(item.reorderThreshold) : null,
+      reorder_threshold_unit: item.reorderThresholdUnit ?? null,
       reorder_quantity: item.reorderQuantity != null ? String(item.reorderQuantity) : null,
       reorder_unit: item.reorderUnit ?? null,
       unit_price: item.unitPrice != null ? String(item.unitPrice) : null,
@@ -75,6 +77,7 @@ export class SupplyItemMapper {
       stockUnit: row.stock_unit ?? undefined,
       baseItemName: row.base_item_name ?? undefined,
       reorderThreshold: row.reorder_threshold != null ? parseFloat(row.reorder_threshold) : undefined,
+      reorderThresholdUnit: row.reorder_threshold_unit ?? undefined,
       reorderQuantity: row.reorder_quantity != null ? parseFloat(row.reorder_quantity) : undefined,
       reorderUnit: row.reorder_unit ?? undefined,
       unitPrice: row.unit_price != null ? parseFloat(row.unit_price) : undefined,

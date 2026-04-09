@@ -75,6 +75,7 @@ export const migration021: Migration = {
         stock_unit TEXT,
         base_item_name TEXT,
         reorder_threshold NUMERIC,
+        reorder_threshold_unit TEXT,
         reorder_quantity NUMERIC,
         reorder_unit TEXT,
         unit_price NUMERIC,

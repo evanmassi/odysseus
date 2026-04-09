@@ -68,6 +68,8 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const [newLevelParent, setNewLevelParent] = useState<string | null>(null);
   const [manufacturerBarcode, setManufacturerBarcode] = useState('');
   const [manufacturerBarcodeLabel, setManufacturerBarcodeLabel] = useState('');
+  const [thresholdInputQty, setThresholdInputQty] = useState('');
+  const [thresholdUnit, setThresholdUnit] = useState('');
 
   const { data: manufacturers = [] } = useLookupValuesQuery('supply_manufacturer');
   const { data: vendors = [] } = useLookupValuesQuery('supply_vendor');
@@ -145,11 +147,43 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     return top?.unitName ?? null;
   }, [packagingLevels]);
 
+  const thresholdUnitOptions: SelectOption[] = useMemo(() => {
+    const hasLevels = packagingLevels.length > 0;
+    if (!hasLevels) return [];
+    return [
+      { value: '', label: 'stock unit' },
+      ...packagingLevels.map(l => ({
+        value: 'unitName' in l ? l.unitName : '',
+        label: 'unitName' in l ? l.unitName : '',
+      })),
+    ];
+  }, [packagingLevels]);
+
+  const computeThresholdMultiplier = useCallback(
+    (fromUnit: string, stockUnitOverride?: string): number => {
+      const stockUnitVal = stockUnitOverride ?? '';
+      if (!fromUnit || fromUnit === stockUnitVal) return 1;
+      let multiplier = 1;
+      let current = fromUnit;
+      for (let i = 0; i < packagingLevels.length + 1; i++) {
+        const level = packagingLevels.find(l => ('unitName' in l ? l.unitName : '') === current);
+        if (!level) return 1;
+        multiplier *= level.quantity;
+        const parent = 'parentUnit' in level ? level.parentUnit : null;
+        if (parent === null || parent === stockUnitVal) return multiplier;
+        current = parent;
+      }
+      return multiplier;
+    },
+    [packagingLevels]
+  );
+
   const {
     register,
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(createSupplyItemRequestSchema) as never,
@@ -164,6 +198,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
           stockUnit: item.stockUnit ?? '',
           baseItemName: item.baseItemName ?? '',
           reorderThreshold: item.reorderThreshold,
+          reorderThresholdUnit: item.reorderThresholdUnit ?? '',
           reorderQuantity: item.reorderQuantity,
           reorderUnit: item.reorderUnit ?? '',
           unitPrice: item.unitPrice,
@@ -179,6 +214,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   });
 
   const currentBaseItemName = watch('baseItemName') as string | undefined;
+  const currentStockUnit = watch('stockUnit') as string | undefined;
 
   const handleAddLevel = useCallback(() => {
     const qty = Number(newLevelQty);
@@ -605,45 +641,115 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               </span>
               <div className="h-px flex-1 bg-muted-foreground/60" />
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              <ValidatedInput
-                label="Threshold"
-                type="number"
-                placeholder="e.g., 3"
-                registration={register('reorderThreshold', {
-                  setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-                })}
-              />
-              <ValidatedInput
-                label="Quantity"
-                type="number"
-                placeholder="e.g., 5"
-                registration={register('reorderQuantity', {
-                  setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-                })}
-              />
-              <Controller
-                name="reorderUnit"
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <Select
-                    label="Unit"
-                    options={stockUnitOptions}
-                    value={value ?? ''}
-                    onChange={v => onChange(v)}
+            <div className="space-y-3">
+              <div className="flex items-end gap-2">
+                <div className="w-24">
+                  <label
+                    htmlFor="threshold-qty"
+                    className="text-sm font-medium text-secondary-foreground block mb-1"
+                  >
+                    Threshold
+                  </label>
+                  <Input
+                    id="threshold-qty"
+                    type="number"
+                    value={thresholdInputQty}
+                    onValueChange={v => {
+                      setThresholdInputQty(v);
+                      const qty = v === '' ? undefined : Number(v);
+                      const multiplier = thresholdUnit
+                        ? computeThresholdMultiplier(thresholdUnit, currentStockUnit)
+                        : 1;
+                      setValue(
+                        'reorderThreshold',
+                        qty !== undefined ? qty * multiplier : undefined
+                      );
+                      setValue('reorderThresholdUnit', thresholdUnit || undefined);
+                    }}
+                    placeholder="e.g., 2"
+                    size="sm"
                     fullWidth
                   />
+                </div>
+                {thresholdUnitOptions.length > 0 && (
+                  <div className="flex-1">
+                    <Select
+                      label="Unit"
+                      options={thresholdUnitOptions}
+                      value={thresholdUnit}
+                      onChange={v => {
+                        const unit = String(v ?? '');
+                        setThresholdUnit(unit);
+                        const qty =
+                          thresholdInputQty === '' ? undefined : Number(thresholdInputQty);
+                        const multiplier = unit
+                          ? computeThresholdMultiplier(unit, currentStockUnit)
+                          : 1;
+                        setValue(
+                          'reorderThreshold',
+                          qty !== undefined ? qty * multiplier : undefined
+                        );
+                        setValue('reorderThresholdUnit', unit || undefined);
+                      }}
+                      size="sm"
+                      fullWidth
+                    />
+                  </div>
                 )}
-              />
-              <ValidatedInput
-                label="Price ($)"
-                type="number"
-                step="0.01"
-                placeholder="e.g., 45"
-                registration={register('unitPrice', {
+                {thresholdUnit &&
+                  thresholdInputQty &&
+                  computeThresholdMultiplier(thresholdUnit, currentStockUnit) > 1 && (
+                    <span className="text-xs text-muted-foreground pb-1.5 whitespace-nowrap">
+                      ={' '}
+                      {Number(thresholdInputQty) *
+                        computeThresholdMultiplier(thresholdUnit, currentStockUnit)}{' '}
+                      {pluralizeUnit(
+                        currentStockUnit ?? 'unit',
+                        Number(thresholdInputQty) *
+                          computeThresholdMultiplier(thresholdUnit, currentStockUnit)
+                      )}
+                    </span>
+                  )}
+              </div>
+              <input
+                type="hidden"
+                {...register('reorderThreshold', {
                   setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
                 })}
               />
+              <input type="hidden" {...register('reorderThresholdUnit')} />
+              <div className="grid grid-cols-3 gap-3">
+                <ValidatedInput
+                  label="Reorder Qty"
+                  type="number"
+                  placeholder="e.g., 5"
+                  registration={register('reorderQuantity', {
+                    setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                  })}
+                />
+                <Controller
+                  name="reorderUnit"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      label="Reorder Unit"
+                      options={stockUnitOptions}
+                      value={value ?? ''}
+                      onChange={v => onChange(v)}
+                      fullWidth
+                    />
+                  )}
+                />
+                <ValidatedInput
+                  label="Price ($)"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 45"
+                  registration={register('unitPrice', {
+                    setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                  })}
+                />
+              </div>
             </div>
           </div>
         </form>

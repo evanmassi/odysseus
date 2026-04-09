@@ -34,7 +34,7 @@ import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const ITEM_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
   vendor_name, vendor_catalog_number, stock_unit, base_item_name,
-  reorder_threshold, reorder_quantity, reorder_unit, unit_price, properties,
+  reorder_threshold, reorder_threshold_unit, reorder_quantity, reorder_unit, unit_price, properties,
   current_lot_number, description, notes, status, created_at, updated_at`;
 
 const DOC_COLUMNS = 'id, item_id, label, url, notes, created_at';
@@ -100,7 +100,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     const row = SupplyItemMapper.toRow(item);
     await this.db.execute(`
       INSERT INTO supply_items (${ITEM_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
       ON CONFLICT (id) DO UPDATE SET
         category_id = EXCLUDED.category_id,
         name = EXCLUDED.name,
@@ -111,6 +111,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
         stock_unit = EXCLUDED.stock_unit,
         base_item_name = EXCLUDED.base_item_name,
         reorder_threshold = EXCLUDED.reorder_threshold,
+        reorder_threshold_unit = EXCLUDED.reorder_threshold_unit,
         reorder_quantity = EXCLUDED.reorder_quantity,
         reorder_unit = EXCLUDED.reorder_unit,
         unit_price = EXCLUDED.unit_price,
@@ -123,7 +124,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     `, [
       row.id, row.lab_id, row.category_id, row.name, row.manufacturer, row.catalog_number,
       row.vendor_name, row.vendor_catalog_number, row.stock_unit, row.base_item_name,
-      row.reorder_threshold, row.reorder_quantity, row.reorder_unit, row.unit_price, row.properties,
+      row.reorder_threshold, row.reorder_threshold_unit, row.reorder_quantity, row.reorder_unit, row.unit_price, row.properties,
       row.current_lot_number, row.description, row.notes, row.status, row.created_at, row.updated_at,
     ]);
   }
