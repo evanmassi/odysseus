@@ -28,6 +28,7 @@ import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { ConsumableVoidTransactionModal } from './ConsumableVoidTransactionModal';
 
+import type { TransactionPrefill } from './ConsumableTransactionForm';
 import type { ConsumableTransaction } from '@odysseus/shared-schemas';
 
 const TYPE_CONFIG: Record<string, { icon: typeof PackagePlus; color: string }> = {
@@ -41,11 +42,17 @@ const TYPE_CONFIG: Record<string, { icon: typeof PackagePlus; color: string }> =
 interface ConsumableTransactionTimelineProps {
   transactions: ConsumableTransaction[];
   stockUnit?: string;
+  onVoidAndReplace?: (
+    productId: string,
+    initialTab: 'received' | 'consumed' | 'count' | 'disposed',
+    prefill: TransactionPrefill
+  ) => void;
 }
 
 export function ConsumableTransactionTimeline({
   transactions,
   stockUnit,
+  onVoidAndReplace,
 }: ConsumableTransactionTimelineProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
@@ -81,6 +88,7 @@ export function ConsumableTransactionTimeline({
         transaction={voidingTransaction}
         stockUnit={stockUnit}
         onClose={() => setVoidingTransaction(null)}
+        onVoidAndReplace={onVoidAndReplace}
       />
     </>
   );

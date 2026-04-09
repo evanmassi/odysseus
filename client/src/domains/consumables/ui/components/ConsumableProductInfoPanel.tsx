@@ -45,6 +45,7 @@ import { ConsumableBarcodeForm } from './ConsumableBarcodeForm';
 import { ConsumableDocumentForm } from './ConsumableDocumentForm';
 import { ConsumableTransactionTimeline } from './ConsumableTransactionTimeline';
 
+import type { TransactionPrefill } from './ConsumableTransactionForm';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 const STATUS_LABELS: Record<
@@ -66,6 +67,11 @@ interface ConsumableProductInfoPanelProps {
   productId: string;
   onEdit: () => void;
   onRecordTransaction: () => void;
+  onVoidAndReplace: (
+    productId: string,
+    initialTab: 'received' | 'consumed' | 'count' | 'disposed',
+    prefill: TransactionPrefill
+  ) => void;
   onDeleted: () => void;
   categoryName?: string;
 }
@@ -74,6 +80,7 @@ export function ConsumableProductInfoPanel({
   productId,
   onEdit,
   onRecordTransaction,
+  onVoidAndReplace,
   onDeleted,
   categoryName,
 }: ConsumableProductInfoPanelProps) {
@@ -605,6 +612,7 @@ export function ConsumableProductInfoPanel({
             <ConsumableTransactionTimeline
               transactions={detail.recentTransactions}
               stockUnit={product.stockUnit}
+              onVoidAndReplace={onVoidAndReplace}
             />
           </InfoGroup>
         </div>

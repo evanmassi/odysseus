@@ -47,6 +47,7 @@ import { ConsumableProductInfoPanel } from './ConsumableProductInfoPanel';
 import { ConsumableQuickScanBar } from './ConsumableQuickScanBar';
 import { ConsumableTransactionForm } from './ConsumableTransactionForm';
 
+import type { TransactionPrefill } from './ConsumableTransactionForm';
 import type { ConsumableCategory, ConsumableProductWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
@@ -64,7 +65,12 @@ type TransactionTab = 'received' | 'consumed' | 'count' | 'disposed';
 type RightPanelView =
   | { type: 'info'; productId: string }
   | { type: 'edit'; product?: ConsumableProductWithStock }
-  | { type: 'transaction'; productId: string; initialTab?: TransactionTab };
+  | {
+      type: 'transaction';
+      productId: string;
+      initialTab?: TransactionTab;
+      prefill?: TransactionPrefill;
+    };
 
 export function ConsumablesTab() {
   const { user } = useAuthStore();
@@ -137,6 +143,14 @@ export function ConsumablesTab() {
     (productId: string, initialTab: TransactionTab) => {
       setSelectedProductId(productId);
       setRightPanel({ type: 'transaction', productId, initialTab });
+    },
+    []
+  );
+
+  const handleVoidAndReplace = useCallback(
+    (productId: string, initialTab: TransactionTab, prefill: TransactionPrefill) => {
+      setSelectedProductId(productId);
+      setRightPanel({ type: 'transaction', productId, initialTab, prefill });
     },
     []
   );
@@ -313,6 +327,7 @@ export function ConsumablesTab() {
               productId={rightPanel.productId}
               onEdit={handleEditProduct}
               onRecordTransaction={handleRecordTransaction}
+              onVoidAndReplace={handleVoidAndReplace}
               onDeleted={handleProductDeleted}
               categoryName={categoryNameMap.get(
                 products.find(p => p.id === rightPanel.productId)?.categoryId ?? ''
@@ -331,10 +346,11 @@ export function ConsumablesTab() {
 
           {rightPanel?.type === 'transaction' && (
             <ConsumableTransactionForm
-              key={`${rightPanel.productId}-${rightPanel.initialTab ?? 'received'}`}
+              key={`${rightPanel.productId}-${rightPanel.initialTab ?? 'received'}-${rightPanel.prefill ? 'prefill' : ''}`}
               productId={rightPanel.productId}
               productName={products.find(p => p.id === rightPanel.productId)?.name ?? ''}
               initialTab={rightPanel.initialTab}
+              prefill={rightPanel.prefill}
               onSubmit={handleFormComplete}
               onCancel={handleFormComplete}
             />

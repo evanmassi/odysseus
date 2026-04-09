@@ -168,6 +168,7 @@ export function ConsumableQuickScanBar({
               </div>
               <MenuItem icon={Eye} label="View Product" onClick={() => handleAction('view')} />
               <MenuDivider />
+              <MenuItem icon={ClipboardCheck} label="Count" onClick={() => handleAction('count')} />
               <MenuItem
                 icon={PackagePlus}
                 label="Receive"
@@ -178,7 +179,6 @@ export function ConsumableQuickScanBar({
                 label="Consume"
                 onClick={() => handleAction('consumed')}
               />
-              <MenuItem icon={ClipboardCheck} label="Count" onClick={() => handleAction('count')} />
               <MenuItem icon={Trash2} label="Dispose" onClick={() => handleAction('disposed')} />
             </div>
           )}

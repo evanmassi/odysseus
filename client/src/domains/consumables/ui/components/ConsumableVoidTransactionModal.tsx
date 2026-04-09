@@ -2,6 +2,7 @@
  * Consumable Void Transaction Modal
  *
  * Confirmation dialog for voiding a stock transaction with a required reason.
+ * Supports "Void & Replace" to immediately open a pre-filled replacement form.
  */
 
 import { useState, useEffect } from 'react';
@@ -13,10 +14,11 @@ import { useVoidConsumableTransactionMutation } from '@domains/consumables/hooks
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
-import { formatDateForDisplay } from '@shared/utils/dateFormatters';
+import { formatDateForDisplay, formatDateForInput } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
+import type { TransactionPrefill } from './ConsumableTransactionForm';
 import type { ConsumableTransaction } from '@odysseus/shared-schemas';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -31,6 +33,11 @@ interface ConsumableVoidTransactionModalProps {
   transaction: ConsumableTransaction | null;
   stockUnit?: string;
   onClose: () => void;
+  onVoidAndReplace?: (
+    productId: string,
+    initialTab: 'received' | 'consumed' | 'count' | 'disposed',
+    prefill: TransactionPrefill
+  ) => void;
 }
 
 export function ConsumableVoidTransactionModal({
@@ -38,6 +45,7 @@ export function ConsumableVoidTransactionModal({
   transaction,
   stockUnit,
   onClose,
+  onVoidAndReplace,
 }: ConsumableVoidTransactionModalProps) {
   const [reason, setReason] = useState('');
   const voidMutation = useVoidConsumableTransactionMutation();
@@ -51,7 +59,7 @@ export function ConsumableVoidTransactionModal({
     ? (locations.find(l => l.id === transaction.locationId)?.name ?? transaction.locationId)
     : '';
 
-  const handleVoid = async () => {
+  const handleVoid = async (replace: boolean) => {
     if (!transaction || !reason.trim()) return;
     try {
       await voidMutation.mutateAsync({
@@ -60,6 +68,22 @@ export function ConsumableVoidTransactionModal({
       });
       notifications.success('Transaction voided');
       onClose();
+
+      if (replace && onVoidAndReplace) {
+        const initialTab =
+          transaction.type === 'count_adjustment'
+            ? 'count'
+            : (transaction.type as 'received' | 'consumed' | 'disposed');
+        onVoidAndReplace(transaction.productId, initialTab, {
+          locationId: transaction.locationId,
+          quantity: Math.abs(transaction.quantityChange),
+          lotNumber: transaction.lotNumber,
+          expirationDate: formatDateForInput(transaction.expirationDate),
+          poNumber: transaction.poNumber,
+          cost: transaction.cost,
+          notes: transaction.notes,
+        });
+      }
     } catch {
       notifications.error('Failed to void transaction');
     }
@@ -122,9 +146,19 @@ export function ConsumableVoidTransactionModal({
             <Button variant="secondary" onClick={onClose} disabled={voidMutation.isPending}>
               Cancel
             </Button>
+            {onVoidAndReplace && (
+              <Button
+                variant="secondary"
+                onClick={() => void handleVoid(true)}
+                disabled={!reason.trim()}
+                isLoading={voidMutation.isPending}
+              >
+                Void & Replace
+              </Button>
+            )}
             <Button
               variant="danger"
-              onClick={() => void handleVoid()}
+              onClick={() => void handleVoid(false)}
               disabled={!reason.trim()}
               isLoading={voidMutation.isPending}
               loadingText="Voiding..."
