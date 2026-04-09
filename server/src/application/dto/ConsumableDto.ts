@@ -51,6 +51,7 @@ export interface ConsumableProductResponse {
 
 export interface ConsumableProductWithStockResponse extends ConsumableProductResponse {
   totalStock: number;
+  locationNames: string[];
 }
 
 export interface ConsumablePackagingLevelResponse {
@@ -163,10 +164,11 @@ export class ConsumableDto {
     };
   }
 
-  static productWithStockToResponse(product: ConsumableProduct, totalStock: number): ConsumableProductWithStockResponse {
+  static productWithStockToResponse(product: ConsumableProduct, totalStock: number, locationNames: string[]): ConsumableProductWithStockResponse {
     return {
       ...this.productToResponse(product),
       totalStock,
+      locationNames,
     };
   }
 

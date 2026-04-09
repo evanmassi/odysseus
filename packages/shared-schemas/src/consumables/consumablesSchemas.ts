@@ -13,7 +13,7 @@ import { dateField, optionalDateField } from '../utils/dateFields';
 export const consumableProductStatusValues = ['active', 'discontinued', 'archived'] as const;
 export const consumableProductStatusSchema = z.enum(consumableProductStatusValues);
 
-export const consumableTransactionTypeValues = ['received', 'consumed', 'count_adjustment', 'disposed'] as const;
+export const consumableTransactionTypeValues = ['received', 'consumed', 'count_adjustment', 'disposed', 'void_reversal'] as const;
 export const consumableTransactionTypeSchema = z.enum(consumableTransactionTypeValues);
 
 export const consumableBarcodeTypeValues = ['internal', 'manufacturer_sku', 'upc'] as const;
@@ -111,6 +111,7 @@ export const consumableProductSchema = z.object({
 
 export const consumableProductWithStockSchema = consumableProductSchema.extend({
   totalStock: z.number(),
+  locationNames: z.array(z.string()),
 });
 
 export const createConsumableProductRequestSchema = z.object({
@@ -211,12 +212,16 @@ export const consumableTransactionSchema = z.object({
   performedBy: z.string(),
   notes: z.string().optional(),
   createdAt: dateField,
+  voidedAt: optionalDateField,
+  voidedBy: z.string().optional(),
+  voidReason: z.string().optional(),
+  relatedTransactionId: z.string().optional(),
 });
 
 export const recordConsumableTransactionRequestSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
   locationId: z.string().min(1, 'Location is required'),
-  type: consumableTransactionTypeSchema,
+  type: z.enum(['received', 'consumed', 'disposed']),
   quantity: z.number().min(0, 'Quantity must be non-negative'),
   lotNumber: z.string().max(200).optional(),
   expirationDate: z.string().optional(),
@@ -235,8 +240,22 @@ export const recordConsumableStockCountRequestSchema = z.object({
   notes: z.string().max(2000).optional(),
 });
 
+export const voidConsumableTransactionRequestSchema = z.object({
+  reason: z.string().min(1, 'Void reason is required').max(2000),
+});
+
+export const consumableBulkVoidRequestSchema = z.object({
+  transactionIds: z.array(z.string().min(1)).min(1, 'At least one transaction is required').max(100),
+  reason: z.string().min(1, 'Void reason is required').max(2000),
+});
+
 export const consumableTransactionResponseSchema = z.object({
   transaction: consumableTransactionSchema,
+});
+
+export const consumableVoidTransactionResponseSchema = z.object({
+  original: consumableTransactionSchema,
+  reversal: consumableTransactionSchema,
 });
 
 export const consumableTransactionListResponseSchema = z.object({
@@ -378,6 +397,8 @@ export type CreateConsumableBarcodeRequest = z.infer<typeof createConsumableBarc
 export type UpdateConsumableBarcodeRequest = z.infer<typeof updateConsumableBarcodeRequestSchema>;
 export type RecordConsumableTransactionRequest = z.infer<typeof recordConsumableTransactionRequestSchema>;
 export type RecordConsumableStockCountRequest = z.infer<typeof recordConsumableStockCountRequestSchema>;
+export type VoidConsumableTransactionRequest = z.infer<typeof voidConsumableTransactionRequestSchema>;
+export type ConsumableBulkVoidRequest = z.infer<typeof consumableBulkVoidRequestSchema>;
 export type CreateConsumableDocumentRequest = z.infer<typeof createConsumableDocumentRequestSchema>;
 export type UpdateConsumableDocumentRequest = z.infer<typeof updateConsumableDocumentRequestSchema>;
 export type ConsumableBulkReceiveRequest = z.infer<typeof consumableBulkReceiveRequestSchema>;

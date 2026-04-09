@@ -142,12 +142,17 @@ export const migration021: Migration = {
         performed_by TEXT NOT NULL REFERENCES users(id),
         notes TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CHECK (type IN ('received', 'consumed', 'count_adjustment', 'disposed'))
+        voided_at TIMESTAMPTZ,
+        voided_by TEXT REFERENCES users(id),
+        void_reason TEXT,
+        related_transaction_id TEXT REFERENCES consumable_transactions(id),
+        CHECK (type IN ('received', 'consumed', 'count_adjustment', 'disposed', 'void_reversal'))
       )
     `);
 
     await pool.query(`CREATE INDEX idx_consumable_transactions_product ON consumable_transactions(product_id)`);
     await pool.query(`CREATE INDEX idx_consumable_transactions_lab ON consumable_transactions(lab_id)`);
+    await pool.query(`CREATE INDEX idx_consumable_transactions_related ON consumable_transactions(related_transaction_id) WHERE related_transaction_id IS NOT NULL`);
 
     // Documents — linked docs, SOPs, product page URLs
 

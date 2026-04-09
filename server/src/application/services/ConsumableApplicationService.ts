@@ -171,7 +171,7 @@ export class ConsumableApplicationService {
 
   async listProducts(labId: string): Promise<ConsumableProductWithStockResponse[]> {
     const productsWithStock = await this.productRepository.findByLabIdWithStock(labId);
-    return productsWithStock.map(({ product, totalStock }) => ConsumableDto.productWithStockToResponse(product, totalStock));
+    return productsWithStock.map(({ product, totalStock, locationNames }) => ConsumableDto.productWithStockToResponse(product, totalStock, locationNames));
   }
 
   async getProduct(labId: string, id: string): Promise<ConsumableProductDetailResponse> {
@@ -415,7 +415,7 @@ export class ConsumableApplicationService {
   // Stock operations
 
   async recordTransaction(
-    labId: string, data: RecordConsumableTransactionRequest, user: User,
+    labId: string, data: RecordConsumableTransactionRequest | (Omit<RecordConsumableTransactionRequest, 'type'> & { type: 'count_adjustment' }), user: User,
     options?: { bulkOperation?: boolean }
   ): Promise<ConsumableTransactionResponse> {
     await this.accessControlService.requireAdminAccess(user);
@@ -597,7 +597,7 @@ export class ConsumableApplicationService {
 
   async getReorderList(labId: string): Promise<ConsumableProductWithStockResponse[]> {
     const productsWithStock = await this.productRepository.findProductsBelowThreshold(labId);
-    return productsWithStock.map(({ product, totalStock }) => ConsumableDto.productWithStockToResponse(product, totalStock));
+    return productsWithStock.map(({ product, totalStock, locationNames }) => ConsumableDto.productWithStockToResponse(product, totalStock, locationNames));
   }
 
   // Helpers

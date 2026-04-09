@@ -16,6 +16,7 @@ import {
   Package,
   ClipboardList,
   RefreshCw,
+  MapPin,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -244,6 +245,14 @@ export function ConsumableProductInfoPanel({
         <div
           className={`flex items-center gap-1.5 flex-wrap ${isAdmin ? 'pt-2 mt-2 border-t border-border' : ''}`}
         >
+          {stock.map(s => {
+            const locName = locationNameMap.get(s.locationId);
+            return locName ? (
+              <Chip key={s.locationId} color="info" size="sm" leftIcon={<MapPin />}>
+                {locName}
+              </Chip>
+            ) : null;
+          })}
           {categoryName && (
             <Chip color="info" size="sm">
               {categoryName}

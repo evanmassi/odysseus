@@ -5,7 +5,10 @@
  * category info, and key identifying details.
  */
 
+import { MapPin } from 'lucide-react';
+
 import { Chip } from '@shared/ui/primitives/chip/Chip';
+import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type { ConsumableProductWithStock } from '@odysseus/shared-schemas';
@@ -57,19 +60,13 @@ export function ConsumableProductRow({ product, isSelected, onSelect }: Consumab
       role="button"
       tabIndex={0}
     >
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 min-w-0 flex-1 truncate">
-          <span className="text-sm font-semibold text-card-foreground truncate">
-            {product.name}
-          </span>
-          {detailParts.length > 0 && (
-            <>
-              <span className="text-card-foreground/30 flex-shrink-0">·</span>
-              <span className="text-xs text-muted-foreground truncate">
-                {detailParts.join(' · ')}
-              </span>
-            </>
-          )}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1 min-w-0 truncate">
+          <Tooltip content={product.name} side="top">
+            <span className="text-sm font-semibold text-card-foreground truncate">
+              {product.name}
+            </span>
+          </Tooltip>
           {product.status !== 'active' && statusInfo && (
             <Chip
               color={statusInfo.color}
@@ -80,12 +77,23 @@ export function ConsumableProductRow({ product, isSelected, onSelect }: Consumab
             </Chip>
           )}
         </div>
-
-        <Chip color={stockColor} size="sm" className="flex-shrink-0">
-          {product.totalStock}{' '}
-          {product.stockUnit ? pluralizeUnit(product.stockUnit, product.totalStock) : 'in stock'}
-        </Chip>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {product.locationNames.map(name => (
+            <Chip key={name} color="info" size="sm" leftIcon={<MapPin />}>
+              {name}
+            </Chip>
+          ))}
+          <Chip color={stockColor} size="sm">
+            {product.totalStock}{' '}
+            {product.stockUnit ? pluralizeUnit(product.stockUnit, product.totalStock) : 'in stock'}
+          </Chip>
+        </div>
       </div>
+      {detailParts.length > 0 && (
+        <div className="flex items-center gap-1 mt-0.5">
+          <span className="text-xs text-muted-foreground truncate">{detailParts.join(' · ')}</span>
+        </div>
+      )}
     </div>
   );
 }

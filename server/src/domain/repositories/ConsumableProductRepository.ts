@@ -45,6 +45,7 @@ export interface ConsumableTransactionRow {
 export interface ProductWithStock {
   product: ConsumableProduct;
   totalStock: number;
+  locationNames: string[];
 }
 
 export interface RecordTransactionData {

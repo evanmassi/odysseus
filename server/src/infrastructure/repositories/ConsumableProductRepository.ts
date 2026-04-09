@@ -65,10 +65,15 @@ export class ConsumableProductRepository implements IConsumableProductRepository
   }
 
   async findByLabIdWithStock(labId: string): Promise<ProductWithStock[]> {
-    const rows = await this.db.queryMany<ConsumableProductRow & { total_stock: string }>(
-      `SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock
+    const rows = await this.db.queryMany<ConsumableProductRow & { total_stock: string; location_names: string[] }>(
+      `SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
+              COALESCE(
+                array_agg(DISTINCT l.name ORDER BY l.name) FILTER (WHERE l.name IS NOT NULL AND s.quantity > 0),
+                '{}'
+              ) as location_names
        FROM consumable_products p
        LEFT JOIN consumable_stock s ON s.product_id = p.id
+       LEFT JOIN consumable_locations l ON l.id = s.location_id
        WHERE p.lab_id = $1
        GROUP BY p.id
        ORDER BY p.name`,
@@ -77,6 +82,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
     return rows.map(row => ({
       product: ConsumableProductMapper.fromRow(row),
       totalStock: parseFloat(row.total_stock),
+      locationNames: row.location_names ?? [],
     }));
   }
 
@@ -296,10 +302,15 @@ export class ConsumableProductRepository implements IConsumableProductRepository
   // Reorder
 
   async findProductsBelowThreshold(labId: string): Promise<ProductWithStock[]> {
-    const rows = await this.db.queryMany<ConsumableProductRow & { total_stock: string }>(`
-      SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock
+    const rows = await this.db.queryMany<ConsumableProductRow & { total_stock: string; location_names: string[] }>(`
+      SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
+             COALESCE(
+               array_agg(DISTINCT l.name ORDER BY l.name) FILTER (WHERE l.name IS NOT NULL AND s.quantity > 0),
+               '{}'
+             ) as location_names
       FROM consumable_products p
       LEFT JOIN consumable_stock s ON s.product_id = p.id
+      LEFT JOIN consumable_locations l ON l.id = s.location_id
       WHERE p.lab_id = $1 AND p.status = 'active' AND p.reorder_threshold IS NOT NULL
       GROUP BY p.id
       HAVING COALESCE(SUM(s.quantity), 0) < p.reorder_threshold
@@ -309,6 +320,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
     return rows.map(row => ({
       product: ConsumableProductMapper.fromRow(row),
       totalStock: parseFloat(row.total_stock),
+      locationNames: row.location_names ?? [],
     }));
   }
 
