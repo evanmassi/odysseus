@@ -7,26 +7,26 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { AuditService, LogActionParams } from '@application/services/AuditService';
 import type {
-  ConsumableProductCreatedEvent,
-  ConsumableProductUpdatedEvent,
-  ConsumableProductArchivedEvent,
-  ConsumableProductDeletedEvent,
-  ConsumableCategoryCreatedEvent,
-  ConsumableCategoryUpdatedEvent,
-  ConsumableCategoryDeletedEvent,
-  ConsumableDocumentAddedEvent,
-  ConsumableDocumentRemovedEvent,
-  ConsumableStockReceivedEvent,
-  ConsumableStockConsumedEvent,
-  ConsumableStockCountAdjustedEvent,
-  ConsumableStockDisposedEvent,
-  ConsumableStockVoidedEvent,
-  ConsumableBulkReceivedEvent,
-  ConsumableBulkConsumedEvent,
-  ConsumableBulkCategoryReassignedEvent,
-  ConsumableBulkArchivedEvent,
-  ConsumableBulkVoidedEvent,
-} from '@domain/events/ConsumableEvents';
+  SupplyProductCreatedEvent,
+  SupplyProductUpdatedEvent,
+  SupplyProductArchivedEvent,
+  SupplyProductDeletedEvent,
+  SupplyCategoryCreatedEvent,
+  SupplyCategoryUpdatedEvent,
+  SupplyCategoryDeletedEvent,
+  SupplyDocumentAddedEvent,
+  SupplyDocumentRemovedEvent,
+  SupplyStockReceivedEvent,
+  SupplyStockIssuedEvent,
+  SupplyStockCountAdjustedEvent,
+  SupplyStockDisposedEvent,
+  SupplyStockVoidedEvent,
+  SupplyBulkReceivedEvent,
+  SupplyBulkIssuedEvent,
+  SupplyBulkCategoryReassignedEvent,
+  SupplyBulkArchivedEvent,
+  SupplyBulkVoidedEvent,
+} from '@domain/events/SupplyEvents';
 import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
@@ -297,26 +297,26 @@ export class AuditEventHandler {
     this.eventBus.subscribe('EquipmentBulkStatusChanged', (e) => this.handleEquipmentBulkStatusChanged(e));
     this.eventBus.subscribe('EquipmentBulkRelocated', (e) => this.handleEquipmentBulkRelocated(e));
 
-    // Consumable events
-    this.eventBus.subscribe('ConsumableProductCreated', (e) => this.handleConsumableProductCreated(e));
-    this.eventBus.subscribe('ConsumableProductUpdated', (e) => this.handleConsumableProductUpdated(e));
-    this.eventBus.subscribe('ConsumableProductArchived', (e) => this.handleConsumableProductArchived(e));
-    this.eventBus.subscribe('ConsumableProductDeleted', (e) => this.handleConsumableProductDeleted(e));
-    this.eventBus.subscribe('ConsumableCategoryCreated', (e) => this.handleConsumableCategoryCreated(e));
-    this.eventBus.subscribe('ConsumableCategoryUpdated', (e) => this.handleConsumableCategoryUpdated(e));
-    this.eventBus.subscribe('ConsumableCategoryDeleted', (e) => this.handleConsumableCategoryDeleted(e));
-    this.eventBus.subscribe('ConsumableDocumentAdded', (e) => this.handleConsumableDocumentAdded(e));
-    this.eventBus.subscribe('ConsumableDocumentRemoved', (e) => this.handleConsumableDocumentRemoved(e));
-    this.eventBus.subscribe('ConsumableStockReceived', (e) => this.handleConsumableStockReceived(e));
-    this.eventBus.subscribe('ConsumableStockConsumed', (e) => this.handleConsumableStockConsumed(e));
-    this.eventBus.subscribe('ConsumableStockCountAdjusted', (e) => this.handleConsumableStockCountAdjusted(e));
-    this.eventBus.subscribe('ConsumableStockDisposed', (e) => this.handleConsumableStockDisposed(e));
-    this.eventBus.subscribe('ConsumableStockVoided', (e) => this.handleConsumableStockVoided(e));
-    this.eventBus.subscribe('ConsumableBulkReceived', (e) => this.handleConsumableBulkReceived(e));
-    this.eventBus.subscribe('ConsumableBulkConsumed', (e) => this.handleConsumableBulkConsumed(e));
-    this.eventBus.subscribe('ConsumableBulkCategoryReassigned', (e) => this.handleConsumableBulkCategoryReassigned(e));
-    this.eventBus.subscribe('ConsumableBulkArchived', (e) => this.handleConsumableBulkArchived(e));
-    this.eventBus.subscribe('ConsumableBulkVoided', (e) => this.handleConsumableBulkVoided(e));
+    // Supply events
+    this.eventBus.subscribe('SupplyProductCreated', (e) => this.handleSupplyProductCreated(e));
+    this.eventBus.subscribe('SupplyProductUpdated', (e) => this.handleSupplyProductUpdated(e));
+    this.eventBus.subscribe('SupplyProductArchived', (e) => this.handleSupplyProductArchived(e));
+    this.eventBus.subscribe('SupplyProductDeleted', (e) => this.handleSupplyProductDeleted(e));
+    this.eventBus.subscribe('SupplyCategoryCreated', (e) => this.handleSupplyCategoryCreated(e));
+    this.eventBus.subscribe('SupplyCategoryUpdated', (e) => this.handleSupplyCategoryUpdated(e));
+    this.eventBus.subscribe('SupplyCategoryDeleted', (e) => this.handleSupplyCategoryDeleted(e));
+    this.eventBus.subscribe('SupplyDocumentAdded', (e) => this.handleSupplyDocumentAdded(e));
+    this.eventBus.subscribe('SupplyDocumentRemoved', (e) => this.handleSupplyDocumentRemoved(e));
+    this.eventBus.subscribe('SupplyStockReceived', (e) => this.handleSupplyStockReceived(e));
+    this.eventBus.subscribe('SupplyStockIssued', (e) => this.handleSupplyStockIssued(e));
+    this.eventBus.subscribe('SupplyStockCountAdjusted', (e) => this.handleSupplyStockCountAdjusted(e));
+    this.eventBus.subscribe('SupplyStockDisposed', (e) => this.handleSupplyStockDisposed(e));
+    this.eventBus.subscribe('SupplyStockVoided', (e) => this.handleSupplyStockVoided(e));
+    this.eventBus.subscribe('SupplyBulkReceived', (e) => this.handleSupplyBulkReceived(e));
+    this.eventBus.subscribe('SupplyBulkIssued', (e) => this.handleSupplyBulkIssued(e));
+    this.eventBus.subscribe('SupplyBulkCategoryReassigned', (e) => this.handleSupplyBulkCategoryReassigned(e));
+    this.eventBus.subscribe('SupplyBulkArchived', (e) => this.handleSupplyBulkArchived(e));
+    this.eventBus.subscribe('SupplyBulkVoided', (e) => this.handleSupplyBulkVoided(e));
 
     // Lab events
     this.eventBus.subscribe('LabCreated', (e) => this.handleLabCreated(e));
@@ -1442,10 +1442,10 @@ export class AuditEventHandler {
 
   // CONSUMABLE EVENT HANDLERS
 
-  private async handleConsumableProductCreated(event: ConsumableProductCreatedEvent): Promise<void> {
+  private async handleSupplyProductCreated(event: SupplyProductCreatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable product created', context: { productId: event.productId },
-      actorId: event.createdBy, action: 'consumable_product_created', entityType: 'consumable_product',
+      eventName: 'supply product created', context: { productId: event.productId },
+      actorId: event.createdBy, action: 'supply_product_created', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, name: event.name, categoryId: event.categoryId, createdBy: username,
@@ -1453,11 +1453,11 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableProductUpdated(event: ConsumableProductUpdatedEvent): Promise<void> {
+  private async handleSupplyProductUpdated(event: SupplyProductUpdatedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'consumable product updated', context: { productId: event.productId },
-      actorId: event.updatedBy, action: 'consumable_product_updated', entityType: 'consumable_product',
+      eventName: 'supply product updated', context: { productId: event.productId },
+      actorId: event.updatedBy, action: 'supply_product_updated', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, changes: event.changes, updatedBy: username,
@@ -1465,11 +1465,11 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableProductArchived(event: ConsumableProductArchivedEvent): Promise<void> {
+  private async handleSupplyProductArchived(event: SupplyProductArchivedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'consumable product archived', context: { productId: event.productId },
-      actorId: event.archivedBy, action: 'consumable_product_archived', entityType: 'consumable_product',
+      eventName: 'supply product archived', context: { productId: event.productId },
+      actorId: event.archivedBy, action: 'supply_product_archived', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, name: event.name, archivedBy: username,
@@ -1477,10 +1477,10 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableProductDeleted(event: ConsumableProductDeletedEvent): Promise<void> {
+  private async handleSupplyProductDeleted(event: SupplyProductDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable product deleted', context: { productId: event.productId },
-      actorId: event.deletedBy, action: 'consumable_product_deleted', entityType: 'consumable_product',
+      eventName: 'supply product deleted', context: { productId: event.productId },
+      actorId: event.deletedBy, action: 'supply_product_deleted', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, name: event.name, deletedBy: username,
@@ -1488,10 +1488,10 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableCategoryCreated(event: ConsumableCategoryCreatedEvent): Promise<void> {
+  private async handleSupplyCategoryCreated(event: SupplyCategoryCreatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable category created', context: { categoryId: event.categoryId },
-      actorId: event.createdBy, action: 'consumable_category_created', entityType: 'consumable_product',
+      eventName: 'supply category created', context: { categoryId: event.categoryId },
+      actorId: event.createdBy, action: 'supply_category_created', entityType: 'supply_product',
       entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         categoryId: event.categoryId, name: event.name, parentId: event.parentId, createdBy: username,
@@ -1499,10 +1499,10 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableCategoryUpdated(event: ConsumableCategoryUpdatedEvent): Promise<void> {
+  private async handleSupplyCategoryUpdated(event: SupplyCategoryUpdatedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable category updated', context: { categoryId: event.categoryId },
-      actorId: event.updatedBy, action: 'consumable_category_updated', entityType: 'consumable_product',
+      eventName: 'supply category updated', context: { categoryId: event.categoryId },
+      actorId: event.updatedBy, action: 'supply_category_updated', entityType: 'supply_product',
       entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         categoryId: event.categoryId, name: event.name, updatedBy: username,
@@ -1510,10 +1510,10 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableCategoryDeleted(event: ConsumableCategoryDeletedEvent): Promise<void> {
+  private async handleSupplyCategoryDeleted(event: SupplyCategoryDeletedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable category deleted', context: { categoryId: event.categoryId },
-      actorId: event.deletedBy, action: 'consumable_category_deleted', entityType: 'consumable_product',
+      eventName: 'supply category deleted', context: { categoryId: event.categoryId },
+      actorId: event.deletedBy, action: 'supply_category_deleted', entityType: 'supply_product',
       entityId: event.categoryId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         categoryId: event.categoryId, name: event.name, deletedBy: username,
@@ -1521,10 +1521,10 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableDocumentAdded(event: ConsumableDocumentAddedEvent): Promise<void> {
+  private async handleSupplyDocumentAdded(event: SupplyDocumentAddedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable document added', context: { productId: event.productId },
-      actorId: event.addedBy, action: 'consumable_document_added', entityType: 'consumable_product',
+      eventName: 'supply document added', context: { productId: event.productId },
+      actorId: event.addedBy, action: 'supply_document_added', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, label: event.label, addedBy: username,
@@ -1532,10 +1532,10 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableDocumentRemoved(event: ConsumableDocumentRemovedEvent): Promise<void> {
+  private async handleSupplyDocumentRemoved(event: SupplyDocumentRemovedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable document removed', context: { productId: event.productId },
-      actorId: event.removedBy, action: 'consumable_document_removed', entityType: 'consumable_product',
+      eventName: 'supply document removed', context: { productId: event.productId },
+      actorId: event.removedBy, action: 'supply_document_removed', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, removedBy: username,
@@ -1543,11 +1543,11 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableStockReceived(event: ConsumableStockReceivedEvent): Promise<void> {
+  private async handleSupplyStockReceived(event: SupplyStockReceivedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'consumable stock received', context: { productId: event.productId },
-      actorId: event.receivedBy, action: 'consumable_stock_received', entityType: 'consumable_product',
+      eventName: 'supply stock received', context: { productId: event.productId },
+      actorId: event.receivedBy, action: 'supply_stock_received', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, quantity: event.quantity, locationId: event.locationId, receivedBy: username,
@@ -1555,22 +1555,22 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableStockConsumed(event: ConsumableStockConsumedEvent): Promise<void> {
+  private async handleSupplyStockIssued(event: SupplyStockIssuedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'consumable stock consumed', context: { productId: event.productId },
-      actorId: event.consumedBy, action: 'consumable_stock_consumed', entityType: 'consumable_product',
+      eventName: 'supply stock issued', context: { productId: event.productId },
+      actorId: event.issuedBy, action: 'supply_stock_issued', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
-        productId: event.productId, quantity: event.quantity, locationId: event.locationId, consumedBy: username,
+        productId: event.productId, quantity: event.quantity, locationId: event.locationId, issuedBy: username,
       }),
     });
   }
 
-  private async handleConsumableStockCountAdjusted(event: ConsumableStockCountAdjustedEvent): Promise<void> {
+  private async handleSupplyStockCountAdjusted(event: SupplyStockCountAdjustedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable stock count adjusted', context: { productId: event.productId },
-      actorId: event.adjustedBy, action: 'consumable_stock_count_adjusted', entityType: 'consumable_product',
+      eventName: 'supply stock count adjusted', context: { productId: event.productId },
+      actorId: event.adjustedBy, action: 'supply_stock_count_adjusted', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, delta: event.delta, locationId: event.locationId, adjustedBy: username,
@@ -1578,10 +1578,10 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableStockDisposed(event: ConsumableStockDisposedEvent): Promise<void> {
+  private async handleSupplyStockDisposed(event: SupplyStockDisposedEvent): Promise<void> {
     await this.logAuditEvent({
-      eventName: 'consumable stock disposed', context: { productId: event.productId },
-      actorId: event.disposedBy, action: 'consumable_stock_disposed', entityType: 'consumable_product',
+      eventName: 'supply stock disposed', context: { productId: event.productId },
+      actorId: event.disposedBy, action: 'supply_stock_disposed', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, quantity: event.quantity, locationId: event.locationId, disposedBy: username,
@@ -1589,11 +1589,11 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableStockVoided(event: ConsumableStockVoidedEvent): Promise<void> {
+  private async handleSupplyStockVoided(event: SupplyStockVoidedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
-      eventName: 'consumable stock voided', context: { productId: event.productId },
-      actorId: event.voidedBy, action: 'consumable_stock_voided', entityType: 'consumable_product',
+      eventName: 'supply stock voided', context: { productId: event.productId },
+      actorId: event.voidedBy, action: 'supply_stock_voided', entityType: 'supply_product',
       entityId: event.productId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({
         productId: event.productId, originalTransactionId: event.originalTransactionId,
@@ -1603,10 +1603,10 @@ export class AuditEventHandler {
     });
   }
 
-  // Consumable bulk handlers
+  // Supply bulk handlers
 
-  private async handleConsumableBulkReceived(event: ConsumableBulkReceivedEvent): Promise<void> {
-    await this.safeLogAudit('consumable bulk received', { count: event.perItemData.length }, async () => {
+  private async handleSupplyBulkReceived(event: SupplyBulkReceivedEvent): Promise<void> {
+    await this.safeLogAudit('supply bulk received', { count: event.perItemData.length }, async () => {
       const { username, isDemo } = await this.resolveUser(event.receivedBy);
       if (isDemo) return;
 
@@ -1614,8 +1614,8 @@ export class AuditEventHandler {
       const entries: LogActionParams[] = event.perItemData.map(item => ({
         userId: event.receivedBy,
         username,
-        action: 'consumable_stock_received',
-        entityType: 'consumable_product',
+        action: 'supply_stock_received',
+        entityType: 'supply_product',
         entityId: item.productId,
         labId: event.labId,
         details: { productId: item.productId, quantity: item.quantity, locationId: item.locationId, receivedBy: username, timestamp },
@@ -1624,8 +1624,8 @@ export class AuditEventHandler {
       entries.push({
         userId: event.receivedBy,
         username,
-        action: 'consumable_bulk_received',
-        entityType: 'consumable_product',
+        action: 'supply_bulk_received',
+        entityType: 'supply_product',
         labId: event.labId,
         details: { count: event.perItemData.length, receivedBy: username, timestamp },
       });
@@ -1634,37 +1634,37 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableBulkConsumed(event: ConsumableBulkConsumedEvent): Promise<void> {
-    await this.safeLogAudit('consumable bulk consumed', { count: event.perItemData.length }, async () => {
-      const { username, isDemo } = await this.resolveUser(event.consumedBy);
+  private async handleSupplyBulkIssued(event: SupplyBulkIssuedEvent): Promise<void> {
+    await this.safeLogAudit('supply bulk issued', { count: event.perItemData.length }, async () => {
+      const { username, isDemo } = await this.resolveUser(event.issuedBy);
       if (isDemo) return;
 
       const timestamp = event.occurredOn.toISOString();
       const entries: LogActionParams[] = event.perItemData.map(item => ({
-        userId: event.consumedBy,
+        userId: event.issuedBy,
         username,
-        action: 'consumable_stock_consumed',
-        entityType: 'consumable_product',
+        action: 'supply_stock_issued',
+        entityType: 'supply_product',
         entityId: item.productId,
         labId: event.labId,
-        details: { productId: item.productId, quantity: item.quantity, locationId: item.locationId, consumedBy: username, timestamp },
+        details: { productId: item.productId, quantity: item.quantity, locationId: item.locationId, issuedBy: username, timestamp },
       }));
 
       entries.push({
-        userId: event.consumedBy,
+        userId: event.issuedBy,
         username,
-        action: 'consumable_bulk_consumed',
-        entityType: 'consumable_product',
+        action: 'supply_bulk_issued',
+        entityType: 'supply_product',
         labId: event.labId,
-        details: { count: event.perItemData.length, consumedBy: username, timestamp },
+        details: { count: event.perItemData.length, issuedBy: username, timestamp },
       });
 
       await this.auditService.logActions(entries);
     });
   }
 
-  private async handleConsumableBulkCategoryReassigned(event: ConsumableBulkCategoryReassignedEvent): Promise<void> {
-    await this.safeLogAudit('consumable bulk category reassigned', { count: event.productIds.length }, async () => {
+  private async handleSupplyBulkCategoryReassigned(event: SupplyBulkCategoryReassignedEvent): Promise<void> {
+    await this.safeLogAudit('supply bulk category reassigned', { count: event.productIds.length }, async () => {
       const { username, isDemo } = await this.resolveUser(event.reassignedBy);
       if (isDemo) return;
 
@@ -1672,8 +1672,8 @@ export class AuditEventHandler {
       const entries: LogActionParams[] = event.productIds.map(productId => ({
         userId: event.reassignedBy,
         username,
-        action: 'consumable_product_updated',
-        entityType: 'consumable_product',
+        action: 'supply_product_updated',
+        entityType: 'supply_product',
         entityId: productId,
         labId: event.labId,
         details: { productId, changes: [{ field: 'categoryId', newValue: event.categoryId }], updatedBy: username, timestamp },
@@ -1682,8 +1682,8 @@ export class AuditEventHandler {
       entries.push({
         userId: event.reassignedBy,
         username,
-        action: 'consumable_bulk_category_reassigned',
-        entityType: 'consumable_product',
+        action: 'supply_bulk_category_reassigned',
+        entityType: 'supply_product',
         labId: event.labId,
         details: { count: event.productIds.length, categoryId: event.categoryId, reassignedBy: username, timestamp },
       });
@@ -1692,8 +1692,8 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableBulkArchived(event: ConsumableBulkArchivedEvent): Promise<void> {
-    await this.safeLogAudit('consumable bulk archived', { count: event.productIds.length }, async () => {
+  private async handleSupplyBulkArchived(event: SupplyBulkArchivedEvent): Promise<void> {
+    await this.safeLogAudit('supply bulk archived', { count: event.productIds.length }, async () => {
       const { username, isDemo } = await this.resolveUser(event.archivedBy);
       if (isDemo) return;
 
@@ -1701,8 +1701,8 @@ export class AuditEventHandler {
       const entries: LogActionParams[] = event.productIds.map(productId => ({
         userId: event.archivedBy,
         username,
-        action: 'consumable_product_archived',
-        entityType: 'consumable_product',
+        action: 'supply_product_archived',
+        entityType: 'supply_product',
         entityId: productId,
         labId: event.labId,
         details: { productId, archivedBy: username, timestamp },
@@ -1711,8 +1711,8 @@ export class AuditEventHandler {
       entries.push({
         userId: event.archivedBy,
         username,
-        action: 'consumable_bulk_archived',
-        entityType: 'consumable_product',
+        action: 'supply_bulk_archived',
+        entityType: 'supply_product',
         labId: event.labId,
         details: { count: event.productIds.length, archivedBy: username, timestamp },
       });
@@ -1721,8 +1721,8 @@ export class AuditEventHandler {
     });
   }
 
-  private async handleConsumableBulkVoided(event: ConsumableBulkVoidedEvent): Promise<void> {
-    await this.safeLogAudit('consumable bulk voided', { count: event.perItemData.length }, async () => {
+  private async handleSupplyBulkVoided(event: SupplyBulkVoidedEvent): Promise<void> {
+    await this.safeLogAudit('supply bulk voided', { count: event.perItemData.length }, async () => {
       const { username, isDemo } = await this.resolveUser(event.voidedBy);
       if (isDemo) return;
 
@@ -1730,8 +1730,8 @@ export class AuditEventHandler {
       const entries: LogActionParams[] = event.perItemData.map(item => ({
         userId: event.voidedBy,
         username,
-        action: 'consumable_stock_voided',
-        entityType: 'consumable_product',
+        action: 'supply_stock_voided',
+        entityType: 'supply_product',
         entityId: item.productId,
         labId: event.labId,
         details: {
@@ -1744,8 +1744,8 @@ export class AuditEventHandler {
       entries.push({
         userId: event.voidedBy,
         username,
-        action: 'consumable_bulk_voided',
-        entityType: 'consumable_product',
+        action: 'supply_bulk_voided',
+        entityType: 'supply_product',
         labId: event.labId,
         details: { count: event.perItemData.length, voidReason: event.voidReason, voidedBy: username, timestamp },
       });

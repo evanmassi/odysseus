@@ -1,7 +1,7 @@
 /**
- * Consumable Application Service
+ * Supply Application Service
  *
- * Orchestrates all consumable business logic: product CRUD with barcode auto-generation,
+ * Orchestrates all supply business logic: product CRUD with barcode auto-generation,
  * stock operations, category/location/document management, and bulk operations.
  */
 
@@ -9,72 +9,72 @@ import { nanoid } from 'nanoid';
 
 import type { EventBus } from '@application/contracts/EventBus';
 import {
-  ConsumableDto,
-  type ConsumableCategoryResponse,
-  type ConsumableProductResponse,
-  type ConsumableProductWithStockResponse,
-  type ConsumableProductDetailResponse,
-  type ConsumableLocationResponse,
-  type ConsumableDocumentResponse,
-  type ConsumableBarcodeResponse,
-  type ConsumableTransactionResponse,
-  type ConsumablePackagingLevelResponse,
-} from '@application/dto/ConsumableDto';
-import { ConsumableCategory } from '@domain/entities/ConsumableCategory';
-import { ConsumableDocument } from '@domain/entities/ConsumableDocument';
-import { ConsumableLocation } from '@domain/entities/ConsumableLocation';
-import { ConsumableProduct } from '@domain/entities/ConsumableProduct';
+  SupplyDto,
+  type SupplyCategoryResponse,
+  type SupplyProductResponse,
+  type SupplyProductWithStockResponse,
+  type SupplyProductDetailResponse,
+  type SupplyLocationResponse,
+  type SupplyDocumentResponse,
+  type SupplyBarcodeResponse,
+  type SupplyTransactionResponse,
+  type SupplyPackagingLevelResponse,
+} from '@application/dto/SupplyDto';
+import { SupplyCategory } from '@domain/entities/SupplyCategory';
+import { SupplyDocument } from '@domain/entities/SupplyDocument';
+import { SupplyLocation } from '@domain/entities/SupplyLocation';
+import { SupplyProduct } from '@domain/entities/SupplyProduct';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
-  ConsumableProductCreatedEvent,
-  ConsumableProductUpdatedEvent,
-  ConsumableProductArchivedEvent,
-  ConsumableProductDeletedEvent,
-  ConsumableCategoryCreatedEvent,
-  ConsumableCategoryUpdatedEvent,
-  ConsumableCategoryDeletedEvent,
-  ConsumableDocumentAddedEvent,
-  ConsumableDocumentRemovedEvent,
-  ConsumableStockReceivedEvent,
-  ConsumableStockConsumedEvent,
-  ConsumableStockCountAdjustedEvent,
-  ConsumableStockDisposedEvent,
-  ConsumableStockVoidedEvent,
-  ConsumableBulkReceivedEvent,
-  ConsumableBulkConsumedEvent,
-  ConsumableBulkCategoryReassignedEvent,
-  ConsumableBulkArchivedEvent,
-  ConsumableBulkVoidedEvent,
+  SupplyProductCreatedEvent,
+  SupplyProductUpdatedEvent,
+  SupplyProductArchivedEvent,
+  SupplyProductDeletedEvent,
+  SupplyCategoryCreatedEvent,
+  SupplyCategoryUpdatedEvent,
+  SupplyCategoryDeletedEvent,
+  SupplyDocumentAddedEvent,
+  SupplyDocumentRemovedEvent,
+  SupplyStockReceivedEvent,
+  SupplyStockIssuedEvent,
+  SupplyStockCountAdjustedEvent,
+  SupplyStockDisposedEvent,
+  SupplyStockVoidedEvent,
+  SupplyBulkReceivedEvent,
+  SupplyBulkIssuedEvent,
+  SupplyBulkCategoryReassignedEvent,
+  SupplyBulkArchivedEvent,
+  SupplyBulkVoidedEvent,
   type BulkVoidItemDetail,
-} from '@domain/events/ConsumableEvents';
-import type { ConsumableCategoryRepository } from '@domain/repositories/ConsumableCategoryRepository';
-import type { ConsumableLocationRepository } from '@domain/repositories/ConsumableLocationRepository';
-import type { ConsumableProductRepository, ConsumableBarcodeRow } from '@domain/repositories/ConsumableProductRepository';
+} from '@domain/events/SupplyEvents';
+import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
+import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
+import type { SupplyProductRepository, SupplyBarcodeRow } from '@domain/repositories/SupplyProductRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
 
 import type {
-  CreateConsumableCategoryRequest,
-  UpdateConsumableCategoryRequest,
-  CreateConsumableLocationRequest,
-  UpdateConsumableLocationRequest,
-  CreateConsumableProductRequest,
-  UpdateConsumableProductRequest,
-  CreateConsumableBarcodeRequest,
-  UpdateConsumableBarcodeRequest,
-  CreateConsumableDocumentRequest,
-  UpdateConsumableDocumentRequest,
-  CreateConsumablePackagingLevelRequest,
-  RecordConsumableTransactionRequest,
-  RecordConsumableStockCountRequest,
-  ConsumableBulkReceiveRequest,
-  ConsumableBulkConsumeRequest,
-  VoidConsumableTransactionRequest,
-  ConsumableBulkVoidRequest,
+  CreateSupplyCategoryRequest,
+  UpdateSupplyCategoryRequest,
+  CreateSupplyLocationRequest,
+  UpdateSupplyLocationRequest,
+  CreateSupplyProductRequest,
+  UpdateSupplyProductRequest,
+  CreateSupplyBarcodeRequest,
+  UpdateSupplyBarcodeRequest,
+  CreateSupplyDocumentRequest,
+  UpdateSupplyDocumentRequest,
+  CreateSupplyPackagingLevelRequest,
+  RecordSupplyTransactionRequest,
+  RecordSupplyStockCountRequest,
+  SupplyBulkReceiveRequest,
+  SupplyBulkIssueRequest,
+  VoidSupplyTransactionRequest,
+  SupplyBulkVoidRequest,
 } from '@odysseus/shared-schemas';
 
 interface BulkResult {
@@ -82,23 +82,23 @@ interface BulkResult {
   failed: Array<{ id: string; error: string }>;
 }
 
-export class ConsumableApplicationService {
+export class SupplyApplicationService {
   constructor(
-    private categoryRepository: ConsumableCategoryRepository,
-    private productRepository: ConsumableProductRepository,
-    private locationRepository: ConsumableLocationRepository,
+    private categoryRepository: SupplyCategoryRepository,
+    private productRepository: SupplyProductRepository,
+    private locationRepository: SupplyLocationRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
 
   // Categories
 
-  async listCategories(labId: string): Promise<ConsumableCategoryResponse[]> {
+  async listCategories(labId: string): Promise<SupplyCategoryResponse[]> {
     const categories = await this.categoryRepository.findByLabId(labId);
-    return categories.map(ConsumableDto.categoryToResponse);
+    return categories.map(SupplyDto.categoryToResponse);
   }
 
-  async createCategory(labId: string, data: CreateConsumableCategoryRequest, user: User): Promise<ConsumableCategoryResponse> {
+  async createCategory(labId: string, data: CreateSupplyCategoryRequest, user: User): Promise<SupplyCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
     if (data.parentId) {
@@ -107,19 +107,19 @@ export class ConsumableApplicationService {
       if (parent.parentId) throw new ValidationError('Cannot create subcategory under a subcategory — maximum depth is two levels');
     }
 
-    const category = ConsumableCategory.create({ labId, name: data.name, parentId: data.parentId, sortOrder: data.sortOrder });
+    const category = SupplyCategory.create({ labId, name: data.name, parentId: data.parentId, sortOrder: data.sortOrder });
     await this.categoryRepository.save(category);
-    await this.eventBus.publish(new ConsumableCategoryCreatedEvent(category.id, category.name, category.parentId, user.id, labId));
-    return ConsumableDto.categoryToResponse(category);
+    await this.eventBus.publish(new SupplyCategoryCreatedEvent(category.id, category.name, category.parentId, user.id, labId));
+    return SupplyDto.categoryToResponse(category);
   }
 
-  async updateCategory(labId: string, id: string, data: UpdateConsumableCategoryRequest, user: User): Promise<ConsumableCategoryResponse> {
+  async updateCategory(labId: string, id: string, data: UpdateSupplyCategoryRequest, user: User): Promise<SupplyCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
     const category = await this.getCategoryOrThrow(id, labId);
     category.update({ name: data.name, parentId: data.parentId, sortOrder: data.sortOrder });
     await this.categoryRepository.save(category);
-    await this.eventBus.publish(new ConsumableCategoryUpdatedEvent(category.id, category.name, user.id, labId));
-    return ConsumableDto.categoryToResponse(category);
+    await this.eventBus.publish(new SupplyCategoryUpdatedEvent(category.id, category.name, user.id, labId));
+    return SupplyDto.categoryToResponse(category);
   }
 
   async deleteCategory(labId: string, id: string, user: User): Promise<void> {
@@ -127,7 +127,7 @@ export class ConsumableApplicationService {
     const category = await this.getCategoryOrThrow(id, labId);
 
     const hasProducts = await this.categoryRepository.hasProductsIncludingChildren(id, labId);
-    if (hasProducts) throw new ValidationError('Cannot delete category — consumable products are still assigned to it or its subcategories');
+    if (hasProducts) throw new ValidationError('Cannot delete category — supply products are still assigned to it or its subcategories');
 
     const hasChildren = await this.categoryRepository.hasChildren(id, labId);
     if (hasChildren) {
@@ -139,29 +139,29 @@ export class ConsumableApplicationService {
     }
 
     await this.categoryRepository.delete(id, labId);
-    await this.eventBus.publish(new ConsumableCategoryDeletedEvent(id, category.name, user.id, labId));
+    await this.eventBus.publish(new SupplyCategoryDeletedEvent(id, category.name, user.id, labId));
   }
 
   // Locations
 
-  async listLocations(labId: string): Promise<ConsumableLocationResponse[]> {
+  async listLocations(labId: string): Promise<SupplyLocationResponse[]> {
     const locations = await this.locationRepository.findByLabId(labId);
-    return locations.map(ConsumableDto.locationToResponse);
+    return locations.map(SupplyDto.locationToResponse);
   }
 
-  async createLocation(labId: string, data: CreateConsumableLocationRequest, user: User): Promise<ConsumableLocationResponse> {
+  async createLocation(labId: string, data: CreateSupplyLocationRequest, user: User): Promise<SupplyLocationResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    const location = ConsumableLocation.create({ labId, name: data.name, description: data.description, sortOrder: data.sortOrder });
+    const location = SupplyLocation.create({ labId, name: data.name, description: data.description, sortOrder: data.sortOrder });
     await this.locationRepository.save(location);
-    return ConsumableDto.locationToResponse(location);
+    return SupplyDto.locationToResponse(location);
   }
 
-  async updateLocation(labId: string, id: string, data: UpdateConsumableLocationRequest, user: User): Promise<ConsumableLocationResponse> {
+  async updateLocation(labId: string, id: string, data: UpdateSupplyLocationRequest, user: User): Promise<SupplyLocationResponse> {
     await this.accessControlService.requireAdminAccess(user);
     const location = await this.getLocationOrThrow(id, labId);
     location.update({ name: data.name, description: data.description, sortOrder: data.sortOrder });
     await this.locationRepository.save(location);
-    return ConsumableDto.locationToResponse(location);
+    return SupplyDto.locationToResponse(location);
   }
 
   async deleteLocation(labId: string, id: string, user: User): Promise<void> {
@@ -174,12 +174,12 @@ export class ConsumableApplicationService {
 
   // Products
 
-  async listProducts(labId: string): Promise<ConsumableProductWithStockResponse[]> {
+  async listProducts(labId: string): Promise<SupplyProductWithStockResponse[]> {
     const productsWithStock = await this.productRepository.findByLabIdWithStock(labId);
-    return productsWithStock.map(({ product, totalStock, locationNames }) => ConsumableDto.productWithStockToResponse(product, totalStock, locationNames));
+    return productsWithStock.map(({ product, totalStock, locationNames }) => SupplyDto.productWithStockToResponse(product, totalStock, locationNames));
   }
 
-  async getProduct(labId: string, id: string): Promise<ConsumableProductDetailResponse> {
+  async getProduct(labId: string, id: string): Promise<SupplyProductDetailResponse> {
     const product = await this.getProductOrThrow(id, labId);
     const [documents, barcodes, stock, recentTransactions, packagingLevels] = await Promise.all([
       this.productRepository.findDocumentsByProductId(id),
@@ -188,28 +188,28 @@ export class ConsumableApplicationService {
       this.productRepository.findTransactionsByProductId(id, 50),
       this.productRepository.findPackagingLevelsByProductId(id),
     ]);
-    return ConsumableDto.productDetailToResponse(product, documents, barcodes, stock, recentTransactions, packagingLevels);
+    return SupplyDto.productDetailToResponse(product, documents, barcodes, stock, recentTransactions, packagingLevels);
   }
 
-  async createProduct(labId: string, data: CreateConsumableProductRequest, user: User): Promise<ConsumableProductResponse> {
+  async createProduct(labId: string, data: CreateSupplyProductRequest, user: User): Promise<SupplyProductResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
     if (!category) throw new NotFoundError('Category not found');
 
-    const product = ConsumableProduct.create({ labId, ...data });
+    const product = SupplyProduct.create({ labId, ...data });
     await this.productRepository.save(product);
 
     await this.generateInternalBarcode(product.id);
 
-    await this.eventBus.publish(new ConsumableProductCreatedEvent(product.id, product.name, product.categoryId, user.id, labId));
-    return ConsumableDto.productToResponse(product);
+    await this.eventBus.publish(new SupplyProductCreatedEvent(product.id, product.name, product.categoryId, user.id, labId));
+    return SupplyDto.productToResponse(product);
   }
 
   async updateProduct(
-    labId: string, id: string, data: UpdateConsumableProductRequest, user: User,
+    labId: string, id: string, data: UpdateSupplyProductRequest, user: User,
     options?: { bulkOperation?: boolean }
-  ): Promise<ConsumableProductResponse> {
+  ): Promise<SupplyProductResponse> {
     await this.accessControlService.requireAdminAccess(user);
     const product = await this.getProductOrThrow(id, labId);
 
@@ -223,12 +223,12 @@ export class ConsumableApplicationService {
     await this.productRepository.save(product);
 
     if (changes.length > 0) {
-      const event = new ConsumableProductUpdatedEvent(product.id, changes, user.id, labId);
+      const event = new SupplyProductUpdatedEvent(product.id, changes, user.id, labId);
       if (options?.bulkOperation) event.partOfBulkOperation = true;
       await this.eventBus.publish(event);
     }
 
-    return ConsumableDto.productToResponse(product);
+    return SupplyDto.productToResponse(product);
   }
 
   async archiveProduct(
@@ -242,7 +242,7 @@ export class ConsumableApplicationService {
     if (hasTransactions) {
       product.archive();
       await this.productRepository.save(product);
-      const event = new ConsumableProductArchivedEvent(product.id, product.name, user.id, labId);
+      const event = new SupplyProductArchivedEvent(product.id, product.name, user.id, labId);
       if (options?.bulkOperation) event.partOfBulkOperation = true;
       await this.eventBus.publish(event);
     } else {
@@ -254,27 +254,27 @@ export class ConsumableApplicationService {
     await this.accessControlService.requireAdminAccess(user);
     const product = await this.getProductOrThrow(id, labId);
     await this.productRepository.delete(id, labId);
-    await this.eventBus.publish(new ConsumableProductDeletedEvent(id, product.name, user.id, labId));
+    await this.eventBus.publish(new SupplyProductDeletedEvent(id, product.name, user.id, labId));
   }
 
   // Documents
 
-  async addDocument(labId: string, productId: string, data: CreateConsumableDocumentRequest, user: User): Promise<ConsumableDocumentResponse> {
+  async addDocument(labId: string, productId: string, data: CreateSupplyDocumentRequest, user: User): Promise<SupplyDocumentResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(productId, labId);
-    const document = ConsumableDocument.create({ productId, label: data.label, url: data.url, notes: data.notes });
+    const document = SupplyDocument.create({ productId, label: data.label, url: data.url, notes: data.notes });
     await this.productRepository.saveDocument(document);
-    await this.eventBus.publish(new ConsumableDocumentAddedEvent(productId, data.label, user.id, labId));
-    return ConsumableDto.documentToResponse(document);
+    await this.eventBus.publish(new SupplyDocumentAddedEvent(productId, data.label, user.id, labId));
+    return SupplyDto.documentToResponse(document);
   }
 
   async updateDocument(
     labId: string,
     productId: string,
     docId: string,
-    data: UpdateConsumableDocumentRequest,
+    data: UpdateSupplyDocumentRequest,
     user: User
-  ): Promise<ConsumableDocumentResponse> {
+  ): Promise<SupplyDocumentResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(productId, labId);
     await this.productRepository.updateDocument(docId, {
@@ -285,27 +285,27 @@ export class ConsumableApplicationService {
     const docs = await this.productRepository.findDocumentsByProductId(productId);
     const updated = docs.find(d => d.id === docId);
     if (!updated) throw new NotFoundError(`Document ${docId} not found`);
-    return ConsumableDto.documentToResponse(updated);
+    return SupplyDto.documentToResponse(updated);
   }
 
   async removeDocument(labId: string, productId: string, docId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(productId, labId);
     await this.productRepository.deleteDocument(docId);
-    await this.eventBus.publish(new ConsumableDocumentRemovedEvent(productId, user.id, labId));
+    await this.eventBus.publish(new SupplyDocumentRemovedEvent(productId, user.id, labId));
   }
 
   // Barcodes
 
-  async addBarcode(labId: string, productId: string, data: CreateConsumableBarcodeRequest, user: User): Promise<ConsumableBarcodeResponse> {
+  async addBarcode(labId: string, productId: string, data: CreateSupplyBarcodeRequest, user: User): Promise<SupplyBarcodeResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(productId, labId);
 
     const existing = await this.productRepository.findByBarcodeValue(data.barcodeValue);
     if (existing) throw new ValidationError(`Barcode "${data.barcodeValue}" is already linked to another product`);
 
-    const barcode: ConsumableBarcodeRow = {
-      id: generateId('cbar'),
+    const barcode: SupplyBarcodeRow = {
+      id: generateId('sbar'),
       productId,
       barcodeValue: data.barcodeValue,
       barcodeType: data.barcodeType,
@@ -313,16 +313,16 @@ export class ConsumableApplicationService {
       label: data.label,
     };
     await this.productRepository.saveBarcode(barcode);
-    return ConsumableDto.barcodeToResponse(barcode);
+    return SupplyDto.barcodeToResponse(barcode);
   }
 
   async updateBarcode(
     labId: string,
     productId: string,
     barcodeId: string,
-    data: UpdateConsumableBarcodeRequest,
+    data: UpdateSupplyBarcodeRequest,
     user: User
-  ): Promise<ConsumableBarcodeResponse> {
+  ): Promise<SupplyBarcodeResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(productId, labId);
     await this.productRepository.updateBarcode(barcodeId, {
@@ -332,7 +332,7 @@ export class ConsumableApplicationService {
     const barcodes = await this.productRepository.findBarcodesByProductId(productId);
     const updated = barcodes.find(b => b.id === barcodeId);
     if (!updated) throw new NotFoundError(`Barcode ${barcodeId} not found`);
-    return ConsumableDto.barcodeToResponse(updated);
+    return SupplyDto.barcodeToResponse(updated);
   }
 
   async removeBarcode(labId: string, productId: string, barcodeId: string, user: User): Promise<void> {
@@ -341,15 +341,15 @@ export class ConsumableApplicationService {
     await this.productRepository.deleteBarcode(barcodeId);
   }
 
-  async resolveBarcode(labId: string, barcodeValue: string): Promise<ConsumableProductResponse | null> {
+  async resolveBarcode(labId: string, barcodeValue: string): Promise<SupplyProductResponse | null> {
     const barcode = await this.productRepository.findByBarcodeValue(barcodeValue);
     if (!barcode) return null;
     const product = await this.productRepository.findById(barcode.productId, labId);
     if (!product) return null;
-    return ConsumableDto.productToResponse(product);
+    return SupplyDto.productToResponse(product);
   }
 
-  async regenerateInternalBarcode(labId: string, productId: string, user: User): Promise<ConsumableBarcodeResponse> {
+  async regenerateInternalBarcode(labId: string, productId: string, user: User): Promise<SupplyBarcodeResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(productId, labId);
 
@@ -359,20 +359,20 @@ export class ConsumableApplicationService {
       await this.productRepository.deleteBarcode(existingInternal.id);
     }
 
-    const barcode: ConsumableBarcodeRow = {
-      id: generateId('cbar'),
+    const barcode: SupplyBarcodeRow = {
+      id: generateId('sbar'),
       productId,
-      barcodeValue: `CPROD-${nanoid(8)}`,
+      barcodeValue: `SPROD-${nanoid(8)}`,
       barcodeType: 'internal',
       isPrimary: true,
     };
     await this.productRepository.saveBarcode(barcode);
-    return ConsumableDto.barcodeToResponse(barcode);
+    return SupplyDto.barcodeToResponse(barcode);
   }
 
   // Packaging levels
 
-  async addPackagingLevel(labId: string, productId: string, data: CreateConsumablePackagingLevelRequest, user: User): Promise<ConsumablePackagingLevelResponse> {
+  async addPackagingLevel(labId: string, productId: string, data: CreateSupplyPackagingLevelRequest, user: User): Promise<SupplyPackagingLevelResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(productId, labId);
 
@@ -385,14 +385,14 @@ export class ConsumableApplicationService {
     }
 
     const level = {
-      id: generateId('cpkg'),
+      id: generateId('spkg'),
       productId,
       unitName: data.unitName,
       quantity: data.quantity,
       parentUnit: data.parentUnit ?? undefined,
     };
     await this.productRepository.savePackagingLevel(level);
-    return ConsumableDto.packagingLevelToResponse(level);
+    return SupplyDto.packagingLevelToResponse(level);
   }
 
   async updatePackagingLevel(labId: string, productId: string, levelId: string, quantity: number, user: User): Promise<void> {
@@ -421,10 +421,10 @@ export class ConsumableApplicationService {
 
   async recordTransaction(
     labId: string,
-    data: RecordConsumableTransactionRequest | (Omit<RecordConsumableTransactionRequest, 'type'> & { type: 'count_adjustment' }),
+    data: RecordSupplyTransactionRequest | (Omit<RecordSupplyTransactionRequest, 'type'> & { type: 'count_adjustment' }),
     user: User,
     options?: { bulkOperation?: boolean }
-  ): Promise<ConsumableTransactionResponse> {
+  ): Promise<SupplyTransactionResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getProductOrThrow(data.productId, labId);
 
@@ -438,7 +438,7 @@ export class ConsumableApplicationService {
       }
     }
 
-    const quantityChange = data.type === 'consumed' || data.type === 'disposed'
+    const quantityChange = data.type === 'issued' || data.type === 'disposed'
       ? -Math.abs(effectiveQuantity)
       : data.type === 'received'
         ? Math.abs(effectiveQuantity)
@@ -470,12 +470,12 @@ export class ConsumableApplicationService {
     if (options?.bulkOperation) event.partOfBulkOperation = true;
     await this.eventBus.publish(event);
 
-    return ConsumableDto.transactionToResponse(txn);
+    return SupplyDto.transactionToResponse(txn);
   }
 
   async recordStockCount(
-    labId: string, data: RecordConsumableStockCountRequest, user: User
-  ): Promise<ConsumableTransactionResponse> {
+    labId: string, data: RecordSupplyStockCountRequest, user: User
+  ): Promise<SupplyTransactionResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
     const stockEntries = await this.productRepository.findStockByProductId(data.productId);
@@ -493,18 +493,18 @@ export class ConsumableApplicationService {
     }, user);
   }
 
-  async getTransactionHistory(productId: string, limit?: number): Promise<ConsumableTransactionResponse[]> {
+  async getTransactionHistory(productId: string, limit?: number): Promise<SupplyTransactionResponse[]> {
     const txns = await this.productRepository.findTransactionsByProductId(productId, limit);
-    return txns.map(ConsumableDto.transactionToResponse);
+    return txns.map(SupplyDto.transactionToResponse);
   }
 
   async voidTransaction(
     labId: string,
     transactionId: string,
-    data: VoidConsumableTransactionRequest,
+    data: VoidSupplyTransactionRequest,
     user: User,
     options?: { bulkOperation?: boolean }
-  ): Promise<{ original: ConsumableTransactionResponse; reversal: ConsumableTransactionResponse }> {
+  ): Promise<{ original: SupplyTransactionResponse; reversal: SupplyTransactionResponse }> {
     await this.accessControlService.requireAdminAccess(user);
 
     const existing = await this.productRepository.findTransactionById(transactionId);
@@ -524,7 +524,7 @@ export class ConsumableApplicationService {
       voidReason: data.reason,
     });
 
-    const event = new ConsumableStockVoidedEvent(
+    const event = new SupplyStockVoidedEvent(
       original.productId, original.id, reversal.id,
       reversal.quantityChange, original.locationId,
       data.reason, user.id, labId
@@ -533,14 +533,14 @@ export class ConsumableApplicationService {
     await this.eventBus.publish(event);
 
     return {
-      original: ConsumableDto.transactionToResponse(original),
-      reversal: ConsumableDto.transactionToResponse(reversal),
+      original: SupplyDto.transactionToResponse(original),
+      reversal: SupplyDto.transactionToResponse(reversal),
     };
   }
 
   // Bulk operations
 
-  async bulkReceive(labId: string, data: ConsumableBulkReceiveRequest, user: User): Promise<BulkResult> {
+  async bulkReceive(labId: string, data: SupplyBulkReceiveRequest, user: User): Promise<BulkResult> {
     await this.accessControlService.requireAdminAccess(user);
 
     const result = await this.executeBulk(
@@ -566,13 +566,13 @@ export class ConsumableApplicationService {
       const perItemData = data.items
         .filter(item => result.succeeded.includes(item.productId))
         .map(item => ({ productId: item.productId, quantity: item.quantity, locationId: item.locationId }));
-      await this.eventBus.publish(new ConsumableBulkReceivedEvent(perItemData, user.id, labId));
+      await this.eventBus.publish(new SupplyBulkReceivedEvent(perItemData, user.id, labId));
     }
 
     return result;
   }
 
-  async bulkConsume(labId: string, data: ConsumableBulkConsumeRequest, user: User): Promise<BulkResult> {
+  async bulkIssue(labId: string, data: SupplyBulkIssueRequest, user: User): Promise<BulkResult> {
     await this.accessControlService.requireAdminAccess(user);
 
     const result = await this.executeBulk(
@@ -581,7 +581,7 @@ export class ConsumableApplicationService {
         await this.recordTransaction(labId, {
           productId: item.productId,
           locationId: item.locationId,
-          type: 'consumed',
+          type: 'issued',
           quantity: item.quantity,
         }, user, { bulkOperation: true });
         return item.productId;
@@ -593,7 +593,7 @@ export class ConsumableApplicationService {
       const perItemData = data.items
         .filter(item => result.succeeded.includes(item.productId))
         .map(item => ({ productId: item.productId, quantity: item.quantity, locationId: item.locationId }));
-      await this.eventBus.publish(new ConsumableBulkConsumedEvent(perItemData, user.id, labId));
+      await this.eventBus.publish(new SupplyBulkIssuedEvent(perItemData, user.id, labId));
     }
 
     return result;
@@ -615,7 +615,7 @@ export class ConsumableApplicationService {
     );
 
     if (result.succeeded.length > 0) {
-      await this.eventBus.publish(new ConsumableBulkCategoryReassignedEvent(result.succeeded, categoryId, user.id, labId));
+      await this.eventBus.publish(new SupplyBulkCategoryReassignedEvent(result.succeeded, categoryId, user.id, labId));
     }
 
     return result;
@@ -634,13 +634,13 @@ export class ConsumableApplicationService {
     );
 
     if (result.succeeded.length > 0) {
-      await this.eventBus.publish(new ConsumableBulkArchivedEvent(result.succeeded, user.id, labId));
+      await this.eventBus.publish(new SupplyBulkArchivedEvent(result.succeeded, user.id, labId));
     }
 
     return result;
   }
 
-  async bulkVoidTransactions(labId: string, data: ConsumableBulkVoidRequest, user: User): Promise<BulkResult> {
+  async bulkVoidTransactions(labId: string, data: SupplyBulkVoidRequest, user: User): Promise<BulkResult> {
     await this.accessControlService.requireAdminAccess(user);
 
     const perItemData: BulkVoidItemDetail[] = [];
@@ -662,7 +662,7 @@ export class ConsumableApplicationService {
     );
 
     if (perItemData.length > 0) {
-      await this.eventBus.publish(new ConsumableBulkVoidedEvent(perItemData, user.id, data.reason, labId));
+      await this.eventBus.publish(new SupplyBulkVoidedEvent(perItemData, user.id, data.reason, labId));
     }
 
     return result;
@@ -670,9 +670,9 @@ export class ConsumableApplicationService {
 
   // Reorder
 
-  async getReorderList(labId: string): Promise<ConsumableProductWithStockResponse[]> {
+  async getReorderList(labId: string): Promise<SupplyProductWithStockResponse[]> {
     const productsWithStock = await this.productRepository.findProductsBelowThreshold(labId);
-    return productsWithStock.map(({ product, totalStock, locationNames }) => ConsumableDto.productWithStockToResponse(product, totalStock, locationNames));
+    return productsWithStock.map(({ product, totalStock, locationNames }) => SupplyDto.productWithStockToResponse(product, totalStock, locationNames));
   }
 
   // Helpers
@@ -696,21 +696,21 @@ export class ConsumableApplicationService {
     return { succeeded, failed };
   }
 
-  private async getProductOrThrow(id: string, labId: string): Promise<ConsumableProduct> {
+  private async getProductOrThrow(id: string, labId: string): Promise<SupplyProduct> {
     const product = await this.productRepository.findById(id, labId);
-    if (!product) throw new NotFoundError(`Consumable product not found: ${id}`, { productId: id });
+    if (!product) throw new NotFoundError(`Supply product not found: ${id}`, { productId: id });
     return product;
   }
 
-  private async getCategoryOrThrow(id: string, labId: string): Promise<ConsumableCategory> {
+  private async getCategoryOrThrow(id: string, labId: string): Promise<SupplyCategory> {
     const category = await this.categoryRepository.findById(id, labId);
-    if (!category) throw new NotFoundError(`Consumable category not found: ${id}`, { categoryId: id });
+    if (!category) throw new NotFoundError(`Supply category not found: ${id}`, { categoryId: id });
     return category;
   }
 
-  private async getLocationOrThrow(id: string, labId: string): Promise<ConsumableLocation> {
+  private async getLocationOrThrow(id: string, labId: string): Promise<SupplyLocation> {
     const location = await this.locationRepository.findById(id, labId);
-    if (!location) throw new NotFoundError(`Consumable location not found: ${id}`, { locationId: id });
+    if (!location) throw new NotFoundError(`Supply location not found: ${id}`, { locationId: id });
     return location;
   }
 
@@ -718,10 +718,10 @@ export class ConsumableApplicationService {
   private async generateInternalBarcode(productId: string): Promise<void> {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const barcode: ConsumableBarcodeRow = {
-          id: generateId('cbar'),
+        const barcode: SupplyBarcodeRow = {
+          id: generateId('sbar'),
           productId,
-          barcodeValue: `CPROD-${nanoid(8)}`,
+          barcodeValue: `SPROD-${nanoid(8)}`,
           barcodeType: 'internal',
           isPrimary: true,
         };
@@ -737,11 +737,11 @@ export class ConsumableApplicationService {
 
   private createStockEvent(type: string, productId: string, quantity: number, locationId: string, userId: string, labId: string) {
     switch (type) {
-      case 'received': return new ConsumableStockReceivedEvent(productId, quantity, locationId, userId, labId);
-      case 'consumed': return new ConsumableStockConsumedEvent(productId, quantity, locationId, userId, labId);
-      case 'count_adjustment': return new ConsumableStockCountAdjustedEvent(productId, quantity, locationId, userId, labId);
-      case 'disposed': return new ConsumableStockDisposedEvent(productId, quantity, locationId, userId, labId);
-      default: return new ConsumableStockReceivedEvent(productId, quantity, locationId, userId, labId);
+      case 'received': return new SupplyStockReceivedEvent(productId, quantity, locationId, userId, labId);
+      case 'issued': return new SupplyStockIssuedEvent(productId, quantity, locationId, userId, labId);
+      case 'count_adjustment': return new SupplyStockCountAdjustedEvent(productId, quantity, locationId, userId, labId);
+      case 'disposed': return new SupplyStockDisposedEvent(productId, quantity, locationId, userId, labId);
+      default: return new SupplyStockReceivedEvent(productId, quantity, locationId, userId, labId);
     }
   }
 
@@ -774,9 +774,9 @@ export class ConsumableApplicationService {
     throw new ValidationError(`Circular or broken packaging chain detected`);
   }
 
-  private trackProductChanges(product: ConsumableProduct, data: UpdateConsumableProductRequest): FieldChange[] {
+  private trackProductChanges(product: SupplyProduct, data: UpdateSupplyProductRequest): FieldChange[] {
     const changes: FieldChange[] = [];
-    const fields: Array<{ key: keyof UpdateConsumableProductRequest; getter: () => unknown }> = [
+    const fields: Array<{ key: keyof UpdateSupplyProductRequest; getter: () => unknown }> = [
       { key: 'categoryId', getter: () => product.categoryId },
       { key: 'name', getter: () => product.name },
       { key: 'manufacturer', getter: () => product.manufacturer },

@@ -5,7 +5,7 @@
  */
 
 import type { Person } from '@domain/entities/Person';
-import type { ConsumableProductRepository } from '@domain/repositories/ConsumableProductRepository';
+import type { SupplyProductRepository } from '@domain/repositories/SupplyProductRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
@@ -101,7 +101,7 @@ interface EquipmentExportRow {
   updatedAt: string;
 }
 
-interface ConsumableReorderExportRow {
+interface SupplyReorderExportRow {
   name: string;
   manufacturer: string;
   catalogNumber: string;
@@ -130,7 +130,7 @@ export class ExportService {
     private appVersion: string,
     private equipmentItemRepository?: EquipmentItemRepository,
     private equipmentCategoryRepository?: EquipmentCategoryRepository,
-    private consumableProductRepository?: ConsumableProductRepository,
+    private supplyProductRepository?: SupplyProductRepository,
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;
@@ -428,18 +428,18 @@ export class ExportService {
     };
   }
 
-  async exportConsumableReorderList(labId: string, format: 'csv'): Promise<string>;
-  async exportConsumableReorderList(labId: string, format: 'json'): Promise<ConsumableReorderExportRow[]>;
-  async exportConsumableReorderList(labId: string, format: 'csv' | 'json'): Promise<string | ConsumableReorderExportRow[]> {
-    logger.info('[ExportService] Exporting consumable reorder list', { labId, format });
+  async exportSupplyReorderList(labId: string, format: 'csv'): Promise<string>;
+  async exportSupplyReorderList(labId: string, format: 'json'): Promise<SupplyReorderExportRow[]>;
+  async exportSupplyReorderList(labId: string, format: 'csv' | 'json'): Promise<string | SupplyReorderExportRow[]> {
+    logger.info('[ExportService] Exporting supply reorder list', { labId, format });
 
-    if (!this.consumableProductRepository) {
-      throw new Error('Consumable product repository not configured');
+    if (!this.supplyProductRepository) {
+      throw new Error('Supply product repository not configured');
     }
 
-    const productsWithStock = await this.consumableProductRepository.findProductsBelowThreshold(labId);
+    const productsWithStock = await this.supplyProductRepository.findProductsBelowThreshold(labId);
 
-    const rows: ConsumableReorderExportRow[] = productsWithStock.map(({ product, totalStock }) => ({
+    const rows: SupplyReorderExportRow[] = productsWithStock.map(({ product, totalStock }) => ({
       name: product.name,
       manufacturer: product.manufacturer ?? '',
       catalogNumber: product.catalogNumber ?? '',

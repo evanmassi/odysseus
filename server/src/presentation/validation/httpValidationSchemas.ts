@@ -30,26 +30,26 @@ import {
   equipmentBulkMaintenanceRequestSchema,
   equipmentBulkStatusRequestSchema,
   equipmentBulkRelocateRequestSchema,
-  createConsumableCategoryRequestSchema,
-  updateConsumableCategoryRequestSchema,
-  createConsumableLocationRequestSchema,
-  updateConsumableLocationRequestSchema,
-  createConsumableProductRequestSchema,
-  updateConsumableProductRequestSchema,
-  createConsumableBarcodeRequestSchema,
-  updateConsumableBarcodeRequestSchema,
-  createConsumableDocumentRequestSchema,
-  updateConsumableDocumentRequestSchema,
-  createConsumablePackagingLevelRequestSchema,
-  updateConsumablePackagingLevelRequestSchema,
-  recordConsumableTransactionRequestSchema,
-  recordConsumableStockCountRequestSchema,
-  consumableBulkReceiveRequestSchema,
-  consumableBulkConsumeRequestSchema,
-  consumableBulkReassignCategoryRequestSchema,
-  consumableBulkArchiveRequestSchema,
-  voidConsumableTransactionRequestSchema,
-  consumableBulkVoidRequestSchema,
+  createSupplyCategoryRequestSchema,
+  updateSupplyCategoryRequestSchema,
+  createSupplyLocationRequestSchema,
+  updateSupplyLocationRequestSchema,
+  createSupplyProductRequestSchema,
+  updateSupplyProductRequestSchema,
+  createSupplyBarcodeRequestSchema,
+  updateSupplyBarcodeRequestSchema,
+  createSupplyDocumentRequestSchema,
+  updateSupplyDocumentRequestSchema,
+  createSupplyPackagingLevelRequestSchema,
+  updateSupplyPackagingLevelRequestSchema,
+  recordSupplyTransactionRequestSchema,
+  recordSupplyStockCountRequestSchema,
+  supplyBulkReceiveRequestSchema,
+  supplyBulkIssueRequestSchema,
+  supplyBulkReassignCategoryRequestSchema,
+  supplyBulkArchiveRequestSchema,
+  voidSupplyTransactionRequestSchema,
+  supplyBulkVoidRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -196,34 +196,34 @@ export const EquipmentBulkMaintenanceHttpSchema = equipmentBulkMaintenanceReques
 export const EquipmentBulkStatusHttpSchema = equipmentBulkStatusRequestSchema;
 export const EquipmentBulkRelocateHttpSchema = equipmentBulkRelocateRequestSchema;
 
-// Consumable schemas
+// Supply schemas
 
-export const ConsumableCategoryIdParams = z.object({ categoryId: z.string().min(1) });
-export const ConsumableLocationIdParams = z.object({ locationId: z.string().min(1) });
-export const ConsumableDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
-export const ConsumableBarcodeIdParams = z.object({ id: z.string().min(1), barcodeId: z.string().min(1) });
-export const ConsumablePackagingLevelIdParams = z.object({ id: z.string().min(1), levelId: z.string().min(1) });
-export const CreateConsumableCategoryHttpSchema = createConsumableCategoryRequestSchema;
-export const UpdateConsumableCategoryHttpSchema = updateConsumableCategoryRequestSchema;
-export const CreateConsumableLocationHttpSchema = createConsumableLocationRequestSchema;
-export const UpdateConsumableLocationHttpSchema = updateConsumableLocationRequestSchema;
-export const CreateConsumableProductHttpSchema = createConsumableProductRequestSchema;
-export const UpdateConsumableProductHttpSchema = updateConsumableProductRequestSchema;
-export const CreateConsumableBarcodeHttpSchema = createConsumableBarcodeRequestSchema;
-export const UpdateConsumableBarcodeHttpSchema = updateConsumableBarcodeRequestSchema;
-export const CreateConsumableDocumentHttpSchema = createConsumableDocumentRequestSchema;
-export const UpdateConsumableDocumentHttpSchema = updateConsumableDocumentRequestSchema;
-export const RecordConsumableTransactionHttpSchema = recordConsumableTransactionRequestSchema;
-export const RecordConsumableStockCountHttpSchema = recordConsumableStockCountRequestSchema;
-export const ConsumableBulkReceiveHttpSchema = consumableBulkReceiveRequestSchema;
-export const ConsumableBulkConsumeHttpSchema = consumableBulkConsumeRequestSchema;
-export const ConsumableBulkReassignCategoryHttpSchema = consumableBulkReassignCategoryRequestSchema;
-export const ConsumableBulkArchiveHttpSchema = consumableBulkArchiveRequestSchema;
-export const VoidConsumableTransactionHttpSchema = voidConsumableTransactionRequestSchema;
-export const ConsumableBulkVoidHttpSchema = consumableBulkVoidRequestSchema;
-export const ConsumableTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
-export const CreateConsumablePackagingLevelHttpSchema = createConsumablePackagingLevelRequestSchema;
-export const UpdateConsumablePackagingLevelHttpSchema = updateConsumablePackagingLevelRequestSchema;
+export const SupplyCategoryIdParams = z.object({ categoryId: z.string().min(1) });
+export const SupplyLocationIdParams = z.object({ locationId: z.string().min(1) });
+export const SupplyDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
+export const SupplyBarcodeIdParams = z.object({ id: z.string().min(1), barcodeId: z.string().min(1) });
+export const SupplyPackagingLevelIdParams = z.object({ id: z.string().min(1), levelId: z.string().min(1) });
+export const CreateSupplyCategoryHttpSchema = createSupplyCategoryRequestSchema;
+export const UpdateSupplyCategoryHttpSchema = updateSupplyCategoryRequestSchema;
+export const CreateSupplyLocationHttpSchema = createSupplyLocationRequestSchema;
+export const UpdateSupplyLocationHttpSchema = updateSupplyLocationRequestSchema;
+export const CreateSupplyProductHttpSchema = createSupplyProductRequestSchema;
+export const UpdateSupplyProductHttpSchema = updateSupplyProductRequestSchema;
+export const CreateSupplyBarcodeHttpSchema = createSupplyBarcodeRequestSchema;
+export const UpdateSupplyBarcodeHttpSchema = updateSupplyBarcodeRequestSchema;
+export const CreateSupplyDocumentHttpSchema = createSupplyDocumentRequestSchema;
+export const UpdateSupplyDocumentHttpSchema = updateSupplyDocumentRequestSchema;
+export const RecordSupplyTransactionHttpSchema = recordSupplyTransactionRequestSchema;
+export const RecordSupplyStockCountHttpSchema = recordSupplyStockCountRequestSchema;
+export const SupplyBulkReceiveHttpSchema = supplyBulkReceiveRequestSchema;
+export const SupplyBulkIssueHttpSchema = supplyBulkIssueRequestSchema;
+export const SupplyBulkReassignCategoryHttpSchema = supplyBulkReassignCategoryRequestSchema;
+export const SupplyBulkArchiveHttpSchema = supplyBulkArchiveRequestSchema;
+export const VoidSupplyTransactionHttpSchema = voidSupplyTransactionRequestSchema;
+export const SupplyBulkVoidHttpSchema = supplyBulkVoidRequestSchema;
+export const SupplyTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
+export const CreateSupplyPackagingLevelHttpSchema = createSupplyPackagingLevelRequestSchema;
+export const UpdateSupplyPackagingLevelHttpSchema = updateSupplyPackagingLevelRequestSchema;
 
 // Search schemas
 

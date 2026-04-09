@@ -1,7 +1,7 @@
 /**
  * Supply Location Repository Interface
  *
- * Data access contract for named storage zones where supplys are kept.
+ * Data access contract for named storage zones where supplies are kept.
  */
 
 import type { SupplyLocation } from '@domain/entities/SupplyLocation';

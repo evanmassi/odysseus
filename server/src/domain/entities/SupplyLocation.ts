@@ -1,7 +1,7 @@
 /**
  * Supply Storage Location
  *
- * Named storage zone where supplys are kept (e.g., "Back Supply Room", "Main Lab Bench").
+ * Named storage zone where supplies are kept (e.g., "Back Supply Room", "Main Lab Bench").
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';

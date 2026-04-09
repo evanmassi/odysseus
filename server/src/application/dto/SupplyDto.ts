@@ -1,21 +1,21 @@
 /**
- * Consumable Data Transfer Objects
+ * Supply Data Transfer Objects
  *
- * Maps between consumable domain entities, row interfaces, and HTTP response shapes.
+ * Maps between supply domain entities, row interfaces, and HTTP response shapes.
  */
 
-import type { ConsumableCategory } from '@domain/entities/ConsumableCategory';
-import type { ConsumableDocument } from '@domain/entities/ConsumableDocument';
-import type { ConsumableLocation } from '@domain/entities/ConsumableLocation';
-import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
+import type { SupplyCategory } from '@domain/entities/SupplyCategory';
+import type { SupplyDocument } from '@domain/entities/SupplyDocument';
+import type { SupplyLocation } from '@domain/entities/SupplyLocation';
+import type { SupplyProduct } from '@domain/entities/SupplyProduct';
 import type {
-  ConsumableStockRow,
-  ConsumableBarcodeRow,
-  ConsumableTransactionRow,
-  ConsumablePackagingLevelRow,
-} from '@domain/repositories/ConsumableProductRepository';
+  SupplyStockRow,
+  SupplyBarcodeRow,
+  SupplyTransactionRow,
+  SupplyPackagingLevelRow,
+} from '@domain/repositories/SupplyProductRepository';
 
-export interface ConsumableCategoryResponse {
+export interface SupplyCategoryResponse {
   id: string;
   labId: string;
   name: string;
@@ -25,7 +25,7 @@ export interface ConsumableCategoryResponse {
   updatedAt: string;
 }
 
-export interface ConsumableProductResponse {
+export interface SupplyProductResponse {
   id: string;
   labId: string;
   categoryId: string;
@@ -49,12 +49,12 @@ export interface ConsumableProductResponse {
   updatedAt: string;
 }
 
-export interface ConsumableProductWithStockResponse extends ConsumableProductResponse {
+export interface SupplyProductWithStockResponse extends SupplyProductResponse {
   totalStock: number;
   locationNames: string[];
 }
 
-export interface ConsumablePackagingLevelResponse {
+export interface SupplyPackagingLevelResponse {
   id: string;
   productId: string;
   unitName: string;
@@ -62,16 +62,16 @@ export interface ConsumablePackagingLevelResponse {
   parentUnit: string | null;
 }
 
-export interface ConsumableProductDetailResponse {
-  product: ConsumableProductResponse;
-  documents: ConsumableDocumentResponse[];
-  barcodes: ConsumableBarcodeResponse[];
-  stock: ConsumableStockResponse[];
-  recentTransactions: ConsumableTransactionResponse[];
-  packagingLevels: ConsumablePackagingLevelResponse[];
+export interface SupplyProductDetailResponse {
+  product: SupplyProductResponse;
+  documents: SupplyDocumentResponse[];
+  barcodes: SupplyBarcodeResponse[];
+  stock: SupplyStockResponse[];
+  recentTransactions: SupplyTransactionResponse[];
+  packagingLevels: SupplyPackagingLevelResponse[];
 }
 
-export interface ConsumableLocationResponse {
+export interface SupplyLocationResponse {
   id: string;
   labId: string;
   name: string;
@@ -81,7 +81,7 @@ export interface ConsumableLocationResponse {
   updatedAt: string;
 }
 
-export interface ConsumableDocumentResponse {
+export interface SupplyDocumentResponse {
   id: string;
   productId: string;
   label: string;
@@ -90,7 +90,7 @@ export interface ConsumableDocumentResponse {
   createdAt: string;
 }
 
-export interface ConsumableBarcodeResponse {
+export interface SupplyBarcodeResponse {
   id: string;
   productId: string;
   barcodeValue: string;
@@ -99,7 +99,7 @@ export interface ConsumableBarcodeResponse {
   label?: string;
 }
 
-export interface ConsumableStockResponse {
+export interface SupplyStockResponse {
   id: string;
   productId: string;
   locationId: string;
@@ -107,7 +107,7 @@ export interface ConsumableStockResponse {
   updatedAt: string;
 }
 
-export interface ConsumableTransactionResponse {
+export interface SupplyTransactionResponse {
   id: string;
   productId: string;
   locationId: string;
@@ -128,9 +128,9 @@ export interface ConsumableTransactionResponse {
   relatedTransactionId?: string;
 }
 
-export class ConsumableDto {
+export class SupplyDto {
 
-  static categoryToResponse(category: ConsumableCategory): ConsumableCategoryResponse {
+  static categoryToResponse(category: SupplyCategory): SupplyCategoryResponse {
     return {
       id: category.id,
       labId: category.labId,
@@ -142,7 +142,7 @@ export class ConsumableDto {
     };
   }
 
-  static productToResponse(product: ConsumableProduct): ConsumableProductResponse {
+  static productToResponse(product: SupplyProduct): SupplyProductResponse {
     return {
       id: product.id,
       labId: product.labId,
@@ -168,7 +168,7 @@ export class ConsumableDto {
     };
   }
 
-  static productWithStockToResponse(product: ConsumableProduct, totalStock: number, locationNames: string[]): ConsumableProductWithStockResponse {
+  static productWithStockToResponse(product: SupplyProduct, totalStock: number, locationNames: string[]): SupplyProductWithStockResponse {
     return {
       ...this.productToResponse(product),
       totalStock,
@@ -177,13 +177,13 @@ export class ConsumableDto {
   }
 
   static productDetailToResponse(
-    product: ConsumableProduct,
-    documents: ConsumableDocument[],
-    barcodes: ConsumableBarcodeRow[],
-    stock: ConsumableStockRow[],
-    recentTransactions: ConsumableTransactionRow[],
-    packagingLevels: ConsumablePackagingLevelRow[]
-  ): ConsumableProductDetailResponse {
+    product: SupplyProduct,
+    documents: SupplyDocument[],
+    barcodes: SupplyBarcodeRow[],
+    stock: SupplyStockRow[],
+    recentTransactions: SupplyTransactionRow[],
+    packagingLevels: SupplyPackagingLevelRow[]
+  ): SupplyProductDetailResponse {
     return {
       product: this.productToResponse(product),
       documents: documents.map(d => this.documentToResponse(d)),
@@ -194,7 +194,7 @@ export class ConsumableDto {
     };
   }
 
-  static locationToResponse(location: ConsumableLocation): ConsumableLocationResponse {
+  static locationToResponse(location: SupplyLocation): SupplyLocationResponse {
     return {
       id: location.id,
       labId: location.labId,
@@ -206,7 +206,7 @@ export class ConsumableDto {
     };
   }
 
-  static documentToResponse(document: ConsumableDocument): ConsumableDocumentResponse {
+  static documentToResponse(document: SupplyDocument): SupplyDocumentResponse {
     return {
       id: document.id,
       productId: document.productId,
@@ -217,7 +217,7 @@ export class ConsumableDto {
     };
   }
 
-  static barcodeToResponse(barcode: ConsumableBarcodeRow): ConsumableBarcodeResponse {
+  static barcodeToResponse(barcode: SupplyBarcodeRow): SupplyBarcodeResponse {
     return {
       id: barcode.id,
       productId: barcode.productId,
@@ -228,7 +228,7 @@ export class ConsumableDto {
     };
   }
 
-  static stockToResponse(stock: ConsumableStockRow): ConsumableStockResponse {
+  static stockToResponse(stock: SupplyStockRow): SupplyStockResponse {
     return {
       id: stock.id,
       productId: stock.productId,
@@ -238,7 +238,7 @@ export class ConsumableDto {
     };
   }
 
-  static transactionToResponse(txn: ConsumableTransactionRow): ConsumableTransactionResponse {
+  static transactionToResponse(txn: SupplyTransactionRow): SupplyTransactionResponse {
     return {
       id: txn.id,
       productId: txn.productId,
@@ -261,7 +261,7 @@ export class ConsumableDto {
     };
   }
 
-  static packagingLevelToResponse(level: ConsumablePackagingLevelRow): ConsumablePackagingLevelResponse {
+  static packagingLevelToResponse(level: SupplyPackagingLevelRow): SupplyPackagingLevelResponse {
     return {
       id: level.id,
       productId: level.productId,
