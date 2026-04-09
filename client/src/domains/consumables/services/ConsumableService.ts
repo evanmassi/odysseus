@@ -24,6 +24,7 @@ import {
   type CreateConsumableBarcodeRequest,
   type UpdateConsumableBarcodeRequest,
   type CreateConsumableDocumentRequest,
+  type UpdateConsumableDocumentRequest,
   type RecordConsumableTransactionRequest,
   type RecordConsumableStockCountRequest,
   type ConsumableBulkReceiveRequest,
@@ -173,6 +174,19 @@ export class ConsumableService {
   ): Promise<ConsumableDocument> {
     const response = await httpClient.postData(
       `${this.BASE_PATH}/${productId}/documents`,
+      data,
+      consumableDocumentResponseSchema
+    );
+    return response.document;
+  }
+
+  static async updateDocument(
+    productId: string,
+    docId: string,
+    data: UpdateConsumableDocumentRequest
+  ): Promise<ConsumableDocument> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${productId}/documents/${docId}`,
       data,
       consumableDocumentResponseSchema
     );

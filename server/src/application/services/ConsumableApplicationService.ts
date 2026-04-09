@@ -64,6 +64,7 @@ import type {
   CreateConsumableBarcodeRequest,
   UpdateConsumableBarcodeRequest,
   CreateConsumableDocumentRequest,
+  UpdateConsumableDocumentRequest,
   CreateConsumablePackagingLevelRequest,
   RecordConsumableTransactionRequest,
   RecordConsumableStockCountRequest,
@@ -260,6 +261,26 @@ export class ConsumableApplicationService {
     await this.productRepository.saveDocument(document);
     await this.eventBus.publish(new ConsumableDocumentAddedEvent(productId, data.label, user.id, labId));
     return ConsumableDto.documentToResponse(document);
+  }
+
+  async updateDocument(
+    labId: string,
+    productId: string,
+    docId: string,
+    data: UpdateConsumableDocumentRequest,
+    user: User
+  ): Promise<ConsumableDocumentResponse> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getProductOrThrow(productId, labId);
+    await this.productRepository.updateDocument(docId, {
+      label: data.label,
+      url: data.url,
+      notes: data.notes,
+    });
+    const docs = await this.productRepository.findDocumentsByProductId(productId);
+    const updated = docs.find(d => d.id === docId);
+    if (!updated) throw new NotFoundError(`Document ${docId} not found`);
+    return ConsumableDto.documentToResponse(updated);
   }
 
   async removeDocument(labId: string, productId: string, docId: string, user: User): Promise<void> {

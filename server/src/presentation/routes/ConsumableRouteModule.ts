@@ -24,6 +24,7 @@ import {
   CreateConsumableBarcodeHttpSchema,
   UpdateConsumableBarcodeHttpSchema,
   CreateConsumableDocumentHttpSchema,
+  UpdateConsumableDocumentHttpSchema,
   RecordConsumableTransactionHttpSchema,
   RecordConsumableStockCountHttpSchema,
   ConsumableBulkReceiveHttpSchema,
@@ -184,6 +185,12 @@ export class ConsumableRouteModule implements RouteModule {
       validateParams(IdParams),
       validateBody(CreateConsumableDocumentHttpSchema),
       this.consumableController.addDocument.bind(this.consumableController)
+    );
+
+    router.put('/:id/documents/:docId',
+      validateParams(ConsumableDocIdParams),
+      validateBody(UpdateConsumableDocumentHttpSchema),
+      this.consumableController.updateDocument.bind(this.consumableController)
     );
 
     router.delete('/:id/documents/:docId',

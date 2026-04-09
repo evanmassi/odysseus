@@ -85,6 +85,7 @@ export interface ConsumableProductRepository {
 
   findDocumentsByProductId(productId: string): Promise<ConsumableDocument[]>;
   saveDocument(document: ConsumableDocument): Promise<void>;
+  updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void>;
   deleteDocument(id: string): Promise<boolean>;
 
   // Barcodes

@@ -27,6 +27,7 @@ import {
   useDeleteConsumableProductMutation,
   useArchiveConsumableProductMutation,
   useRemoveConsumableDocumentMutation,
+  useUpdateConsumableDocumentMutation,
   useRemoveConsumableBarcodeMutation,
   useUpdateConsumableBarcodeMutation,
   useRegenerateInternalBarcodeMutation,
@@ -90,12 +91,17 @@ export function ConsumableProductInfoPanel({
   const deleteProductMutation = useDeleteConsumableProductMutation();
   const archiveProductMutation = useArchiveConsumableProductMutation();
   const removeDocumentMutation = useRemoveConsumableDocumentMutation();
+  const updateDocumentMutation = useUpdateConsumableDocumentMutation();
   const removeBarcodeMutation = useRemoveConsumableBarcodeMutation();
   const updateBarcodeMutation = useUpdateConsumableBarcodeMutation();
   const regenerateBarcodeMutation = useRegenerateInternalBarcodeMutation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editingBarcodeId, setEditingBarcodeId] = useState<string | null>(null);
   const [editingLabel, setEditingLabel] = useState('');
+  const [editingDocId, setEditingDocId] = useState<string | null>(null);
+  const [editingDocLabel, setEditingDocLabel] = useState('');
+  const [editingDocUrl, setEditingDocUrl] = useState('');
+  const [editingDocNotes, setEditingDocNotes] = useState('');
 
   if (!detail) {
     return (
@@ -137,6 +143,24 @@ export function ConsumableProductInfoPanel({
       notifications.success('Document removed');
     } catch {
       notifications.error('Failed to remove document');
+    }
+  };
+
+  const handleSaveDocument = async (docId: string) => {
+    if (!editingDocLabel.trim() || !editingDocUrl.trim()) return;
+    try {
+      await updateDocumentMutation.mutateAsync({
+        productId,
+        docId,
+        data: {
+          label: editingDocLabel.trim(),
+          url: editingDocUrl.trim(),
+          notes: editingDocNotes.trim() ? editingDocNotes.trim() : null,
+        },
+      });
+      setEditingDocId(null);
+    } catch {
+      notifications.error('Failed to update document');
     }
   };
 
@@ -288,8 +312,7 @@ export function ConsumableProductInfoPanel({
                     return (
                       <span key={level.id}>
                         {i > 0 && <span className="text-muted-foreground/40 mx-1.5">·</span>}
-                        {level.quantity} {parentName}
-                        {level.quantity !== 1 ? 's' : ''}{' '}
+                        {level.quantity} {pluralizeUnit(parentName, level.quantity)}{' '}
                         <span className="text-muted-foreground">per</span> {level.unitName}
                       </span>
                     );
@@ -439,26 +462,95 @@ export function ConsumableProductInfoPanel({
           {/* Documents */}
           <InfoGroup title="Documents">
             {documents.length > 0 ? (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {documents.map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between text-sm">
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      {doc.label}
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        className="text-xs text-danger-text hover:underline"
-                        onClick={() => void handleRemoveDocument(doc.id)}
-                      >
-                        Remove
-                      </button>
+                  <div key={doc.id}>
+                    {editingDocId === doc.id ? (
+                      <div className="space-y-1.5 p-2 border border-border rounded-md">
+                        <Input
+                          type="text"
+                          value={editingDocLabel}
+                          onValueChange={setEditingDocLabel}
+                          placeholder="Label"
+                          size="sm"
+                          fullWidth
+                        />
+                        <Input
+                          type="text"
+                          value={editingDocUrl}
+                          onValueChange={setEditingDocUrl}
+                          placeholder="URL"
+                          size="sm"
+                          fullWidth
+                        />
+                        <Input
+                          type="text"
+                          value={editingDocNotes}
+                          onValueChange={setEditingDocNotes}
+                          placeholder="Notes (optional)"
+                          size="sm"
+                          fullWidth
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="xs" onClick={() => setEditingDocId(null)}>
+                            Cancel
+                          </Button>
+                          <Button
+                            size="xs"
+                            onClick={() => void handleSaveDocument(doc.id)}
+                            disabled={!editingDocLabel.trim() || !editingDocUrl.trim()}
+                            isLoading={updateDocumentMutation.isPending}
+                          >
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex items-center justify-between text-sm">
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            {doc.label}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                          {isAdmin && (
+                            <div className="flex items-center gap-0.5">
+                              <Tooltip content="Edit" side="bottom">
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  iconOnly
+                                  onClick={() => {
+                                    setEditingDocId(doc.id);
+                                    setEditingDocLabel(doc.label);
+                                    setEditingDocUrl(doc.url);
+                                    setEditingDocNotes(doc.notes ?? '');
+                                  }}
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                              </Tooltip>
+                              <Tooltip content="Remove" side="bottom">
+                                <Button
+                                  variant="ghost-danger"
+                                  size="xs"
+                                  iconOnly
+                                  onClick={() => void handleRemoveDocument(doc.id)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </Tooltip>
+                            </div>
+                          )}
+                        </div>
+                        {doc.notes && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{doc.notes}</p>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}

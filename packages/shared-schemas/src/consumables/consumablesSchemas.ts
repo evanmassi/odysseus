@@ -260,6 +260,12 @@ export const createConsumableDocumentRequestSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+export const updateConsumableDocumentRequestSchema = z.object({
+  label: z.string().min(1).max(200).optional(),
+  url: z.string().min(1).max(2000).optional(),
+  notes: z.string().max(500).nullish(),
+});
+
 export const consumableDocumentResponseSchema = z.object({
   document: consumableDocumentSchema,
 });
@@ -373,6 +379,7 @@ export type UpdateConsumableBarcodeRequest = z.infer<typeof updateConsumableBarc
 export type RecordConsumableTransactionRequest = z.infer<typeof recordConsumableTransactionRequestSchema>;
 export type RecordConsumableStockCountRequest = z.infer<typeof recordConsumableStockCountRequestSchema>;
 export type CreateConsumableDocumentRequest = z.infer<typeof createConsumableDocumentRequestSchema>;
+export type UpdateConsumableDocumentRequest = z.infer<typeof updateConsumableDocumentRequestSchema>;
 export type ConsumableBulkReceiveRequest = z.infer<typeof consumableBulkReceiveRequestSchema>;
 export type ConsumableBulkConsumeRequest = z.infer<typeof consumableBulkConsumeRequestSchema>;
 export type ConsumableBulkReassignCategoryRequest = z.infer<typeof consumableBulkReassignCategoryRequestSchema>;

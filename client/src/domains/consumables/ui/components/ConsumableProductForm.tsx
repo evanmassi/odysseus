@@ -140,6 +140,15 @@ export function ConsumableProductForm({
     [packagingLevels]
   );
 
+  const topOfChain = useMemo(() => {
+    if (packagingLevels.length === 0) return null;
+    const childParents = new Set(
+      packagingLevels.map(l => ('parentUnit' in l ? l.parentUnit : null)).filter(Boolean)
+    );
+    const top = packagingLevels.find(l => !childParents.has(l.unitName));
+    return top?.unitName ?? null;
+  }, [packagingLevels]);
+
   const {
     register,
     handleSubmit,
@@ -179,27 +188,37 @@ export function ConsumableProductForm({
     const qty = Number(newLevelQty);
     if (!newLevelUnit || qty <= 0) return;
 
+    const resolvedParent = newLevelParent ?? topOfChain;
+    const addedUnit = newLevelUnit;
     if (isEditing && product) {
       void addPackagingMutation
         .mutateAsync({
           productId: product.id,
-          data: { unitName: newLevelUnit, quantity: qty, parentUnit: newLevelParent },
+          data: { unitName: newLevelUnit, quantity: qty, parentUnit: resolvedParent },
         })
         .then(() => {
           setNewLevelQty('');
           setNewLevelUnit('');
-          setNewLevelParent(null);
+          setNewLevelParent(addedUnit);
         });
     } else {
       setLocalPackagingLevels(prev => [
         ...prev,
-        { unitName: newLevelUnit, quantity: qty, parentUnit: newLevelParent },
+        { unitName: newLevelUnit, quantity: qty, parentUnit: resolvedParent },
       ]);
       setNewLevelQty('');
       setNewLevelUnit('');
-      setNewLevelParent(null);
+      setNewLevelParent(addedUnit);
     }
-  }, [isEditing, product, newLevelQty, newLevelUnit, newLevelParent, addPackagingMutation]);
+  }, [
+    isEditing,
+    product,
+    newLevelQty,
+    newLevelUnit,
+    newLevelParent,
+    topOfChain,
+    addPackagingMutation,
+  ]);
 
   const handleRemoveLevel = useCallback(
     (index: number, levelId?: string) => {
@@ -543,23 +562,23 @@ export function ConsumableProductForm({
               </div>
               <div className="flex-1">
                 <Select
-                  options={availableUnitOptions}
-                  value={newLevelUnit}
-                  onChange={v => setNewLevelUnit(String(v ?? ''))}
+                  options={parentOptions}
+                  value={newLevelParent ?? topOfChain ?? '__base__'}
+                  onChange={v => setNewLevelParent(v === '__base__' ? null : String(v ?? ''))}
                   size="sm"
                   fullWidth
-                  aria-label="Unit"
+                  aria-label="Contents"
                 />
               </div>
               <span className="text-xs text-muted-foreground pb-1.5">per</span>
               <div className="flex-1">
                 <Select
-                  options={parentOptions}
-                  value={newLevelParent ?? '__base__'}
-                  onChange={v => setNewLevelParent(v === '__base__' ? null : String(v ?? ''))}
+                  options={availableUnitOptions}
+                  value={newLevelUnit}
+                  onChange={v => setNewLevelUnit(String(v ?? ''))}
                   size="sm"
                   fullWidth
-                  aria-label="Per unit"
+                  aria-label="New unit"
                 />
               </div>
               <Button

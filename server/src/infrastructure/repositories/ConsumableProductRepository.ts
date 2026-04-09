@@ -154,6 +154,23 @@ export class ConsumableProductRepository implements IConsumableProductRepository
     `, [row.id, row.product_id, row.label, row.url, row.notes, row.created_at]);
   }
 
+  async updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void> {
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    let idx = 1;
+
+    if (fields.label !== undefined) { sets.push(`label = $${idx++}`); params.push(fields.label); }
+    if (fields.url !== undefined) { sets.push(`url = $${idx++}`); params.push(fields.url); }
+    if (fields.notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(fields.notes); }
+    if (sets.length === 0) return;
+
+    params.push(id);
+    await this.db.execute(
+      `UPDATE consumable_documents SET ${sets.join(', ')} WHERE id = $${idx}`,
+      params
+    );
+  }
+
   async deleteDocument(id: string): Promise<boolean> {
     const result = await this.db.execute('DELETE FROM consumable_documents WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;

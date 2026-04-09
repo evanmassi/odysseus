@@ -81,7 +81,7 @@ export function ConsumableProductRow({ product, isSelected, onSelect }: Consumab
           )}
         </div>
 
-        <Chip color={stockColor} size="sm" shape="pill" className="flex-shrink-0">
+        <Chip color={stockColor} size="sm" className="flex-shrink-0">
           {product.totalStock}{' '}
           {product.stockUnit ? pluralizeUnit(product.stockUnit, product.totalStock) : 'in stock'}
         </Chip>

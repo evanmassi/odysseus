@@ -22,6 +22,7 @@ import type {
   CreateConsumableBarcodeRequest,
   UpdateConsumableBarcodeRequest,
   CreateConsumableDocumentRequest,
+  UpdateConsumableDocumentRequest,
   RecordConsumableTransactionRequest,
   RecordConsumableStockCountRequest,
   ConsumableBulkReceiveRequest,
@@ -173,6 +174,28 @@ export function useAddConsumableDocumentMutation() {
       productId: string;
       data: CreateConsumableDocumentRequest;
     }) => ConsumableService.addDocument(productId, data),
+    onSuccess: (_, { productId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.consumables.detail(labId, productId),
+      });
+    },
+  });
+}
+
+export function useUpdateConsumableDocumentMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      productId,
+      docId,
+      data,
+    }: {
+      productId: string;
+      docId: string;
+      data: UpdateConsumableDocumentRequest;
+    }) => ConsumableService.updateDocument(productId, docId, data),
     onSuccess: (_, { productId }) => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.consumables.detail(labId, productId),

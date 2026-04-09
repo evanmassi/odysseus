@@ -77,13 +77,14 @@ function TransactionEntry({
       ? `+${transaction.quantityChange}`
       : String(transaction.quantityChange);
 
-  /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean truthiness check */
+  /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Boolean truthiness check */
   const hasDetails = !!(
     transaction.lotNumber ||
     transaction.poNumber ||
     transaction.cost ||
     transaction.notes
   );
+  /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
   return (
     <div className="border border-border rounded-md overflow-hidden">
