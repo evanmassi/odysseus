@@ -40,6 +40,16 @@ export interface ConsumableTransactionRow {
   performedBy: string;
   notes?: string;
   createdAt: Date | string;
+  voidedAt?: string;
+  voidedBy?: string;
+  voidReason?: string;
+  relatedTransactionId?: string;
+}
+
+export interface VoidTransactionData {
+  transactionId: string;
+  voidedBy: string;
+  voidReason: string;
 }
 
 export interface ProductWithStock {
@@ -105,7 +115,9 @@ export interface ConsumableProductRepository {
   // Transactions — recordTransaction is atomic: UPSERT stock RETURNING → INSERT transaction
 
   findTransactionsByProductId(productId: string, limit?: number): Promise<ConsumableTransactionRow[]>;
+  findTransactionById(id: string): Promise<ConsumableTransactionRow | null>;
   recordTransaction(data: RecordTransactionData): Promise<ConsumableTransactionRow>;
+  voidTransaction(data: VoidTransactionData): Promise<{ original: ConsumableTransactionRow; reversal: ConsumableTransactionRow }>;
 
   // Reorder
 

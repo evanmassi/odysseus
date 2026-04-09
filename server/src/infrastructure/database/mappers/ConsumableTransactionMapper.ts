@@ -23,6 +23,10 @@ export interface ConsumableTransactionDbRow {
   performed_by: string;
   notes: string | null;
   created_at: Date | string;
+  voided_at: Date | string | null;
+  voided_by: string | null;
+  void_reason: string | null;
+  related_transaction_id: string | null;
 }
 
 export class ConsumableTransactionMapper {
@@ -43,6 +47,10 @@ export class ConsumableTransactionMapper {
       performedBy: row.performed_by,
       notes: row.notes ?? undefined,
       createdAt: toISOString(row.created_at),
+      voidedAt: row.voided_at ? toISOString(row.voided_at) : undefined,
+      voidedBy: row.voided_by ?? undefined,
+      voidReason: row.void_reason ?? undefined,
+      relatedTransactionId: row.related_transaction_id ?? undefined,
     };
   }
 

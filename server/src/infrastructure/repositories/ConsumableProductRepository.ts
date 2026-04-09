@@ -15,6 +15,7 @@ import type {
   ConsumablePackagingLevelRow,
   ProductWithStock,
   RecordTransactionData,
+  VoidTransactionData,
 } from '@domain/repositories/ConsumableProductRepository';
 import { generateId } from '@domain/utils/generateId';
 import type { ConsumableBarcodeDbRow } from '@infrastructure/database/mappers/ConsumableBarcodeMapper';
@@ -40,7 +41,8 @@ const DOC_COLUMNS = 'id, product_id, label, url, notes, created_at';
 const BARCODE_COLUMNS = 'id, product_id, barcode_value, barcode_type, is_primary, label';
 const STOCK_COLUMNS = 'id, product_id, location_id, quantity, updated_at';
 const TXN_COLUMNS = `id, product_id, location_id, lab_id, type, quantity_change, quantity_after,
-  lot_number, expiration_date, po_number, cost, performed_by, notes, created_at`;
+  lot_number, expiration_date, po_number, cost, performed_by, notes, created_at,
+  voided_at, voided_by, void_reason, related_transaction_id`;
 
 export class ConsumableProductRepository implements IConsumableProductRepository {
 
@@ -285,7 +287,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
       const txnId = generateId('ctxn');
       const txnResult = await client.query<ConsumableTransactionDbRow>(
         `INSERT INTO consumable_transactions (${TXN_COLUMNS})
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NULL, NULL, NULL, NULL)
          RETURNING ${TXN_COLUMNS}`,
         [
           txnId, data.productId, data.locationId, data.labId, data.type,
@@ -296,6 +298,70 @@ export class ConsumableProductRepository implements IConsumableProductRepository
       );
 
       return ConsumableTransactionMapper.fromRow(txnResult.rows[0]);
+    });
+  }
+
+  async findTransactionById(id: string): Promise<ConsumableTransactionRow | null> {
+    const row = await this.db.queryOne<ConsumableTransactionDbRow>(
+      `SELECT ${TXN_COLUMNS} FROM consumable_transactions WHERE id = $1`,
+      [id]
+    );
+    return row ? ConsumableTransactionMapper.fromRow(row) : null;
+  }
+
+  async voidTransaction(data: VoidTransactionData): Promise<{ original: ConsumableTransactionRow; reversal: ConsumableTransactionRow }> {
+    return await this.db.transaction(async (client) => {
+      const originalRow = await client.query<ConsumableTransactionDbRow>(
+        `SELECT ${TXN_COLUMNS} FROM consumable_transactions WHERE id = $1`,
+        [data.transactionId]
+      );
+      if (originalRow.rows.length === 0) {
+        throw new Error(`Transaction ${data.transactionId} not found`);
+      }
+      const original = ConsumableTransactionMapper.fromRow(originalRow.rows[0]);
+
+      if (originalRow.rows[0].voided_at) {
+        throw new Error('Transaction has already been voided');
+      }
+
+      await client.query(
+        `UPDATE consumable_transactions SET voided_at = NOW(), voided_by = $1, void_reason = $2 WHERE id = $3`,
+        [data.voidedBy, data.voidReason, data.transactionId]
+      );
+
+      const reversedQuantity = -original.quantityChange;
+      const stockResult = await client.query<{ quantity: string }>(
+        `INSERT INTO consumable_stock (id, product_id, location_id, quantity, updated_at)
+         VALUES ($1, $2, $3, $4, NOW())
+         ON CONFLICT (product_id, location_id) DO UPDATE SET
+           quantity = consumable_stock.quantity + $4,
+           updated_at = NOW()
+         RETURNING quantity`,
+        [generateId('cstk'), original.productId, original.locationId, reversedQuantity]
+      );
+      const quantityAfter = parseFloat(stockResult.rows[0].quantity);
+
+      const reversalId = generateId('ctxn');
+      const reversalResult = await client.query<ConsumableTransactionDbRow>(
+        `INSERT INTO consumable_transactions (${TXN_COLUMNS})
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NULL, NULL, NULL, NULL, $8, $9, NOW(), NULL, NULL, NULL, $10)
+         RETURNING ${TXN_COLUMNS}`,
+        [
+          reversalId, original.productId, original.locationId, original.labId, 'void_reversal',
+          reversedQuantity, quantityAfter, data.voidedBy,
+          `Void reversal of ${data.transactionId}`, data.transactionId,
+        ]
+      );
+
+      const updatedOriginalRow = await client.query<ConsumableTransactionDbRow>(
+        `SELECT ${TXN_COLUMNS} FROM consumable_transactions WHERE id = $1`,
+        [data.transactionId]
+      );
+
+      return {
+        original: ConsumableTransactionMapper.fromRow(updatedOriginalRow.rows[0]),
+        reversal: ConsumableTransactionMapper.fromRow(reversalResult.rows[0]),
+      };
     });
   }
 

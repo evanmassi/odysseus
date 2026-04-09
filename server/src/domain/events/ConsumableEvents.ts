@@ -21,6 +21,13 @@ export interface BulkConsumeItemDetail {
   locationId: string;
 }
 
+export interface BulkVoidItemDetail {
+  transactionId: string;
+  productId: string;
+  quantityReversed: number;
+  locationId: string;
+}
+
 // Product events
 
 export class ConsumableProductCreatedEvent extends DomainEvent {
@@ -268,7 +275,33 @@ export class ConsumableStockDisposedEvent extends DomainEvent {
   }
 }
 
-// Bulk events — enriched per-item data for receive/consume, simple ID arrays for reassign/archive
+export class ConsumableStockVoidedEvent extends DomainEvent {
+  constructor(
+    public readonly productId: string,
+    public readonly originalTransactionId: string,
+    public readonly reversalTransactionId: string,
+    public readonly quantityReversed: number,
+    public readonly locationId: string,
+    public readonly voidReason: string,
+    public readonly voidedBy: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string { return 'ConsumableStockVoided'; }
+  getAggregateId(): string { return this.productId; }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      productId: this.productId, originalTransactionId: this.originalTransactionId,
+      reversalTransactionId: this.reversalTransactionId, quantityReversed: this.quantityReversed,
+      locationId: this.locationId, voidReason: this.voidReason, voidedBy: this.voidedBy,
+    };
+  }
+}
+
+// Bulk events — enriched per-item data for receive/consume/void, simple ID arrays for reassign/archive
 
 export class ConsumableBulkReceivedEvent extends DomainEvent {
   constructor(
@@ -336,5 +369,23 @@ export class ConsumableBulkArchivedEvent extends DomainEvent {
 
   protected getEventData(): Record<string, unknown> {
     return { productIds: this.productIds, archivedBy: this.archivedBy };
+  }
+}
+
+export class ConsumableBulkVoidedEvent extends DomainEvent {
+  constructor(
+    public readonly perItemData: BulkVoidItemDetail[],
+    public readonly voidedBy: string,
+    public readonly voidReason: string,
+    labId: string
+  ) {
+    super(1, labId);
+  }
+
+  eventName(): string { return 'ConsumableBulkVoided'; }
+  getAggregateId(): string { return `bulk-${this.perItemData.length}`; }
+
+  protected getEventData(): Record<string, unknown> {
+    return { perItemData: this.perItemData, voidedBy: this.voidedBy, voidReason: this.voidReason };
   }
 }

@@ -18,10 +18,12 @@ import type {
   ConsumableStockConsumedEvent,
   ConsumableStockCountAdjustedEvent,
   ConsumableStockDisposedEvent,
+  ConsumableStockVoidedEvent,
   ConsumableBulkReceivedEvent,
   ConsumableBulkConsumedEvent,
   ConsumableBulkCategoryReassignedEvent,
   ConsumableBulkArchivedEvent,
+  ConsumableBulkVoidedEvent,
 } from './ConsumableEvents';
 import type {
   DonorCreatedEvent,
@@ -225,10 +227,12 @@ export interface DomainEventMap {
   'ConsumableStockConsumed': ConsumableStockConsumedEvent;
   'ConsumableStockCountAdjusted': ConsumableStockCountAdjustedEvent;
   'ConsumableStockDisposed': ConsumableStockDisposedEvent;
+  'ConsumableStockVoided': ConsumableStockVoidedEvent;
   'ConsumableBulkReceived': ConsumableBulkReceivedEvent;
   'ConsumableBulkConsumed': ConsumableBulkConsumedEvent;
   'ConsumableBulkCategoryReassigned': ConsumableBulkCategoryReassignedEvent;
   'ConsumableBulkArchived': ConsumableBulkArchivedEvent;
+  'ConsumableBulkVoided': ConsumableBulkVoidedEvent;
 
   // Lab events
   'LabCreated': LabCreatedEvent;
