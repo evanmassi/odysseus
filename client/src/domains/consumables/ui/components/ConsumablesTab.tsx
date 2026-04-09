@@ -20,6 +20,7 @@ import {
   PackagePlus,
   PackageMinus,
   Layers,
+  Ban,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -36,6 +37,7 @@ import { notifications } from '@shared/utils/notifications';
 import { ConsumableBulkConsumeModal } from './ConsumableBulkConsumeModal';
 import { ConsumableBulkReceiveModal } from './ConsumableBulkReceiveModal';
 import { ConsumableBulkUpdateModal } from './ConsumableBulkUpdateModal';
+import { ConsumableBulkVoidModal } from './ConsumableBulkVoidModal';
 import { ConsumableCategoryModal } from './ConsumableCategoryModal';
 import { ConsumableCategoryPanel } from './ConsumableCategoryPanel';
 import { ConsumableLocationModal } from './ConsumableLocationModal';
@@ -92,6 +94,7 @@ export function ConsumablesTab() {
   const [isBulkReceiveOpen, setIsBulkReceiveOpen] = useState(false);
   const [isBulkConsumeOpen, setIsBulkConsumeOpen] = useState(false);
   const [isBulkUpdateOpen, setIsBulkUpdateOpen] = useState(false);
+  const [isBulkVoidOpen, setIsBulkVoidOpen] = useState(false);
 
   const categoryNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -187,6 +190,7 @@ export function ConsumablesTab() {
     { icon: PackagePlus, label: 'Bulk Receive', onClick: () => setIsBulkReceiveOpen(true) },
     { icon: PackageMinus, label: 'Bulk Consume', onClick: () => setIsBulkConsumeOpen(true) },
     { icon: Layers, label: 'Bulk Update', onClick: () => setIsBulkUpdateOpen(true) },
+    { icon: Ban, label: 'Bulk Void', onClick: () => setIsBulkVoidOpen(true) },
   ];
 
   return (
@@ -377,6 +381,12 @@ export function ConsumablesTab() {
         onClose={() => setIsBulkUpdateOpen(false)}
         products={products}
         categories={categories}
+      />
+
+      <ConsumableBulkVoidModal
+        isOpen={isBulkVoidOpen}
+        onClose={() => setIsBulkVoidOpen(false)}
+        products={products}
       />
     </div>
   );

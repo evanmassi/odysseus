@@ -1,19 +1,32 @@
 /**
  * Consumable Transaction Timeline
  *
- * Chronological list of stock transactions with collapsible details
- * and type-specific color coding.
+ * Chronological list of stock transactions with collapsible details,
+ * type-specific color coding, voided state display, and void action.
  */
 
 import { useState, useMemo } from 'react';
 
-import { ChevronRight, PackagePlus, PackageMinus, ClipboardCheck, Trash2 } from 'lucide-react';
+import { isAdminRole } from '@odysseus/shared-schemas';
+import {
+  ChevronRight,
+  PackagePlus,
+  PackageMinus,
+  ClipboardCheck,
+  Trash2,
+  Undo2,
+  Ban,
+} from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication';
 import { useConsumableLocationsQuery } from '@domains/consumables/hooks';
-import { InfoField } from '@shared/ui';
+import { Button, InfoField, Tooltip } from '@shared/ui';
+import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
+
+import { ConsumableVoidTransactionModal } from './ConsumableVoidTransactionModal';
 
 import type { ConsumableTransaction } from '@odysseus/shared-schemas';
 
@@ -22,6 +35,7 @@ const TYPE_CONFIG: Record<string, { icon: typeof PackagePlus; color: string }> =
   consumed: { icon: PackageMinus, color: 'text-warning-text' },
   count_adjustment: { icon: ClipboardCheck, color: 'text-primary' },
   disposed: { icon: Trash2, color: 'text-danger-text' },
+  void_reversal: { icon: Undo2, color: 'text-muted-foreground' },
 };
 
 interface ConsumableTransactionTimelineProps {
@@ -33,8 +47,11 @@ export function ConsumableTransactionTimeline({
   transactions,
   stockUnit,
 }: ConsumableTransactionTimelineProps) {
+  const { user } = useAuthStore();
+  const isAdmin = isAdminRole(user?.role);
   const { data: locations = [] } = useConsumableLocationsQuery();
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
+  const [voidingTransaction, setVoidingTransaction] = useState<ConsumableTransaction | null>(null);
 
   if (transactions.length === 0) {
     return (
@@ -45,16 +62,27 @@ export function ConsumableTransactionTimeline({
   }
 
   return (
-    <div className="space-y-1">
-      {transactions.map(txn => (
-        <TransactionEntry
-          key={txn.id}
-          transaction={txn}
-          locationName={locationNameMap.get(txn.locationId) ?? txn.locationId}
-          stockUnit={stockUnit}
-        />
-      ))}
-    </div>
+    <>
+      <div className="space-y-1">
+        {transactions.map(txn => (
+          <TransactionEntry
+            key={txn.id}
+            transaction={txn}
+            locationName={locationNameMap.get(txn.locationId) ?? txn.locationId}
+            stockUnit={stockUnit}
+            isAdmin={isAdmin}
+            onVoid={setVoidingTransaction}
+          />
+        ))}
+      </div>
+
+      <ConsumableVoidTransactionModal
+        isOpen={!!voidingTransaction}
+        transaction={voidingTransaction}
+        stockUnit={stockUnit}
+        onClose={() => setVoidingTransaction(null)}
+      />
+    </>
   );
 }
 
@@ -62,12 +90,19 @@ function TransactionEntry({
   transaction,
   locationName,
   stockUnit,
+  isAdmin,
+  onVoid,
 }: {
   transaction: ConsumableTransaction;
   locationName: string;
   stockUnit?: string;
+  isAdmin: boolean;
+  onVoid: (txn: ConsumableTransaction) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const isVoided = !!transaction.voidedAt;
+  const isReversal = transaction.type === 'void_reversal';
+  const canVoid = isAdmin && !isVoided && !isReversal;
 
   const config = TYPE_CONFIG[transaction.type] ?? TYPE_CONFIG['received'];
   const Icon = config.icon;
@@ -82,12 +117,15 @@ function TransactionEntry({
     transaction.lotNumber ||
     transaction.poNumber ||
     transaction.cost ||
-    transaction.notes
+    transaction.notes ||
+    transaction.voidReason
   );
   /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
   return (
-    <div className="border border-border rounded-md overflow-hidden">
+    <div
+      className={`border border-border rounded-md overflow-hidden ${isVoided ? 'opacity-60' : ''}`}
+    >
       <div
         className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-accent/30 transition-colors cursor-pointer"
         onClick={() => hasDetails && setIsExpanded(!isExpanded)}
@@ -111,15 +149,39 @@ function TransactionEntry({
           {formatDateForDisplay(transaction.createdAt)}
         </span>
 
+        {isVoided && (
+          <Chip color="danger" size="xs">
+            Voided
+          </Chip>
+        )}
+
         <span className="text-card-foreground/30 flex-shrink-0">·</span>
 
-        <span className={`text-xs font-semibold flex-shrink-0 ${config.color}`}>
+        <span
+          className={`text-xs font-semibold flex-shrink-0 ${config.color} ${isVoided ? 'line-through' : ''}`}
+        >
           {quantityDisplay} {unit}
         </span>
 
         <span className="text-card-foreground/30 flex-shrink-0">·</span>
 
-        <span className="text-xs text-muted-foreground truncate">{locationName}</span>
+        <span className="text-xs text-muted-foreground truncate flex-1">{locationName}</span>
+
+        {canVoid && (
+          <Tooltip content="Void transaction" side="bottom">
+            <Button
+              variant="ghost"
+              size="xs"
+              iconOnly
+              onClick={e => {
+                e.stopPropagation();
+                onVoid(transaction);
+              }}
+            >
+              <Ban className="w-3 h-3" />
+            </Button>
+          </Tooltip>
+        )}
       </div>
 
       {isExpanded && hasDetails && (
@@ -142,6 +204,11 @@ function TransactionEntry({
               />
             )}
           </div>
+          {transaction.voidReason && (
+            <div className="mt-1.5 pt-1.5 border-t border-border/50">
+              <InfoField label="Void Reason" value={transaction.voidReason} inline={false} />
+            </div>
+          )}
           {transaction.notes && (
             <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
               {transaction.notes}

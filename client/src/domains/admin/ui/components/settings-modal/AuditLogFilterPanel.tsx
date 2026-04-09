@@ -94,6 +94,7 @@ const ACTION_SECTIONS: ActionSection[] = [
       { value: 'consumable_stock_consumed', label: 'Stock Consumed' },
       { value: 'consumable_stock_count_adjusted', label: 'Count Adjusted' },
       { value: 'consumable_stock_disposed', label: 'Stock Disposed' },
+      { value: 'consumable_stock_voided', label: 'Stock Voided' },
       { value: 'consumable_category_created', label: 'Category Created' },
       { value: 'consumable_category_updated', label: 'Category Updated' },
       { value: 'consumable_category_deleted', label: 'Category Removed' },
@@ -103,6 +104,7 @@ const ACTION_SECTIONS: ActionSection[] = [
       { value: 'consumable_bulk_consumed', label: 'Bulk Consumed' },
       { value: 'consumable_bulk_category_reassigned', label: 'Bulk Reassigned' },
       { value: 'consumable_bulk_archived', label: 'Bulk Archived' },
+      { value: 'consumable_bulk_voided', label: 'Bulk Voided' },
     ],
   },
   {

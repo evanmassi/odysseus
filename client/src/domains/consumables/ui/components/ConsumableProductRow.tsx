@@ -7,6 +7,7 @@
 
 import { MapPin } from 'lucide-react';
 
+import { useTextTruncation } from '@shared/hooks/useTextTruncation';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
@@ -43,6 +44,7 @@ export function ConsumableProductRow({ product, isSelected, onSelect }: Consumab
   const stockColor = getStockChipColor(product.totalStock, product.reorderThreshold);
   const detailParts = [product.manufacturer, product.catalogNumber].filter(Boolean);
   const statusInfo = STATUS_CHIP[product.status];
+  const { ref: nameRef, isTruncated } = useTextTruncation<HTMLSpanElement>([product.name]);
 
   return (
     <div
@@ -62,8 +64,8 @@ export function ConsumableProductRow({ product, isSelected, onSelect }: Consumab
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1 min-w-0 truncate">
-          <Tooltip content={product.name} side="top">
-            <span className="text-sm font-semibold text-card-foreground truncate">
+          <Tooltip content={product.name} side="top" disabled={!isTruncated}>
+            <span ref={nameRef} className="text-sm font-semibold text-card-foreground truncate">
               {product.name}
             </span>
           </Tooltip>
