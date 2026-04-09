@@ -8,7 +8,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
 
-import { PackagePlus, PackageMinus, ClipboardCheck, Trash2 } from 'lucide-react';
+import { PackagePlus, PackageMinus, ClipboardCheck, ClipboardList, Trash2 } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import {
@@ -50,6 +50,8 @@ export interface TransactionPrefill {
 interface ConsumableTransactionFormProps {
   productId: string;
   productName: string;
+  manufacturer?: string;
+  catalogNumber?: string;
   initialTab?: TransactionMode;
   prefill?: TransactionPrefill;
   onSubmit: () => void;
@@ -59,6 +61,8 @@ interface ConsumableTransactionFormProps {
 export function ConsumableTransactionForm({
   productId,
   productName,
+  manufacturer,
+  catalogNumber,
   initialTab,
   prefill,
   onSubmit,
@@ -250,12 +254,25 @@ export function ConsumableTransactionForm({
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="px-4 pt-4 pb-2 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-secondary-foreground mb-1">Record Transaction</h3>
-        <p className="text-xs text-muted-foreground truncate">{productName}</p>
+        <h3 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5 mb-1.5">
+          <ClipboardList size={14} className="text-secondary-foreground" />
+          Record Transaction
+        </h3>
+        <p className="text-sm font-semibold text-card-foreground">{productName}</p>
+        {(manufacturer ?? catalogNumber) && (
+          <p className="text-xs text-muted-foreground truncate">
+            {[manufacturer, catalogNumber].filter(Boolean).join(' · ')}
+          </p>
+        )}
       </div>
 
       <div className="px-4 pb-2 flex-shrink-0">
-        <Tabs value={mode} onChange={handleModeChange}>
+        <Tabs
+          value={mode}
+          onChange={handleModeChange}
+          orientation="horizontal"
+          className="!gap-0 !px-0 [&_button]:!px-2.5 [&_button]:flex-1 [&_button]:justify-center"
+        >
           <Tab id="count" icon={<ClipboardCheck size={14} />}>
             Count
           </Tab>

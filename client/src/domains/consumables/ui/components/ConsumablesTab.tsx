@@ -344,17 +344,23 @@ export function ConsumablesTab() {
             />
           )}
 
-          {rightPanel?.type === 'transaction' && (
-            <ConsumableTransactionForm
-              key={`${rightPanel.productId}-${rightPanel.initialTab ?? 'received'}-${rightPanel.prefill ? 'prefill' : ''}`}
-              productId={rightPanel.productId}
-              productName={products.find(p => p.id === rightPanel.productId)?.name ?? ''}
-              initialTab={rightPanel.initialTab}
-              prefill={rightPanel.prefill}
-              onSubmit={handleFormComplete}
-              onCancel={handleFormComplete}
-            />
-          )}
+          {rightPanel?.type === 'transaction' &&
+            (() => {
+              const txnProduct = products.find(p => p.id === rightPanel.productId);
+              return (
+                <ConsumableTransactionForm
+                  key={`${rightPanel.productId}-${rightPanel.initialTab ?? 'received'}-${rightPanel.prefill ? 'prefill' : ''}`}
+                  productId={rightPanel.productId}
+                  productName={txnProduct?.name ?? ''}
+                  manufacturer={txnProduct?.manufacturer}
+                  catalogNumber={txnProduct?.catalogNumber}
+                  initialTab={rightPanel.initialTab}
+                  prefill={rightPanel.prefill}
+                  onSubmit={handleFormComplete}
+                  onCancel={handleFormComplete}
+                />
+              );
+            })()}
         </div>
 
         <ConsumableCategoryModal
