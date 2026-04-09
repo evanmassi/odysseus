@@ -26,6 +26,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       minChars = 2,
       'aria-label': ariaLabel,
       className = '',
+      inputClassName,
       renderOption,
     },
     ref
@@ -238,7 +239,10 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
           onBlur={handleBlur}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full h-9 px-3 text-sm rounded-lg bg-card text-foreground placeholder:text-muted-foreground placeholder:opacity-40 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed ${stateClasses}`}
+          className={
+            inputClassName ??
+            `w-full h-9 px-3 text-sm rounded-lg bg-card text-foreground placeholder:text-muted-foreground placeholder:opacity-40 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed ${stateClasses}`
+          }
         />
         {dropdown}
       </div>

@@ -1,0 +1,237 @@
+/**
+ * Bulk Receive Tab
+ *
+ * Order-form style receive with product search and packaging-aware per-row inputs.
+ */
+
+import { useState, useMemo, useCallback } from 'react';
+
+import { Search } from 'lucide-react';
+
+import { useConsumableLocationsQuery } from '@domains/consumables/hooks';
+import { useConsumableBulkReceiveMutation } from '@domains/consumables/hooks/useConsumableMutations';
+import { Autocomplete, Button, Input } from '@shared/ui';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
+import { notifications } from '@shared/utils/notifications';
+
+import { ConsumableBarcodeScanInput } from '../ConsumableBarcodeScanInput';
+
+import { BulkProductRow } from './BulkProductRow';
+
+import type { ConsumableProductWithStock } from '@odysseus/shared-schemas';
+import type { AutocompleteOption } from '@shared/ui';
+import type { SelectOption } from '@shared/ui/primitives/select/types';
+
+interface ReceiveRow {
+  productId: string;
+  productName: string;
+  quantity: number;
+  locationId: string;
+  lotNumber: string;
+  poNumber: string;
+  cost: string;
+}
+
+interface BulkReceiveTabProps {
+  products: ConsumableProductWithStock[];
+  onComplete: () => void;
+}
+
+export function BulkReceiveTab({ products, onComplete }: BulkReceiveTabProps) {
+  const [rows, setRows] = useState<ReceiveRow[]>([]);
+  const [searchValue, setSearchValue] = useState('');
+  const [lastLocationId, setLastLocationId] = useState('');
+  const { data: locations = [] } = useConsumableLocationsQuery();
+  const bulkReceiveMutation = useConsumableBulkReceiveMutation();
+
+  const locationOptions: SelectOption[] = useMemo(
+    () => [
+      { value: '', label: 'Select...' },
+      ...locations.map(l => ({ value: l.id, label: l.name })),
+    ],
+    [locations]
+  );
+
+  const productOptions: AutocompleteOption[] = useMemo(
+    () =>
+      products
+        .filter(p => p.status === 'active')
+        .map(p => ({
+          value: p.id,
+          label: p.name,
+          secondary: [p.manufacturer, p.catalogNumber].filter(Boolean).join(' · '),
+        })),
+    [products]
+  );
+
+  const addProduct = useCallback(
+    (productId: string, productName: string) => {
+      setRows(prev => [
+        ...prev,
+        {
+          productId,
+          productName,
+          quantity: 0,
+          locationId: lastLocationId,
+          lotNumber: '',
+          poNumber: '',
+          cost: '',
+        },
+      ]);
+    },
+    [lastLocationId]
+  );
+
+  const handleAddProduct = useCallback(
+    (option: AutocompleteOption) => {
+      addProduct(option.value, option.label);
+      setSearchValue('');
+    },
+    [addProduct]
+  );
+
+  const handleScanProduct = useCallback(
+    (productId: string) => {
+      const product = products.find(p => p.id === productId);
+      if (product) addProduct(product.id, product.name);
+    },
+    [products, addProduct]
+  );
+
+  const updateRow = useCallback(
+    (index: number, field: keyof ReceiveRow, value: string | number) => {
+      setRows(prev =>
+        prev.map((row, i) => {
+          if (i !== index) return row;
+          const updated = { ...row, [field]: value };
+          if (field === 'locationId') setLastLocationId(value as string);
+          return updated;
+        })
+      );
+    },
+    []
+  );
+
+  const removeRow = useCallback((index: number) => {
+    setRows(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    const items = rows
+      .filter(r => r.quantity > 0 && r.locationId)
+      .map(r => ({
+        productId: r.productId,
+        locationId: r.locationId,
+        quantity: r.quantity,
+        lotNumber: r.lotNumber || undefined,
+        poNumber: r.poNumber || undefined,
+        cost: r.cost ? parseFloat(r.cost) : undefined,
+      }));
+
+    if (items.length === 0) return;
+
+    try {
+      const result = await bulkReceiveMutation.mutateAsync({ items });
+      notifyBulkResult(result, 'products');
+      setRows([]);
+      onComplete();
+    } catch {
+      notifications.error('Failed to receive stock');
+    }
+  }, [rows, bulkReceiveMutation, onComplete]);
+
+  const validRowCount = rows.filter(r => r.quantity > 0 && r.locationId).length;
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      <div className="px-4 pt-4 pb-3 flex-shrink-0 flex items-start gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground z-10" />
+          <Autocomplete
+            options={productOptions}
+            value={searchValue}
+            onChange={setSearchValue}
+            onSelect={handleAddProduct}
+            placeholder="Search products..."
+            fullWidth
+            inputClassName="input-search w-full pl-8"
+          />
+        </div>
+        <div className="flex-1">
+          <ConsumableBarcodeScanInput products={products} onProductFound={handleScanProduct} />
+        </div>
+      </div>
+
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="px-4 space-y-2">
+          {rows.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Search for products above to add them to this receive order.
+            </p>
+          )}
+
+          {rows.map((row, index) => (
+            <BulkProductRow
+              key={`${row.productId}-${index}`}
+              productId={row.productId}
+              productName={row.productName}
+              locationId={row.locationId}
+              locationOptions={locationOptions}
+              onLocationChange={v => updateRow(index, 'locationId', v)}
+              onQuantityChange={v => updateRow(index, 'quantity', v)}
+              onRemove={() => removeRow(index)}
+            >
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-0.5">Lot #</span>
+                  <Input
+                    type="text"
+                    value={row.lotNumber}
+                    onValueChange={v => updateRow(index, 'lotNumber', v)}
+                    size="sm"
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-0.5">PO #</span>
+                  <Input
+                    type="text"
+                    value={row.poNumber}
+                    onValueChange={v => updateRow(index, 'poNumber', v)}
+                    size="sm"
+                    fullWidth
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-0.5">Cost ($)</span>
+                  <Input
+                    type="number"
+                    value={row.cost}
+                    onValueChange={v => updateRow(index, 'cost', v)}
+                    size="sm"
+                    fullWidth
+                  />
+                </div>
+              </div>
+            </BulkProductRow>
+          ))}
+        </div>
+      </ScrollArea>
+
+      <div className="flex items-center justify-between px-4 py-3 border-t border-border flex-shrink-0">
+        <span className="text-xs text-muted-foreground">
+          {validRowCount} product{validRowCount !== 1 ? 's' : ''} to receive
+        </span>
+        <Button
+          onClick={() => void handleSubmit()}
+          disabled={validRowCount === 0}
+          isLoading={bulkReceiveMutation.isPending}
+          loadingText="Receiving..."
+        >
+          Receive All
+        </Button>
+      </div>
+    </div>
+  );
+}

@@ -7,11 +7,11 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { Scan } from 'lucide-react';
+import { ScanBarcode } from 'lucide-react';
 
 import { useAddConsumableBarcodeMutation } from '@domains/consumables/hooks/useConsumableMutations';
 import { ConsumableService } from '@domains/consumables/services/ConsumableService';
-import { Input, Button, Select } from '@shared/ui';
+import { Button, Select } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
@@ -36,12 +36,18 @@ export function ConsumableBarcodeScanInput({
   const [linkProductId, setLinkProductId] = useState('');
   const addBarcodeMutation = useAddConsumableBarcodeMutation();
 
-  const productOptions: SelectOption[] = useMemo(() => [
-    { value: '', label: 'Select product...' },
-    ...products
-      .filter(p => p.status === 'active')
-      .map(p => ({ value: p.id, label: `${p.name}${p.catalogNumber ? ` (${p.catalogNumber})` : ''}` })),
-  ], [products]);
+  const productOptions: SelectOption[] = useMemo(
+    () => [
+      { value: '', label: 'Select product...' },
+      ...products
+        .filter(p => p.status === 'active')
+        .map(p => ({
+          value: p.id,
+          label: `${p.name}${p.catalogNumber ? ` (${p.catalogNumber})` : ''}`,
+        })),
+    ],
+    [products]
+  );
 
   const handleScan = useCallback(async () => {
     const value = scanValue.trim();
@@ -96,31 +102,32 @@ export function ConsumableBarcodeScanInput({
   return (
     <>
       <div className="relative">
-        <Scan className="absolute left-2.5 top-2 w-3.5 h-3.5 text-muted-foreground" />
-        <Input
+        <ScanBarcode className="absolute left-2.5 top-2 w-3.5 h-3.5 text-muted-foreground" />
+        <input
           type="text"
           value={scanValue}
-          onValueChange={setScanValue}
+          onChange={e => setScanValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={isResolving}
-          fullWidth
-          size="sm"
-          className="pl-8"
+          className="input-search w-full pl-8"
         />
       </div>
 
       <BaseModal
         isOpen={showLinkDialog}
         title="Unknown Barcode"
-        icon={<Scan size={24} />}
+        icon={<ScanBarcode size={24} />}
         onClose={() => setShowLinkDialog(false)}
         className="max-w-md"
       >
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Barcode <span className="font-mono font-semibold text-card-foreground">{unresolvedBarcode}</span> isn&apos;t
-            linked to any product. Link it now?
+            Barcode{' '}
+            <span className="font-mono font-semibold text-card-foreground">
+              {unresolvedBarcode}
+            </span>{' '}
+            isn&apos;t linked to any product. Link it now?
           </p>
 
           <Select
