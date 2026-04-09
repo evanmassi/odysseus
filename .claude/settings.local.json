@@ -100,7 +100,12 @@
       "Read(//c/Users/evan/Desktop/Odysseus/**)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(node -e '\nconst fs = require\\(\"fs\"\\);\nconst lines = fs.readFileSync\\(\"/tmp/ne-raw.txt\",\"utf8\"\\).trim\\(\\).split\\(\"\\\\n\"\\);\nconst results = [];\nconst prefix = \"C:\\\\\\\\\\\\\\\\Users\\\\\\\\\\\\\\\\evan\\\\\\\\\\\\\\\\Desktop\\\\\\\\\\\\\\\\Odysseus\\\\\\\\\\\\\\\\odysseus-app\\\\\\\\\\\\\\\\server\\\\\\\\\\\\\\\\\";\nfor \\(const l of lines\\) {\n  const m = l.match\\(/^\\(.+\\): line \\(\\\\d+\\), col \\(\\\\d+\\), Error/\\);\n  if \\(m\\) {\n    let f = m[1];\n    if \\(f.startsWith\\(prefix\\)\\) f = f.slice\\(prefix.length\\);\n    f = f.replace\\(/\\\\\\\\\\\\\\\\/g,\"/\"\\);\n    results.push\\({file:f, line:parseInt\\(m[2]\\), col:parseInt\\(m[3]\\)}\\);\n  }\n}\nconst files = {};\nfor \\(const r of results\\) {\n  if \\(!files[r.file]\\) files[r.file] = [];\n  files[r.file].push\\(r.line\\);\n}\nfor \\(const [f,lns] of Object.entries\\(files\\).sort\\(\\)\\) {\n  console.log\\(f + \": \" + lns.join\\(\",\"\\)\\);\n}\nconsole.log\\(\"Total: \" + results.length + \" in \" + Object.keys\\(files\\).length + \" files\"\\);\n')",
-      "Bash(cygpath -w /tmp/ne-raw.txt)"
+      "Bash(cygpath -w /tmp/ne-raw.txt)",
+      "Bash(mv consumables:*)",
+      "Bash(mv supplies/consumablesSchemas.ts supplies/supplySchemas.ts)",
+      "Bash(npx tsup:*)",
+      "Bash(sed -i 's/\\\\/\\\\/ Supplys/\\\\/\\\\/ Supplies/g' index.ts)",
+      "Bash(sed -i 's/Supplys Inventory/Supply Inventory/g' supplies/supplySchemas.ts)"
     ]
   }
 }
