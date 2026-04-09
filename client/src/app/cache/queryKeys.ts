@@ -116,17 +116,16 @@ export const queryKeys = {
       [...queryKeys.equipment.all(labId), 'maintenance', itemId] as const,
   },
 
-  // Consumables (lab-scoped)
-  consumables: {
-    all: (labId = '') => ['consumables', labId] as const,
-    categories: (labId = '') => [...queryKeys.consumables.all(labId), 'categories'] as const,
-    products: (labId = '') => [...queryKeys.consumables.all(labId), 'products'] as const,
-    detail: (labId = '', id: string) =>
-      [...queryKeys.consumables.all(labId), 'detail', id] as const,
-    locations: (labId = '') => [...queryKeys.consumables.all(labId), 'locations'] as const,
+  // Supplies (lab-scoped)
+  supplies: {
+    all: (labId = '') => ['supplies', labId] as const,
+    categories: (labId = '') => [...queryKeys.supplies.all(labId), 'categories'] as const,
+    products: (labId = '') => [...queryKeys.supplies.all(labId), 'products'] as const,
+    detail: (labId = '', id: string) => [...queryKeys.supplies.all(labId), 'detail', id] as const,
+    locations: (labId = '') => [...queryKeys.supplies.all(labId), 'locations'] as const,
     transactions: (labId = '', productId: string) =>
-      [...queryKeys.consumables.all(labId), 'transactions', productId] as const,
-    reorderList: (labId = '') => [...queryKeys.consumables.all(labId), 'reorder-list'] as const,
+      [...queryKeys.supplies.all(labId), 'transactions', productId] as const,
+    reorderList: (labId = '') => [...queryKeys.supplies.all(labId), 'reorder-list'] as const,
   },
 
   // Lookups (lab-scoped)

@@ -2,7 +2,7 @@
  * Lab Management Page
  *
  * Route-based page shell with sidebar tab navigation for equipment,
- * consumables, and reagents management.
+ * supplies, and reagents management.
  */
 
 import { useState, useCallback } from 'react';
@@ -11,8 +11,8 @@ import { Microscope, Package, Biohazard } from 'lucide-react';
 import { Routes, Route, Navigate, NavLink } from 'react-router-dom';
 
 import { AppHeader } from '@app/components/layout/AppHeader';
-import { ConsumablesTab } from '@domains/consumables/ui/components/ConsumablesTab';
 import { EquipmentTab } from '@domains/equipment/ui/components/EquipmentTab';
+import { SuppliesTab } from '@domains/supplies/ui/components/SuppliesTab';
 
 import '@shared/styles/base/layout.css';
 
@@ -29,10 +29,10 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { id: 'equipment', label: 'Equipment', icon: Microscope, path: '/lab/equipment', enabled: true },
   {
-    id: 'consumables',
-    label: 'Consumables',
+    id: 'supplies',
+    label: 'Supplies',
     icon: Package,
-    path: '/lab/consumables',
+    path: '/lab/supplies',
     enabled: true,
   },
   { id: 'reagents', label: 'Reagents', icon: Biohazard, path: '/lab/reagents', enabled: false },
@@ -101,7 +101,7 @@ export function LabManagementPage() {
           <div className="h-full">
             <Routes>
               <Route path="equipment" element={<EquipmentTab />} />
-              <Route path="consumables" element={<ConsumablesTab />} />
+              <Route path="supplies" element={<SuppliesTab />} />
               <Route path="*" element={<Navigate to="/lab/equipment" replace />} />
             </Routes>
           </div>

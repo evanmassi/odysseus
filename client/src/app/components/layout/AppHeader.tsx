@@ -285,9 +285,9 @@ export function AppHeader({
                         />
                         <MenuItem
                           icon={Package}
-                          label="Consumables"
+                          label="Supplies"
                           onClick={() => {
-                            void navigate('/lab/consumables');
+                            void navigate('/lab/supplies');
                             setShowSuiteDropdown(false);
                             setShowLabSubmenu(false);
                           }}

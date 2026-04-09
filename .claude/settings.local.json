@@ -121,7 +121,9 @@
       "Bash(mv ConsumableCategoryMapper.ts SupplyCategoryMapper.ts)",
       "Bash(mv ConsumableLocationMapper.ts SupplyLocationMapper.ts)",
       "Bash(mv ConsumableStockMapper.ts SupplyStockMapper.ts)",
-      "Bash(mv ConsumableTransactionMapper.ts SupplyTransactionMapper.ts)"
+      "Bash(mv ConsumableTransactionMapper.ts SupplyTransactionMapper.ts)",
+      "Bash(mv useConsumableQueries.ts useSupplyQueries.ts)",
+      "Bash(mv useConsumableMutations.ts useSupplyMutations.ts)"
     ]
   }
 }

@@ -39,10 +39,10 @@ const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   media: 'media type',
   specimen_type: 'specimen',
   equipment_maintenance_type: 'maintenance activity',
-  consumable_product_property: 'product property',
-  consumable_stock_unit: 'stock unit',
-  consumable_vendor: 'vendor',
-  consumable_manufacturer: 'manufacturer',
+  supply_product_property: 'product property',
+  supply_stock_unit: 'stock unit',
+  supply_vendor: 'vendor',
+  supply_manufacturer: 'manufacturer',
 };
 
 const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
@@ -51,10 +51,10 @@ const CATEGORY_PLURAL_LABELS: Record<LookupCategory, string> = {
   media: 'media types',
   specimen_type: 'specimens',
   equipment_maintenance_type: 'maintenance activities',
-  consumable_product_property: 'product properties',
-  consumable_stock_unit: 'stock units',
-  consumable_vendor: 'vendors',
-  consumable_manufacturer: 'manufacturers',
+  supply_product_property: 'product properties',
+  supply_stock_unit: 'stock units',
+  supply_vendor: 'vendors',
+  supply_manufacturer: 'manufacturers',
 };
 
 const CATEGORY_USAGE_LABELS: Record<
@@ -70,10 +70,10 @@ const CATEGORY_USAGE_LABELS: Record<
     plural: 'collection entries',
   },
   equipment_maintenance_type: { header: 'Entries', singular: 'log entry', plural: 'log entries' },
-  consumable_product_property: { header: 'Products', singular: 'product', plural: 'products' },
-  consumable_stock_unit: { header: 'Products', singular: 'product', plural: 'products' },
-  consumable_vendor: { header: 'Products', singular: 'product', plural: 'products' },
-  consumable_manufacturer: { header: 'Products', singular: 'product', plural: 'products' },
+  supply_product_property: { header: 'Products', singular: 'product', plural: 'products' },
+  supply_stock_unit: { header: 'Products', singular: 'product', plural: 'products' },
+  supply_vendor: { header: 'Products', singular: 'product', plural: 'products' },
+  supply_manufacturer: { header: 'Products', singular: 'product', plural: 'products' },
 };
 
 interface CategorySectionProps {
@@ -332,12 +332,12 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const queryClient = useQueryClient();
   const labId = useLabId();
   const location = useLocation();
-  const isConsumablesRoute = location.pathname.startsWith('/lab/consumables');
+  const isSuppliesRoute = location.pathname.startsWith('/lab/supplies');
   const isLabRoute = location.pathname.startsWith('/lab');
   const isBiobankRoute = !isLabRoute;
   const [biobankExpanded, setBiobankExpanded] = useState(isBiobankRoute);
-  const [equipmentExpanded, setEquipmentExpanded] = useState(isLabRoute && !isConsumablesRoute);
-  const [consumablesExpanded, setConsumablesExpanded] = useState(isConsumablesRoute);
+  const [equipmentExpanded, setEquipmentExpanded] = useState(isLabRoute && !isSuppliesRoute);
+  const [suppliesExpanded, setSuppliesExpanded] = useState(isSuppliesRoute);
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
   const [mediaValues, setMediaValues] = useState<LookupValueWithCount[]>([]);
@@ -345,16 +345,14 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const [equipmentMaintenanceTypeValues, setEquipmentMaintenanceTypeValues] = useState<
     LookupValueWithCount[]
   >([]);
-  const [consumableProductPropertyValues, setConsumableProductPropertyValues] = useState<
+  const [supplyProductPropertyValues, setSupplyProductPropertyValues] = useState<
     LookupValueWithCount[]
   >([]);
-  const [consumableStockUnitValues, setConsumableStockUnitValues] = useState<
-    LookupValueWithCount[]
-  >([]);
-  const [consumableVendorValues, setConsumableVendorValues] = useState<LookupValueWithCount[]>([]);
-  const [consumableManufacturerValues, setConsumableManufacturerValues] = useState<
-    LookupValueWithCount[]
-  >([]);
+  const [supplyStockUnitValues, setSupplyStockUnitValues] = useState<LookupValueWithCount[]>([]);
+  const [supplyVendorValues, setSupplyVendorValues] = useState<LookupValueWithCount[]>([]);
+  const [supplyManufacturerValues, setSupplyManufacturerValues] = useState<LookupValueWithCount[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -373,10 +371,10 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       media: setMediaValues,
       specimen_type: setSpecimenTypeValues,
       equipment_maintenance_type: setEquipmentMaintenanceTypeValues,
-      consumable_product_property: setConsumableProductPropertyValues,
-      consumable_stock_unit: setConsumableStockUnitValues,
-      consumable_vendor: setConsumableVendorValues,
-      consumable_manufacturer: setConsumableManufacturerValues,
+      supply_product_property: setSupplyProductPropertyValues,
+      supply_stock_unit: setSupplyStockUnitValues,
+      supply_vendor: setSupplyVendorValues,
+      supply_manufacturer: setSupplyManufacturerValues,
     }),
     []
   );
@@ -390,30 +388,30 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
         media,
         specimenTypes,
         equipmentMaintenanceTypes,
-        consumableProductProperties,
-        consumableStockUnits,
-        consumableVendors,
-        consumableManufacturers,
+        supplyProductProperties,
+        supplyStockUnits,
+        supplyVendors,
+        supplyManufacturers,
       ] = await Promise.all([
         adminService.getLookupValues('species'),
         adminService.getLookupValues('source'),
         adminService.getLookupValues('media'),
         adminService.getLookupValues('specimen_type'),
         adminService.getLookupValues('equipment_maintenance_type'),
-        adminService.getLookupValues('consumable_product_property'),
-        adminService.getLookupValues('consumable_stock_unit'),
-        adminService.getLookupValues('consumable_vendor'),
-        adminService.getLookupValues('consumable_manufacturer'),
+        adminService.getLookupValues('supply_product_property'),
+        adminService.getLookupValues('supply_stock_unit'),
+        adminService.getLookupValues('supply_vendor'),
+        adminService.getLookupValues('supply_manufacturer'),
       ]);
       setSpeciesValues(species);
       setSourceValues(sources);
       setMediaValues(media);
       setSpecimenTypeValues(specimenTypes);
       setEquipmentMaintenanceTypeValues(equipmentMaintenanceTypes);
-      setConsumableProductPropertyValues(consumableProductProperties);
-      setConsumableStockUnitValues(consumableStockUnits);
-      setConsumableVendorValues(consumableVendors);
-      setConsumableManufacturerValues(consumableManufacturers);
+      setSupplyProductPropertyValues(supplyProductProperties);
+      setSupplyStockUnitValues(supplyStockUnits);
+      setSupplyVendorValues(supplyVendors);
+      setSupplyManufacturerValues(supplyManufacturers);
     } catch (error) {
       logger.error('Failed to load lookup values', { error });
       notifications.error('Failed to load catalog values');
@@ -605,63 +603,59 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
           )}
         </div>
 
-        {/* Consumables Catalogs */}
+        {/* Supplies Catalogs */}
         <div className="rounded-lg border border-border overflow-hidden">
           <button
             type="button"
             className="w-full flex items-center gap-2 px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left"
-            onClick={() => setConsumablesExpanded(!consumablesExpanded)}
+            onClick={() => setSuppliesExpanded(!suppliesExpanded)}
           >
-            {consumablesExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            <span className="text-sm font-semibold text-secondary-foreground">Consumables</span>
+            {suppliesExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            <span className="text-sm font-semibold text-secondary-foreground">Supplies</span>
           </button>
-          {consumablesExpanded && (
+          {suppliesExpanded && (
             <div className="p-3 space-y-6">
               <CategorySection
-                category="consumable_product_property"
+                category="supply_product_property"
                 title="Product Properties"
-                values={consumableProductPropertyValues}
+                values={supplyProductPropertyValues}
                 loading={loading}
-                onAdd={value => handleAdd('consumable_product_property', value)}
-                onRename={(id, newValue) =>
-                  handleRename('consumable_product_property', id, newValue)
-                }
-                onDelete={(id, value) =>
-                  handleDeleteRequest('consumable_product_property', id, value)
-                }
+                onAdd={value => handleAdd('supply_product_property', value)}
+                onRename={(id, newValue) => handleRename('supply_product_property', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('supply_product_property', id, value)}
                 deletingId={deletingId}
                 readOnly={readOnly}
               />
               <CategorySection
-                category="consumable_stock_unit"
+                category="supply_stock_unit"
                 title="Stock Units"
-                values={consumableStockUnitValues}
+                values={supplyStockUnitValues}
                 loading={loading}
-                onAdd={value => handleAdd('consumable_stock_unit', value)}
-                onRename={(id, newValue) => handleRename('consumable_stock_unit', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('consumable_stock_unit', id, value)}
+                onAdd={value => handleAdd('supply_stock_unit', value)}
+                onRename={(id, newValue) => handleRename('supply_stock_unit', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('supply_stock_unit', id, value)}
                 deletingId={deletingId}
                 readOnly={readOnly}
               />
               <CategorySection
-                category="consumable_vendor"
+                category="supply_vendor"
                 title="Vendors"
-                values={consumableVendorValues}
+                values={supplyVendorValues}
                 loading={loading}
-                onAdd={value => handleAdd('consumable_vendor', value)}
-                onRename={(id, newValue) => handleRename('consumable_vendor', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('consumable_vendor', id, value)}
+                onAdd={value => handleAdd('supply_vendor', value)}
+                onRename={(id, newValue) => handleRename('supply_vendor', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('supply_vendor', id, value)}
                 deletingId={deletingId}
                 readOnly={readOnly}
               />
               <CategorySection
-                category="consumable_manufacturer"
+                category="supply_manufacturer"
                 title="Manufacturers"
-                values={consumableManufacturerValues}
+                values={supplyManufacturerValues}
                 loading={loading}
-                onAdd={value => handleAdd('consumable_manufacturer', value)}
-                onRename={(id, newValue) => handleRename('consumable_manufacturer', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('consumable_manufacturer', id, value)}
+                onAdd={value => handleAdd('supply_manufacturer', value)}
+                onRename={(id, newValue) => handleRename('supply_manufacturer', id, newValue)}
+                onDelete={(id, value) => handleDeleteRequest('supply_manufacturer', id, value)}
                 deletingId={deletingId}
                 readOnly={readOnly}
               />

@@ -780,14 +780,14 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
 
     // ── CONSUMABLE EVENTS ──
 
-    if (entityType === 'consumable_product') {
-      if (action === 'consumable_stock_voided') {
+    if (entityType === 'supply_product') {
+      if (action === 'supply_stock_voided') {
         const voidReason = getStringProperty(details, 'voidReason');
         const username = getStringProperty(details, 'voidedBy');
         return plain(voidReason ? `${username} — ${voidReason}` : username);
       }
 
-      if (action === 'consumable_bulk_voided') {
+      if (action === 'supply_bulk_voided') {
         const count = getNumberProperty(details, 'count');
         const voidReason = getStringProperty(details, 'voidReason');
         return plain(
