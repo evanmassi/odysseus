@@ -1,14 +1,14 @@
 /**
- * Consumable Transaction Mapper
+ * Supply Transaction Mapper
  *
- * Converts between consumable transaction PostgreSQL rows and the domain row interface.
+ * Converts between supply transaction PostgreSQL rows and the domain row interface.
  * Handles NUMERIC → number conversion for quantity and cost fields.
  */
 
-import type { ConsumableTransactionRow } from '@domain/repositories/ConsumableProductRepository';
+import type { SupplyTransactionRow } from '@domain/repositories/SupplyProductRepository';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
-export interface ConsumableTransactionDbRow {
+export interface SupplyTransactionDbRow {
   id: string;
   product_id: string;
   location_id: string;
@@ -29,9 +29,9 @@ export interface ConsumableTransactionDbRow {
   related_transaction_id: string | null;
 }
 
-export class ConsumableTransactionMapper {
+export class SupplyTransactionMapper {
 
-  static fromRow(row: ConsumableTransactionDbRow): ConsumableTransactionRow {
+  static fromRow(row: SupplyTransactionDbRow): SupplyTransactionRow {
     return {
       id: row.id,
       productId: row.product_id,
@@ -54,7 +54,7 @@ export class ConsumableTransactionMapper {
     };
   }
 
-  static fromRows(rows: ConsumableTransactionDbRow[]): ConsumableTransactionRow[] {
+  static fromRows(rows: SupplyTransactionDbRow[]): SupplyTransactionRow[] {
     return rows.map(row => this.fromRow(row));
   }
 }

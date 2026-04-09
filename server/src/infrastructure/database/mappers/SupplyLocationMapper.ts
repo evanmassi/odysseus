@@ -1,13 +1,13 @@
 /**
- * Consumable Location Mapper
+ * Supply Location Mapper
  *
- * Converts between ConsumableLocation domain entities and PostgreSQL rows.
+ * Converts between SupplyLocation domain entities and PostgreSQL rows.
  */
 
-import { ConsumableLocation } from '@domain/entities/ConsumableLocation';
+import { SupplyLocation } from '@domain/entities/SupplyLocation';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
-export interface ConsumableLocationRow {
+export interface SupplyLocationRow {
   id: string;
   lab_id: string;
   name: string;
@@ -17,9 +17,9 @@ export interface ConsumableLocationRow {
   updated_at: Date | string;
 }
 
-export class ConsumableLocationMapper {
+export class SupplyLocationMapper {
 
-  static toRow(location: ConsumableLocation): ConsumableLocationRow {
+  static toRow(location: SupplyLocation): SupplyLocationRow {
     return {
       id: location.id,
       lab_id: location.labId,
@@ -31,8 +31,8 @@ export class ConsumableLocationMapper {
     };
   }
 
-  static fromRow(row: ConsumableLocationRow): ConsumableLocation {
-    return ConsumableLocation.fromData({
+  static fromRow(row: SupplyLocationRow): SupplyLocation {
+    return SupplyLocation.fromData({
       id: row.id,
       labId: row.lab_id,
       name: row.name,
@@ -43,7 +43,7 @@ export class ConsumableLocationMapper {
     });
   }
 
-  static fromRows(rows: ConsumableLocationRow[]): ConsumableLocation[] {
+  static fromRows(rows: SupplyLocationRow[]): SupplyLocation[] {
     return rows.map(row => this.fromRow(row));
   }
 }

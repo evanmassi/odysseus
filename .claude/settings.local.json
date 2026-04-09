@@ -116,7 +116,12 @@
       "Bash(sed -i \"s/generateId\\('cprod'\\)/generateId\\('sprod'\\)/g\" SupplyProduct.ts)",
       "Bash(sed -i \"s/generateId\\('ccat'\\)/generateId\\('scat'\\)/g\" SupplyCategory.ts)",
       "Bash(sed -i \"s/generateId\\('cloc'\\)/generateId\\('sloc'\\)/g\" SupplyLocation.ts)",
-      "Bash(sed -i \"s/generateId\\('cdoc'\\)/generateId\\('sdoc'\\)/g\" SupplyDocument.ts)"
+      "Bash(sed -i \"s/generateId\\('cdoc'\\)/generateId\\('sdoc'\\)/g\" SupplyDocument.ts)",
+      "Bash(mv ConsumableProductMapper.ts SupplyProductMapper.ts)",
+      "Bash(mv ConsumableCategoryMapper.ts SupplyCategoryMapper.ts)",
+      "Bash(mv ConsumableLocationMapper.ts SupplyLocationMapper.ts)",
+      "Bash(mv ConsumableStockMapper.ts SupplyStockMapper.ts)",
+      "Bash(mv ConsumableTransactionMapper.ts SupplyTransactionMapper.ts)"
     ]
   }
 }

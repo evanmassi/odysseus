@@ -5,9 +5,9 @@
  */
 
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
-import type { ConsumableCategoryRepository } from '@domain/repositories/ConsumableCategoryRepository';
-import type { ConsumableLocationRepository } from '@domain/repositories/ConsumableLocationRepository';
-import type { ConsumableProductRepository } from '@domain/repositories/ConsumableProductRepository';
+import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
+import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
+import type { SupplyProductRepository } from '@domain/repositories/SupplyProductRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
@@ -24,9 +24,9 @@ import type { UserSessionRepository } from '@domain/repositories/UserSessionRepo
 import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
-import { ConsumableCategoryRepository as ConsumableCategoryRepositoryImpl } from '@infrastructure/repositories/ConsumableCategoryRepository';
-import { ConsumableLocationRepository as ConsumableLocationRepositoryImpl } from '@infrastructure/repositories/ConsumableLocationRepository';
-import { ConsumableProductRepository as ConsumableProductRepositoryImpl } from '@infrastructure/repositories/ConsumableProductRepository';
+import { SupplyCategoryRepository as SupplyCategoryRepositoryImpl } from '@infrastructure/repositories/SupplyCategoryRepository';
+import { SupplyLocationRepository as SupplyLocationRepositoryImpl } from '@infrastructure/repositories/SupplyLocationRepository';
+import { SupplyProductRepository as SupplyProductRepositoryImpl } from '@infrastructure/repositories/SupplyProductRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
 import { EquipmentCategoryRepository as EquipmentCategoryRepositoryImpl } from '@infrastructure/repositories/EquipmentCategoryRepository';
 import { EquipmentItemRepository as EquipmentItemRepositoryImpl } from '@infrastructure/repositories/EquipmentItemRepository';
@@ -57,9 +57,9 @@ export class RepositoryFactory {
   private donorRepository?: DonorRepository;
   private equipmentCategoryRepository?: EquipmentCategoryRepository;
   private equipmentItemRepository?: EquipmentItemRepository;
-  private consumableCategoryRepository?: ConsumableCategoryRepository;
-  private consumableProductRepository?: ConsumableProductRepository;
-  private consumableLocationRepository?: ConsumableLocationRepository;
+  private supplyCategoryRepository?: SupplyCategoryRepository;
+  private supplyProductRepository?: SupplyProductRepository;
+  private supplyLocationRepository?: SupplyLocationRepository;
 
   constructor(databaseConfig: DatabaseConnectionConfig) {
     this.postgresContext = new PostgresContext(databaseConfig);
@@ -168,25 +168,25 @@ export class RepositoryFactory {
     return this.equipmentItemRepository;
   }
 
-  getConsumableCategoryRepository(): ConsumableCategoryRepository {
-    if (!this.consumableCategoryRepository) {
-      this.consumableCategoryRepository = new ConsumableCategoryRepositoryImpl(this.postgresContext);
+  getSupplyCategoryRepository(): SupplyCategoryRepository {
+    if (!this.supplyCategoryRepository) {
+      this.supplyCategoryRepository = new SupplyCategoryRepositoryImpl(this.postgresContext);
     }
-    return this.consumableCategoryRepository;
+    return this.supplyCategoryRepository;
   }
 
-  getConsumableProductRepository(): ConsumableProductRepository {
-    if (!this.consumableProductRepository) {
-      this.consumableProductRepository = new ConsumableProductRepositoryImpl(this.postgresContext);
+  getSupplyProductRepository(): SupplyProductRepository {
+    if (!this.supplyProductRepository) {
+      this.supplyProductRepository = new SupplyProductRepositoryImpl(this.postgresContext);
     }
-    return this.consumableProductRepository;
+    return this.supplyProductRepository;
   }
 
-  getConsumableLocationRepository(): ConsumableLocationRepository {
-    if (!this.consumableLocationRepository) {
-      this.consumableLocationRepository = new ConsumableLocationRepositoryImpl(this.postgresContext);
+  getSupplyLocationRepository(): SupplyLocationRepository {
+    if (!this.supplyLocationRepository) {
+      this.supplyLocationRepository = new SupplyLocationRepositoryImpl(this.postgresContext);
     }
-    return this.consumableLocationRepository;
+    return this.supplyLocationRepository;
   }
 
   getRepositories() {
@@ -205,9 +205,9 @@ export class RepositoryFactory {
       donors: this.getDonorRepository(),
       equipmentCategories: this.getEquipmentCategoryRepository(),
       equipmentItems: this.getEquipmentItemRepository(),
-      consumableCategories: this.getConsumableCategoryRepository(),
-      consumableProducts: this.getConsumableProductRepository(),
-      consumableLocations: this.getConsumableLocationRepository(),
+      supplyCategories: this.getSupplyCategoryRepository(),
+      supplyProducts: this.getSupplyProductRepository(),
+      supplyLocations: this.getSupplyLocationRepository(),
     };
   }
 

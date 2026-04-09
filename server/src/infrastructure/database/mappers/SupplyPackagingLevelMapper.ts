@@ -1,13 +1,13 @@
 /**
- * Consumable Packaging Level Mapper
+ * Supply Packaging Level Mapper
  *
  * Converts between packaging level PostgreSQL rows and the domain row interface.
  * Handles NUMERIC → number conversion for quantity.
  */
 
-import type { ConsumablePackagingLevelRow } from '@domain/repositories/ConsumableProductRepository';
+import type { SupplyPackagingLevelRow } from '@domain/repositories/SupplyProductRepository';
 
-export interface ConsumablePackagingLevelDbRow {
+export interface SupplyPackagingLevelDbRow {
   id: string;
   product_id: string;
   unit_name: string;
@@ -15,9 +15,9 @@ export interface ConsumablePackagingLevelDbRow {
   parent_unit: string | null;
 }
 
-export class ConsumablePackagingLevelMapper {
+export class SupplyPackagingLevelMapper {
 
-  static fromRow(row: ConsumablePackagingLevelDbRow): ConsumablePackagingLevelRow {
+  static fromRow(row: SupplyPackagingLevelDbRow): SupplyPackagingLevelRow {
     return {
       id: row.id,
       productId: row.product_id,
@@ -27,7 +27,7 @@ export class ConsumablePackagingLevelMapper {
     };
   }
 
-  static fromRows(rows: ConsumablePackagingLevelDbRow[]): ConsumablePackagingLevelRow[] {
+  static fromRows(rows: SupplyPackagingLevelDbRow[]): SupplyPackagingLevelRow[] {
     return rows.map(row => this.fromRow(row));
   }
 }

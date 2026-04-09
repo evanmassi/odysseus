@@ -102,7 +102,7 @@ export class AuditModule {
         this.shared.configurationService.get('app').version,
         repositories.equipmentItems,
         repositories.equipmentCategories,
-        repositories.consumableProducts,
+        repositories.supplyProducts,
       );
     }
     return this.exportService;

@@ -413,7 +413,7 @@ export class StorageModule {
         repositories.lookupValues,
         repositories.equipmentItems,
         repositories.donors,
-        repositories.consumableProducts,
+        repositories.supplyProducts,
       );
     }
     return this.lookupValueApplicationService;

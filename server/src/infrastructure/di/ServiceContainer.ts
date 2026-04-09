@@ -12,7 +12,7 @@ import type { AuditEventHandler } from '@application/event-handlers/AuditEventHa
 import type { SocketEventHandler } from '@application/event-handlers/SocketEventHandler';
 import type { AuditRetentionService } from '@application/services/AuditRetentionService';
 import type { AuditService } from '@application/services/AuditService';
-import type { ConsumableApplicationService } from '@application/services/ConsumableApplicationService';
+import type { SupplyApplicationService } from '@application/services/SupplyApplicationService';
 import type { DonorApplicationService } from '@application/services/DonorApplicationService';
 import type { EquipmentApplicationService } from '@application/services/EquipmentApplicationService';
 import type { ExportService } from '@application/services/ExportService';
@@ -27,7 +27,7 @@ import { TubePositionService } from '@domain/services/TubePositionService';
 import { ValidationService } from '@domain/services/ValidationService';
 import { AuditModule } from '@infrastructure/di/modules/AuditModule';
 import { AuthModule } from '@infrastructure/di/modules/AuthModule';
-import { ConsumableModule } from '@infrastructure/di/modules/ConsumableModule';
+import { SupplyModule } from '@infrastructure/di/modules/SupplyModule';
 import { DonorModule } from '@infrastructure/di/modules/DonorModule';
 import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
@@ -48,7 +48,7 @@ import type { AdminUserController } from '@presentation/controllers/admin/AdminU
 import type { AuditController } from '@presentation/controllers/AuditController';
 import type { AuthController } from '@presentation/controllers/auth/AuthController';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
-import type { ConsumableController } from '@presentation/controllers/ConsumableController';
+import type { SupplyController } from '@presentation/controllers/SupplyController';
 import type { DonorController } from '@presentation/controllers/DonorController';
 import type { EquipmentController } from '@presentation/controllers/EquipmentController';
 import type { ExportController } from '@presentation/controllers/ExportController';
@@ -92,7 +92,7 @@ export class ServiceContainer {
   private _storageModule?: StorageModule;
   private _authModule?: AuthModule;
   private _donorModule?: DonorModule;
-  private _consumableModule?: ConsumableModule;
+  private _supplyModule?: SupplyModule;
   private _equipmentModule?: EquipmentModule;
 
   constructor(repositoryFactory: RepositoryFactory, configurationService: ConfigurationService) {
@@ -217,11 +217,11 @@ export class ServiceContainer {
     return this._donorModule;
   }
 
-  private getConsumableModule(): ConsumableModule {
-    if (!this._consumableModule) {
-      this._consumableModule = new ConsumableModule(this.getShared(), this.repositoryFactory);
+  private getSupplyModule(): SupplyModule {
+    if (!this._supplyModule) {
+      this._supplyModule = new SupplyModule(this.getShared(), this.repositoryFactory);
     }
-    return this._consumableModule;
+    return this._supplyModule;
   }
 
   private getEquipmentModule(): EquipmentModule {
@@ -397,14 +397,14 @@ export class ServiceContainer {
     return this.getDonorModule().getDonorController();
   }
 
-  // Public API — ConsumableModule
+  // Public API — SupplyModule
 
-  getConsumableApplicationService(): ConsumableApplicationService {
-    return this.getConsumableModule().getConsumableApplicationService();
+  getSupplyApplicationService(): SupplyApplicationService {
+    return this.getSupplyModule().getSupplyApplicationService();
   }
 
-  getConsumableController(): ConsumableController {
-    return this.getConsumableModule().getConsumableController();
+  getSupplyController(): SupplyController {
+    return this.getSupplyModule().getSupplyController();
   }
 
   // Public API — EquipmentModule

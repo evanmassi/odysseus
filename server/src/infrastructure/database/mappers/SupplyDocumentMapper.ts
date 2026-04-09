@@ -1,13 +1,13 @@
 /**
- * Consumable Document Mapper
+ * Supply Document Mapper
  *
- * Converts between ConsumableDocument domain entities and PostgreSQL rows.
+ * Converts between SupplyDocument domain entities and PostgreSQL rows.
  */
 
-import { ConsumableDocument } from '@domain/entities/ConsumableDocument';
+import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
-export interface ConsumableDocumentRow {
+export interface SupplyDocumentRow {
   id: string;
   product_id: string;
   label: string;
@@ -16,9 +16,9 @@ export interface ConsumableDocumentRow {
   created_at: Date | string;
 }
 
-export class ConsumableDocumentMapper {
+export class SupplyDocumentMapper {
 
-  static toRow(document: ConsumableDocument): ConsumableDocumentRow {
+  static toRow(document: SupplyDocument): SupplyDocumentRow {
     return {
       id: document.id,
       product_id: document.productId,
@@ -29,8 +29,8 @@ export class ConsumableDocumentMapper {
     };
   }
 
-  static fromRow(row: ConsumableDocumentRow): ConsumableDocument {
-    return ConsumableDocument.fromData({
+  static fromRow(row: SupplyDocumentRow): SupplyDocument {
+    return SupplyDocument.fromData({
       id: row.id,
       productId: row.product_id,
       label: row.label,
@@ -40,7 +40,7 @@ export class ConsumableDocumentMapper {
     });
   }
 
-  static fromRows(rows: ConsumableDocumentRow[]): ConsumableDocument[] {
+  static fromRows(rows: SupplyDocumentRow[]): SupplyDocument[] {
     return rows.map(row => this.fromRow(row));
   }
 }

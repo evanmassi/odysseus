@@ -1,35 +1,35 @@
 /**
- * Consumable Product Repository
+ * Supply Product Repository
  *
- * PostgreSQL implementation for consumable products, documents, barcodes,
+ * PostgreSQL implementation for supply products, documents, barcodes,
  * stock levels, transactions, and lookup value support.
  */
 
-import type { ConsumableDocument } from '@domain/entities/ConsumableDocument';
-import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
+import type { SupplyDocument } from '@domain/entities/SupplyDocument';
+import type { SupplyProduct } from '@domain/entities/SupplyProduct';
 import type {
-  ConsumableProductRepository as IConsumableProductRepository,
-  ConsumableStockRow,
-  ConsumableBarcodeRow,
-  ConsumableTransactionRow,
-  ConsumablePackagingLevelRow,
+  SupplyProductRepository as ISupplyProductRepository,
+  SupplyStockRow,
+  SupplyBarcodeRow,
+  SupplyTransactionRow,
+  SupplyPackagingLevelRow,
   ProductWithStock,
   RecordTransactionData,
   VoidTransactionData,
-} from '@domain/repositories/ConsumableProductRepository';
+} from '@domain/repositories/SupplyProductRepository';
 import { generateId } from '@domain/utils/generateId';
-import type { ConsumableBarcodeDbRow } from '@infrastructure/database/mappers/ConsumableBarcodeMapper';
-import { ConsumableBarcodeMapper } from '@infrastructure/database/mappers/ConsumableBarcodeMapper';
-import type { ConsumableDocumentRow } from '@infrastructure/database/mappers/ConsumableDocumentMapper';
-import { ConsumableDocumentMapper } from '@infrastructure/database/mappers/ConsumableDocumentMapper';
-import type { ConsumablePackagingLevelDbRow } from '@infrastructure/database/mappers/ConsumablePackagingLevelMapper';
-import { ConsumablePackagingLevelMapper } from '@infrastructure/database/mappers/ConsumablePackagingLevelMapper';
-import type { ConsumableProductRow } from '@infrastructure/database/mappers/ConsumableProductMapper';
-import { ConsumableProductMapper } from '@infrastructure/database/mappers/ConsumableProductMapper';
-import type { ConsumableStockDbRow } from '@infrastructure/database/mappers/ConsumableStockMapper';
-import { ConsumableStockMapper } from '@infrastructure/database/mappers/ConsumableStockMapper';
-import type { ConsumableTransactionDbRow } from '@infrastructure/database/mappers/ConsumableTransactionMapper';
-import { ConsumableTransactionMapper } from '@infrastructure/database/mappers/ConsumableTransactionMapper';
+import type { SupplyBarcodeDbRow } from '@infrastructure/database/mappers/SupplyBarcodeMapper';
+import { SupplyBarcodeMapper } from '@infrastructure/database/mappers/SupplyBarcodeMapper';
+import type { SupplyDocumentRow } from '@infrastructure/database/mappers/SupplyDocumentMapper';
+import { SupplyDocumentMapper } from '@infrastructure/database/mappers/SupplyDocumentMapper';
+import type { SupplyPackagingLevelDbRow } from '@infrastructure/database/mappers/SupplyPackagingLevelMapper';
+import { SupplyPackagingLevelMapper } from '@infrastructure/database/mappers/SupplyPackagingLevelMapper';
+import type { SupplyProductRow } from '@infrastructure/database/mappers/SupplyProductMapper';
+import { SupplyProductMapper } from '@infrastructure/database/mappers/SupplyProductMapper';
+import type { SupplyStockDbRow } from '@infrastructure/database/mappers/SupplyStockMapper';
+import { SupplyStockMapper } from '@infrastructure/database/mappers/SupplyStockMapper';
+import type { SupplyTransactionDbRow } from '@infrastructure/database/mappers/SupplyTransactionMapper';
+import { SupplyTransactionMapper } from '@infrastructure/database/mappers/SupplyTransactionMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const PRODUCT_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
@@ -44,62 +44,62 @@ const TXN_COLUMNS = `id, product_id, location_id, lab_id, type, quantity_change,
   lot_number, expiration_date, po_number, cost, performed_by, notes, created_at,
   voided_at, voided_by, void_reason, related_transaction_id`;
 
-export class ConsumableProductRepository implements IConsumableProductRepository {
+export class SupplyProductRepository implements ISupplyProductRepository {
 
   constructor(private db: PostgresContext) {}
 
   // Products
 
-  async findById(id: string, labId: string): Promise<ConsumableProduct | null> {
-    const row = await this.db.queryOne<ConsumableProductRow>(
-      `SELECT ${PRODUCT_COLUMNS} FROM consumable_products WHERE id = $1 AND lab_id = $2`,
+  async findById(id: string, labId: string): Promise<SupplyProduct | null> {
+    const row = await this.db.queryOne<SupplyProductRow>(
+      `SELECT ${PRODUCT_COLUMNS} FROM supply_products WHERE id = $1 AND lab_id = $2`,
       [id, labId]
     );
-    return row ? ConsumableProductMapper.fromRow(row) : null;
+    return row ? SupplyProductMapper.fromRow(row) : null;
   }
 
-  async findByLabId(labId: string): Promise<ConsumableProduct[]> {
-    const rows = await this.db.queryMany<ConsumableProductRow>(
-      `SELECT ${PRODUCT_COLUMNS} FROM consumable_products WHERE lab_id = $1 ORDER BY name`,
+  async findByLabId(labId: string): Promise<SupplyProduct[]> {
+    const rows = await this.db.queryMany<SupplyProductRow>(
+      `SELECT ${PRODUCT_COLUMNS} FROM supply_products WHERE lab_id = $1 ORDER BY name`,
       [labId]
     );
-    return ConsumableProductMapper.fromRows(rows);
+    return SupplyProductMapper.fromRows(rows);
   }
 
   async findByLabIdWithStock(labId: string): Promise<ProductWithStock[]> {
-    const rows = await this.db.queryMany<ConsumableProductRow & { total_stock: string; location_names: string[] }>(
+    const rows = await this.db.queryMany<SupplyProductRow & { total_stock: string; location_names: string[] }>(
       `SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
               COALESCE(
                 array_agg(DISTINCT l.name ORDER BY l.name) FILTER (WHERE l.name IS NOT NULL AND s.quantity > 0),
                 '{}'
               ) as location_names
-       FROM consumable_products p
-       LEFT JOIN consumable_stock s ON s.product_id = p.id
-       LEFT JOIN consumable_locations l ON l.id = s.location_id
+       FROM supply_products p
+       LEFT JOIN supply_stock s ON s.product_id = p.id
+       LEFT JOIN supply_locations l ON l.id = s.location_id
        WHERE p.lab_id = $1
        GROUP BY p.id
        ORDER BY p.name`,
       [labId]
     );
     return rows.map(row => ({
-      product: ConsumableProductMapper.fromRow(row),
+      product: SupplyProductMapper.fromRow(row),
       totalStock: parseFloat(row.total_stock),
       locationNames: row.location_names ?? [],
     }));
   }
 
-  async findByCategoryId(categoryId: string, labId: string): Promise<ConsumableProduct[]> {
-    const rows = await this.db.queryMany<ConsumableProductRow>(
-      `SELECT ${PRODUCT_COLUMNS} FROM consumable_products WHERE category_id = $1 AND lab_id = $2 ORDER BY name`,
+  async findByCategoryId(categoryId: string, labId: string): Promise<SupplyProduct[]> {
+    const rows = await this.db.queryMany<SupplyProductRow>(
+      `SELECT ${PRODUCT_COLUMNS} FROM supply_products WHERE category_id = $1 AND lab_id = $2 ORDER BY name`,
       [categoryId, labId]
     );
-    return ConsumableProductMapper.fromRows(rows);
+    return SupplyProductMapper.fromRows(rows);
   }
 
-  async save(product: ConsumableProduct): Promise<void> {
-    const row = ConsumableProductMapper.toRow(product);
+  async save(product: SupplyProduct): Promise<void> {
+    const row = SupplyProductMapper.toRow(product);
     await this.db.execute(`
-      INSERT INTO consumable_products (${PRODUCT_COLUMNS})
+      INSERT INTO supply_products (${PRODUCT_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       ON CONFLICT (id) DO UPDATE SET
         category_id = EXCLUDED.category_id,
@@ -130,7 +130,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async delete(id: string, labId: string): Promise<boolean> {
     const result = await this.db.execute(
-      'DELETE FROM consumable_products WHERE id = $1 AND lab_id = $2',
+      'DELETE FROM supply_products WHERE id = $1 AND lab_id = $2',
       [id, labId]
     );
     return (result.rowCount ?? 0) > 0;
@@ -138,7 +138,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async hasTransactions(id: string): Promise<boolean> {
     const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM consumable_transactions WHERE product_id = $1',
+      'SELECT COUNT(*) as count FROM supply_transactions WHERE product_id = $1',
       [id]
     );
     return parseInt(row?.count ?? '0', 10) > 0;
@@ -146,18 +146,18 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   // Documents
 
-  async findDocumentsByProductId(productId: string): Promise<ConsumableDocument[]> {
-    const rows = await this.db.queryMany<ConsumableDocumentRow>(
-      `SELECT ${DOC_COLUMNS} FROM consumable_documents WHERE product_id = $1 ORDER BY created_at DESC`,
+  async findDocumentsByProductId(productId: string): Promise<SupplyDocument[]> {
+    const rows = await this.db.queryMany<SupplyDocumentRow>(
+      `SELECT ${DOC_COLUMNS} FROM supply_documents WHERE product_id = $1 ORDER BY created_at DESC`,
       [productId]
     );
-    return ConsumableDocumentMapper.fromRows(rows);
+    return SupplyDocumentMapper.fromRows(rows);
   }
 
-  async saveDocument(document: ConsumableDocument): Promise<void> {
-    const row = ConsumableDocumentMapper.toRow(document);
+  async saveDocument(document: SupplyDocument): Promise<void> {
+    const row = SupplyDocumentMapper.toRow(document);
     await this.db.execute(`
-      INSERT INTO consumable_documents (${DOC_COLUMNS})
+      INSERT INTO supply_documents (${DOC_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6)
     `, [row.id, row.product_id, row.label, row.url, row.notes, row.created_at]);
   }
@@ -174,37 +174,37 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
     params.push(id);
     await this.db.execute(
-      `UPDATE consumable_documents SET ${sets.join(', ')} WHERE id = $${idx}`,
+      `UPDATE supply_documents SET ${sets.join(', ')} WHERE id = $${idx}`,
       params
     );
   }
 
   async deleteDocument(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM consumable_documents WHERE id = $1', [id]);
+    const result = await this.db.execute('DELETE FROM supply_documents WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 
   // Barcodes
 
-  async findBarcodesByProductId(productId: string): Promise<ConsumableBarcodeRow[]> {
-    const rows = await this.db.queryMany<ConsumableBarcodeDbRow>(
-      `SELECT ${BARCODE_COLUMNS} FROM consumable_barcodes WHERE product_id = $1`,
+  async findBarcodesByProductId(productId: string): Promise<SupplyBarcodeRow[]> {
+    const rows = await this.db.queryMany<SupplyBarcodeDbRow>(
+      `SELECT ${BARCODE_COLUMNS} FROM supply_barcodes WHERE product_id = $1`,
       [productId]
     );
-    return ConsumableBarcodeMapper.fromRows(rows);
+    return SupplyBarcodeMapper.fromRows(rows);
   }
 
-  async findByBarcodeValue(barcodeValue: string): Promise<ConsumableBarcodeRow | null> {
-    const row = await this.db.queryOne<ConsumableBarcodeDbRow>(
-      `SELECT ${BARCODE_COLUMNS} FROM consumable_barcodes WHERE barcode_value = $1`,
+  async findByBarcodeValue(barcodeValue: string): Promise<SupplyBarcodeRow | null> {
+    const row = await this.db.queryOne<SupplyBarcodeDbRow>(
+      `SELECT ${BARCODE_COLUMNS} FROM supply_barcodes WHERE barcode_value = $1`,
       [barcodeValue]
     );
-    return row ? ConsumableBarcodeMapper.fromRow(row) : null;
+    return row ? SupplyBarcodeMapper.fromRow(row) : null;
   }
 
-  async saveBarcode(barcode: ConsumableBarcodeRow): Promise<void> {
+  async saveBarcode(barcode: SupplyBarcodeRow): Promise<void> {
     await this.db.execute(`
-      INSERT INTO consumable_barcodes (${BARCODE_COLUMNS})
+      INSERT INTO supply_barcodes (${BARCODE_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6)
     `, [barcode.id, barcode.productId, barcode.barcodeValue, barcode.barcodeType, barcode.isPrimary, barcode.label ?? null]);
   }
@@ -226,29 +226,29 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
     params.push(id);
     await this.db.execute(
-      `UPDATE consumable_barcodes SET ${sets.join(', ')} WHERE id = $${idx}`,
+      `UPDATE supply_barcodes SET ${sets.join(', ')} WHERE id = $${idx}`,
       params
     );
   }
 
   async deleteBarcode(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM consumable_barcodes WHERE id = $1', [id]);
+    const result = await this.db.execute('DELETE FROM supply_barcodes WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 
   // Stock
 
-  async findStockByProductId(productId: string): Promise<ConsumableStockRow[]> {
-    const rows = await this.db.queryMany<ConsumableStockDbRow>(
-      `SELECT ${STOCK_COLUMNS} FROM consumable_stock WHERE product_id = $1`,
+  async findStockByProductId(productId: string): Promise<SupplyStockRow[]> {
+    const rows = await this.db.queryMany<SupplyStockDbRow>(
+      `SELECT ${STOCK_COLUMNS} FROM supply_stock WHERE product_id = $1`,
       [productId]
     );
-    return ConsumableStockMapper.fromRows(rows);
+    return SupplyStockMapper.fromRows(rows);
   }
 
   async getTotalStock(productId: string): Promise<number> {
     const row = await this.db.queryOne<{ total: string }>(
-      'SELECT COALESCE(SUM(quantity), 0) as total FROM consumable_stock WHERE product_id = $1',
+      'SELECT COALESCE(SUM(quantity), 0) as total FROM supply_stock WHERE product_id = $1',
       [productId]
     );
     return parseFloat(row?.total ?? '0');
@@ -256,37 +256,37 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   // Transactions — atomic: UPSERT stock RETURNING quantity → INSERT transaction
 
-  async findTransactionsByProductId(productId: string, limit?: number): Promise<ConsumableTransactionRow[]> {
+  async findTransactionsByProductId(productId: string, limit?: number): Promise<SupplyTransactionRow[]> {
     if (limit != null) {
-      const rows = await this.db.queryMany<ConsumableTransactionDbRow>(
-        `SELECT ${TXN_COLUMNS} FROM consumable_transactions WHERE product_id = $1 ORDER BY created_at DESC LIMIT $2`,
+      const rows = await this.db.queryMany<SupplyTransactionDbRow>(
+        `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE product_id = $1 ORDER BY created_at DESC LIMIT $2`,
         [productId, limit]
       );
-      return ConsumableTransactionMapper.fromRows(rows);
+      return SupplyTransactionMapper.fromRows(rows);
     }
-    const rows = await this.db.queryMany<ConsumableTransactionDbRow>(
-      `SELECT ${TXN_COLUMNS} FROM consumable_transactions WHERE product_id = $1 ORDER BY created_at DESC`,
+    const rows = await this.db.queryMany<SupplyTransactionDbRow>(
+      `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE product_id = $1 ORDER BY created_at DESC`,
       [productId]
     );
-    return ConsumableTransactionMapper.fromRows(rows);
+    return SupplyTransactionMapper.fromRows(rows);
   }
 
-  async recordTransaction(data: RecordTransactionData): Promise<ConsumableTransactionRow> {
+  async recordTransaction(data: RecordTransactionData): Promise<SupplyTransactionRow> {
     return await this.db.transaction(async (client) => {
       const stockResult = await client.query<{ quantity: string }>(
-        `INSERT INTO consumable_stock (id, product_id, location_id, quantity, updated_at)
+        `INSERT INTO supply_stock (id, product_id, location_id, quantity, updated_at)
          VALUES ($1, $2, $3, $4, NOW())
          ON CONFLICT (product_id, location_id) DO UPDATE SET
-           quantity = consumable_stock.quantity + $4,
+           quantity = supply_stock.quantity + $4,
            updated_at = NOW()
          RETURNING quantity`,
-        [generateId('cstk'), data.productId, data.locationId, data.quantityChange]
+        [generateId('sstk'), data.productId, data.locationId, data.quantityChange]
       );
       const quantityAfter = parseFloat(stockResult.rows[0].quantity);
 
-      const txnId = generateId('ctxn');
-      const txnResult = await client.query<ConsumableTransactionDbRow>(
-        `INSERT INTO consumable_transactions (${TXN_COLUMNS})
+      const txnId = generateId('stxn');
+      const txnResult = await client.query<SupplyTransactionDbRow>(
+        `INSERT INTO supply_transactions (${TXN_COLUMNS})
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NULL, NULL, NULL, NULL)
          RETURNING ${TXN_COLUMNS}`,
         [
@@ -297,53 +297,53 @@ export class ConsumableProductRepository implements IConsumableProductRepository
         ]
       );
 
-      return ConsumableTransactionMapper.fromRow(txnResult.rows[0]);
+      return SupplyTransactionMapper.fromRow(txnResult.rows[0]);
     });
   }
 
-  async findTransactionById(id: string): Promise<ConsumableTransactionRow | null> {
-    const row = await this.db.queryOne<ConsumableTransactionDbRow>(
-      `SELECT ${TXN_COLUMNS} FROM consumable_transactions WHERE id = $1`,
+  async findTransactionById(id: string): Promise<SupplyTransactionRow | null> {
+    const row = await this.db.queryOne<SupplyTransactionDbRow>(
+      `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1`,
       [id]
     );
-    return row ? ConsumableTransactionMapper.fromRow(row) : null;
+    return row ? SupplyTransactionMapper.fromRow(row) : null;
   }
 
-  async voidTransaction(data: VoidTransactionData): Promise<{ original: ConsumableTransactionRow; reversal: ConsumableTransactionRow }> {
+  async voidTransaction(data: VoidTransactionData): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }> {
     return await this.db.transaction(async (client) => {
-      const originalRow = await client.query<ConsumableTransactionDbRow>(
-        `SELECT ${TXN_COLUMNS} FROM consumable_transactions WHERE id = $1`,
+      const originalRow = await client.query<SupplyTransactionDbRow>(
+        `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1`,
         [data.transactionId]
       );
       if (originalRow.rows.length === 0) {
         throw new Error(`Transaction ${data.transactionId} not found`);
       }
-      const original = ConsumableTransactionMapper.fromRow(originalRow.rows[0]);
+      const original = SupplyTransactionMapper.fromRow(originalRow.rows[0]);
 
       if (originalRow.rows[0].voided_at) {
         throw new Error('Transaction has already been voided');
       }
 
       await client.query(
-        `UPDATE consumable_transactions SET voided_at = NOW(), voided_by = $1, void_reason = $2 WHERE id = $3`,
+        `UPDATE supply_transactions SET voided_at = NOW(), voided_by = $1, void_reason = $2 WHERE id = $3`,
         [data.voidedBy, data.voidReason, data.transactionId]
       );
 
       const reversedQuantity = -original.quantityChange;
       const stockResult = await client.query<{ quantity: string }>(
-        `INSERT INTO consumable_stock (id, product_id, location_id, quantity, updated_at)
+        `INSERT INTO supply_stock (id, product_id, location_id, quantity, updated_at)
          VALUES ($1, $2, $3, $4, NOW())
          ON CONFLICT (product_id, location_id) DO UPDATE SET
-           quantity = consumable_stock.quantity + $4,
+           quantity = supply_stock.quantity + $4,
            updated_at = NOW()
          RETURNING quantity`,
-        [generateId('cstk'), original.productId, original.locationId, reversedQuantity]
+        [generateId('sstk'), original.productId, original.locationId, reversedQuantity]
       );
       const quantityAfter = parseFloat(stockResult.rows[0].quantity);
 
-      const reversalId = generateId('ctxn');
-      const reversalResult = await client.query<ConsumableTransactionDbRow>(
-        `INSERT INTO consumable_transactions (${TXN_COLUMNS})
+      const reversalId = generateId('stxn');
+      const reversalResult = await client.query<SupplyTransactionDbRow>(
+        `INSERT INTO supply_transactions (${TXN_COLUMNS})
          VALUES ($1, $2, $3, $4, $5, $6, $7, NULL, NULL, NULL, NULL, $8, $9, NOW(), NULL, NULL, NULL, $10)
          RETURNING ${TXN_COLUMNS}`,
         [
@@ -353,14 +353,14 @@ export class ConsumableProductRepository implements IConsumableProductRepository
         ]
       );
 
-      const updatedOriginalRow = await client.query<ConsumableTransactionDbRow>(
-        `SELECT ${TXN_COLUMNS} FROM consumable_transactions WHERE id = $1`,
+      const updatedOriginalRow = await client.query<SupplyTransactionDbRow>(
+        `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1`,
         [data.transactionId]
       );
 
       return {
-        original: ConsumableTransactionMapper.fromRow(updatedOriginalRow.rows[0]),
-        reversal: ConsumableTransactionMapper.fromRow(reversalResult.rows[0]),
+        original: SupplyTransactionMapper.fromRow(updatedOriginalRow.rows[0]),
+        reversal: SupplyTransactionMapper.fromRow(reversalResult.rows[0]),
       };
     });
   }
@@ -368,15 +368,15 @@ export class ConsumableProductRepository implements IConsumableProductRepository
   // Reorder
 
   async findProductsBelowThreshold(labId: string): Promise<ProductWithStock[]> {
-    const rows = await this.db.queryMany<ConsumableProductRow & { total_stock: string; location_names: string[] }>(`
+    const rows = await this.db.queryMany<SupplyProductRow & { total_stock: string; location_names: string[] }>(`
       SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
              COALESCE(
                array_agg(DISTINCT l.name ORDER BY l.name) FILTER (WHERE l.name IS NOT NULL AND s.quantity > 0),
                '{}'
              ) as location_names
-      FROM consumable_products p
-      LEFT JOIN consumable_stock s ON s.product_id = p.id
-      LEFT JOIN consumable_locations l ON l.id = s.location_id
+      FROM supply_products p
+      LEFT JOIN supply_stock s ON s.product_id = p.id
+      LEFT JOIN supply_locations l ON l.id = s.location_id
       WHERE p.lab_id = $1 AND p.status = 'active' AND p.reorder_threshold IS NOT NULL
       GROUP BY p.id
       HAVING COALESCE(SUM(s.quantity), 0) < p.reorder_threshold
@@ -384,7 +384,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
     `, [labId]);
 
     return rows.map(row => ({
-      product: ConsumableProductMapper.fromRow(row),
+      product: SupplyProductMapper.fromRow(row),
       totalStock: parseFloat(row.total_stock),
       locationNames: row.location_names ?? [],
     }));
@@ -394,7 +394,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async countProductsUsingProperty(value: string, labId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM consumable_products WHERE $1 = ANY(properties) AND lab_id = $2',
+      'SELECT COUNT(*) as count FROM supply_products WHERE $1 = ANY(properties) AND lab_id = $2',
       [value, labId]
     );
     return parseInt(row?.count ?? '0', 10);
@@ -402,7 +402,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async renameProperty(oldValue: string, newValue: string, labId: string): Promise<number> {
     const result = await this.db.execute(
-      'UPDATE consumable_products SET properties = array_replace(properties, $1, $2) WHERE $1 = ANY(properties) AND lab_id = $3',
+      'UPDATE supply_products SET properties = array_replace(properties, $1, $2) WHERE $1 = ANY(properties) AND lab_id = $3',
       [oldValue, newValue, labId]
     );
     return result.rowCount ?? 0;
@@ -410,7 +410,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async countProductsUsingVendor(value: string, labId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM consumable_products WHERE vendor_name = $1 AND lab_id = $2',
+      'SELECT COUNT(*) as count FROM supply_products WHERE vendor_name = $1 AND lab_id = $2',
       [value, labId]
     );
     return parseInt(row?.count ?? '0', 10);
@@ -418,7 +418,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async renameVendor(oldValue: string, newValue: string, labId: string): Promise<number> {
     const result = await this.db.execute(
-      'UPDATE consumable_products SET vendor_name = $2 WHERE vendor_name = $1 AND lab_id = $3',
+      'UPDATE supply_products SET vendor_name = $2 WHERE vendor_name = $1 AND lab_id = $3',
       [oldValue, newValue, labId]
     );
     return result.rowCount ?? 0;
@@ -426,7 +426,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async countProductsUsingManufacturer(value: string, labId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM consumable_products WHERE manufacturer = $1 AND lab_id = $2',
+      'SELECT COUNT(*) as count FROM supply_products WHERE manufacturer = $1 AND lab_id = $2',
       [value, labId]
     );
     return parseInt(row?.count ?? '0', 10);
@@ -434,7 +434,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async renameManufacturer(oldValue: string, newValue: string, labId: string): Promise<number> {
     const result = await this.db.execute(
-      'UPDATE consumable_products SET manufacturer = $2 WHERE manufacturer = $1 AND lab_id = $3',
+      'UPDATE supply_products SET manufacturer = $2 WHERE manufacturer = $1 AND lab_id = $3',
       [oldValue, newValue, labId]
     );
     return result.rowCount ?? 0;
@@ -442,7 +442,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async countProductsUsingStockUnit(value: string, labId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM consumable_products WHERE stock_unit = $1 AND lab_id = $2',
+      'SELECT COUNT(*) as count FROM supply_products WHERE stock_unit = $1 AND lab_id = $2',
       [value, labId]
     );
     return parseInt(row?.count ?? '0', 10);
@@ -450,7 +450,7 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   async renameStockUnit(oldValue: string, newValue: string, labId: string): Promise<number> {
     const result = await this.db.execute(
-      'UPDATE consumable_products SET stock_unit = $2 WHERE stock_unit = $1 AND lab_id = $3',
+      'UPDATE supply_products SET stock_unit = $2 WHERE stock_unit = $1 AND lab_id = $3',
       [oldValue, newValue, labId]
     );
     return result.rowCount ?? 0;
@@ -458,30 +458,30 @@ export class ConsumableProductRepository implements IConsumableProductRepository
 
   // Packaging levels
 
-  async findPackagingLevelsByProductId(productId: string): Promise<ConsumablePackagingLevelRow[]> {
-    const rows = await this.db.queryMany<ConsumablePackagingLevelDbRow>(
-      'SELECT id, product_id, unit_name, quantity, parent_unit FROM consumable_packaging_levels WHERE product_id = $1',
+  async findPackagingLevelsByProductId(productId: string): Promise<SupplyPackagingLevelRow[]> {
+    const rows = await this.db.queryMany<SupplyPackagingLevelDbRow>(
+      'SELECT id, product_id, unit_name, quantity, parent_unit FROM supply_packaging_levels WHERE product_id = $1',
       [productId]
     );
-    return ConsumablePackagingLevelMapper.fromRows(rows);
+    return SupplyPackagingLevelMapper.fromRows(rows);
   }
 
-  async savePackagingLevel(level: ConsumablePackagingLevelRow): Promise<void> {
+  async savePackagingLevel(level: SupplyPackagingLevelRow): Promise<void> {
     await this.db.execute(
-      'INSERT INTO consumable_packaging_levels (id, product_id, unit_name, quantity, parent_unit) VALUES ($1, $2, $3, $4, $5)',
+      'INSERT INTO supply_packaging_levels (id, product_id, unit_name, quantity, parent_unit) VALUES ($1, $2, $3, $4, $5)',
       [level.id, level.productId, level.unitName, String(level.quantity), level.parentUnit ?? null]
     );
   }
 
   async updatePackagingLevel(id: string, quantity: number): Promise<void> {
     await this.db.execute(
-      'UPDATE consumable_packaging_levels SET quantity = $1 WHERE id = $2',
+      'UPDATE supply_packaging_levels SET quantity = $1 WHERE id = $2',
       [String(quantity), id]
     );
   }
 
   async deletePackagingLevel(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM consumable_packaging_levels WHERE id = $1', [id]);
+    const result = await this.db.execute('DELETE FROM supply_packaging_levels WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
 }

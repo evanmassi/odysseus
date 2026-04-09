@@ -1,13 +1,13 @@
 /**
- * Consumable Category Mapper
+ * Supply Category Mapper
  *
- * Converts between ConsumableCategory domain entities and PostgreSQL rows.
+ * Converts between SupplyCategory domain entities and PostgreSQL rows.
  */
 
-import { ConsumableCategory } from '@domain/entities/ConsumableCategory';
+import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
-export interface ConsumableCategoryRow {
+export interface SupplyCategoryRow {
   id: string;
   lab_id: string;
   name: string;
@@ -17,9 +17,9 @@ export interface ConsumableCategoryRow {
   updated_at: Date | string;
 }
 
-export class ConsumableCategoryMapper {
+export class SupplyCategoryMapper {
 
-  static toRow(category: ConsumableCategory): ConsumableCategoryRow {
+  static toRow(category: SupplyCategory): SupplyCategoryRow {
     return {
       id: category.id,
       lab_id: category.labId,
@@ -31,8 +31,8 @@ export class ConsumableCategoryMapper {
     };
   }
 
-  static fromRow(row: ConsumableCategoryRow): ConsumableCategory {
-    return ConsumableCategory.fromData({
+  static fromRow(row: SupplyCategoryRow): SupplyCategory {
+    return SupplyCategory.fromData({
       id: row.id,
       labId: row.lab_id,
       name: row.name,
@@ -43,7 +43,7 @@ export class ConsumableCategoryMapper {
     });
   }
 
-  static fromRows(rows: ConsumableCategoryRow[]): ConsumableCategory[] {
+  static fromRows(rows: SupplyCategoryRow[]): SupplyCategory[] {
     return rows.map(row => this.fromRow(row));
   }
 }

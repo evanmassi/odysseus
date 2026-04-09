@@ -1,16 +1,16 @@
 /**
- * Consumable Product Mapper
+ * Supply Product Mapper
  *
- * Converts between ConsumableProduct domain entities and PostgreSQL rows.
+ * Converts between SupplyProduct domain entities and PostgreSQL rows.
  * Handles NUMERIC → number conversion for monetary/quantity fields and TEXT[] for properties.
  */
 
-import { ConsumableProduct } from '@domain/entities/ConsumableProduct';
+import { SupplyProduct } from '@domain/entities/SupplyProduct';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
-import type { ConsumableProductStatus } from '@odysseus/shared-schemas';
+import type { SupplyProductStatus } from '@odysseus/shared-schemas';
 
-export interface ConsumableProductRow {
+export interface SupplyProductRow {
   id: string;
   lab_id: string;
   category_id: string;
@@ -34,9 +34,9 @@ export interface ConsumableProductRow {
   updated_at: Date | string;
 }
 
-export class ConsumableProductMapper {
+export class SupplyProductMapper {
 
-  static toRow(product: ConsumableProduct): ConsumableProductRow {
+  static toRow(product: SupplyProduct): SupplyProductRow {
     return {
       id: product.id,
       lab_id: product.labId,
@@ -62,8 +62,8 @@ export class ConsumableProductMapper {
     };
   }
 
-  static fromRow(row: ConsumableProductRow): ConsumableProduct {
-    return ConsumableProduct.fromData({
+  static fromRow(row: SupplyProductRow): SupplyProduct {
+    return SupplyProduct.fromData({
       id: row.id,
       labId: row.lab_id,
       categoryId: row.category_id,
@@ -82,13 +82,13 @@ export class ConsumableProductMapper {
       currentLotNumber: row.current_lot_number ?? undefined,
       description: row.description ?? undefined,
       notes: row.notes ?? undefined,
-      status: row.status as ConsumableProductStatus,
+      status: row.status as SupplyProductStatus,
       createdAt: toISOString(row.created_at),
       updatedAt: toISOString(row.updated_at),
     });
   }
 
-  static fromRows(rows: ConsumableProductRow[]): ConsumableProduct[] {
+  static fromRows(rows: SupplyProductRow[]): SupplyProduct[] {
     return rows.map(row => this.fromRow(row));
   }
 }
