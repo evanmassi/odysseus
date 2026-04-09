@@ -1,16 +1,16 @@
 /**
- * Consumable Product
+ * Supply Product
  *
- * A type of lab consumable tracked by quantity (e.g., "200μL filter tips, Corning #4806").
+ * A type of lab supply tracked by quantity (e.g., "200μL filter tips, Corning #4806").
  * Supports manufacturer/vendor info, stock configuration, and flexible lab-defined properties.
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
-import type { ConsumableProductStatus } from '@odysseus/shared-schemas';
+import type { SupplyProductStatus } from '@odysseus/shared-schemas';
 
-const VALID_STATUSES: ConsumableProductStatus[] = ['active', 'discontinued', 'archived'];
+const VALID_STATUSES: SupplyProductStatus[] = ['active', 'discontinued', 'archived'];
 
 interface ProductCreateData {
   labId: string;
@@ -51,7 +51,7 @@ interface ProductUpdateData {
   notes?: string | null;
 }
 
-export class ConsumableProduct {
+export class SupplyProduct {
   private constructor(
     private readonly _id: string,
     private readonly _labId: string,
@@ -71,16 +71,16 @@ export class ConsumableProduct {
     private _currentLotNumber: string | undefined,
     private _description: string | undefined,
     private _notes: string | undefined,
-    private _status: ConsumableProductStatus,
+    private _status: SupplyProductStatus,
     private readonly _createdAt: Date,
     private _updatedAt: Date
   ) {
     this.validate();
   }
 
-  static create(data: ProductCreateData): ConsumableProduct {
-    return new ConsumableProduct(
-      generateId('cprod'),
+  static create(data: ProductCreateData): SupplyProduct {
+    return new SupplyProduct(
+      generateId('sprod'),
       data.labId,
       data.categoryId,
       data.name,
@@ -94,7 +94,7 @@ export class ConsumableProduct {
       data.reorderQuantity,
       data.reorderUnit,
       data.unitPrice,
-      ConsumableProduct.deduplicateProperties(data.properties ?? []),
+      SupplyProduct.deduplicateProperties(data.properties ?? []),
       undefined,
       data.description,
       data.notes,
@@ -123,11 +123,11 @@ export class ConsumableProduct {
     currentLotNumber?: string;
     description?: string;
     notes?: string;
-    status: ConsumableProductStatus;
+    status: SupplyProductStatus;
     createdAt: string | Date;
     updatedAt: string | Date;
-  }): ConsumableProduct {
-    return new ConsumableProduct(
+  }): SupplyProduct {
+    return new SupplyProduct(
       data.id,
       data.labId,
       data.categoryId,
@@ -181,7 +181,7 @@ export class ConsumableProduct {
     if (data.reorderQuantity !== undefined) this._reorderQuantity = data.reorderQuantity ?? undefined;
     if (data.reorderUnit !== undefined) this._reorderUnit = data.reorderUnit ?? undefined;
     if (data.unitPrice !== undefined) this._unitPrice = data.unitPrice ?? undefined;
-    if (data.properties !== undefined) this._properties = ConsumableProduct.deduplicateProperties(data.properties ?? []);
+    if (data.properties !== undefined) this._properties = SupplyProduct.deduplicateProperties(data.properties ?? []);
     if (data.currentLotNumber !== undefined) this._currentLotNumber = data.currentLotNumber ?? undefined;
     if (data.description !== undefined) this._description = data.description ?? undefined;
     if (data.notes !== undefined) this._notes = data.notes ?? undefined;
@@ -218,7 +218,7 @@ export class ConsumableProduct {
   get currentLotNumber(): string | undefined { return this._currentLotNumber; }
   get description(): string | undefined { return this._description; }
   get notes(): string | undefined { return this._notes; }
-  get status(): ConsumableProductStatus { return this._status; }
+  get status(): SupplyProductStatus { return this._status; }
   get createdAt(): Date { return new Date(this._createdAt); }
   get updatedAt(): Date { return new Date(this._updatedAt); }
 }

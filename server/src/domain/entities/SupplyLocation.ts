@@ -1,7 +1,7 @@
 /**
- * Consumable Storage Location
+ * Supply Storage Location
  *
- * Named storage zone where consumables are kept (e.g., "Back Supply Room", "Main Lab Bench").
+ * Named storage zone where supplys are kept (e.g., "Back Supply Room", "Main Lab Bench").
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -20,7 +20,7 @@ interface LocationUpdateData {
   sortOrder?: number | null;
 }
 
-export class ConsumableLocation {
+export class SupplyLocation {
   private constructor(
     private readonly _id: string,
     private readonly _labId: string,
@@ -33,9 +33,9 @@ export class ConsumableLocation {
     this.validate();
   }
 
-  static create(data: LocationCreateData): ConsumableLocation {
-    return new ConsumableLocation(
-      generateId('cloc'),
+  static create(data: LocationCreateData): SupplyLocation {
+    return new SupplyLocation(
+      generateId('sloc'),
       data.labId,
       data.name,
       data.description,
@@ -53,8 +53,8 @@ export class ConsumableLocation {
     sortOrder: number;
     createdAt: string | Date;
     updatedAt: string | Date;
-  }): ConsumableLocation {
-    return new ConsumableLocation(
+  }): SupplyLocation {
+    return new SupplyLocation(
       data.id,
       data.labId,
       data.name,

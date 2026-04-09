@@ -9,7 +9,7 @@ import { generateId } from '@domain/utils/generateId';
 
 export type LookupCategory =
   | 'species' | 'source' | 'media' | 'specimen_type' | 'equipment_maintenance_type'
-  | 'consumable_product_property' | 'consumable_stock_unit' | 'consumable_vendor' | 'consumable_manufacturer';
+  | 'supply_product_property' | 'supply_stock_unit' | 'supply_vendor' | 'supply_manufacturer';
 
 export class LookupValue {
   private constructor(
@@ -87,7 +87,7 @@ export class LookupValue {
     }
     if (![
       'species', 'source', 'media', 'specimen_type', 'equipment_maintenance_type',
-      'consumable_product_property', 'consumable_stock_unit', 'consumable_vendor', 'consumable_manufacturer',
+      'supply_product_property', 'supply_stock_unit', 'supply_vendor', 'supply_manufacturer',
     ].includes(this._category)) {
       throw new ValidationError('Invalid lookup category');
     }

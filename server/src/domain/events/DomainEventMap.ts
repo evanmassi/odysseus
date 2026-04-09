@@ -5,26 +5,26 @@
  */
 
 import type {
-  ConsumableProductCreatedEvent,
-  ConsumableProductUpdatedEvent,
-  ConsumableProductArchivedEvent,
-  ConsumableProductDeletedEvent,
-  ConsumableCategoryCreatedEvent,
-  ConsumableCategoryUpdatedEvent,
-  ConsumableCategoryDeletedEvent,
-  ConsumableDocumentAddedEvent,
-  ConsumableDocumentRemovedEvent,
-  ConsumableStockReceivedEvent,
-  ConsumableStockConsumedEvent,
-  ConsumableStockCountAdjustedEvent,
-  ConsumableStockDisposedEvent,
-  ConsumableStockVoidedEvent,
-  ConsumableBulkReceivedEvent,
-  ConsumableBulkConsumedEvent,
-  ConsumableBulkCategoryReassignedEvent,
-  ConsumableBulkArchivedEvent,
-  ConsumableBulkVoidedEvent,
-} from './ConsumableEvents';
+  SupplyProductCreatedEvent,
+  SupplyProductUpdatedEvent,
+  SupplyProductArchivedEvent,
+  SupplyProductDeletedEvent,
+  SupplyCategoryCreatedEvent,
+  SupplyCategoryUpdatedEvent,
+  SupplyCategoryDeletedEvent,
+  SupplyDocumentAddedEvent,
+  SupplyDocumentRemovedEvent,
+  SupplyStockReceivedEvent,
+  SupplyStockIssuedEvent,
+  SupplyStockCountAdjustedEvent,
+  SupplyStockDisposedEvent,
+  SupplyStockVoidedEvent,
+  SupplyBulkReceivedEvent,
+  SupplyBulkIssuedEvent,
+  SupplyBulkCategoryReassignedEvent,
+  SupplyBulkArchivedEvent,
+  SupplyBulkVoidedEvent,
+} from './SupplyEvents';
 import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
@@ -213,26 +213,26 @@ export interface DomainEventMap {
   'EquipmentBulkStatusChanged': EquipmentBulkStatusChangedEvent;
   'EquipmentBulkRelocated': EquipmentBulkRelocatedEvent;
 
-  // Consumable events
-  'ConsumableProductCreated': ConsumableProductCreatedEvent;
-  'ConsumableProductUpdated': ConsumableProductUpdatedEvent;
-  'ConsumableProductArchived': ConsumableProductArchivedEvent;
-  'ConsumableProductDeleted': ConsumableProductDeletedEvent;
-  'ConsumableCategoryCreated': ConsumableCategoryCreatedEvent;
-  'ConsumableCategoryUpdated': ConsumableCategoryUpdatedEvent;
-  'ConsumableCategoryDeleted': ConsumableCategoryDeletedEvent;
-  'ConsumableDocumentAdded': ConsumableDocumentAddedEvent;
-  'ConsumableDocumentRemoved': ConsumableDocumentRemovedEvent;
-  'ConsumableStockReceived': ConsumableStockReceivedEvent;
-  'ConsumableStockConsumed': ConsumableStockConsumedEvent;
-  'ConsumableStockCountAdjusted': ConsumableStockCountAdjustedEvent;
-  'ConsumableStockDisposed': ConsumableStockDisposedEvent;
-  'ConsumableStockVoided': ConsumableStockVoidedEvent;
-  'ConsumableBulkReceived': ConsumableBulkReceivedEvent;
-  'ConsumableBulkConsumed': ConsumableBulkConsumedEvent;
-  'ConsumableBulkCategoryReassigned': ConsumableBulkCategoryReassignedEvent;
-  'ConsumableBulkArchived': ConsumableBulkArchivedEvent;
-  'ConsumableBulkVoided': ConsumableBulkVoidedEvent;
+  // Supply events
+  'SupplyProductCreated': SupplyProductCreatedEvent;
+  'SupplyProductUpdated': SupplyProductUpdatedEvent;
+  'SupplyProductArchived': SupplyProductArchivedEvent;
+  'SupplyProductDeleted': SupplyProductDeletedEvent;
+  'SupplyCategoryCreated': SupplyCategoryCreatedEvent;
+  'SupplyCategoryUpdated': SupplyCategoryUpdatedEvent;
+  'SupplyCategoryDeleted': SupplyCategoryDeletedEvent;
+  'SupplyDocumentAdded': SupplyDocumentAddedEvent;
+  'SupplyDocumentRemoved': SupplyDocumentRemovedEvent;
+  'SupplyStockReceived': SupplyStockReceivedEvent;
+  'SupplyStockIssued': SupplyStockIssuedEvent;
+  'SupplyStockCountAdjusted': SupplyStockCountAdjustedEvent;
+  'SupplyStockDisposed': SupplyStockDisposedEvent;
+  'SupplyStockVoided': SupplyStockVoidedEvent;
+  'SupplyBulkReceived': SupplyBulkReceivedEvent;
+  'SupplyBulkIssued': SupplyBulkIssuedEvent;
+  'SupplyBulkCategoryReassigned': SupplyBulkCategoryReassignedEvent;
+  'SupplyBulkArchived': SupplyBulkArchivedEvent;
+  'SupplyBulkVoided': SupplyBulkVoidedEvent;
 
   // Lab events
   'LabCreated': LabCreatedEvent;

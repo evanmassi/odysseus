@@ -1,13 +1,13 @@
 /**
- * Consumable Document
+ * Supply Document
  *
- * Link to an external document (SOP, spec sheet, product page) associated with a consumable product.
+ * Link to an external document (SOP, spec sheet, product page) associated with a supply product.
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
-export class ConsumableDocument {
+export class SupplyDocument {
   private constructor(
     private readonly _id: string,
     private readonly _productId: string,
@@ -24,9 +24,9 @@ export class ConsumableDocument {
     label: string;
     url: string;
     notes?: string;
-  }): ConsumableDocument {
-    return new ConsumableDocument(
-      generateId('cdoc'),
+  }): SupplyDocument {
+    return new SupplyDocument(
+      generateId('sdoc'),
       data.productId,
       data.label,
       data.url,
@@ -42,8 +42,8 @@ export class ConsumableDocument {
     url: string;
     notes?: string;
     createdAt: string | Date;
-  }): ConsumableDocument {
-    return new ConsumableDocument(
+  }): SupplyDocument {
+    return new SupplyDocument(
       data.id,
       data.productId,
       data.label,

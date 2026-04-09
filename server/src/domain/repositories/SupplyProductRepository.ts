@@ -1,14 +1,14 @@
 /**
- * Consumable Product Repository Interface
+ * Supply Product Repository Interface
  *
- * Unified data access contract for consumable products, documents, barcodes,
+ * Unified data access contract for supply products, documents, barcodes,
  * stock levels, transactions, and lookup value support.
  */
 
-import type { ConsumableDocument } from '@domain/entities/ConsumableDocument';
-import type { ConsumableProduct } from '@domain/entities/ConsumableProduct';
+import type { SupplyDocument } from '@domain/entities/SupplyDocument';
+import type { SupplyProduct } from '@domain/entities/SupplyProduct';
 
-export interface ConsumableStockRow {
+export interface SupplyStockRow {
   id: string;
   productId: string;
   locationId: string;
@@ -16,7 +16,7 @@ export interface ConsumableStockRow {
   updatedAt: Date | string;
 }
 
-export interface ConsumableBarcodeRow {
+export interface SupplyBarcodeRow {
   id: string;
   productId: string;
   barcodeValue: string;
@@ -25,7 +25,7 @@ export interface ConsumableBarcodeRow {
   label?: string;
 }
 
-export interface ConsumableTransactionRow {
+export interface SupplyTransactionRow {
   id: string;
   productId: string;
   locationId: string;
@@ -53,7 +53,7 @@ export interface VoidTransactionData {
 }
 
 export interface ProductWithStock {
-  product: ConsumableProduct;
+  product: SupplyProduct;
   totalStock: number;
   locationNames: string[];
 }
@@ -72,7 +72,7 @@ export interface RecordTransactionData {
   notes?: string;
 }
 
-export interface ConsumablePackagingLevelRow {
+export interface SupplyPackagingLevelRow {
   id: string;
   productId: string;
   unitName: string;
@@ -80,50 +80,50 @@ export interface ConsumablePackagingLevelRow {
   parentUnit: string | undefined;
 }
 
-export interface ConsumableProductRepository {
+export interface SupplyProductRepository {
 
   // Products
 
-  findById(id: string, labId: string): Promise<ConsumableProduct | null>;
-  findByLabId(labId: string): Promise<ConsumableProduct[]>;
+  findById(id: string, labId: string): Promise<SupplyProduct | null>;
+  findByLabId(labId: string): Promise<SupplyProduct[]>;
   findByLabIdWithStock(labId: string): Promise<ProductWithStock[]>;
-  findByCategoryId(categoryId: string, labId: string): Promise<ConsumableProduct[]>;
-  save(product: ConsumableProduct): Promise<void>;
+  findByCategoryId(categoryId: string, labId: string): Promise<SupplyProduct[]>;
+  save(product: SupplyProduct): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
   hasTransactions(id: string): Promise<boolean>;
 
   // Documents
 
-  findDocumentsByProductId(productId: string): Promise<ConsumableDocument[]>;
-  saveDocument(document: ConsumableDocument): Promise<void>;
+  findDocumentsByProductId(productId: string): Promise<SupplyDocument[]>;
+  saveDocument(document: SupplyDocument): Promise<void>;
   updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void>;
   deleteDocument(id: string): Promise<boolean>;
 
   // Barcodes
 
-  findBarcodesByProductId(productId: string): Promise<ConsumableBarcodeRow[]>;
-  findByBarcodeValue(barcodeValue: string): Promise<ConsumableBarcodeRow | null>;
-  saveBarcode(barcode: ConsumableBarcodeRow): Promise<void>;
+  findBarcodesByProductId(productId: string): Promise<SupplyBarcodeRow[]>;
+  findByBarcodeValue(barcodeValue: string): Promise<SupplyBarcodeRow | null>;
+  saveBarcode(barcode: SupplyBarcodeRow): Promise<void>;
   updateBarcode(id: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<void>;
   deleteBarcode(id: string): Promise<boolean>;
 
   // Stock
 
-  findStockByProductId(productId: string): Promise<ConsumableStockRow[]>;
+  findStockByProductId(productId: string): Promise<SupplyStockRow[]>;
   getTotalStock(productId: string): Promise<number>;
 
   // Transactions — recordTransaction is atomic: UPSERT stock RETURNING → INSERT transaction
 
-  findTransactionsByProductId(productId: string, limit?: number): Promise<ConsumableTransactionRow[]>;
-  findTransactionById(id: string): Promise<ConsumableTransactionRow | null>;
-  recordTransaction(data: RecordTransactionData): Promise<ConsumableTransactionRow>;
-  voidTransaction(data: VoidTransactionData): Promise<{ original: ConsumableTransactionRow; reversal: ConsumableTransactionRow }>;
+  findTransactionsByProductId(productId: string, limit?: number): Promise<SupplyTransactionRow[]>;
+  findTransactionById(id: string): Promise<SupplyTransactionRow | null>;
+  recordTransaction(data: RecordTransactionData): Promise<SupplyTransactionRow>;
+  voidTransaction(data: VoidTransactionData): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }>;
 
   // Reorder
 
   findProductsBelowThreshold(labId: string): Promise<ProductWithStock[]>;
 
-  // Lookup support — for consumable lookup category rename/delete cascading
+  // Lookup support — for supply lookup category rename/delete cascading
 
   countProductsUsingProperty(value: string, labId: string): Promise<number>;
   renameProperty(oldValue: string, newValue: string, labId: string): Promise<number>;
@@ -136,8 +136,8 @@ export interface ConsumableProductRepository {
 
   // Packaging levels
 
-  findPackagingLevelsByProductId(productId: string): Promise<ConsumablePackagingLevelRow[]>;
-  savePackagingLevel(level: ConsumablePackagingLevelRow): Promise<void>;
+  findPackagingLevelsByProductId(productId: string): Promise<SupplyPackagingLevelRow[]>;
+  savePackagingLevel(level: SupplyPackagingLevelRow): Promise<void>;
   updatePackagingLevel(id: string, quantity: number): Promise<void>;
   deletePackagingLevel(id: string): Promise<boolean>;
 }

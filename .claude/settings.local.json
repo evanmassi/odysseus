@@ -105,7 +105,18 @@
       "Bash(mv supplies/consumablesSchemas.ts supplies/supplySchemas.ts)",
       "Bash(npx tsup:*)",
       "Bash(sed -i 's/\\\\/\\\\/ Supplys/\\\\/\\\\/ Supplies/g' index.ts)",
-      "Bash(sed -i 's/Supplys Inventory/Supply Inventory/g' supplies/supplySchemas.ts)"
+      "Bash(sed -i 's/Supplys Inventory/Supply Inventory/g' supplies/supplySchemas.ts)",
+      "Bash(mv ConsumableProduct.ts SupplyProduct.ts)",
+      "Bash(mv ConsumableCategory.ts SupplyCategory.ts)",
+      "Bash(mv ConsumableLocation.ts SupplyLocation.ts)",
+      "Bash(mv ConsumableDocument.ts SupplyDocument.ts)",
+      "Bash(mv ConsumableProductRepository.ts SupplyProductRepository.ts)",
+      "Bash(mv ConsumableCategoryRepository.ts SupplyCategoryRepository.ts)",
+      "Bash(mv ConsumableLocationRepository.ts SupplyLocationRepository.ts)",
+      "Bash(sed -i \"s/generateId\\('cprod'\\)/generateId\\('sprod'\\)/g\" SupplyProduct.ts)",
+      "Bash(sed -i \"s/generateId\\('ccat'\\)/generateId\\('scat'\\)/g\" SupplyCategory.ts)",
+      "Bash(sed -i \"s/generateId\\('cloc'\\)/generateId\\('sloc'\\)/g\" SupplyLocation.ts)",
+      "Bash(sed -i \"s/generateId\\('cdoc'\\)/generateId\\('sdoc'\\)/g\" SupplyDocument.ts)"
     ]
   }
 }

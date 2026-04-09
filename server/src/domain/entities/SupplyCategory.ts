@@ -1,7 +1,7 @@
 /**
- * Consumable Category
+ * Supply Category
  *
- * Lab-managed grouping for consumable products. Supports a two-level hierarchy
+ * Lab-managed grouping for supply products. Supports a two-level hierarchy
  * (top-level categories with optional subcategories).
  */
 
@@ -21,7 +21,7 @@ interface CategoryUpdateData {
   sortOrder?: number | null;
 }
 
-export class ConsumableCategory {
+export class SupplyCategory {
   private constructor(
     private readonly _id: string,
     private readonly _labId: string,
@@ -34,9 +34,9 @@ export class ConsumableCategory {
     this.validate();
   }
 
-  static create(data: CategoryCreateData): ConsumableCategory {
-    return new ConsumableCategory(
-      generateId('ccat'),
+  static create(data: CategoryCreateData): SupplyCategory {
+    return new SupplyCategory(
+      generateId('scat'),
       data.labId,
       data.name,
       data.parentId,
@@ -54,8 +54,8 @@ export class ConsumableCategory {
     sortOrder: number;
     createdAt: string | Date;
     updatedAt: string | Date;
-  }): ConsumableCategory {
-    return new ConsumableCategory(
+  }): SupplyCategory {
+    return new SupplyCategory(
       data.id,
       data.labId,
       data.name,
