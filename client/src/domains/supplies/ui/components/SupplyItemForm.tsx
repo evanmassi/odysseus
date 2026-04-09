@@ -26,6 +26,7 @@ import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import type {
   SupplyCategory,
@@ -277,7 +278,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     parentUnit: string | null;
   }) => {
     const parentName = level.parentUnit ?? currentBaseItemName ?? 'item';
-    return `${level.quantity} ${parentName}${level.quantity !== 1 ? 's' : ''} per ${level.unitName}`;
+    return `${level.quantity} ${pluralizeUnit(parentName, level.quantity)} per ${level.unitName}`;
   };
 
   return (
@@ -499,12 +500,9 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
 
           {/* Packaging */}
           <div>
-            <div className="flex items-center gap-3 mb-2.5">
-              <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">
-                Packaging
-              </span>
-              <div className="h-px flex-1 bg-muted-foreground/60" />
-            </div>
+            <span className="text-sm font-medium text-secondary-foreground block mb-1">
+              Packaging
+            </span>
 
             {packagingLevels.length > 0 && (
               <div className="space-y-1 mb-2">
