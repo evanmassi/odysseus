@@ -31,6 +31,9 @@ import {
   ConsumableBulkConsumeHttpSchema,
   ConsumableBulkReassignCategoryHttpSchema,
   ConsumableBulkArchiveHttpSchema,
+  VoidConsumableTransactionHttpSchema,
+  ConsumableBulkVoidHttpSchema,
+  ConsumableTransactionVoidParams,
   ConsumablePackagingLevelIdParams,
   CreateConsumablePackagingLevelHttpSchema,
   UpdateConsumablePackagingLevelHttpSchema,
@@ -123,6 +126,11 @@ export class ConsumableRouteModule implements RouteModule {
       this.consumableController.bulkArchive.bind(this.consumableController)
     );
 
+    router.post('/bulk/void',
+      validateBody(ConsumableBulkVoidHttpSchema),
+      this.consumableController.bulkVoidTransactions.bind(this.consumableController)
+    );
+
     // Barcode resolution — query param, registered before /:id
 
     router.get('/barcodes/resolve',
@@ -145,6 +153,12 @@ export class ConsumableRouteModule implements RouteModule {
     router.post('/stock-counts',
       validateBody(RecordConsumableStockCountHttpSchema),
       this.consumableController.recordStockCount.bind(this.consumableController)
+    );
+
+    router.post('/transactions/:transactionId/void',
+      validateParams(ConsumableTransactionVoidParams),
+      validateBody(VoidConsumableTransactionHttpSchema),
+      this.consumableController.voidTransaction.bind(this.consumableController)
     );
 
     // Products

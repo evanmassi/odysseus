@@ -122,6 +122,10 @@ export interface ConsumableTransactionResponse {
   performedBy: string;
   notes?: string;
   createdAt: string;
+  voidedAt?: string;
+  voidedBy?: string;
+  voidReason?: string;
+  relatedTransactionId?: string;
 }
 
 export class ConsumableDto {
@@ -250,6 +254,10 @@ export class ConsumableDto {
       performedBy: txn.performedBy,
       notes: txn.notes,
       createdAt: typeof txn.createdAt === 'string' ? txn.createdAt : (txn.createdAt as Date).toISOString(),
+      voidedAt: txn.voidedAt,
+      voidedBy: txn.voidedBy,
+      voidReason: txn.voidReason,
+      relatedTransactionId: txn.relatedTransactionId,
     };
   }
 

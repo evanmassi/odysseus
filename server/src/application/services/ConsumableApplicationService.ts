@@ -41,10 +41,13 @@ import {
   ConsumableStockConsumedEvent,
   ConsumableStockCountAdjustedEvent,
   ConsumableStockDisposedEvent,
+  ConsumableStockVoidedEvent,
   ConsumableBulkReceivedEvent,
   ConsumableBulkConsumedEvent,
   ConsumableBulkCategoryReassignedEvent,
   ConsumableBulkArchivedEvent,
+  ConsumableBulkVoidedEvent,
+  type BulkVoidItemDetail,
 } from '@domain/events/ConsumableEvents';
 import type { ConsumableCategoryRepository } from '@domain/repositories/ConsumableCategoryRepository';
 import type { ConsumableLocationRepository } from '@domain/repositories/ConsumableLocationRepository';
@@ -70,6 +73,8 @@ import type {
   RecordConsumableStockCountRequest,
   ConsumableBulkReceiveRequest,
   ConsumableBulkConsumeRequest,
+  VoidConsumableTransactionRequest,
+  ConsumableBulkVoidRequest,
 } from '@odysseus/shared-schemas';
 
 interface BulkResult {
@@ -493,6 +498,46 @@ export class ConsumableApplicationService {
     return txns.map(ConsumableDto.transactionToResponse);
   }
 
+  async voidTransaction(
+    labId: string,
+    transactionId: string,
+    data: VoidConsumableTransactionRequest,
+    user: User,
+    options?: { bulkOperation?: boolean }
+  ): Promise<{ original: ConsumableTransactionResponse; reversal: ConsumableTransactionResponse }> {
+    await this.accessControlService.requireAdminAccess(user);
+
+    const existing = await this.productRepository.findTransactionById(transactionId);
+    if (!existing || existing.labId !== labId) {
+      throw new NotFoundError(`Transaction ${transactionId} not found`);
+    }
+    if (existing.voidedAt) {
+      throw new ValidationError('Transaction has already been voided');
+    }
+    if (existing.type === 'void_reversal') {
+      throw new ValidationError('Cannot void a void reversal transaction');
+    }
+
+    const { original, reversal } = await this.productRepository.voidTransaction({
+      transactionId,
+      voidedBy: user.id,
+      voidReason: data.reason,
+    });
+
+    const event = new ConsumableStockVoidedEvent(
+      original.productId, original.id, reversal.id,
+      reversal.quantityChange, original.locationId,
+      data.reason, user.id, labId
+    );
+    if (options?.bulkOperation) event.partOfBulkOperation = true;
+    await this.eventBus.publish(event);
+
+    return {
+      original: ConsumableDto.transactionToResponse(original),
+      reversal: ConsumableDto.transactionToResponse(reversal),
+    };
+  }
+
   // Bulk operations
 
   async bulkReceive(labId: string, data: ConsumableBulkReceiveRequest, user: User): Promise<BulkResult> {
@@ -590,6 +635,34 @@ export class ConsumableApplicationService {
 
     if (result.succeeded.length > 0) {
       await this.eventBus.publish(new ConsumableBulkArchivedEvent(result.succeeded, user.id, labId));
+    }
+
+    return result;
+  }
+
+  async bulkVoidTransactions(labId: string, data: ConsumableBulkVoidRequest, user: User): Promise<BulkResult> {
+    await this.accessControlService.requireAdminAccess(user);
+
+    const perItemData: BulkVoidItemDetail[] = [];
+    const result = await this.executeBulk(
+      data.transactionIds,
+      async (transactionId) => {
+        const { original, reversal } = await this.voidTransaction(
+          labId, transactionId, { reason: data.reason }, user, { bulkOperation: true }
+        );
+        perItemData.push({
+          transactionId: original.id,
+          productId: original.productId,
+          quantityReversed: reversal.quantityChange,
+          locationId: original.locationId,
+        });
+        return transactionId;
+      },
+      (transactionId, _index, error) => ({ id: transactionId, error })
+    );
+
+    if (perItemData.length > 0) {
+      await this.eventBus.publish(new ConsumableBulkVoidedEvent(perItemData, user.id, data.reason, labId));
     }
 
     return result;

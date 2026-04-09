@@ -345,6 +345,19 @@ export class ConsumableController extends BaseController {
     }
   }
 
+  async voidTransaction(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const result = await this.deps.consumableApplicationService.voidTransaction(
+        labId, req.params.transactionId, req.body, user
+      );
+      res.json(ResponseBuilder.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to void consumable transaction', req.requestId);
+    }
+  }
+
   // Bulk operations
 
   async bulkReceive(req: Request, res: Response): Promise<void> {
@@ -394,6 +407,18 @@ export class ConsumableController extends BaseController {
       res.status(status).json(ResponseBuilder.success(result));
     } catch (error) {
       handleControllerError(error, res, 'Failed to bulk archive consumables', req.requestId);
+    }
+  }
+
+  async bulkVoidTransactions(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const result = await this.deps.consumableApplicationService.bulkVoidTransactions(labId, req.body, user);
+      const status = result.failed.length > 0 ? 207 : 200;
+      res.status(status).json(ResponseBuilder.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to bulk void consumable transactions', req.requestId);
     }
   }
 

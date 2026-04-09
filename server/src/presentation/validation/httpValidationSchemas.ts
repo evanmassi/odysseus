@@ -48,6 +48,8 @@ import {
   consumableBulkConsumeRequestSchema,
   consumableBulkReassignCategoryRequestSchema,
   consumableBulkArchiveRequestSchema,
+  voidConsumableTransactionRequestSchema,
+  consumableBulkVoidRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -217,6 +219,9 @@ export const ConsumableBulkReceiveHttpSchema = consumableBulkReceiveRequestSchem
 export const ConsumableBulkConsumeHttpSchema = consumableBulkConsumeRequestSchema;
 export const ConsumableBulkReassignCategoryHttpSchema = consumableBulkReassignCategoryRequestSchema;
 export const ConsumableBulkArchiveHttpSchema = consumableBulkArchiveRequestSchema;
+export const VoidConsumableTransactionHttpSchema = voidConsumableTransactionRequestSchema;
+export const ConsumableBulkVoidHttpSchema = consumableBulkVoidRequestSchema;
+export const ConsumableTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
 export const CreateConsumablePackagingLevelHttpSchema = createConsumablePackagingLevelRequestSchema;
 export const UpdateConsumablePackagingLevelHttpSchema = updateConsumablePackagingLevelRequestSchema;
 
