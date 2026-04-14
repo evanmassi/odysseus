@@ -5,9 +5,8 @@
  * within a specific lab context. Requires system_admin role.
  */
 
-
 import type { UserApplicationService } from '@application/services/UserApplicationService';
-import { PermissionError } from '@domain/errors/PermissionError';
+import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
@@ -17,18 +16,15 @@ export interface SystemAdminUserControllerDeps {
   userApplicationService: UserApplicationService;
 }
 
-export class SystemAdminUserController {
-  constructor(private deps: SystemAdminUserControllerDeps) {}
+export class SystemAdminUserController extends BaseController {
+  constructor(private deps: SystemAdminUserControllerDeps) {
+    super();
+  }
 
   async activateUserForLab(req: Request, res: Response): Promise<void> {
     try {
-
       const { userId } = req.params;
-      const adminUser = req.user;
-
-      if (!adminUser) {
-        throw new PermissionError('Authentication required');
-      }
+      const adminUser = this.getAuthenticatedUser(req);
 
       await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
@@ -45,13 +41,8 @@ export class SystemAdminUserController {
 
   async deactivateUserForLab(req: Request, res: Response): Promise<void> {
     try {
-
       const { labId, userId } = req.params;
-      const adminUser = req.user;
-
-      if (!adminUser) {
-        throw new PermissionError('Authentication required');
-      }
+      const adminUser = this.getAuthenticatedUser(req);
 
       await this.deps.userApplicationService.deactivateUser(userId, adminUser, labId);
 
@@ -68,13 +59,8 @@ export class SystemAdminUserController {
 
   async suspendUserForLab(req: Request, res: Response): Promise<void> {
     try {
-
       const { labId, userId } = req.params;
-      const adminUser = req.user;
-
-      if (!adminUser) {
-        throw new PermissionError('Authentication required');
-      }
+      const adminUser = this.getAuthenticatedUser(req);
 
       await this.deps.userApplicationService.suspendUser(userId, adminUser, labId);
 
@@ -91,13 +77,8 @@ export class SystemAdminUserController {
 
   async deleteUserForLab(req: Request, res: Response): Promise<void> {
     try {
-
       const { userId } = req.params;
-      const adminUser = req.user;
-
-      if (!adminUser) {
-        throw new PermissionError('Authentication required');
-      }
+      const adminUser = this.getAuthenticatedUser(req);
 
       await this.deps.userApplicationService.deleteUser(userId, adminUser);
 
