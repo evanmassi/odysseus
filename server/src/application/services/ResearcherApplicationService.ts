@@ -123,6 +123,8 @@ export class ResearcherApplicationService {
 
     const normalizedEmail = request.email.toLowerCase().trim();
 
+    // Existing User owns their profile — don't overwrite firstName/lastName/position/department
+    // from the admin's input. Profile edits go through the user-management flow, not here.
     const existingUser = await this.deps.userRepository.findByEmail(normalizedEmail);
     if (existingUser?.personId) {
       const existingPerson = await this.deps.personRepository.findById(existingUser.personId);
@@ -392,9 +394,9 @@ export class ResearcherApplicationService {
       source: researcher.source,
       labId: researcher.labId,
       tubeCount,
-      linkedUserId: linkedUser?.id ?? null,
-      linkedUsername: linkedUser?.username ?? null,
-      linkedUserStatus: linkedUser?.status ?? null,
+      linkedUserId: linkedUser?.id,
+      linkedUsername: linkedUser?.username,
+      linkedUserStatus: linkedUser?.status,
     };
   }
 
