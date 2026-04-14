@@ -104,13 +104,13 @@ export class AdminUserController {
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
 
-      if (!adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.deleteUser(id, adminApiKey);
+      await this.deps.userApplicationService.deleteUser(id, adminUser);
 
       logger.info('User deleted', {
         deletedUserId: id,
@@ -127,13 +127,13 @@ export class AdminUserController {
     try {
 
       const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
 
-      if (!adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.deactivateUser(userId, adminApiKey);
+      await this.deps.userApplicationService.deactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -150,13 +150,13 @@ export class AdminUserController {
     try {
 
       const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
 
-      if (!adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.reactivateUser(userId, adminApiKey);
+      await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -178,9 +178,8 @@ export class AdminUserController {
       const { userId } = req.params;
       const { researcherId, newResearcher } = req.body;
       const adminUser = req.user;
-      const adminApiKey = adminUser?.apiKey;
 
-      if (!adminUser || !adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
@@ -198,11 +197,11 @@ export class AdminUserController {
           researcherId: created.id,
           researcherName: `${created.firstName} ${created.lastName}`,
           userId,
-          createdBy: req.user?.username
+          createdBy: adminUser.username
         });
       }
 
-      await this.deps.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminApiKey);
+      await this.deps.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -227,13 +226,13 @@ export class AdminUserController {
     try {
 
       const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
 
-      if (!adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.unlinkResearcherFromUser(userId, adminApiKey);
+      await this.deps.userApplicationService.unlinkResearcherFromUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,

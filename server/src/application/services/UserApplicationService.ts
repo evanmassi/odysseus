@@ -10,7 +10,7 @@ import { nanoid } from 'nanoid';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import { UserDto } from '@application/dto/UserDto';
-import type { UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
+import type { AuthResponse, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
 import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
 import { User } from '@domain/entities/User';
@@ -211,40 +211,11 @@ export class UserApplicationService {
     });
   }
 
-  async getUserById(id: string, requesterApiKey: string): Promise<UserResponse> {
-    const requester = await this.getUserByApiKey(requesterApiKey);
-    const user = await this.getUserOrThrow(id);
-
-    // Users can view themselves, admins can view anyone
-    if (!requester.isAdmin() && requester.id !== user.id) {
-      throw new PermissionError('Cannot view other users', { requesterId: requester.id, targetId: id });
-    }
-
-    return UserDto.toResponse(user);
-  }
-
-  async updateUserRole(userId: string, request: UpdateUserRoleRequest, adminApiKey: string): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
-    const targetUser = await this.getUserOrThrow(userId);
-
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
-
-    if (request.role === 'user') {
-      await this.ensureNotLastAdmin(targetUser, 'demote');
-    }
-
-    targetUser.changeRole(request.role, admin);
-
-    await this.userRepository.save(targetUser);
-  }
-
   /**
    * Auto-clears storage assignments, deletes user, and cleans up linked records.
    * Researchers with tubes are preserved for history (email cleared); otherwise deleted.
    */
-  async deleteUser(userId: string, adminApiKey: string): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
+  async deleteUser(userId: string, admin: User): Promise<void> {
     const targetUser = await this.getUserOrThrow(userId);
 
     await this.accessControlService.requireCanManageUsers(admin);
@@ -322,23 +293,10 @@ export class UserApplicationService {
     }
   }
 
-  async getCurrentUser(apiKey: string): Promise<UserResponse> {
-    const user = await this.getUserByApiKey(apiKey);
-    return UserDto.toResponse(user);
-  }
-
   private rejectIfDemoLab(admin: User): void {
     if (admin.isDemo) {
       throw new PermissionError('User management is restricted in the demo environment');
     }
-  }
-
-  private async getUserByApiKey(apiKey: string): Promise<User> {
-    const user = await this.userRepository.findByApiKey(apiKey);
-    if (!user) {
-      throw new PermissionError('Invalid authentication', { apiKey: '***' });
-    }
-    return user;
   }
 
   private async getUserOrThrow(id: string): Promise<User> {
@@ -360,11 +318,10 @@ export class UserApplicationService {
 
   private async disableUser(
     userId: string,
-    adminApiKey: string,
+    admin: User,
     action: 'deactivate' | 'suspend',
     expectedLabId?: string
   ): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
@@ -600,8 +557,7 @@ export class UserApplicationService {
     }
   }
 
-  async reactivateUser(userId: string, adminApiKey: string): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
+  async reactivateUser(userId: string, admin: User): Promise<void> {
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
@@ -622,12 +578,12 @@ export class UserApplicationService {
     }
   }
 
-  async deactivateUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
-    return this.disableUser(userId, adminApiKey, 'deactivate', expectedLabId);
+  async deactivateUser(userId: string, admin: User, expectedLabId?: string): Promise<void> {
+    return this.disableUser(userId, admin, 'deactivate', expectedLabId);
   }
 
-  async suspendUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
-    return this.disableUser(userId, adminApiKey, 'suspend', expectedLabId);
+  async suspendUser(userId: string, admin: User, expectedLabId?: string): Promise<void> {
+    return this.disableUser(userId, admin, 'suspend', expectedLabId);
   }
 
 
@@ -635,12 +591,11 @@ export class UserApplicationService {
    * For users who registered without a researcher profile.
    * @throws ValidationError if user already has a linked researcher
    */
-  async linkResearcherToUser(userId: string, researcherId: string, adminApiKey: string): Promise<void> {
+  async linkResearcherToUser(userId: string, researcherId: string, admin: User): Promise<void> {
     if (!this.researcherRepository) {
       throw new Error('ResearcherRepository is required for this operation');
     }
 
-    const admin = await this.getUserByApiKey(adminApiKey);
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
@@ -680,8 +635,7 @@ export class UserApplicationService {
    * Preserves the researcher record for tube history.
    * @throws ValidationError if user has no linked researcher
    */
-  async unlinkResearcherFromUser(userId: string, adminApiKey: string): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
+  async unlinkResearcherFromUser(userId: string, admin: User): Promise<void> {
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 

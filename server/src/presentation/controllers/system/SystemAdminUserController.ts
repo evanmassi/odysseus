@@ -24,13 +24,13 @@ export class SystemAdminUserController {
     try {
 
       const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
 
-      if (!adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.reactivateUser(userId, adminApiKey);
+      await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -47,13 +47,13 @@ export class SystemAdminUserController {
     try {
 
       const { labId, userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
 
-      if (!adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.deactivateUser(userId, adminApiKey, labId);
+      await this.deps.userApplicationService.deactivateUser(userId, adminUser, labId);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -70,13 +70,13 @@ export class SystemAdminUserController {
     try {
 
       const { labId, userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
 
-      if (!adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.suspendUser(userId, adminApiKey, labId);
+      await this.deps.userApplicationService.suspendUser(userId, adminUser, labId);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -93,13 +93,13 @@ export class SystemAdminUserController {
     try {
 
       const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
 
-      if (!adminApiKey) {
+      if (!adminUser) {
         throw new PermissionError('Authentication required');
       }
 
-      await this.deps.userApplicationService.deleteUser(userId, adminApiKey);
+      await this.deps.userApplicationService.deleteUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,

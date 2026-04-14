@@ -6,10 +6,6 @@
 
 import type { User } from '@domain/entities/User';
 
-export interface UpdateUserRoleRequest {
-  role: 'system_admin' | 'lab_admin' | 'user';
-}
-
 export interface RegisterRequest {
   username: string;
   password: string;
