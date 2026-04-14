@@ -23,25 +23,6 @@ export interface BulkUpdateRequest {
   }>;
 }
 
-export interface TubeSearchRequest {
-  query?: string;
-  tankId?: string;
-  rackId?: string;
-  boxId?: string;
-  cellType?: string;
-  researcherId?: string;
-  donorInternalId?: string;
-  donorSourceId?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  hasConcentration?: boolean;
-  isComplete?: boolean;
-  limit?: number;
-  offset?: number;
-  sortBy?: 'createdAt' | 'updatedAt' | 'position' | 'researcherId' | 'cellType';
-  sortOrder?: 'asc' | 'desc';
-}
-
 /**
  * matchedTerms contains all query variants used in the search (original, normalized,
  * synonym expansions, individual words). Client uses these for result highlighting.

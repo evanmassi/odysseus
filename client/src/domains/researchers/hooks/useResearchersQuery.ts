@@ -29,6 +29,7 @@ export function useResearchersQuery(options?: {
       return sortByName(researchers);
     },
     ...DOMAIN_QUERY_OPTIONS.researchers,
+    enabled: !!labId,
     ...queryOptions,
   });
 }

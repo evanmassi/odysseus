@@ -242,7 +242,7 @@ export function AppHeader({
               triggerRef={suiteButtonRef}
               align="start"
               aria-label="Switch management suite"
-              className="min-w-[180px] mt-1 top-full"
+              className="min-w-[200px] mt-1 top-full"
             >
               <div className="px-1">
                 <MenuItem

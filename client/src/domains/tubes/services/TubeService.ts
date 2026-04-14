@@ -8,7 +8,6 @@ import {
   type TubeData,
   type CreateTubeRequest,
   type UpdateTubeRequest,
-  type TubeQueryFilters,
   type LockTubesRequest,
   type UnlockTubesRequest,
   type ShareTubeAccessRequest,
@@ -57,22 +56,8 @@ export class TubeService {
     };
   }
 
-  static async fetchTubes(filters?: TubeQueryFilters): Promise<TubeData[]> {
-    const queryParams = filters
-      ? new URLSearchParams({
-          ...(filters.tankId && { tankId: filters.tankId }),
-          ...(filters.rackId && { rackId: filters.rackId }),
-          ...(filters.boxId && { boxId: filters.boxId }),
-          ...(filters.researcherId && { researcherId: filters.researcherId }),
-          ...(filters.cellType && { cellType: filters.cellType }),
-          ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
-          ...(filters.dateTo && { dateTo: filters.dateTo }),
-        })
-      : null;
-
-    const url = queryParams ? `${this.BASE_PATH}?${queryParams.toString()}` : this.BASE_PATH;
-
-    return await httpClient.getArray(url, tubeDataSchema);
+  static async fetchTubes(): Promise<TubeData[]> {
+    return await httpClient.getArray(this.BASE_PATH, tubeDataSchema);
   }
 
   static async fetchTubeById(id: string): Promise<TubeData> {

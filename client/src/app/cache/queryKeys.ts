@@ -7,7 +7,6 @@
  */
 
 import type {
-  TubeQueryFilters,
   ResearcherQueryFilters,
   SearchFilters,
   AdvancedSearchOptions,
@@ -43,10 +42,6 @@ export const queryKeys = {
   // Tubes (lab-scoped)
   tubes: {
     all: (labId = '') => ['tubes', labId] as const,
-    list: (labId = '', filters?: TubeQueryFilters) =>
-      filters
-        ? ([...queryKeys.tubes.all(labId), 'list', filters] as const)
-        : ([...queryKeys.tubes.all(labId), 'list'] as const),
     listAll: (labId = '') => [...queryKeys.tubes.all(labId), 'list'] as const,
     detail: (labId = '', id: string) => [...queryKeys.tubes.all(labId), 'detail', id] as const,
     location: (labId = '', tankId: string, rackId: string, boxId: string) =>
@@ -60,8 +55,6 @@ export const queryKeys = {
         'bulk',
         { tubeIds: [...tubeIds].sort(), length: tubeIds.length },
       ] as const,
-    paginated: (labId = '', filters?: TubeQueryFilters) =>
-      [...queryKeys.tubes.all(labId), 'paginated', filters] as const,
   },
 
   // Researchers (lab-scoped)

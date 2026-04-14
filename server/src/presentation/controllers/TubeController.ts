@@ -4,10 +4,7 @@
  * HTTP handlers for tube CRUD, bulk operations, location queries, and search.
  */
 
-import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-
-
-import type { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequest } from '@application/dto/TubeDto';
+import type { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest } from '@application/dto/TubeDto';
 import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
@@ -89,10 +86,8 @@ export class TubeController extends BaseController {
   async getAllTubes(req: Request, res: Response): Promise<void> {
     try {
       const authenticatedUser = this.getAuthenticatedUser(req);
-      const searchRequest = this.parseSearchQuery(req.query);
-      
-      const tubes = await this.deps.tubeApplicationService.getAllTubes(authenticatedUser, searchRequest);
-      
+      const tubes = await this.deps.tubeApplicationService.getAllTubes(authenticatedUser);
+
       res.json(ResponseBuilder.success(tubes));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get tubes', req.requestId);
@@ -236,32 +231,6 @@ export class TubeController extends BaseController {
     }
   }
 
-  /** GET /api/tubes/search */
-  async searchTubes(req: Request, res: Response): Promise<void> {
-    try {
-      const { query, limit, offset } = req.query;
-      const authenticatedUser = this.getAuthenticatedUser(req);
-
-      if (!query || typeof query !== 'string') {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Search query is required'));
-        return;
-      }
-
-      const tubes = await this.deps.tubeApplicationService.searchTubes(
-        {
-          query,
-          limit: limit ? parseInt(limit as string) : undefined,
-          offset: offset ? parseInt(offset as string) : undefined
-        },
-        authenticatedUser
-      );
-
-      res.json(ResponseBuilder.success(tubes));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to search tubes', req.requestId);
-    }
-  }
-
   /** GET /api/tubes/stats */
   async getStats(req: Request, res: Response): Promise<void> {
     try {
@@ -273,38 +242,6 @@ export class TubeController extends BaseController {
     } catch (error) {
       handleControllerError(error, res, 'Failed to get tube statistics', req.requestId);
     }
-  }
-
-  private static readonly VALID_SORT_FIELDS = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
-
-  private isValidSortField(value: unknown): value is TubeSearchRequest['sortBy'] {
-    return typeof value === 'string' &&
-      (TubeController.VALID_SORT_FIELDS as readonly string[]).includes(value);
-  }
-
-  private parseSearchQuery(query: Request['query']): TubeSearchRequest | undefined {
-    if (!query || Object.keys(query).length === 0) {
-      return undefined;
-    }
-
-    return {
-      query: query.query as string,
-      tankId: query.tankId as string,
-      rackId: query.rackId as string,
-      boxId: query.boxId as string,
-      cellType: query.cellType as string,
-      researcherId: query.researcherId as string,
-      donorInternalId: query.donorInternalId as string,
-      donorSourceId: query.donorSourceId as string,
-      dateFrom: query.dateFrom as string,
-      dateTo: query.dateTo as string,
-      hasConcentration: query.hasConcentration === 'true',
-      isComplete: query.isComplete === 'true',
-      limit: query.limit ? parseInt(query.limit as string) : undefined,
-      offset: query.offset ? parseInt(query.offset as string) : undefined,
-      sortBy: this.isValidSortField(query.sortBy) ? query.sortBy : undefined,
-      sortOrder: query.sortOrder as 'asc' | 'desc'
-    };
   }
 
 }

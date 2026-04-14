@@ -201,20 +201,6 @@ export const updateTubeRequestSchema = z.object({
   lockNote: z.string().max(100).optional()
 });
 
-export const tubeQueryFiltersSchema = z.object({
-  tankId: z.string().optional(),
-  rackId: z.string().optional(),
-  boxId: z.string().optional(),
-  researcherId: z.string().optional(),
-  cellType: z.string().optional(),
-  dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional(),
-  hasNotes: z.boolean().optional(),
-  search: z.string().optional(),
-  limit: z.number().int().positive().max(1000).optional(),
-  offset: z.number().int().min(0).optional()
-});
-
 export const bulkTubeOperationSchema = z.object({
   action: z.enum(['create', 'update', 'delete']),
   tubes: z.union([
@@ -245,7 +231,6 @@ export type TubeLocation = z.infer<typeof tubeLocationSchema>;
 export type TubeSample = z.infer<typeof tubeSampleSchema>;
 export type TubeUpdateSample = z.infer<typeof tubeUpdateSampleSchema>;
 export type TubeTimestamps = z.infer<typeof tubeTimestampsSchema>;
-export type TubeQueryFilters = z.infer<typeof tubeQueryFiltersSchema>;
 export type TubeValidationResult = z.infer<typeof tubeValidationResultSchema>;
 
 /**
