@@ -12,13 +12,8 @@ import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { SearchController } from '@presentation/controllers/SearchController';
 import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
-import { validateBody, validateQuery } from '@presentation/middleware/requestValidation';
+import { validateBody } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
-import {
-  QuickSearchQuerySchema,
-  FieldSearchBodySchema
-} from '@presentation/validation/httpValidationSchemas';
-
 import type { Router, RequestHandler } from 'express';
 
 export class SearchRouteModule implements RouteModule {
@@ -49,18 +44,6 @@ export class SearchRouteModule implements RouteModule {
       this.moderateLimiter,
       validateBody(AdvancedSearchOptionsSchema),
       this.searchController.advancedSearch.bind(this.searchController)
-    );
-
-    router.get('/quick',
-      this.moderateLimiter,
-      validateQuery(QuickSearchQuerySchema),
-      this.searchController.quickSearch.bind(this.searchController)
-    );
-
-    router.post('/field',
-      this.moderateLimiter,
-      validateBody(FieldSearchBodySchema),
-      this.searchController.fieldSearch.bind(this.searchController)
     );
   }
 }

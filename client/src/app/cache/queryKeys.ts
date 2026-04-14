@@ -80,10 +80,6 @@ export const queryKeys = {
     tubes: (labId = '') => [...queryKeys.search.all(labId), 'tubes'] as const,
     tubesSearch: (labId = '', options: AdvancedSearchOptions) =>
       [...queryKeys.search.tubes(labId), 'search', options] as const,
-    quickSearch: (labId = '', query: string, limit?: number) =>
-      [...queryKeys.search.tubes(labId), 'quick', query, limit] as const,
-    fieldSearch: (labId = '', field: string, value: string, options?: AdvancedSearchOptions) =>
-      [...queryKeys.search.tubes(labId), 'field', field, value, options] as const,
     results: (labId = '', query: string, filters?: SearchFilters) =>
       [...queryKeys.search.all(labId), 'results', query, filters] as const,
   },

@@ -385,18 +385,6 @@ export class TubeApplicationService {
     return TubeDto.toResponseList(filteredTubes);
   }
 
-  async searchTubes(
-    criteria: TubeSearchCriteria,
-    authenticatedUser: User
-  ): Promise<TubeResponse[]> {
-    await this.accessControlService.requireCanViewTubes(authenticatedUser);
-
-    const filteredCriteria = await this.restrictCriteriaToAllowedTanks(criteria, authenticatedUser.labId!);
-    const tubes = await this.tubeRepository.search(filteredCriteria, authenticatedUser.labId!);
-
-    return TubeDto.toResponseList(tubes);
-  }
-
   async searchTubesWithHighlighting(
     criteria: TubeSearchCriteria,
     authenticatedUser: User

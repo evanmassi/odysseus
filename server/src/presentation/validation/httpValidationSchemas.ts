@@ -225,17 +225,3 @@ export const SupplyTransactionVoidParams = z.object({ transactionId: z.string().
 export const CreateSupplyPackagingLevelHttpSchema = createSupplyPackagingLevelRequestSchema;
 export const UpdateSupplyPackagingLevelHttpSchema = updateSupplyPackagingLevelRequestSchema;
 
-// Search schemas
-
-export const QuickSearchQuerySchema = z.object({
-  q: z.string().min(1),
-  limit: z.coerce.number().int().min(1).max(50).optional(),
-});
-
-export const FieldSearchBodySchema = z.object({
-  field: z.string().min(1),
-  value: z.string().min(1),
-  exact: z.boolean().optional(),
-  limit: z.number().min(1).max(1000).optional(),
-  offset: z.number().min(0).optional(),
-});
