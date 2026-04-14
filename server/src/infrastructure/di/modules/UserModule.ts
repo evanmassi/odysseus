@@ -126,14 +126,14 @@ export class UserModule {
   getResearcherApplicationService(): ResearcherApplicationService {
     if (!this.researcherApplicationService) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.researcherApplicationService = new ResearcherApplicationService(
-        repositories.researchers,
-        repositories.users,
-        repositories.persons,
-        repositories.tubes,
-        this.shared.accessControlService,
-        this.shared.eventBus
-      );
+      this.researcherApplicationService = new ResearcherApplicationService({
+        researcherRepository: repositories.researchers,
+        userRepository: repositories.users,
+        personRepository: repositories.persons,
+        tubeRepository: repositories.tubes,
+        accessControlService: this.shared.accessControlService,
+        eventBus: this.shared.eventBus,
+      });
     }
     return this.researcherApplicationService;
   }

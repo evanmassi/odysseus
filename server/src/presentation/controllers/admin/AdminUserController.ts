@@ -177,9 +177,10 @@ export class AdminUserController {
 
       const { userId } = req.params;
       const { researcherId, newResearcher } = req.body;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = req.user;
+      const adminApiKey = adminUser?.apiKey;
 
-      if (!adminApiKey) {
+      if (!adminUser || !adminApiKey) {
         throw new PermissionError('Authentication required');
       }
 
@@ -187,9 +188,9 @@ export class AdminUserController {
 
       if (newResearcher) {
         const created = await this.deps.researcherApplicationService.createResearcher(
-          req.user!.labId!,
+          adminUser.labId!,
           newResearcher,
-          adminApiKey
+          adminUser
         );
         targetResearcherId = created.id;
 
