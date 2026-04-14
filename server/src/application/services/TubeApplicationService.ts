@@ -5,6 +5,8 @@
  * Input validation is handled by Zod middleware; this layer enforces business rules only.
  */
 
+import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
+
 import type { EventBus } from '@application/contracts/EventBus';
 import { TubeDto } from '@application/dto/TubeDto';
 import type { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchResponse } from '@application/dto/TubeDto';
@@ -340,13 +342,15 @@ export class TubeApplicationService {
     return TubeDto.toResponseList(filtered);
   }
 
-  async getAllTubes(authenticatedUser: User): Promise<TubeResponse[]> {
+  async getFilterOptions(
+    labId: string,
+    fields: TubeFilterableField[],
+    authenticatedUser: User
+  ): Promise<TubeFilterOptions> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
-    const tubes = await this.tubeRepository.findByTankIds(allowedTankIds, authenticatedUser.labId!);
-
-    return TubeDto.toResponseList(tubes);
+    const allowedTankIds = await this.getAllowedTankIds(labId);
+    return this.tubeRepository.getFilterOptions(labId, fields, allowedTankIds);
   }
 
   async getTubesByLocation(

@@ -4,6 +4,8 @@
  * Data access for tube sample records with multi-layer full-text search and location queries.
  */
 
+import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
+
 import type { Tube } from '@domain/entities/Tube';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -941,6 +943,48 @@ export class TubeRepository implements ITubeRepository {
       [...tankIds, labId]
     );
     return result.rowCount ?? 0;
+  }
+
+  async getFilterOptions(
+    labId: string,
+    fields: TubeFilterableField[],
+    allowedTankIds: string[]
+  ): Promise<TubeFilterOptions> {
+    if (fields.length === 0 || allowedTankIds.length === 0) {
+      return {};
+    }
+
+    const fieldToColumn: Record<TubeFilterableField, string> = {
+      tankId: 'tank_id',
+      rackId: 'rack_id',
+      boxId: 'box_id',
+      cellType: 'cell_type',
+      lotNumber: 'lot_number',
+      donorInternalId: 'donor_internal_id',
+      donorSourceId: 'donor_source_id',
+      cultureCondition: 'culture_condition',
+      species: 'species',
+      source: 'source',
+    };
+
+    const tankPlaceholders = allowedTankIds.map((_, i) => `$${i + 2}`).join(',');
+    const baseParams = [labId, ...allowedTankIds];
+
+    const results = await Promise.all(
+      fields.map(async field => {
+        const column = fieldToColumn[field];
+        const rows = await this.context.queryMany<{ value: string }>(
+          `SELECT DISTINCT ${column} AS value FROM tubes
+           WHERE lab_id = $1 AND tank_id IN (${tankPlaceholders})
+             AND ${column} IS NOT NULL AND ${column} <> ''
+           ORDER BY value`,
+          baseParams
+        );
+        return [field, rows.map(r => r.value)] as const;
+      })
+    );
+
+    return Object.fromEntries(results) as TubeFilterOptions;
   }
 
   // MAINTENANCE OPERATIONS

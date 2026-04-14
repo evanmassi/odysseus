@@ -31,21 +31,34 @@ import {
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
-import { useTubes } from '@domains/tubes/hooks';
+import { useTubeFilterOptionsQuery } from '@domains/tubes/hooks';
 import { Chip, DatePicker, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 
-import type { TubeData, Researcher, SearchFilters } from '@odysseus/shared-schemas';
+import type { Researcher, SearchFilters, TubeFilterableField } from '@odysseus/shared-schemas';
 
 interface SampleFilterGroup {
   filterKey: keyof SearchFilters;
-  tubeField: string;
+  tubeField: TubeFilterableField;
   label: string;
   icon: LucideIcon;
   ariaLabel: string;
 }
+
+const FILTER_FIELDS: TubeFilterableField[] = [
+  'tankId',
+  'rackId',
+  'boxId',
+  'cellType',
+  'lotNumber',
+  'donorInternalId',
+  'donorSourceId',
+  'cultureCondition',
+  'species',
+  'source',
+];
 
 const SAMPLE_FILTER_GROUPS: SampleFilterGroup[] = [
   {
@@ -160,12 +173,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
     date: false,
   });
 
-  const { data: tubes = [] } = useTubes(
-    {},
-    {
-      staleTime: 5 * 60 * 1000,
-    }
-  );
+  const { data: filterOptionsData } = useTubeFilterOptionsQuery(FILTER_FIELDS);
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { getCurrentTanks } = useStorageData();
   const tanks = getCurrentTanks();
@@ -203,32 +211,23 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
   );
 
   const filterOptions = useMemo(() => {
-    const uniqueSampleValues = (field: string): string[] =>
-      Array.from(
-        new Set(
-          tubes
-            ?.map((t: TubeData) => (t.sample as Record<string, unknown> | undefined)?.[field])
-            .filter((v): v is string => typeof v === 'string' && v.length > 0) ?? []
-        )
-      ).sort();
-
     return {
-      tankIds: Array.from(
-        new Set(tubes?.map((tube: TubeData) => tube.location?.tankId).filter(Boolean) || [])
-      ).sort((a, b) => getTankName(a).localeCompare(getTankName(b), undefined, { numeric: true })),
-      rackIds: Array.from(new Set(tubes?.map((tube: TubeData) => tube.location?.rackId) || []))
-        .filter(Boolean)
-        .sort((a, b) => getRackName(a).localeCompare(getRackName(b), undefined, { numeric: true })),
-      boxIds: Array.from(
-        new Set(tubes?.map((tube: TubeData) => tube.location?.boxId).filter(Boolean) || [])
-      ).sort((a, b) => getBoxName(a).localeCompare(getBoxName(b), undefined, { numeric: true })),
+      tankIds: [...(filterOptionsData?.tankId ?? [])].sort((a, b) =>
+        getTankName(a).localeCompare(getTankName(b), undefined, { numeric: true })
+      ),
+      rackIds: [...(filterOptionsData?.rackId ?? [])].sort((a, b) =>
+        getRackName(a).localeCompare(getRackName(b), undefined, { numeric: true })
+      ),
+      boxIds: [...(filterOptionsData?.boxId ?? [])].sort((a, b) =>
+        getBoxName(a).localeCompare(getBoxName(b), undefined, { numeric: true })
+      ),
       sampleGroups: SAMPLE_FILTER_GROUPS.map(group => ({
         ...group,
-        options: uniqueSampleValues(group.tubeField),
+        options: filterOptionsData?.[group.tubeField] ?? [],
       })),
       researchers: researchers || [],
     };
-  }, [tubes, researchers, getTankName, getRackName, getBoxName]);
+  }, [filterOptionsData, researchers, getTankName, getRackName, getBoxName]);
 
   const updateDateFilter = useCallback(
     (field: 'dateFrom' | 'dateTo', value: string) => {

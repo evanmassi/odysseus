@@ -213,6 +213,36 @@ export const bulkTubeOperationSchema = z.object({
   ])
 });
 
+export const TUBE_FILTERABLE_FIELDS = [
+  'tankId',
+  'rackId',
+  'boxId',
+  'cellType',
+  'lotNumber',
+  'donorInternalId',
+  'donorSourceId',
+  'cultureCondition',
+  'species',
+  'source',
+] as const;
+
+export type TubeFilterableField = typeof TUBE_FILTERABLE_FIELDS[number];
+
+export const tubeFilterOptionsResponseSchema = z.object({
+  tankId: z.array(z.string()).optional(),
+  rackId: z.array(z.string()).optional(),
+  boxId: z.array(z.string()).optional(),
+  cellType: z.array(z.string()).optional(),
+  lotNumber: z.array(z.string()).optional(),
+  donorInternalId: z.array(z.string()).optional(),
+  donorSourceId: z.array(z.string()).optional(),
+  cultureCondition: z.array(z.string()).optional(),
+  species: z.array(z.string()).optional(),
+  source: z.array(z.string()).optional(),
+});
+
+export type TubeFilterOptions = z.infer<typeof tubeFilterOptionsResponseSchema>;
+
 export const tubeValidationResultSchema = z.object({
   isValid: z.boolean(),
   errors: z.array(z.object({

@@ -11,6 +11,7 @@ import type {
   SearchFilters,
   AdvancedSearchOptions,
   LookupCategory,
+  TubeFilterableField,
 } from '@odysseus/shared-schemas';
 
 export const queryKeys = {
@@ -42,13 +43,14 @@ export const queryKeys = {
   // Tubes (lab-scoped)
   tubes: {
     all: (labId = '') => ['tubes', labId] as const,
-    listAll: (labId = '') => [...queryKeys.tubes.all(labId), 'list'] as const,
     detail: (labId = '', id: string) => [...queryKeys.tubes.all(labId), 'detail', id] as const,
     location: (labId = '', tankId: string, rackId: string, boxId: string) =>
       [...queryKeys.tubes.all(labId), 'location', tankId, rackId, boxId] as const,
     locationStats: (labId = '', tankId: string, rackId: string) =>
       [...queryKeys.tubes.all(labId), 'locationStats', tankId, rackId] as const,
     stats: (labId = '') => [...queryKeys.tubes.all(labId), 'stats'] as const,
+    filterOptions: (labId = '', fields: TubeFilterableField[]) =>
+      [...queryKeys.tubes.all(labId), 'filterOptions', [...fields].sort()] as const,
     bulk: (labId = '', tubeIds: string[]) =>
       [
         ...queryKeys.tubes.all(labId),

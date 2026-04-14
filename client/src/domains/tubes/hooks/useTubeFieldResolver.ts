@@ -7,7 +7,6 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { hasValue, isObject } from '@domains/tubes/types/fieldTypes';
 import { logger } from '@infra/logger';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
@@ -71,37 +70,7 @@ export interface TubeFieldResolverResult {
     fieldPath: string
   ): FieldConflictAnalysis<T>;
 
-  tubes: {
-    data: TubeData[] | undefined;
-    isLoading: boolean;
-    error: Error | null;
-    refetch: () => void;
-    getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
-      fieldPath: string
-    ) => T[];
-    findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
-      fieldPath: string,
-      value: T
-    ) => TubeData[];
-    getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
-      fieldPath: string
-    ) => T[];
-    analyzeConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
-      selectedTubes: TubeData[],
-      fieldPath: string
-    ) => {
-      hasConflict: boolean;
-      values: (T | undefined)[];
-      commonValue: T | undefined;
-      totalSelected: number;
-      withValue: number;
-    };
-    hasAnyConflicts: (selectedTubes: TubeData[], fieldPaths: string[]) => boolean;
-  };
-
-  isLoading: boolean;
-  hasErrors: boolean;
-  errors: (Error | null)[];
+  hasAnyConflicts: (selectedTubes: TubeData[], fieldPaths: string[]) => boolean;
 }
 
 function getNestedValue(obj: unknown, path: string): unknown {
@@ -183,8 +152,6 @@ export function analyzeFieldConflict<T extends NormalizedFieldValue = Normalized
 }
 
 export function useTubeFieldResolver(): TubeFieldResolverResult {
-  const { data, isLoading, error, refetch } = useTubes();
-
   const getTubeValue = useCallback(
     <T extends NormalizedFieldValue = NormalizedFieldValue>(
       tube: TubeData,
@@ -325,61 +292,15 @@ export function useTubeFieldResolver(): TubeFieldResolverResult {
     [getTubeValues]
   );
 
-  const tubeUtils = useMemo(() => {
-    const tubes = data ?? [];
-
-    return {
-      data,
-      isLoading,
-      error,
-      refetch,
-
-      getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
-        fieldPath: string
-      ): T[] => {
-        return getTubeValues<T>(tubes, fieldPath).filter(v => v !== undefined) as T[];
-      },
-
-      findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
-        fieldPath: string,
-        value: T
-      ): TubeData[] => {
-        return findTubesByFieldValue(tubes, fieldPath, value);
-      },
-
-      getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
-        fieldPath: string
-      ): T[] => {
-        return getUniqueTubeValues<T>(tubes, fieldPath);
-      },
-
-      analyzeConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
-        selectedTubes: TubeData[],
-        fieldPath: string
-      ) => {
-        return analyzeFieldConflicts<T>(selectedTubes, fieldPath);
-      },
-
-      hasAnyConflicts: (selectedTubes: TubeData[], fieldPaths: string[]): boolean => {
-        if (selectedTubes.length <= 1) return false;
-        return fieldPaths.some(
-          fieldPath => analyzeFieldConflicts(selectedTubes, fieldPath).hasConflict
-        );
-      },
-    };
-  }, [
-    data,
-    isLoading,
-    error,
-    refetch,
-    getTubeValues,
-    findTubesByFieldValue,
-    getUniqueTubeValues,
-    analyzeFieldConflicts,
-  ]);
-
-  const errors = useMemo(() => [error], [error]);
-  const hasErrors = error !== null;
+  const hasAnyConflicts = useCallback(
+    (selectedTubes: TubeData[], fieldPaths: string[]): boolean => {
+      if (selectedTubes.length <= 1) return false;
+      return fieldPaths.some(
+        fieldPath => analyzeFieldConflicts(selectedTubes, fieldPath).hasConflict
+      );
+    },
+    [analyzeFieldConflicts]
+  );
 
   return useMemo(
     () => ({
@@ -389,10 +310,7 @@ export function useTubeFieldResolver(): TubeFieldResolverResult {
       getUniqueTubeValues,
       findTubesByFieldValue,
       analyzeFieldConflicts,
-      tubes: tubeUtils,
-      isLoading,
-      hasErrors,
-      errors,
+      hasAnyConflicts,
     }),
     [
       getTubeValue,
@@ -401,10 +319,7 @@ export function useTubeFieldResolver(): TubeFieldResolverResult {
       getUniqueTubeValues,
       findTubesByFieldValue,
       analyzeFieldConflicts,
-      tubeUtils,
-      isLoading,
-      hasErrors,
-      errors,
+      hasAnyConflicts,
     ]
   );
 }

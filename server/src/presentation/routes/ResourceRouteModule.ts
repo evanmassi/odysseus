@@ -26,6 +26,7 @@ import {
   BulkFetchHttpSchema,
   BulkMoveHttpSchema,
   LocationQuerySchema,
+  TubeFilterOptionsQuerySchema,
   LockTubesHttpSchema,
   UnlockTubesHttpSchema,
   ShareTubeAccessHttpSchema,
@@ -64,13 +65,14 @@ export class ResourceRouteModule implements RouteModule {
     // TUBE ROUTES
 
     // Read operations
-    router.get('/tubes',
-      this.tubeController.getAllTubes.bind(this.tubeController)
-    );
-
     router.get('/tubes/location',
       validateQuery(LocationQuerySchema),
       this.tubeController.getTubesByLocation.bind(this.tubeController)
+    );
+
+    router.get('/tubes/filter-options',
+      validateQuery(TubeFilterOptionsQuerySchema),
+      this.tubeController.getFilterOptions.bind(this.tubeController)
     );
 
     router.get('/tubes/stats',

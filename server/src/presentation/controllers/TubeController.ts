@@ -4,6 +4,8 @@
  * HTTP handlers for tube CRUD, bulk operations, location queries, and search.
  */
 
+import type { TubeFilterableField } from '@odysseus/shared-schemas';
+
 import type { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest } from '@application/dto/TubeDto';
 import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { logger } from '@infrastructure/logging/logger';
@@ -79,18 +81,6 @@ export class TubeController extends BaseController {
       res.json(ResponseBuilder.success(tube));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get tube', req.requestId);
-    }
-  }
-
-  /** GET /api/tubes */
-  async getAllTubes(req: Request, res: Response): Promise<void> {
-    try {
-      const authenticatedUser = this.getAuthenticatedUser(req);
-      const tubes = await this.deps.tubeApplicationService.getAllTubes(authenticatedUser);
-
-      res.json(ResponseBuilder.success(tubes));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get tubes', req.requestId);
     }
   }
 
@@ -228,6 +218,21 @@ export class TubeController extends BaseController {
       res.json(ResponseBuilder.success(tubes));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get tubes by location', req.requestId);
+    }
+  }
+
+  /** GET /api/tubes/filter-options?fields=tankId,cellType,... */
+  async getFilterOptions(req: Request, res: Response): Promise<void> {
+    try {
+      const authenticatedUser = this.getAuthenticatedUser(req);
+      const labId = this.extractLabId(req);
+      const fields = (req.query.fields as unknown) as TubeFilterableField[];
+
+      const options = await this.deps.tubeApplicationService.getFilterOptions(labId, fields, authenticatedUser);
+
+      res.json(ResponseBuilder.success(options));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to get tube filter options', req.requestId);
     }
   }
 

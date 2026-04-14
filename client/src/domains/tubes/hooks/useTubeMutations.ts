@@ -121,7 +121,7 @@ function handlePositionOccupiedError(
   }
 
   notifications.error(message);
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
 }
 
 /** Show conflict error message and refresh cache. */
@@ -134,7 +134,7 @@ function handleTubeConflictError(
     'Update failed: This tube was modified by another user. Please review the latest changes and try again.'
   );
   void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(labId, tubeId) });
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
 }
 
 export const useCreateTubeMutation = (
@@ -162,7 +162,7 @@ export const useCreateTubeMutation = (
 
     onSuccess: (tube, _variables, _context) => {
       queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
 
       if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
         void queryClient.invalidateQueries({
@@ -228,14 +228,6 @@ export const useUpdateTubeMutation = (
 
     onSuccess: (tube, _variables, context) => {
       queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
-
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.tubes.listAll(labId) },
-        (oldData: TubeData[] | undefined) => {
-          if (!oldData) return oldData;
-          return oldData.map(t => (t.id === tube.id ? tube : t));
-        }
-      );
 
       if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
         queryClient.setQueriesData(
@@ -331,17 +323,8 @@ export const useDeleteTubeMutation = (
 
     onMutate: async id => {
       await queryClient.cancelQueries({ queryKey: queryKeys.tubes.detail(labId, id) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.tubes.listAll(labId) });
 
       const previousTube = queryClient.getQueryData<TubeData>(queryKeys.tubes.detail(labId, id));
-
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.tubes.listAll(labId) },
-        (oldData: TubeData[] | undefined) => {
-          if (!oldData) return oldData;
-          return oldData.filter(tube => tube.id !== id);
-        }
-      );
 
       return { previousTube, id };
     },
@@ -366,23 +349,12 @@ export const useDeleteTubeMutation = (
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
     },
 
-    onError: (error, id, context) => {
+    onError: (error, id, _context) => {
       logger.error(`Delete tube ${id} failed`, { error });
-
-      if (context?.previousTube) {
-        queryClient.setQueriesData(
-          { queryKey: queryKeys.tubes.listAll(labId) },
-          (oldData: TubeData[] | undefined) => {
-            if (!oldData) return [context.previousTube];
-            const exists = oldData.some(tube => tube.id === id);
-            return exists ? oldData : [...oldData, context.previousTube];
-          }
-        );
-      }
     },
 
     onSettled: (_data, _error, _id) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
     },
 
     ...options,
@@ -522,14 +494,6 @@ export const useBulkDeleteTubesMutation = (
         queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(labId, id) });
       });
 
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.tubes.listAll(labId) },
-        (oldData: TubeData[] | undefined) => {
-          if (!oldData) return oldData;
-          return oldData.filter(tube => !successfulIds.includes(tube.id));
-        }
-      );
-
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
 
       if (variables.location) {
@@ -549,7 +513,7 @@ export const useBulkDeleteTubesMutation = (
     },
 
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
     },
 
     ...options,
@@ -620,7 +584,7 @@ export const usePasteTubesMutation = (
     },
 
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
     },
 
     ...options,
@@ -737,7 +701,7 @@ export const useMoveTubesMutation = (
         });
       }
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
 
       if (result.failed.length > 0) {
         logger.warn('Move tubes partial failure', {

@@ -21,6 +21,7 @@ import { useForm } from 'react-hook-form';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
+import { TubeService } from '@domains/tubes/services/TubeService';
 import { logger } from '@infra/logger';
 
 import { useCreateTubeMutation, useUpdateTubeMutation } from './useTubeMutations';
@@ -76,29 +77,28 @@ function useTubeForm<
   const updateTubeMutation = useUpdateTubeMutation();
 
   const validateCompletePayload = useCallback(
-    (payload: TOutput): { warnings: Record<string, string> } => {
+    async (payload: TOutput): Promise<{ warnings: Record<string, string> }> => {
       const warnings: Record<string, string> = {};
 
       if ('location' in payload && payload.location) {
-        const existingTubes =
-          queryClient.getQueryData<TubeData[]>(queryKeys.tubes.listAll(labId)) ?? [];
+        const { tankId, rackId, boxId, position } = payload.location;
+        if (!tankId || !rackId || !boxId || position === undefined) {
+          return { warnings };
+        }
 
-        const filteredTubes =
-          mode === 'edit' && tubeId
-            ? existingTubes.filter(tube => tube.id !== tubeId)
-            : existingTubes;
+        const boxTubes = await queryClient.fetchQuery({
+          queryKey: queryKeys.tubes.location(labId, tankId, rackId, boxId),
+          queryFn: () => TubeService.fetchTubesByLocation(tankId, rackId, boxId),
+        });
 
-        const duplicate = filteredTubes.find(
-          tube =>
-            tube.location.tankId === payload.location!.tankId &&
-            tube.location.rackId === payload.location!.rackId &&
-            tube.location.boxId === payload.location!.boxId &&
-            tube.location.position === payload.location!.position
-        );
+        const candidates =
+          mode === 'edit' && tubeId ? boxTubes.filter(tube => tube.id !== tubeId) : boxTubes;
+
+        const duplicate = candidates.find(tube => tube.location.position === position);
 
         if (duplicate) {
           warnings['position'] =
-            `Position ${payload.location!.position} in Tank ${payload.location!.tankId}, Rack ${payload.location!.rackId}, Box ${payload.location!.boxId} is already occupied`;
+            `Position ${position} in Tank ${tankId}, Rack ${rackId}, Box ${boxId} is already occupied`;
         }
       }
 
@@ -124,7 +124,7 @@ function useTubeForm<
 
           const validatedPayload = schema.parse(formInputWithLocation) as TOutput;
 
-          const { warnings } = validateCompletePayload(validatedPayload);
+          const { warnings } = await validateCompletePayload(validatedPayload);
           if (Object.keys(warnings).length > 0) {
             logger.warn('Tube creation warnings', { warnings });
           }
@@ -143,7 +143,7 @@ function useTubeForm<
 
           const validatedPayload = schema.parse(formInputWithContext) as TOutput;
 
-          const { warnings } = validateCompletePayload(validatedPayload);
+          const { warnings } = await validateCompletePayload(validatedPayload);
           if (Object.keys(warnings).length > 0) {
             logger.warn('Tube update warnings', { warnings });
           }

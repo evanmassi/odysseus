@@ -23,7 +23,7 @@ import { Edit, Plus, Save, Trash2 } from 'lucide-react';
 import { useModalStore } from '@app/stores/modalStore';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
-import { useTubes, useTube } from '@domains/tubes';
+import { useTubesByLocation, useTube } from '@domains/tubes';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useUpdateTubeMutation,
@@ -399,7 +399,21 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
   const { data: mediaValues = [] } = useLookupValuesQuery('media');
-  const { data: allTubes = [] } = useTubes();
+  // All selected positions are within a single box (tubeStore clears selection on box change).
+  const firstPositionLocation = useMemo(() => {
+    if (!selectedPositions || selectedPositions.size === 0) return undefined;
+    const first = selectedPositions.values().next().value;
+    if (!first) return undefined;
+    const { tankId, rackId, boxId } = parsePositionKey(first);
+    return { tankId, rackId, boxId };
+  }, [selectedPositions]);
+
+  const { data: boxTubes = [] } = useTubesByLocation(
+    firstPositionLocation?.tankId ?? '',
+    firstPositionLocation?.rackId ?? '',
+    firstPositionLocation?.boxId ?? '',
+    { enabled: !!firstPositionLocation }
+  );
   const updateTubeMutation = useUpdateTubeMutation();
   const pasteTubesMutation = usePasteTubesMutation();
 
@@ -450,14 +464,8 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     const occupiedPositions = [];
 
     for (const parsed of parsedPositions) {
-      const { tankId, rackId, boxId, position } = parsed.location;
-      const existingTube = allTubes.find(
-        t =>
-          t.location.tankId === tankId &&
-          t.location.rackId === rackId &&
-          t.location.boxId === boxId &&
-          t.location.position === position
-      );
+      const { position } = parsed.location;
+      const existingTube = boxTubes.find(t => t.location.position === position);
 
       if (existingTube) {
         occupiedPositions.push({ ...parsed, tubeId: existingTube.id });
@@ -473,7 +481,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
       hasOccupied: occupiedPositions.length > 0,
       isMixed: emptyPositions.length > 0 && occupiedPositions.length > 0,
     };
-  }, [parsedPositions, allTubes]);
+  }, [parsedPositions, boxTubes]);
 
   const bulkLocationDisplay = useMemo(() => {
     if (parsedPositions.length === 0) return null;

@@ -4,6 +4,8 @@
  * Data access contract for tube sample records and location queries.
  */
 
+import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
+
 import type { Tube } from '@domain/entities/Tube';
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteriaTypes';
 import type { TubeRepositoryStats } from '@domain/types/repository/statsTypes';
@@ -53,6 +55,7 @@ export interface TubeRepository {
 
   search(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]>;
   searchWithHighlighting(criteria: TubeSearchCriteria, labId: string): Promise<TubeSearchResult>;
+  getFilterOptions(labId: string, fields: TubeFilterableField[], allowedTankIds: string[]): Promise<TubeFilterOptions>;
 
   // BULK OPERATIONS
 

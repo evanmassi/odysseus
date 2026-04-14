@@ -123,7 +123,7 @@ interface TubeInfoPanelProps {
 }
 
 export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps) {
-  const { getTubeValue, analyzeFieldConflicts, tubes } = useTubeFieldResolver();
+  const { getTubeValue, analyzeFieldConflicts, hasAnyConflicts } = useTubeFieldResolver();
   const { data: researchers = [] } = useResearchersQuery();
   const openDonorRegistry = useDonorRegistryStore(s => s.open);
   const { settings: userSettings } = useUserSettings();
@@ -331,7 +331,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   // createdByName is a historical fallback, not a tube field — exclude from conflict detection
   const conflictPaths = FIELD_PATHS.filter(p => p !== 'createdByName');
-  const hasConflicts = tubes.hasAnyConflicts(selectedTubes, [...conflictPaths]);
+  const hasConflicts = hasAnyConflicts(selectedTubes, [...conflictPaths]);
 
   const hasSampleInfo =
     cultureCondition !== undefined ||

@@ -7,6 +7,7 @@ import {
   createTubeRequestSchema,
   updateTubeRequestSchema,
   tubeLocationSchema,
+  TUBE_FILTERABLE_FIELDS,
   createResearcherProfileSchema,
   lockTubesRequestSchema,
   unlockTubesRequestSchema,
@@ -76,6 +77,11 @@ export const CreateResearcherHttpSchema = createResearcherProfileSchema;
 
 // Omits position from shared location schema
 export const LocationQuerySchema = tubeLocationSchema.omit({ position: true });
+
+export const TubeFilterOptionsQuerySchema = z.object({
+  fields: z.string().min(1).transform(val => val.split(',').map(s => s.trim()).filter(Boolean))
+    .pipe(z.array(z.enum(TUBE_FILTERABLE_FIELDS)).min(1)),
+});
 
 export const BulkUpdateHttpSchema = z.object({
   updates: z.array(z.object({

@@ -5,7 +5,12 @@
  */
 
 // Query hooks
-export { useTubes, useTubesByLocation, useTube, useBulkTubes } from './useTubeQueries';
+export {
+  useTubesByLocation,
+  useTube,
+  useBulkTubes,
+  useTubeFilterOptionsQuery,
+} from './useTubeQueries';
 
 // Mutation hooks
 export {

@@ -19,7 +19,10 @@ import {
   type BulkDeleteResponse,
   type PasteTubesResponse,
   type BulkUpdateResponse,
+  type TubeFilterableField,
+  type TubeFilterOptions,
   tubeDataSchema,
+  tubeFilterOptionsResponseSchema,
   createTubeRequestSchema,
   updateTubeRequestSchema,
   bulkLockResultSchema,
@@ -56,8 +59,12 @@ export class TubeService {
     };
   }
 
-  static async fetchTubes(): Promise<TubeData[]> {
-    return await httpClient.getArray(this.BASE_PATH, tubeDataSchema);
+  static async fetchFilterOptions(fields: TubeFilterableField[]): Promise<TubeFilterOptions> {
+    const query = new URLSearchParams({ fields: fields.join(',') });
+    return await httpClient.getData(
+      `${this.BASE_PATH}/filter-options?${query.toString()}`,
+      tubeFilterOptionsResponseSchema
+    );
   }
 
   static async fetchTubeById(id: string): Promise<TubeData> {
