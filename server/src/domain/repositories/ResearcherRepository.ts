@@ -7,9 +7,6 @@
 import type { Researcher } from '@domain/entities/Researcher';
 
 export interface ResearcherRepository {
-
-  // BASIC CRUD OPERATIONS
-
   findById(id: string): Promise<Researcher | null>;
   findByPersonId(personId: string): Promise<Researcher | null>;
   findByLabId(labId: string): Promise<Researcher[]>;
@@ -23,20 +20,14 @@ export interface ResearcherRepository {
 
   delete(id: string): Promise<boolean>;
 
-  // QUERY OPERATIONS
-
   nameExists(firstName: string, lastName: string, labId?: string): Promise<boolean>;
   findDeactivatedByName(firstName: string, lastName: string, labId: string): Promise<Researcher | null>;
   searchByName(namePattern: string, labId: string): Promise<Researcher[]>;
-
-  // INTEGRATION QUERIES
 
   getMostActiveResearchers(limit: number | undefined, labId: string): Promise<Array<{ researcher: Researcher, tubeCount: number }>>;
   countByLabIds(labIds: string[]): Promise<Map<string, number>>;
   getTubeCountByResearcher(researcherId: string): Promise<number>;
   getTubeCountsByResearcherIds(researcherIds: string[]): Promise<Map<string, number>>;
-
-  // MAINTENANCE
 
   isHealthy(): Promise<boolean>;
 }
