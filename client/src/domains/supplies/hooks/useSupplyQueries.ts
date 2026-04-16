@@ -80,7 +80,8 @@ export function useSupplyReorderListQuery() {
     queryKey: queryKeys.supplies.reorderList(labId),
     queryFn: () => SupplyService.getReorderList(),
     enabled: !!labId,
-    staleTime: CACHE_TIMES.STABLE.staleTime,
-    gcTime: CACHE_TIMES.STABLE.gcTime,
+    staleTime: CACHE_TIMES.REAL_TIME.staleTime,
+    gcTime: CACHE_TIMES.REAL_TIME.gcTime,
+    refetchOnMount: 'always',
   });
 }

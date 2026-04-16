@@ -17,6 +17,7 @@ import {
   ClipboardList,
   RefreshCw,
   MapPin,
+  Printer,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -39,10 +40,12 @@ import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeForm } from './SupplyBarcodeForm';
+import { SupplyBarcodePrint } from './SupplyBarcodePrint';
 import { SupplyDocumentForm } from './SupplyDocumentForm';
 import { SupplyTransactionTimeline } from './SupplyTransactionTimeline';
 
 import type { TransactionPrefill } from './SupplyTransactionForm';
+import type { SupplyBarcode } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 const STATUS_LABELS: Record<
@@ -103,6 +106,7 @@ export function SupplyItemInfoPanel({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editingBarcodeId, setEditingBarcodeId] = useState<string | null>(null);
   const [editingLabel, setEditingLabel] = useState('');
+  const [printingBarcode, setPrintingBarcode] = useState<SupplyBarcode | null>(null);
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
   const [editingDocLabel, setEditingDocLabel] = useState('');
   const [editingDocUrl, setEditingDocUrl] = useState('');
@@ -426,6 +430,16 @@ export function SupplyItemInfoPanel({
                                 </Button>
                               </Tooltip>
                             )}
+                            <Tooltip content="Print barcode" side="bottom">
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                iconOnly
+                                onClick={() => setPrintingBarcode(bc)}
+                              >
+                                <Printer className="w-3 h-3" />
+                              </Button>
+                            </Tooltip>
                             <Tooltip content="Edit label" side="bottom">
                               <Button
                                 variant="ghost"
@@ -656,6 +670,17 @@ export function SupplyItemInfoPanel({
         onConfirm={() => void handleDelete()}
         onCancel={() => setShowDeleteConfirm(false)}
       />
+
+      {printingBarcode && (
+        <SupplyBarcodePrint
+          isOpen={true}
+          onClose={() => setPrintingBarcode(null)}
+          barcodeValue={printingBarcode.barcodeValue}
+          itemName={item.name}
+          manufacturer={item.manufacturer}
+          catalogNumber={item.catalogNumber}
+        />
+      )}
     </div>
   );
 }

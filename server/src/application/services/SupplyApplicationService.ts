@@ -671,7 +671,7 @@ export class SupplyApplicationService {
   // Reorder
 
   async getReorderList(labId: string): Promise<SupplyItemWithStockResponse[]> {
-    const itemsWithStock = await this.itemRepository.findItemsBelowThreshold(labId);
+    const itemsWithStock = await this.itemRepository.findItemsAtOrBelowThreshold(labId);
     return itemsWithStock.map(({ item, totalStock, locationNames }) => SupplyDto.itemWithStockToResponse(item, totalStock, locationNames));
   }
 

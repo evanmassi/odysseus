@@ -437,7 +437,7 @@ export class ExportService {
       throw new Error('Supply item repository not configured');
     }
 
-    const itemsWithStock = await this.supplyItemRepository.findItemsBelowThreshold(labId);
+    const itemsWithStock = await this.supplyItemRepository.findItemsAtOrBelowThreshold(labId);
 
     const rows: SupplyReorderExportRow[] = itemsWithStock.map(({ item, totalStock }) => ({
       name: item.name,

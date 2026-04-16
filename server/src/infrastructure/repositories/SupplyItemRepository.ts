@@ -368,7 +368,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
 
   // Reorder
 
-  async findItemsBelowThreshold(labId: string): Promise<ItemWithStock[]> {
+  async findItemsAtOrBelowThreshold(labId: string): Promise<ItemWithStock[]> {
     const rows = await this.db.queryMany<SupplyItemRow & { total_stock: string; location_names: string[] }>(`
       SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
              COALESCE(
@@ -380,7 +380,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
       LEFT JOIN supply_locations l ON l.id = s.location_id
       WHERE p.lab_id = $1 AND p.status = 'active' AND p.reorder_threshold IS NOT NULL
       GROUP BY p.id
-      HAVING COALESCE(SUM(s.quantity), 0) < p.reorder_threshold
+      HAVING COALESCE(SUM(s.quantity), 0) <= p.reorder_threshold
       ORDER BY p.name
     `, [labId]);
 

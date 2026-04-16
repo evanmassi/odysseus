@@ -121,7 +121,7 @@ export interface SupplyItemRepository {
 
   // Reorder
 
-  findItemsBelowThreshold(labId: string): Promise<ItemWithStock[]>;
+  findItemsAtOrBelowThreshold(labId: string): Promise<ItemWithStock[]>;
 
   // Lookup support — for supply lookup category rename/delete cascading
 
