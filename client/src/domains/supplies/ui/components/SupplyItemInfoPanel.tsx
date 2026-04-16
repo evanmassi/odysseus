@@ -591,7 +591,10 @@ export function SupplyItemInfoPanel({
                   <div>
                     <span className="text-sm text-card-foreground">
                       {(() => {
-                        if (!item.reorderThresholdUnit) {
+                        if (
+                          !item.reorderThresholdUnit ||
+                          item.reorderThresholdUnit === item.stockUnit
+                        ) {
                           return `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)}`;
                         }
                         const levels = detail?.packagingLevels ?? [];
@@ -609,7 +612,7 @@ export function SupplyItemInfoPanel({
                         return `${inputQty} ${pluralizeUnit(item.reorderThresholdUnit, inputQty)}`;
                       })()}
                     </span>
-                    {item.reorderThresholdUnit && (
+                    {item.reorderThresholdUnit && item.reorderThresholdUnit !== item.stockUnit && (
                       <span className="text-xs text-muted-foreground block">
                         ({item.reorderThreshold}{' '}
                         {pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)})

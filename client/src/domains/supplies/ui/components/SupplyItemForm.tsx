@@ -5,7 +5,7 @@
  * dropdowns, packaging hierarchy management, and multi-select properties.
  */
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createSupplyItemRequestSchema } from '@odysseus/shared-schemas';
@@ -68,10 +68,16 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const [newLevelParent, setNewLevelParent] = useState<string | null>(null);
   const [manufacturerBarcode, setManufacturerBarcode] = useState('');
   const [manufacturerBarcodeLabel, setManufacturerBarcodeLabel] = useState('');
-  const [thresholdInputQty, setThresholdInputQty] = useState(() => {
-    if (!isEditing || item?.reorderThreshold == null) return '';
-    if (!item.reorderThresholdUnit) return String(item.reorderThreshold);
+  const [thresholdInputQty, setThresholdInputQty] = useState('');
+
+  useEffect(() => {
+    if (!isEditing || item?.reorderThreshold == null) return;
+    if (!item.reorderThresholdUnit || item.reorderThresholdUnit === item.stockUnit) {
+      setThresholdInputQty(String(item.reorderThreshold));
+      return;
+    }
     const levels = detail?.packagingLevels ?? [];
+    if (levels.length === 0) return;
     let multiplier = 1;
     let current = item.reorderThresholdUnit;
     for (let i = 0; i < levels.length + 1; i++) {
@@ -81,8 +87,14 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
       if (level.parentUnit === null || level.parentUnit === item.stockUnit) break;
       current = level.parentUnit;
     }
-    return String(Math.round(item.reorderThreshold / multiplier));
-  });
+    setThresholdInputQty(String(Math.round(item.reorderThreshold / multiplier)));
+  }, [
+    isEditing,
+    item?.reorderThreshold,
+    item?.reorderThresholdUnit,
+    item?.stockUnit,
+    detail?.packagingLevels,
+  ]);
   const [thresholdUnit, setThresholdUnit] = useState(
     isEditing ? (item?.reorderThresholdUnit ?? '') : ''
   );
