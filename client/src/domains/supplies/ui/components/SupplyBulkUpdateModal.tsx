@@ -2,13 +2,22 @@
  * Supply Bulk Update Modal
  *
  * Unified bulk operations modal with tabbed actions: receive, issue, reassign
- * category, archive, and void. Item selector for reassign/archive tabs;
- * row-based forms for receive/issue; transaction selector for void.
+ * category, archive, void, and print. Item selector for reassign/archive/print
+ * tabs; row-based forms for receive/issue; transaction selector for void.
  */
 
 import { useState, useMemo, useCallback } from 'react';
 
-import { Layers, Search, PackagePlus, PackageMinus, FolderInput, Archive, Ban } from 'lucide-react';
+import {
+  Layers,
+  Search,
+  PackagePlus,
+  PackageMinus,
+  FolderInput,
+  Archive,
+  Ban,
+  Printer,
+} from 'lucide-react';
 
 import { useSupplyBulkUpdateMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button, Checkbox, Tabs, Tab } from '@shared/ui';
@@ -20,6 +29,7 @@ import { notifications } from '@shared/utils/notifications';
 
 import { BulkArchiveTab } from './bulk-update-tabs/BulkArchiveTab';
 import { BulkIssueTab } from './bulk-update-tabs/BulkIssueTab';
+import { BulkPrintTab } from './bulk-update-tabs/BulkPrintTab';
 import { BulkReassignTab } from './bulk-update-tabs/BulkReassignTab';
 import { BulkReceiveTab } from './bulk-update-tabs/BulkReceiveTab';
 import { BulkVoidTab } from './bulk-update-tabs/BulkVoidTab';
@@ -30,9 +40,9 @@ import type {
   SupplyBulkResponse,
 } from '@odysseus/shared-schemas';
 
-type BulkActionType = 'receive' | 'issue' | 'reassign-category' | 'archive' | 'void';
+type BulkActionType = 'receive' | 'issue' | 'reassign-category' | 'archive' | 'void' | 'print';
 
-const SELECTOR_TABS = new Set<BulkActionType>(['reassign-category', 'archive']);
+const SELECTOR_TABS = new Set<BulkActionType>(['reassign-category', 'archive', 'print']);
 
 interface SupplyBulkUpdateModalProps {
   isOpen: boolean;
@@ -136,6 +146,9 @@ export function SupplyBulkUpdateModal({
               <Tab id="archive" icon={<Archive size={14} />}>
                 Archive
               </Tab>
+              <Tab id="print" icon={<Printer size={14} />}>
+                Print
+              </Tab>
             </Tabs>
           </div>
 
@@ -163,22 +176,27 @@ export function SupplyBulkUpdateModal({
                     />
                   )}
                   {actionType === 'archive' && <BulkArchiveTab selectedCount={selectedIds.size} />}
+                  {actionType === 'print' && (
+                    <BulkPrintTab items={items} selectedIds={selectedIds} />
+                  )}
                 </div>
 
-                <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
-                  <Button variant="secondary" onClick={handleClose}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={() => setPendingAction(true)}
-                    disabled={selectedIds.size === 0 || !isFormValid}
-                    isLoading={bulkMutation.isPending}
-                    variant={actionType === 'archive' ? 'danger' : 'primary'}
-                  >
-                    {actionType === 'reassign-category' ? 'Reassign' : 'Archive'} (
-                    {selectedIds.size})
-                  </Button>
-                </div>
+                {actionType !== 'print' && (
+                  <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
+                    <Button variant="secondary" onClick={handleClose}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => setPendingAction(true)}
+                      disabled={selectedIds.size === 0 || !isFormValid}
+                      isLoading={bulkMutation.isPending}
+                      variant={actionType === 'archive' ? 'danger' : 'primary'}
+                    >
+                      {actionType === 'reassign-category' ? 'Reassign' : 'Archive'} (
+                      {selectedIds.size})
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
