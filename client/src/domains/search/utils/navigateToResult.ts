@@ -6,6 +6,7 @@
 
 import { useTubeStore } from '@domains/tubes';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
 
 import type { TubeData } from '@domains/tubes/types';
 
@@ -17,7 +18,6 @@ export async function navigateToResult(tubes: TubeData[]): Promise<void> {
   const rackId = firstTube.location.rackId;
   const boxId = firstTube.location.boxId;
 
-  const { navigateToLocation } = await import('@domains/tubes/utils/gridNavigation');
   await navigateToLocation({ tankId, rackId, boxId });
 
   const tubeStore = useTubeStore.getState();

@@ -183,7 +183,7 @@ export function SearchPanel() {
         >
           <div className="flex items-stretch">
             <div
-              className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
                 showFilters ? 'w-80' : 'w-0'
               }`}
             >

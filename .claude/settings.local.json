@@ -128,7 +128,8 @@
       "Bash(mv SupplyProductInfoPanel.tsx SupplyItemInfoPanel.tsx)",
       "Bash(mv SupplyProductRow.tsx SupplyItemRow.tsx)",
       "Bash(sed -i \"s/CONSUMABLE EVENTS/SUPPLY EVENTS/g\" client/src/domains/admin/utils/auditLogFormatters.ts)",
-      "Bash(sed -i \"s/CONSUMABLE EVENT HANDLERS/SUPPLY EVENT HANDLERS/g\" server/src/application/event-handlers/AuditEventHandler.ts)"
+      "Bash(sed -i \"s/CONSUMABLE EVENT HANDLERS/SUPPLY EVENT HANDLERS/g\" server/src/application/event-handlers/AuditEventHandler.ts)",
+      "Bash(npx update-browserslist-db@latest)"
     ]
   }
 }
