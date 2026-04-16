@@ -10,6 +10,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import JsBarcode from 'jsbarcode';
 import { Printer, Barcode, QrCode } from 'lucide-react';
 import { toCanvas as qrToCanvas } from 'qrcode';
+import { createPortal } from 'react-dom';
 
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
@@ -37,11 +38,10 @@ const PREVIEW_MIN_HEIGHT_PX = 224;
 const FORMAT_OPTIONS: {
   value: BarcodeFormat;
   label: string;
-  description: string;
   Icon: typeof Barcode;
 }[] = [
-  { value: '1d', label: '1D Barcode', description: 'Code 128', Icon: Barcode },
-  { value: '2d', label: '2D QR Code', description: 'Square code', Icon: QrCode },
+  { value: '1d', label: 'Barcode', Icon: Barcode },
+  { value: '2d', label: 'QR Code', Icon: QrCode },
 ];
 
 const SELECTED_CLASS =
@@ -49,22 +49,30 @@ const SELECTED_CLASS =
 const UNSELECTED_CLASS =
   'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10';
 
-const PRINT_TARGET_CLASS = 'barcode-print-target';
+const PRINT_PORTAL_CLASS = 'barcode-print-portal';
 const PRINT_STYLE_ID = 'barcode-print-styles';
-const PRINT_STYLES = `
-  @page { size: auto; margin: 0; }
-  @media print {
-    body * { visibility: hidden !important; }
-    .${PRINT_TARGET_CLASS}, .${PRINT_TARGET_CLASS} * { visibility: visible !important; }
-    .${PRINT_TARGET_CLASS} {
-      position: absolute !important;
-      left: 0 !important;
-      top: 0 !important;
-      margin: 0 !important;
-      box-shadow: none !important;
+
+function buildPrintStyles(size: LabelSize): string {
+  return `
+    .${PRINT_PORTAL_CLASS} {
+      position: fixed;
+      left: -99999px;
+      top: -99999px;
+      pointer-events: none;
     }
-  }
-`;
+    @page { size: ${size.width}in ${size.height}in; margin: 0; }
+    @media print {
+      html, body { margin: 0 !important; padding: 0 !important; }
+      body > *:not(.${PRINT_PORTAL_CLASS}) { display: none !important; }
+      .${PRINT_PORTAL_CLASS} {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        pointer-events: auto !important;
+      }
+    }
+  `;
+}
 
 interface SupplyBarcodePrintProps {
   isOpen: boolean;
@@ -90,12 +98,12 @@ export function SupplyBarcodePrint({
     if (!isOpen) return;
     const style = document.createElement('style');
     style.id = PRINT_STYLE_ID;
-    style.textContent = PRINT_STYLES;
+    style.textContent = buildPrintStyles(labelSize);
     document.head.appendChild(style);
     return () => {
       style.remove();
     };
-  }, [isOpen]);
+  }, [isOpen, labelSize]);
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -118,34 +126,29 @@ export function SupplyBarcodePrint({
       title="Print Barcode"
       icon={<Printer size={24} />}
       onClose={onClose}
-      size="md-lg"
+      size="md"
       footer={footer}
     >
       <div className="space-y-4">
         <div>
           <h4 className="text-sm font-semibold text-card-foreground mb-2">Format</h4>
           <div className="grid grid-cols-2 gap-2">
-            {FORMAT_OPTIONS.map(({ value, label, description, Icon }) => {
+            {FORMAT_OPTIONS.map(({ value, label, Icon }) => {
               const isSelected = format === value;
               return (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setFormat(value)}
-                  className={`px-3 py-3 rounded-lg border-2 text-center transition-all ${
+                  className={`px-3 py-2 rounded-lg border-2 text-center transition-all flex items-center justify-center gap-2 ${
                     isSelected ? SELECTED_CLASS : UNSELECTED_CLASS
                   }`}
                 >
                   <Icon
-                    size={24}
-                    className={`mx-auto mb-2 ${isSelected ? 'text-white' : 'text-secondary-foreground'}`}
+                    size={18}
+                    className={isSelected ? 'text-white' : 'text-secondary-foreground'}
                   />
-                  <h5 className="text-sm font-semibold">{label}</h5>
-                  <p
-                    className={`text-xs ${isSelected ? 'text-white/80' : 'text-secondary-foreground'}`}
-                  >
-                    {description}
-                  </p>
+                  <span className="text-sm font-semibold">{label}</span>
                 </button>
               );
             })}
@@ -190,6 +193,19 @@ export function SupplyBarcodePrint({
           </div>
         </div>
       </div>
+      {createPortal(
+        <div className={PRINT_PORTAL_CLASS}>
+          <BarcodeLabel
+            format={format}
+            labelSize={labelSize}
+            itemName={itemName}
+            manufacturer={manufacturer}
+            catalogNumber={catalogNumber}
+            barcodeValue={barcodeValue}
+          />
+        </div>,
+        document.body
+      )}
     </BaseModal>
   );
 }
@@ -282,7 +298,7 @@ function BarcodeLabel({
 
   if (format === '1d') {
     return (
-      <div className={`${PRINT_TARGET_CLASS} flex flex-col`} style={containerStyle}>
+      <div className="flex flex-col" style={containerStyle}>
         <div style={{ ...nameFontStyle, textAlign: 'center' }}>{itemName}</div>
         <div
           style={{
@@ -310,7 +326,6 @@ function BarcodeLabel({
 
   return (
     <div
-      className={PRINT_TARGET_CLASS}
       style={{
         ...containerStyle,
         display: 'grid',
