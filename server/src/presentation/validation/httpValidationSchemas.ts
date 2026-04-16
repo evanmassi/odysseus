@@ -49,6 +49,7 @@ import {
   supplyBulkIssueRequestSchema,
   supplyBulkReassignCategoryRequestSchema,
   supplyBulkArchiveRequestSchema,
+  supplyBulkBarcodesRequestSchema,
   voidSupplyTransactionRequestSchema,
   supplyBulkVoidRequestSchema,
 } from '@odysseus/shared-schemas';
@@ -225,6 +226,7 @@ export const SupplyBulkReceiveHttpSchema = supplyBulkReceiveRequestSchema;
 export const SupplyBulkIssueHttpSchema = supplyBulkIssueRequestSchema;
 export const SupplyBulkReassignCategoryHttpSchema = supplyBulkReassignCategoryRequestSchema;
 export const SupplyBulkArchiveHttpSchema = supplyBulkArchiveRequestSchema;
+export const SupplyBulkBarcodesHttpSchema = supplyBulkBarcodesRequestSchema;
 export const VoidSupplyTransactionHttpSchema = voidSupplyTransactionRequestSchema;
 export const SupplyBulkVoidHttpSchema = supplyBulkVoidRequestSchema;
 export const SupplyTransactionVoidParams = z.object({ transactionId: z.string().min(1) });

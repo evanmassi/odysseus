@@ -31,6 +31,7 @@ import {
   SupplyBulkIssueHttpSchema,
   SupplyBulkReassignCategoryHttpSchema,
   SupplyBulkArchiveHttpSchema,
+  SupplyBulkBarcodesHttpSchema,
   VoidSupplyTransactionHttpSchema,
   SupplyBulkVoidHttpSchema,
   SupplyTransactionVoidParams,
@@ -129,6 +130,11 @@ export class SupplyRouteModule implements RouteModule {
     router.post('/bulk/void',
       validateBody(SupplyBulkVoidHttpSchema),
       this.supplyController.bulkVoidTransactions.bind(this.supplyController)
+    );
+
+    router.post('/bulk/barcodes',
+      validateBody(SupplyBulkBarcodesHttpSchema),
+      this.supplyController.bulkGetBarcodes.bind(this.supplyController)
     );
 
     // Barcode resolution — query param, registered before /:id

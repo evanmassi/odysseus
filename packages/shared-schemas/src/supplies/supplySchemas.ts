@@ -370,6 +370,19 @@ export const supplyBulkResponseSchema = z.object({
   failed: z.array(z.object({ id: z.string(), error: z.string() })),
 });
 
+export const supplyBulkBarcodesRequestSchema = z.object({
+  itemIds: itemIdsField,
+});
+
+export const supplyBulkBarcodesResponseSchema = z.object({
+  barcodes: z.array(
+    z.object({
+      itemId: z.string(),
+      barcodeValue: z.string().nullable(),
+    }),
+  ),
+});
+
 // Reorder list response
 
 export const supplyReorderListResponseSchema = z.object({
@@ -409,6 +422,8 @@ export type SupplyBulkIssueRequest = z.infer<typeof supplyBulkIssueRequestSchema
 export type SupplyBulkReassignCategoryRequest = z.infer<typeof supplyBulkReassignCategoryRequestSchema>;
 export type SupplyBulkArchiveRequest = z.infer<typeof supplyBulkArchiveRequestSchema>;
 export type SupplyBulkResponse = z.infer<typeof supplyBulkResponseSchema>;
+export type SupplyBulkBarcodesRequest = z.infer<typeof supplyBulkBarcodesRequestSchema>;
+export type SupplyBulkBarcodesResponse = z.infer<typeof supplyBulkBarcodesResponseSchema>;
 export type SupplyPackagingLevel = z.infer<typeof supplyPackagingLevelSchema>;
 export type CreateSupplyPackagingLevelRequest = z.infer<typeof createSupplyPackagingLevelRequestSchema>;
 export type UpdateSupplyPackagingLevelRequest = z.infer<typeof updateSupplyPackagingLevelRequestSchema>;

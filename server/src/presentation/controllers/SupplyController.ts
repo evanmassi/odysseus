@@ -422,6 +422,17 @@ export class SupplyController extends BaseController {
     }
   }
 
+  async bulkGetBarcodes(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const { itemIds } = req.body;
+      const barcodes = await this.deps.supplyApplicationService.getBulkBarcodes(labId, itemIds);
+      res.json(ResponseBuilder.success({ barcodes }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to fetch supply barcodes', req.requestId);
+    }
+  }
+
   // Reorder list
 
   async getReorderList(req: Request, res: Response): Promise<void> {

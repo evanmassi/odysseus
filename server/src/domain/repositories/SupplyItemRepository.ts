@@ -102,6 +102,7 @@ export interface SupplyItemRepository {
   // Barcodes
 
   findBarcodesByItemId(itemId: string): Promise<SupplyBarcodeRow[]>;
+  findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<SupplyBarcodeRow[]>;
   findByBarcodeValue(barcodeValue: string): Promise<SupplyBarcodeRow | null>;
   saveBarcode(barcode: SupplyBarcodeRow): Promise<void>;
   updateBarcode(id: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<void>;

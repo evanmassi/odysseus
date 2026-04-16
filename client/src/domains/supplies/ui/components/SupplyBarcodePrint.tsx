@@ -15,9 +15,11 @@ import { createPortal } from 'react-dom';
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-type BarcodeFormat = '1d' | '2d';
+import { PRINT_PORTAL_CLASS, buildBarcodePrintStyles } from './barcodePrintStyles';
 
-interface LabelSize {
+export type BarcodeFormat = '1d' | '2d';
+
+export interface LabelSize {
   name: string;
   width: number;
   height: number;
@@ -35,7 +37,7 @@ const LABEL_SIZES: readonly LabelSize[] = [
 
 const PREVIEW_MIN_HEIGHT_PX = 224;
 
-const FORMAT_OPTIONS: {
+export const FORMAT_OPTIONS: {
   value: BarcodeFormat;
   label: string;
   Icon: typeof Barcode;
@@ -49,30 +51,7 @@ const SELECTED_CLASS =
 const UNSELECTED_CLASS =
   'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10';
 
-const PRINT_PORTAL_CLASS = 'barcode-print-portal';
 const PRINT_STYLE_ID = 'barcode-print-styles';
-
-function buildPrintStyles(size: LabelSize): string {
-  return `
-    .${PRINT_PORTAL_CLASS} {
-      position: fixed;
-      left: -99999px;
-      top: -99999px;
-      pointer-events: none;
-    }
-    @page { size: ${size.width}in ${size.height}in; margin: 0; }
-    @media print {
-      html, body { margin: 0 !important; padding: 0 !important; }
-      body > *:not(.${PRINT_PORTAL_CLASS}) { display: none !important; }
-      .${PRINT_PORTAL_CLASS} {
-        position: static !important;
-        left: auto !important;
-        top: auto !important;
-        pointer-events: auto !important;
-      }
-    }
-  `;
-}
 
 interface SupplyBarcodePrintProps {
   isOpen: boolean;
@@ -98,7 +77,10 @@ export function SupplyBarcodePrint({
     if (!isOpen) return;
     const style = document.createElement('style');
     style.id = PRINT_STYLE_ID;
-    style.textContent = buildPrintStyles(labelSize);
+    style.textContent = buildBarcodePrintStyles({
+      pageSize: { kind: 'label', width: labelSize.width, height: labelSize.height },
+      includeSheetBreaks: false,
+    });
     document.head.appendChild(style);
     return () => {
       style.remove();
@@ -219,7 +201,7 @@ interface BarcodeLabelProps {
   barcodeValue: string;
 }
 
-function BarcodeLabel({
+export function BarcodeLabel({
   format,
   labelSize,
   itemName,

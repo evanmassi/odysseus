@@ -75,6 +75,7 @@ import type {
   SupplyBulkIssueRequest,
   VoidSupplyTransactionRequest,
   SupplyBulkVoidRequest,
+  SupplyBulkBarcodesResponse,
 } from '@odysseus/shared-schemas';
 
 interface BulkResult {
@@ -347,6 +348,33 @@ export class SupplyApplicationService {
     const item = await this.itemRepository.findById(barcode.itemId, labId);
     if (!item) return null;
     return SupplyDto.itemToResponse(item);
+  }
+
+  async getBulkBarcodes(
+    labId: string,
+    itemIds: string[],
+  ): Promise<SupplyBulkBarcodesResponse['barcodes']> {
+    if (itemIds.length === 0) return [];
+
+    const uniqueIds: string[] = [];
+    const seen = new Set<string>();
+    for (const id of itemIds) {
+      if (!seen.has(id)) {
+        seen.add(id);
+        uniqueIds.push(id);
+      }
+    }
+
+    const rows = await this.itemRepository.findPrimaryBarcodesByItemIds(uniqueIds, labId);
+    const valueByItemId = new Map<string, string>();
+    for (const row of rows) {
+      valueByItemId.set(row.itemId, row.barcodeValue);
+    }
+
+    return uniqueIds.map(itemId => ({
+      itemId,
+      barcodeValue: valueByItemId.get(itemId) ?? null,
+    }));
   }
 
   async regenerateInternalBarcode(labId: string, itemId: string, user: User): Promise<SupplyBarcodeResponse> {

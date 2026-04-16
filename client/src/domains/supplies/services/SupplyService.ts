@@ -31,6 +31,7 @@ import {
   type SupplyBulkIssueRequest,
   type VoidSupplyTransactionRequest,
   type SupplyBulkVoidRequest,
+  type SupplyBulkBarcodesResponse,
   type SupplyPackagingLevel,
   type CreateSupplyPackagingLevelRequest,
   supplyCategoryResponseSchema,
@@ -45,6 +46,7 @@ import {
   supplyTransactionResponseSchema,
   supplyTransactionListResponseSchema,
   supplyBulkResponseSchema,
+  supplyBulkBarcodesResponseSchema,
   supplyVoidTransactionResponseSchema,
   supplyReorderListResponseSchema,
   supplyPackagingLevelResponseSchema,
@@ -52,6 +54,9 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
+
+const BULK_BARCODES_CHUNK_SIZE = 100;
+const BULK_BARCODES_MAX_CONCURRENCY = 5;
 
 export class SupplyService {
   private static readonly BASE_PATH = '/supplies';
@@ -348,6 +353,33 @@ export class SupplyService {
 
   static async bulkVoidTransactions(data: SupplyBulkVoidRequest): Promise<SupplyBulkResponse> {
     return await httpClient.postData(`${this.BASE_PATH}/bulk/void`, data, supplyBulkResponseSchema);
+  }
+
+  static async bulkGetBarcodes(itemIds: string[]): Promise<SupplyBulkBarcodesResponse> {
+    if (itemIds.length === 0) return { barcodes: [] };
+
+    const uniqueIds = Array.from(new Set(itemIds));
+    const chunks: string[][] = [];
+    for (let i = 0; i < uniqueIds.length; i += BULK_BARCODES_CHUNK_SIZE) {
+      chunks.push(uniqueIds.slice(i, i + BULK_BARCODES_CHUNK_SIZE));
+    }
+
+    const barcodes: SupplyBulkBarcodesResponse['barcodes'] = [];
+    for (let i = 0; i < chunks.length; i += BULK_BARCODES_MAX_CONCURRENCY) {
+      const batch = chunks.slice(i, i + BULK_BARCODES_MAX_CONCURRENCY);
+      const responses = await Promise.all(
+        batch.map(chunk =>
+          httpClient.postData(
+            `${this.BASE_PATH}/bulk/barcodes`,
+            { itemIds: chunk },
+            supplyBulkBarcodesResponseSchema
+          )
+        )
+      );
+      for (const r of responses) barcodes.push(...r.barcodes);
+    }
+
+    return { barcodes };
   }
 
   // Reorder list

@@ -195,6 +195,17 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return SupplyBarcodeMapper.fromRows(rows);
   }
 
+  async findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<SupplyBarcodeRow[]> {
+    const rows = await this.db.queryMany<SupplyBarcodeDbRow>(
+      `SELECT b.id, b.item_id, b.barcode_value, b.barcode_type, b.is_primary, b.label
+       FROM supply_barcodes b
+       JOIN supply_items i ON i.id = b.item_id
+       WHERE b.item_id = ANY($1) AND i.lab_id = $2 AND b.is_primary = true`,
+      [itemIds, labId]
+    );
+    return SupplyBarcodeMapper.fromRows(rows);
+  }
+
   async findByBarcodeValue(barcodeValue: string): Promise<SupplyBarcodeRow | null> {
     const row = await this.db.queryOne<SupplyBarcodeDbRow>(
       `SELECT ${BARCODE_COLUMNS} FROM supply_barcodes WHERE barcode_value = $1`,
