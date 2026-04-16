@@ -32,9 +32,7 @@ const LABEL_SIZES: readonly LabelSize[] = [
   { name: '1.5 × 0.5"', width: 1.5, height: 0.5, nameFont: 0.085, metaFont: 0.06 },
 ] as const;
 
-// Preview area is sized to fit the largest label (4 × 2") so the modal
-// doesn't resize when switching between label sizes.
-const PREVIEW_MIN_HEIGHT_PX = 240;
+const PREVIEW_MIN_HEIGHT_PX = 224;
 
 const FORMAT_OPTIONS: {
   value: BarcodeFormat;
@@ -103,6 +101,17 @@ export function SupplyBarcodePrint({
     window.print();
   }, []);
 
+  const footer = (
+    <div className="flex justify-end gap-2">
+      <Button variant="secondary" onClick={onClose}>
+        Close
+      </Button>
+      <Button onClick={handlePrint} leftIcon={<Printer size={16} />}>
+        Print
+      </Button>
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -110,8 +119,9 @@ export function SupplyBarcodePrint({
       icon={<Printer size={24} />}
       onClose={onClose}
       size="md-lg"
+      footer={footer}
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
           <h4 className="text-sm font-semibold text-card-foreground mb-2">Format</h4>
           <div className="grid grid-cols-2 gap-2">
@@ -122,13 +132,13 @@ export function SupplyBarcodePrint({
                   key={value}
                   type="button"
                   onClick={() => setFormat(value)}
-                  className={`px-3 py-3 rounded-lg border-2 text-left transition-all ${
+                  className={`px-3 py-3 rounded-lg border-2 text-center transition-all ${
                     isSelected ? SELECTED_CLASS : UNSELECTED_CLASS
                   }`}
                 >
                   <Icon
-                    size={20}
-                    className={`mb-2 ${isSelected ? 'text-white' : 'text-secondary-foreground'}`}
+                    size={24}
+                    className={`mx-auto mb-2 ${isSelected ? 'text-white' : 'text-secondary-foreground'}`}
                   />
                   <h5 className="text-sm font-semibold">{label}</h5>
                   <p
@@ -166,7 +176,7 @@ export function SupplyBarcodePrint({
         <div>
           <h4 className="text-sm font-semibold text-card-foreground mb-2">Preview</h4>
           <div
-            className="flex justify-center items-center p-6 bg-muted/30 rounded-lg border border-border"
+            className="flex justify-center items-center p-4 bg-muted/30 rounded-lg border border-border"
             style={{ minHeight: `${PREVIEW_MIN_HEIGHT_PX}px` }}
           >
             <BarcodeLabel
@@ -178,15 +188,6 @@ export function SupplyBarcodePrint({
               barcodeValue={barcodeValue}
             />
           </div>
-        </div>
-
-        <div className="flex justify-end gap-2 print:hidden">
-          <Button variant="secondary" onClick={onClose}>
-            Close
-          </Button>
-          <Button onClick={handlePrint} leftIcon={<Printer className="w-3.5 h-3.5" />}>
-            Print
-          </Button>
         </div>
       </div>
     </BaseModal>
