@@ -84,7 +84,7 @@ export function SupplyBarcodePrint({
   catalogNumber,
 }: SupplyBarcodePrintProps) {
   const [format, setFormat] = useState<BarcodeFormat>('1d');
-  const [labelSize, setLabelSize] = useState<LabelSize>(LABEL_SIZES[1]);
+  const [labelSize, setLabelSize] = useState<LabelSize>(LABEL_SIZES[0]);
 
   useEffect(() => {
     if (!isOpen) return;
