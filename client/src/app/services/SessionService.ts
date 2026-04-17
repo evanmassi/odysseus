@@ -449,7 +449,7 @@ export class SessionService implements TokenProvider {
 
       // Session no longer authenticated - server may have logged us out
       if (!data.isAuthenticated) {
-        logger.info('Session no longer authenticated', { reason: data.reason });
+        logger.debug('Session no longer authenticated', { reason: data.reason });
         // Only show timeout banner if session expired while user was actively using the app
         const reason = this.hasConfirmedAuth ? 'idle_timeout' : 'manual_logout';
         this.clearSession(reason);
