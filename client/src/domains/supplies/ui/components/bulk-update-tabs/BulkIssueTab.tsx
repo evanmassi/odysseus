@@ -166,14 +166,19 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
         <span className="text-xs text-muted-foreground">
           {validRowCount} item{validRowCount !== 1 ? 's' : ''} to issue
         </span>
-        <Button
-          onClick={() => void handleSubmit()}
-          disabled={validRowCount === 0}
-          isLoading={bulkIssueMutation.isPending}
-          loadingText="Recording..."
-        >
-          Issue All
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={onComplete}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => void handleSubmit()}
+            disabled={validRowCount === 0}
+            isLoading={bulkIssueMutation.isPending}
+            loadingText="Recording..."
+          >
+            Issue All
+          </Button>
+        </div>
       </div>
     </div>
   );

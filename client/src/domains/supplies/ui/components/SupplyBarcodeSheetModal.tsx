@@ -169,9 +169,10 @@ export function SupplyBarcodeSheetModal({
       title="Print Barcode Sheet"
       icon={<Printer size={24} />}
       onClose={onClose}
-      size="full"
+      size="md-lg"
       fixedHeight
       footer={footer}
+      contentClassName="p-6 h-full"
     >
       <div className="flex flex-col gap-3 h-full min-h-0">
         <div className="flex items-center justify-between flex-shrink-0">

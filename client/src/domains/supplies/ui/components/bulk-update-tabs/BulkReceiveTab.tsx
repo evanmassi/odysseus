@@ -223,14 +223,19 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
         <span className="text-xs text-muted-foreground">
           {validRowCount} item{validRowCount !== 1 ? 's' : ''} to receive
         </span>
-        <Button
-          onClick={() => void handleSubmit()}
-          disabled={validRowCount === 0}
-          isLoading={bulkReceiveMutation.isPending}
-          loadingText="Receiving..."
-        >
-          Receive All
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={onComplete}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => void handleSubmit()}
+            disabled={validRowCount === 0}
+            isLoading={bulkReceiveMutation.isPending}
+            loadingText="Receiving..."
+          >
+            Receive All
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -211,18 +211,23 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">{selectedTxnIds.size} selected</span>
-          <Button
-            variant="danger"
-            onClick={() => void handleSubmit()}
-            disabled={selectedTxnIds.size === 0 || !reason.trim()}
-            isLoading={bulkVoidMutation.isPending}
-            loadingText="Voiding..."
-          >
-            Void{' '}
-            {selectedTxnIds.size > 0
-              ? `${selectedTxnIds.size} Transaction${selectedTxnIds.size !== 1 ? 's' : ''}`
-              : 'Transactions'}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={onComplete}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => void handleSubmit()}
+              disabled={selectedTxnIds.size === 0 || !reason.trim()}
+              isLoading={bulkVoidMutation.isPending}
+              loadingText="Voiding..."
+            >
+              Void{' '}
+              {selectedTxnIds.size > 0
+                ? `${selectedTxnIds.size} Transaction${selectedTxnIds.size !== 1 ? 's' : ''}`
+                : 'Transactions'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

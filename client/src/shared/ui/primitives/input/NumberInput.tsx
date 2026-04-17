@@ -16,11 +16,12 @@ export interface NumberInputProps {
   step?: number;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   disabled?: boolean;
-  /** Accept decimal values (parseFloat). Default integer-only (parseInt). */
   allowDecimals?: boolean;
   'aria-label'?: string;
   /** Applied to the outer container */
   className?: string;
+  /** Override the input's width class — e.g. "w-20" */
+  inputWidth?: string;
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
@@ -36,6 +37,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       allowDecimals = false,
       'aria-label': ariaLabel,
       className = '',
+      inputWidth,
     },
     ref
   ) => {
@@ -117,30 +119,35 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       xs: {
         container: 'h-6',
         button: 'w-5 text-xs',
-        input: 'w-8 text-xs',
+        inputWidth: 'w-8',
+        inputText: 'text-xs',
         icon: 12,
       },
       sm: {
         container: 'h-8',
         button: 'w-7 text-sm',
-        input: 'w-12 text-sm',
+        inputWidth: 'w-12',
+        inputText: 'text-sm',
         icon: 14,
       },
       md: {
         container: 'h-9',
         button: 'w-8 text-sm',
-        input: 'w-14 text-sm',
+        inputWidth: 'w-14',
+        inputText: 'text-sm',
         icon: 16,
       },
       lg: {
         container: 'h-12',
         button: 'w-9 text-base',
-        input: 'w-16 text-base',
+        inputWidth: 'w-16',
+        inputText: 'text-base',
         icon: 18,
       },
     };
 
     const styles = sizeStyles[size];
+    const resolvedInputWidth = inputWidth ?? styles.inputWidth;
 
     return (
       <div
@@ -186,7 +193,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           disabled={disabled}
           aria-label={ariaLabel}
           className={`
-            ${styles.input}
+            ${resolvedInputWidth}
+            ${styles.inputText}
             h-full
             text-center
             bg-transparent

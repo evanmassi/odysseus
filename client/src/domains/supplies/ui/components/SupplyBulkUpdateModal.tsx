@@ -29,10 +29,11 @@ import { notifications } from '@shared/utils/notifications';
 
 import { BulkArchiveTab } from './bulk-update-tabs/BulkArchiveTab';
 import { BulkIssueTab } from './bulk-update-tabs/BulkIssueTab';
-import { BulkPrintTab } from './bulk-update-tabs/BulkPrintTab';
+import { BulkPrintTab, usePrintTabState } from './bulk-update-tabs/BulkPrintTab';
 import { BulkReassignTab } from './bulk-update-tabs/BulkReassignTab';
 import { BulkReceiveTab } from './bulk-update-tabs/BulkReceiveTab';
 import { BulkVoidTab } from './bulk-update-tabs/BulkVoidTab';
+import { SupplyBarcodeSheetModal } from './SupplyBarcodeSheetModal';
 
 import type {
   SupplyCategory,
@@ -63,6 +64,7 @@ export function SupplyBulkUpdateModal({
   const [pendingAction, setPendingAction] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const bulkMutation = useSupplyBulkUpdateMutation();
+  const printState = usePrintTabState(items, selectedIds);
 
   const showSelector = SELECTOR_TABS.has(actionType);
 
@@ -100,14 +102,19 @@ export function SupplyBulkUpdateModal({
     setActionType('receive');
     setTargetCategoryId('');
     setSearchQuery('');
+    printState.resetAll();
     onClose();
-  }, [onClose]);
+  }, [onClose, printState]);
 
-  const handleTabChange = useCallback((tab: string) => {
-    setActionType(tab as BulkActionType);
-    setSelectedIds(new Set());
-    setTargetCategoryId('');
-  }, []);
+  const handleTabChange = useCallback(
+    (tab: string) => {
+      setActionType(tab as BulkActionType);
+      setSelectedIds(new Set());
+      setTargetCategoryId('');
+      printState.resetAll();
+    },
+    [printState]
+  );
 
   const isFormValid =
     actionType === 'archive' || (actionType === 'reassign-category' && !!targetCategoryId);
@@ -177,15 +184,24 @@ export function SupplyBulkUpdateModal({
                   )}
                   {actionType === 'archive' && <BulkArchiveTab selectedCount={selectedIds.size} />}
                   {actionType === 'print' && (
-                    <BulkPrintTab items={items} selectedIds={selectedIds} />
+                    <BulkPrintTab selectedCount={selectedIds.size} state={printState} />
                   )}
                 </div>
 
-                {actionType !== 'print' && (
-                  <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
-                    <Button variant="secondary" onClick={handleClose}>
-                      Cancel
+                <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
+                  <Button variant="secondary" onClick={handleClose}>
+                    Cancel
+                  </Button>
+                  {actionType === 'print' ? (
+                    <Button
+                      onClick={() => void printState.handlePreviewPrint()}
+                      disabled={!printState.canPreview}
+                      isLoading={printState.isLoading}
+                      leftIcon={<Printer size={16} />}
+                    >
+                      Preview & Print ({selectedIds.size})
                     </Button>
+                  ) : (
                     <Button
                       onClick={() => setPendingAction(true)}
                       disabled={selectedIds.size === 0 || !isFormValid}
@@ -195,8 +211,8 @@ export function SupplyBulkUpdateModal({
                       {actionType === 'reassign-category' ? 'Reassign' : 'Archive'} (
                       {selectedIds.size})
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           ) : (
@@ -222,6 +238,17 @@ export function SupplyBulkUpdateModal({
         onConfirm={() => void handleConfirm()}
         onCancel={() => setPendingAction(false)}
       />
+
+      {printState.isPreviewOpen && printState.printableLabels && (
+        <SupplyBarcodeSheetModal
+          isOpen={printState.isPreviewOpen}
+          onClose={printState.closePreview}
+          labels={printState.printableLabels}
+          template={printState.currentTemplate}
+          startingPosition={printState.startingPosition}
+          format={printState.format}
+        />
+      )}
     </>
   );
 }
