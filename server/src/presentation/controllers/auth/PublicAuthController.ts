@@ -9,6 +9,7 @@ import {
   registerWithProfileSchema,
   forceChangePasswordRequestSchema,
   type PasswordChangeRequiredResponse,
+  type SessionInfoResponse,
   PasswordValidator
 } from '@odysseus/shared-schemas';
 
@@ -527,17 +528,14 @@ export class PublicAuthController {
 
       const now = Date.now();
       const idleTimeoutMs = config.sessionTimeoutMinutes * 60 * 1000;
-      const absoluteTimeoutMs = config.absoluteSessionTimeoutHours * 60 * 60 * 1000;
       const warningMs = config.idleWarningMinutes * 60 * 1000;
 
       const timeUntilIdleTimeoutMs = Math.max(0, (session.lastUsedAt.getTime() + idleTimeoutMs) - now);
-      const timeUntilAbsoluteTimeoutMs = Math.max(0, (session.createdAt.getTime() + absoluteTimeoutMs) - now);
       const showWarning = timeUntilIdleTimeoutMs <= warningMs && timeUntilIdleTimeoutMs > 0;
 
-      res.status(200).json(ResponseBuilder.success({
+      res.status(200).json(ResponseBuilder.success<SessionInfoResponse>({
         isAuthenticated: true,
         timeUntilIdleTimeoutMs,
-        timeUntilAbsoluteTimeoutMs,
         showWarning,
         idleWarningMinutes: config.idleWarningMinutes
       }));

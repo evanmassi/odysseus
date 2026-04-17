@@ -7,8 +7,9 @@
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 
-import type { SessionHttpClient } from '../../infrastructure/api/SessionHttpClient';
 import type { SessionDebugInfo } from '@domains/authentication/types/debugTypes';
+import type { SessionHttpClient } from '@infra/api/SessionHttpClient';
+import type { SessionInfoResponse } from '@odysseus/shared-schemas';
 import type {
   TokenPair,
   SessionStatus,
@@ -19,25 +20,9 @@ import type {
   TokenProvider,
 } from '@shared/types/sessionTypes';
 
-interface SessionInfoData {
-  isAuthenticated: boolean;
-  reason?: string;
-  timeUntilIdleTimeoutMs?: number;
-  showWarning?: boolean;
-  idleWarningMinutes?: number;
-}
-
-interface SessionInfoApiResponse {
+interface ApiEnvelope<T> {
   success: boolean;
-  data: SessionInfoData;
-}
-
-interface HeartbeatApiResponse {
-  success: boolean;
-  data: {
-    success: boolean;
-    message: string;
-  };
+  data: T;
 }
 
 interface SessionWarningCallbacks {
@@ -50,15 +35,13 @@ interface SessionWarningCallbacks {
   hideWarning: () => void;
 }
 
-const POLLING_INTERVAL_NORMAL_MS = 30000; // 30 seconds when far from warning
-const POLLING_INTERVAL_APPROACHING_MS = 10000; // 10 seconds when approaching warning
-const POLLING_INTERVAL_WARNING_MS = 5000; // 5 seconds when warning is shown
+const POLLING_INTERVAL_NORMAL_MS = 30_000; // when far from warning
+const POLLING_INTERVAL_APPROACHING_MS = 10_000; // when approaching warning
+const POLLING_INTERVAL_WARNING_MS = 5_000; // when warning is shown
 
-// Activity tracking: debounce heartbeat to max 1 per 30 seconds
 // Balances server load vs. UX responsiveness for idle timeout reset
 const HEARTBEAT_DEBOUNCE_MS = 30 * 1000;
 
-// Events that indicate user activity
 const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
   'click',
   'keydown',
@@ -74,9 +57,9 @@ export class SessionService implements TokenProvider {
     nextRefreshTime: null,
   };
 
-  private refreshTimer: NodeJS.Timeout | null = null;
-  private refreshPromise: Promise<boolean> | null = null;
-  private sessionInfoPollingTimer: NodeJS.Timeout | null = null;
+  private refreshTimer?: NodeJS.Timeout;
+  private refreshPromise?: Promise<boolean>;
+  private sessionInfoPollingTimer?: NodeJS.Timeout;
   private config: SessionConfig;
   private onSessionExpired?: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout') => void;
   private warningCallbacks?: SessionWarningCallbacks;
@@ -85,8 +68,9 @@ export class SessionService implements TokenProvider {
   // Activity tracking state
   private isTrackingActivity: boolean = false;
   private lastHeartbeatTime: number = 0;
-  private lastKnownTimeUntilTimeout: number | null = null;
-  private boundActivityHandler: (() => void) | null = null;
+  private lastKnownTimeUntilTimeout?: number;
+  private lastKnownWarningThresholdMs?: number;
+  private boundActivityHandler?: () => void;
 
   // Tracks whether server has confirmed authentication in this app instance (page load)
   // Used to distinguish "session expired while here" vs "session already expired on arrival"
@@ -118,11 +102,6 @@ export class SessionService implements TokenProvider {
       this.startSessionInfoPolling();
       this.startActivityTracking();
     }
-  }
-
-  // Called after modalStore is initialized
-  setWarningCallbacks(callbacks: SessionWarningCallbacks): void {
-    this.warningCallbacks = callbacks;
   }
 
   /**
@@ -202,7 +181,7 @@ export class SessionService implements TokenProvider {
       return result;
     } finally {
       this.state.isRefreshing = false;
-      this.refreshPromise = null;
+      this.refreshPromise = undefined;
     }
   }
 
@@ -287,7 +266,7 @@ export class SessionService implements TokenProvider {
   scheduleTokenRefresh(accessTokenExpiry: Date): void {
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
-      this.refreshTimer = null;
+      this.refreshTimer = undefined;
     }
 
     const now = Date.now();
@@ -350,12 +329,12 @@ export class SessionService implements TokenProvider {
   private stopTimersAndTracking(): void {
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
-      this.refreshTimer = null;
+      this.refreshTimer = undefined;
     }
 
     if (this.sessionInfoPollingTimer) {
       clearTimeout(this.sessionInfoPollingTimer);
-      this.sessionInfoPollingTimer = null;
+      this.sessionInfoPollingTimer = undefined;
     }
 
     this.stopActivityTracking();
@@ -365,8 +344,9 @@ export class SessionService implements TokenProvider {
       this.isWarningShown = false;
     }
 
-    this.refreshPromise = null;
-    this.lastKnownTimeUntilTimeout = null;
+    this.refreshPromise = undefined;
+    this.lastKnownTimeUntilTimeout = undefined;
+    this.lastKnownWarningThresholdMs = undefined;
   }
 
   /**
@@ -380,31 +360,25 @@ export class SessionService implements TokenProvider {
   private startSessionInfoPolling(): void {
     if (this.sessionInfoPollingTimer) {
       clearTimeout(this.sessionInfoPollingTimer);
-      this.sessionInfoPollingTimer = null;
+      this.sessionInfoPollingTimer = undefined;
     }
 
     void this.pollSessionInfo();
   }
 
-  /**
-   * Calculate next polling interval based on time until timeout
-   */
   private calculatePollingInterval(): number {
     // If warning is shown, poll frequently for accurate countdown
     if (this.isWarningShown) {
       return POLLING_INTERVAL_WARNING_MS;
     }
 
-    // Use last known time from server to determine interval
-    if (this.lastKnownTimeUntilTimeout !== null) {
-      // If within 2x the warning threshold, poll more frequently
-      // Assume 5-minute warning threshold if not specified
-      const warningThresholdMs = 5 * 60 * 1000;
-      const approachingThreshold = warningThresholdMs * 2;
-
-      if (this.lastKnownTimeUntilTimeout <= approachingThreshold) {
-        return POLLING_INTERVAL_APPROACHING_MS;
-      }
+    // Poll faster when within 2x the server-configured warning threshold
+    if (
+      this.lastKnownTimeUntilTimeout !== undefined &&
+      this.lastKnownWarningThresholdMs !== undefined &&
+      this.lastKnownTimeUntilTimeout <= this.lastKnownWarningThresholdMs * 2
+    ) {
+      return POLLING_INTERVAL_APPROACHING_MS;
     }
 
     return POLLING_INTERVAL_NORMAL_MS;
@@ -429,7 +403,7 @@ export class SessionService implements TokenProvider {
     }
 
     try {
-      const response = await this.sessionHttpClient.get<SessionInfoApiResponse>(
+      const response = await this.sessionHttpClient.get<ApiEnvelope<SessionInfoResponse>>(
         '/public/auth/session-info',
         { Authorization: `Bearer ${tokens.accessToken}` }
       );
@@ -442,9 +416,12 @@ export class SessionService implements TokenProvider {
 
       const data = response.data;
 
-      // Track time until timeout for adaptive polling
+      // Track server-sent timing for adaptive polling
       if (data.timeUntilIdleTimeoutMs !== undefined) {
         this.lastKnownTimeUntilTimeout = data.timeUntilIdleTimeoutMs;
+      }
+      if (data.idleWarningMinutes !== undefined) {
+        this.lastKnownWarningThresholdMs = data.idleWarningMinutes * 60 * 1000;
       }
 
       // Session no longer authenticated - server may have logged us out
@@ -490,17 +467,17 @@ export class SessionService implements TokenProvider {
   }
 
   /**
-   * Send heartbeat to extend session
-   * Called when user clicks "Stay Logged In" or via debounced activity tracking
+   * Send heartbeat to extend session.
+   * Called when user clicks "Stay Logged In" or via debounced activity tracking.
    */
-  async sendHeartbeat(): Promise<boolean> {
+  private async sendHeartbeat(): Promise<boolean> {
     const tokens = this.storage.getTokens();
     if (!tokens) {
       return false;
     }
 
     try {
-      const response = await this.sessionHttpClient.post<HeartbeatApiResponse>(
+      const response = await this.sessionHttpClient.post<ApiEnvelope<unknown>>(
         '/auth/heartbeat',
         {},
         { Authorization: `Bearer ${tokens.accessToken}` }
@@ -515,7 +492,7 @@ export class SessionService implements TokenProvider {
         this.warningCallbacks?.hideWarning();
 
         // Reset timeout tracking since session was just extended
-        this.lastKnownTimeUntilTimeout = null;
+        this.lastKnownTimeUntilTimeout = undefined;
 
         return true;
       }
@@ -560,7 +537,7 @@ export class SessionService implements TokenProvider {
       window.removeEventListener(event, this.boundActivityHandler!, { capture: true });
     });
 
-    this.boundActivityHandler = null;
+    this.boundActivityHandler = undefined;
     this.isTrackingActivity = false;
     this.lastHeartbeatTime = 0;
   }
@@ -621,52 +598,5 @@ export class SessionService implements TokenProvider {
       isRefreshing: this.state.isRefreshing,
       lastRefresh: this.state.lastRefreshTime?.toLocaleTimeString() ?? 'Never',
     };
-  }
-}
-
-/**
- * Session storage implementation using localStorage
- *
- * Stores only token state. User data is persisted by Zustand auth store.
- * Activity tracking is not persisted (handled in-memory by SessionService).
- */
-export class LocalStorageSessionStorage implements SessionStorage {
-  private readonly TOKENS_KEY = 'odysseus-tokens';
-
-  getTokens(): TokenPair | null {
-    try {
-      const stored = localStorage.getItem(this.TOKENS_KEY);
-      if (!stored) return null;
-
-      const parsed = JSON.parse(stored);
-
-      // Parse and validate dates
-      const accessTokenExpiry = new Date(parsed.accessTokenExpiry);
-      const refreshTokenExpiry = new Date(parsed.refreshTokenExpiry);
-
-      // Validate dates are valid (prevents "Invalid Date" from crashing the app)
-      if (isNaN(accessTokenExpiry.getTime()) || isNaN(refreshTokenExpiry.getTime())) {
-        logger.warn('Invalid token expiry dates in storage, clearing tokens');
-        this.clearTokens();
-        return null;
-      }
-
-      return {
-        ...parsed,
-        accessTokenExpiry,
-        refreshTokenExpiry,
-      };
-    } catch (error) {
-      logger.error('Failed to parse stored tokens', { error });
-      return null;
-    }
-  }
-
-  setTokens(tokens: TokenPair): void {
-    localStorage.setItem(this.TOKENS_KEY, JSON.stringify(tokens));
-  }
-
-  clearTokens(): void {
-    localStorage.removeItem(this.TOKENS_KEY);
   }
 }

@@ -355,6 +355,8 @@ export {
   verifyEmailResponseSchema,
   type FirstTimeResponse,
   type VerifyEmailResponse,
+  sessionInfoResponseSchema,
+  type SessionInfoResponse,
 } from './auth';
 
 // Labs

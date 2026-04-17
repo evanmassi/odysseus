@@ -9,7 +9,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { clearAllCaches } from '@app/cache/queryClient';
-import { SessionService, LocalStorageSessionStorage } from '@app/services/SessionService';
+import { BrowserSessionStorage } from '@app/services/BrowserSessionStorage';
+import { SessionService } from '@app/services/SessionService';
 import { modalStore } from '@app/stores/modalStore';
 import { httpClient } from '@infra/api';
 import { sessionHttpClient } from '@infra/api/SessionHttpClient';
@@ -85,7 +86,7 @@ interface AuthActions {
 interface AuthStore extends AuthState, AuthActions {}
 
 // Initialize session manager with AuthHttpClient to prevent circular dependency
-const sessionStorage = new LocalStorageSessionStorage();
+const sessionStorage = new BrowserSessionStorage();
 
 // Callback pattern: SessionService notifies auth store when session expires
 const sessionManager = new SessionService(
