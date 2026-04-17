@@ -19,12 +19,18 @@ interface SupplyBarcodeSheetPreviewProps {
   template: SheetTemplate;
   slots: ReadonlyArray<PrintableLabel | null>;
   format: BarcodeFormat;
+  pageStartGlobalSlot: number;
+  skippedSlots: ReadonlySet<number>;
+  onToggleSkip: (globalSlot: number) => void;
 }
 
 export function SupplyBarcodeSheetPreview({
   template,
   slots,
   format,
+  pageStartGlobalSlot,
+  skippedSlots,
+  onToggleSkip,
 }: SupplyBarcodeSheetPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -78,47 +84,83 @@ export function SupplyBarcodeSheetPreview({
             }}
           >
             {slots.map((label, slotIndex) => {
+              const globalSlot = pageStartGlobalSlot + slotIndex;
+              const isSkipped = skippedSlots.has(globalSlot);
               const col = slotIndex % template.columns;
               const row = Math.floor(slotIndex / template.columns);
               const top = template.marginTop + row * (template.labelHeight + template.rowGap);
               const left = template.marginLeft + col * (template.labelWidth + template.columnGap);
-              const wrapperStyle = {
+              const buttonStyle = {
                 position: 'absolute' as const,
                 top: `${top}in`,
                 left: `${left}in`,
                 width: `${template.labelWidth}in`,
                 height: `${template.labelHeight}in`,
                 overflow: 'hidden' as const,
+                padding: 0,
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer' as const,
               };
-
-              if (!label) {
-                return (
-                  <div
-                    key={slotIndex}
-                    style={wrapperStyle}
-                    className="bg-muted/20 border border-dashed border-muted-foreground/30 flex items-center justify-center"
-                  >
-                    <span className="text-[8px] text-muted-foreground">Empty</span>
-                  </div>
-                );
-              }
+              const key = label ? label.itemId : globalSlot;
+              const ariaLabel = label
+                ? `${label.itemName}, click to skip this slot`
+                : isSkipped
+                  ? 'Slot skipped, click to include'
+                  : 'Empty slot, click to skip';
 
               return (
-                <div key={label.itemId} style={wrapperStyle}>
-                  <BarcodeLabel
-                    format={format}
-                    labelSize={labelSize}
-                    itemName={label.itemName}
-                    manufacturer={label.manufacturer}
-                    catalogNumber={label.catalogNumber}
-                    barcodeValue={label.barcodeValue}
-                  />
-                </div>
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={isSkipped}
+                  aria-label={ariaLabel}
+                  onClick={() => onToggleSkip(globalSlot)}
+                  style={buttonStyle}
+                >
+                  {label ? (
+                    <BarcodeLabel
+                      format={format}
+                      labelSize={labelSize}
+                      itemName={label.itemName}
+                      manufacturer={label.manufacturer}
+                      catalogNumber={label.catalogNumber}
+                      barcodeValue={label.barcodeValue}
+                    />
+                  ) : isSkipped ? (
+                    <SkipIndicator />
+                  ) : (
+                    <EmptyPlaceholder />
+                  )}
+                </button>
               );
             })}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function EmptyPlaceholder() {
+  return (
+    <div className="w-full h-full bg-muted/20 border border-dashed border-muted-foreground/30 flex items-center justify-center">
+      <span className="text-[8px] text-muted-foreground">Empty</span>
+    </div>
+  );
+}
+
+function SkipIndicator() {
+  return (
+    <div className="w-full h-full bg-muted/40 border border-dashed border-muted-foreground/50 flex items-center justify-center relative overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.1) 4px, rgba(0,0,0,0.1) 8px)',
+        }}
+      />
+      <span className="relative text-[8px] font-semibold text-muted-foreground">Skip</span>
     </div>
   );
 }

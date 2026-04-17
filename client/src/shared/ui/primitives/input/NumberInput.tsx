@@ -4,7 +4,7 @@
  * Custom number input with increment/decrement buttons replacing native spinners.
  */
 
-import React, { forwardRef, useCallback } from 'react';
+import React, { forwardRef, useCallback, useEffect, useState } from 'react';
 
 import { Minus, Plus } from 'lucide-react';
 
@@ -16,6 +16,8 @@ export interface NumberInputProps {
   step?: number;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   disabled?: boolean;
+  /** Accept decimal values (parseFloat). Default integer-only (parseInt). */
+  allowDecimals?: boolean;
   'aria-label'?: string;
   /** Applied to the outer container */
   className?: string;
@@ -31,6 +33,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       step = 1,
       size = 'md',
       disabled = false,
+      allowDecimals = false,
       'aria-label': ariaLabel,
       className = '',
     },
@@ -50,8 +53,36 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       onChange(newValue);
     }, [value, step, min, disabled, onChange]);
 
+    // Decimal mode buffers typed text locally so intermediate states like
+    // "0." and "1.5" survive re-renders — parsing on every keystroke would
+    // coerce "0." back to 0 and strip the decimal point the user just typed.
+    // Integer mode keeps the commit-on-keystroke behavior for back-compat.
+    const [inputText, setInputText] = useState(String(value));
+
+    useEffect(() => {
+      if (allowDecimals) setInputText(String(value));
+    }, [value, allowDecimals]);
+
+    const commitInputText = useCallback(() => {
+      if (!allowDecimals) return;
+      const parsed = parseFloat(inputText);
+      if (isNaN(parsed)) {
+        setInputText(String(value));
+        return;
+      }
+      let newValue = parsed;
+      if (min !== undefined && newValue < min) newValue = min;
+      if (max !== undefined && newValue > max) newValue = max;
+      onChange(newValue);
+      setInputText(String(newValue));
+    }, [allowDecimals, inputText, min, max, onChange, value]);
+
     const handleInputChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (allowDecimals) {
+          setInputText(e.target.value);
+          return;
+        }
         const parsed = parseInt(e.target.value, 10);
         if (isNaN(parsed)) return;
 
@@ -60,7 +91,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         if (max !== undefined && newValue > max) newValue = max;
         onChange(newValue);
       },
-      [min, max, onChange]
+      [min, max, onChange, allowDecimals]
     );
 
     const handleKeyDown = useCallback(
@@ -71,9 +102,12 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         } else if (e.key === 'ArrowDown') {
           e.preventDefault();
           handleDecrement();
+        } else if (e.key === 'Enter' && allowDecimals) {
+          e.preventDefault();
+          commitInputText();
         }
       },
-      [handleIncrement, handleDecrement]
+      [handleIncrement, handleDecrement, allowDecimals, commitInputText]
     );
 
     const canDecrement = min === undefined || value > min;
@@ -143,11 +177,12 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         <input
           ref={ref}
           type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          value={value}
+          inputMode={allowDecimals ? 'decimal' : 'numeric'}
+          pattern={allowDecimals ? '[0-9]*\\.?[0-9]*' : '[0-9]*'}
+          value={allowDecimals ? inputText : value}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          onBlur={commitInputText}
           disabled={disabled}
           aria-label={ariaLabel}
           className={`

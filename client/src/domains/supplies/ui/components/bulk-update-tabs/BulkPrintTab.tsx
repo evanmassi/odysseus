@@ -34,11 +34,87 @@ const UNSELECTED_CLASS =
 
 const PAPER_ORDER: Record<SheetTemplate['paperSize'], number> = { letter: 0, a4: 1 };
 
-const TEMPLATE_OPTIONS: SelectOption[] = [...SHEET_TEMPLATES]
-  .sort(
-    (a, b) => PAPER_ORDER[a.paperSize] - PAPER_ORDER[b.paperSize] || a.name.localeCompare(b.name)
-  )
-  .map(t => ({ value: t.id, label: t.name, description: t.description }));
+const CUSTOM_TEMPLATE_ID = 'custom';
+
+const TEMPLATE_OPTIONS: SelectOption[] = [
+  ...SHEET_TEMPLATES.slice()
+    .sort(
+      (a, b) => PAPER_ORDER[a.paperSize] - PAPER_ORDER[b.paperSize] || a.name.localeCompare(b.name)
+    )
+    .map(t => ({ value: t.id, label: t.name, description: t.description })),
+  { value: CUSTOM_TEMPLATE_ID, label: 'Custom', description: 'User-defined layout' },
+];
+
+const PAPER_SIZE_OPTIONS: SelectOption[] = [
+  { value: 'letter', label: 'US Letter (8.5 × 11 in)' },
+  { value: 'a4', label: 'A4 (8.27 × 11.69 in)' },
+];
+
+const PAPER_DIMENSIONS: Record<SheetTemplate['paperSize'], { width: number; height: number }> = {
+  letter: { width: 8.5, height: 11 },
+  a4: { width: 8.27, height: 11.69 },
+};
+
+interface CustomTemplateInputs {
+  paperSize: SheetTemplate['paperSize'];
+  labelWidth: number;
+  labelHeight: number;
+  columns: number;
+  rows: number;
+  marginTop: number;
+  marginLeft: number;
+  columnGap: number;
+  rowGap: number;
+}
+
+const DEFAULT_CUSTOM_INPUTS: CustomTemplateInputs = {
+  paperSize: 'letter',
+  labelWidth: 2.625,
+  labelHeight: 1,
+  columns: 3,
+  rows: 10,
+  marginTop: 0.5,
+  marginLeft: 0.1875,
+  columnGap: 0.125,
+  rowGap: 0,
+};
+
+function validateCustomTemplate(inputs: CustomTemplateInputs): string | null {
+  const paper = PAPER_DIMENSIONS[inputs.paperSize];
+  const usedWidth =
+    inputs.marginLeft +
+    inputs.columns * inputs.labelWidth +
+    (inputs.columns - 1) * inputs.columnGap;
+  const usedHeight =
+    inputs.marginTop + inputs.rows * inputs.labelHeight + (inputs.rows - 1) * inputs.rowGap;
+  if (usedWidth > paper.width + 1e-6) {
+    return `Layout exceeds paper width (${usedWidth.toFixed(2)}in > ${paper.width}in)`;
+  }
+  if (usedHeight > paper.height + 1e-6) {
+    return `Layout exceeds paper height (${usedHeight.toFixed(2)}in > ${paper.height}in)`;
+  }
+  return null;
+}
+
+function buildCustomTemplate(inputs: CustomTemplateInputs): SheetTemplate {
+  const paper = PAPER_DIMENSIONS[inputs.paperSize];
+  return {
+    id: CUSTOM_TEMPLATE_ID,
+    name: 'Custom',
+    description: 'User-defined layout',
+    paperSize: inputs.paperSize,
+    paperWidth: paper.width,
+    paperHeight: paper.height,
+    labelWidth: inputs.labelWidth,
+    labelHeight: inputs.labelHeight,
+    columns: inputs.columns,
+    rows: inputs.rows,
+    marginTop: inputs.marginTop,
+    marginLeft: inputs.marginLeft,
+    columnGap: inputs.columnGap,
+    rowGap: inputs.rowGap,
+  };
+}
 
 interface BulkPrintTabProps {
   items: SupplyItemWithStock[];
@@ -52,19 +128,49 @@ export function BulkPrintTab({ items, selectedIds }: BulkPrintTabProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [printableLabels, setPrintableLabels] = useState<PrintableLabel[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [customInputs, setCustomInputs] = useState<CustomTemplateInputs>(DEFAULT_CUSTOM_INPUTS);
 
-  const currentTemplate = useMemo(
-    () => getTemplateById(templateId) ?? SHEET_TEMPLATES[0],
-    [templateId]
+  const isCustom = templateId === CUSTOM_TEMPLATE_ID;
+
+  const customTemplate = useMemo(
+    () => (isCustom ? buildCustomTemplate(customInputs) : null),
+    [isCustom, customInputs]
   );
+  const customError = useMemo(
+    () => (isCustom ? validateCustomTemplate(customInputs) : null),
+    [isCustom, customInputs]
+  );
+
+  const currentTemplate = useMemo(() => {
+    if (isCustom && customTemplate) return customTemplate;
+    return getTemplateById(templateId) ?? SHEET_TEMPLATES[0];
+  }, [isCustom, templateId, customTemplate]);
   const slotsPerSheet = currentTemplate.columns * currentTemplate.rows;
 
   const handleTemplateChange = useCallback(
     (value: string | number | (string | number)[] | null) => {
       const nextId = String(value ?? DEFAULT_TEMPLATE_ID);
       setTemplateId(nextId);
+      if (nextId === CUSTOM_TEMPLATE_ID) {
+        setStartingPosition(prev => Math.min(prev, customInputs.columns * customInputs.rows));
+        return;
+      }
       const nextTemplate = getTemplateById(nextId) ?? SHEET_TEMPLATES[0];
       setStartingPosition(prev => Math.min(prev, nextTemplate.columns * nextTemplate.rows));
+    },
+    [customInputs.columns, customInputs.rows]
+  );
+
+  const updateCustomInput = useCallback(
+    <K extends keyof CustomTemplateInputs>(field: K, value: CustomTemplateInputs[K]) => {
+      setCustomInputs(prev => {
+        const next = { ...prev, [field]: value };
+        // Keep startingPosition in bounds if the grid shrinks.
+        if (field === 'columns' || field === 'rows') {
+          setStartingPosition(sp => Math.min(sp, next.columns * next.rows));
+        }
+        return next;
+      });
     },
     []
   );
@@ -148,6 +254,85 @@ export function BulkPrintTab({ items, selectedIds }: BulkPrintTabProps) {
           fullWidth
         />
 
+        {isCustom && (
+          <div className="space-y-3 p-3 rounded-md border border-border bg-muted/20">
+            <Select
+              label="Paper size"
+              options={PAPER_SIZE_OPTIONS}
+              value={customInputs.paperSize}
+              onChange={v =>
+                updateCustomInput('paperSize', String(v ?? 'letter') as SheetTemplate['paperSize'])
+              }
+              fullWidth
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <CustomField
+                label="Label width (in)"
+                value={customInputs.labelWidth}
+                onChange={v => updateCustomInput('labelWidth', v)}
+                allowDecimals
+                min={0.1}
+                step={0.125}
+              />
+              <CustomField
+                label="Label height (in)"
+                value={customInputs.labelHeight}
+                onChange={v => updateCustomInput('labelHeight', v)}
+                allowDecimals
+                min={0.1}
+                step={0.125}
+              />
+              <CustomField
+                label="Columns"
+                value={customInputs.columns}
+                onChange={v => updateCustomInput('columns', v)}
+                min={1}
+                step={1}
+              />
+              <CustomField
+                label="Rows"
+                value={customInputs.rows}
+                onChange={v => updateCustomInput('rows', v)}
+                min={1}
+                step={1}
+              />
+              <CustomField
+                label="Margin top (in)"
+                value={customInputs.marginTop}
+                onChange={v => updateCustomInput('marginTop', v)}
+                allowDecimals
+                min={0}
+                step={0.125}
+              />
+              <CustomField
+                label="Margin left (in)"
+                value={customInputs.marginLeft}
+                onChange={v => updateCustomInput('marginLeft', v)}
+                allowDecimals
+                min={0}
+                step={0.125}
+              />
+              <CustomField
+                label="Column gap (in)"
+                value={customInputs.columnGap}
+                onChange={v => updateCustomInput('columnGap', v)}
+                allowDecimals
+                min={0}
+                step={0.0625}
+              />
+              <CustomField
+                label="Row gap (in)"
+                value={customInputs.rowGap}
+                onChange={v => updateCustomInput('rowGap', v)}
+                allowDecimals
+                min={0}
+                step={0.0625}
+              />
+            </div>
+            {customError && <p className="text-xs text-destructive">{customError}</p>}
+          </div>
+        )}
+
         <div>
           <h4 className="text-sm font-semibold text-card-foreground mb-2">Starting position</h4>
           <div className="flex items-center gap-2">
@@ -167,7 +352,7 @@ export function BulkPrintTab({ items, selectedIds }: BulkPrintTabProps) {
         <div className="pt-2">
           <Button
             onClick={() => void handlePreviewPrint()}
-            disabled={selectedIds.size === 0 || isLoading}
+            disabled={selectedIds.size === 0 || isLoading || (isCustom && customError !== null)}
             isLoading={isLoading}
             leftIcon={<Printer size={16} />}
           >
@@ -187,5 +372,31 @@ export function BulkPrintTab({ items, selectedIds }: BulkPrintTabProps) {
         />
       )}
     </>
+  );
+}
+
+interface CustomFieldProps {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  step?: number;
+  allowDecimals?: boolean;
+}
+
+function CustomField({ label, value, onChange, min, step, allowDecimals }: CustomFieldProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <NumberInput
+        value={value}
+        onChange={onChange}
+        min={min}
+        step={step}
+        allowDecimals={allowDecimals}
+        size="sm"
+        aria-label={label}
+      />
+    </div>
   );
 }

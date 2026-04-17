@@ -81,7 +81,16 @@ export function SupplyBarcodeSheetModal({
   format,
 }: SupplyBarcodeSheetModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const skippedSlots = EMPTY_SKIPPED_SLOTS;
+  const [skippedSlots, setSkippedSlots] = useState<ReadonlySet<number>>(EMPTY_SKIPPED_SLOTS);
+
+  const handleToggleSkip = useCallback((globalSlot: number) => {
+    setSkippedSlots(prev => {
+      const next = new Set(prev);
+      if (next.has(globalSlot)) next.delete(globalSlot);
+      else next.add(globalSlot);
+      return next;
+    });
+  }, []);
 
   const slotsPerSheet = template.columns * template.rows;
   const { pageSlots, totalPages } = useMemo(
@@ -96,6 +105,7 @@ export function SupplyBarcodeSheetModal({
   // the effect alone leaks the bad value into one render before syncing.
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const currentPageSlots = pageSlots[safeCurrentPage - 1];
+  const pageStartGlobalSlot = (safeCurrentPage - 1) * slotsPerSheet;
 
   useEffect(() => {
     setCurrentPage(p => Math.min(p, totalPages));
@@ -200,7 +210,14 @@ export function SupplyBarcodeSheetModal({
         </div>
 
         <div className="flex-1 min-h-0">
-          <SupplyBarcodeSheetPreview template={template} slots={currentPageSlots} format={format} />
+          <SupplyBarcodeSheetPreview
+            template={template}
+            slots={currentPageSlots}
+            format={format}
+            pageStartGlobalSlot={pageStartGlobalSlot}
+            skippedSlots={skippedSlots}
+            onToggleSkip={handleToggleSkip}
+          />
         </div>
       </div>
 
