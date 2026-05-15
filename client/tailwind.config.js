@@ -14,6 +14,13 @@ export default {
         page: 'hsl(var(--page) / <alpha-value>)',
 
         /* Surfaces */
+        surface: {
+          void: 'hsl(var(--bg-void) / <alpha-value>)',
+          base: 'hsl(var(--bg-base) / <alpha-value>)',
+          panel: 'hsl(var(--bg-panel) / <alpha-value>)',
+          'panel-2': 'hsl(var(--bg-panel-2) / <alpha-value>)',
+          elev: 'hsl(var(--bg-elev) / <alpha-value>)',
+        },
         card: {
           DEFAULT: 'hsl(var(--card) / <alpha-value>)',
           foreground: 'hsl(var(--card-foreground) / <alpha-value>)',
@@ -45,6 +52,14 @@ export default {
         border: 'hsl(var(--border) / <alpha-value>)',
         input: 'hsl(var(--input) / <alpha-value>)',
         ring: 'hsl(var(--ring) / <alpha-value>)',
+
+        /* Hairlines */
+        line: {
+          faint: 'hsl(var(--line-faint))',
+          soft: 'hsl(var(--line-soft))',
+          mid: 'hsl(var(--line-mid))',
+          strong: 'hsl(var(--line-strong))',
+        },
 
         /* Application-specific extensions */
 
@@ -147,7 +162,9 @@ export default {
       },
       fontFamily: {
         sans: ['Lato', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', '"Helvetica Neue"', 'sans-serif'],
         mono: [
+          '"JetBrains Mono"',
           'ui-monospace',
           'SFMono-Regular',
           'Menlo',

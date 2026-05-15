@@ -32,6 +32,19 @@
     --foreground: 222.2 47.4% 11.2%;
     --page: 0 0% 100%;
 
+    /* Surfaces */
+    --bg-void: 220 20% 95%;
+    --bg-base: 0 0% 100%;
+    --bg-panel: 0 0% 100%;
+    --bg-panel-2: 210 30% 98%;
+    --bg-elev: 0 0% 100%;
+
+    /* Hairlines */
+    --line-faint: 222 47% 11% / 0.04;
+    --line-soft: 222 47% 11% / 0.08;
+    --line-mid: 222 47% 11% / 0.14;
+    --line-strong: 222 47% 11% / 0.28;
+
     /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
@@ -216,6 +229,19 @@
     --background: 222.2 47.4% 11.2%;
     --foreground: 210 33% 92%;
     --page: 222.2 47.4% 11.2%;
+
+    /* Surfaces */
+    --bg-void: 220 43% 4%;
+    --bg-base: 220 38% 7%;
+    --bg-panel: 217 32% 9%;
+    --bg-panel-2: 217 26% 11%;
+    --bg-elev: 218 28% 15%;
+
+    /* Hairlines */
+    --line-faint: 45 27% 87% / 0.06;
+    --line-soft: 45 27% 87% / 0.1;
+    --line-mid: 45 27% 87% / 0.18;
+    --line-strong: 45 27% 87% / 0.32;
 
     /* Card */
     --card: 217.2 32.6% 15.5%;
