@@ -26,7 +26,7 @@ const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[10px] font-normal',
     'text-left text-muted-foreground',
-    'border-b border-border bg-foreground/[0.012]',
+    'border-b border-foreground/10 bg-foreground/[0.012]',
     'px-5',
   ],
   {
@@ -58,23 +58,26 @@ const headerVariants = cva(
   }
 );
 
-const cellVariants = cva(['px-5 text-sm text-muted-foreground', 'border-b border-border/50'], {
-  variants: {
-    align: {
-      left: 'text-left',
-      center: 'text-center',
-      right: 'text-right',
+const cellVariants = cva(
+  ['px-5 text-sm text-muted-foreground align-middle', 'border-b border-foreground/[0.06]'],
+  {
+    variants: {
+      align: {
+        left: 'text-left',
+        center: 'text-center',
+        right: 'text-right',
+      },
+      density: {
+        compact: 'py-2',
+        default: 'py-4',
+      },
     },
-    density: {
-      compact: 'py-2',
-      default: 'py-4',
+    defaultVariants: {
+      align: 'left',
+      density: 'default',
     },
-  },
-  defaultVariants: {
-    align: 'left',
-    density: 'default',
-  },
-});
+  }
+);
 
 const rowVariants = cva([''], {
   variants: {
@@ -103,15 +106,27 @@ interface SortIndicatorProps {
 }
 
 const SortIndicator: React.FC<SortIndicatorProps> = ({ direction }) => (
-  <span className="ml-2 inline-block text-[8px] leading-none">
-    {!direction ? (
-      <span className="text-muted-foreground/50">▲▼</span>
-    ) : direction === 'asc' ? (
-      <span className="text-primary">▲</span>
-    ) : (
-      <span className="text-primary">▼</span>
-    )}
-  </span>
+  <svg
+    className="ml-2 w-2.5 h-2.5 shrink-0 inline-block"
+    viewBox="0 0 14 14"
+    fill="none"
+    strokeWidth="1.5"
+  >
+    <path
+      d="M5 4.5L7 2.5l2 2"
+      stroke="currentColor"
+      className={
+        direction === 'asc' ? 'text-primary' : direction === 'desc' ? 'opacity-20' : 'opacity-40'
+      }
+    />
+    <path
+      d="M5 9.5L7 11.5l2-2"
+      stroke="currentColor"
+      className={
+        direction === 'desc' ? 'text-primary' : direction === 'asc' ? 'opacity-20' : 'opacity-40'
+      }
+    />
+  </svg>
 );
 
 interface TableCheckboxProps {
