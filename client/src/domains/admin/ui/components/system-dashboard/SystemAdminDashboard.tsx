@@ -1,16 +1,17 @@
 /**
  * System Admin Dashboard
  *
- * Shell for system admins: overview chips and tabbed panels for labs and security monitoring.
+ * Top-level page for system admins — Facility Overview header, stat strip, and tabbed panels.
  */
 
 import { lazy, Suspense, useState } from 'react';
 
-import { Activity, FlaskConical, HardDrive, LayoutDashboard, Shield } from 'lucide-react';
+import { FlaskConical, HardDrive, Shield } from 'lucide-react';
 
-import { Chip, LoadingSkeleton, Tab, Tabs } from '@shared/ui';
+import { IdStamp, LoadingSkeleton, Panel, StatCell, Tab, Tabs } from '@shared/ui';
 
 import { useSystemOverviewQuery } from '../../../hooks/useLabQueries';
+import { useSecurityOverviewQuery } from '../../../hooks/useSecurityMonitoringQueries';
 
 import { LabDashboard } from './LabDashboard';
 import { LabsPanel } from './LabsPanel';
@@ -25,6 +26,8 @@ export function SystemAdminDashboard() {
   const [activeTab, setActiveTab] = useState<string>('labs');
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
   const { data: overview } = useSystemOverviewQuery();
+  const { data: securityOverview } = useSecurityOverviewQuery();
+  const activeSessions = securityOverview?.sessionOverview?.activeSessions;
 
   if (selectedLabId) {
     return <LabDashboard labId={selectedLabId} onBack={() => setSelectedLabId(null)} />;
@@ -33,24 +36,57 @@ export function SystemAdminDashboard() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
-        <div className="rounded-lg bg-card px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <LayoutDashboard size={18} className="text-muted-foreground" />
-            <h2 className="text-lg font-semibold text-card-foreground">Overview</h2>
-          </div>
+        <div>
+          <h1 className="font-display text-[32px] font-normal tracking-[-0.015em] leading-none">
+            Facility Overview
+          </h1>
           {overview && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Chip color="info" size="sm" leftIcon={<FlaskConical />}>
-                {overview.activeLabs} {overview.activeLabs === 1 ? 'lab' : 'labs'} active
-                {overview.inactiveLabs > 0 && ` · ${overview.inactiveLabs} inactive`}
-              </Chip>
-              <Chip color="info" size="sm" leftIcon={<Activity />}>
-                {overview.activeUsersLast24h} {overview.activeUsersLast24h === 1 ? 'user' : 'users'}{' '}
-                active today
-              </Chip>
+            <div className="mt-2">
+              <IdStamp
+                parts={[
+                  `${overview.activeLabs + overview.inactiveLabs} ${
+                    overview.activeLabs + overview.inactiveLabs === 1 ? 'lab' : 'labs'
+                  }`,
+                  `${overview.activeLabs} active · ${overview.inactiveLabs} inactive`,
+                  `${overview.activeUsersLast24h} ${
+                    overview.activeUsersLast24h === 1 ? 'user' : 'users'
+                  } active today`,
+                ]}
+              />
             </div>
           )}
         </div>
+
+        {overview && (
+          <Panel>
+            <div className="flex divide-x divide-line-soft">
+              <StatCell
+                label="Labs Online"
+                value={overview.activeLabs}
+                footer={`of ${overview.totalLabs} registered`}
+                tone="success"
+                className="flex-1"
+              />
+              <StatCell
+                label="Users Active 24h"
+                value={overview.activeUsersLast24h}
+                footer={`of ${overview.totalUsers} registered`}
+                className="flex-1"
+              />
+              <StatCell label="Active Sessions" value={activeSessions ?? '—'} className="flex-1" />
+              {/* TODO(2026-05-15): wire to specimens-created-in-last-24h aggregator */}
+              <StatCell label="Specimens Added 24h" value="—" unit="tubes" className="flex-1" />
+              {/* TODO(2026-05-15): wire to cross-cutting anomaly aggregator */}
+              <StatCell
+                label="Needs Attention"
+                value="—"
+                unit="items"
+                tone="danger"
+                className="flex-1"
+              />
+            </div>
+          </Panel>
+        )}
 
         <div className="border-b border-border">
           <Tabs value={activeTab} onChange={setActiveTab} orientation="horizontal">

@@ -39,6 +39,9 @@ export type {
   InputRef,
 } from './input/types';
 
+export { IdStamp } from './id-stamp/IdStamp';
+export type { IdStampProps } from './id-stamp/IdStamp';
+
 export { DropdownMenu } from './menus/DropdownMenu';
 export type { DropdownMenuProps } from './menus/DropdownMenu';
 export { MenuItem } from './menus/MenuItem';
@@ -66,6 +69,9 @@ export type {
 
 export { Panel, PanelEdgeLabel } from './panel/Panel';
 export type { PanelProps, PanelEdgeLabelProps } from './panel/Panel';
+
+export { StatCell } from './stat-cell/StatCell';
+export type { StatCellProps } from './stat-cell/StatCell';
 
 export { Table } from './table/Table';
 export type {
