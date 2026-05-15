@@ -6,18 +6,10 @@
 
 import { useMemo, useState } from 'react';
 
-import {
-  ChevronDown,
-  Link2,
-  Power,
-  ShieldBan,
-  Trash2,
-  UserRoundCheck,
-  UsersRound,
-} from 'lucide-react';
+import { ChevronDown, Link2, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Chip, OverflowMenu, Table, Tooltip } from '@shared/ui';
+import { Chip, OverflowMenu, Panel, PanelEdgeLabel, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -68,55 +60,54 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
   );
 
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <UsersRound size={18} className="text-muted-foreground" />
-        <h3 className="text-lg font-semibold text-card-foreground">Users</h3>
-      </div>
-      <Table
-        columns={getUserColumns({
-          onUserAction: setUserAction,
-          onActivate: handleActivate,
-          currentUserId,
-        })}
-        data={activeUsers}
-        sortable
-        sortConfig={sortConfig}
-        onSort={onSort}
-        hoverable={false}
-        emptyMessage="No users in this lab"
-        aria-label="Lab users"
-      />
+    <>
+      <Panel>
+        <PanelEdgeLabel parts={['Users', `${activeUsers.length} records`]} />
+        <Table
+          columns={getUserColumns({
+            onUserAction: setUserAction,
+            onActivate: handleActivate,
+            currentUserId,
+          })}
+          data={activeUsers}
+          sortable
+          sortConfig={sortConfig}
+          onSort={onSort}
+          hoverable={false}
+          emptyMessage="No users in this lab"
+          aria-label="Lab users"
+        />
 
-      {inactiveUsers.length > 0 && (
-        <div className="pt-3 border-t border-border mt-3">
-          <button
-            onClick={() => setShowInactive(prev => !prev)}
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ChevronDown
-              size={14}
-              className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
-            />
-            Inactive Users ({inactiveUsers.length})
-          </button>
-          {showInactive && (
-            <div className="mt-2">
-              <Table
-                columns={getUserColumns({
-                  onUserAction: setUserAction,
-                  onActivate: handleActivate,
-                  currentUserId,
-                })}
-                data={inactiveUsers}
-                emptyMessage=""
-                aria-label="Inactive lab users"
-                className="opacity-60"
+        {inactiveUsers.length > 0 && (
+          <div className="pt-3 px-5 pb-5 border-t border-foreground/10 mt-3">
+            <button
+              onClick={() => setShowInactive(prev => !prev)}
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
               />
-            </div>
-          )}
-        </div>
-      )}
+              Inactive Users ({inactiveUsers.length})
+            </button>
+            {showInactive && (
+              <div className="mt-2">
+                <Table
+                  columns={getUserColumns({
+                    onUserAction: setUserAction,
+                    onActivate: handleActivate,
+                    currentUserId,
+                  })}
+                  data={inactiveUsers}
+                  emptyMessage=""
+                  aria-label="Inactive lab users"
+                  className="opacity-60"
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </Panel>
 
       <ConfirmDialog
         isOpen={userAction !== null}
@@ -168,7 +159,7 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
         }}
         onCancel={() => setUserAction(null)}
       />
-    </div>
+    </>
   );
 }
 

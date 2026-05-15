@@ -73,7 +73,7 @@ const buttonVariants = cva(
     'inline-flex items-center justify-center',
     'border font-medium',
     'text-center whitespace-nowrap leading-none',
-    '[text-shadow:0_0_4px_rgb(255_255_255/0.4)]',
+    '[text-shadow:0_0_4px_color-mix(in_srgb,currentColor_40%,transparent)]',
     'transition-[background,border-color,filter,box-shadow] duration-150',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'focus-visible:ring-ring focus-visible:ring-offset-background',
@@ -95,20 +95,16 @@ const buttonVariants = cva(
         info: `bg-info-bg text-info-btnText border-info-bg shadow-glow-info hover:brightness-110 ${FILLED_OVERLAYS}`,
 
         secondary:
-          'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]',
+          'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
 
         cancel:
-          'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]',
+          'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
 
         ghost:
-          'bg-transparent text-muted-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]',
+          'bg-transparent text-muted-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
 
         'ghost-danger':
-          'bg-transparent text-danger-text border-transparent relative isolate ' +
-          'after:absolute after:inset-0 after:pointer-events-none ' +
-          'after:bg-scanlines after:mix-blend-multiply ' +
-          'after:opacity-0 after:transition-opacity after:duration-150 ' +
-          'hover:bg-danger-light hover:after:opacity-100',
+          'bg-transparent text-danger-text/60 border-transparent hover:text-danger-text hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
       },
 
       size: {
@@ -134,6 +130,12 @@ const buttonVariants = cva(
       { iconOnly: true, size: 'sm', className: 'w-8 h-8' },
       { iconOnly: true, size: 'md', className: 'w-10 h-10' },
       { iconOnly: true, size: 'xl', className: 'w-14 h-14' },
+      // text-shadow can't reach SVG icon strokes — drop-shadow filter is the parallel.
+      { iconOnly: true, className: 'drop-shadow-icon-bloom' },
+      { variant: 'ghost', iconOnly: true, className: 'hover:drop-shadow-icon-bloom-hover' },
+      { variant: 'ghost-danger', iconOnly: true, className: 'hover:drop-shadow-icon-bloom-hover' },
+      { variant: 'secondary', iconOnly: true, className: 'hover:drop-shadow-icon-bloom-hover' },
+      { variant: 'cancel', iconOnly: true, className: 'hover:drop-shadow-icon-bloom-hover' },
     ],
 
     defaultVariants: {

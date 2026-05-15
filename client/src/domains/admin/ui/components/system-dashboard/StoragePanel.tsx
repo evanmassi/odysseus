@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { refrigeratorFreezer } from '@lucide/lab';
 import { AlertTriangle, Box as BoxIcon, ChevronLeft, HardDrive, Rows3, Icon } from 'lucide-react';
 
-import { Button, Chip, Table } from '@shared/ui';
+import { Button, Chip, Panel, PanelEdgeLabel, Table } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges';
 
 import { useLabsQuery } from '../../../hooks/useLabQueries';
@@ -163,12 +163,8 @@ export function StoragePanel() {
       </div>
 
       {/* Per-Lab Table */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Icon iconNode={refrigeratorFreezer} size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Lab Storage</h3>
-        </div>
-
+      <Panel>
+        <PanelEdgeLabel parts={['Lab Storage', `${sortedLabs.length} records`]} />
         <Table<LabSummaryRow>
           columns={labColumns}
           data={sortedLabs.map(l => ({ ...l, id: l.labId }))}
@@ -181,7 +177,7 @@ export function StoragePanel() {
           aria-label="Per-lab storage utilization"
           onRowClick={row => setSelectedLabId(row.labId)}
         />
-      </div>
+      </Panel>
     </div>
   );
 }
@@ -307,12 +303,8 @@ function LabDrillDown({
       </div>
 
       {/* Per-Tank Table */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Icon iconNode={refrigeratorFreezer} size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Tanks</h3>
-        </div>
-
+      <Panel>
+        <PanelEdgeLabel parts={['Tanks', `${data?.tanks?.length ?? 0} records`]} />
         <Table<TankRow>
           columns={tankColumns}
           data={(data?.tanks ?? []).map(t => ({ ...t, id: t.tankId }))}
@@ -326,7 +318,7 @@ function LabDrillDown({
           }}
           rowClassName={row => (row.tankId === expandedTankId ? 'bg-muted/50' : '')}
         />
-      </div>
+      </Panel>
 
       {/* Expanded Rack View */}
       {expandedTank && (
@@ -335,14 +327,10 @@ function LabDrillDown({
             <div className="h-px bg-muted-foreground/60" />
           </div>
 
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Rows3 size={18} className="text-muted-foreground" />
-              <h3 className="text-lg font-semibold text-card-foreground">
-                Racks in {expandedTank.tankName}
-              </h3>
-            </div>
-
+          <Panel>
+            <PanelEdgeLabel
+              parts={[`Racks in ${expandedTank.tankName}`, `${expandedTank.racks.length} records`]}
+            />
             <Table<RackRow>
               columns={rackColumns}
               data={expandedTank.racks.map(r => ({ ...r, id: r.rackId }))}
@@ -354,7 +342,7 @@ function LabDrillDown({
               }
               rowClassName={row => (row.rackId === expandedRackId ? 'bg-muted/50' : '')}
             />
-          </div>
+          </Panel>
 
           {expandedRackId && expandedTank.racks.find(r => r.rackId === expandedRackId) && (
             <>
@@ -362,14 +350,12 @@ function LabDrillDown({
                 <div className="h-px bg-muted-foreground/60" />
               </div>
 
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <BoxIcon size={18} className="text-muted-foreground" />
-                  <h3 className="text-lg font-semibold text-card-foreground">
-                    Boxes in {expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}
-                  </h3>
-                </div>
-
+              <Panel>
+                <PanelEdgeLabel
+                  parts={[
+                    `Boxes in ${expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}`,
+                  ]}
+                />
                 <Table<BoxRow>
                   columns={[
                     {
@@ -397,7 +383,7 @@ function LabDrillDown({
                   emptyMessage="No boxes in this rack"
                   aria-label="Box utilization"
                 />
-              </div>
+              </Panel>
             </>
           )}
         </>

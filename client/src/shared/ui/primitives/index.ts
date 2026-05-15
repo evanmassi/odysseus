@@ -61,6 +61,9 @@ export type {
   SelectRef,
 } from './select/types';
 
+export { Panel, PanelEdgeLabel } from './panel/Panel';
+export type { PanelProps, PanelEdgeLabelProps } from './panel/Panel';
+
 export { Table } from './table/Table';
 export type {
   TableProps,

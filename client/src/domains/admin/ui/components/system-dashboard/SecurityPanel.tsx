@@ -10,21 +10,18 @@ import {
   AlertTriangle,
   BarChart3,
   Clock,
-  Globe,
   HeartPulse,
   KeyRound,
   LogOut,
-  MonitorCheck,
   MonitorX,
   RefreshCw,
   Search,
-  ShieldAlert,
   Trash2,
   UsersRound,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { Button, Chip, Table, DatePicker } from '@shared/ui';
+import { Button, Chip, Panel, PanelEdgeLabel, Table, DatePicker } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -553,18 +550,7 @@ export function SecurityPanel() {
 
       {/* Active Sessions */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <MonitorCheck size={18} className="text-muted-foreground" />
-            <h3 className="text-lg font-semibold text-card-foreground">Active Sessions</h3>
-            <Button
-              variant={autoRefresh ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setAutoRefresh(prev => !prev)}
-            >
-              <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
-            </Button>
-          </div>
+        <div className="flex items-center justify-end gap-3 mb-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
             <input
@@ -575,6 +561,15 @@ export function SecurityPanel() {
               className="input-search w-64 pl-8"
             />
           </div>
+          <Button
+            variant={autoRefresh ? 'primary' : 'ghost'}
+            size="sm"
+            iconOnly
+            onClick={() => setAutoRefresh(prev => !prev)}
+            aria-label="Toggle auto-refresh"
+          >
+            <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
+          </Button>
         </div>
 
         {selectedSessionIds.length > 0 && (
@@ -593,26 +588,29 @@ export function SecurityPanel() {
           </div>
         )}
 
-        <Table<ActiveSessionEntry>
-          columns={sessionColumns}
-          data={sortedSessions}
-          sortable
-          selectable
-          multiSelect
-          selectedRows={selectedSessionIds}
-          onSelectionChange={setSelectedSessionIds}
-          sortConfig={sessionSortConfig}
-          onSort={setSessionSortConfig}
-          loading={sessionsLoading}
-          hoverable
-          emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
-          aria-label="Active sessions"
-          rowClassName={row =>
-            isOwnSession(row)
-              ? 'bg-success-light text-success-text [&>td:first-child]:border-l-4 [&>td:first-child]:border-l-success-bg'
-              : ''
-          }
-        />
+        <Panel>
+          <PanelEdgeLabel parts={['Active Sessions', `${sortedSessions.length} active`]} />
+          <Table<ActiveSessionEntry>
+            columns={sessionColumns}
+            data={sortedSessions}
+            sortable
+            selectable
+            multiSelect
+            selectedRows={selectedSessionIds}
+            onSelectionChange={setSelectedSessionIds}
+            sortConfig={sessionSortConfig}
+            onSort={setSessionSortConfig}
+            loading={sessionsLoading}
+            hoverable
+            emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
+            aria-label="Active sessions"
+            rowClassName={row =>
+              isOwnSession(row)
+                ? 'bg-success-light text-success-text [&>td:first-child]:border-l-4 [&>td:first-child]:border-l-success-bg'
+                : ''
+            }
+          />
+        </Panel>
       </div>
 
       <div>
@@ -621,10 +619,6 @@ export function SecurityPanel() {
 
       {/* IP Activity */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Globe size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">IP Activity</h3>
-        </div>
         <div className="flex items-center gap-3 mb-3">
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">From</span>
@@ -662,13 +656,18 @@ export function SecurityPanel() {
           )}
         </div>
 
-        <Table<IpActivityRow>
-          columns={ipColumns}
-          data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
-          hoverable
-          emptyMessage="No IP activity data"
-          aria-label="IP activity"
-        />
+        <Panel>
+          <PanelEdgeLabel
+            parts={['IP Activity', `${ipData?.entries?.length ?? 0} unique addresses`]}
+          />
+          <Table<IpActivityRow>
+            columns={ipColumns}
+            data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
+            hoverable
+            emptyMessage="No IP activity data"
+            aria-label="IP activity"
+          />
+        </Panel>
       </div>
 
       <div>
@@ -676,12 +675,8 @@ export function SecurityPanel() {
       </div>
 
       {/* Failed Login Attempts */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <ShieldAlert size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Failed Login Attempts</h3>
-        </div>
-
+      <Panel>
+        <PanelEdgeLabel parts={['Failed Login Attempts', 'last 7 days']} />
         <Table<FailedLoginRow>
           columns={failedLoginColumns}
           data={(failedLoginsData?.entries ?? []).map((e, i) => ({
@@ -692,7 +687,7 @@ export function SecurityPanel() {
           emptyMessage="No failed login attempts"
           aria-label="Failed login attempts"
         />
-      </div>
+      </Panel>
 
       <ConfirmDialog
         isOpen={showPurgeConfirm}

@@ -176,6 +176,11 @@ export default {
         scanlines:
           'repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
       },
+      dropShadow: {
+        /* SVG-icon parallel to text-shadow text-bloom — glows in the icon's own color */
+        'icon-bloom': '0 0 4px color-mix(in srgb, currentColor 40%, transparent)',
+        'icon-bloom-hover': '0 0 8px color-mix(in srgb, currentColor 70%, transparent)',
+      },
       keyframes: {
         'zoom-in-98': {
           '0%': { opacity: '0', transform: 'scale(0.98)' },
