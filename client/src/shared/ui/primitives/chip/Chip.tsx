@@ -18,6 +18,7 @@ const chipVariants = cva(
     'inline-flex items-center gap-1.5',
     'border font-medium uppercase whitespace-nowrap leading-none',
     'font-mono tracking-[0.14em]',
+    '[text-shadow:0_0_4px_currentColor]',
     'transition-colors duration-150',
   ],
   {
