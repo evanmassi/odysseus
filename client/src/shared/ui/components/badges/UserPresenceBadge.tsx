@@ -1,10 +1,11 @@
 /**
  * User Presence Badge
  *
- * Green circular avatar indicating a user is currently online.
+ * Square chip indicating a user is currently online — ring offset keeps the
+ * badge legible when stacked in OnlineUsersBadgeList.
  */
 
-import { Tooltip } from '@shared/ui';
+import { Badge, Tooltip } from '@shared/ui';
 import { getUserInitials, getUserDisplayName } from '@shared/utils/userDisplayFormatters';
 
 interface UserPresenceBadgeProps {
@@ -19,9 +20,9 @@ export function UserPresenceBadge({ username, firstName, lastName }: UserPresenc
 
   return (
     <Tooltip content={`${displayName} is online`} side="bottom">
-      <div className="w-6 h-6 rounded-full bg-success-bg flex items-center justify-center text-[10px] font-bold text-success-btnText flex-shrink-0 ring-2 ring-card">
+      <Badge size="md" className="bg-success-bg text-success-btnText ring-2 ring-card">
         {initials}
-      </div>
+      </Badge>
     </Tooltip>
   );
 }

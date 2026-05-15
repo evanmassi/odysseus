@@ -10,6 +10,9 @@ export type { AutocompleteProps, AutocompleteOption, AutocompleteRef } from './a
 export { AlertBanner } from './banners/AlertBanner';
 export type { AlertBannerProps, AlertBannerVariant } from './banners/types';
 
+export { Badge } from './badge/Badge';
+export type { BadgeProps } from './badge/Badge';
+
 export { Button } from './button/Button';
 export type { ButtonProps, ButtonVariant, ButtonSize, ButtonRef } from './button/types';
 
