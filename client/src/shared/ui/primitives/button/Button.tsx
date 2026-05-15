@@ -1,7 +1,7 @@
 /**
- * Button Component
+ * Button
  *
- * Accessible button primitive with design system semantic colors and CVA variants.
+ * Square button primitive — semantic actions filled, neutrals recessive.
  */
 
 import { forwardRef } from 'react';
@@ -10,131 +10,107 @@ import { cva } from 'class-variance-authority';
 
 import { defaultButtonProps } from './types';
 
-import type { ButtonProps, ButtonRef } from './types';
+import type { ButtonProps, ButtonRef, ButtonSize } from './types';
+
+// Text bloom is on the cva base, not here — recessive variants need it too.
+const FILLED_OVERLAYS = [
+  'relative isolate',
+  'before:absolute before:inset-0 before:pointer-events-none',
+  'before:bg-gradient-to-b before:from-white/[0.06] before:to-transparent',
+  'after:absolute after:inset-0 after:pointer-events-none',
+  'after:bg-scanlines after:mix-blend-multiply',
+].join(' ');
+
+const FILLED_VARIANTS = new Set<ButtonProps['variant']>([
+  'primary',
+  'danger',
+  'success',
+  'warning',
+  'info',
+]);
+
+// Classic djb2-style string hash — used to pick a flourish composition per
+// button. Length-mod clusters common verbs (Save/Update/Delete) into the same
+// bucket; mixing char values scatters them properly.
+const hashString = (s: string): number => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
+
+// Four asymmetric flourish compositions — one is picked per button so adjacent
+// buttons render different mark arrangements.
+const FLOURISHES = [
+  // TL bracket + BR square+dash pair + right-mid vertical tick
+  [
+    '-top-0.5 -left-0.5 w-2 h-2 border-l border-t border-white/50',
+    '-right-0.5 bottom-0.5 w-[3px] h-[3px] bg-white/40',
+    '-right-0.5 bottom-[3px] w-3 h-px bg-white/40',
+    '-right-0.5 top-1/3 w-px h-1.5 bg-white/30',
+  ],
+  // TR bracket + BL dash + left-mid vertical tick
+  [
+    '-top-0.5 -right-0.5 w-2 h-2 border-r border-t border-white/50',
+    '-left-0.5 bottom-0.5 w-2 h-px bg-white/30',
+    '-left-0.5 top-2/3 w-px h-1.5 bg-white/30',
+  ],
+  // BR bracket + TL dash + top-mid horizontal tick
+  [
+    '-bottom-0.5 -right-0.5 w-2 h-2 border-r border-b border-white/50',
+    '-left-0.5 top-0.5 w-2 h-px bg-white/30',
+    'left-1/3 -top-0.5 w-1.5 h-px bg-white/30',
+  ],
+  // BL bracket + TR dash + bottom-mid horizontal tick
+  [
+    '-bottom-0.5 -left-0.5 w-2 h-2 border-l border-b border-white/50',
+    '-right-0.5 top-0.5 w-2 h-px bg-white/30',
+    'left-2/3 -bottom-0.5 w-1.5 h-px bg-white/30',
+  ],
+] as const;
 
 const buttonVariants = cva(
   [
-    // Layout
     'inline-flex items-center justify-center',
-    'relative overflow-hidden',
-
-    // Typography
-    'font-medium text-center whitespace-nowrap leading-none',
-
-    // Transitions
-    'transition-all duration-200 ease-out transform-gpu',
-
-    // Focus ring
+    'border font-medium',
+    'text-center whitespace-nowrap leading-none',
+    '[text-shadow:0_0_4px_rgb(255_255_255/0.4)]',
+    'transition-[background,border-color,filter,box-shadow] duration-150',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'focus-visible:ring-ring focus-visible:ring-offset-background',
-
-    // Cursor & interaction
     'cursor-pointer select-none touch-manipulation',
-
-    // Disabled state
     'disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none',
-
-    // Loading state
     'data-[loading=true]:cursor-wait data-[loading=true]:pointer-events-none',
   ],
   {
     variants: {
       variant: {
-        // Dark mode overrides in buttons.css
-        primary: [
-          'btn-variant-primary',
-          'bg-action text-white border border-action',
-          'hover:bg-action-hover hover:border-action-hover',
-          'active:bg-action-hover',
-          'shadow-sm hover:shadow-md active:shadow-sm',
-        ],
+        primary: `bg-action text-primary-foreground border-action shadow-glow-primary hover:brightness-110 ${FILLED_OVERLAYS}`,
 
-        secondary: [
-          'bg-transparent text-secondary-foreground border border-transparent',
-          'hover:bg-accent hover:text-accent-foreground',
-          'active:bg-accent',
-          'shadow-none',
-        ],
+        danger: `bg-danger-bg text-danger-btnText border-danger-bg shadow-glow-danger hover:brightness-110 ${FILLED_OVERLAYS}`,
 
-        tertiary: [
-          'bg-transparent text-secondary-foreground border-transparent',
-          'hover:bg-accent hover:text-accent-foreground',
-          'active:bg-accent',
-        ],
+        success: `bg-success-bg text-success-btnText border-success-bg shadow-glow-success hover:brightness-110 ${FILLED_OVERLAYS}`,
 
-        danger: [
-          'bg-danger-bg/70 text-danger-btnText border border-danger-bg/70',
-          'hover:bg-danger-hover/70 hover:border-danger-hover/70',
-          'active:bg-danger-hover/70',
-          'shadow-sm hover:shadow-md active:shadow-sm',
-        ],
+        warning: `bg-warning-bg text-warning-btnText border-warning-bg shadow-glow-warning hover:brightness-110 ${FILLED_OVERLAYS}`,
 
-        success: [
-          'bg-success-bg text-success-btnText border border-success-bg',
-          'hover:bg-success-hover hover:border-success-hover',
-          'active:bg-success-hover',
-          'shadow-sm hover:shadow-md active:shadow-sm',
-        ],
+        info: `bg-info-bg text-info-btnText border-info-bg shadow-glow-info hover:brightness-110 ${FILLED_OVERLAYS}`,
 
-        warning: [
-          'bg-warning-bg/70 text-warning-btnText border border-warning-bg/70',
-          'hover:bg-warning-hover/70 hover:border-warning-hover/70',
-          'active:bg-warning-hover/70',
-          'shadow-sm hover:shadow-md active:shadow-sm',
-        ],
+        secondary:
+          'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]',
 
-        info: [
-          'bg-info-bg/70 text-info-btnText border border-info-bg/70',
-          'hover:bg-info-hover/70 hover:border-info-hover/70',
-          'active:bg-info-hover/70',
-          'shadow-sm hover:shadow-md active:shadow-sm',
-        ],
+        cancel:
+          'bg-transparent text-secondary-foreground border-border hover:bg-accent hover:text-accent-foreground',
 
-        ghost: [
-          'bg-transparent text-muted-foreground border-transparent',
-          'hover:bg-muted hover:text-accent-foreground',
-          'active:bg-muted',
-        ],
+        ghost:
+          'bg-transparent text-muted-foreground border-transparent hover:border-border hover:text-foreground',
 
-        'ghost-danger': [
-          'bg-transparent text-danger-text border-transparent',
-          'hover:bg-danger-light',
-          'active:bg-danger-light',
-        ],
-
-        'ghost-warning': [
-          'bg-transparent text-warning-text border-transparent',
-          'hover:bg-warning-light',
-          'active:bg-warning-light',
-        ],
-
-        cancel: [
-          'bg-card text-card-foreground border border-border',
-          'hover:bg-accent hover:text-accent-foreground',
-          'active:bg-accent',
-          'shadow-sm',
-        ],
-
-        clear: [
-          'bg-clear-bg text-clear-text border border-clear-bg',
-          'hover:bg-clear-hover hover:border-clear-hover',
-          'active:bg-clear-hover',
-          'shadow-sm hover:shadow-md active:shadow-sm',
-        ],
+        'ghost-danger': 'bg-transparent text-danger-text border-transparent hover:bg-danger-light',
       },
 
       size: {
-        xs: ['h-6 px-2 text-xs', 'gap-1', 'min-w-6'],
-        sm: ['h-8 px-3 text-sm', 'gap-1.5', 'min-w-8'],
-        md: ['h-10 px-4 text-sm', 'gap-2', 'min-w-10'],
-        lg: ['h-12 px-6 text-base', 'gap-2', 'min-w-12'],
-        xl: ['h-14 px-8 text-base', 'gap-3', 'min-w-14'],
-      },
-
-      shape: {
-        rounded: 'rounded-lg',
-        pill: 'rounded-full',
-        square: 'rounded-none',
+        xs: 'h-6 px-2.5 text-xs gap-1.5 min-w-6',
+        sm: 'h-8 px-3 text-sm gap-2 min-w-8',
+        md: 'h-10 px-4 text-sm gap-2 min-w-10',
+        xl: 'h-14 px-8 text-base gap-3 min-w-14',
       },
 
       fullWidth: {
@@ -152,14 +128,12 @@ const buttonVariants = cva(
       { iconOnly: true, size: 'xs', className: 'w-6 h-6' },
       { iconOnly: true, size: 'sm', className: 'w-8 h-8' },
       { iconOnly: true, size: 'md', className: 'w-10 h-10' },
-      { iconOnly: true, size: 'lg', className: 'w-12 h-12' },
       { iconOnly: true, size: 'xl', className: 'w-14 h-14' },
     ],
 
     defaultVariants: {
       variant: 'primary',
       size: 'md',
-      shape: 'rounded',
       fullWidth: false,
       iconOnly: false,
     },
@@ -167,15 +141,14 @@ const buttonVariants = cva(
 );
 
 interface LoadingSpinnerProps {
-  size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size: ButtonSize;
 }
 
 function LoadingSpinner({ size }: LoadingSpinnerProps) {
-  const spinnerSizes = {
+  const spinnerSizes: Record<ButtonSize, string> = {
     xs: 'w-3 h-3',
     sm: 'w-3 h-3',
     md: 'w-4 h-4',
-    lg: 'w-4 h-4',
     xl: 'w-5 h-5',
   };
 
@@ -203,12 +176,10 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       children,
       variant = defaultButtonProps.variant,
       size = defaultButtonProps.size,
-      shape = defaultButtonProps.shape,
       isLoading = defaultButtonProps.isLoading,
       loadingText,
       disabled = defaultButtonProps.disabled,
       leftIcon,
-      rightIcon,
       iconOnly = defaultButtonProps.iconOnly,
       fullWidth = defaultButtonProps.fullWidth,
       className,
@@ -222,11 +193,14 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
   ) => {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic is correct here
     const isDisabled = disabled || isLoading;
+    const isFilled = FILLED_VARIANTS.has(variant);
+    const flourish = isFilled
+      ? FLOURISHES[hashString(`${variant}|${size}|${String(children ?? '')}`) % FLOURISHES.length]
+      : null;
 
     const buttonClasses = buttonVariants({
       variant,
       size,
-      shape,
       fullWidth,
       iconOnly,
       className,
@@ -253,14 +227,13 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
 
       if (iconOnly) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: use first available icon/children
-        return leftIcon || rightIcon || children;
+        return leftIcon || children;
       }
 
       return (
         <>
           {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
           {children && <span>{children}</span>}
-          {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
         </>
       );
     };
@@ -284,6 +257,13 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
         aria-describedby={ariaDescribedBy}
         {...props}
       >
+        {flourish && (
+          <span aria-hidden className="absolute inset-0 pointer-events-none z-10">
+            {flourish.map((cls, i) => (
+              <span key={i} className={`absolute ${cls}`} />
+            ))}
+          </span>
+        )}
         {renderContent()}
       </button>
     );

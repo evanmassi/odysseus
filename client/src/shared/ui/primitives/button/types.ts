@@ -9,31 +9,24 @@ import type { ComponentProps, ReactNode } from 'react';
 export type ButtonVariant =
   | 'primary'
   | 'secondary'
-  | 'tertiary'
   | 'danger'
   | 'success'
   | 'warning'
   | 'info'
   | 'ghost'
   | 'ghost-danger'
-  | 'ghost-warning'
-  | 'cancel'
-  | 'clear';
+  | 'cancel';
 
-export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-
-export type ButtonShape = 'rounded' | 'pill' | 'square';
+export type ButtonSize = 'xs' | 'sm' | 'md' | 'xl';
 
 export interface BaseButtonProps extends Omit<ComponentProps<'button'>, 'children'> {
   children?: ReactNode;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  shape?: ButtonShape;
   isLoading?: boolean;
   loadingText?: string;
   disabled?: boolean;
   leftIcon?: ReactNode;
-  rightIcon?: ReactNode;
   iconOnly?: boolean;
   fullWidth?: boolean;
   'aria-label'?: string;
@@ -51,7 +44,6 @@ export interface ButtonProps extends BaseButtonProps {}
 export const defaultButtonProps: Partial<ButtonProps> = {
   variant: 'primary',
   size: 'md',
-  shape: 'rounded',
   type: 'button',
   disabled: false,
   isLoading: false,

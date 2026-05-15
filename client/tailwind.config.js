@@ -158,6 +158,24 @@ export default {
           'monospace',
         ],
       },
+      boxShadow: {
+        sheen: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.18)',
+        /* Inset sheen + two-layer outer halo (24px tight, 48px wide) per semantic */
+        'glow-primary':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--primary) / 0.40), 0 0 48px hsl(var(--primary) / 0.22)',
+        'glow-danger':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--color-danger-bg) / 0.40), 0 0 48px hsl(var(--color-danger-bg) / 0.22)',
+        'glow-success':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--color-success-bg) / 0.40), 0 0 48px hsl(var(--color-success-bg) / 0.22)',
+        'glow-warning':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--color-warning-bg) / 0.40), 0 0 48px hsl(var(--color-warning-bg) / 0.22)',
+        'glow-info':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--color-info-bg) / 0.40), 0 0 48px hsl(var(--color-info-bg) / 0.22)',
+      },
+      backgroundImage: {
+        scanlines:
+          'repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+      },
       keyframes: {
         'zoom-in-98': {
           '0%': { opacity: '0', transform: 'scale(0.98)' },

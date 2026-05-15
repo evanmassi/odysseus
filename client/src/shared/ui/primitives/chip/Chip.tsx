@@ -1,9 +1,7 @@
 /**
- * Chip Component
+ * Chip
  *
- * Compact mono-cased element for filters, tags, and status indicators with
- * selectable and removable variants. Square-cornered, hairline-bordered,
- * tinted per tone — the redesign's base "pill" treatment.
+ * Square hairline tag for filters, status, and counts.
  */
 
 import { forwardRef } from 'react';

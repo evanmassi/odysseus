@@ -186,7 +186,6 @@ export function PasswordResetModal({
             <div className="mt-auto">
               <Button
                 variant="primary"
-                size="lg"
                 fullWidth
                 onClick={handleDirectReset}
                 disabled={!newPassword}
@@ -210,7 +209,6 @@ export function PasswordResetModal({
                 <div className="mt-auto">
                   <Button
                     variant="primary"
-                    size="lg"
                     fullWidth
                     onClick={handleGenerateToken}
                     isLoading={isLoading}
@@ -228,7 +226,6 @@ export function PasswordResetModal({
                 <div className="bg-muted p-3 rounded-md mb-3 break-all text-sm">{resetUrl}</div>
                 <Button
                   variant="primary"
-                  size="lg"
                   fullWidth
                   onClick={handleCopyUrl}
                   leftIcon={copied ? <Check size={18} /> : <Copy size={18} />}

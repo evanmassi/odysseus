@@ -11,13 +11,7 @@ export { AlertBanner } from './banners/AlertBanner';
 export type { AlertBannerProps, AlertBannerVariant } from './banners/types';
 
 export { Button } from './button/Button';
-export type {
-  ButtonProps,
-  ButtonVariant,
-  ButtonSize,
-  ButtonShape,
-  ButtonRef,
-} from './button/types';
+export type { ButtonProps, ButtonVariant, ButtonSize, ButtonRef } from './button/types';
 
 export { Checkbox } from './checkbox/Checkbox';
 export type { CheckboxProps } from './checkbox/Checkbox';
