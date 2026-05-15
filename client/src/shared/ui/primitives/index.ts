@@ -23,14 +23,7 @@ export { Checkbox } from './checkbox/Checkbox';
 export type { CheckboxProps } from './checkbox/Checkbox';
 
 export { Chip } from './chip/Chip';
-export type {
-  ChipProps,
-  ChipColor,
-  ChipSize,
-  ChipShape,
-  ChipBehavior,
-  ChipRef,
-} from './chip/types';
+export type { ChipProps, ChipColor, ChipSize, ChipBehavior, ChipRef } from './chip/types';
 
 export { DatePicker } from './date-picker/DatePicker';
 export type { DatePickerProps, DatePickerSize, DatePickerState } from './date-picker/types';

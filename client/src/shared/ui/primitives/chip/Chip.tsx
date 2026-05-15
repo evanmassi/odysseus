@@ -1,7 +1,9 @@
 /**
  * Chip Component
  *
- * Compact element for filters, tags, and status indicators with selectable and removable variants.
+ * Compact mono-cased element for filters, tags, and status indicators with
+ * selectable and removable variants. Square-cornered, hairline-bordered,
+ * tinted per tone — the redesign's base "pill" treatment.
  */
 
 import { forwardRef } from 'react';
@@ -11,35 +13,31 @@ import { X } from 'lucide-react';
 
 import { defaultChipProps } from './types';
 
-import type { ChipProps, ChipRef } from './types';
+import type { ChipProps, ChipRef, ChipSize } from './types';
 
 const chipVariants = cva(
   [
     'inline-flex items-center gap-1.5',
-    'font-medium whitespace-nowrap',
+    'border font-medium uppercase whitespace-nowrap leading-none',
+    'font-mono tracking-[0.14em]',
     'transition-colors duration-150',
   ],
   {
     variants: {
       color: {
-        default: 'bg-muted text-secondary-foreground',
-        outlined: 'bg-transparent border border-border text-secondary-foreground',
-        primary: 'bg-action-light text-action',
-        active: 'bg-chip-active text-chip-active-foreground hover:bg-chip-active-hover',
-        inverted: 'bg-muted-foreground text-background',
-        success: 'bg-success-light text-success-text',
-        warning: 'bg-warning-light text-warning-text',
-        danger: 'bg-danger-light text-danger-text',
-        info: 'bg-info-light text-info-text',
+        default: 'bg-muted text-secondary-foreground border-border',
+        outlined: 'bg-transparent text-secondary-foreground border-border',
+        primary: 'bg-action-light text-action border-action',
+        active:
+          'bg-chip-active text-chip-active-foreground border-chip-active hover:bg-chip-active-hover',
+        success: 'bg-success-light text-success-text border-success-border',
+        warning: 'bg-warning-light text-warning-text border-warning-border',
+        danger: 'bg-danger-light text-danger-text border-danger-border',
+        info: 'bg-info-light text-info-text border-info-border',
       },
       size: {
-        xs: 'h-5 px-1.5 text-[10px]',
-        sm: 'h-6 px-2 text-xs',
-        md: 'h-7 px-2.5 text-sm',
-      },
-      shape: {
-        rounded: 'rounded-md',
-        pill: 'rounded-full',
+        xs: 'h-5 px-1.5 text-[9px]',
+        sm: 'h-[22px] px-2 text-[10px]',
       },
       behavior: {
         static: '',
@@ -57,55 +55,47 @@ const chipVariants = cva(
       },
     },
     compoundVariants: [
-      // Selected state overrides color
+      // Selected state overrides color with a solid fill
       {
         behavior: 'selectable',
         selected: true,
-        className: 'bg-action text-white',
-      },
-      // Unselected selectable chips use default styling with border
-      {
-        behavior: 'selectable',
-        selected: false,
-        className: 'border border-border',
+        className: 'bg-action text-primary-foreground border-action',
       },
     ],
     defaultVariants: {
       color: 'default',
       size: 'sm',
-      shape: 'rounded',
       behavior: 'static',
-      selected: false,
       disabled: false,
     },
   }
 );
 
+const iconSizeClasses: Record<ChipSize, string> = {
+  xs: '[&>svg]:w-2.5 [&>svg]:h-2.5',
+  sm: '[&>svg]:w-3 [&>svg]:h-3',
+};
+
+const dotSizeClasses: Record<ChipSize, string> = {
+  xs: 'w-1 h-1',
+  sm: 'w-[5px] h-[5px]',
+};
+
 interface RemoveButtonProps {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
-  size: 'xs' | 'sm' | 'md';
+  size: ChipSize;
 }
 
-const iconSizeClasses: Record<'xs' | 'sm' | 'md', string> = {
-  xs: '[&>svg]:w-2.5 [&>svg]:h-2.5',
-  sm: '[&>svg]:w-3 [&>svg]:h-3',
-  md: '[&>svg]:w-3.5 [&>svg]:h-3.5',
-};
-
 function RemoveButton({ onClick, disabled, size }: RemoveButtonProps) {
-  const iconSizes = {
-    xs: 10,
-    sm: 12,
-    md: 14,
-  };
+  const iconSizes: Record<ChipSize, number> = { xs: 10, sm: 12 };
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="ml-0.5 rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-ring"
+      className="ml-0.5 p-0.5 hover:bg-black/10 dark:hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-ring"
       aria-label="Remove"
     >
       <X size={iconSizes[size]} />
@@ -119,14 +109,12 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       children,
       color = defaultChipProps.color,
       size = defaultChipProps.size,
-      shape = defaultChipProps.shape,
       behavior = defaultChipProps.behavior,
       selected = defaultChipProps.selected,
       onSelect,
       onRemove,
       leftIcon,
       disabled = defaultChipProps.disabled,
-      count,
       'aria-label': ariaLabel,
       className,
       ...rest
@@ -139,7 +127,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       chipVariants({
         color,
         size: size!,
-        shape,
         behavior,
         selected,
         disabled,
@@ -172,13 +159,12 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
 
     const content = (
       <>
-        {leftIcon && <span className={`flex-shrink-0 ${iconSizeClasses[size!]}`}>{leftIcon}</span>}
-        <span>{children}</span>
-        {count !== undefined && (
-          <span className="ml-1 rounded bg-black/10 dark:bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none">
-            {count}
-          </span>
+        {leftIcon ? (
+          <span className={`flex-shrink-0 ${iconSizeClasses[size!]}`}>{leftIcon}</span>
+        ) : (
+          <span aria-hidden className={`flex-shrink-0 bg-current ${dotSizeClasses[size!]}`} />
         )}
+        <span>{children}</span>
         {behavior === 'removable' && onRemove && (
           <RemoveButton onClick={handleRemove} disabled={disabled} size={size!} />
         )}

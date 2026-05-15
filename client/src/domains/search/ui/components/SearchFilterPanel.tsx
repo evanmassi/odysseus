@@ -580,13 +580,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
                 side="bottom"
                 key={`${filter.category}-${idx}`}
               >
-                <Chip
-                  behavior="removable"
-                  size="sm"
-                  color="active"
-                  shape="rounded"
-                  onRemove={filter.onRemove}
-                >
+                <Chip behavior="removable" size="sm" color="active" onRemove={filter.onRemove}>
                   {filter.label}
                 </Chip>
               </Tooltip>

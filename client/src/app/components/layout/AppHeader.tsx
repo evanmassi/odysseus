@@ -40,7 +40,15 @@ import { useStorageData } from '@domains/storage';
 import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
 import { useUserProfile } from '@domains/users/hooks/useUserProfile';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
-import { Button, DropdownMenu, MenuDivider, MenuItem, SuspenseBoundary, Tooltip } from '@shared/ui';
+import {
+  Button,
+  Chip,
+  DropdownMenu,
+  MenuDivider,
+  MenuItem,
+  SuspenseBoundary,
+  Tooltip,
+} from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
@@ -317,10 +325,9 @@ export function AppHeader({
                 <>
                   {/* Selection count - only show when more than 1 selected */}
                   {selectedPositions.size > 1 && (
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-secondary-foreground bg-muted px-2 rounded-md h-6 mr-2">
-                      <TestTube className="w-3 h-3" />
+                    <Chip size="sm" color="default" leftIcon={<TestTube />} className="mr-2">
                       {selectedPositions.size} selected
-                    </span>
+                    </Chip>
                   )}
 
                   {/* Action buttons - hidden in view-only mode (banner shows on grid instead) */}

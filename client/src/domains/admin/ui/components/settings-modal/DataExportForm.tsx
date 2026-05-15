@@ -150,7 +150,6 @@ export function DataExportForm() {
               onSelect={() => setSelectedFormat('csv')}
               disabled={isJsonOnly}
               size="sm"
-              shape="rounded"
               leftIcon={<FileSpreadsheet size={12} />}
               aria-label="Export as CSV"
             >
@@ -161,7 +160,6 @@ export function DataExportForm() {
               selected={selectedFormat === 'json' || isJsonOnly}
               onSelect={() => setSelectedFormat('json')}
               size="sm"
-              shape="rounded"
               leftIcon={<FileJson size={12} />}
               aria-label="Export as JSON"
             >

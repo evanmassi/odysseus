@@ -540,7 +540,7 @@ export function SearchResultsPanel({
                         </>
                       )}
                     </div>
-                    <Chip size="sm" color="inverted" className="flex-shrink-0">
+                    <Chip size="sm" color="default" className="flex-shrink-0">
                       {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
                     </Chip>
                   </div>

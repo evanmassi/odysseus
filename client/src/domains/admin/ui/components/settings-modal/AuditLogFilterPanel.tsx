@@ -545,13 +545,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                 side="bottom"
                 key={`${filter.label}-${idx}`}
               >
-                <Chip
-                  behavior="removable"
-                  size="sm"
-                  color="active"
-                  shape="rounded"
-                  onRemove={filter.onRemove}
-                >
+                <Chip behavior="removable" size="sm" color="active" onRemove={filter.onRemove}>
                   {filter.label}
                 </Chip>
               </Tooltip>
