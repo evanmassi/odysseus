@@ -46,7 +46,10 @@ export function Panel({ children, className = '' }: PanelProps) {
         aria-hidden
         className={`${CORNER_TICK_CLASSES} -bottom-px -right-px border-b border-r`}
       />
-      {children}
+      {/* Inner clip prevents child bg fills (e.g. highlighted table rows) from
+          painting over the Panel's own border. Corner ticks stay as siblings
+          so they keep their -1px overhang past the border. */}
+      <div className="overflow-hidden">{children}</div>
     </div>
   );
 }

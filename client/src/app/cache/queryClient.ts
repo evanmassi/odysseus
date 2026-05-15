@@ -307,7 +307,7 @@ export const DOMAIN_QUERY_OPTIONS = {
   },
 } as const;
 
-const EXCLUDED_QUERY_PREFIXES = ['users', 'admin', 'auth'] as const;
+const EXCLUDED_QUERY_PREFIXES = ['users', 'admin', 'auth', 'security'] as const;
 
 function shouldPersistQuery(queryKey: readonly unknown[]): boolean {
   const firstKey = queryKey[0];
@@ -316,10 +316,23 @@ function shouldPersistQuery(queryKey: readonly unknown[]): boolean {
   return !EXCLUDED_QUERY_PREFIXES.some(prefix => firstKey.startsWith(prefix));
 }
 
+// JSON.parse revives Date.prototype.toISOString() strings back to Date objects.
+// Without this, persisted queries lose Date class identity across reloads and
+// downstream code (formatRelativeTime, .getTime()) breaks on the rehydrated strings.
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+function reviveDates(_key: string, value: unknown): unknown {
+  if (typeof value === 'string' && ISO_DATE_RE.test(value)) {
+    return new Date(value);
+  }
+  return value;
+}
+
 export function setupQueryPersistence(): void {
   const persister = createSyncStoragePersister({
     storage: window.localStorage,
     key: 'odysseus-query-cache',
+    serialize: data => JSON.stringify(data),
+    deserialize: str => JSON.parse(str, reviveDates),
   });
 
   void persistQueryClient({

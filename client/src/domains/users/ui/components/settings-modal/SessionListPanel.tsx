@@ -233,7 +233,7 @@ export function SessionListPanel() {
           aria-label="Active sessions"
           rowClassName={row =>
             row.isCurrentSession
-              ? 'bg-success-light text-success-text [&>td:first-child]:border-l-4 [&>td:first-child]:border-l-success-bg'
+              ? 'text-success-text [&>td]:bg-success-light [&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]'
               : ''
           }
         />
