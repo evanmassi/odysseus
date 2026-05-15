@@ -67,8 +67,11 @@ export type {
   SelectRef,
 } from './select/types';
 
-export { Panel, PanelEdgeLabel } from './panel/Panel';
-export type { PanelProps, PanelEdgeLabelProps } from './panel/Panel';
+export { Panel } from './panel/Panel';
+export type { PanelProps } from './panel/Panel';
+
+export { SectionHeader } from './section-header/SectionHeader';
+export type { SectionHeaderProps } from './section-header/SectionHeader';
 
 export { StatCell } from './stat-cell/StatCell';
 export type { StatCellProps } from './stat-cell/StatCell';

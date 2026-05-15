@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { Button, Chip, Panel, PanelEdgeLabel, Table, DatePicker } from '@shared/ui';
+import { Button, Chip, Panel, SectionHeader, Table, DatePicker } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -592,8 +592,8 @@ export function SecurityPanel() {
           </div>
         )}
 
-        <Panel>
-          <PanelEdgeLabel parts={['Active Sessions', `${sortedSessions.length} active`]} />
+        <SectionHeader title="Active Sessions" meta={`${sortedSessions.length} active`} />
+        <Panel topless>
           <Table<ActiveSessionEntry>
             columns={sessionColumns}
             data={sortedSessions}
@@ -610,7 +610,7 @@ export function SecurityPanel() {
             aria-label="Active sessions"
             rowClassName={row =>
               isOwnSession(row)
-                ? 'text-success-text [&>td]:bg-success-light [&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]'
+                ? 'text-success-text phosphor-text [&>td]:bg-success-light [&>td]:bg-scanlines [&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]'
                 : ''
             }
           />
@@ -660,10 +660,11 @@ export function SecurityPanel() {
           )}
         </div>
 
-        <Panel>
-          <PanelEdgeLabel
-            parts={['IP Activity', `${ipData?.entries?.length ?? 0} unique addresses`]}
-          />
+        <SectionHeader
+          title="IP Activity"
+          meta={`${ipData?.entries?.length ?? 0} unique addresses`}
+        />
+        <Panel topless>
           <Table<IpActivityRow>
             columns={ipColumns}
             data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
@@ -679,19 +680,21 @@ export function SecurityPanel() {
       </div>
 
       {/* Failed Login Attempts */}
-      <Panel>
-        <PanelEdgeLabel parts={['Failed Login Attempts', 'last 7 days']} />
-        <Table<FailedLoginRow>
-          columns={failedLoginColumns}
-          data={(failedLoginsData?.entries ?? []).map((e, i) => ({
-            ...e,
-            id: `${e.username}-${e.timestamp}-${i}`,
-          }))}
-          hoverable
-          emptyMessage="No failed login attempts"
-          aria-label="Failed login attempts"
-        />
-      </Panel>
+      <div>
+        <SectionHeader title="Failed Login Attempts" meta="last 7 days" />
+        <Panel topless>
+          <Table<FailedLoginRow>
+            columns={failedLoginColumns}
+            data={(failedLoginsData?.entries ?? []).map((e, i) => ({
+              ...e,
+              id: `${e.username}-${e.timestamp}-${i}`,
+            }))}
+            hoverable
+            emptyMessage="No failed login attempts"
+            aria-label="Failed login attempts"
+          />
+        </Panel>
+      </div>
 
       <ConfirmDialog
         isOpen={showPurgeConfirm}

@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Link2, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Chip, OverflowMenu, Panel, PanelEdgeLabel, Table, Tooltip } from '@shared/ui';
+import { Chip, OverflowMenu, Panel, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -61,8 +61,8 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
 
   return (
     <>
-      <Panel>
-        <PanelEdgeLabel parts={['Users', `${activeUsers.length} records`]} />
+      <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
+      <Panel topless>
         <Table
           columns={getUserColumns({
             onUserAction: setUserAction,

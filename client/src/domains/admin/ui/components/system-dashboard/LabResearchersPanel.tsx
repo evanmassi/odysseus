@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react';
 
 import { ChevronDown, Dna, Link2, Trash2 } from 'lucide-react';
 
-import { Button, Chip, Panel, PanelEdgeLabel, Table, Tooltip } from '@shared/ui';
+import { Button, Chip, Panel, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -61,8 +61,8 @@ export function LabResearchersPanel({
 
   return (
     <>
-      <Panel>
-        <PanelEdgeLabel parts={['Researchers', `${activeResearchers.length} records`]} />
+      <SectionHeader title="Researchers" meta={`${activeResearchers.length} records`} />
+      <Panel topless>
         <Table
           columns={columns}
           data={activeResearchers}

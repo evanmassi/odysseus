@@ -1,28 +1,24 @@
 /**
  * Panel
  *
- * Corner-ticked container with hairline frame. PanelEdgeLabel is the companion
- * floating mono label that cuts through Panel's top border.
+ * Corner-ticked container with hairline frame. `topless` drops the top border
+ * and top corner ticks so a SectionHeader sitting above appears integrated.
  */
 
-import { Fragment } from 'react';
 import type { ReactNode } from 'react';
 
 export interface PanelProps {
   children: ReactNode;
   className?: string;
+  topless?: boolean;
 }
 
-export interface PanelEdgeLabelProps {
-  parts: string[];
-  side?: 'left' | 'right';
-  offset?: number;
-}
-
-const PANEL_CLASSES = [
+const PANEL_BASE = [
   'relative',
   'bg-card bg-gradient-to-b from-foreground/[0.012] to-transparent to-40%',
-  'border border-foreground/10',
+].join(' ');
+
+const TOP_CORNER_TICKS = [
   // Top corners — pseudo-elements (10×10 L-shapes at -1px offsets)
   "before:content-[''] before:absolute before:-top-px before:-left-px",
   'before:w-2.5 before:h-2.5 before:border-t before:border-l',
@@ -34,9 +30,12 @@ const PANEL_CLASSES = [
 
 const CORNER_TICK_CLASSES = 'absolute w-2.5 h-2.5 border-foreground/30 pointer-events-none';
 
-export function Panel({ children, className = '' }: PanelProps) {
+export function Panel({ children, className = '', topless = false }: PanelProps) {
+  const borderClasses = topless
+    ? 'border-x border-b border-foreground/10'
+    : 'border border-foreground/10';
   return (
-    <div className={`${PANEL_CLASSES} ${className}`}>
+    <div className={`${PANEL_BASE} ${borderClasses} ${TOP_CORNER_TICKS} ${className}`}>
       {/* Bottom corners can't use ::before/::after (already consumed by top corners). */}
       <span
         aria-hidden
@@ -50,23 +49,6 @@ export function Panel({ children, className = '' }: PanelProps) {
           painting over the Panel's own border. Corner ticks stay as siblings
           so they keep their -1px overhang past the border. */}
       <div className="overflow-hidden">{children}</div>
-    </div>
-  );
-}
-
-export function PanelEdgeLabel({ parts, side = 'left', offset = 14 }: PanelEdgeLabelProps) {
-  const toneClass = side === 'left' ? 'text-muted-foreground' : 'text-muted-foreground/60';
-  return (
-    <div
-      className={`absolute -top-[7px] z-[3] flex items-center gap-2 h-3.5 px-2 bg-background font-mono uppercase tracking-[0.24em] text-[9px] leading-[14px] whitespace-nowrap ${toneClass}`}
-      style={{ [side]: offset }}
-    >
-      {parts.map((p, i) => (
-        <Fragment key={i}>
-          {i > 0 && <span className="text-muted-foreground/40">·</span>}
-          <span>{p}</span>
-        </Fragment>
-      ))}
     </div>
   );
 }

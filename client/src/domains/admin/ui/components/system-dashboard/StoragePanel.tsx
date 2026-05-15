@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { refrigeratorFreezer } from '@lucide/lab';
 import { AlertTriangle, Box as BoxIcon, ChevronLeft, HardDrive, Rows3, Icon } from 'lucide-react';
 
-import { Button, Chip, Panel, PanelEdgeLabel, Table } from '@shared/ui';
+import { Button, Chip, Panel, SectionHeader, Table } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges';
 
 import { useLabsQuery } from '../../../hooks/useLabQueries';
@@ -163,8 +163,8 @@ export function StoragePanel() {
       </div>
 
       {/* Per-Lab Table */}
-      <Panel>
-        <PanelEdgeLabel parts={['Lab Storage', `${sortedLabs.length} records`]} />
+      <SectionHeader title="Lab Storage" meta={`${sortedLabs.length} records`} />
+      <Panel topless>
         <Table<LabSummaryRow>
           columns={labColumns}
           data={sortedLabs.map(l => ({ ...l, id: l.labId }))}
@@ -303,8 +303,8 @@ function LabDrillDown({
       </div>
 
       {/* Per-Tank Table */}
-      <Panel>
-        <PanelEdgeLabel parts={['Tanks', `${data?.tanks?.length ?? 0} records`]} />
+      <SectionHeader title="Tanks" meta={`${data?.tanks?.length ?? 0} records`} />
+      <Panel topless>
         <Table<TankRow>
           columns={tankColumns}
           data={(data?.tanks ?? []).map(t => ({ ...t, id: t.tankId }))}
@@ -327,10 +327,11 @@ function LabDrillDown({
             <div className="h-px bg-muted-foreground/60" />
           </div>
 
-          <Panel>
-            <PanelEdgeLabel
-              parts={[`Racks in ${expandedTank.tankName}`, `${expandedTank.racks.length} records`]}
-            />
+          <SectionHeader
+            title={`Racks in ${expandedTank.tankName}`}
+            meta={`${expandedTank.racks.length} records`}
+          />
+          <Panel topless>
             <Table<RackRow>
               columns={rackColumns}
               data={expandedTank.racks.map(r => ({ ...r, id: r.rackId }))}
@@ -350,12 +351,10 @@ function LabDrillDown({
                 <div className="h-px bg-muted-foreground/60" />
               </div>
 
-              <Panel>
-                <PanelEdgeLabel
-                  parts={[
-                    `Boxes in ${expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}`,
-                  ]}
-                />
+              <SectionHeader
+                title={`Boxes in ${expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}`}
+              />
+              <Panel topless>
                 <Table<BoxRow>
                   columns={[
                     {
