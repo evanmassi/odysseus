@@ -156,13 +156,11 @@ export function SupplyLowStockAlertPanel({ onSelectItem }: SupplyLowStockAlertPa
             <Table
               columns={columns}
               data={sortedRows}
-              size="sm"
               hoverable
               sortable
               sortConfig={sortConfig}
               onSort={setSortConfig}
               onRowClick={row => onSelectItem(row.id)}
-              variant="borderless"
               density="compact"
               className="text-xs"
               aria-label="Low stock alerts"

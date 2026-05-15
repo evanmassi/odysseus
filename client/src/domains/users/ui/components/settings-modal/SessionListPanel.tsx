@@ -229,8 +229,6 @@ export function SessionListPanel() {
           columns={sessionColumns}
           data={displayedSessions}
           hoverable
-          size="sm"
-          rounded="lg"
           emptyMessage="No active sessions"
           aria-label="Active sessions"
           rowClassName={row =>

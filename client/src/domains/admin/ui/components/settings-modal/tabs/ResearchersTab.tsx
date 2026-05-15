@@ -408,10 +408,7 @@ export function ResearchersTab({
       <Table
         columns={readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns}
         data={activeResearchers}
-        size="sm"
-        variant="default"
         hoverable
-        rounded="lg"
         sortable
         sortConfig={sortConfig}
         onSort={setSortConfig}
@@ -440,9 +437,6 @@ export function ResearchersTab({
                   readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns
                 }
                 data={inactiveResearchers}
-                size="sm"
-                variant="default"
-                rounded="lg"
                 emptyMessage=""
                 aria-label="Inactive researchers"
                 className="opacity-60"

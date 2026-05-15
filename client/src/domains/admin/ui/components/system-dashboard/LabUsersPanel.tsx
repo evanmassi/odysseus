@@ -80,8 +80,6 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
           currentUserId,
         })}
         data={activeUsers}
-        size="sm"
-        rounded="lg"
         sortable
         sortConfig={sortConfig}
         onSort={onSort}
@@ -111,8 +109,6 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
                   currentUserId,
                 })}
                 data={inactiveUsers}
-                size="sm"
-                rounded="lg"
                 emptyMessage=""
                 aria-label="Inactive lab users"
                 className="opacity-60"

@@ -435,10 +435,7 @@ export function AuditLogViewer({
         <Table
           columns={auditLogColumns}
           data={entries}
-          size="sm"
-          variant="default"
           hoverable
-          rounded="lg"
           className="text-xs table-fixed"
           aria-label="Audit log entries"
         />

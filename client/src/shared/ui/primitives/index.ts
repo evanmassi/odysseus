@@ -61,16 +61,13 @@ export type {
   SelectRef,
 } from './select/types';
 
-export { Table, TableHeader, TableBody } from './table/Table';
+export { Table } from './table/Table';
 export type {
   TableProps,
   TableColumn,
-  TableRow,
   TableRowBase,
   TableRef,
-  TableVariant,
-  TableSize,
-  TableState,
+  TableDensity,
   SortConfig,
   SortDirection,
 } from './table/types';

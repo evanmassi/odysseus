@@ -306,10 +306,7 @@ function CategorySection({
       <Table
         columns={columns}
         data={sortedValues}
-        size="sm"
-        variant="default"
         hoverable
-        rounded="lg"
         sortable
         sortConfig={sortConfig}
         onSort={setSortConfig}

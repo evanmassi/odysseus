@@ -1,7 +1,7 @@
 /**
- * Table Component
+ * Table
  *
- * Accessible table primitive with sorting, selection, and responsive design.
+ * Flat data table — mono uppercase headers, hairline rows, lit selected row.
  */
 
 import React, { createContext, useContext } from 'react';
@@ -10,14 +10,7 @@ import { cva } from 'class-variance-authority';
 
 import { defaultTableProps } from './types';
 
-import type {
-  TableColumn,
-  TableRow,
-  TableRowBase,
-  TableProps,
-  TableContextValue,
-  TableRounded,
-} from './types';
+import type { TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
 
 const TableContext = createContext<TableContextValue | null>(null);
 
@@ -29,38 +22,17 @@ const useTableContext = () => {
   return context;
 };
 
-const tableVariants = cva(['w-full border-separate border-spacing-0'], {
-  variants: {
-    variant: {
-      default: 'border border-border',
-      bordered: 'border-2 border-border',
-      borderless: '',
-    },
-    size: {
-      sm: 'text-sm',
-      md: 'text-base',
-      lg: 'text-lg',
-    },
-    state: {
-      default: '',
-      error: 'border-danger-border',
-      warning: 'border-warning-border',
-      success: 'border-success-border',
-    },
-  },
-  defaultVariants: {
-    variant: 'default',
-    size: 'md',
-    state: 'default',
-  },
-});
-
 const headerVariants = cva(
-  ['px-4 text-left font-semibold text-foreground', 'border-b border-border bg-muted'],
+  [
+    'font-mono uppercase tracking-[0.22em] text-[10px] font-normal',
+    'text-left text-muted-foreground',
+    'border-b border-border bg-foreground/[0.012]',
+    'px-5',
+  ],
   {
     variants: {
       sortable: {
-        true: 'cursor-pointer hover:bg-accent select-none',
+        true: 'cursor-pointer hover:text-foreground select-none',
         false: '',
       },
       sticky: {
@@ -73,9 +45,8 @@ const headerVariants = cva(
         right: 'text-right',
       },
       density: {
-        compact: 'py-1.5',
-        default: 'py-3',
-        comfortable: 'py-4',
+        compact: 'py-2',
+        default: 'py-3.5',
       },
     },
     defaultVariants: {
@@ -87,7 +58,7 @@ const headerVariants = cva(
   }
 );
 
-const cellVariants = cva(['px-4 border-b border-border'], {
+const cellVariants = cva(['px-5 text-sm text-muted-foreground', 'border-b border-border/50'], {
   variants: {
     align: {
       left: 'text-left',
@@ -95,9 +66,8 @@ const cellVariants = cva(['px-4 border-b border-border'], {
       right: 'text-right',
     },
     density: {
-      compact: 'py-1.5',
-      default: 'py-3',
-      comfortable: 'py-4',
+      compact: 'py-2',
+      default: 'py-4',
     },
   },
   defaultVariants: {
@@ -108,12 +78,8 @@ const cellVariants = cva(['px-4 border-b border-border'], {
 
 const rowVariants = cva([''], {
   variants: {
-    striped: {
-      true: 'even:bg-muted',
-      false: '',
-    },
     hoverable: {
-      true: 'hover:bg-muted/35 cursor-pointer',
+      true: 'hover:bg-foreground/[0.015] cursor-pointer',
       false: '',
     },
     selectable: {
@@ -121,12 +87,11 @@ const rowVariants = cva([''], {
       false: '',
     },
     selected: {
-      true: 'bg-accent',
+      true: 'shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
       false: '',
     },
   },
   defaultVariants: {
-    striped: false,
     hoverable: false,
     selectable: false,
     selected: false,
@@ -135,23 +100,16 @@ const rowVariants = cva([''], {
 
 interface SortIndicatorProps {
   direction?: 'asc' | 'desc';
-  className?: string;
 }
 
-const SortIndicator: React.FC<SortIndicatorProps> = ({ direction, className = '' }) => (
-  <span className={`ml-2 inline-block ${className}`}>
+const SortIndicator: React.FC<SortIndicatorProps> = ({ direction }) => (
+  <span className="ml-2 inline-block text-[8px] leading-none">
     {!direction ? (
-      <svg className="w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8.71 12.29L12 8.99l3.29 3.3c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L12.7 6.88c-.39-.39-1.02-.39-1.41 0L7.29 10.88c-.39.39-.39 1.02 0 1.41.39.39 1.03.39 1.42 0zM8.71 15.71L12 19.01l3.29-3.3c.39-.39 1.02-.39 1.41 0 .39.39.39 1.02 0 1.41l-4 4c-.39.39-1.02.39-1.41 0l-4-4c-.39-.39-.39-1.02 0-1.41.39-.39 1.03-.39 1.42 0z" />
-      </svg>
+      <span className="text-muted-foreground/50">▲▼</span>
     ) : direction === 'asc' ? (
-      <svg className="w-4 h-4 text-action" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8.71 12.29L12 8.99l3.29 3.3c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L12.7 6.88c-.39-.39-1.02-.39-1.41 0L7.29 10.88c-.39.39-.39 1.02 0 1.41.39.39 1.03.39 1.42 0z" />
-      </svg>
+      <span className="text-primary">▲</span>
     ) : (
-      <svg className="w-4 h-4 text-action" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M15.29 11.71L12 15.01 8.71 11.7c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l4 4c.39.39 1.02.39 1.41 0l4-4c.39.39.39 1.02 0 1.41-.39.39-1.03.39-1.42 0z" />
-      </svg>
+      <span className="text-primary">▼</span>
     )}
   </span>
 );
@@ -181,7 +139,7 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
         if (input) input.indeterminate = Boolean(indeterminate);
       }}
       onChange={e => onChange(e.target.checked)}
-      className="w-4 h-4 appearance-none rounded cursor-pointer border border-border bg-input transition-colors checked:bg-action checked:border-action focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
+      className="w-4 h-4 appearance-none cursor-pointer border border-border bg-input transition-colors checked:bg-action checked:border-action focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
       aria-label={ariaLabel}
       style={
         isActive
@@ -197,13 +155,7 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
   );
 };
 
-export const TableHeader = <T,>({
-  columns,
-  className = '',
-}: {
-  columns: TableColumn<T>[];
-  className?: string;
-}) => {
+const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
   const {
     selectable,
     multiSelect,
@@ -221,15 +173,13 @@ export const TableHeader = <T,>({
 
   const handleSort = (columnId: string) => {
     if (!onSort) return;
-
     const newDirection =
       sortConfig?.columnId === columnId && sortConfig.direction === 'asc' ? 'desc' : 'asc';
-
     onSort({ columnId, direction: newDirection });
   };
 
   return (
-    <thead className={className}>
+    <thead>
       <tr>
         {selectable && (
           <th className={headerVariants({ density })}>
@@ -253,14 +203,10 @@ export const TableHeader = <T,>({
               key={column.id}
               className={headerVariants({
                 sortable: column.sortable,
-                sticky: column.sticky,
                 align: column.align,
                 density,
               })}
-              style={{
-                width: column.width,
-                minWidth: column.minWidth,
-              }}
+              style={{ width: column.width }}
               onClick={column.sortable ? () => handleSort(column.id) : undefined}
               role={column.sortable ? 'columnheader button' : 'columnheader'}
               aria-sort={
@@ -285,22 +231,18 @@ export const TableHeader = <T,>({
   );
 };
 
-export const TableBody = <T extends TableRowBase>({
+const TableBody = <T extends TableRowBase>({
   columns,
   data,
-  striped = false,
-  hoverable = false,
+  hoverable,
   rowClassName,
   onRowClick,
-  className = '',
 }: {
   columns: TableColumn<T>[];
   data: T[];
-  striped?: boolean;
-  hoverable?: boolean;
+  hoverable: boolean;
   rowClassName?: string | ((row: T, index: number) => string);
   onRowClick?: (row: T, index: number) => void;
-  className?: string;
 }) => {
   const { selectable, selectedRows, onSelectionChange, density } = useTableContext();
 
@@ -308,7 +250,6 @@ export const TableBody = <T extends TableRowBase>({
     const newSelection = checked
       ? [...selectedRows, rowId]
       : selectedRows.filter(id => id !== rowId);
-
     onSelectionChange(newSelection);
   };
 
@@ -328,7 +269,6 @@ export const TableBody = <T extends TableRowBase>({
     if (column.accessor) {
       const value =
         typeof column.accessor === 'function' ? column.accessor(row) : row[column.accessor];
-
       return value as React.ReactNode;
     }
 
@@ -336,22 +276,21 @@ export const TableBody = <T extends TableRowBase>({
   };
 
   return (
-    <tbody className={className}>
+    <tbody>
       {data.map((row, index) => {
         const isSelected = selectedRows.includes(row.id);
-        const finalRowClassName =
+        const extra =
           typeof rowClassName === 'function' ? rowClassName(row, index) : (rowClassName ?? '');
+        const isLast = index === data.length - 1;
 
         return (
           <tr
             key={row.id}
-            className={rowVariants({
-              striped,
+            className={`${rowVariants({
               hoverable: hoverable || Boolean(onRowClick),
               selectable,
               selected: isSelected,
-              className: finalRowClassName,
-            })}
+            })} ${isLast ? '[&>td]:border-b-0' : ''} ${extra}`}
             onClick={onRowClick ? () => onRowClick(row, index) : undefined}
           >
             {selectable && (
@@ -368,10 +307,7 @@ export const TableBody = <T extends TableRowBase>({
               <td
                 key={column.id}
                 className={cellVariants({ align: column.align, density })}
-                style={{
-                  width: column.width,
-                  minWidth: column.minWidth,
-                }}
+                style={{ width: column.width }}
               >
                 {getCellValue(column, row, index)}
               </td>
@@ -383,30 +319,18 @@ export const TableBody = <T extends TableRowBase>({
   );
 };
 
-const roundedClasses: Record<TableRounded, string> = {
-  none: '',
-  sm: 'rounded-sm',
-  md: 'rounded-md',
-  lg: 'rounded-lg',
-};
-
-export function Table<T extends TableRowBase = TableRow>({
+export function Table<T extends TableRowBase>({
   columns,
   data,
   sortable = defaultTableProps.sortable,
   selectable = defaultTableProps.selectable,
   multiSelect = defaultTableProps.multiSelect,
-  striped = defaultTableProps.striped,
   hoverable = defaultTableProps.hoverable,
   selectedRows = defaultTableProps.selectedRows,
   sortConfig,
   loading = defaultTableProps.loading,
-  variant = defaultTableProps.variant,
-  size = defaultTableProps.size,
-  density = 'default' as const,
-  state = defaultTableProps.state,
+  density = defaultTableProps.density,
   stickyHeader = defaultTableProps.stickyHeader,
-  rounded = defaultTableProps.rounded,
   onSort,
   onSelectionChange = () => {},
   onRowClick,
@@ -414,20 +338,8 @@ export function Table<T extends TableRowBase = TableRow>({
   loadingMessage = defaultTableProps.loadingMessage,
   'aria-label': ariaLabel,
   className,
-  headerClassName,
-  bodyClassName,
   rowClassName,
-  maxHeight,
-  ...props
 }: TableProps<T>) {
-  // When rounded, border moves to wrapper - use borderless for table
-  const needsRoundedWrapper = rounded && rounded !== 'none';
-  const effectiveVariant = needsRoundedWrapper ? 'borderless' : variant;
-
-  // Table classes
-  const tableClasses = tableVariants({ variant: effectiveVariant, size, state, className });
-
-  // Context value
   const contextValue: TableContextValue = {
     selectable: selectable!,
     multiSelect: multiSelect!,
@@ -436,10 +348,9 @@ export function Table<T extends TableRowBase = TableRow>({
     onSelectionChange,
     sortConfig,
     onSort: sortable ? onSort : undefined,
-    density,
+    density: density!,
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -448,7 +359,6 @@ export function Table<T extends TableRowBase = TableRow>({
     );
   }
 
-  // Empty state
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -457,54 +367,30 @@ export function Table<T extends TableRowBase = TableRow>({
     );
   }
 
-  const tableContent = (
+  const tableEl = (
     <TableContext.Provider value={contextValue}>
-      <table className={tableClasses} role="table" aria-label={ariaLabel} {...props}>
-        <TableHeader columns={columns} className={headerClassName} />
+      <table
+        className={`w-full border-collapse ${className ?? ''}`}
+        role="table"
+        aria-label={ariaLabel}
+      >
+        <TableHeader columns={columns} />
         <TableBody
           columns={columns}
           data={data}
-          striped={striped}
-          hoverable={hoverable}
+          hoverable={hoverable!}
           rowClassName={rowClassName}
           onRowClick={onRowClick}
-          className={bodyClassName}
         />
       </table>
     </TableContext.Provider>
   );
 
-  // Determine if we need a wrapper container
-  const needsScrollWrapper = maxHeight ?? stickyHeader;
-
-  // When rounded, move border from table to wrapper for proper corner rendering
-  const borderClassForWrapper =
-    needsRoundedWrapper && variant === 'default'
-      ? 'border border-border'
-      : needsRoundedWrapper && variant === 'bordered'
-        ? 'border-2 border-border'
-        : '';
-
-  // Build wrapper classes
-  const wrapperClasses = [
-    needsRoundedWrapper
-      ? `overflow-hidden ${roundedClasses[rounded!]} ${borderClassForWrapper}`
-      : '',
-    needsScrollWrapper ? 'overflow-auto' : '',
-    stickyHeader ? 'relative' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  // Wrap if needed for rounded corners, max height, or sticky header
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR, not null coalescing
-  if (needsRoundedWrapper || needsScrollWrapper) {
-    return (
-      <div className={wrapperClasses} style={maxHeight ? { maxHeight } : undefined} tabIndex={-1}>
-        {tableContent}
-      </div>
-    );
+  // Sticky-header consumers need a scrollable wrapper; otherwise the table
+  // renders flat into whatever container the consumer provides.
+  if (stickyHeader) {
+    return <div className="overflow-auto relative">{tableEl}</div>;
   }
 
-  return tableContent;
+  return tableEl;
 }

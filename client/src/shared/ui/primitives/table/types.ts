@@ -1,20 +1,12 @@
 /**
  * Table Component Types
  *
- * Type definitions for the Table primitive component.
+ * Type definitions for the Table primitive.
  */
 
 import type { ReactNode } from 'react';
 
-export type TableVariant = 'default' | 'bordered' | 'borderless';
-
-export type TableSize = 'sm' | 'md' | 'lg';
-
-export type TableState = 'default' | 'error' | 'warning' | 'success';
-
-export type TableRounded = 'none' | 'sm' | 'md' | 'lg';
-
-export type TableDensity = 'compact' | 'default' | 'comfortable';
+export type TableDensity = 'compact' | 'default';
 
 export type SortDirection = 'asc' | 'desc';
 
@@ -28,38 +20,30 @@ export interface TableColumn<T = Record<string, unknown>> {
   header: string;
   accessor?: keyof T | ((row: T) => ReactNode);
   width?: string | number;
-  minWidth?: string | number;
   sortable?: boolean;
   align?: 'left' | 'center' | 'right';
-  sticky?: boolean;
   render?: (value: unknown, row: T, index: number) => ReactNode;
 }
 
 // Just needs an id for selection/keying
 export type TableRowBase = { id: string | number };
 
-// For unparameterized usage
-export interface TableRow extends TableRowBase {
+interface TableRowMap extends TableRowBase {
   [key: string]: unknown;
 }
 
-export interface TableProps<T extends TableRowBase = TableRow> {
+export interface TableProps<T extends TableRowBase = TableRowMap> {
   columns: TableColumn<T>[];
   data: T[];
   sortable?: boolean;
   selectable?: boolean;
   multiSelect?: boolean;
-  striped?: boolean;
   hoverable?: boolean;
   selectedRows?: (string | number)[];
   sortConfig?: SortConfig;
   loading?: boolean;
-  variant?: TableVariant;
-  size?: TableSize;
   density?: TableDensity;
-  state?: TableState;
   stickyHeader?: boolean;
-  rounded?: TableRounded;
   onSort?: (config: SortConfig) => void;
   onSelectionChange?: (selectedIds: (string | number)[]) => void;
   onRowClick?: (row: T, index: number) => void;
@@ -67,10 +51,7 @@ export interface TableProps<T extends TableRowBase = TableRow> {
   loadingMessage?: string;
   'aria-label'?: string;
   className?: string;
-  headerClassName?: string;
-  bodyClassName?: string;
   rowClassName?: string | ((row: T, index: number) => string);
-  maxHeight?: string | number;
 }
 
 export type TableRef = HTMLTableElement;
@@ -88,14 +69,10 @@ export interface TableContextValue {
 }
 
 export const defaultTableProps: Partial<TableProps> = {
-  variant: 'default',
-  size: 'md',
-  state: 'default',
-  rounded: 'none',
+  density: 'default',
   sortable: false,
   selectable: false,
   multiSelect: false,
-  striped: false,
   hoverable: true,
   loading: false,
   stickyHeader: false,

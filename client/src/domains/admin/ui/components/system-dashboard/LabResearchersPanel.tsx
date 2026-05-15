@@ -68,8 +68,6 @@ export function LabResearchersPanel({
       <Table
         columns={columns}
         data={activeResearchers}
-        size="sm"
-        rounded="lg"
         sortable
         sortConfig={sortConfig}
         onSort={onSort}
@@ -95,8 +93,6 @@ export function LabResearchersPanel({
               <Table
                 columns={columns}
                 data={inactiveResearchers}
-                size="sm"
-                rounded="lg"
                 emptyMessage=""
                 aria-label="Inactive lab researchers"
                 className="opacity-60"

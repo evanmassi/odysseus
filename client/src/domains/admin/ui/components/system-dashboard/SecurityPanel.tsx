@@ -605,8 +605,6 @@ export function SecurityPanel() {
           onSort={setSessionSortConfig}
           loading={sessionsLoading}
           hoverable
-          size="sm"
-          rounded="lg"
           emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
           aria-label="Active sessions"
           rowClassName={row =>
@@ -668,8 +666,6 @@ export function SecurityPanel() {
           columns={ipColumns}
           data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
           hoverable
-          size="sm"
-          rounded="lg"
           emptyMessage="No IP activity data"
           aria-label="IP activity"
         />
@@ -693,8 +689,6 @@ export function SecurityPanel() {
             id: `${e.username}-${e.timestamp}-${i}`,
           }))}
           hoverable
-          size="sm"
-          rounded="lg"
           emptyMessage="No failed login attempts"
           aria-label="Failed login attempts"
         />

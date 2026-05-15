@@ -177,8 +177,6 @@ export function StoragePanel() {
           onSort={setLabSortConfig}
           hoverable
           loading={isLoading}
-          size="sm"
-          rounded="lg"
           emptyMessage="No labs with storage configured"
           aria-label="Per-lab storage utilization"
           onRowClick={row => setSelectedLabId(row.labId)}
@@ -320,8 +318,6 @@ function LabDrillDown({
           data={(data?.tanks ?? []).map(t => ({ ...t, id: t.tankId }))}
           hoverable
           loading={isLoading}
-          size="sm"
-          rounded="lg"
           emptyMessage="No tanks configured"
           aria-label="Per-tank utilization"
           onRowClick={row => {
@@ -351,8 +347,6 @@ function LabDrillDown({
               columns={rackColumns}
               data={expandedTank.racks.map(r => ({ ...r, id: r.rackId }))}
               hoverable
-              size="sm"
-              rounded="lg"
               emptyMessage="No racks in this tank"
               aria-label={`Racks in ${expandedTank.tankName}`}
               onRowClick={row =>
@@ -400,8 +394,6 @@ function LabDrillDown({
                     .find(r => r.rackId === expandedRackId)!
                     .boxes.map(b => ({ ...b, id: b.boxName }))}
                   hoverable
-                  size="sm"
-                  rounded="lg"
                   emptyMessage="No boxes in this rack"
                   aria-label="Box utilization"
                 />

@@ -177,12 +177,10 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
           <Table
             columns={columns}
             data={sortedRows}
-            size="sm"
             hoverable
             sortable
             sortConfig={sortConfig}
             onSort={setSortConfig}
-            variant="default"
             density="compact"
             className="text-xs"
             stickyHeader

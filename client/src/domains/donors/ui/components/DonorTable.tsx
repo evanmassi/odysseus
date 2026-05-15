@@ -150,10 +150,8 @@ export function DonorTable({
         <Table
           columns={columns}
           data={sortedDonors}
-          size="sm"
           hoverable
           sortable
-          rounded="lg"
           sortConfig={sortConfig}
           onSort={setSortConfig}
           onRowClick={row => onSelectDonor(row.id)}

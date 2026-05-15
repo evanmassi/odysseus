@@ -438,10 +438,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       <Table
         columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
         data={activeUsers}
-        size="sm"
-        variant="default"
         hoverable
-        rounded="lg"
         sortable
         sortConfig={sortConfig}
         onSort={setSortConfig}
@@ -466,9 +463,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
               <Table
                 columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
                 data={inactiveUsers}
-                size="sm"
-                variant="default"
-                rounded="lg"
                 emptyMessage=""
                 aria-label="Inactive users"
                 className="opacity-60"

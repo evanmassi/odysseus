@@ -183,7 +183,6 @@ export function EquipmentMaintenanceAlertPanel({
         <Table
           columns={columns}
           data={sortedRows}
-          size="sm"
           hoverable
           sortable
           sortConfig={sortConfig}
@@ -191,7 +190,6 @@ export function EquipmentMaintenanceAlertPanel({
           onRowClick={row => onSelectItem(row.id)}
           selectedRows={selectedItemId ? [selectedItemId] : []}
           rowClassName={row => (row.id === selectedItemId ? '!bg-accent' : '')}
-          variant="borderless"
           density="compact"
           className="text-xs"
           aria-label="Maintenance alerts"
