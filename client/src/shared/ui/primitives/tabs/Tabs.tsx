@@ -1,12 +1,10 @@
 /**
- * Tabs Primitive
+ * Tabs
  *
- * Tab navigation with automatic orientation based on tab count.
+ * Recessive tab navigation — mono uppercase chrome, active state lit via phosphor glow + thin indicator bar.
  */
 import { createContext, useContext, Children, useMemo, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-
-import './tabs.css';
 
 export type TabOrientation = 'horizontal' | 'vertical';
 
@@ -23,7 +21,6 @@ export interface TabProps {
   id: string;
   icon?: ReactNode;
   children: ReactNode;
-  disabled?: boolean;
 }
 
 interface TabsContextValue {
@@ -42,13 +39,23 @@ function useTabsContext() {
   return context;
 }
 
-export function Tab({ id, icon, children, disabled = false }: TabProps) {
+const BASE =
+  'font-mono uppercase tracking-[0.18em] text-xs font-medium ' +
+  'transition-colors duration-150 focus:outline-none cursor-pointer';
+
+const ACTIVE_STATE = 'text-foreground border-primary phosphor-text';
+
+const INACTIVE_STATE =
+  'text-muted-foreground border-transparent ' +
+  'hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]';
+
+export function Tab({ id, icon, children }: TabProps) {
   const { value, onChange, orientation } = useTabsContext();
   const isActive = value === id;
 
-  // Hover animation state for vertical tabs
+  // Icon-pop is a vertical-only hover micro-affordance, replacing the larger
+  // bg/border affordances horizontal tabs already get from the underline.
   const [isAnimating, setIsAnimating] = useState(false);
-
   const handleMouseEnter = useCallback(() => {
     if (orientation === 'vertical') {
       setIsAnimating(true);
@@ -56,11 +63,7 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
     }
   }, [orientation]);
 
-  const handleClick = () => {
-    if (!disabled) {
-      onChange(id);
-    }
-  };
+  const handleClick = () => onChange(id);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -69,43 +72,27 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
     }
   };
 
-  if (orientation === 'vertical') {
-    return (
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isActive}
-        aria-disabled={disabled}
-        tabIndex={disabled ? -1 : 0}
-        data-focus="none"
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        onMouseEnter={handleMouseEnter}
-        disabled={disabled}
-        className="tab-button tab-button--vertical w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {icon && (
-          <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
-        )}
-        <span>{children}</span>
-      </button>
-    );
-  }
+  const orientationClasses =
+    orientation === 'vertical'
+      ? 'w-full flex items-center gap-2 px-4 py-2.5 text-left border-l-2'
+      : 'flex items-center gap-2 px-4 py-2.5 border-b-2 -mb-px';
+
+  const className = `${BASE} ${orientationClasses} ${isActive ? ACTIVE_STATE : INACTIVE_STATE}`;
 
   return (
     <button
       type="button"
       role="tab"
       aria-selected={isActive}
-      aria-disabled={disabled}
-      tabIndex={disabled ? -1 : 0}
-      data-focus="none"
+      tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      disabled={disabled}
-      className="tab-button tab-button--horizontal flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      onMouseEnter={handleMouseEnter}
+      className={className}
     >
-      {icon && <span className="flex-shrink-0">{icon}</span>}
+      {icon && (
+        <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
+      )}
       <span>{children}</span>
     </button>
   );
@@ -121,13 +108,15 @@ export function Tabs({ value, onChange, children, orientation, className = '' }:
   );
 
   const containerClass =
-    resolvedOrientation === 'vertical'
-      ? `space-y-1 ${className}`
-      : `flex items-center gap-6 px-4 ${className}`;
+    resolvedOrientation === 'vertical' ? 'space-y-1' : 'flex items-center gap-6 px-4';
 
   return (
     <TabsContext.Provider value={contextValue}>
-      <div role="tablist" aria-orientation={resolvedOrientation} className={containerClass}>
+      <div
+        role="tablist"
+        aria-orientation={resolvedOrientation}
+        className={`${containerClass} ${className}`}
+      >
         {children}
       </div>
     </TabsContext.Provider>

@@ -98,12 +98,17 @@ const buttonVariants = cva(
           'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]',
 
         cancel:
-          'bg-transparent text-secondary-foreground border-border hover:bg-accent hover:text-accent-foreground',
+          'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]',
 
         ghost:
-          'bg-transparent text-muted-foreground border-transparent hover:border-border hover:text-foreground',
+          'bg-transparent text-muted-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]',
 
-        'ghost-danger': 'bg-transparent text-danger-text border-transparent hover:bg-danger-light',
+        'ghost-danger':
+          'bg-transparent text-danger-text border-transparent relative isolate ' +
+          'after:absolute after:inset-0 after:pointer-events-none ' +
+          'after:bg-scanlines after:mix-blend-multiply ' +
+          'after:opacity-0 after:transition-opacity after:duration-150 ' +
+          'hover:bg-danger-light hover:after:opacity-100',
       },
 
       size: {

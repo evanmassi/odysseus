@@ -1,0 +1,15 @@
+/**
+ * Text Effects
+ *
+ * Phosphor/CRT-style text treatments.
+ */
+
+@layer utilities {
+  /* Sharp 1px core + soft 6px halo — mimics CRT phosphor optics so glyphs read
+     crisp while the surround glows. Inherits the host's text color. */
+  .phosphor-text {
+    text-shadow:
+      0 0 1px currentColor,
+      0 0 6px color-mix(in srgb, currentColor 40%, transparent);
+  }
+}

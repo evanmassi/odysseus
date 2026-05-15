@@ -412,7 +412,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                       e.currentTarget.blur();
                     }
                   }}
-                  className="inline-flex items-center gap-1.5 h-[22px] px-2 border border-border bg-muted text-secondary-foreground hover:bg-accent text-[10px] font-medium font-mono uppercase tracking-[0.14em] leading-none whitespace-nowrap transition-colors duration-150 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-[22px] px-2 border border-border bg-muted text-secondary-foreground hover:bg-accent text-[10px] font-medium font-mono uppercase tracking-[0.14em] leading-none whitespace-nowrap phosphor-text transition-colors duration-150 cursor-pointer"
                 >
                   {lockNoteDisplay?.isMixed ? (
                     <>
