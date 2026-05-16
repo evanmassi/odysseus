@@ -168,7 +168,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
         <div className="relative overflow-hidden">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-card"
+            className="pointer-events-none absolute inset-0 bg-card bg-scanlines"
             style={{
               maskImage:
                 'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
@@ -211,7 +211,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="flex items-end justify-between gap-4">
                 <div className="mb-1 ml-2 flex flex-col gap-2">
-                  <div className="flex items-baseline gap-3">
+                  <div className="flex items-center gap-3">
                     <h3 className="font-display text-[24px] leading-none font-medium tracking-[-0.01em] text-foreground">
                       {lab.name}
                     </h3>
