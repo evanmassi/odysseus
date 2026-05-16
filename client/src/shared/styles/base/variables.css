@@ -226,9 +226,9 @@
   /* Dark Theme */
   [data-theme='dark'] {
     /* Core */
-    --background: 222.2 47.4% 11.2%;
-    --foreground: 210 33% 92%;
-    --page: 222.2 47.4% 11.2%;
+    --background: 220 38% 7%;
+    --foreground: 45 29% 87%;
+    --page: 220 38% 7%;
 
     /* Surfaces */
     --bg-void: 220 43% 4%;
@@ -244,29 +244,29 @@
     --line-strong: 45 27% 87% / 0.32;
 
     /* Card */
-    --card: 217.2 32.6% 15.5%;
-    --card-foreground: 210 33% 92%;
+    --card: 217 32% 9%;
+    --card-foreground: 45 29% 87%;
 
     /* Popover */
-    --popover: 217.2 32.6% 17.5%;
-    --popover-foreground: 210 33% 92%;
+    --popover: 217 32% 11%;
+    --popover-foreground: 45 29% 87%;
 
     /* Primary */
-    --primary: 213 85% 67.8%;
+    --primary: 210 60% 60%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 215 20.2% 65.1%;
+    --secondary: 217 26% 11%;
+    --secondary-foreground: 44 14% 65%;
 
     /* Muted */
     --muted: 215 24% 19%;
     --muted-hover: 215 24% 23%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 44 14% 65%;
 
     /* Accent */
     --accent: 215.3 25% 26.7%;
-    --accent-foreground: 210 33% 92%;
+    --accent-foreground: 45 29% 87%;
 
     /* Utilities */
     --border: 215.3 25% 26.7%;
@@ -276,30 +276,30 @@
 
     /* Action Colors */
     --color-action-default: var(--primary);
-    --color-action-hover: 217 85% 59.8%;
-    --color-action-focus: 217 85% 59.8%;
-    --color-action-light: 213 45% 12%;
-    --color-action-light-hover: 213 50% 16%;
+    --color-action-hover: 210 65% 52%;
+    --color-action-focus: 210 65% 52%;
+    --color-action-light: 210 45% 12%;
+    --color-action-light-hover: 210 50% 16%;
 
     /* Danger Theme */
-    --color-danger-bg: 1 62% 60%;
-    --color-danger-hover: 1 70% 52%;
-    --color-danger-text: 1 62% 65%;
-    --color-danger-text-hover: 1 70% 58%;
+    --color-danger-bg: 5 50% 60%;
+    --color-danger-hover: 5 58% 52%;
+    --color-danger-text: 5 50% 65%;
+    --color-danger-text-hover: 5 58% 58%;
     --color-danger-btnText: 0 0% 100%;
-    --color-danger-light: 1 35% 12%;
-    --color-danger-light-hover: 1 40% 16%;
-    --color-danger-border: 1 50% 45%;
+    --color-danger-light: 5 30% 12%;
+    --color-danger-light-hover: 5 35% 16%;
+    --color-danger-border: 5 45% 45%;
 
     /* Warning Theme */
-    --color-warning-bg: 44 74% 55%;
-    --color-warning-hover: 44 78% 48%;
-    --color-warning-text: 44 78% 65%;
-    --color-warning-text-hover: 44 80% 58%;
+    --color-warning-bg: 32 67% 62%;
+    --color-warning-hover: 32 72% 54%;
+    --color-warning-text: 32 67% 68%;
+    --color-warning-text-hover: 32 72% 60%;
     --color-warning-btnText: 0 0% 100%;
-    --color-warning-light: 44 40% 10%;
-    --color-warning-light-hover: 44 45% 14%;
-    --color-warning-border: 44 65% 45%;
+    --color-warning-light: 32 40% 10%;
+    --color-warning-light-hover: 32 45% 14%;
+    --color-warning-border: 32 60% 45%;
 
     /* Success Theme */
     --color-success-bg: 152 38% 50%;

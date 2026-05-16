@@ -7,26 +7,26 @@
 import { useMemo, useState } from 'react';
 
 import {
+  ArrowRight,
   CircleCheckBig,
-  OctagonX,
   Dna,
+  OctagonX,
   FlaskConical,
   Plus,
-  ShieldUser,
   BeanOff,
+  ShieldUser,
   Sprout,
   TestTube,
-  UsersRound,
   TicketCheck,
   Copy,
   Power,
   RefreshCw,
+  UsersRound,
 } from 'lucide-react';
 
-import { BracketedStamp, Button, Chip } from '@shared/ui';
-import { LabBadge } from '@shared/ui/components/badges';
+import { BracketedStamp, Button, Chip, IdStamp, StatCell } from '@shared/ui';
+import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils';
 
 import {
@@ -145,23 +145,52 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   const renderLabCard = (lab: (typeof labs)[number]) => {
     const stats = getLabStats(lab.id);
     const codes = labInviteCodes[lab.id] ?? [];
+    const statusBgVar = lab.isActive ? '--color-success-bg' : '--color-danger-bg';
 
     return (
-      <div
-        key={lab.id}
-        className={`rounded-lg cursor-pointer transition-colors outline outline-1 outline-offset-1 p-1 space-y-1 ${
-          lab.isDemo ? 'outline-demo-text/50' : 'outline-secondary-foreground/50'
-        }`}
-        onClick={() => onSelectLab(lab.id)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') onSelectLab(lab.id);
-        }}
-        role="button"
-        tabIndex={0}
-      >
-        <div className={`px-3 py-2.5 rounded-md ${lab.isDemo ? 'bg-demo-light' : 'bg-card'}`}>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+      <div key={lab.id} className="relative pt-2">
+        <div
+          className="absolute top-0 left-6 z-10 flex h-7 items-center border-x border-t-2 border-foreground/10 px-4"
+          style={{ borderTopColor: `hsl(var(${statusBgVar}))` }}
+        >
+          <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
+            <span className="text-foreground">{lab.name}</span>
+            <span className="text-foreground/40">·</span>
+            <span
+              className={`flex items-center gap-1.5 ${lab.isActive ? 'text-success-text' : 'text-danger-text'}`}
+            >
+              {lab.isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
+              {lab.isActive ? 'active' : 'deactivated'}
+            </span>
+          </span>
+        </div>
+
+        <div className="relative overflow-hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-card"
+            style={{
+              maskImage:
+                'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
+              WebkitMaskImage:
+                'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
+              maskComposite: 'intersect',
+              WebkitMaskComposite: 'source-in',
+            }}
+          />
+          {!lab.isActive && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-2 -bottom-2 -rotate-6 font-mono text-[64px] font-semibold tracking-[0.10em] whitespace-nowrap text-danger-bg/5 uppercase select-none"
+            >
+              Deactivated
+            </span>
+          )}
+
+          <div className="relative flex items-stretch gap-3 px-4 pt-7 pb-3">
+            <div
+              className={`flex shrink-0 flex-col items-center gap-2 ${getLabBadgeTextClasses(lab.id, lab.isDemo)}`}
+            >
               <LabBadge
                 labId={lab.id}
                 labName={lab.name}
@@ -169,121 +198,140 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                 isDemo={lab.isDemo}
                 isActive={lab.isActive}
               />
-              <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
+              <span
+                aria-hidden
+                className="w-px flex-1"
+                style={{
+                  background:
+                    'linear-gradient(to bottom, color-mix(in srgb, currentColor 30%, transparent), transparent)',
+                }}
+              />
             </div>
-            <div
-              className="flex items-center gap-1.5"
-              role="presentation"
-              onClick={e => e.stopPropagation()}
-              onKeyDown={e => e.stopPropagation()}
-            >
-              {lab.isDemo && (
-                <Chip
-                  color={lab.isSeeded ? 'success' : 'warning'}
-                  size="sm"
-                  leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
-                >
-                  {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
-                </Chip>
-              )}
-              <Chip
-                color={lab.isActive ? 'success' : 'danger'}
-                size="sm"
-                leftIcon={lab.isActive ? <CircleCheckBig /> : <OctagonX />}
-              >
-                {lab.isActive ? 'Active' : 'Deactivated'}
-              </Chip>
-              {lab.isActive ? (
-                <Tooltip content="Deactivate lab">
+
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex items-end justify-between gap-4">
+                <div className="mb-1 ml-2 flex flex-col gap-2">
+                  <div className="flex items-baseline gap-3">
+                    <h3 className="font-display text-[24px] leading-none font-medium tracking-[-0.01em] text-foreground">
+                      {lab.name}
+                    </h3>
+                    {lab.isDemo && (
+                      <Chip
+                        color={lab.isSeeded ? 'success' : 'warning'}
+                        size="xs"
+                        leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
+                      >
+                        {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
+                      </Chip>
+                    )}
+                  </div>
+                  {stats && (
+                    <IdStamp
+                      parts={[
+                        `${stats.tankCount} ${stats.tankCount === 1 ? 'tank' : 'tanks'}`,
+                        `${stats.rackCount} ${stats.rackCount === 1 ? 'rack' : 'racks'}`,
+                        `${stats.boxCount} ${stats.boxCount === 1 ? 'box' : 'boxes'}`,
+                      ]}
+                    />
+                  )}
+                </div>
+
+                <div className="flex w-40 shrink-0 flex-col gap-2">
                   <Button
-                    variant="ghost-danger"
+                    variant="secondary"
                     size="sm"
-                    onClick={() => setDeactivateTarget(lab.id)}
+                    onClick={() => onSelectLab(lab.id)}
+                    leftIcon={<ArrowRight size={14} />}
+                    className="w-full justify-center"
                   >
-                    <Power size={14} />
+                    Open Lab
                   </Button>
-                </Tooltip>
-              ) : (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleActivateLab(lab.id)}
-                  isLoading={activateLabMutation.isPending}
-                >
-                  Activate
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-        <div
-          className={`px-3 py-1.5 rounded-md flex items-center justify-between gap-2 ${lab.isDemo ? 'bg-demo-light' : 'bg-card'}`}
-        >
-          <div className="flex items-center gap-2">
-            {stats && (
-              <>
-                {stats.adminCount > 0 && (
-                  <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
-                    {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
-                  </Chip>
-                )}
-                {stats.userCount > 0 && (
-                  <Chip color="info" size="sm" leftIcon={<UsersRound />}>
-                    {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
-                  </Chip>
-                )}
-                {stats.researcherCount > 0 && (
-                  <Chip color="info" size="sm" leftIcon={<Dna />}>
-                    {stats.researcherCount}{' '}
-                    {stats.researcherCount === 1 ? 'researcher' : 'researchers'}
-                  </Chip>
-                )}
-                {stats.tubeCount > 0 && (
-                  <Chip color="info" size="sm" leftIcon={<TestTube />}>
-                    {stats.tubeCount} {stats.tubeCount === 1 ? 'tube' : 'tubes'}
-                  </Chip>
-                )}
-              </>
-            )}
-          </div>
-          <div
-            className="flex items-center gap-2"
-            role="presentation"
-            onClick={e => e.stopPropagation()}
-            onKeyDown={e => e.stopPropagation()}
-          >
-            <div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleGenerateLabAdminCode(lab.id)}
-                isLoading={generatingCodeForLab === lab.id}
-                leftIcon={<TicketCheck size={14} />}
-                disabled={!lab.isActive}
-              >
-                Lab Admin Code
-              </Button>
-              {codes.length > 0 && (
-                <div className="space-y-1 mt-1.5">
-                  {codes.map(code => (
-                    <div key={code.id} className="flex items-center gap-2 text-xs">
-                      <code className="font-mono font-semibold bg-background px-2 py-0.5 rounded border border-border">
-                        {code.code}
+                  {lab.isActive ? (
+                    <Button
+                      variant="ghost-danger"
+                      size="sm"
+                      onClick={() => setDeactivateTarget(lab.id)}
+                      leftIcon={<Power size={14} />}
+                      className="w-full justify-center"
+                    >
+                      Deactivate
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleActivateLab(lab.id)}
+                      isLoading={activateLabMutation.isPending}
+                      leftIcon={<Power size={14} />}
+                      className="w-full justify-center"
+                    >
+                      Activate
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {stats && (
+                <div className="flex">
+                  <StatCell
+                    label="Admins"
+                    value={stats.adminCount}
+                    icon={<ShieldUser size={11} />}
+                    className="flex-1"
+                  />
+                  <StatCell
+                    label="Users"
+                    value={stats.userCount}
+                    icon={<UsersRound size={11} />}
+                    className="flex-1"
+                  />
+                  <StatCell
+                    label="Researchers"
+                    value={stats.researcherCount}
+                    icon={<Dna size={11} />}
+                    className="flex-1"
+                  />
+                  <StatCell
+                    label="Specimens"
+                    value={stats.tubeCount}
+                    unit="tubes"
+                    icon={<TestTube size={11} />}
+                    className="flex-1"
+                  />
+                  <div className="flex flex-1 flex-col gap-1 px-3 py-3">
+                    <span className="flex items-center gap-2 font-mono text-[9.5px] tracking-[0.20em] text-muted-foreground uppercase">
+                      <TicketCheck size={11} className="shrink-0" />
+                      Lab Admin Code
+                    </span>
+                    <div className="flex items-center gap-1.5 border border-foreground/15 bg-background px-2 py-1">
+                      <code
+                        className={`flex-1 truncate font-mono text-[11px] font-medium leading-none ${codes.length > 0 ? '' : 'tracking-widest text-foreground/20 select-none'}`}
+                      >
+                        {codes.length > 0 ? codes[codes.length - 1].code : '· · · · · · ·'}
                       </code>
-                      <Tooltip content="Copy to clipboard">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(code.code);
-                            notifications.success('Copied');
-                          }}
-                        >
-                          <Copy size={12} />
-                        </Button>
-                      </Tooltip>
+                      <button
+                        type="button"
+                        aria-label="Copy to clipboard"
+                        onClick={async () => {
+                          if (codes.length === 0) return;
+                          await navigator.clipboard.writeText(codes[codes.length - 1].code);
+                          notifications.success('Copied');
+                        }}
+                        disabled={codes.length === 0}
+                        className="shrink-0 text-foreground/40 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <Copy size={11} />
+                      </button>
                     </div>
-                  ))}
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateLabAdminCode(lab.id)}
+                      disabled={!lab.isActive || generatingCodeForLab === lab.id}
+                      className="self-start font-mono text-[9px] tracking-[0.2em] text-foreground/40 uppercase transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {codes.length > 0 ? 'Regenerate' : 'Generate'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

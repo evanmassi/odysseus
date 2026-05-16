@@ -16,6 +16,7 @@ export interface StatCellProps {
   unit?: string;
   footer?: React.ReactNode;
   tone?: StatCellTone;
+  icon?: React.ReactNode;
   className?: string;
 }
 
@@ -37,12 +38,17 @@ export function StatCell({
   unit,
   footer,
   tone = 'default',
+  icon,
   className,
 }: StatCellProps) {
   return (
     <div className={`flex flex-col gap-1 px-4 py-3.5 ${className ?? ''}`}>
       <span className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.20em] text-muted-foreground">
-        <span className={tickVariants({ tone })} />
+        {icon ? (
+          <span className="inline-flex shrink-0 items-center">{icon}</span>
+        ) : (
+          <span className={tickVariants({ tone })} />
+        )}
         {label}
       </span>
       <div className="font-display text-[26px] font-normal leading-none tracking-[-0.02em] text-foreground">

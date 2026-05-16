@@ -9,7 +9,7 @@ import { Badge, Tooltip } from '@shared/ui';
 interface LabBadgeProps {
   labId: string;
   labName: string;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   isDemo?: boolean;
   isActive?: boolean;
 }
@@ -33,6 +33,14 @@ function hashToIndex(str: string): number {
     hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
   }
   return Math.abs(hash) % BADGE_COLORS.length;
+}
+
+export function getLabBadgeTextClasses(labId: string, isDemo?: boolean): string {
+  const fullClass = isDemo ? DEMO_COLOR : BADGE_COLORS[hashToIndex(labId)];
+  return fullClass
+    .split(' ')
+    .filter(c => c.includes('text-'))
+    .join(' ');
 }
 
 function getLabInitials(name: string): string {
