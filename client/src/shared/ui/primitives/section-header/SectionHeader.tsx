@@ -10,19 +10,13 @@ export interface SectionHeaderProps {
   className?: string;
 }
 
-const BAR_BACKGROUND = `
-  linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 45%),
-  repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)
-`;
-
 export function SectionHeader({ title, meta, className }: SectionHeaderProps) {
   return (
     <div className={`flex items-center gap-1 ${className ?? ''}`}>
       <div
-        className="flex items-center h-7 bg-foreground/20 pl-2 pr-3 font-mono text-[12px] uppercase tracking-[0.22em] text-foreground whitespace-nowrap"
+        className="flex items-center h-7 bg-surface-elev bg-lit-fill pl-2 pr-3 font-mono text-[12px] uppercase tracking-[0.22em] text-foreground whitespace-nowrap"
         style={{
           clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
-          backgroundImage: BAR_BACKGROUND,
         }}
       >
         <span

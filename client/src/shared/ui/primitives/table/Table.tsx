@@ -25,8 +25,8 @@ const useTableContext = () => {
 const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[10px] font-normal',
-    'text-left text-muted-foreground',
-    'border-b border-foreground/10 bg-foreground/[0.012]',
+    'text-left text-foreground/80',
+    'border-b border-foreground/10 bg-surface-elev bg-scanlines',
     'px-5',
   ],
   {
@@ -46,7 +46,7 @@ const headerVariants = cva(
       },
       density: {
         compact: 'py-2',
-        default: 'py-3.5',
+        default: 'py-3',
       },
     },
     defaultVariants: {
@@ -69,7 +69,7 @@ const cellVariants = cva(
       },
       density: {
         compact: 'py-2',
-        default: 'py-4',
+        default: 'py-3',
       },
     },
     defaultVariants: {
@@ -107,7 +107,7 @@ interface SortIndicatorProps {
 
 const SortIndicator: React.FC<SortIndicatorProps> = ({ direction }) => (
   <svg
-    className="ml-2 w-2.5 h-2.5 shrink-0 inline-block"
+    className="ml-2 w-3.5 h-3.5 shrink-0 inline-block"
     viewBox="0 0 14 14"
     fill="none"
     strokeWidth="1.5"

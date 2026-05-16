@@ -192,6 +192,8 @@ export default {
       backgroundImage: {
         scanlines:
           'repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+        'lit-fill':
+          'linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 45%), repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
       },
       dropShadow: {
         /* SVG-icon parallel to text-shadow text-bloom — glows in the icon's own color */
