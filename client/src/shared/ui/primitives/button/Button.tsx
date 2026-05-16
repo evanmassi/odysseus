@@ -71,7 +71,7 @@ const FLOURISHES = [
 const buttonVariants = cva(
   [
     'inline-flex items-center justify-center',
-    'border font-medium',
+    'border font-mono font-medium',
     'text-center whitespace-nowrap leading-none',
     '[text-shadow:0_0_4px_color-mix(in_srgb,currentColor_40%,transparent)]',
     'transition-[background,border-color,filter,box-shadow] duration-150',

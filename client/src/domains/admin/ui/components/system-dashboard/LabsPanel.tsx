@@ -23,7 +23,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-import { Button, Chip } from '@shared/ui';
+import { BracketedStamp, Button, Chip } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
@@ -295,42 +295,43 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FlaskConical size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Labs</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
-          >
-            Refresh
-          </Button>
-          {!demoLabExists && (
+      <BracketedStamp
+        title="Labs"
+        meta={`${labs.length} registered`}
+        icon={<FlaskConical size={14} />}
+        actions={
+          <>
             <Button
-              variant="secondary"
+              variant="ghost"
               size="sm"
-              onClick={handleCreateDemoLab}
-              isLoading={createLabMutation.isPending}
+              onClick={handleRefresh}
+              disabled={isLoading}
+              leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+            >
+              Refresh
+            </Button>
+            {!demoLabExists && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleCreateDemoLab}
+                isLoading={createLabMutation.isPending}
+                leftIcon={<Plus size={14} />}
+              >
+                Create Demo Lab
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowCreateLab(true)}
               leftIcon={<Plus size={14} />}
             >
-              Create Demo Lab
+              Create Lab
             </Button>
-          )}
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowCreateLab(true)}
-            leftIcon={<Plus size={14} />}
-          >
-            Create Lab
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {showCreateLab && (
         <div className="p-3 bg-muted rounded-lg space-y-3">

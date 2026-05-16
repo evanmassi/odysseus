@@ -13,6 +13,9 @@ export type { AlertBannerProps, AlertBannerVariant } from './banners/types';
 export { Badge } from './badge/Badge';
 export type { BadgeProps } from './badge/Badge';
 
+export { BracketedStamp } from './titles/bracketed-stamp/BracketedStamp';
+export type { BracketedStampProps } from './titles/bracketed-stamp/BracketedStamp';
+
 export { Button } from './button/Button';
 export type { ButtonProps, ButtonVariant, ButtonSize, ButtonRef } from './button/types';
 
@@ -39,8 +42,8 @@ export type {
   InputRef,
 } from './input/types';
 
-export { IdStamp } from './id-stamp/IdStamp';
-export type { IdStampProps } from './id-stamp/IdStamp';
+export { IdStamp } from './titles/id-stamp/IdStamp';
+export type { IdStampProps } from './titles/id-stamp/IdStamp';
 
 export { DropdownMenu } from './menus/DropdownMenu';
 export type { DropdownMenuProps } from './menus/DropdownMenu';
@@ -70,8 +73,8 @@ export type {
 export { Panel } from './panel/Panel';
 export type { PanelProps } from './panel/Panel';
 
-export { SectionHeader } from './section-header/SectionHeader';
-export type { SectionHeaderProps } from './section-header/SectionHeader';
+export { SectionHeader } from './titles/section-header/SectionHeader';
+export type { SectionHeaderProps } from './titles/section-header/SectionHeader';
 
 export { StatCell } from './stat-cell/StatCell';
 export type { StatCellProps } from './stat-cell/StatCell';
