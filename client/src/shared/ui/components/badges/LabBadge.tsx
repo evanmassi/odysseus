@@ -11,6 +11,7 @@ interface LabBadgeProps {
   labName: string;
   size?: 'sm' | 'md';
   isDemo?: boolean;
+  isActive?: boolean;
 }
 
 const BADGE_COLORS = [
@@ -42,13 +43,13 @@ function getLabInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-export function LabBadge({ labId, labName, size = 'sm', isDemo }: LabBadgeProps) {
+export function LabBadge({ labId, labName, size = 'sm', isDemo, isActive }: LabBadgeProps) {
   const color = isDemo ? DEMO_COLOR : BADGE_COLORS[hashToIndex(labId)];
   const initials = getLabInitials(labName);
 
   return (
     <Tooltip content={labName} side="bottom">
-      <Badge size={size} className={color}>
+      <Badge size={size} className={color} lit={isActive}>
         {initials}
       </Badge>
     </Tooltip>

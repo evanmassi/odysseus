@@ -162,7 +162,13 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
         <div className={`px-3 py-2.5 rounded-md ${lab.isDemo ? 'bg-demo-light' : 'bg-card'}`}>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
+              <LabBadge
+                labId={lab.id}
+                labName={lab.name}
+                size="md"
+                isDemo={lab.isDemo}
+                isActive={lab.isActive}
+              />
               <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
             </div>
             <div
