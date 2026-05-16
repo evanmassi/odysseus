@@ -136,37 +136,69 @@ interface TableCheckboxProps {
   'aria-label'?: string;
 }
 
-const checkmarkSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 5L6.5 10.5L4 8' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`;
-const indeterminateSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8h8' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`;
-
 const TableCheckbox: React.FC<TableCheckboxProps> = ({
   checked,
   indeterminate,
   onChange,
   'aria-label': ariaLabel,
 }) => {
-  const isActive = checked || Boolean(indeterminate);
+  const isLit = checked || Boolean(indeterminate);
+  const bracketColor = isLit ? 'border-primary' : 'border-line-strong';
+  const boxGlow = isLit ? 'shadow-[0_0_4px_hsl(var(--primary)/0.3)]' : '';
   return (
-    <input
-      type="checkbox"
-      checked={checked}
-      ref={input => {
-        if (input) input.indeterminate = Boolean(indeterminate);
-      }}
-      onChange={e => onChange(e.target.checked)}
-      className="w-4 h-4 appearance-none cursor-pointer border border-border bg-input transition-colors checked:bg-action checked:border-action focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
-      aria-label={ariaLabel}
-      style={
-        isActive
-          ? {
-              backgroundImage: indeterminate ? indeterminateSvg : checkmarkSvg,
-              backgroundSize: '100%',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-            }
-          : undefined
-      }
-    />
+    <label className="relative inline-flex h-4 w-4 cursor-pointer items-center justify-center">
+      <input
+        type="checkbox"
+        checked={checked}
+        ref={input => {
+          if (input) input.indeterminate = Boolean(indeterminate);
+        }}
+        onChange={e => onChange(e.target.checked)}
+        aria-label={ariaLabel}
+        className="sr-only"
+      />
+      <span
+        aria-hidden
+        className={`absolute inset-0 ${isLit ? 'bg-action-light' : 'bg-surface-void/30'} ${boxGlow}`}
+      />
+      <span
+        aria-hidden
+        className={`absolute -top-px -left-px h-1 w-1 border-t border-l ${bracketColor}`}
+      />
+      <span
+        aria-hidden
+        className={`absolute -top-px -right-px h-1 w-1 border-t border-r ${bracketColor}`}
+      />
+      <span
+        aria-hidden
+        className={`absolute -bottom-px -left-px h-1 w-1 border-b border-l ${bracketColor}`}
+      />
+      <span
+        aria-hidden
+        className={`absolute -right-px -bottom-px h-1 w-1 border-b border-r ${bracketColor}`}
+      />
+      {checked && !indeterminate && (
+        <svg
+          aria-hidden
+          className="absolute inset-0 text-primary"
+          style={{ filter: 'drop-shadow(0 0 2px hsl(var(--primary) / 0.6))' }}
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M12 5L6.5 10.5L4 8" />
+        </svg>
+      )}
+      {indeterminate && (
+        <span
+          aria-hidden
+          className="absolute top-1/2 right-[3px] left-[3px] h-0.5 -translate-y-1/2 bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.6)]"
+        />
+      )}
+    </label>
   );
 };
 
