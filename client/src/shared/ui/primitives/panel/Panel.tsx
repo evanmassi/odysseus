@@ -1,8 +1,8 @@
 /**
  * Panel
  *
- * Corner-ticked container with hairline frame. `topless` drops the top border
- * and top corner ticks so a SectionHeader sitting above appears integrated.
+ * Corner-ticked container with hairline frame. `topless` skips the top border
+ * so a SectionHeader sitting above isn't fighting a competing edge line.
  */
 
 import type { ReactNode } from 'react';
@@ -19,7 +19,6 @@ const PANEL_BASE = [
 ].join(' ');
 
 const TOP_CORNER_TICKS = [
-  // Top corners — pseudo-elements (10×10 L-shapes at -1px offsets)
   "before:content-[''] before:absolute before:-top-px before:-left-px",
   'before:w-2.5 before:h-2.5 before:border-t before:border-l',
   'before:border-foreground/30 before:pointer-events-none',

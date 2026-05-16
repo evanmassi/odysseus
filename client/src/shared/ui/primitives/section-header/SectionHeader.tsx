@@ -1,10 +1,7 @@
 /**
  * Section Header
  *
- * Compact lit chip — semi-transparent fill with CRT scanlines and a top-edge sheen,
- * glowing primary signal dot, mono caps title with phosphor glow, optional meta after
- * a vertical hairline divider. Top-right notch and a single scanlined end-cap on the
- * right round out the tactical chrome.
+ * Compact tactical title chip rendered above a Panel.
  */
 
 export interface SectionHeaderProps {

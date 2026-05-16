@@ -1,7 +1,7 @@
 /**
  * Stat Cell
  *
- * Labeled metric block — mono tracked label with tick mark, display-font value, optional unit and footer.
+ * Labeled metric block for stat strips.
  */
 
 import React from 'react';

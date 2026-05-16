@@ -1,7 +1,7 @@
 /**
  * System Admin Dashboard
  *
- * Top-level page for system admins — Facility Overview header, stat strip, and tabbed panels.
+ * Top-level page for system admins.
  */
 
 import { lazy, Suspense, useState } from 'react';
