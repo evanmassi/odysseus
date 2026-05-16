@@ -57,9 +57,9 @@ export function StoragePanel() {
   const { data: labsData } = useLabsQuery();
 
   const labMetaMap = useMemo(() => {
-    const map = new Map<string, { name: string; isDemo: boolean }>();
+    const map = new Map<string, { name: string; isDemo: boolean; isActive: boolean }>();
     for (const lab of labsData ?? []) {
-      map.set(lab.id, { name: lab.name, isDemo: lab.isDemo });
+      map.set(lab.id, { name: lab.name, isDemo: lab.isDemo, isActive: lab.isActive });
     }
     return map;
   }, [labsData]);
@@ -95,7 +95,13 @@ export function StoragePanel() {
         const meta = labMetaMap.get(row.labId);
         return (
           <div className="flex items-center gap-2">
-            <LabBadge labId={row.labId} labName={row.labName} size="sm" isDemo={meta?.isDemo} />
+            <LabBadge
+              labId={row.labId}
+              labName={row.labName}
+              size="sm"
+              isDemo={meta?.isDemo}
+              isActive={meta?.isActive}
+            />
             <span>{row.labName}</span>
           </div>
         );
@@ -163,21 +169,23 @@ export function StoragePanel() {
       </div>
 
       {/* Per-Lab Table */}
-      <SectionHeader title="Lab Storage" meta={`${sortedLabs.length} records`} />
-      <Panel topless>
-        <Table<LabSummaryRow>
-          columns={labColumns}
-          data={sortedLabs.map(l => ({ ...l, id: l.labId }))}
-          sortable
-          sortConfig={labSortConfig}
-          onSort={setLabSortConfig}
-          hoverable
-          loading={isLoading}
-          emptyMessage="No labs with storage configured"
-          aria-label="Per-lab storage utilization"
-          onRowClick={row => setSelectedLabId(row.labId)}
-        />
-      </Panel>
+      <div>
+        <SectionHeader title="Lab Storage" meta={`${sortedLabs.length} records`} />
+        <Panel topless>
+          <Table<LabSummaryRow>
+            columns={labColumns}
+            data={sortedLabs.map(l => ({ ...l, id: l.labId }))}
+            sortable
+            sortConfig={labSortConfig}
+            onSort={setLabSortConfig}
+            hoverable
+            loading={isLoading}
+            emptyMessage="No labs with storage configured"
+            aria-label="Per-lab storage utilization"
+            onRowClick={row => setSelectedLabId(row.labId)}
+          />
+        </Panel>
+      </div>
     </div>
   );
 }
@@ -303,22 +311,24 @@ function LabDrillDown({
       </div>
 
       {/* Per-Tank Table */}
-      <SectionHeader title="Tanks" meta={`${data?.tanks?.length ?? 0} records`} />
-      <Panel topless>
-        <Table<TankRow>
-          columns={tankColumns}
-          data={(data?.tanks ?? []).map(t => ({ ...t, id: t.tankId }))}
-          hoverable
-          loading={isLoading}
-          emptyMessage="No tanks configured"
-          aria-label="Per-tank utilization"
-          onRowClick={row => {
-            setExpandedTankId(row.tankId === expandedTankId ? null : row.tankId);
-            setExpandedRackId(null);
-          }}
-          rowClassName={row => (row.tankId === expandedTankId ? 'bg-muted/50' : '')}
-        />
-      </Panel>
+      <div>
+        <SectionHeader title="Tanks" meta={`${data?.tanks?.length ?? 0} records`} />
+        <Panel topless>
+          <Table<TankRow>
+            columns={tankColumns}
+            data={(data?.tanks ?? []).map(t => ({ ...t, id: t.tankId }))}
+            hoverable
+            loading={isLoading}
+            emptyMessage="No tanks configured"
+            aria-label="Per-tank utilization"
+            onRowClick={row => {
+              setExpandedTankId(row.tankId === expandedTankId ? null : row.tankId);
+              setExpandedRackId(null);
+            }}
+            rowClassName={row => (row.tankId === expandedTankId ? 'bg-muted/50' : '')}
+          />
+        </Panel>
+      </div>
 
       {/* Expanded Rack View */}
       {expandedTank && (
@@ -327,23 +337,25 @@ function LabDrillDown({
             <div className="h-px bg-muted-foreground/60" />
           </div>
 
-          <SectionHeader
-            title={`Racks in ${expandedTank.tankName}`}
-            meta={`${expandedTank.racks.length} records`}
-          />
-          <Panel topless>
-            <Table<RackRow>
-              columns={rackColumns}
-              data={expandedTank.racks.map(r => ({ ...r, id: r.rackId }))}
-              hoverable
-              emptyMessage="No racks in this tank"
-              aria-label={`Racks in ${expandedTank.tankName}`}
-              onRowClick={row =>
-                setExpandedRackId(row.rackId === expandedRackId ? null : row.rackId)
-              }
-              rowClassName={row => (row.rackId === expandedRackId ? 'bg-muted/50' : '')}
+          <div>
+            <SectionHeader
+              title={`Racks in ${expandedTank.tankName}`}
+              meta={`${expandedTank.racks.length} records`}
             />
-          </Panel>
+            <Panel topless>
+              <Table<RackRow>
+                columns={rackColumns}
+                data={expandedTank.racks.map(r => ({ ...r, id: r.rackId }))}
+                hoverable
+                emptyMessage="No racks in this tank"
+                aria-label={`Racks in ${expandedTank.tankName}`}
+                onRowClick={row =>
+                  setExpandedRackId(row.rackId === expandedRackId ? null : row.rackId)
+                }
+                rowClassName={row => (row.rackId === expandedRackId ? 'bg-muted/50' : '')}
+              />
+            </Panel>
+          </div>
 
           {expandedRackId && expandedTank.racks.find(r => r.rackId === expandedRackId) && (
             <>
@@ -351,38 +363,40 @@ function LabDrillDown({
                 <div className="h-px bg-muted-foreground/60" />
               </div>
 
-              <SectionHeader
-                title={`Boxes in ${expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}`}
-              />
-              <Panel topless>
-                <Table<BoxRow>
-                  columns={[
-                    {
-                      id: 'boxName',
-                      header: 'Box',
-                      render: (_val, row) => (
-                        <div className="flex items-center gap-2">
-                          <BoxIcon size={14} className="text-muted-foreground" />
-                          <span>{row.boxName}</span>
-                        </div>
-                      ),
-                    },
-                    { id: 'maxPositions', header: 'Positions', accessor: 'maxPositions' },
-                    { id: 'occupied', header: 'Occupied', accessor: 'occupied' },
-                    {
-                      id: 'utilizationPercent',
-                      header: 'Utilization',
-                      render: (_val, row) => <UtilizationBar percent={row.utilizationPercent} />,
-                    },
-                  ]}
-                  data={expandedTank.racks
-                    .find(r => r.rackId === expandedRackId)!
-                    .boxes.map(b => ({ ...b, id: b.boxName }))}
-                  hoverable
-                  emptyMessage="No boxes in this rack"
-                  aria-label="Box utilization"
+              <div>
+                <SectionHeader
+                  title={`Boxes in ${expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}`}
                 />
-              </Panel>
+                <Panel topless>
+                  <Table<BoxRow>
+                    columns={[
+                      {
+                        id: 'boxName',
+                        header: 'Box',
+                        render: (_val, row) => (
+                          <div className="flex items-center gap-2">
+                            <BoxIcon size={14} className="text-muted-foreground" />
+                            <span>{row.boxName}</span>
+                          </div>
+                        ),
+                      },
+                      { id: 'maxPositions', header: 'Positions', accessor: 'maxPositions' },
+                      { id: 'occupied', header: 'Occupied', accessor: 'occupied' },
+                      {
+                        id: 'utilizationPercent',
+                        header: 'Utilization',
+                        render: (_val, row) => <UtilizationBar percent={row.utilizationPercent} />,
+                      },
+                    ]}
+                    data={expandedTank.racks
+                      .find(r => r.rackId === expandedRackId)!
+                      .boxes.map(b => ({ ...b, id: b.boxName }))}
+                    hoverable
+                    emptyMessage="No boxes in this rack"
+                    aria-label="Box utilization"
+                  />
+                </Panel>
+              </div>
             </>
           )}
         </>
