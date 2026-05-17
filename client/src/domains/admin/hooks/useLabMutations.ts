@@ -41,6 +41,7 @@ export function useDeactivateLabMutation() {
     mutationFn: (labId: string) => labService.deactivateLab(labId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
     },
     onError: error => {
       logger.error('Failed to deactivate lab', { error });
@@ -55,6 +56,7 @@ export function useActivateLabMutation() {
     mutationFn: (labId: string) => labService.activateLab(labId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
     },
     onError: error => {
       logger.error('Failed to activate lab', { error });
@@ -69,6 +71,7 @@ export function useUpdateLabMutation() {
     mutationFn: ({ id, name }: { id: string; name: string }) => labService.updateLab(id, name),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
     },
     onError: error => {
       logger.error('Failed to update lab', { error });
