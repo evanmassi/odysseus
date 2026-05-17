@@ -20,13 +20,13 @@ export interface StatCellProps {
   className?: string;
 }
 
-const tickVariants = cva('w-2 h-px shrink-0', {
+const tickVariants = cva('w-1.5 h-1.5 shrink-0', {
   variants: {
     tone: {
-      default: 'bg-muted-foreground/60',
-      success: 'bg-success-bg',
-      warning: 'bg-warning-bg',
-      danger: 'bg-danger-bg',
+      default: 'bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.7)]',
+      success: 'bg-success-bg shadow-[0_0_8px_hsl(var(--color-success-bg)/0.7)]',
+      warning: 'bg-warning-bg shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.7)]',
+      danger: 'bg-danger-bg shadow-[0_0_8px_hsl(var(--color-danger-bg)/0.7)]',
     },
   },
   defaultVariants: { tone: 'default' },
