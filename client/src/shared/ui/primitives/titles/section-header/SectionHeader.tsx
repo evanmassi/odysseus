@@ -1,9 +1,7 @@
 /**
  * Section Header
  *
- * Bracketed inline title — `[ TITLE ] meta · meta ──── ▭ ─── right-meta`.
- * No chip, no fill: hairline rule + marker square punctuate. Title carries
- * phosphor glow so it stays the visual anchor when chrome is stripped.
+ * Inline section title with hairline rule terminator and optional right meta.
  */
 
 import type { ReactNode } from 'react';
@@ -11,7 +9,7 @@ import type { ReactNode } from 'react';
 export interface SectionHeaderProps {
   title: string;
   meta?: ReactNode;
-  rightMeta?: string;
+  rightMeta?: ReactNode;
   className?: string;
 }
 
@@ -36,14 +34,11 @@ export function SectionHeader({ title, meta, rightMeta, className }: SectionHead
         </>
       )}
       <div className="relative flex flex-1 items-center">
-        {/* 8px notch — covers the rule with page bg, creating the visual gap */}
         <span
           aria-hidden
           className="absolute left-0 top-1/2 z-10 h-px w-2 -translate-y-1/2 bg-background"
         />
         <span aria-hidden className="h-px flex-1 bg-foreground/15" />
-        {/* Marker square hangs on the rule; sits further left when rightMeta is
-            present so the rule has a visible tail between marker and text. */}
         <span
           aria-hidden
           className={`absolute top-1/2 h-1 w-3 -translate-y-1/2 bg-foreground/60 ${rightMeta ? 'right-20' : 'right-1'}`}
