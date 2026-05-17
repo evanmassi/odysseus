@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Link2, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Chip, OverflowMenu, Panel, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Chip, OverflowMenu, rowStripe, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -61,8 +61,8 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
 
   return (
     <>
-      <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
-      <Panel topless>
+      <div>
+        <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
         <Table
           columns={getUserColumns({
             onUserAction: setUserAction,
@@ -73,16 +73,15 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
           sortable
           sortConfig={sortConfig}
           onSort={onSort}
-          hoverable={false}
           emptyMessage="No users in this lab"
           aria-label="Lab users"
         />
 
         {inactiveUsers.length > 0 && (
-          <div className="pt-3 px-5 pb-5 border-t border-foreground/10 mt-3">
+          <div className="mt-3 border-t border-line-faint pt-3">
             <button
               onClick={() => setShowInactive(prev => !prev)}
-              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               <ChevronDown
                 size={14}
@@ -101,13 +100,15 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
                   data={inactiveUsers}
                   emptyMessage=""
                   aria-label="Inactive lab users"
-                  className="opacity-60"
+                  rowClassName={row =>
+                    row.status === 'suspended' ? rowStripe('danger') : rowStripe('muted')
+                  }
                 />
               </div>
             )}
           </div>
         )}
-      </Panel>
+      </div>
 
       <ConfirmDialog
         isOpen={userAction !== null}
@@ -192,16 +193,14 @@ function getUserColumns({
             : row.username.slice(0, 2).toUpperCase();
 
         return (
-          <div
-            className={`flex items-center whitespace-nowrap gap-2 ${row.status !== 'approved' ? 'opacity-60' : ''}`}
-          >
+          <div className="flex items-center gap-3 whitespace-nowrap">
             <UserBadge type="otherUser" initials={initials} username={row.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-medium text-card-foreground">{displayName}</span>
+                <span className="text-[13px] font-medium text-foreground">{displayName}</span>
                 {row.status === 'deactivated' && (
                   <Tooltip content="Deactivated">
-                    <Power size={12} className="text-danger-text" />
+                    <Power size={12} className="text-foreground/50" />
                   </Tooltip>
                 )}
                 {row.status === 'suspended' && (
@@ -210,8 +209,14 @@ function getUserColumns({
                   </Tooltip>
                 )}
               </div>
-              <div className="text-xs text-muted-foreground">{row.username}</div>
-              {row.email && <div className="text-[11px] text-muted-foreground/70">{row.email}</div>}
+              <div className="mt-0.5 font-mono text-[10.5px] tracking-[0.04em] text-foreground/55">
+                {row.username}
+              </div>
+              {row.email && (
+                <div className="font-mono text-[10.5px] tracking-[0.04em] text-foreground/40">
+                  {row.email}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -221,17 +226,19 @@ function getUserColumns({
       id: 'position',
       header: 'Position',
       render: (_value, row) => (
-        <div className="whitespace-nowrap max-w-[150px]">
+        <div className="max-w-[150px] whitespace-nowrap">
           {row.position ? (
             <Tooltip content={row.position} side="bottom">
-              <div className="text-sm text-card-foreground truncate">{row.position}</div>
+              <div className="truncate text-[13px] text-foreground">{row.position}</div>
             </Tooltip>
           ) : (
-            <div className="text-sm text-muted-foreground">—</div>
+            <div className="font-mono text-[10.5px] text-foreground/30">—</div>
           )}
           {row.department && (
             <Tooltip content={row.department} side="bottom">
-              <div className="text-xs text-muted-foreground truncate">{row.department}</div>
+              <div className="truncate font-mono text-[10.5px] tracking-[0.04em] text-foreground/55">
+                {row.department}
+              </div>
             </Tooltip>
           )}
         </div>
@@ -256,11 +263,11 @@ function getUserColumns({
           return (
             <div className="flex flex-col gap-0.5">
               <div
-                className={`flex items-center gap-1.5 text-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
+                className={`flex items-center gap-1.5 whitespace-nowrap text-[13px] ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
               >
                 <Link2
                   size={14}
-                  className={`shrink-0 ${isDeactivated ? 'text-muted-foreground' : 'text-success-text'}`}
+                  className={`shrink-0 ${isDeactivated ? 'text-foreground/30' : 'text-success-text'}`}
                 />
                 <span>{row.researcher.name}</span>
               </div>
@@ -284,7 +291,7 @@ function getUserColumns({
       header: 'Last Active',
       sortable: true,
       render: (_value, row) => (
-        <span className="text-sm text-muted-foreground whitespace-nowrap">
+        <span className="whitespace-nowrap font-mono text-[12px] tracking-[0.04em] text-foreground/70">
           {formatRelativeTime(row.lastActivity)}
         </span>
       ),

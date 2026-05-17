@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { Button, Chip, Panel, SectionHeader, Table, DatePicker } from '@shared/ui';
+import { Button, Chip, SectionHeader, Table, DatePicker } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -593,32 +593,26 @@ export function SecurityPanel() {
         )}
 
         <SectionHeader title="Active Sessions" meta={`${sortedSessions.length} active`} />
-        <Panel topless>
-          <Table<ActiveSessionEntry>
-            columns={sessionColumns}
-            data={sortedSessions}
-            sortable
-            selectable
-            multiSelect
-            selectedRows={selectedSessionIds}
-            onSelectionChange={setSelectedSessionIds}
-            sortConfig={sessionSortConfig}
-            onSort={setSessionSortConfig}
-            loading={sessionsLoading}
-            hoverable
-            emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
-            aria-label="Active sessions"
-            rowClassName={row =>
-              isOwnSession(row)
-                ? 'text-success-text phosphor-text [&>td]:bg-success-light [&>td]:bg-scanlines [&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]'
-                : ''
-            }
-          />
-        </Panel>
-      </div>
-
-      <div>
-        <div className="h-px bg-muted-foreground/60" />
+        <Table<ActiveSessionEntry>
+          columns={sessionColumns}
+          data={sortedSessions}
+          sortable
+          selectable
+          multiSelect
+          selectedRows={selectedSessionIds}
+          onSelectionChange={setSelectedSessionIds}
+          sortConfig={sessionSortConfig}
+          onSort={setSessionSortConfig}
+          loading={sessionsLoading}
+          hoverable
+          emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
+          aria-label="Active sessions"
+          rowClassName={row =>
+            isOwnSession(row)
+              ? 'text-success-text phosphor-text [&>td]:bg-success-light [&>td]:bg-scanlines [&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]'
+              : ''
+          }
+        />
       </div>
 
       {/* IP Activity */}
@@ -664,36 +658,28 @@ export function SecurityPanel() {
           title="IP Activity"
           meta={`${ipData?.entries?.length ?? 0} unique addresses`}
         />
-        <Panel topless>
-          <Table<IpActivityRow>
-            columns={ipColumns}
-            data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
-            hoverable
-            emptyMessage="No IP activity data"
-            aria-label="IP activity"
-          />
-        </Panel>
-      </div>
-
-      <div>
-        <div className="h-px bg-muted-foreground/60" />
+        <Table<IpActivityRow>
+          columns={ipColumns}
+          data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
+          hoverable
+          emptyMessage="No IP activity data"
+          aria-label="IP activity"
+        />
       </div>
 
       {/* Failed Login Attempts */}
       <div>
         <SectionHeader title="Failed Login Attempts" meta="last 7 days" />
-        <Panel topless>
-          <Table<FailedLoginRow>
-            columns={failedLoginColumns}
-            data={(failedLoginsData?.entries ?? []).map((e, i) => ({
-              ...e,
-              id: `${e.username}-${e.timestamp}-${i}`,
-            }))}
-            hoverable
-            emptyMessage="No failed login attempts"
-            aria-label="Failed login attempts"
-          />
-        </Panel>
+        <Table<FailedLoginRow>
+          columns={failedLoginColumns}
+          data={(failedLoginsData?.entries ?? []).map((e, i) => ({
+            ...e,
+            id: `${e.username}-${e.timestamp}-${i}`,
+          }))}
+          hoverable
+          emptyMessage="No failed login attempts"
+          aria-label="Failed login attempts"
+        />
       </div>
 
       <ConfirmDialog

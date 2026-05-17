@@ -6,9 +6,10 @@
 
 import { useMemo, useState } from 'react';
 
-import { ChevronDown, Dna, Link2, Trash2 } from 'lucide-react';
+import { ChevronDown, Link2, Trash2 } from 'lucide-react';
 
-import { Button, Chip, Panel, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Button, Chip, rowStripe, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -61,24 +62,23 @@ export function LabResearchersPanel({
 
   return (
     <>
-      <SectionHeader title="Researchers" meta={`${activeResearchers.length} records`} />
-      <Panel topless>
+      <div>
+        <SectionHeader title="Researchers" meta={`${activeResearchers.length} records`} />
         <Table
           columns={columns}
           data={activeResearchers}
           sortable
           sortConfig={sortConfig}
           onSort={onSort}
-          hoverable={false}
           emptyMessage="No researchers in this lab"
           aria-label="Lab researchers"
         />
 
         {inactiveResearchers.length > 0 && (
-          <div className="pt-3 px-5 pb-5 border-t border-foreground/10 mt-3">
+          <div className="mt-3 border-t border-line-faint pt-3">
             <button
               onClick={() => setShowInactive(prev => !prev)}
-              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               <ChevronDown
                 size={14}
@@ -93,13 +93,13 @@ export function LabResearchersPanel({
                   data={inactiveResearchers}
                   emptyMessage=""
                   aria-label="Inactive lab researchers"
-                  className="opacity-60"
+                  rowClassName={() => rowStripe('muted')}
                 />
               </div>
             )}
           </div>
         )}
-      </Panel>
+      </div>
 
       <ConfirmDialog
         isOpen={deleteTarget !== null}
@@ -124,19 +124,29 @@ function getResearcherColumns(
       id: 'name',
       header: 'Researcher',
       sortable: true,
-      render: (_value, row) => (
-        <div className="flex items-center whitespace-nowrap">
-          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
-            <Dna size={14} className="text-secondary-foreground" />
-          </div>
-          <div>
-            <div className="text-sm font-medium text-card-foreground">
-              {row.lastName}, {row.firstName}
+      render: (_value, row) => {
+        const initials = `${row.firstName?.[0] ?? ''}${row.lastName?.[0] ?? ''}`.toUpperCase();
+        return (
+          <div className="flex items-center gap-3 whitespace-nowrap">
+            <UserBadge
+              type="otherUser"
+              initials={initials}
+              username={`${row.firstName} ${row.lastName}`}
+              size="md"
+            />
+            <div>
+              <div className="text-[13px] font-medium text-foreground">
+                {row.lastName}, {row.firstName}
+              </div>
+              {row.email && (
+                <div className="mt-0.5 font-mono text-[10.5px] tracking-[0.04em] text-foreground/40">
+                  {row.email}
+                </div>
+              )}
             </div>
-            {row.email && <div className="text-xs text-muted-foreground">{row.email}</div>}
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       id: 'tubeCount',
@@ -162,11 +172,11 @@ function getResearcherColumns(
           return (
             <div className="flex flex-col gap-0.5">
               <div
-                className={`flex items-center gap-1.5 text-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
+                className={`flex items-center gap-1.5 whitespace-nowrap text-[13px] ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
               >
                 <Link2
                   size={14}
-                  className={`shrink-0 ${isDeactivated ? 'text-muted-foreground' : 'text-success-text'}`}
+                  className={`shrink-0 ${isDeactivated ? 'text-foreground/30' : 'text-success-text'}`}
                 />
                 <span>{row.linkedUser.username}</span>
               </div>
