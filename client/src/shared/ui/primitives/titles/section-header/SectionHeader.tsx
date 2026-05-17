@@ -20,23 +20,20 @@ export function SectionHeader({ title, meta, rightMeta, className }: SectionHead
     <div className={`flex items-center gap-3.5 pb-3.5 ${className ?? ''}`}>
       <span
         aria-hidden
-        className="font-mono text-[14px] font-light leading-none text-foreground/45"
-      >
-        [
-      </span>
+        className="h-1.5 w-1.5 shrink-0 bg-foreground/80 shadow-[0_0_6px_hsl(var(--foreground)/0.5)]"
+      />
       <span className="phosphor-text font-mono text-[12px] font-semibold uppercase tracking-[0.22em] text-foreground">
         {title}
       </span>
-      <span
-        aria-hidden
-        className="font-mono text-[14px] font-light leading-none text-foreground/45"
-      >
-        ]
-      </span>
       {meta && (
-        <span className="pl-1.5 font-mono text-[10.5px] uppercase tracking-[0.20em] text-muted-foreground">
-          {meta}
-        </span>
+        <>
+          <span aria-hidden className="font-mono text-[12px] text-foreground/35">
+            ·
+          </span>
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.20em] text-muted-foreground">
+            {meta}
+          </span>
+        </>
       )}
       <div className="relative flex flex-1 items-center">
         {/* 8px notch — covers the rule with page bg, creating the visual gap */}

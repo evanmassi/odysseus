@@ -6,7 +6,7 @@
 
 import { lazy, Suspense, useState } from 'react';
 
-import { FlaskConical, HardDrive, Shield } from 'lucide-react';
+import { FlaskConical, HardDrive, LayoutDashboard, Shield } from 'lucide-react';
 
 import { IdStamp, LoadingSkeleton, StatCell, Tab, Tabs } from '@shared/ui';
 
@@ -37,8 +37,9 @@ export function SystemAdminDashboard() {
     <div className="h-full overflow-y-auto">
       <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
         <div>
-          <h1 className="font-display text-[32px] font-normal tracking-[-0.015em] leading-none">
-            Facility Overview
+          <h1 className="flex items-center gap-3 font-display text-[32px] font-normal tracking-[-0.015em] leading-none">
+            <LayoutDashboard size={28} className="text-foreground/60" />
+            System Overview
           </h1>
           {overview && (
             <div className="mt-2">
@@ -114,19 +115,21 @@ export function SystemAdminDashboard() {
           </Tabs>
         </div>
 
-        {activeTab === 'labs' && <LabsPanel onSelectLab={setSelectedLabId} />}
+        <div className="pt-2">
+          {activeTab === 'labs' && <LabsPanel onSelectLab={setSelectedLabId} />}
 
-        {activeTab === 'security' && (
-          <Suspense fallback={<LoadingSkeleton />}>
-            <SecurityPanel />
-          </Suspense>
-        )}
+          {activeTab === 'security' && (
+            <Suspense fallback={<LoadingSkeleton />}>
+              <SecurityPanel />
+            </Suspense>
+          )}
 
-        {activeTab === 'storage' && (
-          <Suspense fallback={<LoadingSkeleton />}>
-            <StoragePanel />
-          </Suspense>
-        )}
+          {activeTab === 'storage' && (
+            <Suspense fallback={<LoadingSkeleton />}>
+              <StoragePanel />
+            </Suspense>
+          )}
+        </div>
       </div>
     </div>
   );

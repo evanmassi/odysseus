@@ -7,12 +7,21 @@
 import { useMemo, useState } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
-import { AlertTriangle, Box as BoxIcon, ChevronLeft, HardDrive, Rows3, Icon } from 'lucide-react';
+import {
+  AlertTriangle,
+  Box as BoxIcon,
+  ChevronLeft,
+  FlaskConical,
+  HardDrive,
+  Icon,
+  Rows3,
+  TestTube,
+} from 'lucide-react';
 
-import { Button, Chip, SectionHeader, Table } from '@shared/ui';
+import { BracketedStamp, Button, Chip, SectionHeader, StatCell, Table } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges';
 
-import { useLabsQuery } from '../../../hooks/useLabQueries';
+import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueries';
 import {
   useCrossLabStorageAnalyticsQuery,
   useLabStorageAnalyticsSystemQuery,
@@ -30,6 +39,9 @@ type LabSummaryRow = LabStorageSummary & { id: string };
 type TankRow = TankUtilization & { id: string };
 type RackRow = RackUtilization & { id: string };
 type BoxRow = BoxUtilization & { id: string };
+
+const NEAR_CAPACITY_THRESHOLD = 85;
+const CRITICAL_CAPACITY_THRESHOLD = 95;
 
 function UtilizationBar({ percent }: { percent: number }) {
   const color = percent >= 90 ? 'bg-danger-bg' : percent >= 70 ? 'bg-warning-bg' : 'bg-success-bg';
@@ -55,6 +67,9 @@ export function StoragePanel() {
   });
 
   const { data: labsData } = useLabsQuery();
+  const { data: systemOverview } = useSystemOverviewQuery();
+
+  const totalTanks = (systemOverview?.labStats ?? []).reduce((sum, lab) => sum + lab.tankCount, 0);
 
   const labMetaMap = useMemo(() => {
     const map = new Map<string, { name: string; isDemo: boolean; isActive: boolean }>();
@@ -65,6 +80,20 @@ export function StoragePanel() {
   }, [labsData]);
 
   const selectedLabMeta = selectedLabId ? labMetaMap.get(selectedLabId) : undefined;
+
+  const nearCapacityCount = (crossLabData?.labs ?? []).filter(
+    l => l.utilizationPercent >= NEAR_CAPACITY_THRESHOLD
+  ).length;
+  const criticalCapacityCount = (crossLabData?.labs ?? []).filter(
+    l => l.utilizationPercent >= CRITICAL_CAPACITY_THRESHOLD
+  ).length;
+  const capacityTone =
+    criticalCapacityCount > 0 ? 'danger' : nearCapacityCount > 0 ? 'warning' : 'success';
+
+  const activeLabsInTable = (crossLabData?.labs ?? []).filter(
+    l => labMetaMap.get(l.labId)?.isActive
+  ).length;
+  const inactiveLabsInTable = (crossLabData?.labs ?? []).length - activeLabsInTable;
 
   const sortedLabs = useMemo(() => {
     const labs = crossLabData?.labs ?? [];
@@ -140,37 +169,59 @@ export function StoragePanel() {
 
   return (
     <div className="space-y-4">
-      {/* Overview */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <HardDrive size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Storage Overview</h3>
-        </div>
-        <div className="rounded-lg bg-card p-3 w-fit">
-          <div className="flex flex-wrap items-center gap-2">
-            <Chip color="info" size="sm" leftIcon={<HardDrive />}>
-              {crossLabData?.totalPositions ?? 0} total positions
-            </Chip>
-            <Chip color="info" size="sm" leftIcon={<BoxIcon />}>
-              {crossLabData?.totalOccupied ?? 0} occupied
-            </Chip>
-            <Chip
-              color={(crossLabData?.utilizationPercent ?? 0) >= 90 ? 'warning' : 'info'}
-              size="sm"
-            >
-              {crossLabData?.utilizationPercent ?? 0}% utilization
-            </Chip>
-          </div>
+      <BracketedStamp title="Storage" icon={<HardDrive size={14} />} />
+
+      <div className="relative overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-card bg-scanlines"
+          style={{
+            maskImage:
+              'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent), linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)',
+            WebkitMaskImage:
+              'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent), linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)',
+            maskComposite: 'intersect',
+            WebkitMaskComposite: 'source-in',
+          }}
+        />
+        <div className="relative flex divide-x divide-line-soft">
+          <StatCell
+            size="sm"
+            label="Labs with Storage"
+            value={crossLabData?.labs.length ?? 0}
+            footer={`of ${labsData?.length ?? 0} total`}
+            icon={<FlaskConical size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Tanks"
+            value={totalTanks.toLocaleString()}
+            icon={<Icon iconNode={refrigeratorFreezer} size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Total Positions"
+            value={(crossLabData?.totalPositions ?? 0).toLocaleString()}
+            icon={<TestTube size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Near Capacity"
+            value={nearCapacityCount}
+            tone={capacityTone}
+            className="flex-1"
+          />
         </div>
       </div>
 
       <div>
-        <div className="h-px bg-muted-foreground/60" />
-      </div>
-
-      {/* Per-Lab Table */}
-      <div>
-        <SectionHeader title="Lab Storage" meta={`${sortedLabs.length} records`} />
+        <SectionHeader
+          title="Lab Usage"
+          meta={`${activeLabsInTable} active · ${inactiveLabsInTable} inactive`}
+        />
         <Table<LabSummaryRow>
           columns={labColumns}
           data={sortedLabs.map(l => ({ ...l, id: l.labId }))}
