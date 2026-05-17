@@ -48,7 +48,7 @@ const sizeStyles: Record<
   sm: {
     container: 'gap-0.5 px-3 py-2.5',
     value: 'text-[17px]',
-    valueGlow: '',
+    valueGlow: '[text-shadow:0_0_4px_color-mix(in_srgb,currentColor_25%,transparent)]',
     unit: 'ml-1 text-[10px]',
     footer: 'mt-0.5 text-[9.5px]',
   },

@@ -24,7 +24,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 
-import { BracketedStamp, Button, Chip, IdStamp, StatCell } from '@shared/ui';
+import { BracketedStamp, Button, IdStamp, SectionHeader, StatCell } from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -162,6 +162,17 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
               {lab.isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
               {lab.isActive ? 'active' : 'deactivated'}
             </span>
+            {lab.isDemo && (
+              <>
+                <span className="text-foreground/40">·</span>
+                <span
+                  className={`flex items-center gap-1.5 ${lab.isSeeded ? 'text-success-text' : 'text-warning-text'}`}
+                >
+                  {lab.isSeeded ? <Sprout size={11} /> : <BeanOff size={11} />}
+                  {lab.isSeeded ? 'seeded' : 'not seeded'}
+                </span>
+              </>
+            )}
           </span>
         </div>
 
@@ -211,20 +222,9 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="flex items-end justify-between gap-4">
                 <div className="mb-1 ml-2 flex flex-col gap-2">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-display text-[24px] leading-none font-medium tracking-[-0.01em] text-foreground">
-                      {lab.name}
-                    </h3>
-                    {lab.isDemo && (
-                      <Chip
-                        color={lab.isSeeded ? 'success' : 'warning'}
-                        size="xs"
-                        leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
-                      >
-                        {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
-                      </Chip>
-                    )}
-                  </div>
+                  <h3 className="font-display text-[24px] leading-none font-medium tracking-[-0.01em] text-foreground">
+                    {lab.name}
+                  </h3>
                   {stats && (
                     <IdStamp
                       parts={[
@@ -343,13 +343,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   return (
     <div className="space-y-4">
       <BracketedStamp
-        title={
-          <>
-            <span>{labs.length}</span>
-            <span>{labs.length === 1 ? 'Lab' : 'Labs'}</span>
-          </>
-        }
-        meta={`${labs.filter(l => l.isActive).length} active · ${labs.filter(l => !l.isActive).length} inactive`}
+        title="Labs"
         icon={<FlaskConical size={14} />}
         actions={
           <>
@@ -431,17 +425,27 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
       {isLoading && labs.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Loading labs...</div>
       ) : (
-        <div className="space-y-5">
-          {regularLabs.map(lab => renderLabCard(lab))}
-
-          {demoLabs.length > 0 && regularLabs.length > 0 && (
-            <div className="py-3">
-              <div className="h-px bg-muted-foreground/60" />
+        <>
+          {regularLabs.length > 0 && (
+            <div>
+              <SectionHeader
+                title="Registered"
+                meta={`${regularLabs.length} ${regularLabs.length === 1 ? 'record' : 'records'}`}
+              />
+              <div className="space-y-5">{regularLabs.map(lab => renderLabCard(lab))}</div>
             </div>
           )}
 
-          {demoLabs.map(lab => renderLabCard(lab))}
-        </div>
+          {demoLabs.length > 0 && (
+            <div>
+              <SectionHeader
+                title="Demo"
+                meta={`${demoLabs.length} ${demoLabs.length === 1 ? 'record' : 'records'}`}
+              />
+              <div className="space-y-5">{demoLabs.map(lab => renderLabCard(lab))}</div>
+            </div>
+          )}
+        </>
       )}
 
       <ConfirmDialog
