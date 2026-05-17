@@ -14,12 +14,13 @@ import {
   FlaskConical,
   HardDrive,
   Icon,
+  RefreshCw,
   Rows3,
   TestTube,
 } from 'lucide-react';
 
-import { BracketedStamp, Button, Chip, SectionHeader, StatCell, Table } from '@shared/ui';
-import { LabBadge } from '@shared/ui/components/badges';
+import { BracketedStamp, Button, Chip, IdStamp, SectionHeader, StatCell, Table } from '@shared/ui';
+import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 
 import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueries';
 import {
@@ -44,22 +45,30 @@ const NEAR_CAPACITY_THRESHOLD = 85;
 const CRITICAL_CAPACITY_THRESHOLD = 95;
 
 function UtilizationBar({ percent }: { percent: number }) {
-  const color = percent >= 90 ? 'bg-danger-bg' : percent >= 70 ? 'bg-warning-bg' : 'bg-success-bg';
+  const tone =
+    percent >= 90
+      ? 'bg-danger-bg shadow-[0_0_6px_hsl(var(--color-danger-bg)/0.6)]'
+      : percent >= 70
+        ? 'bg-warning-bg shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.6)]'
+        : 'bg-success-bg shadow-[0_0_6px_hsl(var(--color-success-bg)/0.6)]';
+  const clamped = Math.min(percent, 100);
   return (
     <div className="flex items-center gap-2">
-      <div className="w-20 h-2 rounded-full bg-muted overflow-hidden">
-        <div
-          className={`h-full rounded-full ${color}`}
-          style={{ width: `${Math.min(percent, 100)}%` }}
-        />
+      <div className="relative h-1.5 w-20 border border-foreground/15 bg-foreground/[0.03]">
+        <div className={`h-full bg-scanlines ${tone}`} style={{ width: `${clamped}%` }} />
       </div>
-      <span className="text-xs text-muted-foreground">{percent}%</span>
+      <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/70">{percent}%</span>
     </div>
   );
 }
 
 export function StoragePanel() {
-  const { data: crossLabData, isLoading } = useCrossLabStorageAnalyticsQuery();
+  const {
+    data: crossLabData,
+    isLoading,
+    isFetching: crossLabFetching,
+    refetch: refetchCrossLab,
+  } = useCrossLabStorageAnalyticsQuery();
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
   const [labSortConfig, setLabSortConfig] = useState<SortConfig | undefined>({
     columnId: 'utilizationPercent',
@@ -72,9 +81,17 @@ export function StoragePanel() {
   const totalTanks = (systemOverview?.labStats ?? []).reduce((sum, lab) => sum + lab.tankCount, 0);
 
   const labMetaMap = useMemo(() => {
-    const map = new Map<string, { name: string; isDemo: boolean; isActive: boolean }>();
+    const map = new Map<
+      string,
+      { name: string; slug: string; isDemo: boolean; isActive: boolean }
+    >();
     for (const lab of labsData ?? []) {
-      map.set(lab.id, { name: lab.name, isDemo: lab.isDemo, isActive: lab.isActive });
+      map.set(lab.id, {
+        name: lab.name,
+        slug: lab.slug,
+        isDemo: lab.isDemo,
+        isActive: lab.isActive,
+      });
     }
     return map;
   }, [labsData]);
@@ -161,7 +178,9 @@ export function StoragePanel() {
       <LabDrillDown
         labId={selectedLabId}
         labName={selectedLabMeta?.name ?? ''}
+        labSlug={selectedLabMeta?.slug ?? ''}
         isDemo={selectedLabMeta?.isDemo ?? false}
+        isActive={selectedLabMeta?.isActive ?? false}
         onBack={() => setSelectedLabId(null)}
       />
     );
@@ -169,7 +188,21 @@ export function StoragePanel() {
 
   return (
     <div className="space-y-4">
-      <BracketedStamp title="Storage" icon={<HardDrive size={14} />} />
+      <BracketedStamp
+        title="Storage"
+        icon={<HardDrive size={14} />}
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => void refetchCrossLab()}
+            disabled={isLoading}
+            leftIcon={<RefreshCw size={14} className={crossLabFetching ? 'animate-spin' : ''} />}
+          >
+            Refresh
+          </Button>
+        }
+      />
 
       <div className="relative overflow-hidden">
         <div
@@ -242,17 +275,39 @@ export function StoragePanel() {
 function LabDrillDown({
   labId,
   labName,
+  labSlug,
   isDemo,
+  isActive,
   onBack,
 }: {
   labId: string;
   labName: string;
+  labSlug: string;
   isDemo: boolean;
+  isActive: boolean;
   onBack: () => void;
 }) {
   const { data, isLoading } = useLabStorageAnalyticsSystemQuery(labId);
   const [expandedTankId, setExpandedTankId] = useState<string | null>(null);
   const [expandedRackId, setExpandedRackId] = useState<string | null>(null);
+
+  const utilizationPercent = data?.utilizationPercent ?? 0;
+  const tankCount = data?.tanks?.length ?? 0;
+  const rackCount = (data?.tanks ?? []).reduce((sum, t) => sum + t.racks.length, 0);
+  const boxCount = (data?.tanks ?? []).reduce(
+    (sum, t) => sum + t.racks.reduce((rSum, r) => rSum + r.boxes.length, 0),
+    0
+  );
+
+  const expandedRowClass = [
+    'bg-primary/[0.04]',
+    '[background-image:linear-gradient(to_right,hsl(var(--primary)/0.14)_0%,hsl(var(--primary)/0.05)_20%,hsl(var(--primary)/0.01)_100%),repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px)]',
+    'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_0_8px_hsl(var(--primary)/0.07),-18px_0_20px_hsl(var(--primary)/0.22),14px_0_28px_hsl(var(--primary)/0.10)]',
+    '[&>td]:!bg-transparent',
+    '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
+    '[&>td]:font-semibold',
+    '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
+  ].join(' ');
 
   const tankColumns: TableColumn<TankRow>[] = [
     {
@@ -318,50 +373,58 @@ function LabDrillDown({
         All Labs
       </Button>
 
-      <div className="flex items-center gap-2">
-        <LabBadge labId={labId} labName={labName} size="md" isDemo={isDemo} />
-        <h3 className="text-lg font-semibold text-card-foreground">{labName}</h3>
+      <div className="flex items-stretch gap-3">
+        <div
+          className={`flex shrink-0 flex-col items-center gap-2 ${getLabBadgeTextClasses(labId, isDemo)}`}
+        >
+          <LabBadge labId={labId} labName={labName} size="md" isDemo={isDemo} isActive={isActive} />
+          <span
+            aria-hidden
+            className="w-px flex-1"
+            style={{
+              background:
+                'linear-gradient(to bottom, color-mix(in srgb, currentColor 30%, transparent), transparent)',
+            }}
+          />
+        </div>
+        <div className="flex min-w-0 flex-col justify-end gap-2">
+          <h1 className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] text-foreground">
+            {labName}
+          </h1>
+          <IdStamp
+            parts={[
+              `/${labSlug}`,
+              `${tankCount} ${tankCount === 1 ? 'tank' : 'tanks'} · ${rackCount} ${rackCount === 1 ? 'rack' : 'racks'} · ${boxCount} ${boxCount === 1 ? 'box' : 'boxes'}`,
+              `${utilizationPercent}% utilization`,
+            ]}
+          />
+        </div>
       </div>
 
-      {/* Near-capacity warnings */}
       {data && data.nearCapacityBoxes.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          {data.nearCapacityBoxes.map(box => (
-            <Chip
-              key={`${box.tankName}-${box.rackName}-${box.boxName}`}
-              color="warning"
-              size="sm"
-              leftIcon={<AlertTriangle size={12} />}
-            >
-              {box.tankName} · {box.rackName} · {box.boxName}: {box.occupied}/{box.maxPositions} (
-              {box.utilizationPercent}%)
-            </Chip>
-          ))}
+        <div>
+          <SectionHeader
+            title="Near Capacity"
+            meta={`${data.nearCapacityBoxes.length} ${data.nearCapacityBoxes.length === 1 ? 'box' : 'boxes'}`}
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            {data.nearCapacityBoxes.map(box => (
+              <Chip
+                key={`${box.tankName}-${box.rackName}-${box.boxName}`}
+                color="warning"
+                size="sm"
+                leftIcon={<AlertTriangle size={12} />}
+              >
+                {box.tankName} · {box.rackName} · {box.boxName}: {box.occupied}/{box.maxPositions} (
+                {box.utilizationPercent}%)
+              </Chip>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Overview chips */}
-      <div className="rounded-lg bg-card p-3 w-fit">
-        <div className="flex flex-wrap items-center gap-2">
-          <Chip color="info" size="sm" leftIcon={<HardDrive />}>
-            {data?.totalPositions ?? 0} total positions
-          </Chip>
-          <Chip color="info" size="sm" leftIcon={<BoxIcon />}>
-            {data?.totalOccupied ?? 0} occupied
-          </Chip>
-          <Chip color={(data?.utilizationPercent ?? 0) >= 90 ? 'warning' : 'info'} size="sm">
-            {data?.utilizationPercent ?? 0}% utilization
-          </Chip>
-        </div>
-      </div>
-
       <div>
-        <div className="h-px bg-muted-foreground/60" />
-      </div>
-
-      {/* Per-Tank Table */}
-      <div>
-        <SectionHeader title="Tanks" meta={`${data?.tanks?.length ?? 0} records`} />
+        <SectionHeader title="Tanks" meta={`${tankCount}`} />
         <Table<TankRow>
           columns={tankColumns}
           data={(data?.tanks ?? []).map(t => ({ ...t, id: t.tankId }))}
@@ -373,17 +436,16 @@ function LabDrillDown({
             setExpandedTankId(row.tankId === expandedTankId ? null : row.tankId);
             setExpandedRackId(null);
           }}
-          rowClassName={row => (row.tankId === expandedTankId ? 'bg-muted/50' : '')}
+          rowClassName={row => (row.tankId === expandedTankId ? expandedRowClass : '')}
         />
       </div>
 
-      {/* Expanded Rack View */}
       {expandedTank && (
         <>
           <div>
             <SectionHeader
-              title={`Racks in ${expandedTank.tankName}`}
-              meta={`${expandedTank.racks.length} records`}
+              title="Racks"
+              meta={`${expandedTank.racks.length} // ${expandedTank.tankName}`}
             />
             <Table<RackRow>
               columns={rackColumns}
@@ -394,14 +456,15 @@ function LabDrillDown({
               onRowClick={row =>
                 setExpandedRackId(row.rackId === expandedRackId ? null : row.rackId)
               }
-              rowClassName={row => (row.rackId === expandedRackId ? 'bg-muted/50' : '')}
+              rowClassName={row => (row.rackId === expandedRackId ? expandedRowClass : '')}
             />
           </div>
 
           {expandedRackId && expandedTank.racks.find(r => r.rackId === expandedRackId) && (
             <div>
               <SectionHeader
-                title={`Boxes in ${expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}`}
+                title="Boxes"
+                meta={`${expandedTank.racks.find(r => r.rackId === expandedRackId)!.boxes.length} // ${expandedTank.tankName} // ${expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}`}
               />
               <Table<BoxRow>
                 columns={[
