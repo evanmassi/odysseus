@@ -11,7 +11,9 @@ import {
   BeanOff,
   Check,
   ChevronDown,
+  CircleCheckBig,
   Dna,
+  OctagonX,
   Power,
   RefreshCw,
   ShieldUser,
@@ -22,8 +24,8 @@ import {
   X,
 } from 'lucide-react';
 
-import { Button, Chip, IdStamp, SectionHeader, StatCell } from '@shared/ui';
-import { LabBadge } from '@shared/ui/components/badges';
+import { Button, IdStamp, SectionHeader, StatCell } from '@shared/ui';
+import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -148,15 +150,27 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
         </Button>
 
         <div className="flex items-end justify-between gap-4">
-          <div className="flex items-end gap-3 min-w-0">
-            <LabBadge
-              labId={labId}
-              labName={lab.name}
-              size="md"
-              isDemo={lab.isDemo}
-              isActive={lab.isActive}
-            />
-            <div className="flex flex-col gap-2 min-w-0">
+          <div className="flex items-stretch gap-3 min-w-0">
+            <div
+              className={`flex shrink-0 flex-col items-center gap-2 ${getLabBadgeTextClasses(labId, lab.isDemo)}`}
+            >
+              <LabBadge
+                labId={labId}
+                labName={lab.name}
+                size="md"
+                isDemo={lab.isDemo}
+                isActive={lab.isActive}
+              />
+              <span
+                aria-hidden
+                className="w-px flex-1"
+                style={{
+                  background:
+                    'linear-gradient(to bottom, color-mix(in srgb, currentColor 30%, transparent), transparent)',
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-2 min-w-0 justify-end">
               {isRenaming ? (
                 <div className="flex items-center gap-2">
                   <input
@@ -204,24 +218,33 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                   >
                     <SquarePen size={12} />
                   </Button>
-                  {lab.isDemo && (
-                    <Chip
-                      color={details.isSeeded ? 'success' : 'warning'}
-                      size="xs"
-                      leftIcon={details.isSeeded ? <Sprout /> : <BeanOff />}
-                    >
-                      {details.isSeeded ? 'Seeded' : 'Not Seeded'}
-                    </Chip>
-                  )}
                 </div>
               )}
               <IdStamp
                 parts={[
                   `/${lab.slug}`,
                   `${storageSummary.tankCount} ${storageSummary.tankCount === 1 ? 'tank' : 'tanks'} · ${storageSummary.rackCount} ${storageSummary.rackCount === 1 ? 'rack' : 'racks'} · ${storageSummary.boxCount} ${storageSummary.boxCount === 1 ? 'box' : 'boxes'}`,
-                  lab.isActive ? 'active' : 'deactivated',
                 ]}
               />
+              <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em]">
+                <span
+                  className={`flex items-center gap-1.5 ${lab.isActive ? 'text-success-text' : 'text-danger-text'}`}
+                >
+                  {lab.isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
+                  {lab.isActive ? 'active' : 'deactivated'}
+                </span>
+                {lab.isDemo && (
+                  <>
+                    <span className="text-foreground/40">·</span>
+                    <span
+                      className={`flex items-center gap-1.5 ${details.isSeeded ? 'text-success-text' : 'text-warning-text'}`}
+                    >
+                      {details.isSeeded ? <Sprout size={11} /> : <BeanOff size={11} />}
+                      {details.isSeeded ? 'seeded' : 'not seeded'}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
@@ -320,20 +343,22 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
         />
 
         <div>
-          <div className="flex items-center gap-3">
-            <SectionHeader title="Audit Log" />
-            <button
-              type="button"
-              onClick={() => setShowAudit(o => !o)}
-              className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/40 transition-colors hover:text-foreground/70"
-            >
-              <ChevronDown
-                size={12}
-                className={`transition-transform ${showAudit ? '' : '-rotate-90'}`}
-              />
-              {showAudit ? 'Hide' : 'Show'}
-            </button>
-          </div>
+          <SectionHeader
+            title="Audit Log"
+            meta={
+              <button
+                type="button"
+                onClick={() => setShowAudit(o => !o)}
+                className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
+              >
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform ${showAudit ? '' : '-rotate-90'}`}
+                />
+                {showAudit ? 'Hide' : 'Show'}
+              </button>
+            }
+          />
           {showAudit && <AuditLogViewer labId={labId} readOnly hideHeader />}
         </div>
 

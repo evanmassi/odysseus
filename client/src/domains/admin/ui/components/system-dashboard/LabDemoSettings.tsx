@@ -94,7 +94,7 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
   return (
     <>
       <div>
-        <SectionHeader title="Demo" meta={isSeeded ? 'seeded' : 'unseeded'} />
+        <SectionHeader title="Demo Settings" />
         <div className="divide-y divide-line-faint border-b border-line-faint">
           <DemoLimitRow
             label="Additional Tanks"
