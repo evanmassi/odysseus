@@ -192,8 +192,13 @@ export default {
       backgroundImage: {
         scanlines:
           'repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+        /* Stacked, paints front-to-back:
+           1. Primary-tinted 1px hairline at the very top — etched HUD edge
+           2. Off-axis sheen (115°) — implies a light source above-left, not the
+              symmetric top-down sheen used by generic glass UI
+           3. Scanlines — material texture */
         'lit-fill':
-          'linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 45%), repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+          'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
       },
       dropShadow: {
         /* SVG-icon parallel to text-shadow text-bloom — glows in the icon's own color */
