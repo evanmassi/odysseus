@@ -241,7 +241,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                     variant="secondary"
                     size="sm"
                     onClick={() => onSelectLab(lab.id)}
-                    leftIcon={<ArrowRight size={14} />}
+                    rightIcon={<ArrowRight size={14} />}
                     className="w-full justify-center"
                   >
                     Open Lab
@@ -292,9 +292,8 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                     className="flex-1"
                   />
                   <StatCell
-                    label="Specimens"
+                    label="Tubes"
                     value={stats.tubeCount}
-                    unit="tubes"
                     icon={<TestTube size={11} />}
                     className="flex-1"
                   />
@@ -344,8 +343,13 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   return (
     <div className="space-y-4">
       <BracketedStamp
-        title="Labs"
-        meta={`${labs.length} registered`}
+        title={
+          <>
+            <span>{labs.length}</span>
+            <span>{labs.length === 1 ? 'Lab' : 'Labs'}</span>
+          </>
+        }
+        meta={`${labs.filter(l => l.isActive).length} active · ${labs.filter(l => !l.isActive).length} inactive`}
         icon={<FlaskConical size={14} />}
         actions={
           <>

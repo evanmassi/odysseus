@@ -8,7 +8,7 @@ import { lazy, Suspense, useState } from 'react';
 
 import { FlaskConical, HardDrive, Shield } from 'lucide-react';
 
-import { IdStamp, LoadingSkeleton, Panel, StatCell, Tab, Tabs } from '@shared/ui';
+import { IdStamp, LoadingSkeleton, StatCell, Tab, Tabs } from '@shared/ui';
 
 import { useSystemOverviewQuery } from '../../../hooks/useLabQueries';
 import { useSecurityOverviewQuery } from '../../../hooks/useSecurityMonitoringQueries';
@@ -58,8 +58,20 @@ export function SystemAdminDashboard() {
         </div>
 
         {overview && (
-          <Panel>
-            <div className="flex divide-x divide-line-soft">
+          <div className="relative overflow-hidden">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-card bg-scanlines"
+              style={{
+                maskImage:
+                  'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
+                WebkitMaskImage:
+                  'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
+                maskComposite: 'intersect',
+                WebkitMaskComposite: 'source-in',
+              }}
+            />
+            <div className="relative flex divide-x divide-line-soft">
               <StatCell
                 label="Labs Online"
                 value={overview.activeLabs}
@@ -74,8 +86,8 @@ export function SystemAdminDashboard() {
                 className="flex-1"
               />
               <StatCell label="Active Sessions" value={activeSessions ?? '—'} className="flex-1" />
-              {/* TODO(2026-05-15): wire to specimens-created-in-last-24h aggregator */}
-              <StatCell label="Specimens Added 24h" value="—" unit="tubes" className="flex-1" />
+              {/* TODO(2026-05-15): wire to tubes-created-in-last-24h aggregator */}
+              <StatCell label="Tubes Added 24h" value="—" className="flex-1" />
               {/* TODO(2026-05-15): wire to cross-cutting anomaly aggregator */}
               <StatCell
                 label="Needs Attention"
@@ -85,7 +97,7 @@ export function SystemAdminDashboard() {
                 className="flex-1"
               />
             </div>
-          </Panel>
+          </div>
         )}
 
         <div className="border-b border-border">
