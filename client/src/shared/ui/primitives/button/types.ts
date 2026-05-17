@@ -27,6 +27,7 @@ export interface BaseButtonProps extends Omit<ComponentProps<'button'>, 'childre
   loadingText?: string;
   disabled?: boolean;
   leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
   iconOnly?: boolean;
   fullWidth?: boolean;
   'aria-label'?: string;

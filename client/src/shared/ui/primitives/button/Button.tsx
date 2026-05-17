@@ -187,6 +187,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       loadingText,
       disabled = defaultButtonProps.disabled,
       leftIcon,
+      rightIcon,
       iconOnly = defaultButtonProps.iconOnly,
       fullWidth = defaultButtonProps.fullWidth,
       className,
@@ -241,6 +242,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
         <>
           {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
           {children && <span>{children}</span>}
+          {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
         </>
       );
     };
