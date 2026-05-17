@@ -63,7 +63,7 @@ const cellVariants = cva(
   [
     'pr-[18px] pl-0 text-sm text-foreground align-middle',
     'first:pl-[14px] first:shadow-[inset_3px_0_0_0_hsl(var(--foreground)/0.12)]',
-    'group-hover:bg-primary/[0.05]',
+    'group-hover:bg-foreground/[0.05]',
     'group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]',
   ],
   {
