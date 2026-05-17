@@ -7,7 +7,7 @@
 import type { ReactNode } from 'react';
 
 export interface BracketedStampProps {
-  title: string;
+  title: ReactNode;
   meta?: string;
   icon?: ReactNode;
   actions?: ReactNode;
@@ -23,11 +23,11 @@ export function BracketedStamp({ title, meta, icon, actions, className }: Bracke
         </span>
         <span className="inline-flex items-center gap-2 self-center">
           {icon && (
-            <span aria-hidden className="inline-flex items-center text-foreground/80">
+            <span aria-hidden className="inline-flex items-center text-foreground/45">
               {icon}
             </span>
           )}
-          <span className="font-mono text-[14px] font-medium tracking-[0.16em] uppercase text-foreground">
+          <span className="inline-flex items-center gap-2 font-mono text-[14px] font-medium tracking-[0.16em] uppercase text-foreground">
             {title}
           </span>
         </span>
