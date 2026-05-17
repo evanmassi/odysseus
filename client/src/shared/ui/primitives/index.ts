@@ -79,7 +79,8 @@ export type { SectionHeaderProps } from './titles/section-header/SectionHeader';
 export { StatCell } from './stat-cell/StatCell';
 export type { StatCellProps } from './stat-cell/StatCell';
 
-export { Table } from './table/Table';
+export { Table, rowStripe } from './table/Table';
+export type { RowStripeTone } from './table/Table';
 export type {
   TableProps,
   TableColumn,

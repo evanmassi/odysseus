@@ -1,7 +1,7 @@
 /**
- * Table
+ * Data Table
  *
- * Flat data table — mono uppercase headers, hairline rows, lit selected row.
+ * Sortable, selectable data grid with status-edge rows and zebra body.
  */
 
 import React, { createContext, useContext } from 'react';
@@ -24,10 +24,11 @@ const useTableContext = () => {
 
 const headerVariants = cva(
   [
-    'font-mono uppercase tracking-[0.22em] text-[10px] font-normal',
-    'text-left text-foreground/80',
-    'border-b border-foreground/10 bg-surface-elev bg-scanlines',
-    'px-5',
+    'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
+    'text-left text-foreground/60',
+    'bg-surface-panel-2',
+    'border-b border-line-mid',
+    'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
   {
     variants: {
@@ -59,7 +60,12 @@ const headerVariants = cva(
 );
 
 const cellVariants = cva(
-  ['px-5 text-sm text-muted-foreground align-middle', 'border-b border-foreground/[0.06]'],
+  [
+    'pr-[18px] pl-0 text-sm text-foreground align-middle',
+    'first:pl-[14px] first:shadow-[inset_3px_0_0_0_hsl(var(--foreground)/0.12)]',
+    'group-hover:bg-primary/[0.05]',
+    'group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]',
+  ],
   {
     variants: {
       align: {
@@ -82,24 +88,39 @@ const cellVariants = cva(
 const rowVariants = cva([''], {
   variants: {
     hoverable: {
-      true: 'hover:bg-foreground/[0.015] cursor-pointer',
+      true: 'group',
       false: '',
     },
-    selectable: {
+    clickable: {
       true: 'cursor-pointer',
       false: '',
     },
     selected: {
-      true: 'shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
+      true: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
       false: '',
     },
   },
   defaultVariants: {
     hoverable: false,
-    selectable: false,
+    clickable: false,
     selected: false,
   },
 });
+
+// Class strings must be literal (no interpolation) so Tailwind JIT picks them up.
+const ROW_STRIPE_CLASSES = {
+  primary: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
+  success: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]',
+  warning: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg))]',
+  danger: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg))]',
+  muted: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--foreground)/0.30)]',
+} as const;
+
+export type RowStripeTone = keyof typeof ROW_STRIPE_CLASSES;
+
+export function rowStripe(tone: RowStripeTone): string {
+  return ROW_STRIPE_CLASSES[tone];
+}
 
 interface SortIndicatorProps {
   direction?: 'asc' | 'desc';
@@ -328,16 +349,16 @@ const TableBody = <T extends TableRowBase>({
         const isSelected = selectedRows.includes(row.id);
         const extra =
           typeof rowClassName === 'function' ? rowClassName(row, index) : (rowClassName ?? '');
-        const isLast = index === data.length - 1;
+        const zebra = index % 2 === 0 ? '[&>td]:bg-foreground/[0.022]' : '';
 
         return (
           <tr
             key={row.id}
             className={`${rowVariants({
-              hoverable: hoverable || Boolean(onRowClick),
-              selectable,
+              hoverable,
+              clickable: Boolean(onRowClick),
               selected: isSelected,
-            })} ${isLast ? '[&>td]:border-b-0' : ''} ${extra}`}
+            })} ${zebra} ${extra}`}
             onClick={onRowClick ? () => onRowClick(row, index) : undefined}
           >
             {selectable && (
