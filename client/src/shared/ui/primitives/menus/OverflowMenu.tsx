@@ -23,6 +23,13 @@ export function OverflowMenu({
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [placement, setPlacement] = useState<{
+    vertical: 'below' | 'above';
+    horizontal: 'right' | 'left';
+  }>({
+    vertical: 'below',
+    horizontal: 'right',
+  });
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
@@ -40,9 +47,12 @@ export function OverflowMenu({
 
     let top = rect.bottom + 4;
     let left = rect.right - menuWidth;
+    let vertical: 'below' | 'above' = 'below';
+    let horizontal: 'right' | 'left' = 'right';
 
     if (left < 10) {
       left = rect.left;
+      horizontal = 'left';
     }
 
     if (left + menuWidth > viewportWidth - 10) {
@@ -51,9 +61,11 @@ export function OverflowMenu({
 
     if (top + menuHeight > viewportHeight - 10) {
       top = rect.top - menuHeight - 4;
+      vertical = 'above';
     }
 
     setPosition({ top, left });
+    setPlacement({ vertical, horizontal });
   }, [items.length, dividerBefore.length]);
 
   // Update position when opening and on scroll/resize
@@ -103,9 +115,14 @@ export function OverflowMenu({
         onClose={handleClose}
         triggerRef={triggerRef}
         portal
+        motion={placement.vertical === 'above' ? 'slide-up' : 'slide-down'}
         aria-label={ariaLabel}
         className="min-w-40"
-        style={{ top: position.top, left: position.left }}
+        style={{
+          top: position.top,
+          left: position.left,
+          transformOrigin: `${placement.vertical === 'above' ? 'bottom' : 'top'} ${placement.horizontal}`,
+        }}
       >
         <div className="px-1">
           {items.map((item, index) => (
