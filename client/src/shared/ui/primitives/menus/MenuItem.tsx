@@ -42,15 +42,15 @@ export function MenuItem({
       onMouseEnter={handleMouseEnter}
       disabled={disabled}
       className={`
-        w-full flex items-center justify-between py-2 px-3 rounded-md text-sm
+        group relative z-10 w-full flex items-center justify-between py-2 px-3 font-mono text-[12px] tracking-[0.04em]
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
         ${
           isActive
-            ? 'bg-accent text-accent-foreground font-medium'
+            ? 'bg-primary/[0.08] text-foreground font-medium'
             : danger
               ? 'text-danger-text hover:bg-danger-light'
-              : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'
+              : 'text-secondary-foreground hover:bg-primary/[0.06] hover:text-foreground'
         }
       `}
     >
@@ -59,13 +59,13 @@ export function MenuItem({
           <span className={isAnimating ? 'animate-icon-pop' : ''}>
             <Icon
               size={16}
-              className={
+              className={`transition-colors ${
                 isActive
-                  ? 'text-accent-foreground'
+                  ? 'text-foreground'
                   : danger
                     ? 'text-danger-text'
-                    : 'text-muted-foreground'
-              }
+                    : 'text-muted-foreground group-hover:text-foreground'
+              }`}
             />
           </span>
         )}

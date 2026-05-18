@@ -11,6 +11,8 @@ import { createPortal } from 'react-dom';
 
 import { useMenuKeyboardNavigation } from '@shared/hooks';
 
+export type DropdownMotion = 'reveal' | 'slide-down' | 'slide-up' | 'slide-right' | 'slide-left';
+
 export interface DropdownMenuProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,6 +20,7 @@ export interface DropdownMenuProps {
   portal?: boolean;
   align?: 'start' | 'end';
   animated?: boolean;
+  motion?: DropdownMotion;
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
@@ -31,6 +34,7 @@ export function DropdownMenu({
   portal = false,
   align = 'end',
   animated = true,
+  motion = 'reveal',
   className = '',
   style,
   children,
@@ -89,11 +93,17 @@ export function DropdownMenu({
   if (!visible) return null;
 
   const isClosing = !isOpen && visible;
-  const animationClass = animated
-    ? isClosing
-      ? 'animate-dropdown-reveal-out'
-      : 'animate-dropdown-reveal-in'
-    : '';
+  const motionClass = {
+    reveal: { in: 'animate-dropdown-reveal-in', out: 'animate-dropdown-reveal-out' },
+    'slide-down': { in: 'animate-dropdown-slide-down-in', out: 'animate-dropdown-slide-down-out' },
+    'slide-up': { in: 'animate-dropdown-slide-up-in', out: 'animate-dropdown-slide-up-out' },
+    'slide-right': {
+      in: 'animate-dropdown-slide-right-in',
+      out: 'animate-dropdown-slide-right-out',
+    },
+    'slide-left': { in: 'animate-dropdown-slide-left-in', out: 'animate-dropdown-slide-left-out' },
+  }[motion];
+  const animationClass = animated ? (isClosing ? motionClass.out : motionClass.in) : '';
 
   const alignClass = portal ? '' : align === 'start' ? 'left-0' : 'right-0';
   const positionClass = portal ? 'fixed z-[9999]' : 'absolute z-50';
@@ -107,7 +117,7 @@ export function DropdownMenu({
       tabIndex={-1}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
-      className={`${positionClass} bg-popover rounded-lg shadow-lg border border-border py-1.5 ${alignClass} ${animationClass} ${className}`}
+      className={`${positionClass} isolate bg-popover shadow-lg border border-border py-1.5 after:absolute after:inset-0 after:bg-scanlines after:pointer-events-none after:opacity-40 after:mix-blend-multiply ${alignClass} ${animationClass} ${className}`}
       style={style}
     >
       {children}
