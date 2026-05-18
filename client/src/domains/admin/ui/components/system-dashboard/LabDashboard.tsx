@@ -281,7 +281,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           </div>
         </div>
 
-        <CrtBackdrop size="lg">
+        <CrtBackdrop size="lg" lighting="anchored">
           <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.12)_14%,hsl(var(--foreground)/0.12)_86%,transparent_100%)_1]">
             <StatCell
               label="Admins"

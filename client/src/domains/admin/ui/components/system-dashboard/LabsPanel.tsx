@@ -180,7 +180,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
           </span>
         </div>
 
-        <CrtBackdrop size="lg">
+        <CrtBackdrop size="lg" lighting="anchored">
           {!lab.isActive && (
             <span
               aria-hidden
@@ -212,9 +212,9 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <div className="flex items-end justify-between gap-4">
-                <div className="mb-1 ml-2 flex flex-col gap-2">
-                  <h3 className="font-display text-[24px] leading-none font-medium tracking-[-0.01em] text-foreground">
+              <div className="mb-1 grid grid-cols-[4fr_1.6fr] items-end">
+                <div className="ml-2 flex min-w-0 flex-col gap-2">
+                  <h3 className="font-display text-[28px] leading-none font-medium tracking-[-0.01em] text-foreground">
                     {lab.name}
                   </h3>
                   {stats && (
@@ -228,23 +228,13 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   )}
                 </div>
 
-                <div className="flex w-40 shrink-0 flex-col gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onSelectLab(lab.id)}
-                    rightIcon={<ArrowRight size={14} />}
-                    className="w-full justify-center"
-                  >
-                    Open Lab
-                  </Button>
+                <div className="flex items-center justify-center gap-2 px-4">
                   {lab.isActive ? (
                     <Button
                       variant="ghost-danger"
                       size="sm"
                       onClick={() => setDeactivateTarget(lab.id)}
                       leftIcon={<Power size={14} />}
-                      className="w-full justify-center"
                     >
                       Deactivate
                     </Button>
@@ -255,48 +245,43 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                       onClick={() => handleActivateLab(lab.id)}
                       isLoading={activateLabMutation.isPending}
                       leftIcon={<Power size={14} />}
-                      className="w-full justify-center"
                     >
                       Activate
                     </Button>
                   )}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onSelectLab(lab.id)}
+                    rightIcon={<ArrowRight size={14} />}
+                  >
+                    Open Lab
+                  </Button>
                 </div>
               </div>
 
               {stats && (
-                <div className="flex">
+                <div className="grid grid-cols-[repeat(4,1fr)_1.6fr] divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
                   <StatCell
                     label="Admins"
                     value={stats.adminCount}
                     icon={<ShieldUser size={11} />}
-                    className="flex-1"
                   />
-                  <StatCell
-                    label="Users"
-                    value={stats.userCount}
-                    icon={<UsersRound size={11} />}
-                    className="flex-1"
-                  />
+                  <StatCell label="Users" value={stats.userCount} icon={<UsersRound size={11} />} />
                   <StatCell
                     label="Researchers"
                     value={stats.researcherCount}
                     icon={<Dna size={11} />}
-                    className="flex-1"
                   />
-                  <StatCell
-                    label="Tubes"
-                    value={stats.tubeCount}
-                    icon={<TestTube size={11} />}
-                    className="flex-1"
-                  />
-                  <div className="flex flex-1 flex-col gap-1 px-3 py-3">
+                  <StatCell label="Tubes" value={stats.tubeCount} icon={<TestTube size={11} />} />
+                  <div className="flex flex-col gap-1 px-4 py-3.5">
                     <span className="flex items-center gap-2 font-mono text-[9.5px] tracking-[0.20em] text-muted-foreground uppercase">
                       <TicketCheck size={11} className="shrink-0" />
                       Lab Admin Code
                     </span>
-                    <div className="flex items-center gap-1.5 border border-foreground/15 bg-background px-2 py-1">
+                    <div className="flex items-center gap-2">
                       <code
-                        className={`flex-1 truncate font-mono text-[11px] font-medium leading-none ${codes.length > 0 ? '' : 'tracking-widest text-foreground/20 select-none'}`}
+                        className={`flex-1 truncate font-mono text-[15px] font-medium leading-none phosphor-text ${codes.length > 0 ? '' : 'tracking-widest text-foreground/25 select-none'}`}
                       >
                         {codes.length > 0 ? codes[codes.length - 1].code : '· · · · · · ·'}
                       </code>
@@ -311,14 +296,14 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                         disabled={codes.length === 0}
                         className="shrink-0 text-foreground/40 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-30"
                       >
-                        <Copy size={11} />
+                        <Copy size={12} />
                       </button>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleGenerateLabAdminCode(lab.id)}
                       disabled={!lab.isActive || generatingCodeForLab === lab.id}
-                      className="self-start font-mono text-[9px] tracking-[0.2em] text-foreground/40 uppercase transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="mt-0.5 text-left font-mono text-[10px] tracking-[0.1em] text-muted-foreground/60 uppercase transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {codes.length > 0 ? 'Regenerate' : 'Generate'}
                     </button>
