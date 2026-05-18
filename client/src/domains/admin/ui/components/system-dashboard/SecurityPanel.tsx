@@ -475,7 +475,7 @@ export function SecurityPanel() {
   const expiredAwaitingCleanup = sessionOverview?.expiredAwaitingCleanup ?? 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <BracketedStamp title="Security" icon={<Shield size={14} />} />
 
       <CrtBackdrop size="md">

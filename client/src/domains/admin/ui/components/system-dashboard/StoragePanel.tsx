@@ -196,7 +196,7 @@ export function StoragePanel() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <BracketedStamp
         title="Storage"
         icon={<HardDrive size={14} />}
@@ -366,7 +366,7 @@ function LabDrillDown({
   const expandedTank = data?.tanks.find(t => t.tankId === expandedTankId);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ChevronLeft size={14} />}>
         All Labs
       </Button>
