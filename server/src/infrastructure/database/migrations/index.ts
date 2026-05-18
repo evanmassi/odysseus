@@ -25,6 +25,7 @@ import { migration018 } from './018_add_invite_code_columns';
 import { migration019 } from './019_nullable_person_email';
 import { migration020 } from './020_create_equipment';
 import { migration021 } from './021_create_supplies';
+import { migration022 } from './022_nullable_audit_log_user_id';
 
 import type { Migration } from './migrationRunner';
 
@@ -50,4 +51,5 @@ export const ALL_MIGRATIONS: Migration[] = [
   migration019,
   migration020,
   migration021,
+  migration022,
 ];

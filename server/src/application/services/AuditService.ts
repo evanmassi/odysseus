@@ -13,7 +13,7 @@ import { logger } from '@infrastructure/logging/logger';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export interface LogActionParams {
-  userId: string;
+  userId?: string;
   username: string;
   action: string;
   entityType: string;
@@ -30,7 +30,7 @@ export class AuditService {
 
   async logAction(params: LogActionParams): Promise<void> {
     try {
-      if (!params.userId || !params.username || !params.action || !params.entityType) {
+      if (!params.username || !params.action || !params.entityType) {
         throw new Error('Missing required audit log fields');
       }
 

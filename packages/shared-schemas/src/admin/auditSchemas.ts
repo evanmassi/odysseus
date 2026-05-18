@@ -10,7 +10,7 @@ import { dateField, nullableDateField } from '../utils/dateFields';
 export const auditLogEntrySchema = z.object({
   id: z.string(),
   labId: z.string().optional(),
-  userId: z.string(),
+  userId: z.string().optional(),
   username: z.string(),
   action: z.string(),
   entityType: z.string().optional(),
