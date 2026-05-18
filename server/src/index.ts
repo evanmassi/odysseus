@@ -169,7 +169,8 @@ class OdysseusServer {
       inviteCodeController,
       storageRepository,
       this.configurationService.get('app').version,
-      this.configurationService.get('server').environment
+      this.configurationService.get('server').environment,
+      this.serviceContainer.getEventBus()
     ));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, storageRepository));
     registry.registerModule(new AdminRouteModule(adminUserController, adminConfigController, researcherController, auditController, exportController, lookupValueController, inviteCodeController, storageAnalyticsController, authMiddleware));

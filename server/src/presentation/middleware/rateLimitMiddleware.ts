@@ -12,7 +12,8 @@ import { logger } from '@infrastructure/logging/logger';
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
 export function createRateLimitMiddleware(
-  storageRepository: StorageRepository
+  storageRepository: StorageRepository,
+  onBlock?: (req: Request) => void
 ): RequestHandler {
   const service = new RateLimitingService(storageRepository);
 
@@ -34,6 +35,8 @@ export function createRateLimitMiddleware(
           path: req.path,
           timeRemaining: blockStatus.timeRemaining
         });
+
+        onBlock?.(req);
 
         res.status(429).json({
           success: false,
