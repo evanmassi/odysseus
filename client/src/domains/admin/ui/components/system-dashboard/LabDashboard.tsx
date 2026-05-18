@@ -24,7 +24,7 @@ import {
   X,
 } from 'lucide-react';
 
-import { Button, IdStamp, SectionHeader, StatCell } from '@shared/ui';
+import { Button, CrtBackdrop, IdStamp, SectionHeader, StatCell } from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -95,7 +95,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   if (isLoading || !details) {
     return (
       <div className="h-full overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
             Back to Labs
           </Button>
@@ -144,7 +144,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-4">
         <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
           Back to Labs
         </Button>
@@ -177,7 +177,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                     type="text"
                     value={newName}
                     onChange={e => setNewName(e.target.value)}
-                    className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] bg-transparent border-b border-foreground/20 px-1 focus:outline-none focus:border-primary text-foreground"
+                    className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] bg-transparent border-b border-transparent [border-image:linear-gradient(90deg,hsl(var(--foreground)/0.25)_0%,hsl(var(--foreground)/0.18)_55%,hsl(var(--foreground)/0.08)_88%,transparent_100%)_1] px-1 focus:outline-none focus:[border-image:linear-gradient(90deg,hsl(var(--primary)/0.7)_0%,hsl(var(--primary)/0.5)_70%,transparent_100%)_1] text-foreground"
                     onKeyDown={e => e.key === 'Enter' && handleRename()}
                     ref={(el: HTMLInputElement | null) => el?.focus()}
                   />
@@ -281,20 +281,8 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           </div>
         </div>
 
-        <div className="relative overflow-hidden">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-card bg-scanlines"
-            style={{
-              maskImage:
-                'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
-              WebkitMaskImage:
-                'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
-              maskComposite: 'intersect',
-              WebkitMaskComposite: 'source-in',
-            }}
-          />
-          <div className="relative flex divide-x divide-line-soft">
+        <CrtBackdrop size="lg">
+          <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.12)_14%,hsl(var(--foreground)/0.12)_86%,transparent_100%)_1]">
             <StatCell
               label="Admins"
               value={adminCount}
@@ -324,7 +312,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
               className="flex-1"
             />
           </div>
-        </div>
+        </CrtBackdrop>
 
         {lab.isDemo && <LabDemoSettings labId={labId} isSeeded={details.isSeeded} />}
 

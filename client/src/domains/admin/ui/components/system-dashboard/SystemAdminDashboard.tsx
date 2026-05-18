@@ -8,7 +8,7 @@ import { lazy, Suspense, useState } from 'react';
 
 import { FlaskConical, HardDrive, LayoutDashboard, Shield } from 'lucide-react';
 
-import { IdStamp, LoadingSkeleton, StatCell, Tab, Tabs } from '@shared/ui';
+import { CrtBackdrop, IdStamp, LoadingSkeleton, StatCell, Tab, Tabs } from '@shared/ui';
 
 import { useSystemOverviewQuery } from '../../../hooks/useLabQueries';
 import { useSecurityOverviewQuery } from '../../../hooks/useSecurityMonitoringQueries';
@@ -35,7 +35,7 @@ export function SystemAdminDashboard() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-4">
         <div>
           <h1 className="flex items-center gap-3 font-display text-[32px] font-normal tracking-[-0.015em] leading-none">
             <LayoutDashboard size={28} className="text-foreground/60" />
@@ -59,20 +59,8 @@ export function SystemAdminDashboard() {
         </div>
 
         {overview && (
-          <div className="relative overflow-hidden">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-card bg-scanlines"
-              style={{
-                maskImage:
-                  'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
-                WebkitMaskImage:
-                  'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
-                maskComposite: 'intersect',
-                WebkitMaskComposite: 'source-in',
-              }}
-            />
-            <div className="relative flex divide-x divide-line-soft">
+          <CrtBackdrop size="lg">
+            <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.18)_10%,hsl(var(--foreground)/0.18)_90%,transparent_100%)_1]">
               <StatCell
                 label="Labs Online"
                 value={overview.activeLabs}
@@ -98,10 +86,10 @@ export function SystemAdminDashboard() {
                 className="flex-1"
               />
             </div>
-          </div>
+          </CrtBackdrop>
         )}
 
-        <div className="border-b border-border">
+        <div className="relative border-b border-transparent">
           <Tabs value={activeTab} onChange={setActiveTab} orientation="horizontal">
             <Tab id="labs" icon={<FlaskConical size={18} />}>
               Labs
@@ -113,6 +101,10 @@ export function SystemAdminDashboard() {
               Storage
             </Tab>
           </Tabs>
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-px [background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.15)_4%,hsl(var(--foreground)/0.15)_78%,transparent_100%)]"
+          />
         </div>
 
         <div className="pt-2">

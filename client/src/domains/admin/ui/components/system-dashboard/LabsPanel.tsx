@@ -24,7 +24,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 
-import { BracketedStamp, Button, IdStamp, SectionHeader, StatCell } from '@shared/ui';
+import { BracketedStamp, Button, CrtBackdrop, IdStamp, SectionHeader, StatCell } from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -149,10 +149,14 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
 
     return (
       <div key={lab.id} className="relative pt-2">
-        <div
-          className="absolute top-0 left-6 z-10 flex h-7 items-center border-x border-t-2 border-foreground/10 px-4"
-          style={{ borderTopColor: `hsl(var(${statusBgVar}))` }}
-        >
+        <div className="absolute top-0 left-6 z-10 flex h-7 items-center border-x border-t-2 border-foreground/10 border-t-transparent px-4">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-0.5"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusBgVar})/0.85) 14%, hsl(var(${statusBgVar})) 50%, hsl(var(${statusBgVar})/0.85) 86%, transparent 100%)`,
+            }}
+          />
           <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
             <span className="text-foreground">{lab.name}</span>
             <span className="text-foreground/40">·</span>
@@ -176,19 +180,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
           </span>
         </div>
 
-        <div className="relative overflow-hidden">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-card bg-scanlines"
-            style={{
-              maskImage:
-                'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
-              WebkitMaskImage:
-                'linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent), linear-gradient(to bottom, transparent, black 40px, black calc(100% - 40px), transparent)',
-              maskComposite: 'intersect',
-              WebkitMaskComposite: 'source-in',
-            }}
-          />
+        <CrtBackdrop size="lg">
           {!lab.isActive && (
             <span
               aria-hidden
@@ -335,7 +327,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
               )}
             </div>
           </div>
-        </div>
+        </CrtBackdrop>
       </div>
     );
   };

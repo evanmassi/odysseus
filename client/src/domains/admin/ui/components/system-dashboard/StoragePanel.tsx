@@ -19,7 +19,16 @@ import {
   TestTube,
 } from 'lucide-react';
 
-import { BracketedStamp, Button, Chip, IdStamp, SectionHeader, StatCell, Table } from '@shared/ui';
+import {
+  BracketedStamp,
+  Button,
+  Chip,
+  CrtBackdrop,
+  IdStamp,
+  SectionHeader,
+  StatCell,
+  Table,
+} from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 
 import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueries';
@@ -204,20 +213,8 @@ export function StoragePanel() {
         }
       />
 
-      <div className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-card bg-scanlines"
-          style={{
-            maskImage:
-              'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent), linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)',
-            WebkitMaskImage:
-              'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent), linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)',
-            maskComposite: 'intersect',
-            WebkitMaskComposite: 'source-in',
-          }}
-        />
-        <div className="relative flex divide-x divide-line-soft">
+      <CrtBackdrop size="md">
+        <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.14)_16%,hsl(var(--foreground)/0.14)_92%,transparent_100%)_1]">
           <StatCell
             size="sm"
             label="Labs with Storage"
@@ -248,7 +245,7 @@ export function StoragePanel() {
             className="flex-1"
           />
         </div>
-      </div>
+      </CrtBackdrop>
 
       <div>
         <SectionHeader
