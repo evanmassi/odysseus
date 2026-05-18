@@ -154,8 +154,10 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         className={`
           inline-flex items-center
           ${styles.container}
-          border border-border rounded-md
-          bg-card
+          border border-foreground/15
+          bg-surface-elev
+          transition-shadow duration-150
+          focus-within:shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.5)]
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           ${className}
         `}
@@ -169,13 +171,13 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             h-full
             flex items-center justify-center
             text-secondary-foreground
-            hover:bg-muted hover:text-foreground
-            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent
-            transition-colors
-            rounded-l-md
+            hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]
+            focus-visible:text-foreground focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]
+            disabled:opacity-40 disabled:cursor-not-allowed
+            transition-[color,text-shadow] duration-150
             border-r border-transparent
-            [border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.16)_18%,hsl(var(--foreground)/0.16)_82%,transparent_100%)_1]
-            focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring
+            [border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_18%,hsl(var(--foreground)/0.28)_82%,transparent_100%)_1]
+            focus:outline-none
           `}
           aria-label="Decrease value"
         >
@@ -196,6 +198,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           className={`
             ${resolvedInputWidth}
             ${styles.inputText}
+            font-mono tracking-[0.04em]
             h-full
             text-center
             bg-transparent
@@ -217,13 +220,13 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             h-full
             flex items-center justify-center
             text-secondary-foreground
-            hover:bg-muted hover:text-foreground
-            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent
-            transition-colors
-            rounded-r-md
+            hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]
+            focus-visible:text-foreground focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]
+            disabled:opacity-40 disabled:cursor-not-allowed
+            transition-[color,text-shadow] duration-150
             border-l border-transparent
-            [border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.14)_22%,hsl(var(--foreground)/0.14)_78%,transparent_100%)_1]
-            focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring
+            [border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_18%,hsl(var(--foreground)/0.28)_82%,transparent_100%)_1]
+            focus:outline-none
           `}
           aria-label="Increase value"
         >
