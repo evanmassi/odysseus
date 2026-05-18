@@ -166,6 +166,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           border border-line-mid
           ${CONTAINER_SHADOW}
           transition-[border-color,background,box-shadow] duration-200
+          hover:border-line-strong
           focus-within:border-primary/70
           focus-within:bg-primary/[0.04]
           ${CONTAINER_FOCUS_SHADOW}
