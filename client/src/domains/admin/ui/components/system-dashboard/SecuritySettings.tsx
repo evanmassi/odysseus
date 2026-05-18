@@ -22,7 +22,7 @@ export function SecuritySettings() {
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [isSaving, setSaving] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -91,19 +91,18 @@ export function SecuritySettings() {
         (isLoaded ? (
           <>
             <SecurityTab config={config} onChange={handleConfigChange} />
-            {hasChanges && (
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-3">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={saveConfiguration}
-                  isLoading={isSaving}
-                  leftIcon={<Save size={14} />}
-                >
-                  Save Changes
-                </Button>
-              </div>
-            )}
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-3">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={saveConfiguration}
+                isLoading={isSaving}
+                disabled={!hasChanges}
+                leftIcon={<Save size={14} />}
+              >
+                Save Changes
+              </Button>
+            </div>
           </>
         ) : (
           <div className="py-4 text-center text-sm text-muted-foreground">Loading...</div>
