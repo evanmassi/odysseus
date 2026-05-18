@@ -13,7 +13,6 @@ import {
   LogOut,
   MonitorX,
   RefreshCw,
-  Search,
   Shield,
   Trash2,
   UsersRound,
@@ -30,6 +29,7 @@ import {
   StatCell,
   Table,
   DatePicker,
+  SearchInput,
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
@@ -608,6 +608,37 @@ export function SecurityPanel() {
         <SectionToolbar
           left={
             <>
+              <SearchInput
+                value={filterText}
+                onChange={setFilterText}
+                placeholder="Name, email, or IP…"
+                size="sm"
+                className="w-64"
+                aria-label="Filter sessions"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                iconOnly
+                onClick={() => setAutoRefresh(prev => !prev)}
+                aria-label="Toggle auto-refresh"
+                aria-pressed={autoRefresh}
+                className={autoRefresh ? 'text-primary' : ''}
+              >
+                <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
+              </Button>
+            </>
+          }
+          right={
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedSessionIds([])}
+                disabled={selectedSessionIds.length === 0}
+              >
+                Clear Selection
+              </Button>
               <Button
                 variant="ghost-danger"
                 size="sm"
@@ -617,37 +648,6 @@ export function SecurityPanel() {
               >
                 Revoke Selected
                 {selectedSessionIds.length > 0 ? ` (${selectedSessionIds.length})` : ''}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedSessionIds([])}
-                disabled={selectedSessionIds.length === 0}
-              >
-                Clear Selection
-              </Button>
-            </>
-          }
-          right={
-            <>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Filter by name, email, or IP..."
-                  value={filterText}
-                  onChange={e => setFilterText(e.target.value)}
-                  className="input-search w-64 pl-8"
-                />
-              </div>
-              <Button
-                variant={autoRefresh ? 'primary' : 'ghost'}
-                size="sm"
-                iconOnly
-                onClick={() => setAutoRefresh(prev => !prev)}
-                aria-label="Toggle auto-refresh"
-              >
-                <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
               </Button>
             </>
           }
