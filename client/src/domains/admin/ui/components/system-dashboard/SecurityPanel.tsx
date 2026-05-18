@@ -680,7 +680,9 @@ export function SecurityPanel() {
         <SectionToolbar
           left={
             <>
-              <span className="text-xs text-muted-foreground">From</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
+                From
+              </span>
               <DatePicker
                 value={startDate}
                 onChange={v => setStartDate(v)}
@@ -689,7 +691,9 @@ export function SecurityPanel() {
                 className="w-40"
                 aria-label="Start date"
               />
-              <span className="text-xs text-muted-foreground">To</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
+                To
+              </span>
               <DatePicker
                 value={endDate}
                 onChange={v => setEndDate(v)}
