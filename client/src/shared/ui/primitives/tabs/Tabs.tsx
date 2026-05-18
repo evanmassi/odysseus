@@ -3,7 +3,17 @@
  *
  * Recessive tab navigation — mono uppercase chrome, active state lit via phosphor glow + thin indicator bar.
  */
-import { createContext, useContext, Children, useMemo, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  Children,
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from 'react';
 import type { ReactNode } from 'react';
 
 export type TabOrientation = 'horizontal' | 'vertical';
@@ -43,13 +53,20 @@ const BASE =
   'font-mono uppercase tracking-[0.18em] text-xs font-medium ' +
   'transition-colors duration-150 focus:outline-none cursor-pointer';
 
-const ACTIVE_STATE =
-  'text-foreground border-primary phosphor-text ' +
-  '[border-image:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)_1]';
+const ACTIVE_STATE = 'text-foreground border-transparent phosphor-text';
 
 const INACTIVE_STATE =
   'text-muted-foreground border-transparent ' +
   'hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]';
+
+const INDICATOR_HORIZONTAL =
+  'bottom-0 left-0 h-0.5 bg-[linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)]';
+
+const INDICATOR_VERTICAL =
+  'top-0 left-0 w-0.5 bg-[linear-gradient(180deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)]';
+
+const INDICATOR_TRANSITION =
+  'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
 
 export function Tab({ id, icon, children }: TabProps) {
   const { value, onChange, orientation } = useTabsContext();
@@ -109,17 +126,54 @@ export function Tabs({ value, onChange, children, orientation, className = '' }:
     [value, onChange, resolvedOrientation]
   );
 
+  const listRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
+  const [hasMeasured, setHasMeasured] = useState(false);
+
+  const recomputeIndicator = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const active = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    if (!active) return;
+    setIndicatorStyle(
+      resolvedOrientation === 'horizontal'
+        ? { transform: `translateX(${active.offsetLeft}px)`, width: active.offsetWidth }
+        : { transform: `translateY(${active.offsetTop}px)`, height: active.offsetHeight }
+    );
+    setHasMeasured(true);
+  }, [resolvedOrientation]);
+
+  useLayoutEffect(() => {
+    recomputeIndicator();
+  }, [recomputeIndicator, value]);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const observer = new ResizeObserver(recomputeIndicator);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [recomputeIndicator]);
+
   const containerClass =
-    resolvedOrientation === 'vertical' ? 'space-y-1' : 'flex items-center gap-6 px-4';
+    resolvedOrientation === 'vertical'
+      ? 'relative space-y-1'
+      : 'relative flex items-center gap-6 px-4';
+
+  const indicatorClass = `pointer-events-none absolute ${
+    resolvedOrientation === 'horizontal' ? INDICATOR_HORIZONTAL : INDICATOR_VERTICAL
+  } ${hasMeasured ? INDICATOR_TRANSITION : ''}`;
 
   return (
     <TabsContext.Provider value={contextValue}>
       <div
+        ref={listRef}
         role="tablist"
         aria-orientation={resolvedOrientation}
         className={`${containerClass} ${className}`}
       >
         {children}
+        <span aria-hidden className={indicatorClass} style={indicatorStyle} />
       </div>
     </TabsContext.Provider>
   );
