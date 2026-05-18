@@ -16,6 +16,9 @@ export type { BadgeProps } from './badge/Badge';
 export { BracketedStamp } from './titles/bracketed-stamp/BracketedStamp';
 export type { BracketedStampProps } from './titles/bracketed-stamp/BracketedStamp';
 
+export { BracketHeader } from './titles/bracket-header/BracketHeader';
+export type { BracketHeaderProps } from './titles/bracket-header/BracketHeader';
+
 export { Button } from './button/Button';
 export type { ButtonProps, ButtonVariant, ButtonSize, ButtonRef } from './button/types';
 
@@ -85,6 +88,13 @@ export type { SectionHeaderProps } from './titles/section-header/SectionHeader';
 
 export { SectionToolbar } from './titles/section-toolbar/SectionToolbar';
 export type { SectionToolbarProps } from './titles/section-toolbar/SectionToolbar';
+
+export { BracketSection, SettingsRow, SettingsRowGroup } from './settings-row/SettingsRow';
+export type {
+  BracketSectionProps,
+  SettingsRowProps,
+  SettingsRowGroupProps,
+} from './settings-row/SettingsRow';
 
 export { StatCell } from './stat-cell/StatCell';
 export type { StatCellProps } from './stat-cell/StatCell';
