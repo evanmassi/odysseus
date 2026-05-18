@@ -45,6 +45,9 @@ export type {
 export { IdStamp } from './titles/id-stamp/IdStamp';
 export type { IdStampProps } from './titles/id-stamp/IdStamp';
 
+export { CrtBackdrop } from './crt-backdrop/CrtBackdrop';
+export type { CrtBackdropProps, CrtBackdropSize } from './crt-backdrop/CrtBackdrop';
+
 export { DropdownMenu } from './menus/DropdownMenu';
 export type { DropdownMenuProps } from './menus/DropdownMenu';
 export { MenuItem } from './menus/MenuItem';
@@ -75,6 +78,9 @@ export type { PanelProps } from './panel/Panel';
 
 export { SectionHeader } from './titles/section-header/SectionHeader';
 export type { SectionHeaderProps } from './titles/section-header/SectionHeader';
+
+export { SectionToolbar } from './titles/section-toolbar/SectionToolbar';
+export type { SectionToolbarProps } from './titles/section-toolbar/SectionToolbar';
 
 export { StatCell } from './stat-cell/StatCell';
 export type { StatCellProps } from './stat-cell/StatCell';
