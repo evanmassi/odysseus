@@ -1,8 +1,7 @@
 /**
  * Bracket Header
  *
- * Quiet subsection label framed by mono brackets. One level below SectionHeader —
- * no rule, no glow bullet — used to group related rows inside an already-titled section.
+ * Subsection label framed by mono brackets — one tier below SectionHeader.
  */
 
 import type { ReactNode } from 'react';

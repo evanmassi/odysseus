@@ -1,8 +1,7 @@
 /**
  * Settings Row
  *
- * Label + hint on the left, single control on the right. Stacks inside SettingsRowGroup
- * (flat) or BracketSection (bracket-titled, indented under a phosphor rail).
+ * Label + hint on the left, single control on the right.
  */
 
 import type { ReactNode } from 'react';
@@ -39,8 +38,6 @@ export interface SettingsRowGroupProps {
   className?: string;
 }
 
-// Decaying-gradient hairlines: strongest between rows 1-2, fading to a flat divide-line-faint
-// for any rows beyond the third. Bottom border of the group uses the weakest gradient.
 const GROUP_CLASSES =
   'divide-y divide-line-faint border-b border-transparent ' +
   '[&>*:nth-child(2)]:[border-image:linear-gradient(90deg,hsl(var(--foreground)/0.14)_0%,hsl(var(--foreground)/0.10)_60%,transparent_100%)_1] ' +
@@ -58,8 +55,6 @@ export interface BracketSectionProps {
   className?: string;
 }
 
-// BracketHeader on top; rows indented under a vertical phosphor rail that fades at the ends.
-// Hairlines naturally start at the indent because they ride the indented rows themselves.
 export function BracketSection({ title, meta, children, className }: BracketSectionProps) {
   return (
     <div className={className}>
