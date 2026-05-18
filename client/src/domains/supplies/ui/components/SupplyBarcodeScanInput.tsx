@@ -11,7 +11,7 @@ import { ScanBarcode } from 'lucide-react';
 
 import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
-import { Button, Select } from '@shared/ui';
+import { Button, SearchInput, Select } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
@@ -101,18 +101,16 @@ export function SupplyBarcodeScanInput({
 
   return (
     <>
-      <div className="relative">
-        <ScanBarcode className="absolute left-2.5 top-2 w-3.5 h-3.5 text-muted-foreground" />
-        <input
-          type="text"
-          value={scanValue}
-          onChange={e => setScanValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          disabled={isResolving}
-          className="input-search w-full pl-8"
-        />
-      </div>
+      <SearchInput
+        value={scanValue}
+        onChange={setScanValue}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        disabled={isResolving}
+        size="sm"
+        icon={<ScanBarcode size={14} />}
+        aria-label="Scan barcode"
+      />
 
       <BaseModal
         isOpen={showLinkDialog}

@@ -6,9 +6,9 @@
 
 import { useState, useMemo } from 'react';
 
-import { Plus, Search } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
-import { Button, Chip, ScrollArea, Table } from '@shared/ui';
+import { Button, Chip, ScrollArea, SearchInput, Table } from '@shared/ui';
 
 import type { DonorWithTubeCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
@@ -124,16 +124,14 @@ export function DonorTable({
   return (
     <div className="flex flex-col gap-2 h-full pt-1 px-1">
       <div className="flex items-center justify-between gap-2">
-        <div className="relative w-64">
-          <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => onSearchChange(e.target.value)}
-            placeholder="Search..."
-            className="input-search w-full pl-8"
-          />
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder="Search…"
+          size="sm"
+          className="w-64"
+          aria-label="Search donors"
+        />
         {isAdmin && (
           <Button
             variant="primary"

@@ -19,7 +19,7 @@ import {
 
 import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
-import { Button, Select } from '@shared/ui';
+import { Button, SearchInput, Select } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { DropdownMenu } from '@shared/ui/primitives/menus/DropdownMenu';
 import { MenuDivider } from '@shared/ui/primitives/menus/MenuDivider';
@@ -131,17 +131,17 @@ export function SupplyQuickScanBar({
 
   return (
     <>
-      <div ref={triggerRef} className="relative w-48">
-        <ScanBarcode className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-        <input
+      <div ref={triggerRef} className="w-48">
+        <SearchInput
           ref={inputRef}
-          type="text"
-          placeholder="Scan barcode..."
           value={scanValue}
-          onChange={e => setScanValue(e.target.value)}
+          onChange={setScanValue}
           onKeyDown={handleKeyDown}
           disabled={isResolving}
-          className="input-search w-full pl-8"
+          placeholder="Scan barcode…"
+          size="sm"
+          icon={<ScanBarcode size={12} />}
+          aria-label="Scan barcode"
         />
 
         <DropdownMenu

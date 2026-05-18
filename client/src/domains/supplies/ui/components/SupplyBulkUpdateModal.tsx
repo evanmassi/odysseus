@@ -10,7 +10,6 @@ import { useState, useMemo, useCallback } from 'react';
 
 import {
   Layers,
-  Search,
   PackagePlus,
   PackageMinus,
   FolderInput,
@@ -20,7 +19,7 @@ import {
 } from 'lucide-react';
 
 import { useSupplyBulkUpdateMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, Checkbox, Tabs, Tab } from '@shared/ui';
+import { Button, Checkbox, SearchInput, Tabs, Tab } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -379,16 +378,15 @@ function ItemSelector({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="relative mb-2 flex-shrink-0">
-        <Search className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Filter items..."
-          value={searchQuery}
-          onChange={e => onSearchChange(e.target.value)}
-          className="input-search w-full pl-7 text-xs"
-        />
-      </div>
+      <SearchInput
+        value={searchQuery}
+        onChange={onSearchChange}
+        placeholder="Filter items…"
+        size="sm"
+        className="mb-2 flex-shrink-0"
+        inputClassName="text-xs"
+        aria-label="Filter items"
+      />
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50 flex-shrink-0">
         <Checkbox
           checked={allSelected}

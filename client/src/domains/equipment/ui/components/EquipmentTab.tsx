@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Layers, Plus, Search, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucide-react';
+import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
@@ -16,7 +16,7 @@ import {
   useAddEquipmentDocumentMutation,
   useDeleteEquipmentCategoryMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, Select, Tooltip } from '@shared/ui';
+import { Button, SearchInput, Select, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
@@ -193,16 +193,14 @@ export function EquipmentTab() {
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Row 1: Search + Add Equipment */}
           <div className="flex items-center justify-between gap-4 mb-2 flex-shrink-0 px-0.5">
-            <div className="relative w-96">
-              <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search equipment..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="input-search w-full pl-8"
-              />
-            </div>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search equipment…"
+              size="sm"
+              className="w-96"
+              aria-label="Search equipment"
+            />
             {isAdmin && (
               <div className="flex items-center gap-2">
                 <Button

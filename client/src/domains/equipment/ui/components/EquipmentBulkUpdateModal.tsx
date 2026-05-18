@@ -14,12 +14,12 @@ import {
   equipmentBulkStatusRequestSchema,
   equipmentBulkRelocateRequestSchema,
 } from '@odysseus/shared-schemas';
-import { Layers, Search, Wrench, RefreshCw, FolderInput } from 'lucide-react';
+import { Layers, Wrench, RefreshCw, FolderInput } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 
 import { useEquipmentBulkUpdateMutation, type EquipmentBulkAction } from '@domains/equipment/hooks';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Checkbox, DatePicker, Select, Tabs, Tab } from '@shared/ui';
+import { Button, Checkbox, DatePicker, SearchInput, Select, Tabs, Tab } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -181,16 +181,15 @@ function ItemSelector({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="relative mb-2 flex-shrink-0">
-        <Search className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Filter equipment..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="input-search w-full pl-7 text-xs"
-        />
-      </div>
+      <SearchInput
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder="Filter equipment…"
+        size="sm"
+        className="mb-2 flex-shrink-0"
+        inputClassName="text-xs"
+        aria-label="Filter equipment"
+      />
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50 flex-shrink-0">
         <Checkbox
           checked={allSelected}

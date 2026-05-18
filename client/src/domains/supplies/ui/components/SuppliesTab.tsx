@@ -8,22 +8,12 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import {
-  Plus,
-  Search,
-  Eye,
-  EyeOff,
-  ArrowUp,
-  ArrowDown,
-  Package,
-  MapPin,
-  Layers,
-} from 'lucide-react';
+import { Plus, Eye, EyeOff, ArrowUp, ArrowDown, Package, MapPin, Layers } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
 import { useDeleteSupplyCategoryMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, Select, Tooltip, OverflowMenu } from '@shared/ui';
+import { Button, SearchInput, Select, Tooltip, OverflowMenu } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
@@ -197,16 +187,14 @@ export function SuppliesTab() {
           {/* Row 1: Search + Actions */}
           <div className="flex items-center justify-between gap-4 mb-2 flex-shrink-0 px-0.5">
             <div className="flex items-center gap-2">
-              <div className="relative w-64">
-                <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search supplies..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="input-search w-full pl-8"
-                />
-              </div>
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search supplies…"
+                size="sm"
+                className="w-64"
+                aria-label="Search supplies"
+              />
               <SupplyQuickScanBar
                 items={items}
                 onViewItem={handleScanViewItem}
