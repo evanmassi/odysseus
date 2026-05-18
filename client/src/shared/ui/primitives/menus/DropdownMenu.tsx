@@ -11,12 +11,18 @@ import { createPortal } from 'react-dom';
 
 import { useMenuKeyboardNavigation } from '@shared/hooks';
 
-export type DropdownMotion = 'reveal' | 'slide-down' | 'slide-up' | 'slide-right' | 'slide-left';
+export type DropdownMotion =
+  | 'reveal'
+  | 'slide-down'
+  | 'slide-up'
+  | 'slide-right'
+  | 'slide-left'
+  | 'instant';
 
 export interface DropdownMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  triggerRef: RefObject<HTMLElement>;
+  triggerRef?: RefObject<HTMLElement>;
   portal?: boolean;
   align?: 'start' | 'end';
   animated?: boolean;
@@ -74,7 +80,7 @@ export function DropdownMenu({
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
       if (menuRef.current?.contains(target)) return;
-      if (triggerRef.current?.contains(target)) return;
+      if (triggerRef?.current?.contains(target)) return;
       onClose();
     };
 
@@ -102,6 +108,7 @@ export function DropdownMenu({
       out: 'animate-dropdown-slide-right-out',
     },
     'slide-left': { in: 'animate-dropdown-slide-left-in', out: 'animate-dropdown-slide-left-out' },
+    instant: { in: 'animate-dropdown-instant-in', out: 'animate-dropdown-instant-out' },
   }[motion];
   const animationClass = animated ? (isClosing ? motionClass.out : motionClass.in) : '';
 
