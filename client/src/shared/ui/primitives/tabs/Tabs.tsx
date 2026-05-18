@@ -43,7 +43,9 @@ const BASE =
   'font-mono uppercase tracking-[0.18em] text-xs font-medium ' +
   'transition-colors duration-150 focus:outline-none cursor-pointer';
 
-const ACTIVE_STATE = 'text-foreground border-primary phosphor-text';
+const ACTIVE_STATE =
+  'text-foreground border-primary phosphor-text ' +
+  '[border-image:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)_1]';
 
 const INACTIVE_STATE =
   'text-muted-foreground border-transparent ' +

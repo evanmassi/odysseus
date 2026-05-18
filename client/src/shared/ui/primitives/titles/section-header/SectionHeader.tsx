@@ -38,7 +38,10 @@ export function SectionHeader({ title, meta, rightMeta, className }: SectionHead
           aria-hidden
           className="absolute left-0 top-1/2 z-10 h-px w-2 -translate-y-1/2 bg-background"
         />
-        <span aria-hidden className="h-px flex-1 bg-foreground/15" />
+        <span
+          aria-hidden
+          className="h-px flex-1 [background:linear-gradient(90deg,hsl(var(--foreground)/0.08)_0%,hsl(var(--foreground)/0.22)_75%,hsl(var(--foreground)/0.18)_88%,transparent_100%)]"
+        />
         <span
           aria-hidden
           className={`absolute top-1/2 h-1 w-3 -translate-y-1/2 bg-foreground/60 ${rightMeta ? 'right-20' : 'right-1'}`}

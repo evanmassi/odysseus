@@ -173,7 +173,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent
             transition-colors
             rounded-l-md
-            border-r border-border
+            border-r border-transparent
+            [border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.16)_18%,hsl(var(--foreground)/0.16)_82%,transparent_100%)_1]
             focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring
           `}
           aria-label="Decrease value"
@@ -220,7 +221,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent
             transition-colors
             rounded-r-md
-            border-l border-border
+            border-l border-transparent
+            [border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.14)_22%,hsl(var(--foreground)/0.14)_78%,transparent_100%)_1]
             focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring
           `}
           aria-label="Increase value"
