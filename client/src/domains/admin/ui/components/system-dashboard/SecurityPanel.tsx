@@ -24,8 +24,9 @@ import {
   BracketedStamp,
   Button,
   Chip,
-  rowStripe,
+  CrtBackdrop,
   SectionHeader,
+  SectionToolbar,
   StatCell,
   Table,
   DatePicker,
@@ -58,6 +59,14 @@ import type { SortConfig, TableColumn } from '@shared/ui';
 
 type IpActivityRow = IpActivityEntry & { id: string };
 type FailedLoginRow = FailedLoginEntry & { id: string };
+
+const STRONG_DENIAL_KEYWORDS = ['suspended', 'deactivated', 'denied', 'rejected'];
+
+function getReasonTone(reason: string): string {
+  const lower = reason.toLowerCase();
+  const isStrong = STRONG_DENIAL_KEYWORDS.some(kw => lower.includes(kw));
+  return isStrong ? 'phosphor-text text-danger-text-hover' : 'phosphor-text text-danger-text';
+}
 
 export function SecurityPanel() {
   const user = useAuthStore(s => s.user);
@@ -256,11 +265,15 @@ export function SecurityPanel() {
         const count = sessionCountsByUser.get(row.userId) ?? 1;
         const own = isOwnSession(row);
         return (
-          <div>
-            <div className={`font-medium ${own ? 'text-success-text' : 'text-card-foreground'}`}>
+          <div className="max-w-[260px]">
+            <div
+              className={`font-medium truncate ${own ? 'text-success-text' : 'text-card-foreground'}`}
+            >
               {row.userName}
             </div>
-            <div className={`text-xs ${own ? 'text-success-text/70' : 'text-muted-foreground'}`}>
+            <div
+              className={`text-xs truncate ${own ? 'text-success-text/70' : 'text-muted-foreground'}`}
+            >
               {row.userEmail}
             </div>
             {count > 1 && (
@@ -433,7 +446,9 @@ export function SecurityPanel() {
     {
       id: 'reason',
       header: 'Reason',
-      render: (_val, row) => <span className="text-xs">{row.reason}</span>,
+      render: (_val, row) => (
+        <span className={`text-xs ${getReasonTone(row.reason)}`}>{row.reason}</span>
+      ),
     },
     {
       id: 'timestamp',
@@ -463,20 +478,8 @@ export function SecurityPanel() {
     <div className="space-y-4">
       <BracketedStamp title="Security" icon={<Shield size={14} />} />
 
-      <div className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-card bg-scanlines"
-          style={{
-            maskImage:
-              'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent), linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)',
-            WebkitMaskImage:
-              'linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent), linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent)',
-            maskComposite: 'intersect',
-            WebkitMaskComposite: 'source-in',
-          }}
-        />
-        <div className="relative flex divide-x divide-line-soft">
+      <CrtBackdrop size="md">
+        <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
           <StatCell
             size="sm"
             label="Active Sessions"
@@ -524,7 +527,7 @@ export function SecurityPanel() {
             className="flex-1"
           />
         </div>
-      </div>
+      </CrtBackdrop>
 
       <SecuritySettings />
 
@@ -571,14 +574,14 @@ export function SecurityPanel() {
                 }
 
                 const toneClasses = isHigh
-                  ? `bg-warning-bg ${isPeak ? 'shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.5)]' : 'shadow-[0_0_4px_hsl(var(--color-warning-bg)/0.3)]'}`
-                  : 'bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.3)]';
+                  ? `bg-warning-bg ${isPeak ? 'shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.5)] hover:shadow-[0_0_14px_hsl(var(--color-warning-bg)/0.75)]' : 'shadow-[0_0_4px_hsl(var(--color-warning-bg)/0.3)] hover:shadow-[0_0_10px_hsl(var(--color-warning-bg)/0.6)]'}`
+                  : 'bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_10px_hsl(var(--primary)/0.6)]';
 
                 return (
                   <Tooltip key={bar.hour} content={tooltip} side="top">
                     <div className="flex h-full flex-1 flex-col justify-end">
                       <div
-                        className={`bg-scanlines ${toneClasses}`}
+                        className={`bg-scanlines cursor-pointer transition-[filter,box-shadow] duration-150 hover:brightness-125 ${toneClasses}`}
                         style={{ height: `${ratio * 100}%` }}
                       />
                     </div>
@@ -601,45 +604,54 @@ export function SecurityPanel() {
       </div>
 
       <div>
-        <div className="flex items-center justify-end gap-3 mb-3">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Filter by name, email, or IP..."
-              value={filterText}
-              onChange={e => setFilterText(e.target.value)}
-              className="input-search w-64 pl-8"
-            />
-          </div>
-          <Button
-            variant={autoRefresh ? 'primary' : 'ghost'}
-            size="sm"
-            iconOnly
-            onClick={() => setAutoRefresh(prev => !prev)}
-            aria-label="Toggle auto-refresh"
-          >
-            <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
-          </Button>
-        </div>
-
-        {selectedSessionIds.length > 0 && (
-          <div className="flex items-center gap-2 mb-2">
-            <Button
-              variant="ghost-danger"
-              size="sm"
-              onClick={() => setShowBulkRevokeConfirm(true)}
-              leftIcon={<LogOut size={14} />}
-            >
-              Revoke Selected ({selectedSessionIds.length})
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedSessionIds([])}>
-              Clear Selection
-            </Button>
-          </div>
-        )}
-
         <SectionHeader title="Active Sessions" meta={`${sortedSessions.length} active`} />
+        <SectionToolbar
+          left={
+            <>
+              <Button
+                variant="ghost-danger"
+                size="sm"
+                onClick={() => setShowBulkRevokeConfirm(true)}
+                leftIcon={<LogOut size={14} />}
+                disabled={selectedSessionIds.length === 0}
+              >
+                Revoke Selected
+                {selectedSessionIds.length > 0 ? ` (${selectedSessionIds.length})` : ''}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedSessionIds([])}
+                disabled={selectedSessionIds.length === 0}
+              >
+                Clear Selection
+              </Button>
+            </>
+          }
+          right={
+            <>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Filter by name, email, or IP..."
+                  value={filterText}
+                  onChange={e => setFilterText(e.target.value)}
+                  className="input-search w-64 pl-8"
+                />
+              </div>
+              <Button
+                variant={autoRefresh ? 'primary' : 'ghost'}
+                size="sm"
+                iconOnly
+                onClick={() => setAutoRefresh(prev => !prev)}
+                aria-label="Toggle auto-refresh"
+              >
+                <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
+              </Button>
+            </>
+          }
+        />
         <Table<ActiveSessionEntry>
           columns={sessionColumns}
           data={sortedSessions}
@@ -654,53 +666,52 @@ export function SecurityPanel() {
           hoverable
           emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
           aria-label="Active sessions"
-          rowClassName={row =>
-            isOwnSession(row) ? `text-success-text phosphor-text ${rowStripe('success')}` : ''
-          }
+          rowClassName={row => (isOwnSession(row) ? 'text-success-text phosphor-text' : '')}
+          rowTone={row => (isOwnSession(row) ? 'success' : 'primary')}
+          selectedRowGlow
         />
       </div>
 
       <div>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">From</span>
-            <DatePicker
-              value={startDate}
-              onChange={v => setStartDate(v)}
-              size="sm"
-              clearable
-              className="w-40"
-              aria-label="Start date"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">To</span>
-            <DatePicker
-              value={endDate}
-              onChange={v => setEndDate(v)}
-              size="sm"
-              clearable
-              className="w-40"
-              aria-label="End date"
-            />
-          </div>
-          {(startDate || endDate) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setStartDate('');
-                setEndDate('');
-              }}
-            >
-              Clear
-            </Button>
-          )}
-        </div>
-
         <SectionHeader
           title="IP Activity"
           meta={`${ipData?.entries?.length ?? 0} unique addresses`}
+        />
+        <SectionToolbar
+          left={
+            <>
+              <span className="text-xs text-muted-foreground">From</span>
+              <DatePicker
+                value={startDate}
+                onChange={v => setStartDate(v)}
+                size="sm"
+                clearable
+                className="w-40"
+                aria-label="Start date"
+              />
+              <span className="text-xs text-muted-foreground">To</span>
+              <DatePicker
+                value={endDate}
+                onChange={v => setEndDate(v)}
+                size="sm"
+                clearable
+                className="w-40"
+                aria-label="End date"
+              />
+              {(startDate || endDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setStartDate('');
+                    setEndDate('');
+                  }}
+                >
+                  Clear
+                </Button>
+              )}
+            </>
+          }
         />
         <Table<IpActivityRow>
           columns={ipColumns}
