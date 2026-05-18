@@ -190,6 +190,15 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
             </span>
           )}
 
+          <div className="absolute right-4 top-4 z-10">
+            <LabPowerToggle
+              isActive={lab.isActive}
+              isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
+              onActivate={() => handleActivateLab(lab.id)}
+              onDeactivate={() => setDeactivateTarget(lab.id)}
+            />
+          </div>
+
           <div className="relative flex items-stretch gap-3 px-4 pt-7 pb-3">
             <div
               className={`flex shrink-0 flex-col items-center gap-2 ${getLabBadgeTextClasses(lab.id, lab.isDemo)}`}
@@ -228,27 +237,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   )}
                 </div>
 
-                <div className="flex items-center justify-center gap-2 px-4">
-                  {lab.isActive ? (
-                    <Button
-                      variant="ghost-danger"
-                      size="sm"
-                      onClick={() => setDeactivateTarget(lab.id)}
-                      leftIcon={<Power size={14} />}
-                    >
-                      Deactivate
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleActivateLab(lab.id)}
-                      isLoading={activateLabMutation.isPending}
-                      leftIcon={<Power size={14} />}
-                    >
-                      Activate
-                    </Button>
-                  )}
+                <div className="flex items-center justify-center px-4">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -435,5 +424,65 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
         onCancel={() => setDeactivateTarget(null)}
       />
     </div>
+  );
+}
+
+interface LabPowerToggleProps {
+  isActive: boolean;
+  isLoading: boolean;
+  onActivate: () => void;
+  onDeactivate: () => void;
+}
+
+function LabPowerToggle({ isActive, isLoading, onActivate, onDeactivate }: LabPowerToggleProps) {
+  const handleClick = () => {
+    if (isLoading) return;
+    if (isActive) onDeactivate();
+    else onActivate();
+  };
+
+  const bodyTone = isActive
+    ? 'border-success-bg shadow-[inset_0_0_14px_-2px_hsl(var(--color-success-bg)/0.45),0_0_22px_-2px_hsl(var(--color-success-bg)/0.55)]'
+    : 'border-line-mid';
+
+  const ringTone = isActive
+    ? 'before:border-success-bg/60 before:shadow-[0_0_14px_-2px_hsl(var(--color-success-bg)/0.35)]'
+    : 'before:border-line-soft';
+
+  const glyphTone = isActive
+    ? 'text-success-text [filter:drop-shadow(0_0_3px_hsl(var(--color-success-text)/0.85))]'
+    : 'text-foreground/40';
+
+  const bgStyle: React.CSSProperties = {
+    background: isActive
+      ? `radial-gradient(circle at 50% 35%, hsl(var(--color-success-bg)/0.35), hsl(var(--color-success-bg)/0.05) 70%), hsl(var(--card))`
+      : `radial-gradient(circle at 50% 35%, rgba(255,255,255,0.025), rgba(255,255,255,0) 60%), hsl(var(--card))`,
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={isLoading}
+      aria-label={isActive ? 'Deactivate lab' : 'Activate lab'}
+      aria-pressed={isActive}
+      style={bgStyle}
+      className={`
+        relative flex h-10 w-10 items-center justify-center rounded-full border
+        transition-[background,border-color,box-shadow] duration-200
+        before:absolute before:inset-[-4px] before:rounded-full
+        before:border before:border-dashed before:content-['']
+        before:transition-[border-color,box-shadow] before:duration-200
+        ${bodyTone}
+        ${ringTone}
+        ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+      `}
+    >
+      <Power
+        size={16}
+        strokeWidth={1.6}
+        className={`transition-[color,filter] duration-200 ${glyphTone}`}
+      />
+    </button>
   );
 }
