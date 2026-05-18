@@ -8,6 +8,8 @@ import type { ReactNode } from 'react';
 
 export type TableDensity = 'compact' | 'default';
 
+export type RowTone = 'primary' | 'success';
+
 export type SortDirection = 'asc' | 'desc';
 
 export interface SortConfig {
@@ -52,6 +54,8 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   'aria-label'?: string;
   className?: string;
   rowClassName?: string | ((row: T, index: number) => string);
+  rowTone?: (row: T) => RowTone;
+  selectedRowGlow?: boolean;
 }
 
 export type TableRef = HTMLTableElement;

@@ -10,7 +10,65 @@ import { cva } from 'class-variance-authority';
 
 import { defaultTableProps } from './types';
 
-import type { TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
+import type { RowTone, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
+
+const CHECKBOX_TONE: Record<
+  RowTone,
+  {
+    bracket: string;
+    fill: string;
+    icon: string;
+    iconShadow: string;
+    glow: string;
+    bar: string;
+    barShadow: string;
+  }
+> = {
+  primary: {
+    bracket: 'border-primary',
+    fill: 'bg-action-light',
+    icon: 'text-primary',
+    iconShadow: 'drop-shadow(0 0 2px hsl(var(--primary) / 0.6))',
+    glow: 'shadow-[0_0_6px_1px_hsl(var(--primary)/0.55),0_0_16px_2px_hsl(var(--primary)/0.22)]',
+    bar: 'bg-primary',
+    barShadow: 'shadow-[0_0_4px_hsl(var(--primary)/0.6)]',
+  },
+  success: {
+    bracket: 'border-success-bg',
+    fill: 'bg-success-light',
+    icon: 'text-success-text',
+    iconShadow: 'drop-shadow(0 0 2px hsl(var(--color-success-bg) / 0.6))',
+    glow: 'shadow-[0_0_6px_1px_hsl(var(--color-success-bg)/0.55),0_0_16px_2px_hsl(var(--color-success-bg)/0.22)]',
+    bar: 'bg-success-bg',
+    barShadow: 'shadow-[0_0_4px_hsl(var(--color-success-bg)/0.6)]',
+  },
+};
+
+// Each block is one literal string per tone — Tailwind JIT won't see interpolated classes.
+const ROW_GLOW: Record<RowTone, string> = {
+  primary: [
+    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--primary)/0.025),hsl(var(--primary)/0.025)),linear-gradient(90deg,hsl(var(--primary)/0.21)_0%,hsl(var(--primary)/0.13)_18%,hsl(var(--primary)/0.06)_48%,hsl(var(--primary)/0.02)_78%,hsl(var(--primary)/0)_100%)]',
+    'shadow-[inset_3px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/0.43),inset_0_1px_0_hsl(var(--primary)/0.16),inset_0_-1px_0_hsl(var(--primary)/0.16),inset_0_10px_16px_-8px_hsl(var(--primary)/0.14),inset_0_-10px_16px_-8px_hsl(var(--primary)/0.14),0_0_32px_-4px_hsl(var(--primary)/0.20),0_0_80px_4px_hsl(var(--primary)/0.09)]',
+    '[&>td]:!bg-transparent',
+    '[&>td:first-child]:relative',
+    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-primary [&>td:first-child]:before:pointer-events-none',
+    '[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--primary)/0.50),0_0_24px_3px_hsl(var(--primary)/0.40),0_0_72px_10px_hsl(var(--primary)/0.19)]',
+    '[&>td]:font-semibold',
+    '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
+  ].join(' '),
+  success: [
+    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-success-bg)/0.025),hsl(var(--color-success-bg)/0.025)),linear-gradient(90deg,hsl(var(--color-success-bg)/0.21)_0%,hsl(var(--color-success-bg)/0.13)_18%,hsl(var(--color-success-bg)/0.06)_48%,hsl(var(--color-success-bg)/0.02)_78%,hsl(var(--color-success-bg)/0)_100%)]',
+    'shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg)),inset_14px_0_36px_-10px_hsl(var(--color-success-bg)/0.43),inset_0_1px_0_hsl(var(--color-success-bg)/0.16),inset_0_-1px_0_hsl(var(--color-success-bg)/0.16),inset_0_10px_16px_-8px_hsl(var(--color-success-bg)/0.14),inset_0_-10px_16px_-8px_hsl(var(--color-success-bg)/0.14),0_0_32px_-4px_hsl(var(--color-success-bg)/0.20),0_0_80px_4px_hsl(var(--color-success-bg)/0.09)]',
+    '[&>td]:!bg-transparent',
+    '[&>td:first-child]:relative',
+    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-success-bg [&>td:first-child]:before:pointer-events-none',
+    '[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--color-success-bg)/0.50),0_0_24px_3px_hsl(var(--color-success-bg)/0.40),0_0_72px_10px_hsl(var(--color-success-bg)/0.19)]',
+    '[&>td]:font-semibold',
+    '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
+  ].join(' '),
+};
+
+const CHECKBOX_CELL_OVERRIDE = '!px-3 !shadow-none text-center w-10';
 
 const TableContext = createContext<TableContextValue | null>(null);
 
@@ -27,7 +85,6 @@ const headerVariants = cva(
     'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
     'text-left text-foreground/60',
     'bg-surface-panel-2',
-    'border-b border-line-mid',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
   {
@@ -61,7 +118,7 @@ const headerVariants = cva(
 
 const cellVariants = cva(
   [
-    'pr-[18px] pl-0 text-sm text-foreground align-middle',
+    'pr-[18px] pl-0 text-sm font-mono text-foreground align-middle',
     'first:pl-[14px] first:shadow-[inset_3px_0_0_0_hsl(var(--foreground)/0.12)]',
     'group-hover:bg-foreground/[0.05]',
     'group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]',
@@ -155,6 +212,7 @@ interface TableCheckboxProps {
   indeterminate?: boolean;
   onChange: (checked: boolean) => void;
   'aria-label'?: string;
+  tone?: RowTone;
 }
 
 const TableCheckbox: React.FC<TableCheckboxProps> = ({
@@ -162,10 +220,12 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
   indeterminate,
   onChange,
   'aria-label': ariaLabel,
+  tone = 'primary',
 }) => {
   const isLit = checked || Boolean(indeterminate);
-  const bracketColor = isLit ? 'border-primary' : 'border-line-strong';
-  const boxGlow = isLit ? 'shadow-[0_0_4px_hsl(var(--primary)/0.3)]' : '';
+  const t = CHECKBOX_TONE[tone];
+  const bracketColor = isLit ? t.bracket : 'border-line-strong';
+  const boxGlow = isLit ? t.glow : '';
   return (
     <label className="relative inline-flex h-4 w-4 cursor-pointer items-center justify-center">
       <input
@@ -180,7 +240,7 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
       />
       <span
         aria-hidden
-        className={`absolute inset-0 ${isLit ? 'bg-action-light' : 'bg-surface-void/30'} ${boxGlow}`}
+        className={`absolute inset-0 ${isLit ? t.fill : 'bg-surface-void/30'} ${boxGlow}`}
       />
       <span
         aria-hidden
@@ -201,8 +261,8 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
       {checked && !indeterminate && (
         <svg
           aria-hidden
-          className="absolute inset-0 text-primary"
-          style={{ filter: 'drop-shadow(0 0 2px hsl(var(--primary) / 0.6))' }}
+          className={`absolute inset-0 ${t.icon}`}
+          style={{ filter: t.iconShadow }}
           viewBox="0 0 16 16"
           fill="none"
           stroke="currentColor"
@@ -216,7 +276,7 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
       {indeterminate && (
         <span
           aria-hidden
-          className="absolute top-1/2 right-[3px] left-[3px] h-0.5 -translate-y-1/2 bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.6)]"
+          className={`absolute top-1/2 right-[3px] left-[3px] h-0.5 -translate-y-1/2 ${t.bar} ${t.barShadow}`}
         />
       )}
     </label>
@@ -248,9 +308,9 @@ const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
 
   return (
     <thead>
-      <tr>
+      <tr className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.18)_10%,hsl(var(--foreground)/0.18)_90%,transparent_100%)]">
         {selectable && (
-          <th className={headerVariants({ density })}>
+          <th className={`${headerVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
             {multiSelect && (
               <TableCheckbox
                 checked={selectedRows.length > 0}
@@ -305,12 +365,16 @@ const TableBody = <T extends TableRowBase>({
   hoverable,
   rowClassName,
   onRowClick,
+  rowTone,
+  selectedRowGlow,
 }: {
   columns: TableColumn<T>[];
   data: T[];
   hoverable: boolean;
   rowClassName?: string | ((row: T, index: number) => string);
   onRowClick?: (row: T, index: number) => void;
+  rowTone?: (row: T) => RowTone;
+  selectedRowGlow?: boolean;
 }) => {
   const { selectable, selectedRows, onSelectionChange, density } = useTableContext();
 
@@ -350,6 +414,7 @@ const TableBody = <T extends TableRowBase>({
         const extra =
           typeof rowClassName === 'function' ? rowClassName(row, index) : (rowClassName ?? '');
         const zebra = index % 2 === 0 ? '[&>td]:bg-foreground/[0.022]' : '';
+        const glow = selectedRowGlow && isSelected ? ROW_GLOW[rowTone?.(row) ?? 'primary'] : '';
 
         return (
           <tr
@@ -357,16 +422,17 @@ const TableBody = <T extends TableRowBase>({
             className={`${rowVariants({
               hoverable,
               clickable: Boolean(onRowClick),
-              selected: isSelected,
-            })} ${zebra} ${extra}`}
+              selected: isSelected && !selectedRowGlow,
+            })} ${zebra} ${extra} ${glow}`}
             onClick={onRowClick ? () => onRowClick(row, index) : undefined}
           >
             {selectable && (
-              <td className={cellVariants({ density })}>
+              <td className={`${cellVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
                 <TableCheckbox
                   checked={isSelected}
                   onChange={checked => handleRowSelect(row.id, checked)}
                   aria-label={`Select row ${index + 1}`}
+                  tone={rowTone?.(row)}
                 />
               </td>
             )}
@@ -407,6 +473,8 @@ export function Table<T extends TableRowBase>({
   'aria-label': ariaLabel,
   className,
   rowClassName,
+  rowTone,
+  selectedRowGlow,
 }: TableProps<T>) {
   const contextValue: TableContextValue = {
     selectable: selectable!,
@@ -449,6 +517,8 @@ export function Table<T extends TableRowBase>({
           hoverable={hoverable!}
           rowClassName={rowClassName}
           onRowClick={onRowClick}
+          rowTone={rowTone}
+          selectedRowGlow={selectedRowGlow}
         />
       </table>
     </TableContext.Provider>
