@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
 import { BeanOff, RotateCcw, Save, Sprout } from 'lucide-react';
 
-import { Button, NumberInput, SectionHeader } from '@shared/ui';
+import { Button, NumberInput, SectionHeader, SettingsRow, SettingsRowGroup } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -95,29 +95,38 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
     <>
       <div>
         <SectionHeader title="Demo Settings" />
-        <div className="divide-y divide-line-faint border-b border-transparent [&>*:nth-child(2)]:[border-image:linear-gradient(90deg,hsl(var(--foreground)/0.14)_0%,hsl(var(--foreground)/0.10)_60%,transparent_100%)_1] [&>*:nth-child(3)]:[border-image:linear-gradient(90deg,hsl(var(--foreground)/0.12)_0%,hsl(var(--foreground)/0.08)_72%,transparent_100%)_1] [border-image:linear-gradient(90deg,hsl(var(--foreground)/0.10)_0%,hsl(var(--foreground)/0.06)_55%,transparent_100%)_1]">
-          <DemoLimitRow
-            label="Additional Tanks"
-            hint="Max tanks beyond seeded baseline"
-            value={maxTanks}
-            onChange={v => setEditedLimits(prev => ({ ...prev, maxTanks: v }))}
-            max={50}
-          />
-          <DemoLimitRow
-            label="Additional Racks per Tank"
-            hint="Max racks beyond seeded baseline"
-            value={maxRacksPerTank}
-            onChange={v => setEditedLimits(prev => ({ ...prev, maxRacksPerTank: v }))}
-            max={50}
-          />
-          <DemoLimitRow
-            label="Additional Boxes per Rack"
-            hint="Max boxes beyond seeded baseline"
-            value={maxBoxesPerRack}
-            onChange={v => setEditedLimits(prev => ({ ...prev, maxBoxesPerRack: v }))}
-            max={26}
-          />
-        </div>
+        <SettingsRowGroup>
+          <SettingsRow label="Additional Tanks" hint="Max tanks beyond seeded baseline">
+            <NumberInput
+              value={maxTanks}
+              onChange={v => setEditedLimits(prev => ({ ...prev, maxTanks: v }))}
+              min={0}
+              max={50}
+              size="sm"
+              aria-label="Additional Tanks"
+            />
+          </SettingsRow>
+          <SettingsRow label="Additional Racks per Tank" hint="Max racks beyond seeded baseline">
+            <NumberInput
+              value={maxRacksPerTank}
+              onChange={v => setEditedLimits(prev => ({ ...prev, maxRacksPerTank: v }))}
+              min={0}
+              max={50}
+              size="sm"
+              aria-label="Additional Racks per Tank"
+            />
+          </SettingsRow>
+          <SettingsRow label="Additional Boxes per Rack" hint="Max boxes beyond seeded baseline">
+            <NumberInput
+              value={maxBoxesPerRack}
+              onChange={v => setEditedLimits(prev => ({ ...prev, maxBoxesPerRack: v }))}
+              min={0}
+              max={26}
+              size="sm"
+              aria-label="Additional Boxes per Rack"
+            />
+          </SettingsRow>
+        </SettingsRowGroup>
         <div className="flex flex-wrap items-center justify-end gap-2 pt-3">
           {editedLimits && (
             <Button
@@ -195,36 +204,5 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
         onCancel={() => setUnseedConfirm(false)}
       />
     </>
-  );
-}
-
-interface DemoLimitRowProps {
-  label: string;
-  hint: string;
-  value: number;
-  onChange: (v: number) => void;
-  max: number;
-}
-
-function DemoLimitRow({ label, hint, value, onChange, max }: DemoLimitRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <div className="min-w-0">
-        <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-foreground/85">
-          {label}
-        </div>
-        <div className="mt-0.5 font-mono text-[10px] tracking-[0.06em] text-muted-foreground/70">
-          {hint}
-        </div>
-      </div>
-      <NumberInput
-        value={value}
-        onChange={onChange}
-        min={0}
-        max={max}
-        size="sm"
-        aria-label={label}
-      />
-    </div>
   );
 }
