@@ -148,7 +148,8 @@ export class UserLoginFailedEvent extends DomainEvent {
   constructor(
     public readonly username: string,
     public readonly ipAddress: string | undefined,
-    public readonly reason: string
+    public readonly reason: string,
+    public readonly userId?: string
   ) {
     super(1);
   }
@@ -158,11 +159,12 @@ export class UserLoginFailedEvent extends DomainEvent {
   }
 
   getAggregateId(): string {
-    return this.username;
+    return this.userId ?? this.username;
   }
 
   protected getEventData(): Record<string, unknown> {
     return {
+      userId: this.userId,
       username: this.username,
       ipAddress: this.ipAddress,
       reason: this.reason

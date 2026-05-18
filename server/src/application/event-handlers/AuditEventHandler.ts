@@ -1036,11 +1036,29 @@ export class AuditEventHandler {
   }
 
   private async handleUserLoginFailed(event: UserLoginFailedEvent): Promise<void> {
-    await this.logAuditEvent({
-      eventName: 'user login failed', context: { username: event.username },
-      actorId: event.username, action: 'user_login_failed', entityType: 'user',
-      entityId: event.username, occurredOn: event.occurredOn,
-      buildDetails: () => ({ username: event.username, ipAddress: event.ipAddress, reason: event.reason }),
+    if (event.userId) {
+      await this.logAuditEvent({
+        eventName: 'user login failed', context: { userId: event.userId, username: event.username },
+        actorId: event.userId, action: 'user_login_failed', entityType: 'user',
+        entityId: event.userId, occurredOn: event.occurredOn,
+        buildDetails: () => ({ username: event.username, ipAddress: event.ipAddress, reason: event.reason }),
+      });
+      return;
+    }
+    // Unknown-username attempts have no user record — bypass the actor-resolution path
+    // and write the row directly so the security panel still surfaces the attempt.
+    await this.safeLogAudit('user login failed', { username: event.username }, async () => {
+      await this.auditService.logAction({
+        username: event.username,
+        action: 'user_login_failed',
+        entityType: 'user',
+        details: {
+          username: event.username,
+          ipAddress: event.ipAddress,
+          reason: event.reason,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
     });
   }
 

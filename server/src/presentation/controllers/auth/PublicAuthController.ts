@@ -174,23 +174,23 @@ export class PublicAuthController {
       const result = await this.deps.loginHandler.handle(command);
 
       if (result.user.isPending()) {
-        throw new PermissionError('Account is awaiting administrator approval');
+        this.denyLogin(req, result.user.username, 'Account is awaiting administrator approval', result.user.id);
       }
 
       if (result.user.isRejected()) {
-        throw new PermissionError('Account access has been denied');
+        this.denyLogin(req, result.user.username, 'Account access has been denied', result.user.id);
       }
 
       if (result.user.isDeactivated()) {
-        throw new PermissionError('Account has been deactivated. Contact your lab administrator');
+        this.denyLogin(req, result.user.username, 'Account has been deactivated. Contact your lab administrator', result.user.id);
       }
 
       if (result.user.isSuspended()) {
-        throw new PermissionError('Account has been suspended. Contact your system administrator');
+        this.denyLogin(req, result.user.username, 'Account has been suspended. Contact your system administrator', result.user.id);
       }
 
       if (!result.user.isApproved()) {
-        throw new PermissionError('Account is not approved for access');
+        this.denyLogin(req, result.user.username, 'Account is not approved for access', result.user.id);
       }
 
       recordSuccessfulLogin(req);
@@ -233,16 +233,21 @@ export class PublicAuthController {
       await recordFailedLogin(req);
 
       if (error instanceof InvalidCredentialsError) {
-        const ipAddress = req.ip ?? req.socket.remoteAddress;
-        void this.deps.eventBus.publish(new UserLoginFailedEvent(
-          req.body.username ?? 'unknown',
-          ipAddress,
-          error.message
-        ));
+        this.publishLoginFailed(req, req.body.username ?? 'unknown', error.message);
       }
 
       handleControllerError(error, res, 'Failed to login');
     }
+  }
+
+  private publishLoginFailed(req: Request, username: string, reason: string, userId?: string): void {
+    const ipAddress = req.ip ?? req.socket.remoteAddress;
+    void this.deps.eventBus.publish(new UserLoginFailedEvent(username, ipAddress, reason, userId));
+  }
+
+  private denyLogin(req: Request, username: string, reason: string, userId: string): never {
+    this.publishLoginFailed(req, username, reason, userId);
+    throw new PermissionError(reason);
   }
 
   async refreshToken(req: Request, res: Response): Promise<void> {
