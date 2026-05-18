@@ -70,6 +70,9 @@ export type {
 export { ScrollArea } from './scroll-area/ScrollArea';
 export type { ScrollAreaProps } from './scroll-area/ScrollArea';
 
+export { SearchInput } from './search-input/SearchInput';
+export type { SearchInputProps } from './search-input/SearchInput';
+
 export { Select } from './select/Select';
 export type {
   SelectProps,
