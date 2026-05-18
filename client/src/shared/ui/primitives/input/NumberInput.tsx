@@ -8,6 +8,14 @@ import React, { forwardRef, useCallback, useEffect, useState } from 'react';
 
 import { Minus, Plus } from 'lucide-react';
 
+const CONTAINER_SHADOW = 'shadow-[0_0_10px_-2px_hsl(var(--primary)/0.15)]';
+
+const CONTAINER_FOCUS_SHADOW =
+  'focus-within:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+
+const DIVIDER =
+  '[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_18%,hsl(var(--foreground)/0.28)_82%,transparent_100%)_1]';
+
 export interface NumberInputProps {
   value: number;
   onChange: (value: number) => void;
@@ -154,10 +162,13 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         className={`
           inline-flex items-center
           ${styles.container}
-          border border-foreground/15
-          bg-surface-elev
-          transition-shadow duration-150
-          focus-within:shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.5)]
+          bg-foreground/[0.02]
+          border border-line-mid
+          ${CONTAINER_SHADOW}
+          transition-[border-color,background,box-shadow] duration-200
+          focus-within:border-primary/70
+          focus-within:bg-primary/[0.04]
+          ${CONTAINER_FOCUS_SHADOW}
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           ${className}
         `}
@@ -176,7 +187,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             disabled:opacity-40 disabled:cursor-not-allowed
             transition-[color,text-shadow] duration-150
             border-r border-transparent
-            [border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_18%,hsl(var(--foreground)/0.28)_82%,transparent_100%)_1]
+            ${DIVIDER}
             focus:outline-none
           `}
           aria-label="Decrease value"
@@ -200,7 +211,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             ${styles.inputText}
             font-mono tracking-[0.04em]
             h-full
-            text-center
+            text-center text-foreground
             bg-transparent
             border-none
             focus:outline-none
@@ -225,7 +236,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             disabled:opacity-40 disabled:cursor-not-allowed
             transition-[color,text-shadow] duration-150
             border-l border-transparent
-            [border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_18%,hsl(var(--foreground)/0.28)_82%,transparent_100%)_1]
+            ${DIVIDER}
             focus:outline-none
           `}
           aria-label="Increase value"
