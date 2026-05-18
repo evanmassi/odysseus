@@ -95,7 +95,7 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
     <>
       <div>
         <SectionHeader title="Demo Settings" />
-        <div className="divide-y divide-line-faint border-b border-line-faint">
+        <div className="divide-y divide-line-faint border-b border-transparent [&>*:nth-child(2)]:[border-image:linear-gradient(90deg,hsl(var(--foreground)/0.14)_0%,hsl(var(--foreground)/0.10)_60%,transparent_100%)_1] [&>*:nth-child(3)]:[border-image:linear-gradient(90deg,hsl(var(--foreground)/0.12)_0%,hsl(var(--foreground)/0.08)_72%,transparent_100%)_1] [border-image:linear-gradient(90deg,hsl(var(--foreground)/0.10)_0%,hsl(var(--foreground)/0.06)_55%,transparent_100%)_1]">
           <DemoLimitRow
             label="Additional Tanks"
             hint="Max tanks beyond seeded baseline"

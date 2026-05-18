@@ -75,7 +75,7 @@ export function LabResearchersPanel({
         />
 
         {inactiveResearchers.length > 0 && (
-          <div className="mt-3 border-t border-line-faint pt-3">
+          <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.20)_0%,hsl(var(--foreground)/0.12)_55%,hsl(var(--foreground)/0.04)_88%,transparent_100%)]">
             <button
               onClick={() => setShowInactive(prev => !prev)}
               className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
