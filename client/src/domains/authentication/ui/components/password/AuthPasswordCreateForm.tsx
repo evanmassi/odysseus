@@ -140,6 +140,7 @@ export function AuthPasswordCreateForm({
           placeholder="Enter new password"
           icon={<KeyRound size={16} />}
           state={newPasswordValidationState}
+          variant="console"
           required
           disabled={isLoading}
           // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional UX: focus first input when form appears
@@ -151,6 +152,7 @@ export function AuthPasswordCreateForm({
             password={newPassword}
             config={passwordConfig}
             showError={newPasswordTouched && !passwordMeetsRequirements}
+            variant="console"
             className="ml-2 !mt-0"
           />
         )}
@@ -164,18 +166,17 @@ export function AuthPasswordCreateForm({
           placeholder="Confirm new password"
           icon={<KeyRound size={16} />}
           state={confirmPasswordValidationState}
+          variant="console"
           required
           disabled={isLoading}
         />
 
         <Button
           type="submit"
-          variant="primary"
-          size="xl"
+          variant="console"
           fullWidth
           isLoading={isLoading}
           loadingText={loadingText}
-          className="shadow-lg font-bold"
         >
           {submitText}
         </Button>
@@ -183,12 +184,12 @@ export function AuthPasswordCreateForm({
 
       {onCancel && (
         <div className="mt-4 text-center">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs font-mono text-[rgb(var(--auth-text-mute))]">
             Return to{' '}
             <button
               type="button"
               onClick={onCancel}
-              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
+              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
               disabled={isLoading}
             >
               {cancelText}

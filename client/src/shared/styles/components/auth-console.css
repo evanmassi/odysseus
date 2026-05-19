@@ -1,0 +1,324 @@
+/**
+ * Authentication Console Styles
+ *
+ * Surface, input, and button classes for the auth gateway; tokens in variables.css.
+ */
+
+@layer components {
+  .auth-console-chrome {
+    position: relative;
+    background:
+      radial-gradient(ellipse 60% 80% at 18% 10%, rgb(var(--auth-ambient) / 0.1), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 100% 100%, rgba(0, 0, 0, 0.3), transparent 55%),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.055) 0%,
+        rgba(255, 255, 255, 0.01) 12%,
+        transparent 50%,
+        rgba(0, 0, 0, 0.1) 100%
+      ),
+      rgb(var(--auth-surface) / 0.55);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    box-shadow:
+      inset 0 1px 0 rgb(var(--auth-edge-lift-top)),
+      inset 1px 0 0 rgb(var(--auth-edge-lift-left)),
+      inset 0 -1px 0 rgb(var(--auth-edge-recess-bottom)),
+      inset -1px 0 0 rgb(var(--auth-edge-recess-right)),
+      0 0 0 1px rgb(var(--auth-rim)),
+      0 32px 80px -22px rgba(0, 0, 0, 0.8),
+      0 0 140px -20px rgb(var(--auth-ambient) / 0.12);
+    color: rgb(var(--auth-text));
+    /* Smooth resize when the active modal swaps to a different width variant. */
+    transition: max-width 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .auth-console-divider {
+    border-right: 1px solid rgb(var(--auth-divider));
+  }
+
+  .auth-console-left {
+    position: relative;
+    background: radial-gradient(
+      circle at 30% 30%,
+      rgb(var(--auth-ambient) / 0.05),
+      transparent 60%
+    );
+  }
+
+  .auth-microheader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgb(var(--auth-text-mute));
+  }
+
+  .auth-microheader-bar {
+    width: 2px;
+    height: 12px;
+    background: rgb(var(--auth-ambient));
+    flex-shrink: 0;
+  }
+
+  .auth-microheader-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgb(var(--auth-divider)), transparent);
+  }
+
+  .auth-tagline {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 9.5px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgb(var(--auth-text-faint));
+  }
+
+  /* drop-shadow tracks the image's alpha — wraps the icon shape, not its bounding box. */
+  .auth-watermark {
+    filter: blur(2px) drop-shadow(0 0 28px rgb(var(--auth-ambient) / 0.45))
+      drop-shadow(0 0 80px rgb(var(--auth-ambient) / 0.18));
+  }
+
+  /* AuthInput console variant. Notched mono caps label sits on a hairline border;
+     label background is opaque so the border underneath reads as cut, not crossed. */
+  .auth-input-console {
+    position: relative;
+  }
+
+  .auth-input-console__label {
+    position: absolute;
+    top: -7px;
+    left: 10px;
+    z-index: 1;
+    padding: 2px 6px;
+    background: rgb(var(--auth-surface));
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--auth-text-mute));
+    line-height: 1;
+    transition: color 160ms ease;
+  }
+
+  .auth-input-console__required {
+    color: rgb(var(--auth-ambient));
+  }
+
+  .auth-input-console__field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.42);
+    border: 1px solid rgb(var(--auth-divider));
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .auth-input-console__field:hover {
+    background: rgba(0, 0, 0, 0.55);
+    border-color: rgb(var(--auth-text) / 0.18);
+  }
+
+  .auth-input-console__field:focus-within {
+    border-color: rgb(var(--auth-ambient) / 0.55);
+    box-shadow:
+      0 0 0 1px rgb(var(--auth-ambient) / 0.4),
+      0 0 18px -4px rgb(var(--auth-ambient) / 0.4);
+  }
+
+  .auth-input-console:focus-within .auth-input-console__label {
+    color: rgb(var(--auth-text));
+  }
+
+  .auth-input-console__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px 0 12px;
+    color: rgb(var(--auth-text-mute));
+    flex-shrink: 0;
+  }
+
+  .auth-input-console__control {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 11px 12px;
+    font-size: 13px;
+    color: rgb(var(--auth-text));
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  }
+
+  .auth-input-console__icon + .auth-input-console__control {
+    padding-left: 0;
+  }
+
+  .auth-input-console__control::placeholder {
+    color: rgb(var(--auth-text) / 0.18);
+  }
+
+  /* Mask dots in password fields hug each other in the monospace cell —
+     letter-spacing pushes them apart so the row reads as discrete glyphs.
+     text-indent compensates for the leftmost dot sitting flush to the content edge.
+     :placeholder-shown scopes the spacing to when content exists, so the placeholder
+     stays consistent with other inputs. */
+  .auth-input-console__control[type='password'] {
+    letter-spacing: 0.2em;
+    text-indent: 3px;
+  }
+  .auth-input-console__control[type='password']:placeholder-shown {
+    letter-spacing: normal;
+    text-indent: 0;
+  }
+
+  /* Browsers paint autofilled inputs with a hard-coded yellow bg + dark text that
+     overrides normal styling. The inset box-shadow trick provides our fill since
+     background-color is locked; transition delay parks the yellow bg out-of-frame. */
+  .auth-input-console__control:-webkit-autofill,
+  .auth-input-console__control:-webkit-autofill:hover,
+  .auth-input-console__control:-webkit-autofill:focus,
+  .auth-input-console__control:autofill {
+    -webkit-box-shadow: 0 0 0 1000px rgb(5, 8, 12) inset !important;
+    box-shadow: 0 0 0 1000px rgb(5, 8, 12) inset !important;
+    -webkit-text-fill-color: rgb(var(--auth-text)) !important;
+    caret-color: rgb(var(--auth-text));
+    transition: background-color 9999s ease-out 0s;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+  }
+
+  .auth-input-console__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    color: rgb(var(--auth-text-mute));
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 120ms ease;
+  }
+
+  .auth-input-console__toggle:hover {
+    color: rgb(var(--auth-text));
+  }
+
+  /* Validation state — error. */
+  .auth-input-console.state-error .auth-input-console__field {
+    border-color: hsl(var(--color-danger-border));
+  }
+  .auth-input-console.state-error .auth-input-console__label {
+    color: hsl(var(--color-danger-text));
+  }
+  .auth-input-console.state-error .auth-input-console__field:focus-within {
+    box-shadow:
+      0 0 0 1px hsl(var(--color-danger-bg) / 0.45),
+      0 0 18px -4px hsl(var(--color-danger-bg) / 0.4);
+  }
+
+  /* Validation state — warning. */
+  .auth-input-console.state-warning .auth-input-console__field {
+    border-color: hsl(var(--color-warning-border));
+  }
+  .auth-input-console.state-warning .auth-input-console__label {
+    color: hsl(var(--color-warning-text));
+  }
+
+  /* Validation state — success. */
+  .auth-input-console.state-success .auth-input-console__field {
+    border-color: hsl(var(--color-success-border));
+  }
+  .auth-input-console.state-success .auth-input-console__label {
+    color: hsl(var(--color-success-text));
+  }
+}
+
+/* Unlayered — wins over Tailwind utilities applied by the Button cva base.
+   Mirrors the microheader vocabulary: leading accent bar + hairline rim +
+   ambient wash + trailing chevron that slides on hover. */
+.button-console {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  height: 44px;
+  padding: 0 16px;
+  background: rgb(var(--auth-ambient) / 0.1);
+  border: 1px solid rgb(var(--auth-ambient) / 0.45);
+  color: rgb(var(--auth-text));
+  font-size: 10.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 0 12px -2px rgb(var(--auth-ambient) / 0.2),
+    0 0 18px -4px rgb(var(--auth-ambient) / 0.4);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 220ms ease;
+}
+
+.button-console::before {
+  content: '';
+  width: 2px;
+  height: 14px;
+  flex: none;
+  background: rgb(var(--auth-ambient));
+  box-shadow: 0 0 6px -1px rgb(var(--auth-ambient) / 0.6);
+}
+
+.button-console::after {
+  content: '›';
+  margin-left: auto;
+  color: rgb(var(--auth-ambient));
+  font-size: 14px;
+  line-height: 1;
+  transition:
+    transform 160ms ease,
+    color 160ms ease;
+}
+
+.button-console:hover:not(:disabled) {
+  background: rgb(var(--auth-ambient) / 0.2);
+  border-color: rgb(var(--auth-ambient));
+  color: rgb(220, 234, 248);
+  box-shadow:
+    inset 0 0 16px -2px rgb(var(--auth-ambient) / 0.35),
+    0 0 24px -2px rgb(var(--auth-ambient) / 0.55);
+}
+
+.button-console:hover:not(:disabled)::after {
+  transform: translateX(3px);
+  color: rgb(180, 210, 240);
+}
+
+.button-console:active:not(:disabled) {
+  background: rgb(var(--auth-ambient) / 0.14);
+  box-shadow: inset 0 0 10px -2px rgb(var(--auth-ambient) / 0.3);
+}
+
+.button-console:disabled {
+  background: transparent;
+  color: rgb(var(--auth-text-faint));
+}
+
+.button-console:disabled::before {
+  background: rgb(var(--auth-text-faint));
+  box-shadow: none;
+}
+
+.button-console:disabled::after {
+  color: rgb(var(--auth-text-faint));
+}

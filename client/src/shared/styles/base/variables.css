@@ -78,7 +78,21 @@
     --overlay: 0 0% 0% / 0.6;
     --overlay-emphasis: 0 0% 0% / 0.7;
 
-    --auth-sketch-border: 0 0% 100%;
+    /* Defined only on :root — auth surface intentionally does not follow app theme.
+       Values are plain channels (not Tailwind tokens) so they compose into the
+       multi-alpha box-shadow + gradient stacks in auth-console.css. */
+    --auth-ambient: 91 157 217;
+    --auth-surface: 14 22 34;
+    --auth-edge-lift-top: 255 255 255 / 0.2;
+    --auth-edge-lift-left: 255 255 255 / 0.06;
+    --auth-edge-recess-bottom: 0 0 0 / 0.5;
+    --auth-edge-recess-right: 0 0 0 / 0.22;
+    --auth-rim: 232 227 213 / 0.07;
+    --auth-divider: 232 227 213 / 0.08;
+    --auth-text: 232 227 213;
+    --auth-text-dim: 232 227 213 / 0.62;
+    --auth-text-mute: 232 227 213 / 0.42;
+    --auth-text-faint: 232 227 213 / 0.28;
 
     /* Action Colors */
     --color-action-default: var(--primary);
@@ -271,8 +285,6 @@
     /* Utilities */
     --border: 215.3 25% 26.7%;
     --input: 217.2 25% 26.7%;
-
-    --auth-sketch-border: 215 20.2% 65.1%;
 
     /* Action Colors */
     --color-action-default: var(--primary);

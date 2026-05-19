@@ -17,6 +17,8 @@ import {
   Info,
 } from 'lucide-react';
 
+import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import {
   authService,
   type PasswordRequirements as PasswordConfig,
@@ -33,7 +35,6 @@ import { notifications } from '@shared/utils';
 
 import { PasswordRequirements } from '../password/PasswordRequirements';
 
-import { AuthBaseModal } from './AuthBaseModal';
 import { AuthRegistrationSuccessModal } from './AuthRegistrationSuccessModal';
 
 import type { TokenPair } from '@shared/types/sessionTypes';
@@ -221,7 +222,31 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
     setShowSuccessModal(false);
   };
 
-  if (showSuccessModal && registrationResult) {
+  const inputRegState: 'invite' | 'form' | 'success' =
+    showSuccessModal && !!registrationResult ? 'success' : inviteCodeValidated ? 'form' : 'invite';
+  const { displayed: regState, isTransitioning } = useDelayedTransition(inputRegState, 200);
+  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
+
+  useShellConfig(
+    regState === 'success'
+      ? {
+          contentKey: 'registration:success',
+          variant: 'stack',
+          width: 'narrow',
+          showBranding: 'icon',
+        }
+      : {
+          contentKey: regState === 'form' ? 'registration:form' : 'registration:invite',
+          variant: 'console',
+          width: regState === 'form' ? 'wide' : 'narrow',
+          showBranding: true,
+          brandGreeting: 'Registration',
+          microheader: regState === 'form' ? 'Account details' : 'Enter invite code',
+          initialFocusRef: regState === 'form' ? firstNameInputRef : undefined,
+        }
+  );
+
+  if (regState === 'success' && registrationResult) {
     return (
       <AuthRegistrationSuccessModal
         username={registrationResult.username}
@@ -231,19 +256,9 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
   }
 
   return (
-    <AuthBaseModal
-      size={inviteCodeValidated ? 'large' : 'default'}
-      subtitle={
-        inviteCodeValidated
-          ? 'Welcome · Create your account to get started'
-          : 'Enter your invite code to get started'
-      }
-      initialFocusRef={inviteCodeValidated ? firstNameInputRef : undefined}
-      className="max-h-[95vh] overflow-y-auto"
-    >
-      <form onSubmit={handleSubmit} noValidate className="space-y-3">
-        {/* Invite Code Section */}
-        {!inviteCodeValidated ? (
+    <div key={regState} className={`animate-auth-stack ${exitClass}`}>
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        {regState !== 'form' ? (
           <div className="space-y-3">
             <AuthInput
               id="inviteCode"
@@ -256,61 +271,57 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
               placeholder="Enter your invite code"
               icon={<TicketCheck size={16} />}
               state={inviteCodeError ? 'error' : 'default'}
+              variant="console"
               required
               disabled={isLoading || isValidatingCode}
               maxLength={20}
             />
             {inviteCodeError && (
-              <p className="text-[11px] text-danger-text ml-1 -mt-2">{inviteCodeError}</p>
+              <p className="font-mono text-[11px] text-danger-text ml-1 -mt-1">{inviteCodeError}</p>
             )}
             <Button
               type="button"
-              variant="primary"
-              size="xl"
+              variant="console"
               fullWidth
               onClick={handleValidateInviteCode}
               isLoading={isValidatingCode}
               disabled={isLoading || !inviteCode.trim()}
-              className="shadow-lg font-bold"
             >
               Verify
             </Button>
           </div>
         ) : (
-          <div className="space-y-1.5">
-            <div className="flex gap-2 items-center justify-center">
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-                <TicketCheck size={14} className="text-success-text shrink-0" />
-                <code className="text-sm font-mono font-semibold text-foreground">
-                  {inviteCode}
-                </code>
-                <span className="text-xs text-muted-foreground">·</span>
-                <span className="text-xs text-success-text">{inviteCodeLabName}</span>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setInviteCodeValidated(false);
-                  setInviteCodeLabName(null);
-                  setCodeRole(null);
-                  setCodeCreateResearcher(false);
-                  setInviteCode('');
-                }}
-              >
-                Change
-              </Button>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-2 px-2.5 h-7 bg-[rgb(var(--auth-ambient)/0.07)] border border-[rgb(var(--auth-ambient)/0.25)] min-w-0">
+              <TicketCheck size={11} className="text-[rgb(var(--auth-ambient))] shrink-0" />
+              <code className="font-mono text-xs text-[rgb(var(--auth-text))] truncate">
+                {inviteCode}
+              </code>
+              <span className="font-mono text-[10px] text-[rgb(var(--auth-text-faint))]">·</span>
+              <span className="font-mono text-[10px] text-[rgb(var(--auth-ambient))] truncate">
+                {inviteCodeLabName}
+              </span>
             </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() => {
+                setInviteCodeValidated(false);
+                setInviteCodeLabName(null);
+                setCodeRole(null);
+                setCodeCreateResearcher(false);
+                setInviteCode('');
+              }}
+            >
+              Change
+            </Button>
           </div>
         )}
 
-        {inviteCodeValidated && (
+        {regState === 'form' && (
           <>
-            <div className="border-t border-border" />
-            {/* Name Fields Group */}
             <div className="grid grid-cols-2 gap-3 items-start">
-              {/* First Name Column with Username */}
               <div className="space-y-1.5">
                 <AuthInput
                   ref={firstNameInputRef}
@@ -322,25 +333,23 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   placeholder="First name"
                   icon={<UserRound size={16} />}
                   state={getValidationState(firstNameTouched, firstName.trim().length > 0)}
+                  variant="console"
                   required
                   disabled={isLoading}
                   maxLength={50}
                 />
-                <div className="min-h-[18px] ml-1">
+                <div className="min-h-[18px] ml-1 font-mono text-[10px]">
                   {usernamePreview ? (
-                    <p className="text-[10px] text-secondary-foreground">
+                    <p className="text-[rgb(var(--auth-text-mute))]">
                       Username:{' '}
-                      <span className="font-mono font-semibold text-action [[data-theme=dark]_&]:text-action/70">
-                        {usernamePreview}
-                      </span>
+                      <span className="text-[rgb(var(--auth-ambient))]">{usernamePreview}</span>
                     </p>
                   ) : (
-                    <p className="text-[10px] text-muted-foreground">Username:</p>
+                    <p className="text-[rgb(var(--auth-text-faint))]">Username:</p>
                   )}
                 </div>
               </div>
 
-              {/* Last Name */}
               <AuthInput
                 id="lastName"
                 value={lastName}
@@ -350,15 +359,14 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                 placeholder="Last name"
                 icon={<UserRound size={16} />}
                 state={getValidationState(lastNameTouched, lastName.trim().length > 0)}
+                variant="console"
                 required
                 disabled={isLoading}
                 maxLength={50}
               />
             </div>
 
-            {/* Contact & Work Info Group */}
-            <div className="space-y-3">
-              {/* Email */}
+            <div className="space-y-4">
               <div className="space-y-1">
                 <AuthInput
                   id="email"
@@ -376,15 +384,17 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   placeholder="name@institution.edu"
                   icon={<Mail size={16} />}
                   state={emailError ? 'error' : getValidationState(emailTouched, emailIsValid)}
+                  variant="console"
                   required
                   disabled={isLoading}
                   maxLength={255}
                 />
-                {emailError && <p className="text-[11px] text-danger-text ml-1">{emailError}</p>}
+                {emailError && (
+                  <p className="font-mono text-[11px] text-danger-text ml-1">{emailError}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3 items-start">
-                {/* Department */}
                 <AuthInput
                   id="department"
                   value={department}
@@ -392,11 +402,11 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   label="Department"
                   placeholder="Department name"
                   icon={<Building2 size={16} />}
+                  variant="console"
                   disabled={isLoading}
                   maxLength={100}
                 />
 
-                {/* Position */}
                 <AuthInput
                   id="position"
                   value={position}
@@ -404,14 +414,15 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   label="Position"
                   placeholder="Title or role"
                   icon={<BriefcaseBusiness size={16} />}
+                  variant="console"
                   disabled={isLoading}
                   maxLength={100}
                 />
               </div>
 
               <div className="flex items-center gap-1.5 ml-1">
-                <Info size={14} className="text-muted-foreground shrink-0" />
-                <p className="text-xs text-muted-foreground">
+                <Info size={14} className="text-[rgb(var(--auth-text-mute))] shrink-0" />
+                <p className="font-mono text-xs text-[rgb(var(--auth-text-dim))]">
                   {codeRole === 'lab_admin'
                     ? "You'll have lab administrator privileges and researcher access."
                     : codeCreateResearcher
@@ -421,8 +432,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
               </div>
             </div>
 
-            {/* Password Fields Group */}
-            <div className="pt-3 border-t border-border space-y-3">
+            <div className="pt-4 border-t border-[rgb(var(--auth-divider))] space-y-4">
               <div>
                 <AuthInput
                   id="password"
@@ -434,6 +444,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   placeholder="Choose a secure password"
                   icon={<KeyRound size={16} />}
                   state={getValidationState(passwordTouched, passwordMeetsRequirements)}
+                  variant="console"
                   required
                   disabled={isLoading}
                 />
@@ -443,6 +454,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                     password={password}
                     config={passwordConfig}
                     showError={passwordTouched && !passwordMeetsRequirements}
+                    variant="console"
                     className="ml-2 mb-1"
                   />
                 )}
@@ -457,6 +469,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                 placeholder="Confirm password"
                 icon={<KeyRound size={16} />}
                 state={getValidationState(!!confirmPassword, password === confirmPassword)}
+                variant="console"
                 required
                 disabled={isLoading}
               />
@@ -464,12 +477,11 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
             <Button
               type="submit"
-              variant="primary"
-              size="xl"
+              variant="console"
               fullWidth
               isLoading={isLoading}
               loadingText="Creating your account..."
-              className="shadow-lg font-bold mt-2.5"
+              className="mt-2"
             >
               Create Account
             </Button>
@@ -478,19 +490,19 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
       </form>
 
       {onSwitchToLogin && (
-        <div className="mt-4 text-center">
-          <p className="text-xs text-muted-foreground">
+        <div className="mt-5 text-center">
+          <p className="font-mono text-xs text-[rgb(var(--auth-text-mute))]">
             Already have an account?{' '}
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
+              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
             >
               Sign in
             </button>
           </p>
         </div>
       )}
-    </AuthBaseModal>
+    </div>
   );
 }

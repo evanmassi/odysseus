@@ -8,6 +8,8 @@ import { useState, useRef } from 'react';
 
 import { KeyRound, UserRound, Mail, Clock, TimerOff } from 'lucide-react';
 
+import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
@@ -16,11 +18,13 @@ import { notifications } from '@shared/utils';
 
 import { AuthPasswordCreateForm } from '../password/AuthPasswordCreateForm';
 
-import { AuthBaseModal } from './AuthBaseModal';
+import type { ShellConfig } from './shellConfigContext';
 
 interface AuthLoginModalProps {
   onSwitchToRegister?: () => void;
 }
+
+type LoginState = 'login' | 'forgot' | 'change-required' | 'change-success';
 
 export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   const [username, setUsername] = useState('');
@@ -109,50 +113,56 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
     loginError?.toLowerCase().includes('verify your email');
   /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
-  if (passwordChangeSuccess) {
-    return (
-      <AuthBaseModal key="password-success" showBranding="icon">
-        <div className="flex justify-center mb-4">
-          <AnimatedCheckmark size={64} className="text-success-text" delay={750} />
-        </div>
+  const inputState: LoginState = passwordChangeSuccess
+    ? 'change-success'
+    : passwordChangeRequired
+      ? 'change-required'
+      : showForgotPassword
+        ? 'forgot'
+        : 'login';
+  const { displayed: state, isTransitioning } = useDelayedTransition(inputState, 200);
+  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
 
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-success-text mb-2">Password Changed</h2>
-          <p className="text-sm text-muted-foreground">Logging in...</p>
+  useShellConfig(getShellConfig(state, usernameInputRef));
+
+  if (state === 'change-success') {
+    return (
+      <div key="change-success" className={`animate-auth-stack ${exitClass}`}>
+        <div className="flex flex-col items-center gap-3 py-2">
+          <AnimatedCheckmark size={64} className="text-success-text" delay={250} />
+          <div className="text-center">
+            <h2 className="text-base font-semibold text-success-text phosphor-text mb-1">
+              Password Changed
+            </h2>
+            <p className="text-xs font-mono text-[rgb(var(--auth-text-mute))]">Logging in...</p>
+          </div>
         </div>
-      </AuthBaseModal>
+      </div>
     );
   }
 
-  if (showForgotPassword) {
+  if (state === 'forgot') {
     return (
-      <AuthBaseModal key="forgot-password" showBranding="icon">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground mb-4">
-            Forgot password?
-          </h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Please contact your administrator to reset your password.
-          </p>
+      <div key="forgot" className={`animate-auth-stack ${exitClass}`}>
+        <p className="font-mono text-sm text-[rgb(var(--auth-text-dim))]">
+          Please contact your administrator to reset your password.
+        </p>
+        <div className="mt-5 text-center">
           <button
             type="button"
             onClick={() => setShowForgotPassword(false)}
-            className="text-xs text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
+            className="font-mono text-xs text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
           >
-            Back to login
+            ← Back to sign in
           </button>
         </div>
-      </AuthBaseModal>
+      </div>
     );
   }
 
-  if (passwordChangeRequired) {
+  if (state === 'change-required') {
     return (
-      <AuthBaseModal key="password-change" showBranding="icon">
-        <h2 className="text-xl font-bold text-card-foreground text-center mb-4">
-          Create New Password
-        </h2>
-
+      <div key="change-required" className={`animate-auth-stack ${exitClass}`}>
         <AuthPasswordCreateForm
           onSubmit={handlePasswordChange}
           onCancel={handleCancelPasswordChange}
@@ -160,16 +170,12 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           error={passwordError}
           onErrorClear={() => setPasswordError(null)}
         />
-      </AuthBaseModal>
+      </div>
     );
   }
 
   return (
-    <AuthBaseModal
-      key="login"
-      subtitle="Welcome back · sign in to continue"
-      initialFocusRef={usernameInputRef}
-    >
+    <div key="login" className={`animate-auth-stack ${exitClass}`}>
       {logoutReason === 'idle_timeout' && (
         <AlertBanner variant="warning" icon={Clock}>
           Session timed out due to inactivity
@@ -183,32 +189,26 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
       )}
 
       {loginError && isEmailVerificationError && (
-        <div className="mb-6 p-4 bg-info-light border border-info-border rounded-lg animate-in slide-in-from-top-2 duration-300">
+        <div className="mb-6 p-4 bg-info-light/10 border border-info-border/40 rounded">
           <div className="flex items-start gap-3 mb-3">
             <Mail className="w-5 h-5 text-info-text flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-info-bg">Email Verification Required</p>
-              <p className="text-xs text-info-text mt-1">{loginError}</p>
+              <p className="text-sm font-semibold text-info-text">Email Verification Required</p>
+              <p className="text-xs font-mono text-[rgb(var(--auth-text-dim))] mt-1">
+                {loginError}
+              </p>
             </div>
           </div>
-          <button
-            onClick={handleResendVerification}
-            disabled={isResending}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-action [[data-theme=dark]_&]:bg-action/70 hover:bg-action-hover [[data-theme=dark]_&]:hover:bg-action-hover/70 disabled:bg-muted-foreground text-white text-sm font-medium rounded-lg transition-colors"
+          <Button
             type="button"
+            variant="console"
+            fullWidth
+            onClick={handleResendVerification}
+            isLoading={isResending}
+            loadingText="Sending..."
           >
-            {isResending ? (
-              <>
-                <div className="spinner w-4 h-4 border-white border-t-transparent"></div>
-                <span>Sending...</span>
-              </>
-            ) : (
-              <>
-                <Mail className="w-4 h-4" />
-                <span>Resend Verification Email</span>
-              </>
-            )}
-          </button>
+            Resend Verification Email
+          </Button>
         </div>
       )}
 
@@ -216,7 +216,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
         <AlertBanner variant="error">{loginError}</AlertBanner>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AuthInput
           ref={usernameInputRef}
           id="username"
@@ -227,6 +227,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           placeholder="Your username or email"
           icon={<UserRound size={16} />}
           state={loginError ? 'error' : 'default'}
+          variant="console"
           required
           disabled={isLoading}
         />
@@ -241,6 +242,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
             placeholder="Your password"
             icon={<KeyRound size={16} />}
             state={loginError ? 'error' : 'default'}
+            variant="console"
             required
             disabled={isLoading}
           />
@@ -248,7 +250,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
             <button
               type="button"
               onClick={() => setShowForgotPassword(true)}
-              className="text-xs text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
+              className="text-xs font-mono text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
             >
               Forgot password?
             </button>
@@ -257,12 +259,10 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
 
         <Button
           type="submit"
-          variant="primary"
-          size="xl"
+          variant="console"
           fullWidth
           isLoading={isLoading}
           loadingText="Authenticating..."
-          className="shadow-lg font-bold"
         >
           Sign In
         </Button>
@@ -270,18 +270,62 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
 
       {onSwitchToRegister && (
         <div className="mt-4 text-center">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs font-mono text-[rgb(var(--auth-text-mute))]">
             Don&apos;t have an account?{' '}
             <button
               type="button"
               onClick={onSwitchToRegister}
-              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
+              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
             >
               Register here
             </button>
           </p>
         </div>
       )}
-    </AuthBaseModal>
+    </div>
   );
+}
+
+function getShellConfig(
+  state: LoginState,
+  usernameInputRef: React.RefObject<HTMLInputElement>
+): ShellConfig {
+  switch (state) {
+    case 'change-success':
+      return {
+        contentKey: 'login:change-success',
+        variant: 'stack',
+        width: 'narrow',
+        showBranding: 'icon',
+      };
+    case 'forgot':
+      return {
+        contentKey: 'login:forgot',
+        variant: 'console',
+        width: 'narrow',
+        showBranding: true,
+        brandGreeting: 'Reset access',
+        microheader: 'Contact administrator',
+      };
+    case 'change-required':
+      return {
+        contentKey: 'login:change-required',
+        variant: 'stack',
+        width: 'narrow',
+        showBranding: 'icon',
+        brandTagline: 'Create new password',
+        microheader: 'New Password',
+      };
+    case 'login':
+    default:
+      return {
+        contentKey: 'login:login',
+        variant: 'console',
+        width: 'narrow',
+        showBranding: true,
+        brandGreeting: 'Welcome back',
+        microheader: 'Sign in to continue',
+        initialFocusRef: usernameInputRef,
+      };
+  }
 }

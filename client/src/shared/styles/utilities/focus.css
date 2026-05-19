@@ -36,7 +36,10 @@
   /* Uses !important to override global rule's higher specificity from :not() selectors */
   .auth-input-container input:focus-visible,
   .auth-input-container select:focus-visible,
-  .auth-input-container textarea:focus-visible {
+  .auth-input-container textarea:focus-visible,
+  .auth-input-console input:focus-visible,
+  .auth-input-console select:focus-visible,
+  .auth-input-console textarea:focus-visible {
     outline: none !important;
     box-shadow: none !important;
   }

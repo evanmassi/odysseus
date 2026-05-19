@@ -56,6 +56,8 @@ const buttonVariants = cva(
 
         'ghost-danger':
           'bg-transparent text-danger-text/60 border-transparent hover:text-danger-text hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
+
+        console: 'button-console',
       },
 
       size: {

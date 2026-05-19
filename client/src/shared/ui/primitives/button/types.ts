@@ -15,7 +15,8 @@ export type ButtonVariant =
   | 'info'
   | 'ghost'
   | 'ghost-danger'
-  | 'cancel';
+  | 'cancel'
+  | 'console';
 
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'xl';
 

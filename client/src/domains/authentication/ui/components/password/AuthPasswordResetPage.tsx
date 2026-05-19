@@ -1,63 +1,44 @@
 /**
- * Public page for token-based password reset.
- * Token is provided via admin-generated link (no auth required).
+ * Password Reset Page
+ *
+ * Public token-based password reset. Token arrives via admin-generated email link.
  */
 
-import { useRef, useEffect, useState, type ReactNode, type RefObject } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
+import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
-import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
-import { useFocusTrap } from '@shared/hooks';
+import { AuthGatewayPanel } from '@domains/authentication/ui/components/gateway/AuthGatewayPanel';
 import { Button } from '@shared/ui';
 import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
 
 import { AuthPasswordCreateForm } from './AuthPasswordCreateForm';
 
+import type { ShellConfig } from '@domains/authentication/ui/components/gateway/shellConfigContext';
+
 // Enough time to read the success message before redirecting
 const REDIRECT_DELAY_MS = 2500;
 
-function OdysseusLogo({ className = 'mb-1' }: { className?: string }) {
-  return (
-    <div className={`w-24 h-24 mx-auto flex items-center justify-center ${className}`}>
-      <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
-    </div>
-  );
-}
-
-function PageLayout({
-  trapRef,
-  children,
-}: {
-  trapRef: RefObject<HTMLDivElement>;
-  children: ReactNode;
-}) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-muted">
-      <div
-        ref={trapRef}
-        className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
+type ResetState = 'invalid' | 'success' | 'form';
 
 export function AuthPasswordResetPage() {
+  return (
+    <AuthGatewayPanel>
+      <ResetContent />
+    </AuthGatewayPanel>
+  );
+}
+
+function ResetContent() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
   const [isSuccess, setIsSuccess] = useState(false);
 
   const redirectTimerRef = useRef<number | null>(null);
-
-  // Focus trap for the modal-like card
-  const trapRef = useFocusTrap({
-    isOpen: true,
-    restoreFocus: true,
-  });
 
   useEffect(() => {
     return () => {
@@ -84,56 +65,45 @@ export function AuthPasswordResetPage() {
     void navigate('/login');
   };
 
-  if (!token) {
-    return (
-      <PageLayout trapRef={trapRef}>
-        <div className="text-center mb-4">
-          <OdysseusLogo />
-          <h2 className="text-xl font-bold text-danger-text">Invalid Reset Link</h2>
-        </div>
+  const inputState: ResetState = !token ? 'invalid' : isSuccess ? 'success' : 'form';
+  const { displayed: state, isTransitioning } = useDelayedTransition(inputState, 200);
+  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
 
-        <p className="text-secondary-foreground mb-6 text-center text-sm">
+  useShellConfig(getShellConfig(state));
+
+  if (state === 'invalid') {
+    return (
+      <div key="reset-invalid" className={`animate-auth-stack ${exitClass}`}>
+        <div className="text-center mb-4">
+          <h2 className="font-mono text-base text-danger-text phosphor-text">Invalid Reset Link</h2>
+        </div>
+        <p className="font-mono text-sm text-[rgb(var(--auth-text-dim))] mb-6 text-center">
           This password reset link is invalid or has expired. Please contact your administrator for
           a new reset link.
         </p>
-
-        <Button
-          variant="primary"
-          size="xl"
-          fullWidth
-          onClick={handleBackToLogin}
-          className="shadow-lg font-bold"
-        >
+        <Button variant="console" fullWidth onClick={handleBackToLogin}>
           Back to Login
         </Button>
-      </PageLayout>
+      </div>
     );
   }
 
-  if (isSuccess) {
+  if (state === 'success') {
     return (
-      <PageLayout trapRef={trapRef}>
-        <div className="text-center">
-          <OdysseusLogo className="mb-4" />
-
-          <div className="flex justify-center mb-4">
-            <AnimatedCheckmark size={64} className="text-success-text" />
-          </div>
-
-          <h2 className="text-xl font-bold text-success-text mb-2">Password Changed</h2>
-          <p className="text-sm text-muted-foreground">Redirecting to login...</p>
+      <div key="reset-success" className={`animate-auth-stack ${exitClass}`}>
+        <div className="flex flex-col items-center gap-3">
+          <AnimatedCheckmark size={64} className="text-success-text" />
+          <h2 className="font-mono text-base text-success-text phosphor-text">Password Changed</h2>
+          <p className="font-mono text-xs text-[rgb(var(--auth-text-mute))]">
+            Redirecting to login...
+          </p>
         </div>
-      </PageLayout>
+      </div>
     );
   }
 
   return (
-    <PageLayout trapRef={trapRef}>
-      <div className="text-center mb-4">
-        <OdysseusLogo />
-        <h2 className="text-xl font-bold text-card-foreground">Create New Password</h2>
-      </div>
-
+    <div key="reset-form" className={`animate-auth-stack ${exitClass}`}>
       <AuthPasswordCreateForm
         onSubmit={handleSubmit}
         onCancel={handleBackToLogin}
@@ -141,12 +111,38 @@ export function AuthPasswordResetPage() {
         submitText="Reset Password"
         loadingText="Resetting Password..."
       />
-
-      <div className="mt-6 pt-4 border-t border-border">
-        <p className="text-xs text-muted-foreground text-center">
+      <div className="mt-6 pt-4 border-t border-[rgb(var(--auth-divider))]">
+        <p className="font-mono text-[10px] text-[rgb(var(--auth-text-faint))] text-center">
           This reset link expires in 15 minutes and can only be used once.
         </p>
       </div>
-    </PageLayout>
+    </div>
   );
+}
+
+function getShellConfig(state: ResetState): ShellConfig {
+  if (state === 'invalid') {
+    return {
+      contentKey: 'reset:invalid',
+      variant: 'stack',
+      width: 'narrow',
+      showBranding: 'icon',
+    };
+  }
+  if (state === 'success') {
+    return {
+      contentKey: 'reset:success',
+      variant: 'stack',
+      width: 'narrow',
+      showBranding: 'icon',
+    };
+  }
+  return {
+    contentKey: 'reset:form',
+    variant: 'stack',
+    width: 'narrow',
+    showBranding: 'icon',
+    brandTagline: 'Create new password',
+    microheader: 'New Password',
+  };
 }

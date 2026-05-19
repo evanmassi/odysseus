@@ -11,8 +11,6 @@ import { Copy, Check } from 'lucide-react';
 import { AlertBanner, Button } from '@shared/ui';
 import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
 
-import { AuthBaseModal } from './AuthBaseModal';
-
 export interface AuthRegistrationSuccessModalProps {
   username: string;
   onClose: () => void;
@@ -43,24 +41,23 @@ export function AuthRegistrationSuccessModal({
   };
 
   return (
-    <AuthBaseModal showBranding="icon" zIndex={60}>
-      <div className="flex justify-center mb-2">
+    <div key="registration-success" className="animate-auth-stack">
+      <div className="flex justify-center mb-3">
         <AnimatedCheckmark size={64} className="text-success-text" delay={750} />
       </div>
       <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-success-text mb-1">Account Created</h2>
-        <p className="text-sm text-muted-foreground">Ready to sign in</p>
+        <h2 className="font-mono text-base text-success-text phosphor-text mb-1">
+          Account Created
+        </h2>
+        <p className="font-mono text-xs text-[rgb(var(--auth-text-mute))]">Ready to sign in</p>
       </div>
 
-      {/* Username Display with Copy */}
       <div className="mb-6">
-        <div className="auth-input-container border-border relative">
-          <span className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium text-muted-foreground">
-            Your username
-          </span>
-          <div className="flex items-center gap-2 px-3 py-2">
+        <div className="auth-input-console state-default">
+          <span className="auth-input-console__label">Your username</span>
+          <div className="auth-input-console__field">
             <span
-              className="flex-1 font-mono text-sm font-semibold text-card-foreground"
+              className="flex-1 px-3 py-2.5 font-mono text-sm text-[rgb(var(--auth-text))] truncate"
               role="status"
               aria-label={`Your username is ${username}`}
             >
@@ -68,14 +65,14 @@ export function AuthRegistrationSuccessModal({
             </span>
             <button
               onClick={handleCopyUsername}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-action [[data-theme=dark]_&]:text-action/70 hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 rounded transition-colors"
+              className="flex items-center gap-1.5 px-3 h-full text-[rgb(var(--auth-text-mute))] hover:text-[rgb(var(--auth-text))] transition-colors font-mono text-xs border-l border-[rgb(var(--auth-divider))]"
               type="button"
               aria-label={`Copy username ${username}`}
             >
               {copied ? (
                 <>
                   <Check size={14} />
-                  <span>Copied!</span>
+                  <span>Copied</span>
                 </>
               ) : (
                 <>
@@ -86,27 +83,20 @@ export function AuthRegistrationSuccessModal({
             </button>
           </div>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
-          Please save this username for future login
+        <p className="font-mono text-[10px] text-[rgb(var(--auth-text-faint))] mt-2 ml-1">
+          Save this username for future login
         </p>
       </div>
 
-      {/* Status Information */}
       <div className="mb-6">
         <AlertBanner variant="info" spacing="none" className="text-xs">
-          You&apos;re all set! You can now log in with your username and password.
+          You&apos;re all set. Sign in with your username and password.
         </AlertBanner>
       </div>
 
-      <Button
-        variant="primary"
-        size="xl"
-        fullWidth
-        onClick={onClose}
-        className="shadow-lg font-bold"
-      >
+      <Button variant="console" fullWidth onClick={onClose}>
         Continue
       </Button>
-    </AuthBaseModal>
+    </div>
   );
 }
