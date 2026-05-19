@@ -177,17 +177,17 @@ export default {
       },
       boxShadow: {
         sheen: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.18)',
-        /* Inset sheen + two-layer outer halo (24px tight, 48px wide) per semantic */
+        /* Inset top sheen + single soft halo. Mirrors LabBadge `lit` + Toggle ON vocabulary. */
         'glow-primary':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--primary) / 0.40), 0 0 48px hsl(var(--primary) / 0.22)',
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--primary) / 0.50)',
         'glow-danger':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--color-danger-bg) / 0.40), 0 0 48px hsl(var(--color-danger-bg) / 0.22)',
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-danger-bg) / 0.50)',
         'glow-success':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--color-success-bg) / 0.40), 0 0 48px hsl(var(--color-success-bg) / 0.22)',
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-success-bg) / 0.50)',
         'glow-warning':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--color-warning-bg) / 0.40), 0 0 48px hsl(var(--color-warning-bg) / 0.22)',
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
         'glow-info':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 24px hsl(var(--color-info-bg) / 0.40), 0 0 48px hsl(var(--color-info-bg) / 0.22)',
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
       },
       backgroundImage: {
         scanlines:

@@ -12,61 +12,12 @@ import { defaultButtonProps } from './types';
 
 import type { ButtonProps, ButtonRef, ButtonSize } from './types';
 
-// Text bloom is on the cva base, not here — recessive variants need it too.
+// Filled variants get a soft top-down sheen for surface depth.
 const FILLED_OVERLAYS = [
   'relative isolate',
   'before:absolute before:inset-0 before:pointer-events-none',
   'before:bg-gradient-to-b before:from-white/[0.06] before:to-transparent',
-  'after:absolute after:inset-0 after:pointer-events-none',
-  'after:bg-scanlines after:mix-blend-multiply',
 ].join(' ');
-
-const FILLED_VARIANTS = new Set<ButtonProps['variant']>([
-  'primary',
-  'danger',
-  'success',
-  'warning',
-  'info',
-]);
-
-// Classic djb2-style string hash — used to pick a flourish composition per
-// button. Length-mod clusters common verbs (Save/Update/Delete) into the same
-// bucket; mixing char values scatters them properly.
-const hashString = (s: string): number => {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-};
-
-// Four asymmetric flourish compositions — one is picked per button so adjacent
-// buttons render different mark arrangements.
-const FLOURISHES = [
-  // TL bracket + BR square+dash pair + right-mid vertical tick
-  [
-    '-top-0.5 -left-0.5 w-2 h-2 border-l border-t border-white/50',
-    '-right-0.5 bottom-0.5 w-[3px] h-[3px] bg-white/40',
-    '-right-0.5 bottom-[3px] w-3 h-px bg-white/40',
-    '-right-0.5 top-1/3 w-px h-1.5 bg-white/30',
-  ],
-  // TR bracket + BL dash + left-mid vertical tick
-  [
-    '-top-0.5 -right-0.5 w-2 h-2 border-r border-t border-white/50',
-    '-left-0.5 bottom-0.5 w-2 h-px bg-white/30',
-    '-left-0.5 top-2/3 w-px h-1.5 bg-white/30',
-  ],
-  // BR bracket + TL dash + top-mid horizontal tick
-  [
-    '-bottom-0.5 -right-0.5 w-2 h-2 border-r border-b border-white/50',
-    '-left-0.5 top-0.5 w-2 h-px bg-white/30',
-    'left-1/3 -top-0.5 w-1.5 h-px bg-white/30',
-  ],
-  // BL bracket + TR dash + bottom-mid horizontal tick
-  [
-    '-bottom-0.5 -left-0.5 w-2 h-2 border-l border-b border-white/50',
-    '-right-0.5 top-0.5 w-2 h-px bg-white/30',
-    'left-2/3 -bottom-0.5 w-1.5 h-px bg-white/30',
-  ],
-] as const;
 
 const buttonVariants = cva(
   [
@@ -201,10 +152,6 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
   ) => {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic is correct here
     const isDisabled = disabled || isLoading;
-    const isFilled = FILLED_VARIANTS.has(variant);
-    const flourish = isFilled
-      ? FLOURISHES[hashString(`${variant}|${size}|${String(children ?? '')}`) % FLOURISHES.length]
-      : null;
 
     const buttonClasses = buttonVariants({
       variant,
@@ -266,13 +213,6 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
         aria-describedby={ariaDescribedBy}
         {...props}
       >
-        {flourish && (
-          <span aria-hidden className="absolute inset-0 pointer-events-none z-10">
-            {flourish.map((cls, i) => (
-              <span key={i} className={`absolute ${cls}`} />
-            ))}
-          </span>
-        )}
         {renderContent()}
       </button>
     );
