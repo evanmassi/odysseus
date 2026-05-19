@@ -15,10 +15,11 @@ export type ButtonVariant =
   | 'info'
   | 'ghost'
   | 'ghost-danger'
-  | 'cancel'
-  | 'console';
+  | 'cancel';
 
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'xl';
+
+export type ButtonMarker = 'bar' | 'square' | 'diamond';
 
 export interface BaseButtonProps extends Omit<ComponentProps<'button'>, 'children'> {
   children?: ReactNode;
@@ -31,6 +32,12 @@ export interface BaseButtonProps extends Omit<ComponentProps<'button'>, 'childre
   rightIcon?: ReactNode;
   iconOnly?: boolean;
   fullWidth?: boolean;
+  /** Leading marker in the variant's tone. Suppressed when `leftIcon` is provided. */
+  marker?: ButtonMarker;
+  /** Trailing chevron that slides 2px right on hover. Suppressed when `rightIcon` is provided. */
+  tail?: boolean;
+  /** Auth-modal register: uppercase, 0.32em tracking, 44h. Overrides `size`. */
+  ceremonial?: boolean;
   'aria-label'?: string;
   'aria-describedby'?: string;
   'aria-expanded'?: boolean;
@@ -51,4 +58,6 @@ export const defaultButtonProps: Partial<ButtonProps> = {
   isLoading: false,
   fullWidth: false,
   iconOnly: false,
+  tail: false,
+  ceremonial: false,
 };

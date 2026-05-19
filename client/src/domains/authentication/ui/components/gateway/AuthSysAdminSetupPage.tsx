@@ -282,7 +282,10 @@ export function AuthSysAdminSetupPage() {
 
         <Button
           type="submit"
-          variant="console"
+          variant="primary"
+          marker="bar"
+          tail
+          ceremonial
           fullWidth
           isLoading={isLoading}
           loadingText="Creating system admin..."

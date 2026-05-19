@@ -81,7 +81,14 @@ function ResetContent() {
           This password reset link is invalid or has expired. Please contact your administrator for
           a new reset link.
         </p>
-        <Button variant="console" fullWidth onClick={handleBackToLogin}>
+        <Button
+          variant="primary"
+          marker="bar"
+          tail
+          ceremonial
+          fullWidth
+          onClick={handleBackToLogin}
+        >
           Back to Login
         </Button>
       </div>

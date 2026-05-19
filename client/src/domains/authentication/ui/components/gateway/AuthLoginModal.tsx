@@ -201,7 +201,10 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           </div>
           <Button
             type="button"
-            variant="console"
+            variant="primary"
+            marker="bar"
+            tail
+            ceremonial
             fullWidth
             onClick={handleResendVerification}
             isLoading={isResending}
@@ -259,7 +262,10 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
 
         <Button
           type="submit"
-          variant="console"
+          variant="primary"
+          marker="bar"
+          tail
+          ceremonial
           fullWidth
           isLoading={isLoading}
           loadingText="Authenticating..."

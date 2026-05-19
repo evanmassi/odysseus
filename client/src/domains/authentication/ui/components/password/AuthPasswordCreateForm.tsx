@@ -173,7 +173,10 @@ export function AuthPasswordCreateForm({
 
         <Button
           type="submit"
-          variant="console"
+          variant="primary"
+          marker="bar"
+          tail
+          ceremonial
           fullWidth
           isLoading={isLoading}
           loadingText={loadingText}

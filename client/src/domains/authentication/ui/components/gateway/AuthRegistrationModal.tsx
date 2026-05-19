@@ -281,7 +281,10 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
             )}
             <Button
               type="button"
-              variant="console"
+              variant="primary"
+              marker="bar"
+              tail
+              ceremonial
               fullWidth
               onClick={handleValidateInviteCode}
               isLoading={isValidatingCode}
@@ -477,7 +480,10 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
             <Button
               type="submit"
-              variant="console"
+              variant="primary"
+              marker="bar"
+              tail
+              ceremonial
               fullWidth
               isLoading={isLoading}
               loadingText="Creating your account..."

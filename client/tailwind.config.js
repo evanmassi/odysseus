@@ -188,6 +188,26 @@ export default {
           'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
         'glow-info':
           'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
+        'standard-primary':
+          'inset 0 0 12px -2px hsl(var(--primary) / 0.20), 0 0 14px -4px hsl(var(--primary) / 0.40)',
+        'standard-primary-hover':
+          'inset 0 0 16px -2px hsl(var(--primary) / 0.35), 0 0 22px -2px hsl(var(--primary) / 0.55)',
+        'standard-danger':
+          'inset 0 0 12px -2px hsl(var(--color-danger-bg) / 0.20), 0 0 14px -4px hsl(var(--color-danger-bg) / 0.40)',
+        'standard-danger-hover':
+          'inset 0 0 16px -2px hsl(var(--color-danger-bg) / 0.35), 0 0 22px -2px hsl(var(--color-danger-bg) / 0.55)',
+        'standard-success':
+          'inset 0 0 12px -2px hsl(var(--color-success-bg) / 0.20), 0 0 14px -4px hsl(var(--color-success-bg) / 0.40)',
+        'standard-success-hover':
+          'inset 0 0 16px -2px hsl(var(--color-success-bg) / 0.35), 0 0 22px -2px hsl(var(--color-success-bg) / 0.55)',
+        'standard-warning':
+          'inset 0 0 12px -2px hsl(var(--color-warning-bg) / 0.20), 0 0 14px -4px hsl(var(--color-warning-bg) / 0.40)',
+        'standard-warning-hover':
+          'inset 0 0 16px -2px hsl(var(--color-warning-bg) / 0.35), 0 0 22px -2px hsl(var(--color-warning-bg) / 0.55)',
+        'standard-info':
+          'inset 0 0 12px -2px hsl(var(--color-info-bg) / 0.20), 0 0 14px -4px hsl(var(--color-info-bg) / 0.40)',
+        'standard-info-hover':
+          'inset 0 0 16px -2px hsl(var(--color-info-bg) / 0.35), 0 0 22px -2px hsl(var(--color-info-bg) / 0.55)',
       },
       backgroundImage: {
         scanlines:
@@ -201,9 +221,12 @@ export default {
           'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
       },
       dropShadow: {
-        /* SVG-icon parallel to text-shadow text-bloom — glows in the icon's own color */
-        'icon-bloom': '0 0 4px color-mix(in srgb, currentColor 40%, transparent)',
-        'icon-bloom-hover': '0 0 8px color-mix(in srgb, currentColor 70%, transparent)',
+        /* SVG-icon parallel to the text-bloom text-shadow — glows in the icon's own color. */
+        'icon-bloom': '0 0 6px color-mix(in srgb, currentColor 55%, transparent)',
+        'icon-bloom-hover': [
+          '0 0 8px color-mix(in srgb, currentColor 70%, transparent)',
+          '0 0 14px color-mix(in srgb, currentColor 35%, transparent)',
+        ],
       },
       keyframes: {
         'zoom-in-98': {

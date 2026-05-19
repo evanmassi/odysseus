@@ -1,7 +1,7 @@
 /**
  * Button
  *
- * Square button primitive — semantic actions filled, neutrals recessive.
+ * Tonal action primitive — standard and ghost weights across five tones.
  */
 
 import { forwardRef } from 'react';
@@ -10,22 +10,17 @@ import { cva } from 'class-variance-authority';
 
 import { defaultButtonProps } from './types';
 
-import type { ButtonProps, ButtonRef, ButtonSize } from './types';
+import type { ButtonMarker, ButtonProps, ButtonRef, ButtonSize, ButtonVariant } from './types';
 
-// Filled variants get a soft top-down sheen for surface depth.
-const FILLED_OVERLAYS = [
-  'relative isolate',
-  'before:absolute before:inset-0 before:pointer-events-none',
-  'before:bg-gradient-to-b before:from-white/[0.06] before:to-transparent',
-].join(' ');
+const GHOST_HOVER_SHADOW =
+  'hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_55%,transparent),0_0_14px_color-mix(in_srgb,currentColor_35%,transparent)]';
 
 const buttonVariants = cva(
   [
-    'inline-flex items-center justify-center',
+    'group inline-flex items-center justify-center',
     'border font-mono font-medium',
     'text-center whitespace-nowrap leading-none',
-    '[text-shadow:0_0_4px_color-mix(in_srgb,currentColor_40%,transparent)]',
-    'transition-[background,border-color,filter,box-shadow] duration-150',
+    'transition-[background,border-color,filter,box-shadow,color,text-shadow] duration-150',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'focus-visible:ring-ring focus-visible:ring-offset-background',
     'cursor-pointer select-none touch-manipulation',
@@ -35,29 +30,27 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: `bg-action text-primary-foreground border-action shadow-glow-primary hover:brightness-110 ${FILLED_OVERLAYS}`,
+        primary:
+          'bg-primary/10 border-primary/45 text-foreground shadow-standard-primary hover:bg-primary/20 hover:border-primary hover:shadow-standard-primary-hover',
 
-        danger: `bg-danger-bg text-danger-btnText border-danger-bg shadow-glow-danger hover:brightness-110 ${FILLED_OVERLAYS}`,
+        danger:
+          'bg-danger-bg/10 border-danger-bg/45 text-foreground shadow-standard-danger hover:bg-danger-bg/20 hover:border-danger-bg hover:shadow-standard-danger-hover',
 
-        success: `bg-success-bg text-success-btnText border-success-bg shadow-glow-success hover:brightness-110 ${FILLED_OVERLAYS}`,
+        success:
+          'bg-success-bg/10 border-success-bg/45 text-foreground shadow-standard-success hover:bg-success-bg/20 hover:border-success-bg hover:shadow-standard-success-hover',
 
-        warning: `bg-warning-bg text-warning-btnText border-warning-bg shadow-glow-warning hover:brightness-110 ${FILLED_OVERLAYS}`,
+        warning:
+          'bg-warning-bg/10 border-warning-bg/45 text-foreground shadow-standard-warning hover:bg-warning-bg/20 hover:border-warning-bg hover:shadow-standard-warning-hover',
 
-        info: `bg-info-bg text-info-btnText border-info-bg shadow-glow-info hover:brightness-110 ${FILLED_OVERLAYS}`,
+        info: 'bg-info-bg/10 border-info-bg/45 text-foreground shadow-standard-info hover:bg-info-bg/20 hover:border-info-bg hover:shadow-standard-info-hover',
 
-        secondary:
-          'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
+        ghost: `bg-transparent border-transparent text-muted-foreground hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_70%,white)] ${GHOST_HOVER_SHADOW}`,
 
-        cancel:
-          'bg-transparent text-secondary-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
+        'ghost-danger': `bg-transparent border-transparent text-danger-text hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_70%,white)] ${GHOST_HOVER_SHADOW}`,
 
-        ghost:
-          'bg-transparent text-muted-foreground border-transparent hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
+        secondary: `bg-transparent border-transparent text-muted-foreground hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_70%,white)] ${GHOST_HOVER_SHADOW}`,
 
-        'ghost-danger':
-          'bg-transparent text-danger-text/60 border-transparent hover:text-danger-text hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]',
-
-        console: 'button-console',
+        cancel: `bg-transparent border-transparent text-muted-foreground hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_70%,white)] ${GHOST_HOVER_SHADOW}`,
       },
 
       size: {
@@ -76,6 +69,11 @@ const buttonVariants = cva(
         true: 'p-0',
         false: '',
       },
+
+      ceremonial: {
+        true: 'uppercase tracking-[0.32em] text-[10.5px]',
+        false: '',
+      },
     },
 
     compoundVariants: [
@@ -83,12 +81,13 @@ const buttonVariants = cva(
       { iconOnly: true, size: 'sm', className: 'w-8 h-8' },
       { iconOnly: true, size: 'md', className: 'w-10 h-10' },
       { iconOnly: true, size: 'xl', className: 'w-14 h-14' },
-      // text-shadow can't reach SVG icon strokes — drop-shadow filter is the parallel.
       { iconOnly: true, className: 'drop-shadow-icon-bloom' },
       { variant: 'ghost', iconOnly: true, className: 'hover:drop-shadow-icon-bloom-hover' },
       { variant: 'ghost-danger', iconOnly: true, className: 'hover:drop-shadow-icon-bloom-hover' },
       { variant: 'secondary', iconOnly: true, className: 'hover:drop-shadow-icon-bloom-hover' },
       { variant: 'cancel', iconOnly: true, className: 'hover:drop-shadow-icon-bloom-hover' },
+      // Ceremonial register replaces size dims entirely.
+      { ceremonial: true, className: '!h-11 !px-4 !text-[10.5px] !gap-3.5' },
     ],
 
     defaultVariants: {
@@ -96,9 +95,53 @@ const buttonVariants = cva(
       size: 'md',
       fullWidth: false,
       iconOnly: false,
+      ceremonial: false,
     },
   }
 );
+
+const MARKER_CLASSES: Record<ButtonVariant, string> = {
+  primary: 'bg-primary shadow-[0_0_6px_-1px_hsl(var(--primary)/0.55)]',
+  danger: 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.55)]',
+  success: 'bg-success-bg shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.55)]',
+  warning: 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.55)]',
+  info: 'bg-info-bg shadow-[0_0_6px_-1px_hsl(var(--color-info-bg)/0.55)]',
+  ghost: 'bg-muted-foreground shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
+  'ghost-danger': 'bg-danger-text shadow-[0_0_6px_-1px_hsl(var(--color-danger-text)/0.55)]',
+  secondary: 'bg-muted-foreground shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
+  cancel: 'bg-muted-foreground shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
+};
+
+// Hover state for ghost markers only; standard markers have no hover transition.
+const MARKER_HOVER_CLASSES: Partial<Record<ButtonVariant, string>> = {
+  ghost:
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+  'ghost-danger':
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--color-danger-text)/0.7),0_0_14px_2px_hsl(var(--color-danger-text)/0.35)]',
+  secondary:
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+  cancel:
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+};
+
+const MARKER_SHAPE: Record<ButtonMarker, string> = {
+  bar: 'w-0.5 h-3',
+  square: 'w-1.5 h-1.5',
+  diamond: 'w-2 h-2 rotate-45',
+};
+
+// Standard variants set the icon color explicitly; ghost variants inherit it from text-*.
+const ICON_TONE: Record<ButtonVariant, string> = {
+  primary: 'text-primary drop-shadow-icon-bloom',
+  danger: 'text-danger-bg drop-shadow-icon-bloom',
+  success: 'text-success-bg drop-shadow-icon-bloom',
+  warning: 'text-warning-bg drop-shadow-icon-bloom',
+  info: 'text-info-bg drop-shadow-icon-bloom',
+  ghost: 'drop-shadow-icon-bloom group-hover:drop-shadow-icon-bloom-hover',
+  'ghost-danger': 'drop-shadow-icon-bloom group-hover:drop-shadow-icon-bloom-hover',
+  secondary: 'drop-shadow-icon-bloom group-hover:drop-shadow-icon-bloom-hover',
+  cancel: 'drop-shadow-icon-bloom group-hover:drop-shadow-icon-bloom-hover',
+};
 
 interface LoadingSpinnerProps {
   size: ButtonSize;
@@ -143,6 +186,9 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       rightIcon,
       iconOnly = defaultButtonProps.iconOnly,
       fullWidth = defaultButtonProps.fullWidth,
+      marker,
+      tail = defaultButtonProps.tail,
+      ceremonial = defaultButtonProps.ceremonial,
       className,
       type = 'button',
       onClick,
@@ -160,6 +206,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       size,
       fullWidth,
       iconOnly,
+      ceremonial,
       className,
     });
 
@@ -171,27 +218,50 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       onClick?.(event);
     };
 
-    const renderContent = () => {
-      if (isLoading) {
+    const renderLeading = () => {
+      if (isLoading) return <LoadingSpinner size={size!} />;
+      if (leftIcon) {
+        return <span className={`flex-shrink-0 ${ICON_TONE[variant!]}`}>{leftIcon}</span>;
+      }
+      if (marker) {
         return (
-          <>
-            <LoadingSpinner size={size!} />
-            {loadingText && !iconOnly && <span className="ml-2">{loadingText}</span>}
-            {!loadingText && !iconOnly && children && <span className="ml-2">{children}</span>}
-          </>
+          <span
+            aria-hidden
+            className={`flex-shrink-0 transition-[background,box-shadow] duration-150 ${MARKER_SHAPE[marker]} ${MARKER_CLASSES[variant!]} ${MARKER_HOVER_CLASSES[variant!] ?? ''}`}
+          />
         );
       }
+      return null;
+    };
 
+    const renderContent = () => {
       if (iconOnly) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: use first available icon/children
         return leftIcon || children;
       }
 
+      if (isLoading && loadingText) {
+        return (
+          <>
+            <LoadingSpinner size={size!} />
+            <span>{loadingText}</span>
+          </>
+        );
+      }
+
       return (
         <>
-          {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
+          {renderLeading()}
           {children && <span>{children}</span>}
-          {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+          {rightIcon && !tail && <span className="flex-shrink-0">{rightIcon}</span>}
+          {tail && !rightIcon && (
+            <span
+              aria-hidden
+              className="ml-auto pl-2 opacity-70 transition-[transform,opacity] duration-150 group-hover:translate-x-0.5 group-hover:opacity-100"
+            >
+              ›
+            </span>
+          )}
         </>
       );
     };
