@@ -7,7 +7,6 @@
 import { useMemo, useState } from 'react';
 
 import {
-  ArrowRight,
   CircleCheckBig,
   Dna,
   OctagonX,
@@ -180,7 +179,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
           </span>
         </div>
 
-        <CrtBackdrop size="lg" lighting="anchored">
+        <CrtBackdrop size="lg" lighting="anchored" scanlines={false}>
           {!lab.isActive && (
             <span
               aria-hidden
@@ -190,7 +189,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
             </span>
           )}
 
-          <div className="absolute right-4 top-4 z-10">
+          <div className="absolute right-6 top-6 z-10">
             <LabPowerToggle
               isActive={lab.isActive}
               isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
@@ -223,8 +222,14 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="mb-1 grid grid-cols-[4fr_1.6fr] items-end">
                 <div className="ml-2 flex min-w-0 flex-col gap-2">
-                  <h3 className="font-display text-[28px] leading-none font-medium tracking-[-0.01em] text-foreground">
-                    {lab.name}
+                  <h3 className="font-display text-[28px] leading-none font-medium tracking-[-0.01em]">
+                    <button
+                      type="button"
+                      onClick={() => onSelectLab(lab.id)}
+                      className="cursor-pointer text-left text-foreground transition-[text-shadow] duration-200 outline-none hover:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)] focus-visible:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)]"
+                    >
+                      {lab.name}
+                    </button>
                   </h3>
                   {stats && (
                     <IdStamp
@@ -237,16 +242,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   )}
                 </div>
 
-                <div className="flex items-center justify-center px-4">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => onSelectLab(lab.id)}
-                    rightIcon={<ArrowRight size={14} />}
-                  >
-                    Open Lab
-                  </Button>
-                </div>
+                <div className="flex items-center justify-center px-4" />
               </div>
 
               {stats && (
@@ -270,7 +266,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                     </span>
                     <div className="flex items-center gap-2">
                       <code
-                        className={`flex-1 truncate font-mono text-[15px] font-medium leading-none phosphor-text ${codes.length > 0 ? '' : 'tracking-widest text-foreground/25 select-none'}`}
+                        className={`font-mono text-[15px] font-medium leading-none phosphor-text ${codes.length > 0 ? '' : 'tracking-widest text-foreground/25 select-none'}`}
                       >
                         {codes.length > 0 ? codes[codes.length - 1].code : '· · · · · · ·'}
                       </code>
