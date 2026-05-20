@@ -132,7 +132,8 @@
       "Bash(npx update-browserslist-db@latest)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\evanm\\\\odysseus\\\\client\\\\src\" -Recurse -Filter \"*.tsx\" -o File)",
       "Bash(Measure-Object)",
-      "Bash(Select-Object -ExpandProperty Count)"
+      "Bash(Select-Object -ExpandProperty Count)",
+      "PowerShell(Get-ChildItem *)"
     ]
   }
 }
