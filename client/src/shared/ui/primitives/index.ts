@@ -48,6 +48,9 @@ export type {
 export { IdStamp } from './titles/id-stamp/IdStamp';
 export type { IdStampProps } from './titles/id-stamp/IdStamp';
 
+export { ConsolePanel } from './console-panel/ConsolePanel';
+export type { ConsolePanelProps } from './console-panel/ConsolePanel';
+
 export { CrtBackdrop } from './crt-backdrop/CrtBackdrop';
 export type {
   CrtBackdropProps,
