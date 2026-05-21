@@ -14,7 +14,6 @@ import {
   CircleCheckBig,
   Dna,
   OctagonX,
-  Power,
   RefreshCw,
   ShieldUser,
   Sprout,
@@ -24,7 +23,7 @@ import {
   X,
 } from 'lucide-react';
 
-import { Button, CrtBackdrop, IdStamp, SectionHeader, StatCell } from '@shared/ui';
+import { Button, ConsolePanel, IdStamp, SectionHeader, StatCell } from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -38,6 +37,7 @@ import { useLabDetailsQuery } from '../../../hooks/useLabQueries';
 import { AuditLogViewer } from '../settings-modal/AuditLogViewer';
 
 import { LabDemoSettings } from './LabDemoSettings';
+import { LabPowerToggle } from './LabPowerToggle';
 import { LabResearchersPanel } from './LabResearchersPanel';
 import { LabUsersPanel } from './LabUsersPanel';
 
@@ -112,6 +112,11 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   const assignedTubes = details.researchers.reduce((sum, r) => sum + r.tubeCount, 0);
   const tubesWithoutResearcher = tubeCount - assignedTubes;
 
+  const statusVar = lab.isActive ? '--color-success-bg' : '--color-danger-bg';
+  const statusTextClass = lab.isActive ? 'text-success-text' : 'text-danger-text';
+  const statusColor = `hsl(var(${statusVar}))`;
+  const identityTextClass = getLabBadgeTextClasses(labId, lab.isDemo);
+
   const handleRename = async () => {
     if (!newName.trim()) return;
     try {
@@ -145,14 +150,59 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
-          Back to Labs
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
+            Back to Labs
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => void refetch()}
+            disabled={isLoading}
+            leftIcon={<RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />}
+          >
+            Refresh
+          </Button>
+        </div>
 
-        <div className="flex items-end justify-between gap-4">
-          <div className="flex items-stretch gap-3 min-w-0">
+        <div className="relative pt-7">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-3 h-px"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusVar})/0.6) 9%, hsl(var(${statusVar})/0.6) 91%, transparent 100%)`,
+              boxShadow: `0 0 8px hsl(var(${statusVar})/0.4)`,
+            }}
+          />
+          <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
+            <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
+              <span className="text-foreground">{lab.name}</span>
+              <span className="text-foreground/35">{'//'}</span>
+              <span className={`flex items-center gap-1.5 ${statusTextClass}`}>
+                {lab.isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
+                {lab.isActive ? 'active' : 'deactivated'}
+              </span>
+              {lab.isDemo && (
+                <>
+                  <span className="text-foreground/35">{'//'}</span>
+                  <span
+                    className={`flex items-center gap-1.5 ${details.isSeeded ? 'text-success-text' : 'text-warning-text'}`}
+                  >
+                    {details.isSeeded ? <Sprout size={11} /> : <BeanOff size={11} />}
+                    {details.isSeeded ? 'seeded' : 'not seeded'}
+                  </span>
+                </>
+              )}
+            </span>
+          </div>
+
+          <ConsolePanel
+            className={`flex items-stretch ${identityTextClass}`}
+            statusColor={statusColor}
+            identityColor="currentColor"
+          >
             <div
-              className={`flex shrink-0 flex-col items-center gap-2 ${getLabBadgeTextClasses(labId, lab.isDemo)}`}
+              className={`flex w-14 shrink-0 flex-col items-center border-r border-line-soft pt-5 ${identityTextClass}`}
             >
               <LabBadge
                 labId={labId}
@@ -163,156 +213,105 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
               />
               <span
                 aria-hidden
-                className="w-px flex-1"
+                className="mb-4 w-px flex-1"
                 style={{
                   background:
-                    'linear-gradient(to bottom, color-mix(in srgb, currentColor 30%, transparent), transparent)',
+                    'linear-gradient(180deg, currentColor 0%, currentColor 24%, color-mix(in srgb, currentColor 45%, transparent) 60%, transparent 100%)',
+                  filter:
+                    'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))',
                 }}
               />
             </div>
-            <div className="flex flex-col gap-2 min-w-0 justify-end">
-              {isRenaming ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] bg-transparent border-b border-transparent [border-image:linear-gradient(90deg,hsl(var(--foreground)/0.25)_0%,hsl(var(--foreground)/0.18)_55%,hsl(var(--foreground)/0.08)_88%,transparent_100%)_1] px-1 focus:outline-none focus:[border-image:linear-gradient(90deg,hsl(var(--primary)/0.7)_0%,hsl(var(--primary)/0.5)_70%,transparent_100%)_1] text-foreground"
-                    onKeyDown={e => e.key === 'Enter' && handleRename()}
-                    ref={(el: HTMLInputElement | null) => el?.focus()}
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-stretch">
+                <div className="flex min-w-0 flex-1 flex-col gap-2 px-5 pt-5 pb-4">
+                  {isRenaming ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={e => setNewName(e.target.value)}
+                        className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] bg-transparent border-b border-transparent [border-image:linear-gradient(90deg,hsl(var(--foreground)/0.25)_0%,hsl(var(--foreground)/0.18)_55%,hsl(var(--foreground)/0.08)_88%,transparent_100%)_1] px-1 focus:outline-none focus:[border-image:linear-gradient(90deg,hsl(var(--primary)/0.7)_0%,hsl(var(--primary)/0.5)_70%,transparent_100%)_1] text-foreground"
+                        onKeyDown={e => e.key === 'Enter' && handleRename()}
+                        ref={(el: HTMLInputElement | null) => el?.focus()}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
+                        onClick={handleRename}
+                        isLoading={updateLabMutation.isPending}
+                        aria-label="Save"
+                      >
+                        <Check size={14} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
+                        onClick={() => setIsRenaming(false)}
+                        aria-label="Cancel"
+                      >
+                        <X size={14} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <h1 className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] text-foreground">
+                        {lab.name}
+                      </h1>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        iconOnly
+                        onClick={() => {
+                          setNewName(lab.name);
+                          setIsRenaming(true);
+                        }}
+                        aria-label="Rename lab"
+                      >
+                        <SquarePen size={12} />
+                      </Button>
+                    </div>
+                  )}
+                  <IdStamp
+                    parts={[
+                      `/${lab.slug}`,
+                      `${storageSummary.tankCount} ${storageSummary.tankCount === 1 ? 'tank' : 'tanks'} · ${storageSummary.rackCount} ${storageSummary.rackCount === 1 ? 'rack' : 'racks'} · ${storageSummary.boxCount} ${storageSummary.boxCount === 1 ? 'box' : 'boxes'}`,
+                    ]}
                   />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    iconOnly
-                    onClick={handleRename}
-                    isLoading={updateLabMutation.isPending}
-                    aria-label="Save"
-                  >
-                    <Check size={14} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    iconOnly
-                    onClick={() => setIsRenaming(false)}
-                    aria-label="Cancel"
-                  >
-                    <X size={14} />
-                  </Button>
                 </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <h1 className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] text-foreground">
-                    {lab.name}
-                  </h1>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    iconOnly
-                    onClick={() => {
-                      setNewName(lab.name);
-                      setIsRenaming(true);
-                    }}
-                    aria-label="Rename lab"
-                  >
-                    <SquarePen size={12} />
-                  </Button>
-                </div>
-              )}
-              <IdStamp
-                parts={[
-                  `/${lab.slug}`,
-                  `${storageSummary.tankCount} ${storageSummary.tankCount === 1 ? 'tank' : 'tanks'} · ${storageSummary.rackCount} ${storageSummary.rackCount === 1 ? 'rack' : 'racks'} · ${storageSummary.boxCount} ${storageSummary.boxCount === 1 ? 'box' : 'boxes'}`,
-                ]}
-              />
-              <div className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em]">
-                <span
-                  className={`flex items-center gap-1.5 ${lab.isActive ? 'text-success-text' : 'text-danger-text'}`}
+                <div
+                  className="flex aspect-square shrink-0 items-center justify-center border-l border-line-soft"
+                  style={{ background: 'rgba(0,0,0,0.13)' }}
                 >
-                  {lab.isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
-                  {lab.isActive ? 'active' : 'deactivated'}
-                </span>
-                {lab.isDemo && (
-                  <>
-                    <span className="text-foreground/40">·</span>
-                    <span
-                      className={`flex items-center gap-1.5 ${details.isSeeded ? 'text-success-text' : 'text-warning-text'}`}
-                    >
-                      {details.isSeeded ? <Sprout size={11} /> : <BeanOff size={11} />}
-                      {details.isSeeded ? 'seeded' : 'not seeded'}
-                    </span>
-                  </>
-                )}
+                  <LabPowerToggle
+                    isActive={lab.isActive}
+                    isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
+                    onActivate={handleActivate}
+                    onDeactivate={() => setShowDeactivate(true)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 border-t border-line-faint divide-x divide-line-faint [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.10)_10%,hsl(var(--foreground)/0.10)_86%,transparent_100%)_1]">
+                <StatCell label="Admins" value={adminCount} icon={<ShieldUser size={11} />} />
+                <StatCell label="Users" value={users.length} icon={<UsersRound size={11} />} />
+                <StatCell label="Researchers" value={researcherCount} icon={<Dna size={11} />} />
+                <StatCell
+                  label="Tubes"
+                  value={tubeCount}
+                  footer={
+                    tubesWithoutResearcher > 0 ? `${tubesWithoutResearcher} unassigned` : undefined
+                  }
+                  tone={tubesWithoutResearcher > 0 ? 'warning' : 'default'}
+                  icon={<TestTube size={11} />}
+                />
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => void refetch()}
-              disabled={isLoading}
-              leftIcon={<RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />}
-            >
-              Refresh
-            </Button>
-            {lab.isActive ? (
-              <Button
-                variant="ghost-danger"
-                size="sm"
-                onClick={() => setShowDeactivate(true)}
-                leftIcon={<Power size={14} />}
-              >
-                Deactivate
-              </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleActivate}
-                isLoading={activateLabMutation.isPending}
-                leftIcon={<Power size={14} />}
-              >
-                Activate
-              </Button>
-            )}
-          </div>
+          </ConsolePanel>
         </div>
-
-        <CrtBackdrop size="lg" lighting="anchored">
-          <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.12)_14%,hsl(var(--foreground)/0.12)_86%,transparent_100%)_1]">
-            <StatCell
-              label="Admins"
-              value={adminCount}
-              icon={<ShieldUser size={11} />}
-              className="flex-1"
-            />
-            <StatCell
-              label="Users"
-              value={users.length}
-              icon={<UsersRound size={11} />}
-              className="flex-1"
-            />
-            <StatCell
-              label="Researchers"
-              value={researcherCount}
-              icon={<Dna size={11} />}
-              className="flex-1"
-            />
-            <StatCell
-              label="Tubes"
-              value={tubeCount}
-              footer={
-                tubesWithoutResearcher > 0 ? `${tubesWithoutResearcher} unassigned` : undefined
-              }
-              tone={tubesWithoutResearcher > 0 ? 'warning' : 'default'}
-              icon={<TestTube size={11} />}
-              className="flex-1"
-            />
-          </div>
-        </CrtBackdrop>
 
         {lab.isDemo && <LabDemoSettings labId={labId} isSeeded={details.isSeeded} />}
 
