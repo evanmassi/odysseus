@@ -8,7 +8,7 @@ import { lazy, Suspense, useState } from 'react';
 
 import { FlaskConical, HardDrive, LayoutDashboard, Shield } from 'lucide-react';
 
-import { CrtBackdrop, IdStamp, LoadingSkeleton, StatCell, Tab, Tabs } from '@shared/ui';
+import { ConsolePanel, IdStamp, LoadingSkeleton, StatCell, Tab, Tabs } from '@shared/ui';
 
 import { useSystemOverviewQuery } from '../../../hooks/useLabQueries';
 import { useSecurityOverviewQuery } from '../../../hooks/useSecurityMonitoringQueries';
@@ -59,7 +59,7 @@ export function SystemAdminDashboard() {
         </div>
 
         {overview && (
-          <CrtBackdrop size="lg">
+          <ConsolePanel>
             <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.18)_10%,hsl(var(--foreground)/0.18)_90%,transparent_100%)_1]">
               <StatCell
                 label="Labs Online"
@@ -86,7 +86,7 @@ export function SystemAdminDashboard() {
                 className="flex-1"
               />
             </div>
-          </CrtBackdrop>
+          </ConsolePanel>
         )}
 
         <div className="relative border-b border-transparent">
