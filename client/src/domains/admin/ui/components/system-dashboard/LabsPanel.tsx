@@ -18,12 +18,11 @@ import {
   TestTube,
   TicketCheck,
   Copy,
-  Power,
   RefreshCw,
   UsersRound,
 } from 'lucide-react';
 
-import { BracketedStamp, Button, CrtBackdrop, IdStamp, SectionHeader, StatCell } from '@shared/ui';
+import { BracketedStamp, Button, ConsolePanel, IdStamp, SectionHeader, StatCell } from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -35,6 +34,8 @@ import {
   useCreateLabInviteCodeMutation,
 } from '../../../hooks/useLabMutations';
 import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueries';
+
+import { LabPowerToggle } from './LabPowerToggle';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 
@@ -144,30 +145,36 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   const renderLabCard = (lab: (typeof labs)[number]) => {
     const stats = getLabStats(lab.id);
     const codes = labInviteCodes[lab.id] ?? [];
-    const statusBgVar = lab.isActive ? '--color-success-bg' : '--color-danger-bg';
+    const latestCode = codes[codes.length - 1]?.code;
+    // Keep the unique segments unbreakable; only the fixed ODYSS- prefix may wrap.
+    const codeSplitAt = latestCode ? latestCode.indexOf('-') + 1 : 0;
+    const statusVar = lab.isActive ? '--color-success-bg' : '--color-danger-bg';
+    const statusTextClass = lab.isActive ? 'text-success-text' : 'text-danger-text';
+    const identityTextClass = getLabBadgeTextClasses(lab.id, lab.isDemo);
+
+    const statusColor = `hsl(var(${statusVar}))`;
 
     return (
-      <div key={lab.id} className="relative pt-2">
-        <div className="absolute top-0 left-6 z-10 flex h-7 items-center border-x border-t-2 border-foreground/10 border-t-transparent px-4">
-          <div
-            aria-hidden
-            className="absolute inset-x-0 top-0 h-0.5"
-            style={{
-              background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusBgVar})/0.85) 14%, hsl(var(${statusBgVar})) 50%, hsl(var(${statusBgVar})/0.85) 86%, transparent 100%)`,
-            }}
-          />
+      <div key={lab.id} className="relative pt-7">
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-3 h-px"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusVar})/0.6) 9%, hsl(var(${statusVar})/0.6) 91%, transparent 100%)`,
+            boxShadow: `0 0 8px hsl(var(${statusVar})/0.4)`,
+          }}
+        />
+        <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
           <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
             <span className="text-foreground">{lab.name}</span>
-            <span className="text-foreground/40">·</span>
-            <span
-              className={`flex items-center gap-1.5 ${lab.isActive ? 'text-success-text' : 'text-danger-text'}`}
-            >
+            <span className="text-foreground/35">{'//'}</span>
+            <span className={`flex items-center gap-1.5 ${statusTextClass}`}>
               {lab.isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
               {lab.isActive ? 'active' : 'deactivated'}
             </span>
             {lab.isDemo && (
               <>
-                <span className="text-foreground/40">·</span>
+                <span className="text-foreground/35">{'//'}</span>
                 <span
                   className={`flex items-center gap-1.5 ${lab.isSeeded ? 'text-success-text' : 'text-warning-text'}`}
                 >
@@ -179,125 +186,125 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
           </span>
         </div>
 
-        <CrtBackdrop size="lg" lighting="anchored" scanlines={false}>
-          {!lab.isActive && (
+        <ConsolePanel
+          className={`flex items-stretch ${identityTextClass}`}
+          statusColor={statusColor}
+          identityColor="currentColor"
+        >
+          <div
+            className={`flex w-14 shrink-0 flex-col items-center border-r border-line-soft pt-5 ${identityTextClass}`}
+          >
+            <LabBadge
+              labId={lab.id}
+              labName={lab.name}
+              size="md"
+              isDemo={lab.isDemo}
+              isActive={lab.isActive}
+            />
             <span
               aria-hidden
-              className="pointer-events-none absolute -right-2 -bottom-2 -rotate-6 font-mono text-[64px] font-semibold tracking-[0.10em] whitespace-nowrap text-danger-bg/5 uppercase select-none"
-            >
-              Deactivated
-            </span>
-          )}
-
-          <div className="absolute right-6 top-6 z-10">
-            <LabPowerToggle
-              isActive={lab.isActive}
-              isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
-              onActivate={() => handleActivateLab(lab.id)}
-              onDeactivate={() => setDeactivateTarget(lab.id)}
+              className="mb-4 w-px flex-1"
+              style={{
+                background:
+                  'linear-gradient(180deg, currentColor 0%, currentColor 24%, color-mix(in srgb, currentColor 45%, transparent) 60%, transparent 100%)',
+                filter:
+                  'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))',
+              }}
             />
           </div>
 
-          <div className="relative flex items-stretch gap-3 px-4 pt-7 pb-3">
-            <div
-              className={`flex shrink-0 flex-col items-center gap-2 ${getLabBadgeTextClasses(lab.id, lab.isDemo)}`}
-            >
-              <LabBadge
-                labId={lab.id}
-                labName={lab.name}
-                size="md"
-                isDemo={lab.isDemo}
-                isActive={lab.isActive}
-              />
-              <span
-                aria-hidden
-                className="w-px flex-1"
-                style={{
-                  background:
-                    'linear-gradient(to bottom, color-mix(in srgb, currentColor 30%, transparent), transparent)',
-                }}
-              />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex items-stretch">
+              <div className="flex min-w-0 flex-1 flex-col gap-2 px-5 pt-5 pb-4">
+                <h3 className="font-display text-[28px] leading-none font-medium tracking-[-0.01em]">
+                  <button
+                    type="button"
+                    onClick={() => onSelectLab(lab.id)}
+                    className="cursor-pointer text-left text-foreground transition-[text-shadow] duration-200 outline-none hover:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)] focus-visible:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)]"
+                  >
+                    {lab.name}
+                  </button>
+                </h3>
+                {stats && (
+                  <IdStamp
+                    parts={[
+                      `${stats.tankCount} ${stats.tankCount === 1 ? 'tank' : 'tanks'}`,
+                      `${stats.rackCount} ${stats.rackCount === 1 ? 'rack' : 'racks'}`,
+                      `${stats.boxCount} ${stats.boxCount === 1 ? 'box' : 'boxes'}`,
+                    ]}
+                  />
+                )}
+              </div>
+              <div
+                className="flex aspect-square shrink-0 items-center justify-center border-l border-line-soft"
+                style={{ background: 'rgba(0,0,0,0.13)' }}
+              >
+                <LabPowerToggle
+                  isActive={lab.isActive}
+                  isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
+                  onActivate={() => handleActivateLab(lab.id)}
+                  onDeactivate={() => setDeactivateTarget(lab.id)}
+                />
+              </div>
             </div>
 
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <div className="mb-1 grid grid-cols-[4fr_1.6fr] items-end">
-                <div className="ml-2 flex min-w-0 flex-col gap-2">
-                  <h3 className="font-display text-[28px] leading-none font-medium tracking-[-0.01em]">
+            {stats && (
+              <div className="grid grid-cols-[repeat(4,1fr)_1.6fr] border-t border-line-faint divide-x divide-line-faint [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.10)_10%,hsl(var(--foreground)/0.10)_86%,transparent_100%)_1]">
+                <StatCell label="Admins" value={stats.adminCount} icon={<ShieldUser size={11} />} />
+                <StatCell label="Users" value={stats.userCount} icon={<UsersRound size={11} />} />
+                <StatCell
+                  label="Researchers"
+                  value={stats.researcherCount}
+                  icon={<Dna size={11} />}
+                />
+                <StatCell label="Tubes" value={stats.tubeCount} icon={<TestTube size={11} />} />
+                <div className="flex flex-col gap-1.5 px-4 py-3.5">
+                  <span className="flex items-center gap-2 font-mono text-[9.5px] tracking-[0.20em] text-muted-foreground uppercase">
+                    <TicketCheck size={11} className="shrink-0" />
+                    Lab Admin Code
+                  </span>
+                  <div className="flex items-center border border-line-mid bg-black/25 py-1.5 pl-2.5 shadow-[inset_0_1px_3px_-1px_rgba(0,0,0,0.45)]">
+                    <code
+                      className={`mr-auto pr-2 font-mono text-[15px] font-medium leading-none phosphor-text ${latestCode ? 'text-foreground' : 'text-foreground/25 select-none'}`}
+                    >
+                      {latestCode ? (
+                        <>
+                          {latestCode.slice(0, codeSplitAt)}
+                          <span className="whitespace-nowrap">{latestCode.slice(codeSplitAt)}</span>
+                        </>
+                      ) : (
+                        <>
+                          ODYSS-<span className="whitespace-nowrap">XXXX-XXXX</span>
+                        </>
+                      )}
+                    </code>
                     <button
                       type="button"
-                      onClick={() => onSelectLab(lab.id)}
-                      className="cursor-pointer text-left text-foreground transition-[text-shadow] duration-200 outline-none hover:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)] focus-visible:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)]"
+                      aria-label="Copy to clipboard"
+                      onClick={async () => {
+                        if (!latestCode) return;
+                        await navigator.clipboard.writeText(latestCode);
+                        notifications.success('Copied');
+                      }}
+                      disabled={!latestCode}
+                      className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2 text-foreground/40 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-30"
                     >
-                      {lab.name}
+                      <Copy size={12} />
                     </button>
-                  </h3>
-                  {stats && (
-                    <IdStamp
-                      parts={[
-                        `${stats.tankCount} ${stats.tankCount === 1 ? 'tank' : 'tanks'}`,
-                        `${stats.rackCount} ${stats.rackCount === 1 ? 'rack' : 'racks'}`,
-                        `${stats.boxCount} ${stats.boxCount === 1 ? 'box' : 'boxes'}`,
-                      ]}
-                    />
-                  )}
-                </div>
-
-                <div className="flex items-center justify-center px-4" />
-              </div>
-
-              {stats && (
-                <div className="grid grid-cols-[repeat(4,1fr)_1.6fr] divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
-                  <StatCell
-                    label="Admins"
-                    value={stats.adminCount}
-                    icon={<ShieldUser size={11} />}
-                  />
-                  <StatCell label="Users" value={stats.userCount} icon={<UsersRound size={11} />} />
-                  <StatCell
-                    label="Researchers"
-                    value={stats.researcherCount}
-                    icon={<Dna size={11} />}
-                  />
-                  <StatCell label="Tubes" value={stats.tubeCount} icon={<TestTube size={11} />} />
-                  <div className="flex flex-col gap-1 px-4 py-3.5">
-                    <span className="flex items-center gap-2 font-mono text-[9.5px] tracking-[0.20em] text-muted-foreground uppercase">
-                      <TicketCheck size={11} className="shrink-0" />
-                      Lab Admin Code
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <code
-                        className={`font-mono text-[15px] font-medium leading-none phosphor-text ${codes.length > 0 ? '' : 'tracking-widest text-foreground/25 select-none'}`}
-                      >
-                        {codes.length > 0 ? codes[codes.length - 1].code : '· · · · · · ·'}
-                      </code>
-                      <button
-                        type="button"
-                        aria-label="Copy to clipboard"
-                        onClick={async () => {
-                          if (codes.length === 0) return;
-                          await navigator.clipboard.writeText(codes[codes.length - 1].code);
-                          notifications.success('Copied');
-                        }}
-                        disabled={codes.length === 0}
-                        className="shrink-0 text-foreground/40 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-30"
-                      >
-                        <Copy size={12} />
-                      </button>
-                    </div>
                     <button
                       type="button"
                       onClick={() => handleGenerateLabAdminCode(lab.id)}
                       disabled={!lab.isActive || generatingCodeForLab === lab.id}
-                      className="mt-0.5 text-left font-mono text-[10px] tracking-[0.1em] text-muted-foreground/60 uppercase transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2.5 font-mono text-[10px] whitespace-nowrap tracking-[0.1em] text-muted-foreground/60 uppercase transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {codes.length > 0 ? 'Regenerate' : 'Generate'}
+                      {latestCode ? 'Regenerate' : 'Generate'}
                     </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </CrtBackdrop>
+        </ConsolePanel>
       </div>
     );
   };
@@ -420,65 +427,5 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
         onCancel={() => setDeactivateTarget(null)}
       />
     </div>
-  );
-}
-
-interface LabPowerToggleProps {
-  isActive: boolean;
-  isLoading: boolean;
-  onActivate: () => void;
-  onDeactivate: () => void;
-}
-
-function LabPowerToggle({ isActive, isLoading, onActivate, onDeactivate }: LabPowerToggleProps) {
-  const handleClick = () => {
-    if (isLoading) return;
-    if (isActive) onDeactivate();
-    else onActivate();
-  };
-
-  const bodyTone = isActive
-    ? 'border-success-bg shadow-[inset_0_0_14px_-2px_hsl(var(--color-success-bg)/0.45),0_0_22px_-2px_hsl(var(--color-success-bg)/0.55)]'
-    : 'border-line-mid';
-
-  const ringTone = isActive
-    ? 'before:border-success-bg/60 before:shadow-[0_0_14px_-2px_hsl(var(--color-success-bg)/0.35)]'
-    : 'before:border-line-soft';
-
-  const glyphTone = isActive
-    ? 'text-success-text [filter:drop-shadow(0_0_3px_hsl(var(--color-success-text)/0.85))]'
-    : 'text-foreground/40';
-
-  const bgStyle: React.CSSProperties = {
-    background: isActive
-      ? `radial-gradient(circle at 50% 35%, hsl(var(--color-success-bg)/0.35), hsl(var(--color-success-bg)/0.05) 70%), hsl(var(--card))`
-      : `radial-gradient(circle at 50% 35%, rgba(255,255,255,0.025), rgba(255,255,255,0) 60%), hsl(var(--card))`,
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={isLoading}
-      aria-label={isActive ? 'Deactivate lab' : 'Activate lab'}
-      aria-pressed={isActive}
-      style={bgStyle}
-      className={`
-        relative flex h-10 w-10 items-center justify-center rounded-full border
-        transition-[background,border-color,box-shadow] duration-200
-        before:absolute before:inset-[-4px] before:rounded-full
-        before:border before:border-dashed before:content-['']
-        before:transition-[border-color,box-shadow] before:duration-200
-        ${bodyTone}
-        ${ringTone}
-        ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
-      `}
-    >
-      <Power
-        size={16}
-        strokeWidth={1.6}
-        className={`transition-[color,filter] duration-200 ${glyphTone}`}
-      />
-    </button>
   );
 }
