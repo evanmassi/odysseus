@@ -23,7 +23,7 @@ import {
   BracketedStamp,
   Button,
   Chip,
-  CrtBackdrop,
+  ConsolePanel,
   SectionHeader,
   SectionToolbar,
   StatCell,
@@ -478,7 +478,7 @@ export function SecurityPanel() {
     <div className="space-y-8">
       <BracketedStamp title="Security" icon={<Shield size={14} />} />
 
-      <CrtBackdrop size="md">
+      <ConsolePanel>
         <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
           <StatCell
             size="sm"
@@ -527,7 +527,7 @@ export function SecurityPanel() {
             className="flex-1"
           />
         </div>
-      </CrtBackdrop>
+      </ConsolePanel>
 
       <SecuritySettings />
 

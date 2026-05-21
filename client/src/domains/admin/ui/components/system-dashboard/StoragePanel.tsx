@@ -23,7 +23,7 @@ import {
   BracketedStamp,
   Button,
   Chip,
-  CrtBackdrop,
+  ConsolePanel,
   IdStamp,
   SectionHeader,
   StatCell,
@@ -213,7 +213,7 @@ export function StoragePanel() {
         }
       />
 
-      <CrtBackdrop size="md">
+      <ConsolePanel>
         <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.14)_16%,hsl(var(--foreground)/0.14)_92%,transparent_100%)_1]">
           <StatCell
             size="sm"
@@ -245,7 +245,7 @@ export function StoragePanel() {
             className="flex-1"
           />
         </div>
-      </CrtBackdrop>
+      </ConsolePanel>
 
       <div>
         <SectionHeader
