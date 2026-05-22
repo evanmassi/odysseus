@@ -283,7 +283,6 @@ export function AuthSysAdminSetupPage() {
         <Button
           type="submit"
           variant="primary"
-          marker="bar"
           tail
           ceremonial
           fullWidth

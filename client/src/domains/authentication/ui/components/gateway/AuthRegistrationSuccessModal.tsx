@@ -94,7 +94,7 @@ export function AuthRegistrationSuccessModal({
         </AlertBanner>
       </div>
 
-      <Button variant="primary" marker="bar" tail ceremonial fullWidth onClick={onClose}>
+      <Button variant="primary" tail ceremonial fullWidth onClick={onClose}>
         Continue
       </Button>
     </div>

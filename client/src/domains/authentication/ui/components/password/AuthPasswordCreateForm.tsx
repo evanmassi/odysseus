@@ -174,7 +174,6 @@ export function AuthPasswordCreateForm({
         <Button
           type="submit"
           variant="primary"
-          marker="bar"
           tail
           ceremonial
           fullWidth

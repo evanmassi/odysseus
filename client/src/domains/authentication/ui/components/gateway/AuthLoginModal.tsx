@@ -202,7 +202,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           <Button
             type="button"
             variant="primary"
-            marker="bar"
             tail
             ceremonial
             fullWidth
@@ -263,7 +262,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
         <Button
           type="submit"
           variant="primary"
-          marker="bar"
           tail
           ceremonial
           fullWidth

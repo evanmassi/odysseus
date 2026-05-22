@@ -10,7 +10,7 @@ import { cva } from 'class-variance-authority';
 
 import { defaultButtonProps } from './types';
 
-import type { ButtonMarker, ButtonProps, ButtonRef, ButtonSize, ButtonVariant } from './types';
+import type { ButtonProps, ButtonRef, ButtonSize, ButtonVariant } from './types';
 
 const GHOST_HOVER_SHADOW =
   'hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_55%,transparent),0_0_14px_color-mix(in_srgb,currentColor_35%,transparent)]';
@@ -18,7 +18,7 @@ const GHOST_HOVER_SHADOW =
 const buttonVariants = cva(
   [
     'group inline-flex items-center justify-center',
-    'border font-mono font-medium',
+    'border font-mono font-normal',
     'text-center whitespace-nowrap leading-none',
     'transition-[background,border-color,filter,box-shadow,color,text-shadow] duration-150',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
@@ -124,12 +124,6 @@ const MARKER_HOVER_CLASSES: Partial<Record<ButtonVariant, string>> = {
     'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
 };
 
-const MARKER_SHAPE: Record<ButtonMarker, string> = {
-  bar: 'w-0.5 h-3',
-  square: 'w-1.5 h-1.5',
-  diamond: 'w-2 h-2 rotate-45',
-};
-
 // Standard variants set the icon color explicitly; ghost variants inherit it from text-*.
 const ICON_TONE: Record<ButtonVariant, string> = {
   primary: 'text-primary drop-shadow-icon-bloom',
@@ -186,7 +180,6 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       rightIcon,
       iconOnly = defaultButtonProps.iconOnly,
       fullWidth = defaultButtonProps.fullWidth,
-      marker,
       tail = defaultButtonProps.tail,
       ceremonial = defaultButtonProps.ceremonial,
       className,
@@ -220,18 +213,15 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
 
     const renderLeading = () => {
       if (isLoading) return <LoadingSpinner size={size!} />;
-      if (leftIcon) {
-        return <span className={`flex-shrink-0 ${ICON_TONE[variant!]}`}>{leftIcon}</span>;
-      }
-      if (marker) {
-        return (
+      return (
+        <>
           <span
             aria-hidden
-            className={`flex-shrink-0 transition-[background,box-shadow] duration-150 ${MARKER_SHAPE[marker]} ${MARKER_CLASSES[variant!]} ${MARKER_HOVER_CLASSES[variant!] ?? ''}`}
+            className={`h-3 w-0.5 flex-shrink-0 transition-[background,box-shadow] duration-150 ${MARKER_CLASSES[variant!]} ${MARKER_HOVER_CLASSES[variant!] ?? ''}`}
           />
-        );
-      }
-      return null;
+          {leftIcon && <span className={`flex-shrink-0 ${ICON_TONE[variant!]}`}>{leftIcon}</span>}
+        </>
+      );
     };
 
     const renderContent = () => {

@@ -19,8 +19,6 @@ export type ButtonVariant =
 
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'xl';
 
-export type ButtonMarker = 'bar' | 'square' | 'diamond';
-
 export interface BaseButtonProps extends Omit<ComponentProps<'button'>, 'children'> {
   children?: ReactNode;
   variant?: ButtonVariant;
@@ -32,8 +30,6 @@ export interface BaseButtonProps extends Omit<ComponentProps<'button'>, 'childre
   rightIcon?: ReactNode;
   iconOnly?: boolean;
   fullWidth?: boolean;
-  /** Leading marker in the variant's tone. Suppressed when `leftIcon` is provided. */
-  marker?: ButtonMarker;
   /** Trailing chevron that slides 2px right on hover. Suppressed when `rightIcon` is provided. */
   tail?: boolean;
   /** Auth-modal register: uppercase, 0.32em tracking, 44h. Overrides `size`. */

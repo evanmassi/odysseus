@@ -282,7 +282,6 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
             <Button
               type="button"
               variant="primary"
-              marker="bar"
               tail
               ceremonial
               fullWidth
@@ -481,7 +480,6 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
             <Button
               type="submit"
               variant="primary"
-              marker="bar"
               tail
               ceremonial
               fullWidth
