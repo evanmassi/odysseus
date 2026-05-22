@@ -8,6 +8,8 @@ import React, { createContext, useContext } from 'react';
 
 import { cva } from 'class-variance-authority';
 
+import { ConsolePanel } from '../console-panel/ConsolePanel';
+
 import { defaultTableProps } from './types';
 
 import type { RowTone, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
@@ -227,7 +229,7 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
   const bracketColor = isLit ? t.bracket : 'border-line-strong';
   const boxGlow = isLit ? t.glow : '';
   return (
-    <label className="relative inline-flex h-4 w-4 cursor-pointer items-center justify-center">
+    <label className="relative inline-flex h-3.5 w-3.5 cursor-pointer items-center justify-center">
       <input
         type="checkbox"
         checked={checked}
@@ -245,14 +247,6 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
       <span
         aria-hidden
         className={`absolute -top-px -left-px h-1 w-1 border-t border-l ${bracketColor}`}
-      />
-      <span
-        aria-hidden
-        className={`absolute -top-px -right-px h-1 w-1 border-t border-r ${bracketColor}`}
-      />
-      <span
-        aria-hidden
-        className={`absolute -bottom-px -left-px h-1 w-1 border-b border-l ${bracketColor}`}
       />
       <span
         aria-hidden
@@ -475,6 +469,8 @@ export function Table<T extends TableRowBase>({
   rowClassName,
   rowTone,
   selectedRowGlow,
+  toolbar,
+  chassis = defaultTableProps.chassis,
 }: TableProps<T>) {
   const contextValue: TableContextValue = {
     selectable: selectable!,
@@ -487,23 +483,15 @@ export function Table<T extends TableRowBase>({
     density: density!,
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">{loadingMessage}</div>
-      </div>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">{emptyMessage}</div>
-      </div>
-    );
-  }
-
-  const tableEl = (
+  const body = loading ? (
+    <div className="flex items-center justify-center py-8">
+      <div className="text-muted-foreground">{loadingMessage}</div>
+    </div>
+  ) : data.length === 0 ? (
+    <div className="flex items-center justify-center py-8">
+      <div className="text-muted-foreground">{emptyMessage}</div>
+    </div>
+  ) : (
     <TableContext.Provider value={contextValue}>
       <table
         className={`w-full border-collapse ${className ?? ''}`}
@@ -524,11 +512,23 @@ export function Table<T extends TableRowBase>({
     </TableContext.Provider>
   );
 
-  // Sticky-header consumers need a scrollable wrapper; otherwise the table
-  // renders flat into whatever container the consumer provides.
-  if (stickyHeader) {
-    return <div className="overflow-auto relative">{tableEl}</div>;
+  // Sticky-header consumers need a scrollable wrapper.
+  const framedBody = stickyHeader ? <div className="relative overflow-auto">{body}</div> : body;
+
+  if (!chassis) {
+    return framedBody;
   }
 
-  return tableEl;
+  return (
+    <ConsolePanel>
+      {toolbar && (
+        <div className="flex items-center gap-3 border-b border-line-soft bg-black/15 px-4 py-3">
+          {toolbar.left}
+          <div className="flex-1" />
+          {toolbar.right}
+        </div>
+      )}
+      {framedBody}
+    </ConsolePanel>
+  );
 }

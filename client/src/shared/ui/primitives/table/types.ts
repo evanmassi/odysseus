@@ -34,6 +34,11 @@ interface TableRowMap extends TableRowBase {
   [key: string]: unknown;
 }
 
+export interface TableToolbar {
+  left?: ReactNode;
+  right?: ReactNode;
+}
+
 export interface TableProps<T extends TableRowBase = TableRowMap> {
   columns: TableColumn<T>[];
   data: T[];
@@ -56,6 +61,10 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   rowClassName?: string | ((row: T, index: number) => string);
   rowTone?: (row: T) => RowTone;
   selectedRowGlow?: boolean;
+  /** Integrated header strip rendered inside the chassis, above the rows. */
+  toolbar?: TableToolbar;
+  /** Wrap the table in a ConsolePanel chassis. Defaults to true. */
+  chassis?: boolean;
 }
 
 export type TableRef = HTMLTableElement;
@@ -83,4 +92,5 @@ export const defaultTableProps: Partial<TableProps> = {
   selectedRows: [],
   emptyMessage: 'No data available',
   loadingMessage: 'Loading...',
+  chassis: true,
 };
