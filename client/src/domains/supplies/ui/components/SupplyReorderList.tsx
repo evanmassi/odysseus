@@ -175,6 +175,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
 
         <div className="flex-1 min-h-0 overflow-auto">
           <Table
+            chassis={false}
             columns={columns}
             data={sortedRows}
             hoverable

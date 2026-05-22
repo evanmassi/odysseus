@@ -154,6 +154,7 @@ export function SupplyLowStockAlertPanel({ onSelectItem }: SupplyLowStockAlertPa
         {isExpanded && (
           <>
             <Table
+              chassis={false}
               columns={columns}
               data={sortedRows}
               hoverable

@@ -377,32 +377,9 @@ export function ResearchersTab({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
-        <div className="flex items-center space-x-2">
-          <Dna size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-card-foreground">Researchers</h3>
-        </div>
-        {!readOnly && (
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={loadResearchers}
-              isLoading={loading}
-              leftIcon={<RefreshCw size={14} className={loading ? 'animate-spin' : ''} />}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowAddModal(true)}
-              leftIcon={<Plus size={14} />}
-            >
-              Add Researcher
-            </Button>
-          </div>
-        )}
+      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+        <Dna size={22} className="text-secondary-foreground" />
+        <h3 className="text-xl font-semibold text-card-foreground">Researchers</h3>
       </div>
 
       <Table
@@ -416,6 +393,33 @@ export function ResearchersTab({
         emptyMessage="No researchers found"
         loadingMessage="Loading researchers..."
         aria-label="Researchers list"
+        toolbar={
+          readOnly
+            ? undefined
+            : {
+                right: (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={loadResearchers}
+                      isLoading={loading}
+                      leftIcon={<RefreshCw size={14} className={loading ? 'animate-spin' : ''} />}
+                    >
+                      Refresh
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setShowAddModal(true)}
+                      leftIcon={<Plus size={14} />}
+                    >
+                      Add Researcher
+                    </Button>
+                  </>
+                ),
+              }
+        }
       />
 
       {inactiveResearchers.length > 0 && (

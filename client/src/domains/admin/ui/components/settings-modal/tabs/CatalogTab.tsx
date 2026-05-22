@@ -273,38 +273,40 @@ function CategorySection({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <h4 className="text-sm font-semibold text-card-foreground capitalize">{title}</h4>
-        <div className="flex items-center gap-2 ml-auto">
-          <Chip size="sm" color="info">
-            {values.length} {CATEGORY_PLURAL_LABELS[category] ?? category}
-          </Chip>
-          <Input
-            type="text"
-            value={newValue}
-            onChange={e => setNewValue(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !readOnly) void handleAdd();
-            }}
-            placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category] ?? category}...`}
-            size="sm"
-            disabled={readOnly}
-          />
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => void handleAdd()}
-            disabled={readOnly || !newValue.trim() || adding}
-            isLoading={adding}
-            leftIcon={<Plus size={14} />}
-          >
-            Add
-          </Button>
-        </div>
-      </div>
+      <h4 className="text-sm font-semibold text-card-foreground capitalize">{title}</h4>
 
       <Table
         columns={columns}
+        toolbar={{
+          right: (
+            <>
+              <Chip size="sm" color="info">
+                {values.length} {CATEGORY_PLURAL_LABELS[category] ?? category}
+              </Chip>
+              <Input
+                type="text"
+                value={newValue}
+                onChange={e => setNewValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !readOnly) void handleAdd();
+                }}
+                placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category] ?? category}...`}
+                size="sm"
+                disabled={readOnly}
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => void handleAdd()}
+                disabled={readOnly || !newValue.trim() || adding}
+                isLoading={adding}
+                leftIcon={<Plus size={14} />}
+              >
+                Add
+              </Button>
+            </>
+          ),
+        }}
         data={sortedValues}
         hoverable
         sortable

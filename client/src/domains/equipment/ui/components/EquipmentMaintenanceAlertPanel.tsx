@@ -181,6 +181,7 @@ export function EquipmentMaintenanceAlertPanel({
 
       {isExpanded && (
         <Table
+          chassis={false}
           columns={columns}
           data={sortedRows}
           hoverable

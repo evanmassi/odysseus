@@ -423,16 +423,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
-        <div className="flex items-center space-x-2">
-          <UsersRound size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-card-foreground">Users</h3>
-        </div>
-        {!readOnly && (
-          <Button variant="secondary" onClick={onUserUpdate} leftIcon={<RefreshCw size={14} />}>
-            Refresh
-          </Button>
-        )}
+      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+        <UsersRound size={22} className="text-secondary-foreground" />
+        <h3 className="text-xl font-semibold text-card-foreground">Users</h3>
       </div>
 
       <Table
@@ -444,6 +437,22 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         onSort={setSortConfig}
         emptyMessage="No users found"
         aria-label="Users list"
+        toolbar={
+          readOnly
+            ? undefined
+            : {
+                right: (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={onUserUpdate}
+                    leftIcon={<RefreshCw size={14} />}
+                  >
+                    Refresh
+                  </Button>
+                ),
+              }
+        }
       />
 
       {inactiveUsers.length > 0 && (

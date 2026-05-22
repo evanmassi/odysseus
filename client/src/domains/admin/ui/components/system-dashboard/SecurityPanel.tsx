@@ -25,7 +25,6 @@ import {
   Chip,
   ConsolePanel,
   SectionHeader,
-  SectionToolbar,
   StatCell,
   Table,
   DatePicker,
@@ -605,53 +604,6 @@ export function SecurityPanel() {
 
       <div>
         <SectionHeader title="Active Sessions" meta={`${sortedSessions.length} active`} />
-        <SectionToolbar
-          left={
-            <>
-              <SearchInput
-                value={filterText}
-                onChange={setFilterText}
-                placeholder="Name, email, or IP…"
-                size="sm"
-                className="w-64"
-                aria-label="Filter sessions"
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                iconOnly
-                onClick={() => setAutoRefresh(prev => !prev)}
-                aria-label="Toggle auto-refresh"
-                aria-pressed={autoRefresh}
-                className={autoRefresh ? 'text-primary' : ''}
-              >
-                <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
-              </Button>
-            </>
-          }
-          right={
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedSessionIds([])}
-                disabled={selectedSessionIds.length === 0}
-              >
-                Clear Selection
-              </Button>
-              <Button
-                variant="ghost-danger"
-                size="sm"
-                onClick={() => setShowBulkRevokeConfirm(true)}
-                leftIcon={<LogOut size={14} />}
-                disabled={selectedSessionIds.length === 0}
-              >
-                Revoke Selected
-                {selectedSessionIds.length > 0 ? ` (${selectedSessionIds.length})` : ''}
-              </Button>
-            </>
-          }
-        />
         <Table<ActiveSessionEntry>
           columns={sessionColumns}
           data={sortedSessions}
@@ -669,6 +621,53 @@ export function SecurityPanel() {
           rowClassName={row => (isOwnSession(row) ? 'text-success-text phosphor-text' : '')}
           rowTone={row => (isOwnSession(row) ? 'success' : 'primary')}
           selectedRowGlow
+          toolbar={{
+            left: (
+              <>
+                <SearchInput
+                  value={filterText}
+                  onChange={setFilterText}
+                  placeholder="Name, email, or IP…"
+                  size="sm"
+                  className="w-64"
+                  aria-label="Filter sessions"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconOnly
+                  onClick={() => setAutoRefresh(prev => !prev)}
+                  aria-label="Toggle auto-refresh"
+                  aria-pressed={autoRefresh}
+                  className={autoRefresh ? 'text-primary' : ''}
+                >
+                  <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
+                </Button>
+              </>
+            ),
+            right: (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedSessionIds([])}
+                  disabled={selectedSessionIds.length === 0}
+                >
+                  Clear Selection
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setShowBulkRevokeConfirm(true)}
+                  leftIcon={<LogOut size={14} />}
+                  disabled={selectedSessionIds.length === 0}
+                >
+                  Revoke Selected
+                  {selectedSessionIds.length > 0 ? ` (${selectedSessionIds.length})` : ''}
+                </Button>
+              </>
+            ),
+          }}
         />
       </div>
 
@@ -677,52 +676,52 @@ export function SecurityPanel() {
           title="IP Activity"
           meta={`${ipData?.entries?.length ?? 0} unique addresses`}
         />
-        <SectionToolbar
-          left={
-            <>
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
-                From
-              </span>
-              <DatePicker
-                value={startDate}
-                onChange={v => setStartDate(v)}
-                size="sm"
-                clearable
-                className="w-40"
-                aria-label="Start date"
-              />
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
-                To
-              </span>
-              <DatePicker
-                value={endDate}
-                onChange={v => setEndDate(v)}
-                size="sm"
-                clearable
-                className="w-40"
-                aria-label="End date"
-              />
-              {(startDate || endDate) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setStartDate('');
-                    setEndDate('');
-                  }}
-                >
-                  Clear
-                </Button>
-              )}
-            </>
-          }
-        />
         <Table<IpActivityRow>
           columns={ipColumns}
           data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
           hoverable
           emptyMessage="No IP activity data"
           aria-label="IP activity"
+          toolbar={{
+            left: (
+              <>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
+                  From
+                </span>
+                <DatePicker
+                  value={startDate}
+                  onChange={v => setStartDate(v)}
+                  size="sm"
+                  clearable
+                  className="w-40"
+                  aria-label="Start date"
+                />
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
+                  To
+                </span>
+                <DatePicker
+                  value={endDate}
+                  onChange={v => setEndDate(v)}
+                  size="sm"
+                  clearable
+                  className="w-40"
+                  aria-label="End date"
+                />
+                {(startDate || endDate) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setStartDate('');
+                      setEndDate('');
+                    }}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </>
+            ),
+          }}
         />
       </div>
 

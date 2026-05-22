@@ -204,99 +204,39 @@ export function SessionListPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-secondary-foreground">
-          Showing {displayedSessions.length} of {sessions.length} active session
-          {sessions.length !== 1 ? 's' : ''}
-        </p>
-        {otherSessionsCount > 0 && (
-          <Button
-            variant="danger"
-            size="xs"
-            onClick={() => setShowRevokeAllConfirm(true)}
-            isLoading={isRevokingAll}
-            loadingText="Revoking..."
-            leftIcon={<LogOut size={12} />}
-          >
-            Logout All Other Devices
-          </Button>
-        )}
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden md:block">
-        <Table<DisplaySession>
-          columns={sessionColumns}
-          data={displayedSessions}
-          hoverable
-          emptyMessage="No active sessions"
-          aria-label="Active sessions"
-          rowClassName={row =>
-            row.isCurrentSession
-              ? 'text-success-text [&>td]:bg-success-light [&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]'
-              : ''
-          }
-        />
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-3">
-        {displayedSessions.map(session => (
-          <div
-            key={session.id}
-            className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-success-light border border-border border-l-4 border-l-success-bg text-success-text' : 'border border-border bg-card'}`}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <session.DeviceIcon
-                  size={20}
-                  className={`flex-shrink-0 ${session.isCurrentSession ? 'text-success-text' : 'text-muted-foreground'}`}
-                />
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-sm font-medium truncate ${session.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
-                  >
-                    {session.device}
-                  </p>
-                  {session.isCurrentSession && <CurrentSessionBadge />}
-                </div>
-              </div>
-              {!session.isCurrentSession && (
-                <Tooltip content="Logout from this session" side="bottom">
-                  <Button
-                    variant="danger"
-                    size="xs"
-                    iconOnly
-                    onClick={() => handleRevokeSession(session.id)}
-                    disabled={isRevoking}
-                    isLoading={revokingSessionId === session.id}
-                    aria-label="Logout from this session"
-                    className="flex-shrink-0 ml-2"
-                  >
-                    <LogOut size={12} />
-                  </Button>
-                </Tooltip>
-              )}
-            </div>
-            <div
-              className={`space-y-1 text-xs ${session.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
-            >
-              <p>
-                <span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}
-              </p>
-              <div>
-                <span className="font-medium">Last Active:</span>
-                <p className="ml-0 mt-0.5">{session.timestamp.relative}</p>
-                <p
-                  className={`text-[11px] ml-0 ${session.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
-                >
-                  {session.timestamp.absolute}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <Table<DisplaySession>
+        columns={sessionColumns}
+        data={displayedSessions}
+        hoverable
+        emptyMessage="No active sessions"
+        aria-label="Active sessions"
+        rowClassName={row =>
+          row.isCurrentSession
+            ? 'text-success-text [&>td]:bg-success-light [&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]'
+            : ''
+        }
+        toolbar={{
+          left: (
+            <p className="text-sm text-secondary-foreground">
+              Showing {displayedSessions.length} of {sessions.length} active session
+              {sessions.length !== 1 ? 's' : ''}
+            </p>
+          ),
+          right:
+            otherSessionsCount > 0 ? (
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => setShowRevokeAllConfirm(true)}
+                isLoading={isRevokingAll}
+                loadingText="Revoking..."
+                leftIcon={<LogOut size={12} />}
+              >
+                Logout All Other Devices
+              </Button>
+            ) : undefined,
+        }}
+      />
 
       <ConfirmDialog
         isOpen={showRevokeAllConfirm}
