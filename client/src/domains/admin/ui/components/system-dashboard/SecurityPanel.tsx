@@ -682,7 +682,6 @@ export function SecurityPanel() {
           hoverable
           emptyMessage="No IP activity data"
           aria-label="IP activity"
-          className="[&_thead_th]:!bg-black/15 [&_thead_th]:shadow-[inset_0_1px_0_hsl(var(--foreground)/0.09)]"
           toolbar={{
             left: (
               <>

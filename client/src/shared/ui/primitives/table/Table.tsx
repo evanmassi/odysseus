@@ -86,7 +86,7 @@ const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
     'text-left text-foreground/60',
-    'bg-surface-panel-2',
+    'bg-black/15 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.09)]',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
   {
