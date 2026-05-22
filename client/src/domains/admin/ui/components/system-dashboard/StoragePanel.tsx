@@ -11,9 +11,11 @@ import {
   AlertTriangle,
   Box as BoxIcon,
   ChevronLeft,
+  CircleCheckBig,
   FlaskConical,
   HardDrive,
   Icon,
+  OctagonX,
   RefreshCw,
   Rows3,
   TestTube,
@@ -296,6 +298,17 @@ function LabDrillDown({
     0
   );
 
+  const statusVar = isActive ? '--color-success-bg' : '--color-danger-bg';
+  const statusTextClass = isActive ? 'text-success-text' : 'text-danger-text';
+  const statusColor = `hsl(var(${statusVar}))`;
+  const identityTextClass = getLabBadgeTextClasses(labId, isDemo);
+  const utilizationTone =
+    utilizationPercent >= CRITICAL_CAPACITY_THRESHOLD
+      ? 'danger'
+      : utilizationPercent >= NEAR_CAPACITY_THRESHOLD
+        ? 'warning'
+        : 'default';
+
   const expandedRowClass = [
     '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--primary)/0.025),hsl(var(--primary)/0.025)),linear-gradient(90deg,hsl(var(--primary)/0.21)_0%,hsl(var(--primary)/0.13)_18%,hsl(var(--primary)/0.06)_48%,hsl(var(--primary)/0.02)_78%,hsl(var(--primary)/0)_100%)]',
     'shadow-[inset_3px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/0.43),inset_0_1px_0_hsl(var(--primary)/0.16),inset_0_-1px_0_hsl(var(--primary)/0.16),inset_0_10px_16px_-8px_hsl(var(--primary)/0.14),inset_0_-10px_16px_-8px_hsl(var(--primary)/0.14),0_0_32px_-4px_hsl(var(--primary)/0.20),0_0_80px_4px_hsl(var(--primary)/0.09)]',
@@ -371,32 +384,79 @@ function LabDrillDown({
         All Labs
       </Button>
 
-      <div className="flex items-stretch gap-3">
+      <div className="relative pt-7">
         <div
-          className={`flex shrink-0 flex-col items-center gap-2 ${getLabBadgeTextClasses(labId, isDemo)}`}
+          aria-hidden
+          className="absolute inset-x-0 top-3 h-px"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusVar})/0.6) 9%, hsl(var(${statusVar})/0.6) 91%, transparent 100%)`,
+            boxShadow: `0 0 8px hsl(var(${statusVar})/0.4)`,
+          }}
+        />
+        <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
+          <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
+            <span className="text-foreground">{labName}</span>
+            <span className="text-foreground/35">{'//'}</span>
+            <span className={`flex items-center gap-1.5 ${statusTextClass}`}>
+              {isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
+              {isActive ? 'active' : 'deactivated'}
+            </span>
+          </span>
+        </div>
+
+        <ConsolePanel
+          className={`flex items-stretch ${identityTextClass}`}
+          statusColor={statusColor}
+          identityColor="currentColor"
         >
-          <LabBadge labId={labId} labName={labName} size="md" isDemo={isDemo} isActive={isActive} />
-          <span
-            aria-hidden
-            className="w-px flex-1"
-            style={{
-              background:
-                'linear-gradient(to bottom, color-mix(in srgb, currentColor 30%, transparent), transparent)',
-            }}
-          />
-        </div>
-        <div className="flex min-w-0 flex-col justify-end gap-2">
-          <h1 className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] text-foreground">
-            {labName}
-          </h1>
-          <IdStamp
-            parts={[
-              `/${labSlug}`,
-              `${tankCount} ${tankCount === 1 ? 'tank' : 'tanks'} · ${rackCount} ${rackCount === 1 ? 'rack' : 'racks'} · ${boxCount} ${boxCount === 1 ? 'box' : 'boxes'}`,
-              `${utilizationPercent}% utilization`,
-            ]}
-          />
-        </div>
+          <div
+            className={`flex w-14 shrink-0 flex-col items-center border-r border-line-soft pt-5 ${identityTextClass}`}
+          >
+            <LabBadge
+              labId={labId}
+              labName={labName}
+              size="md"
+              isDemo={isDemo}
+              isActive={isActive}
+            />
+            <span
+              aria-hidden
+              className="mb-4 w-px flex-1"
+              style={{
+                background:
+                  'linear-gradient(180deg, currentColor 0%, currentColor 24%, color-mix(in srgb, currentColor 45%, transparent) 60%, transparent 100%)',
+                filter:
+                  'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))',
+              }}
+            />
+          </div>
+
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex min-w-0 flex-col gap-2 px-5 pt-5 pb-4">
+              <h1 className="font-display text-[32px] leading-none font-normal tracking-[-0.015em] text-foreground">
+                {labName}
+              </h1>
+              <IdStamp parts={[`/${labSlug}`]} />
+            </div>
+
+            <div className="grid grid-cols-4 border-t border-line-faint divide-x divide-line-faint [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.10)_10%,hsl(var(--foreground)/0.10)_86%,transparent_100%)_1]">
+              <StatCell
+                label="Tanks"
+                value={tankCount}
+                icon={<Icon iconNode={refrigeratorFreezer} size={11} />}
+              />
+              <StatCell label="Racks" value={rackCount} icon={<Rows3 size={11} />} />
+              <StatCell label="Boxes" value={boxCount} icon={<BoxIcon size={11} />} />
+              <StatCell
+                label="Utilization"
+                value={utilizationPercent}
+                unit="%"
+                tone={utilizationTone}
+                icon={<HardDrive size={11} />}
+              />
+            </div>
+          </div>
+        </ConsolePanel>
       </div>
 
       {data && data.nearCapacityBoxes.length > 0 && (
