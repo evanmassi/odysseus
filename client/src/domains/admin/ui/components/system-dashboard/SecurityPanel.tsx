@@ -73,6 +73,7 @@ export function SecurityPanel() {
   const {
     data: sessionsData,
     isLoading: sessionsLoading,
+    isFetching: sessionsFetching,
     refetch: refetchSessions,
   } = useActiveSessionsQuery();
 
@@ -90,9 +91,12 @@ export function SecurityPanel() {
   const [endDate, setEndDate] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(false);
 
-  const { data: ipData } = useIpActivityQuery(startDate || undefined, endDate || undefined);
-  const { data: failedLoginsData } = useFailedLoginsQuery(50);
-  const { data: activityData } = useSessionActivityQuery(24);
+  const { data: ipData, refetch: refetchIpActivity } = useIpActivityQuery(
+    startDate || undefined,
+    endDate || undefined
+  );
+  const { data: failedLoginsData, refetch: refetchFailedLogins } = useFailedLoginsQuery(50);
+  const { data: activityData, refetch: refetchActivity } = useSessionActivityQuery(24);
 
   const purgeExpiredMutation = usePurgeExpiredSessionsMutation();
   const revokeSessionMutation = useRevokeSessionMutation();
@@ -103,7 +107,10 @@ export function SecurityPanel() {
   const doRefresh = useCallback(() => {
     void refetchOverview();
     void refetchSessions();
-  }, [refetchOverview, refetchSessions]);
+    void refetchIpActivity();
+    void refetchFailedLogins();
+    void refetchActivity();
+  }, [refetchOverview, refetchSessions, refetchIpActivity, refetchFailedLogins, refetchActivity]);
 
   useEffect(() => {
     if (autoRefresh) {
@@ -398,7 +405,7 @@ export function SecurityPanel() {
         <div className="flex items-center gap-2">
           <span>{row.uniqueUserCount}</span>
           {row.uniqueUserCount > 1 && (
-            <Chip color="warning" size="sm" leftIcon={<AlertTriangle size={12} />}>
+            <Chip color="warning" size="sm">
               Multiple users
             </Chip>
           )}
@@ -475,9 +482,47 @@ export function SecurityPanel() {
 
   return (
     <div className="space-y-8">
-      <BracketedStamp title="Security" icon={<Shield size={14} />} />
+      <BracketedStamp
+        title="Security"
+        icon={<Shield size={14} />}
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={doRefresh}
+            disabled={sessionsLoading}
+            leftIcon={<RefreshCw size={14} className={sessionsFetching ? 'animate-spin' : ''} />}
+          >
+            Refresh
+          </Button>
+        }
+      />
 
       <ConsolePanel>
+        {expiredAwaitingCleanup > 0 && (
+          <div className="flex items-center gap-3 border-b border-line-soft bg-warning-bg/[0.06] px-4 py-1.5">
+            <div className="flex items-center gap-2">
+              <span className="flex shrink-0 items-center gap-2 font-mono text-[10px] tracking-[0.22em] text-warning-text uppercase">
+                <AlertTriangle size={12} />
+                Cleanup
+              </span>
+              <span className="text-foreground/30">·</span>
+              <span className="font-mono text-[11.5px] text-foreground/70">
+                {expiredAwaitingCleanup} expired{' '}
+                {expiredAwaitingCleanup === 1 ? 'session' : 'sessions'} awaiting cleanup
+              </span>
+            </div>
+            <Button
+              variant="danger"
+              size="xs"
+              onClick={() => setShowPurgeConfirm(true)}
+              leftIcon={<Trash2 size={12} />}
+              className="ml-auto"
+            >
+              Purge Expired Sessions
+            </Button>
+          </div>
+        )}
         <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
           <StatCell
             size="sm"
@@ -529,19 +574,6 @@ export function SecurityPanel() {
       </ConsolePanel>
 
       <SecuritySettings />
-
-      {expiredAwaitingCleanup > 0 && (
-        <div>
-          <Button
-            variant="ghost-danger"
-            size="sm"
-            onClick={() => setShowPurgeConfirm(true)}
-            leftIcon={<Trash2 size={14} />}
-          >
-            Purge Expired Sessions
-          </Button>
-        </div>
-      )}
 
       <div>
         <SectionHeader title="Login Activity" meta="last 24h" />
