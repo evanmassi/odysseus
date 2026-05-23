@@ -20,6 +20,15 @@ const AUTO_GLYPHS: Partial<Record<ChipColor, React.ReactNode>> = {
   danger: <OctagonX />,
 };
 
+/** Tones with a meaningful semantic color get the banner-matching left-edge wash. */
+const LIT_CLASSES: Partial<Record<ChipColor, string>> = {
+  success: 'chip-lit chip-lit--success',
+  warning: 'chip-lit chip-lit--warning',
+  danger: 'chip-lit chip-lit--danger',
+  info: 'chip-lit chip-lit--info',
+  primary: 'chip-lit chip-lit--primary',
+};
+
 interface ToneClasses {
   text: string;
   border: string;
@@ -185,6 +194,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       sizeCfg.height,
       tone.border,
       tone.labelBg,
+      LIT_CLASSES[color!] ?? '',
       disabled ? 'opacity-50 cursor-not-allowed' : '',
       isInteractive && !disabled
         ? 'cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
@@ -222,7 +232,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           {displayLead}
         </span>
         <span
-          className={`flex items-center ${tone.text} ${sizeCfg.lblPx} ${sizeCfg.lblText} tracking-[0.20em] uppercase opacity-[0.82]`}
+          className={`flex items-center ${tone.text} ${sizeCfg.lblPx} ${sizeCfg.lblText} tracking-[0.24em] uppercase opacity-[0.82]`}
         >
           {children}
         </span>

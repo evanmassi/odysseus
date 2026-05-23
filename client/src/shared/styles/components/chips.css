@@ -1,0 +1,84 @@
+/**
+ * Chip Styles
+ *
+ * Banner-aligned lighting: 1.5px lit left edge with soft halo, diffuse radial
+ * wash anchored at the start of the label cell, and a softened tone border
+ * sharing the banner's --c / 0.28 alpha. The chamfer and two-cell silhouette
+ * stay — those are the chip's identity.
+ */
+
+/* Rules deliberately unlayered so they outrank Tailwind utility classes
+   (`border-{tone}-border`) which live in @layer utilities. */
+.chip-lit {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Radial wash anchored off the icon cell so the lead reads as a discrete
+   island and the wash glows out of the label side, mirroring how the banner
+   has no icon-island and the wash sits under everything. */
+.chip-lit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    70% 220% at 35% 50%,
+    hsl(var(--c) / 0.16) 0%,
+    hsl(var(--c) / 0.05) 35%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 1.5px lit edge with halo — same recipe as the banner's 3px edge, scaled to
+   chip height. top/bottom extend by 1px so the edge meets the top and bottom
+   borders cleanly (clip-path then trims anything beyond the chamfer). */
+.chip-lit::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -1px;
+  bottom: -1px;
+  width: 1.5px;
+  background: hsl(var(--c));
+  box-shadow:
+    0 0 5px 0 hsl(var(--c) / 0.5),
+    0 0 11px -1px hsl(var(--c) / 0.3);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.chip-lit > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Tone bindings + softened outer border. --color-{tone}-text matches the banner's
+   token source so chip + banner read in the same light/dark across themes. */
+.chip-lit.chip-lit--success {
+  --c: var(--color-success-text);
+  border-color: hsl(var(--c) / 0.28);
+}
+.chip-lit.chip-lit--warning {
+  --c: var(--color-warning-text);
+  border-color: hsl(var(--c) / 0.28);
+}
+.chip-lit.chip-lit--danger {
+  --c: var(--color-danger-text);
+  border-color: hsl(var(--c) / 0.28);
+}
+.chip-lit.chip-lit--info {
+  --c: var(--color-info-text);
+  border-color: hsl(var(--c) / 0.28);
+}
+.chip-lit.chip-lit--primary {
+  --c: var(--primary);
+  border-color: hsl(var(--c) / 0.28);
+}
+
+/* Inner lead/label divider tracks the same alpha so the soft outer frame
+   doesn't feel orphaned from a bright internal line. */
+.chip-lit > *:first-child {
+  border-right-color: hsl(var(--c) / 0.28);
+}
