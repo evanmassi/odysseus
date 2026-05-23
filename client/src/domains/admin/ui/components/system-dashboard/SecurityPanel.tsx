@@ -500,16 +500,34 @@ export function SecurityPanel() {
 
       <ConsolePanel>
         {expiredAwaitingCleanup > 0 && (
-          <div className="flex items-center gap-3 border-b border-line-soft bg-warning-bg/[0.06] px-4 py-1.5">
-            <div className="flex items-center gap-2">
-              <span className="flex shrink-0 items-center gap-2 font-mono text-[10px] tracking-[0.22em] text-warning-text uppercase">
+          <div
+            className="relative flex items-center gap-3 border-b border-line-soft px-4 py-1.5"
+            style={{
+              background:
+                'radial-gradient(80% 200% at -8% 50%, hsl(var(--color-warning-text) / 0.14) 0%, hsl(var(--color-warning-text) / 0.04) 35%, transparent 70%), hsl(var(--color-warning-text) / 0.05)',
+            }}
+          >
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 bottom-0 w-[2px]"
+              style={{
+                background: 'hsl(var(--color-warning-text))',
+                boxShadow:
+                  '0 0 5px 0 hsl(var(--color-warning-text) / 0.45), 0 0 12px -2px hsl(var(--color-warning-text) / 0.25)',
+              }}
+            />
+            <div className="flex items-center gap-2.5">
+              <span className="flex shrink-0 items-center gap-2 font-mono text-[10px] tracking-[0.24em] text-warning-text uppercase">
                 <AlertTriangle size={12} />
                 Cleanup
               </span>
-              <span className="text-foreground/30">·</span>
-              <span className="font-mono text-[11.5px] text-foreground/70">
-                {expiredAwaitingCleanup} expired{' '}
-                {expiredAwaitingCleanup === 1 ? 'session' : 'sessions'} awaiting cleanup
+              <span aria-hidden className="h-3.5 w-px bg-warning-text/30" />
+              <span className="font-display text-[12px] text-foreground/75">
+                <span className="phosphor-text font-medium text-warning-text">
+                  {expiredAwaitingCleanup} expired{' '}
+                  {expiredAwaitingCleanup === 1 ? 'session' : 'sessions'}
+                </span>{' '}
+                awaiting cleanup
               </span>
             </div>
             <Button

@@ -609,8 +609,10 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
             />
             {dataReady && conflicts.length > 0 && (
               <AlertBanner variant="warning" spacing="none">
-                {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
-                {conflicts.length > 1 ? 'have' : 'has'} been cleared
+                <b>
+                  {conflicts.length} field{conflicts.length > 1 ? 's' : ''}
+                </b>{' '}
+                with conflicting values {conflicts.length > 1 ? 'have' : 'has'} been cleared
               </AlertBanner>
             )}
           </div>
