@@ -15,13 +15,13 @@ export interface BracketHeaderProps {
 export function BracketHeader({ title, meta, className }: BracketHeaderProps) {
   return (
     <div className={`flex items-baseline gap-2 ${className ?? ''}`}>
-      <span aria-hidden className="font-mono text-[13px] font-light leading-none text-primary/80">
+      <span aria-hidden className="font-mono text-[15px] font-light leading-none text-primary/80">
         [
       </span>
-      <span className="font-mono text-[10.5px] font-medium uppercase leading-none tracking-[0.20em] text-foreground/70">
+      <span className="font-mono text-[12.5px] font-medium uppercase leading-none tracking-[0.20em] text-foreground/70">
         {title}
       </span>
-      <span aria-hidden className="font-mono text-[13px] font-light leading-none text-primary/80">
+      <span aria-hidden className="font-mono text-[15px] font-light leading-none text-primary/80">
         ]
       </span>
       {meta && (

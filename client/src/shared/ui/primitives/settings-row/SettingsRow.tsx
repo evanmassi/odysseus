@@ -23,7 +23,7 @@ export function SettingsRow({ label, hint, children, className }: SettingsRowPro
           {label}
         </div>
         {hint && (
-          <div className="mt-0.5 font-mono text-[10px] tracking-[0.06em] text-muted-foreground/70">
+          <div className="mt-0.5 font-display text-[11.5px] leading-snug text-muted-foreground/70">
             {hint}
           </div>
         )}
