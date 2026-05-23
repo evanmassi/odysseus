@@ -1,84 +1,128 @@
 /**
  * Chip
  *
- * Square hairline tag for filters, status, and counts.
+ * Stencil-plate tag: two cells (lead · label), 6px chamfered top-right.
+ * Tone drives the colour palette; success/warning/danger fill the lead
+ * with an auto-glyph when no explicit `lead` is provided.
  */
 
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 
-import { cva } from 'class-variance-authority';
-import { X } from 'lucide-react';
+import { CircleCheckBig, OctagonX, TriangleAlert, X } from 'lucide-react';
 
 import { defaultChipProps } from './types';
 
-import type { ChipProps, ChipRef, ChipSize } from './types';
+import type { ChipColor, ChipProps, ChipRef, ChipSize } from './types';
 
-const chipVariants = cva(
-  [
-    'inline-flex items-center gap-1.5',
-    'border font-medium uppercase whitespace-nowrap leading-none',
-    'font-mono tracking-[0.14em]',
-    'phosphor-text',
-    'transition-colors duration-150',
-  ],
-  {
-    variants: {
-      color: {
-        default: 'bg-muted text-secondary-foreground border-border',
-        outlined: 'bg-transparent text-secondary-foreground border-border',
-        primary: 'bg-action-light text-action border-action',
-        active:
-          'bg-chip-active text-chip-active-foreground border-chip-active hover:bg-chip-active-hover',
-        success: 'bg-success-light text-success-text border-success-border',
-        warning: 'bg-warning-light text-warning-text border-warning-border',
-        danger: 'bg-danger-light text-danger-text border-danger-border',
-        info: 'bg-info-light text-info-text border-info-border',
-      },
-      size: {
-        xs: 'h-5 px-1.5 text-[9px]',
-        sm: 'h-[22px] px-2 text-[10px]',
-      },
-      behavior: {
-        static: '',
-        selectable:
-          'cursor-pointer hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1',
-        removable: 'pr-1',
-      },
-      selected: {
-        true: '',
-        false: '',
-      },
-      disabled: {
-        true: 'opacity-50 cursor-not-allowed',
-        false: '',
-      },
-    },
-    compoundVariants: [
-      // Selected state overrides color with a solid fill
-      {
-        behavior: 'selectable',
-        selected: true,
-        className: 'bg-action text-primary-foreground border-action',
-      },
-    ],
-    defaultVariants: {
-      color: 'default',
-      size: 'sm',
-      behavior: 'static',
-      disabled: false,
-    },
-  }
-);
-
-const iconSizeClasses: Record<ChipSize, string> = {
-  xs: '[&>svg]:w-2.5 [&>svg]:h-2.5',
-  sm: '[&>svg]:w-3 [&>svg]:h-3',
+const AUTO_GLYPHS: Partial<Record<ChipColor, React.ReactNode>> = {
+  success: <CircleCheckBig />,
+  warning: <TriangleAlert />,
+  danger: <OctagonX />,
 };
 
-const dotSizeClasses: Record<ChipSize, string> = {
-  xs: 'w-1 h-1',
-  sm: 'w-[5px] h-[5px]',
+interface ToneClasses {
+  text: string;
+  border: string;
+  labelBg: string;
+  leadBg: string;
+  selectedLeadBg: string;
+}
+
+const TONE_CLASSES: Record<ChipColor, ToneClasses> = {
+  success: {
+    text: 'text-success-text',
+    border: 'border-success-border',
+    labelBg: 'bg-success-bg/[0.08]',
+    leadBg: 'bg-success-bg/[0.14]',
+    selectedLeadBg: 'bg-success-bg/30',
+  },
+  warning: {
+    text: 'text-warning-text',
+    border: 'border-warning-border',
+    labelBg: 'bg-warning-bg/[0.08]',
+    leadBg: 'bg-warning-bg/[0.14]',
+    selectedLeadBg: 'bg-warning-bg/30',
+  },
+  danger: {
+    text: 'text-danger-text',
+    border: 'border-danger-border',
+    labelBg: 'bg-danger-bg/[0.08]',
+    leadBg: 'bg-danger-bg/[0.14]',
+    selectedLeadBg: 'bg-danger-bg/30',
+  },
+  info: {
+    text: 'text-info-text',
+    border: 'border-info-border',
+    labelBg: 'bg-info-bg/[0.08]',
+    leadBg: 'bg-info-bg/[0.14]',
+    selectedLeadBg: 'bg-info-bg/30',
+  },
+  primary: {
+    text: 'text-action',
+    border: 'border-action',
+    labelBg: 'bg-primary/[0.08]',
+    leadBg: 'bg-primary/[0.14]',
+    selectedLeadBg: 'bg-primary/30',
+  },
+  default: {
+    text: 'text-secondary-foreground',
+    border: 'border-border',
+    labelBg: 'bg-foreground/[0.03]',
+    leadBg: 'bg-foreground/[0.06]',
+    selectedLeadBg: 'bg-foreground/[0.15]',
+  },
+  outlined: {
+    text: 'text-secondary-foreground',
+    border: 'border-border',
+    labelBg: 'bg-transparent',
+    leadBg: 'bg-foreground/[0.03]',
+    selectedLeadBg: 'bg-foreground/[0.10]',
+  },
+  active: {
+    text: 'text-chip-active-foreground',
+    border: 'border-chip-active',
+    labelBg: 'bg-chip-active',
+    leadBg: 'bg-chip-active-hover',
+    selectedLeadBg: 'bg-chip-active-hover',
+  },
 };
+
+interface SizeConfig {
+  height: string;
+  chamfer: number;
+  leadText: string;
+  lblText: string;
+  leadPx: string;
+  lblPx: string;
+  removeIcon: number;
+}
+
+const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
+  sm: {
+    height: 'h-5',
+    chamfer: 6,
+    leadText: 'text-[11px]',
+    lblText: 'text-[9.5px]',
+    leadPx: 'px-[7px]',
+    lblPx: 'pl-2 pr-2.5',
+    removeIcon: 10,
+  },
+  xs: {
+    height: 'h-[18px]',
+    chamfer: 5,
+    leadText: 'text-[10px]',
+    lblText: 'text-[9px]',
+    leadPx: 'px-1.5',
+    lblPx: 'pl-1.5 pr-2',
+    removeIcon: 9,
+  },
+};
+
+function chamferStyle(chamfer: number): React.CSSProperties {
+  return {
+    clipPath: `polygon(0 0, calc(100% - ${chamfer}px) 0, 100% ${chamfer}px, 100% 100%, 0 100%)`,
+  };
+}
 
 interface RemoveButtonProps {
   onClick: (e: React.MouseEvent) => void;
@@ -87,17 +131,16 @@ interface RemoveButtonProps {
 }
 
 function RemoveButton({ onClick, disabled, size }: RemoveButtonProps) {
-  const iconSizes: Record<ChipSize, number> = { xs: 10, sm: 12 };
-
+  const sizeCfg = SIZE_CONFIG[size];
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="ml-0.5 p-0.5 hover:bg-black/10 dark:hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-ring"
+      className="flex items-center justify-center pl-1.5 pr-2 opacity-60 transition-opacity duration-150 hover:opacity-100 focus:outline-none disabled:cursor-not-allowed"
       aria-label="Remove"
     >
-      <X size={iconSizes[size]} />
+      <X size={sizeCfg.removeIcon} />
     </button>
   );
 }
@@ -106,13 +149,14 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
   (
     {
       children,
+      lead,
+      leftIcon,
       color = defaultChipProps.color,
       size = defaultChipProps.size,
       behavior = defaultChipProps.behavior,
       selected = defaultChipProps.selected,
       onSelect,
       onRemove,
-      leftIcon,
       disabled = defaultChipProps.disabled,
       'aria-label': ariaLabel,
       className,
@@ -121,25 +165,40 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     ref
   ) => {
     const isInteractive = behavior === 'selectable';
+    const tone = TONE_CLASSES[color!];
+    const sizeCfg = SIZE_CONFIG[size!];
 
-    const chipClasses = [
-      chipVariants({
-        color,
-        size: size!,
-        behavior,
-        selected,
-        disabled,
-      }),
-      className,
+    // Lead resolution: explicit prop > deprecated leftIcon > tone auto-glyph > non-specific square.
+    const leadFromProps = lead ?? leftIcon;
+    const autoGlyph = AUTO_GLYPHS[color!];
+    const displayLead: React.ReactNode = leadFromProps ?? autoGlyph ?? (
+      <span aria-hidden="true" className="block w-1 h-1 bg-current" />
+    );
+    const leadIsAutoFilled = leadFromProps == null;
+
+    const leadBgClass = isInteractive && selected ? tone.selectedLeadBg : tone.leadBg;
+
+    const wrapperClasses = [
+      'inline-flex items-stretch border whitespace-nowrap leading-none',
+      'font-mono',
+      'transition-[filter,background-color] duration-150',
+      sizeCfg.height,
+      tone.border,
+      tone.labelBg,
+      disabled ? 'opacity-50 cursor-not-allowed' : '',
+      isInteractive && !disabled
+        ? 'cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
+        : '',
+      className ?? '',
     ]
       .filter(Boolean)
       .join(' ');
 
+    const style = chamferStyle(sizeCfg.chamfer);
+
     const handleClick = () => {
       if (disabled) return;
-      if (behavior === 'selectable' && onSelect) {
-        onSelect();
-      }
+      if (behavior === 'selectable' && onSelect) onSelect();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -151,19 +210,22 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
 
     const handleRemove = (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!disabled && onRemove) {
-        onRemove();
-      }
+      if (!disabled && onRemove) onRemove();
     };
 
     const content = (
       <>
-        {leftIcon ? (
-          <span className={`flex-shrink-0 ${iconSizeClasses[size!]}`}>{leftIcon}</span>
-        ) : (
-          <span aria-hidden className={`flex-shrink-0 bg-current ${dotSizeClasses[size!]}`} />
-        )}
-        <span>{children}</span>
+        <span
+          aria-hidden={leadIsAutoFilled}
+          className={`flex items-center border-r ${tone.border} ${leadBgClass} ${tone.text} ${sizeCfg.leadPx} ${sizeCfg.leadText} font-medium tracking-[0.04em]`}
+        >
+          {displayLead}
+        </span>
+        <span
+          className={`flex items-center ${tone.text} ${sizeCfg.lblPx} ${sizeCfg.lblText} tracking-[0.20em] uppercase opacity-[0.82]`}
+        >
+          {children}
+        </span>
         {behavior === 'removable' && onRemove && (
           <RemoveButton onClick={handleRemove} disabled={disabled} size={size!} />
         )}
@@ -175,12 +237,13 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
         <button
           ref={ref as React.Ref<HTMLButtonElement>}
           type="button"
-          className={chipClasses}
+          className={wrapperClasses}
+          style={style}
           onClick={handleClick}
           onKeyDown={handleKeyDown}
           disabled={disabled}
           aria-label={ariaLabel}
-          aria-pressed={behavior === 'selectable' ? selected : undefined}
+          aria-pressed={selected}
           {...rest}
         >
           {content}
@@ -191,7 +254,8 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     return (
       <span
         ref={ref as React.Ref<HTMLSpanElement>}
-        className={chipClasses}
+        className={wrapperClasses}
+        style={style}
         aria-label={ariaLabel}
         {...rest}
       >
