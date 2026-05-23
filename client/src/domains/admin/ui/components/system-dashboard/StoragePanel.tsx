@@ -8,7 +8,6 @@ import { useMemo, useState } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import {
-  AlertTriangle,
   Box as BoxIcon,
   ChevronLeft,
   CircleCheckBig,
@@ -18,7 +17,7 @@ import {
   OctagonX,
   RefreshCw,
   Rows3,
-  TestTube,
+  TestTubeDiagonal,
 } from 'lucide-react';
 
 import {
@@ -236,7 +235,7 @@ export function StoragePanel() {
             size="sm"
             label="Total Positions"
             value={(crossLabData?.totalPositions ?? 0).toLocaleString()}
-            icon={<TestTube size={11} />}
+            icon={<TestTubeDiagonal size={11} />}
             className="flex-1"
           />
           <StatCell
@@ -471,7 +470,6 @@ function LabDrillDown({
                 key={`${box.tankName}-${box.rackName}-${box.boxName}`}
                 color="warning"
                 size="sm"
-                leftIcon={<AlertTriangle size={12} />}
               >
                 {box.tankName} · {box.rackName} · {box.boxName}: {box.occupied}/{box.maxPositions} (
                 {box.utilizationPercent}%)

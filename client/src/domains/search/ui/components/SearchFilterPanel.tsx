@@ -17,7 +17,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
-  TestTube,
+  TestTubeDiagonal,
   Barcode,
   CircleUserRound,
   Fingerprint,
@@ -475,7 +475,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
         {/* SAMPLE SECTION */}
         <CollapsibleSection
           title="Sample"
-          icon={<TestTube className="w-4 h-4" />}
+          icon={<TestTubeDiagonal className="w-4 h-4" />}
           count={getSectionCount('sample')}
           isOpen={openSections.sample}
           onToggle={() => toggleSection('sample')}

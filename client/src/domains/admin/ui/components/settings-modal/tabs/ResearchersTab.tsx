@@ -15,7 +15,7 @@ import {
   Plus,
   Power,
   RefreshCw,
-  TestTube,
+  TestTubeDiagonal,
   Trash2,
 } from 'lucide-react';
 
@@ -74,13 +74,13 @@ export function ResearchersTab({
           <Chip color="info" size="sm" leftIcon={<Link />}>
             {researchers.filter(r => r.linkedUserId).length} linked to users
           </Chip>
-          <Chip color="info" size="sm" leftIcon={<TestTube />}>
+          <Chip color="info" size="sm" leftIcon={<TestTubeDiagonal />}>
             {researchers.filter(r => r.tubeCount > 0).length}{' '}
             {researchers.filter(r => r.tubeCount > 0).length === 1 ? 'researcher' : 'researchers'}{' '}
             with tubes
           </Chip>
           {tubesWithoutResearcher > 0 && (
-            <Chip color="warning" size="sm" leftIcon={<TestTube />}>
+            <Chip color="warning" size="sm" leftIcon={<TestTubeDiagonal />}>
               {tubesWithoutResearcher} {tubesWithoutResearcher === 1 ? 'tube' : 'tubes'} without
               researcher
             </Chip>

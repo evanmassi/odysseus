@@ -18,7 +18,7 @@ import {
   ShieldUser,
   Sprout,
   SquarePen,
-  TestTube,
+  TestTubeDiagonal,
   UsersRound,
   X,
 } from 'lucide-react';
@@ -306,7 +306,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                     tubesWithoutResearcher > 0 ? `${tubesWithoutResearcher} unassigned` : undefined
                   }
                   tone={tubesWithoutResearcher > 0 ? 'warning' : 'default'}
-                  icon={<TestTube size={11} />}
+                  icon={<TestTubeDiagonal size={11} />}
                 />
               </div>
             </div>

@@ -15,7 +15,6 @@ import {
   Check,
   X,
   HardDrive,
-  AlertTriangle,
   Icon,
   Rows3,
   Box as BoxIcon,
@@ -419,7 +418,6 @@ function StorageUtilizationSection() {
                 key={`${box.tankName}-${box.rackName}-${box.boxName}`}
                 color="warning"
                 size="xs"
-                leftIcon={<AlertTriangle size={10} />}
               >
                 {box.tankName} · {box.rackName} · {box.boxName}: {box.utilizationPercent}%
               </Chip>

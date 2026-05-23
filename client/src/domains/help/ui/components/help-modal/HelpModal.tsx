@@ -7,7 +7,15 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { BookUser, CircleHelp, Dna, Keyboard, Rocket, ShieldUser, TestTube } from 'lucide-react';
+import {
+  BookUser,
+  CircleHelp,
+  Dna,
+  Keyboard,
+  Rocket,
+  ShieldUser,
+  TestTubeDiagonal,
+} from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { Tab, LoadingSkeleton, Tabs } from '@shared/ui';
@@ -62,7 +70,7 @@ interface HelpTabItem {
 
 const BASE_TABS: HelpTabItem[] = [
   { id: 'getting-started', label: 'Getting Started', icon: Rocket },
-  { id: 'tubes', label: 'Tubes', icon: TestTube },
+  { id: 'tubes', label: 'Tubes', icon: TestTubeDiagonal },
   { id: 'storage', label: 'Storage', icon: TankIcon },
   { id: 'donors', label: 'Donors', icon: BookUser },
   { id: 'researchers', label: 'Researchers', icon: Dna },

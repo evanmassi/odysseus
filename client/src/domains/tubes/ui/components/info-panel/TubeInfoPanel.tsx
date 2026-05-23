@@ -16,7 +16,7 @@ import {
   MapPin,
   Notebook,
   SquarePen,
-  TestTube,
+  TestTubeDiagonal,
   UsersRound,
 } from 'lucide-react';
 
@@ -274,7 +274,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
           <div className="text-center py-6">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
-              <TestTube className="w-6 h-6 text-card-foreground/30" />
+              <TestTubeDiagonal className="w-6 h-6 text-card-foreground/30" />
             </div>
             <p className="text-card-foreground/40 text-sm">{positionText}</p>
           </div>
@@ -370,11 +370,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         >
           {selectedTubes.length > 1 && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
-              <Chip size="sm" color="info" leftIcon={<TestTube />}>
+              <Chip size="sm" color="info" leftIcon={<TestTubeDiagonal />}>
                 {selectedTubes.length} selected
               </Chip>
               {hasConflicts && (
-                <Chip size="sm" color="warning" leftIcon={<AlertTriangle />}>
+                <Chip size="sm" color="warning">
                   Mixed values
                 </Chip>
               )}

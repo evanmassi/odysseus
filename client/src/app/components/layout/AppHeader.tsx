@@ -21,7 +21,7 @@ import {
   Lock,
   Unlock,
   Share2,
-  TestTube,
+  TestTubeDiagonal,
   FlaskConical,
   Biohazard,
   Microscope,
@@ -240,7 +240,7 @@ export function AppHeader({
           aria-label="Switch management suite"
         >
           <OdysseusLogo
-            className="h-7 w-auto text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground"
+            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_30%,transparent)] [[data-theme=dark]_&]:text-muted-foreground"
             aria-label="Odysseus"
           />
           {hasLab && (
@@ -282,7 +282,7 @@ export function AppHeader({
         >
           <div className="px-1">
             <MenuItem
-              icon={TestTube}
+              icon={TestTubeDiagonal}
               label="Biobank"
               onClick={() => {
                 void navigate('/');
@@ -350,7 +350,7 @@ export function AppHeader({
             {gridController && (
               <>
                 {selectedPositions.size > 1 && (
-                  <Chip size="sm" color="default" leftIcon={<TestTube />} className="mr-2">
+                  <Chip size="sm" color="default" leftIcon={<TestTubeDiagonal />} className="mr-2">
                     {selectedPositions.size} selected
                   </Chip>
                 )}

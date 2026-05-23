@@ -15,7 +15,7 @@ import {
   BeanOff,
   ShieldUser,
   Sprout,
-  TestTube,
+  TestTubeDiagonal,
   TicketCheck,
   Copy,
   RefreshCw,
@@ -257,7 +257,11 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   value={stats.researcherCount}
                   icon={<Dna size={11} />}
                 />
-                <StatCell label="Tubes" value={stats.tubeCount} icon={<TestTube size={11} />} />
+                <StatCell
+                  label="Tubes"
+                  value={stats.tubeCount}
+                  icon={<TestTubeDiagonal size={11} />}
+                />
                 <div className="flex flex-col gap-1.5 px-4 py-3.5">
                   <span className="flex items-center gap-2 font-mono text-[9.5px] tracking-[0.20em] text-muted-foreground uppercase">
                     <TicketCheck size={11} className="shrink-0" />

@@ -5,7 +5,7 @@
  * how tubes connect to researchers, and management workflows.
  */
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Link, ShieldUser, TestTube, UserRoundCog, UsersRound } from 'lucide-react';
+import { Link, ShieldUser, TestTubeDiagonal, UserRoundCog, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 
@@ -32,7 +32,7 @@ export function ResearchersTab() {
       {/* Section B: How Tubes Connect to Researchers */}
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <TestTube size={16} className="text-secondary-foreground" />
+          <TestTubeDiagonal size={16} className="text-secondary-foreground" />
           <h3 className="text-sm font-semibold text-card-foreground">
             How Tubes Connect to Researchers
           </h3>

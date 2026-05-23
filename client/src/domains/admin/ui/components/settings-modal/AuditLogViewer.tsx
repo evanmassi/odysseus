@@ -13,7 +13,7 @@ import {
   ChevronRight,
   X,
   Archive,
-  TestTube,
+  TestTubeDiagonal,
   UserRound,
   Icon,
   Rows3,
@@ -241,7 +241,7 @@ export function AuditLogViewer({
   const getEntityIcon = (entityType: string) => {
     switch (entityType) {
       case 'tube':
-        return TestTube;
+        return TestTubeDiagonal;
       case 'user':
         return UserRound;
       case 'researcher':
