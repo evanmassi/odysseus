@@ -4,7 +4,7 @@
  * Handles login, forced password change, and session expiration banners.
  */
 
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { KeyRound, UserRound, Mail, Clock, TimerOff } from 'lucide-react';
 
@@ -31,6 +31,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [errorPulse, setErrorPulse] = useState(0);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -44,14 +45,33 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
     passwordChangeSuccess,
   } = useAuthStore();
   const usernameInputRef = useRef<HTMLInputElement>(null);
+  const errorBannerRef = useRef<HTMLDivElement>(null);
+
+  // Bumping the pulse keeps the banner mounted across retries (no remount, no
+  // animate-in replay) while still giving the nudge effect something to fire on.
+  const flagLoginError = (message: string) => {
+    setLoginError(message);
+    setErrorPulse(p => p + 1);
+  };
+
+  // Pulse > 1 means the banner is already mounted — retrigger the nudge keyframe
+  // via inline style so it beats the wrapper's animate-in class (utilities layer
+  // outranks our component-layer nudge class, so a class-based override loses).
+  // First pulse falls through to the wrapper's animate-in slide-in.
+  useEffect(() => {
+    if (errorPulse <= 1) return;
+    const el = errorBannerRef.current;
+    if (!el) return;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = 'auth-banner-nudge 320ms cubic-bezier(0.34, 1.2, 0.64, 1)';
+  }, [errorPulse]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setLoginError(null);
-
     if (!username.trim() || !password.trim()) {
-      setLoginError('Please enter both username and password');
+      flagLoginError('Please enter both username and password');
       return;
     }
 
@@ -61,14 +81,16 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
       const result = await login(username, password);
 
       if (result.success === true) {
+        setLoginError(null);
         notifications.success('Login successful!');
       } else if (result.success === 'password_change_required') {
+        setLoginError(null);
         setPassword('');
       } else {
-        setLoginError(result.error || 'Incorrect username or password. Please try again.');
+        flagLoginError(result.error || 'Incorrect username or password. Please try again.');
       }
     } catch (error) {
-      setLoginError('Login failed. Please try again.');
+      flagLoginError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -215,7 +237,11 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
       )}
 
       {loginError && !isEmailVerificationError && (
-        <AlertBanner variant="error">{loginError}</AlertBanner>
+        <div ref={errorBannerRef} className="mb-4 animate-in slide-in-from-top-2 duration-300">
+          <AlertBanner variant="error" animate={false} spacing="none">
+            {loginError}
+          </AlertBanner>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">

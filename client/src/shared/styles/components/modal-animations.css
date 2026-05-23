@@ -109,6 +109,21 @@
   }
 }
 
+@keyframes auth-banner-nudge {
+  0% {
+    transform: translateY(0);
+  }
+  28% {
+    transform: translateY(3px);
+  }
+  60% {
+    transform: translateY(-1px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 /* Quick land for chrome mounts that aren't the first-session power-on.
    Softens the cross-modal swap so the new chrome doesn't pop in cold. */
 @keyframes auth-chrome-in {
@@ -309,23 +324,26 @@
     transform-origin: center;
   }
 
-  .animate-auth-stack > * {
+  /* :not(.animate-in) yields the stagger to children with their own enter
+     animation (e.g. AlertBanner), which otherwise collide with auth-stack-fade
+     and get stuck at the inherited opacity: 0. */
+  .animate-auth-stack > *:not(.animate-in) {
     opacity: 0;
     animation: auth-stack-fade 400ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
   }
-  .animate-auth-stack > *:nth-child(1) {
+  .animate-auth-stack > *:nth-child(1):not(.animate-in) {
     animation-delay: 60ms;
   }
-  .animate-auth-stack > *:nth-child(2) {
+  .animate-auth-stack > *:nth-child(2):not(.animate-in) {
     animation-delay: 140ms;
   }
-  .animate-auth-stack > *:nth-child(3) {
+  .animate-auth-stack > *:nth-child(3):not(.animate-in) {
     animation-delay: 220ms;
   }
-  .animate-auth-stack > *:nth-child(4) {
+  .animate-auth-stack > *:nth-child(4):not(.animate-in) {
     animation-delay: 300ms;
   }
-  .animate-auth-stack > *:nth-child(n + 5) {
+  .animate-auth-stack > *:nth-child(n + 5):not(.animate-in) {
     animation-delay: 380ms;
   }
 
