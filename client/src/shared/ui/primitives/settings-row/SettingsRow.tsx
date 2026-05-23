@@ -55,17 +55,20 @@ export interface BracketSectionProps {
   className?: string;
 }
 
+// A chassis compartment: a banded bracket-header strip over a two-column row
+// grid. Sections stack flush, split by a hairline (the first omits its top
+// rule). The 1px grid gaps render as hairline dividers; cells need an opaque
+// background to mask the gap fill — bg-card matches both the panel chassis and
+// the settings-modal surface. A child may carry `col-span-2` for a full row.
+const GRID_CLASSES = 'grid grid-cols-2 gap-px bg-line-soft [&>*]:bg-card [&>*]:px-5';
+
 export function BracketSection({ title, meta, children, className }: BracketSectionProps) {
   return (
-    <div className={className}>
-      <BracketHeader title={title} meta={meta} />
-      <div className="relative pl-5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute bottom-1 left-1.5 top-1 w-px [background:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.18)_10%,hsl(var(--foreground)/0.18)_90%,transparent_100%)]"
-        />
-        <SettingsRowGroup>{children}</SettingsRowGroup>
+    <div className={`border-t border-line-soft first:border-t-0 ${className ?? ''}`}>
+      <div className="border-b border-line-soft bg-black/15 [background-image:linear-gradient(180deg,hsl(var(--foreground)/0.06)_0%,transparent_85%)] px-5 py-3 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.09)]">
+        <BracketHeader title={title} meta={meta} />
       </div>
+      <div className={GRID_CLASSES}>{children}</div>
     </div>
   );
 }

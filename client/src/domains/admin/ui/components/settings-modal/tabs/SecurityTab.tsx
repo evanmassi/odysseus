@@ -19,9 +19,9 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
   const rateLimitDisabled = readOnly || !config.enableRateLimiting;
 
   return (
-    <div className="space-y-6">
+    <div>
       {readOnly && (
-        <AlertBanner variant="info" spacing="none">
+        <AlertBanner variant="info" spacing="sm">
           Only system admins can modify security settings.
         </AlertBanner>
       )}
@@ -115,7 +115,11 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
       </BracketSection>
 
       <BracketSection title="Login Protection">
-        <SettingsRow label="Enable Login Protection" hint="Prevent brute-force attacks">
+        <SettingsRow
+          label="Enable Login Protection"
+          hint="Prevent brute-force attacks"
+          className="col-span-2"
+        >
           <Toggle
             checked={config.enableRateLimiting}
             onChange={checked => onChange('enableRateLimiting', checked)}

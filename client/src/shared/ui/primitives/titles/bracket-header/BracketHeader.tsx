@@ -14,7 +14,7 @@ export interface BracketHeaderProps {
 
 export function BracketHeader({ title, meta, className }: BracketHeaderProps) {
   return (
-    <div className={`flex items-baseline gap-2 pb-2 ${className ?? ''}`}>
+    <div className={`flex items-baseline gap-2 ${className ?? ''}`}>
       <span aria-hidden className="font-mono text-[13px] font-light leading-none text-primary/80">
         [
       </span>
