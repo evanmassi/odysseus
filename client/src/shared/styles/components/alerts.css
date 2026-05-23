@@ -4,6 +4,120 @@
  * Warning, error, success, and info alert classes for the design system.
  */
 
+@layer components {
+  /* V9 banner primitive: 3px lit edge with halo, translucent tone-tinted body,
+     soft radial wash from the lit edge, semantic mono lead + hairline separator. */
+  .alert-banner {
+    --c: var(--color-info-text);
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 16px 9px 20px;
+    width: 100%;
+    background:
+      radial-gradient(
+        80% 180% at -8% 50%,
+        hsl(var(--c) / 0.14) 0%,
+        hsl(var(--c) / 0.04) 35%,
+        transparent 70%
+      ),
+      hsl(var(--c) / 0.06);
+    border: 1px solid hsl(var(--c) / 0.28);
+    color: hsl(var(--foreground));
+    overflow: hidden;
+  }
+  .alert-banner::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    bottom: -1px;
+    width: 3px;
+    background: hsl(var(--c));
+    box-shadow:
+      0 0 10px 0 hsl(var(--c) / 0.55),
+      0 0 22px -2px hsl(var(--c) / 0.35);
+  }
+  .alert-banner__icon {
+    color: hsl(var(--c));
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+  }
+  .alert-banner__lead {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: hsl(var(--c));
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .alert-banner__sep {
+    width: 1px;
+    height: 14px;
+    background: hsl(var(--c) / 0.28);
+    flex-shrink: 0;
+  }
+  .alert-banner__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .alert-banner__title {
+    margin: 0;
+    font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: hsl(var(--c));
+    line-height: 1.4;
+  }
+  .alert-banner__message {
+    font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+    font-size: 13px;
+    color: hsl(var(--foreground));
+    line-height: 1.45;
+  }
+  /* Inline emphasis (<b>/<strong>) picks up the tone color and a soft phosphor halo —
+     same recipe as .phosphor-text, scoped so banner messages can highlight key spans. */
+  .alert-banner__message b,
+  .alert-banner__message strong {
+    color: hsl(var(--c));
+    font-weight: 500;
+    text-shadow:
+      0 0 1px currentColor,
+      0 0 6px color-mix(in srgb, currentColor 40%, transparent);
+  }
+  .alert-banner__actions {
+    flex-shrink: 0;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  /* Chained selectors so modifier specificity (0,2,0) beats the base rule (0,1,0)
+     — without this the base's --c default wins and every variant reads info-blue. */
+  .alert-banner.alert-banner--error {
+    --c: var(--color-danger-text);
+  }
+  .alert-banner.alert-banner--warning {
+    --c: var(--color-warning-text);
+  }
+  .alert-banner.alert-banner--success {
+    --c: var(--color-success-text);
+  }
+  .alert-banner.alert-banner--info {
+    --c: var(--color-info-text);
+  }
+  .alert-banner.alert-banner--demo {
+    --c: var(--color-demo-text);
+  }
+}
+
 @layer utilities {
   /* Base alert container */
   .alert {

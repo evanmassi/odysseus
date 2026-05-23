@@ -1,7 +1,8 @@
 /**
  * Alert Banner
  *
- * Inline alert component for displaying contextual messages in forms and modals.
+ * Inline alert: 3px lit edge with halo, translucent tone-tinted body,
+ * radial wash, semantic mono lead, hairline separator, message, optional actions.
  */
 
 import {
@@ -16,32 +17,12 @@ import { defaultAlertBannerProps } from './types';
 
 import type { AlertBannerProps, AlertBannerVariant } from './types';
 
-const variantStyles: Record<AlertBannerVariant, { bg: string; icon: string; text: string }> = {
-  error: {
-    bg: 'bg-danger-light',
-    icon: 'text-danger-text',
-    text: 'text-danger-text',
-  },
-  warning: {
-    bg: 'bg-warning-light',
-    icon: 'text-warning-text',
-    text: 'text-warning-text',
-  },
-  info: {
-    bg: 'bg-info-light',
-    icon: 'text-info-text',
-    text: 'text-info-text',
-  },
-  success: {
-    bg: 'bg-success-light',
-    icon: 'text-success-text',
-    text: 'text-success-text',
-  },
-  demo: {
-    bg: 'bg-demo-light',
-    icon: 'text-demo-text',
-    text: 'text-demo-text',
-  },
+const DEFAULT_LEADS: Record<AlertBannerVariant, string> = {
+  error: 'Alert',
+  warning: 'Notice',
+  success: 'Success',
+  info: 'Advisory',
+  demo: 'Demo',
 };
 
 const spacingStyles = {
@@ -57,75 +38,41 @@ export function AlertBanner({
   icon,
   title,
   actions,
+  lead,
   animate = defaultAlertBannerProps.animate,
   className = '',
   spacing = defaultAlertBannerProps.spacing,
 }: AlertBannerProps) {
-  const styles = variantStyles[variant];
   const animationClass = animate ? 'animate-in slide-in-from-top-2 duration-300' : '';
   const spacingClass = spacingStyles[spacing ?? 'md'];
+  const leadText = lead ?? DEFAULT_LEADS[variant];
 
-  // Render icon - use animated icons when no custom icon provided
-  const renderIcon = (extraClass = '') => {
-    if (!icon) {
-      if (variant === 'error') {
-        return <AnimatedXMark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />;
-      }
-      if (variant === 'warning') {
-        return (
-          <AnimatedWarningMark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
-        );
-      }
-      if (variant === 'info') {
-        return (
-          <AnimatedInfoMark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
-        );
-      }
-      if (variant === 'success') {
-        return (
-          <AnimatedCheckmark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
-        );
-      }
-      if (variant === 'demo') {
-        return (
-          <AnimatedSparkles size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
-        );
-      }
-    }
-    if (icon) {
-      const CustomIcon = icon;
-      return <CustomIcon className={`w-4 h-4 ${styles.icon} flex-shrink-0 ${extraClass}`} />;
-    }
-    return null;
-  };
-
-  // Complex layout: has title or actions
-  if (title != null || actions != null) {
-    return (
-      <div
-        className={`w-fit px-3 py-1 ${styles.bg} rounded-lg ${animationClass} ${spacingClass} ${className}`}
-        role="alert"
-      >
-        <div className="flex items-start gap-2">
-          {renderIcon('mt-0.5')}
-          <div className="flex-1 min-w-0">
-            {title && <p className={`text-sm font-medium ${styles.text}`}>{title}</p>}
-            <div className={`text-sm ${styles.text} ${title ? 'mt-1' : ''}`}>{children}</div>
-            {actions && <div className="mt-2">{actions}</div>}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Simple layout: just message
   return (
     <div
-      className={`w-fit min-h-7 px-2 py-1 ${styles.bg} rounded-lg flex items-center gap-2 ${animationClass} ${spacingClass} ${className}`}
       role="alert"
+      className={`alert-banner alert-banner--${variant} ${spacingClass} ${animationClass} ${className}`}
     >
-      {renderIcon()}
-      <span className={`text-sm ${styles.text}`}>{children}</span>
+      <span className="alert-banner__icon">{renderIcon(variant, icon)}</span>
+      <span className="alert-banner__lead">{leadText}</span>
+      <span className="alert-banner__sep" aria-hidden />
+      <div className="alert-banner__body">
+        {title != null && <p className="alert-banner__title">{title}</p>}
+        <div className="alert-banner__message">{children}</div>
+      </div>
+      {actions != null && <div className="alert-banner__actions">{actions}</div>}
     </div>
   );
+}
+
+function renderIcon(variant: AlertBannerVariant, customIcon: AlertBannerProps['icon']) {
+  if (customIcon) {
+    const CustomIcon = customIcon;
+    return <CustomIcon className="w-[18px] h-[18px]" />;
+  }
+  if (variant === 'error') return <AnimatedXMark size={18} />;
+  if (variant === 'warning') return <AnimatedWarningMark size={18} />;
+  if (variant === 'info') return <AnimatedInfoMark size={18} />;
+  if (variant === 'success') return <AnimatedCheckmark size={18} />;
+  if (variant === 'demo') return <AnimatedSparkles size={18} />;
+  return null;
 }
