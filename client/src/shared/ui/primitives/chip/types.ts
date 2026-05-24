@@ -6,7 +6,7 @@
 
 import type { HTMLAttributes, ReactNode } from 'react';
 
-export type ChipBehavior = 'static' | 'selectable' | 'removable';
+export type ChipBehavior = 'static' | 'selectable' | 'removable' | 'action';
 
 export type ChipColor =
   | 'default'
@@ -34,6 +34,10 @@ export interface ChipProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
   selected?: boolean;
   onSelect?: () => void;
   onRemove?: () => void;
+  /** Fires when `behavior === 'action'`. The chip renders as a `<button>`. */
+  onClick?: () => void;
+  /** Override classes applied to the label cell. Use to opt out of uppercase/tracking on free-text content. */
+  labelClassName?: string;
   /** @deprecated Use `lead`. Forwarded to the lead cell during the migration period. */
   leftIcon?: ReactNode;
   disabled?: boolean;

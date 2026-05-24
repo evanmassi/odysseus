@@ -166,6 +166,8 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       selected = defaultChipProps.selected,
       onSelect,
       onRemove,
+      onClick,
+      labelClassName,
       disabled = defaultChipProps.disabled,
       'aria-label': ariaLabel,
       className,
@@ -173,7 +175,9 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     },
     ref
   ) => {
-    const isInteractive = behavior === 'selectable';
+    const isSelectable = behavior === 'selectable';
+    const isAction = behavior === 'action';
+    const isInteractive = isSelectable || isAction;
     const tone = TONE_CLASSES[color!];
     const sizeCfg = SIZE_CONFIG[size!];
 
@@ -185,19 +189,23 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     );
     const leadIsAutoFilled = leadFromProps == null;
 
-    const leadBgClass = isInteractive && selected ? tone.selectedLeadBg : tone.leadBg;
+    const leadBgClass = isSelectable && selected ? tone.selectedLeadBg : tone.leadBg;
 
     const wrapperClasses = [
       'inline-flex items-stretch border whitespace-nowrap leading-none',
       'font-mono',
-      'transition-[filter,background-color] duration-150',
+      'transition-[filter,background-color,text-shadow] duration-150',
       sizeCfg.height,
       tone.border,
       tone.labelBg,
       LIT_CLASSES[color!] ?? '',
       disabled ? 'opacity-50 cursor-not-allowed' : '',
       isInteractive && !disabled
-        ? 'cursor-pointer hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
+        ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
+        : '',
+      isSelectable && !disabled ? 'hover:brightness-110' : '',
+      isAction && !disabled
+        ? 'hover:bg-foreground/[0.06] hover:brightness-110 hover:[text-shadow:0_0_1px_currentColor,0_0_6px_color-mix(in_srgb,currentColor_40%,transparent)]'
         : '',
       className ?? '',
     ]
@@ -208,7 +216,8 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
 
     const handleClick = () => {
       if (disabled) return;
-      if (behavior === 'selectable' && onSelect) onSelect();
+      if (isSelectable && onSelect) onSelect();
+      if (isAction && onClick) onClick();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -232,7 +241,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           {displayLead}
         </span>
         <span
-          className={`flex items-center ${tone.text} ${sizeCfg.lblPx} ${sizeCfg.lblText} tracking-[0.24em] uppercase opacity-[0.82]`}
+          className={`flex items-center ${tone.text} ${sizeCfg.lblPx} ${sizeCfg.lblText} tracking-[0.24em] uppercase opacity-[0.82] ${labelClassName ?? ''}`}
         >
           {children}
         </span>
@@ -253,7 +262,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           onKeyDown={handleKeyDown}
           disabled={disabled}
           aria-label={ariaLabel}
-          aria-pressed={selected}
+          aria-pressed={isSelectable ? selected : undefined}
           {...rest}
         >
           {content}

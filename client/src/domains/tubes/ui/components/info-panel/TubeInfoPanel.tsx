@@ -402,37 +402,41 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 }
                 side="bottom"
               >
-                {/* TODO(2026-05-14): convert to <Chip> once it supports a clickable action mode.
-                    Until then, mirror Chip's size="sm" color="default" base by hand. */}
-                <button
-                  type="button"
+                <Chip
+                  size="sm"
+                  behavior="action"
                   onClick={() => setShowEditLockNoteModal(true)}
                   onFocus={e => {
                     if (!e.currentTarget.matches(':focus-visible')) {
                       e.currentTarget.blur();
                     }
                   }}
-                  className="inline-flex items-center gap-1.5 h-[22px] px-2 border border-border bg-muted text-secondary-foreground hover:bg-accent text-[10px] font-medium font-mono uppercase tracking-[0.14em] leading-none whitespace-nowrap phosphor-text transition-colors duration-150 cursor-pointer"
+                  lead={
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: false isMixed should fall through to note check
+                    lockNoteDisplay?.isMixed || lockNoteDisplay?.note ? <Notebook /> : <SquarePen />
+                  }
+                  labelClassName={
+                    lockNoteDisplay?.isMixed
+                      ? 'italic'
+                      : lockNoteDisplay?.note
+                        ? 'normal-case tracking-[0.02em] opacity-100'
+                        : undefined
+                  }
                 >
                   {lockNoteDisplay?.isMixed ? (
                     <>
-                      <Notebook className="w-3 h-3" />
-                      <span className="italic">Mixed notes</span>
-                      <SquarePen className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                      Mixed notes
+                      <SquarePen className="w-2.5 h-2.5 ml-1.5 opacity-60" />
                     </>
                   ) : lockNoteDisplay?.note ? (
                     <>
-                      <Notebook className="w-3 h-3" />
                       {lockNoteDisplay.note}
-                      <SquarePen className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                      <SquarePen className="w-2.5 h-2.5 ml-1.5 opacity-60" />
                     </>
                   ) : (
-                    <>
-                      <SquarePen className="w-3 h-3" />
-                      Add note
-                    </>
+                    'Add note'
                   )}
-                </button>
+                </Chip>
               </Tooltip>
             ) : (
               firstTube.lockNote && (
