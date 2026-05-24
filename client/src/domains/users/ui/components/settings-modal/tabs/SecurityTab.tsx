@@ -165,6 +165,7 @@ export function SecurityTab() {
             placeholder="Enter current password"
             icon={<KeyRound size={16} />}
             state={currentPasswordError ? 'error' : 'default'}
+            variant="console"
             required
             disabled={isChanging || isDemo}
           />
@@ -190,6 +191,7 @@ export function SecurityTab() {
               newPasswordTouched,
               newPasswordMeetsRequirements && newPasswordIsDifferent
             )}
+            variant="console"
             required
             disabled={isChanging || isDemo}
           />
@@ -221,6 +223,7 @@ export function SecurityTab() {
             placeholder="Confirm new password"
             icon={<KeyRound size={16} />}
             state={getValidationState(confirmPasswordTouched, passwordsMatch)}
+            variant="console"
             required
             disabled={isChanging || isDemo}
           />

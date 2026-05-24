@@ -160,7 +160,9 @@ export function PasswordResetModal({
                 onChange={setNewPassword}
                 label="Temporary Password"
                 placeholder="Enter temporary password"
+                icon={<KeyRound size={16} />}
                 state={newPassword.length >= 4 ? 'success' : 'default'}
+                variant="console"
               />
               {newPassword && (
                 <p className={`text-xs mt-1 ml-1 ${getPasswordStrengthColor(newPassword)}`}>

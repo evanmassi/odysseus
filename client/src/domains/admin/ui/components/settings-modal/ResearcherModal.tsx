@@ -265,6 +265,7 @@ function FormField({
             onChange={field.onChange}
             onBlur={field.onBlur}
             state={errorMessage ? 'error' : 'default'}
+            variant="console"
           />
         )}
       />

@@ -18,19 +18,14 @@ import {
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
 import { logger } from '@infra/logger';
-import { AlertBanner, Button } from '@shared/ui';
+import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
 
-function getFieldBorderClass(touched: boolean, isValid: boolean) {
-  if (!touched) return 'border-border';
-  return isValid ? 'border-2 border-success-border' : 'input-field-error';
-}
-
-function getLabelColorClass(touched: boolean, isValid: boolean) {
-  if (!touched) return 'text-secondary-foreground';
-  return isValid ? 'text-success-text' : 'text-danger-text';
+function getValidationState(touched: boolean, isValid: boolean) {
+  if (!touched) return 'default' as const;
+  return isValid ? ('success' as const) : ('error' as const);
 }
 
 interface AccountTabProps {
@@ -152,153 +147,83 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           </AlertBanner>
         )}
 
-        {/* Name Fields */}
         <div className="grid grid-cols-2 gap-3">
-          <div
-            className={`auth-input-container ${getFieldBorderClass(firstNameTouched, firstName.trim().length > 0)}`}
-          >
-            <label
-              htmlFor="account-firstName"
-              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
-            >
-              First Name <span className="text-danger-bg">*</span>
-            </label>
-            <div className="relative px-3 py-2">
-              <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type="text"
-                id="account-firstName"
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
-                onBlur={() => setFirstNameTouched(true)}
-                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                placeholder="First name"
-                required
-                disabled={isUpdating || isDemo}
-                maxLength={50}
-              />
-            </div>
-          </div>
+          <AuthInput
+            id="account-firstName"
+            value={firstName}
+            onChange={setFirstName}
+            onBlur={() => setFirstNameTouched(true)}
+            label="First Name"
+            placeholder="First name"
+            icon={<UserRound size={16} />}
+            state={getValidationState(firstNameTouched, firstName.trim().length > 0)}
+            variant="console"
+            required
+            disabled={isUpdating || isDemo}
+            maxLength={50}
+          />
 
-          <div
-            className={`auth-input-container ${getFieldBorderClass(lastNameTouched, lastName.trim().length > 0)}`}
-          >
-            <label
-              htmlFor="account-lastName"
-              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
-            >
-              Last Name <span className="text-danger-bg">*</span>
-            </label>
-            <div className="relative px-3 py-2">
-              <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type="text"
-                id="account-lastName"
-                value={lastName}
-                onChange={e => setLastName(e.target.value)}
-                onBlur={() => setLastNameTouched(true)}
-                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                placeholder="Last name"
-                required
-                disabled={isUpdating || isDemo}
-                maxLength={50}
-              />
-            </div>
-          </div>
+          <AuthInput
+            id="account-lastName"
+            value={lastName}
+            onChange={setLastName}
+            onBlur={() => setLastNameTouched(true)}
+            label="Last Name"
+            placeholder="Last name"
+            icon={<UserRound size={16} />}
+            state={getValidationState(lastNameTouched, lastName.trim().length > 0)}
+            variant="console"
+            required
+            disabled={isUpdating || isDemo}
+            maxLength={50}
+          />
         </div>
 
-        <div className={`auth-input-container ${getFieldBorderClass(emailTouched, emailIsValid)}`}>
-          <label
-            htmlFor="account-email"
-            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(emailTouched, emailIsValid)}`}
-          >
-            Email <span className="text-danger-bg">*</span>
-          </label>
-          <div className="relative px-3 py-2">
-            <Mail
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-              size={16}
-            />
-            <input
-              type="email"
-              id="account-email"
-              value={email}
-              onChange={e => {
-                setEmail(e.target.value);
-              }}
-              onBlur={e => {
-                setEmail(e.target.value.trim());
-                setEmailTouched(true);
-              }}
-              className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-              placeholder="name@institution.edu"
-              required
-              disabled={isUpdating || isDemo}
-              maxLength={255}
-            />
-          </div>
-        </div>
+        <AuthInput
+          id="account-email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          onBlur={() => {
+            setEmail(email.trim());
+            setEmailTouched(true);
+          }}
+          label="Email"
+          placeholder="name@institution.edu"
+          icon={<Mail size={16} />}
+          state={getValidationState(emailTouched, emailIsValid)}
+          variant="console"
+          required
+          disabled={isUpdating || isDemo}
+          maxLength={255}
+        />
 
-        {/* Department & Position */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="auth-input-container border-border">
-            <label
-              htmlFor="account-department"
-              className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold text-secondary-foreground"
-            >
-              Department
-            </label>
-            <div className="relative px-3 py-2">
-              <Building2
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type="text"
-                id="account-department"
-                value={department}
-                onChange={e => setDepartment(e.target.value)}
-                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                placeholder="Department name"
-                disabled={isUpdating || isDemo}
-                maxLength={100}
-              />
-            </div>
-          </div>
+          <AuthInput
+            id="account-department"
+            value={department}
+            onChange={setDepartment}
+            label="Department"
+            placeholder="Department name"
+            icon={<Building2 size={16} />}
+            variant="console"
+            disabled={isUpdating || isDemo}
+            maxLength={100}
+          />
 
-          <div className="auth-input-container border-border">
-            <label
-              htmlFor="account-position"
-              className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold text-secondary-foreground"
-            >
-              Position
-            </label>
-            <div className="relative px-3 py-2">
-              <BriefcaseBusiness
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type="text"
-                id="account-position"
-                value={position}
-                onChange={e => setPosition(e.target.value)}
-                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                placeholder="Title or role"
-                disabled={isUpdating || isDemo}
-                maxLength={100}
-              />
-            </div>
-          </div>
+          <AuthInput
+            id="account-position"
+            value={position}
+            onChange={setPosition}
+            label="Position"
+            placeholder="Title or role"
+            icon={<BriefcaseBusiness size={16} />}
+            variant="console"
+            disabled={isUpdating || isDemo}
+            maxLength={100}
+          />
         </div>
 
-        {/* Password Confirmation Section */}
         {hasChanges && (
           <div className="pt-4 border-t border-border space-y-2">
             <div className="mb-2">
@@ -308,33 +233,20 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               </p>
             </div>
 
-            <div
-              className={`auth-input-container ${getFieldBorderClass(passwordTouched, currentPassword.trim().length > 0)}`}
-            >
-              <label
-                htmlFor="account-currentPassword"
-                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(passwordTouched, currentPassword.trim().length > 0)}`}
-              >
-                Current Password <span className="text-danger-bg">*</span>
-              </label>
-              <div className="relative px-3 py-2">
-                <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  type="password"
-                  id="account-currentPassword"
-                  value={currentPassword}
-                  onChange={e => setCurrentPassword(e.target.value)}
-                  onBlur={() => setPasswordTouched(true)}
-                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                  placeholder="Enter current password"
-                  required
-                  disabled={isUpdating || isDemo}
-                />
-              </div>
-            </div>
+            <AuthInput
+              id="account-currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={setCurrentPassword}
+              onBlur={() => setPasswordTouched(true)}
+              label="Current Password"
+              placeholder="Enter current password"
+              icon={<KeyRound size={16} />}
+              state={getValidationState(passwordTouched, currentPassword.trim().length > 0)}
+              variant="console"
+              required
+              disabled={isUpdating || isDemo}
+            />
 
             <Button
               variant="primary"
