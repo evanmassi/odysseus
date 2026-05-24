@@ -60,7 +60,6 @@ export const Tooltip: React.FC<TooltipProps> = ({
               rounded-lg
               shadow-xl shadow-black/30
               border border-tooltip-border
-              font-['Lato',sans-serif]
               animate-in fade-in-0 zoom-in-95
               data-[state=closed]:animate-out
               data-[state=closed]:fade-out-0

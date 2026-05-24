@@ -135,7 +135,7 @@ function getResearcherColumns(
               size="md"
             />
             <div>
-              <div className="text-[13px] font-medium text-foreground">
+              <div className="font-sans text-[13px] font-medium text-foreground">
                 {row.lastName}, {row.firstName}
               </div>
               {row.email && (

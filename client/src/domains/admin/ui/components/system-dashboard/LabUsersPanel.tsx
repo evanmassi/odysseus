@@ -197,7 +197,9 @@ function getUserColumns({
             <UserBadge type="otherUser" initials={initials} username={row.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[13px] font-medium text-foreground">{displayName}</span>
+                <span className="font-sans text-[13px] font-medium text-foreground">
+                  {displayName}
+                </span>
                 {row.status === 'deactivated' && (
                   <Tooltip content="Deactivated">
                     <Power size={12} className="text-foreground/50" />
@@ -229,7 +231,7 @@ function getUserColumns({
         <div className="max-w-[150px] whitespace-nowrap">
           {row.position ? (
             <Tooltip content={row.position} side="bottom">
-              <div className="truncate text-[13px] text-foreground">{row.position}</div>
+              <div className="font-sans truncate text-[13px] text-foreground">{row.position}</div>
             </Tooltip>
           ) : (
             <div className="font-mono text-[10.5px] text-foreground/30">—</div>
@@ -269,7 +271,7 @@ function getUserColumns({
                   size={14}
                   className={`shrink-0 ${isDeactivated ? 'text-foreground/30' : 'text-success-text'}`}
                 />
-                <span>{row.researcher.name}</span>
+                <span className="font-sans">{row.researcher.name}</span>
               </div>
               {isDeactivated && (
                 <Chip size="sm" color="default" className="w-fit">

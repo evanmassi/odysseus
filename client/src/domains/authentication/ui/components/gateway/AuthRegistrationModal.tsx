@@ -277,7 +277,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
               maxLength={20}
             />
             {inviteCodeError && (
-              <p className="font-mono text-[11px] text-danger-text ml-1 -mt-1">{inviteCodeError}</p>
+              <p className="text-[11px] text-danger-text ml-1 -mt-1">{inviteCodeError}</p>
             )}
             <Button
               type="button"
@@ -391,9 +391,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   disabled={isLoading}
                   maxLength={255}
                 />
-                {emailError && (
-                  <p className="font-mono text-[11px] text-danger-text ml-1">{emailError}</p>
-                )}
+                {emailError && <p className="text-[11px] text-danger-text ml-1">{emailError}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3 items-start">
@@ -424,7 +422,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
               <div className="flex items-center gap-1.5 ml-1">
                 <Info size={14} className="text-[rgb(var(--auth-text-mute))] shrink-0" />
-                <p className="font-mono text-xs text-[rgb(var(--auth-text-dim))]">
+                <p className="text-xs text-[rgb(var(--auth-text-dim))]">
                   {codeRole === 'lab_admin'
                     ? "You'll have lab administrator privileges and researcher access."
                     : codeCreateResearcher

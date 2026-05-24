@@ -161,7 +161,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Lato', 'system-ui', 'sans-serif'],
+        sans: ['"Space Grotesk"', '"Helvetica Neue"', 'system-ui', 'sans-serif'],
         display: ['"Space Grotesk"', '"Helvetica Neue"', 'sans-serif'],
         mono: [
           '"JetBrains Mono"',

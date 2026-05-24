@@ -46,10 +46,8 @@ export function AuthRegistrationSuccessModal({
         <AnimatedCheckmark size={64} className="text-success-text" delay={750} />
       </div>
       <div className="text-center mb-6">
-        <h2 className="font-mono text-base text-success-text phosphor-text mb-1">
-          Account Created
-        </h2>
-        <p className="font-mono text-xs text-[rgb(var(--auth-text-mute))]">Ready to sign in</p>
+        <h2 className="text-base text-success-text phosphor-text mb-1">Account Created</h2>
+        <p className="text-xs text-[rgb(var(--auth-text-mute))]">Ready to sign in</p>
       </div>
 
       <div className="mb-6">
@@ -83,7 +81,7 @@ export function AuthRegistrationSuccessModal({
             </button>
           </div>
         </div>
-        <p className="font-mono text-[10px] text-[rgb(var(--auth-text-faint))] mt-2 ml-1">
+        <p className="text-[10px] text-[rgb(var(--auth-text-faint))] mt-2 ml-1">
           Save this username for future login
         </p>
       </div>

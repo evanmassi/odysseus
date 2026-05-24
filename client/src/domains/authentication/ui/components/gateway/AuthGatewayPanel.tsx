@@ -176,7 +176,7 @@ function BrandBlock({ config, isStack }: BrandBlockProps) {
         />
       )}
       {config.brandGreeting && (
-        <span className="text-sm font-mono text-[rgb(var(--auth-text-dim))] phosphor-text">
+        <span className="text-sm text-[rgb(var(--auth-text-dim))] phosphor-text">
           {config.brandGreeting}
         </span>
       )}

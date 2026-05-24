@@ -263,7 +263,7 @@ export function ResearchersTab({
               <Dna size={14} className="text-secondary-foreground" />
             </div>
             <div>
-              <div className="text-sm font-medium text-card-foreground">
+              <div className="font-sans text-sm font-medium text-card-foreground">
                 {researcher.lastName}, {researcher.firstName}
               </div>
               <div className="text-xs text-muted-foreground">{researcher.email}</div>

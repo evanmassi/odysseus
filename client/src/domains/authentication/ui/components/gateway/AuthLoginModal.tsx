@@ -166,7 +166,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   if (state === 'forgot') {
     return (
       <div key="forgot" className={`animate-auth-stack ${exitClass}`}>
-        <p className="font-mono text-sm text-[rgb(var(--auth-text-dim))]">
+        <p className="text-sm text-[rgb(var(--auth-text-dim))]">
           Please contact your administrator to reset your password.
         </p>
         <div className="mt-5 text-center">
@@ -216,9 +216,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
             <Mail className="w-5 h-5 text-info-text flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-info-text">Email Verification Required</p>
-              <p className="text-xs font-mono text-[rgb(var(--auth-text-dim))] mt-1">
-                {loginError}
-              </p>
+              <p className="text-xs text-[rgb(var(--auth-text-dim))] mt-1">{loginError}</p>
             </div>
           </div>
           <Button
