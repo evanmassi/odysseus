@@ -90,7 +90,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
         id: 'name',
         header: 'Item',
         sortable: true,
-        render: (_value, row) => <span className="font-medium">{row.name}</span>,
+        render: (_value, row) => <span className="font-display font-medium">{row.name}</span>,
       },
       {
         id: 'manufacturer',

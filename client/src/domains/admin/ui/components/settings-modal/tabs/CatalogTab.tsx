@@ -180,7 +180,7 @@ function CategorySection({
             />
           );
         }
-        return <span className="text-sm text-card-foreground">{item.value}</span>;
+        return <span className="font-display text-sm text-card-foreground">{item.value}</span>;
       },
     },
     {

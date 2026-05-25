@@ -76,7 +76,7 @@ const ROW_GLOW: Record<GlowTone, string> = {
   ].join(' '),
 };
 
-const CHECKBOX_CELL_OVERRIDE = '!px-3 !shadow-none text-center w-10';
+const CHECKBOX_CELL_OVERRIDE = '!px-3 text-center w-10';
 
 const TableContext = createContext<TableContextValue | null>(null);
 
@@ -92,7 +92,7 @@ const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
     'text-left text-foreground/60',
-    '[background:linear-gradient(0deg,hsl(0_0%_0%/0.06),hsl(0_0%_0%/0.06)),hsl(var(--bg-panel-2)/0.92)]',
+    '[background:linear-gradient(0deg,hsl(0_0%_0%/0.14),hsl(0_0%_0%/0.14)),hsl(var(--bg-panel-2)/0.92)]',
     'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
@@ -331,7 +331,7 @@ const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
 
   return (
     <thead>
-      <tr className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.07)_22%,hsl(var(--foreground)/0.07)_78%,transparent_100%)]">
+      <tr className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-[hsl(var(--foreground)/0.08)]">
         {selectable && (
           <th className={`${headerVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
             {multiSelect && (
@@ -433,7 +433,8 @@ const TableBody = <T extends TableRowBase>({
       {data.map((row, index) => {
         const isSelected = selectedRows.includes(row.id);
         const state = rowState?.(row, index) ?? 'default';
-        const zebra = index % 2 === 0 ? '[&>td]:bg-[rgb(0_0_0/var(--alpha-zebra))]' : '';
+        const zebra =
+          index % 2 === 0 ? '[&>td]:bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
         const glow = selectedRowGlow && isSelected ? ROW_GLOW[stateToGlowTone(state)] : '';
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];
@@ -587,12 +588,12 @@ export function Table<T extends TableRowBase>({
     >
       {toolbar && (
         <div
-          className="relative flex items-center gap-3 px-4 py-3 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.05)_25%,hsl(var(--foreground)/0.05)_75%,transparent_100%)]"
+          className="relative flex items-center gap-3 px-4 py-3 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-[hsl(var(--foreground)/0.06)]"
           style={{
             // High-opacity base keeps the toolbar from washing out; a heavier dark overlay
             // distinguishes it from the header which uses the same base with a lighter overlay.
             background: [
-              'linear-gradient(180deg, hsl(0 0% 0% / 0.14), hsl(0 0% 0% / 0.14))',
+              'linear-gradient(180deg, hsl(0 0% 0% / 0.22), hsl(0 0% 0% / 0.22))',
               'hsl(var(--bg-panel-2) / 0.92)',
             ].join(', '),
           }}

@@ -102,7 +102,7 @@ export function EquipmentMaintenanceAlertPanel({
         id: 'name',
         header: 'Name',
         sortable: true,
-        render: (_value, row) => <span className="font-medium">{row.name}</span>,
+        render: (_value, row) => <span className="font-display font-medium">{row.name}</span>,
       },
       {
         id: 'categoryName',

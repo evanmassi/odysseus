@@ -273,7 +273,7 @@ export function SecurityPanel() {
         return (
           <div className="max-w-[260px]">
             <div
-              className={`font-medium truncate ${own ? 'text-success-text' : 'text-card-foreground'}`}
+              className={`font-display font-medium truncate ${own ? 'text-success-text' : 'text-card-foreground'}`}
             >
               {row.userName}
             </div>
@@ -442,7 +442,7 @@ export function SecurityPanel() {
     {
       id: 'username',
       header: 'Username',
-      accessor: 'username',
+      render: (_val, row) => <span className="font-display">{row.username}</span>,
     },
     {
       id: 'ipAddress',
