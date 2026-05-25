@@ -232,7 +232,6 @@ export function EquipmentTab() {
               value={sortField}
               onChange={value => setSortField(value as SortField)}
               size="xs"
-              variant="default"
               aria-label="Sort field"
               className="w-32"
             />

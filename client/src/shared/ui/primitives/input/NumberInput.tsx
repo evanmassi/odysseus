@@ -8,8 +8,6 @@ import React, { forwardRef, useCallback, useEffect, useState } from 'react';
 
 import { Minus, Plus } from 'lucide-react';
 
-const CONTAINER_SHADOW = 'shadow-[0_0_10px_-2px_hsl(var(--primary)/0.15)]';
-
 const CONTAINER_FOCUS_SHADOW =
   'focus-within:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
 
@@ -163,10 +161,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           inline-flex items-center
           ${styles.container}
           bg-foreground/[0.02]
-          border border-line-mid
-          ${CONTAINER_SHADOW}
+          border border-line-faint
           transition-[border-color,background,box-shadow] duration-200
-          hover:border-line-strong
+          hover:border-foreground/30
           focus-within:border-primary/70
           focus-within:bg-primary/[0.04]
           ${CONTAINER_FOCUS_SHADOW}

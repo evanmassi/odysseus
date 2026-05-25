@@ -27,7 +27,6 @@ export interface SearchInputProps {
   'aria-label'?: string;
 }
 
-const BASE_SHADOW = 'shadow-[0_0_10px_-2px_hsl(var(--primary)/0.15)]';
 const FOCUS_SHADOW =
   'focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
 
@@ -114,14 +113,13 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             ${styles.text}
             ${padding}
             font-mono tracking-[0.04em] text-foreground
-            bg-foreground/[0.02] border border-line-mid
+            bg-foreground/[0.02] border border-line-faint
             placeholder:text-foreground/40 placeholder:font-normal
             transition-[border-color,background,box-shadow] duration-200
-            ${BASE_SHADOW}
             hover:border-foreground/30
             focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]
             ${FOCUS_SHADOW}
-            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line-mid
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line-faint
             ${inputClassName ?? ''}
           `}
         />

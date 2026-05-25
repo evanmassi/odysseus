@@ -174,7 +174,6 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
                       value={labNameInput}
                       onValueChange={setLabNameInput}
                       onKeyDown={handleLabNameKeyDown}
-                      variant="default"
                       size="sm"
                       // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
                       autoFocus

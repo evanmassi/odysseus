@@ -12,67 +12,37 @@ import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef, ValidationResult } from './types';
 
+const FOCUS_SHADOW =
+  'focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+
 const inputVariants = cva(
   [
-    // Layout & positioning
     'w-full relative',
-
-    // Typography using design tokens
-    'font-normal text-base text-foreground',
-    'placeholder:text-muted-foreground placeholder:opacity-40',
-
-    // Transitions
-    'transition-all duration-200 ease-out',
-
-    // Disabled styles
-    'disabled:cursor-not-allowed disabled:opacity-50',
-    'disabled:bg-muted',
-
-    // Read-only styles
-    'read-only:cursor-default read-only:bg-muted',
+    'text-foreground',
+    'bg-foreground/[0.02] border border-line-faint',
+    'placeholder:text-foreground/40',
+    'transition-[border-color,background,box-shadow] duration-200',
+    'hover:border-foreground/30',
+    'focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]',
+    FOCUS_SHADOW,
+    'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line-faint',
+    'read-only:cursor-default',
   ],
   {
     variants: {
-      variant: {
-        default: ['bg-card border border-border', 'hover:border-muted-foreground'],
-        filled: ['bg-muted border border-transparent', 'hover:bg-accent', 'focus:bg-card'],
-        outlined: ['bg-transparent border-2 border-border', 'hover:border-muted-foreground'],
-        underlined: [
-          'bg-transparent border-0 border-b-2 border-border',
-          'rounded-none',
-          'hover:border-muted-foreground',
-        ],
-        ghost: ['bg-transparent border-0', 'hover:bg-muted', 'focus:bg-muted'],
-      },
-
       size: {
-        xs: [
-          'h-7 px-2 text-xs', // 28px height
-          'rounded-sm',
-        ],
-        sm: [
-          'h-8 px-3 text-sm', // 32px height
-          'rounded-md',
-        ],
-        md: [
-          'h-9 px-3 text-sm', // 36px height (default) - matches input-field
-          'rounded-lg',
-        ],
-        lg: [
-          'h-12 px-4 text-base', // 48px height
-          'rounded-lg',
-        ],
-        xl: [
-          'h-14 px-5 text-base', // 56px height
-          'rounded-lg',
-        ],
+        xs: 'h-7 px-2 text-xs',
+        sm: 'h-8 px-3 text-sm',
+        md: 'h-9 px-3 text-sm',
+        lg: 'h-12 px-4 text-base',
+        xl: 'h-14 px-5 text-base',
       },
 
       state: {
         default: '',
-        error: 'border-2 border-danger-border',
-        warning: 'border-2 border-warning-border',
-        success: 'border-2 border-success-border',
+        error: 'border-danger-border',
+        warning: 'border-warning-border',
+        success: 'border-success-border',
       },
 
       fullWidth: {
@@ -92,63 +62,20 @@ const inputVariants = cva(
     },
 
     compoundVariants: [
-      // Left icon padding
-      {
-        hasLeftIcon: true,
-        size: 'xs',
-        className: 'pl-7',
-      },
-      {
-        hasLeftIcon: true,
-        size: 'sm',
-        className: 'pl-8',
-      },
-      {
-        hasLeftIcon: true,
-        size: 'md',
-        className: 'pl-9',
-      },
-      {
-        hasLeftIcon: true,
-        size: 'lg',
-        className: 'pl-11',
-      },
-      {
-        hasLeftIcon: true,
-        size: 'xl',
-        className: 'pl-12',
-      },
+      { hasLeftIcon: true, size: 'xs', className: 'pl-7' },
+      { hasLeftIcon: true, size: 'sm', className: 'pl-8' },
+      { hasLeftIcon: true, size: 'md', className: 'pl-9' },
+      { hasLeftIcon: true, size: 'lg', className: 'pl-11' },
+      { hasLeftIcon: true, size: 'xl', className: 'pl-12' },
 
-      // Right icon padding
-      {
-        hasRightIcon: true,
-        size: 'xs',
-        className: 'pr-7',
-      },
-      {
-        hasRightIcon: true,
-        size: 'sm',
-        className: 'pr-8',
-      },
-      {
-        hasRightIcon: true,
-        size: 'md',
-        className: 'pr-9',
-      },
-      {
-        hasRightIcon: true,
-        size: 'lg',
-        className: 'pr-11',
-      },
-      {
-        hasRightIcon: true,
-        size: 'xl',
-        className: 'pr-12',
-      },
+      { hasRightIcon: true, size: 'xs', className: 'pr-7' },
+      { hasRightIcon: true, size: 'sm', className: 'pr-8' },
+      { hasRightIcon: true, size: 'md', className: 'pr-9' },
+      { hasRightIcon: true, size: 'lg', className: 'pr-11' },
+      { hasRightIcon: true, size: 'xl', className: 'pr-12' },
     ],
 
     defaultVariants: {
-      variant: 'outlined',
       size: 'md',
       state: 'default',
       fullWidth: false,
@@ -297,7 +224,6 @@ export const Input = forwardRef<InputRef, InputProps>(
       placeholder,
 
       // Styling props
-      variant = defaultInputProps.variant,
       size = defaultInputProps.size,
       state = defaultInputProps.state,
       fullWidth = defaultInputProps.fullWidth,
@@ -489,7 +415,6 @@ export const Input = forwardRef<InputRef, InputProps>(
     // Generate component classes
     const wrapperClasses = wrapperVariants({ fullWidth, className });
     const inputClasses = inputVariants({
-      variant,
       size,
       state: currentState,
       fullWidth,
@@ -544,7 +469,7 @@ export const Input = forwardRef<InputRef, InputProps>(
               type === 'date'
                 ? dateHasValue
                   ? ' has-value text-foreground'
-                  : ' text-muted-foreground/40'
+                  : ' text-foreground/40'
                 : ''
             }${type === 'number' ? ' [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' : ''}`}
             placeholder={placeholder}

@@ -34,7 +34,6 @@ const MONTH_ABBR = [
 type Segment = 'month' | 'day' | 'year';
 const SEGMENT_ORDER: Segment[] = ['month', 'day', 'year'];
 
-const TRIGGER_SHADOW = 'shadow-[0_0_10px_-2px_hsl(var(--primary)/0.15)]';
 const TRIGGER_FOCUS_SHADOW =
   'shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
 const POPUP_SHADOW =
@@ -96,7 +95,6 @@ const triggerVariants = cva(
     'flex items-center justify-between',
     'font-mono tracking-[0.04em]',
     'transition-[border-color,background,box-shadow] duration-200',
-    TRIGGER_SHADOW,
     'focus-visible:outline-none focus-visible:border-primary/70',
   ],
   {
@@ -112,7 +110,7 @@ const triggerVariants = cva(
         false: '',
       },
       state: {
-        default: 'border-line-mid',
+        default: 'border-line-faint',
         error: 'border-danger-border',
         warning: 'border-warning-border',
         success: 'border-success-border',

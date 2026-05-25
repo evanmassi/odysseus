@@ -36,7 +36,6 @@ export type { AuthInputProps, AuthInputValidationState } from './input/AuthInput
 export type { NumberInputProps } from './input/NumberInput';
 export type {
   InputProps,
-  InputVariant,
   InputSize,
   InputState,
   InputType,
@@ -77,14 +76,7 @@ export { SearchInput } from './search-input/SearchInput';
 export type { SearchInputProps } from './search-input/SearchInput';
 
 export { Select } from './select/Select';
-export type {
-  SelectProps,
-  SelectOption,
-  SelectVariant,
-  SelectSize,
-  SelectState,
-  SelectRef,
-} from './select/types';
+export type { SelectProps, SelectOption, SelectSize, SelectState, SelectRef } from './select/types';
 
 export { Panel } from './panel/Panel';
 export type { PanelProps } from './panel/Panel';
