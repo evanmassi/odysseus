@@ -1,7 +1,8 @@
 /**
  * Authentication Console Styles
  *
- * Surface, input, and button classes for the auth gateway; tokens in variables.css.
+ * Gateway chrome plus a shared input variant. Chrome is gateway-only; the input
+ * variant is theme-aware and reused by app modals. Tokens in variables.css.
  */
 
 @layer components {
@@ -84,10 +85,50 @@
       drop-shadow(0 0 80px rgb(var(--auth-ambient) / 0.18));
   }
 
-  /* AuthInput console variant. Notched mono caps label sits on a hairline border;
-     label background is opaque so the border underneath reads as cut, not crossed. */
+  /* Label background is opaque so the border underneath reads as cut, not crossed.
+
+     Colors flow through --console-input-* tokens so the same structure adapts to
+     any surface. Defaults pull from theme-aware design tokens; the gateway
+     overrides below lock to the always-dark palette regardless of theme. */
   .auth-input-console {
+    --console-input-surface: hsl(var(--input));
+    --console-input-surface-hover: hsl(var(--muted-hover));
+    --console-input-text: hsl(var(--foreground));
+    --console-input-placeholder: hsl(var(--muted-foreground) / 0.4);
+    --console-input-border: hsl(var(--line-soft));
+    --console-input-border-hover: hsl(var(--line-mid));
+    --console-input-label-bg: hsl(var(--card));
+    --console-input-label-text: hsl(var(--muted-foreground));
+    --console-input-label-text-focus: hsl(var(--foreground));
+    --console-input-icon: hsl(var(--muted-foreground));
+    --console-input-focus: hsl(var(--ring));
+    --console-input-required: hsl(var(--primary));
+
     position: relative;
+  }
+
+  /* Dark theme: invert the conventional "input lighter than card" pattern.
+     bg-void is darker than --card, so the input recedes below the panel surface. */
+  [data-theme='dark'] .auth-input-console {
+    --console-input-surface: hsl(var(--bg-void));
+    --console-input-surface-hover: hsl(var(--bg-base));
+  }
+
+  /* Gateway override: locks to the always-dark palette regardless of theme,
+     matching the surrounding chrome. */
+  .auth-console-chrome .auth-input-console {
+    --console-input-surface: rgba(0, 0, 0, 0.42);
+    --console-input-surface-hover: rgba(0, 0, 0, 0.55);
+    --console-input-text: rgb(var(--auth-text));
+    --console-input-placeholder: rgb(var(--auth-text) / 0.18);
+    --console-input-border: rgb(var(--auth-divider));
+    --console-input-border-hover: rgb(var(--auth-text) / 0.18);
+    --console-input-label-bg: rgb(var(--auth-surface));
+    --console-input-label-text: rgb(var(--auth-text-mute));
+    --console-input-label-text-focus: rgb(var(--auth-text));
+    --console-input-icon: rgb(var(--auth-text-mute));
+    --console-input-focus: rgb(var(--auth-ambient));
+    --console-input-required: rgb(var(--auth-ambient));
   }
 
   .auth-input-console__label {
@@ -96,26 +137,26 @@
     left: 10px;
     z-index: 1;
     padding: 2px 6px;
-    background: rgb(var(--auth-surface));
+    background: var(--console-input-label-bg);
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
     font-size: 9.5px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgb(var(--auth-text-mute));
+    color: var(--console-input-label-text);
     line-height: 1;
     transition: color 160ms ease;
   }
 
   .auth-input-console__required {
-    color: rgb(var(--auth-ambient));
+    color: var(--console-input-required);
   }
 
   .auth-input-console__field {
     position: relative;
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.42);
-    border: 1px solid rgb(var(--auth-divider));
+    background: var(--console-input-surface);
+    border: 1px solid var(--console-input-border);
     transition:
       background-color 160ms ease,
       border-color 160ms ease,
@@ -123,19 +164,19 @@
   }
 
   .auth-input-console__field:hover {
-    background: rgba(0, 0, 0, 0.55);
-    border-color: rgb(var(--auth-text) / 0.18);
+    background: var(--console-input-surface-hover);
+    border-color: var(--console-input-border-hover);
   }
 
   .auth-input-console__field:focus-within {
-    border-color: rgb(var(--auth-ambient) / 0.55);
+    border-color: color-mix(in srgb, var(--console-input-focus) 55%, transparent);
     box-shadow:
-      0 0 0 1px rgb(var(--auth-ambient) / 0.4),
-      0 0 18px -4px rgb(var(--auth-ambient) / 0.4);
+      0 0 0 1px color-mix(in srgb, var(--console-input-focus) 40%, transparent),
+      0 0 18px -4px color-mix(in srgb, var(--console-input-focus) 40%, transparent);
   }
 
   .auth-input-console:focus-within .auth-input-console__label {
-    color: rgb(var(--auth-text));
+    color: var(--console-input-label-text-focus);
   }
 
   .auth-input-console__icon {
@@ -143,7 +184,7 @@
     align-items: center;
     justify-content: center;
     padding: 0 10px 0 12px;
-    color: rgb(var(--auth-text-mute));
+    color: var(--console-input-icon);
     flex-shrink: 0;
   }
 
@@ -155,7 +196,7 @@
     outline: none;
     padding: 11px 12px;
     font-size: 13px;
-    color: rgb(var(--auth-text));
+    color: var(--console-input-text);
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
   }
 
@@ -164,7 +205,7 @@
   }
 
   .auth-input-console__control::placeholder {
-    color: rgb(var(--auth-text) / 0.18);
+    color: var(--console-input-placeholder);
   }
 
   /* Mask dots in password fields hug each other in the monospace cell —
@@ -188,10 +229,10 @@
   .auth-input-console__control:-webkit-autofill:hover,
   .auth-input-console__control:-webkit-autofill:focus,
   .auth-input-console__control:autofill {
-    -webkit-box-shadow: 0 0 0 1000px rgb(5, 8, 12) inset !important;
-    box-shadow: 0 0 0 1000px rgb(5, 8, 12) inset !important;
-    -webkit-text-fill-color: rgb(var(--auth-text)) !important;
-    caret-color: rgb(var(--auth-text));
+    -webkit-box-shadow: 0 0 0 1000px var(--console-input-surface) inset !important;
+    box-shadow: 0 0 0 1000px var(--console-input-surface) inset !important;
+    -webkit-text-fill-color: var(--console-input-text) !important;
+    caret-color: var(--console-input-text);
     transition: background-color 9999s ease-out 0s;
     font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
   }
@@ -201,7 +242,7 @@
     align-items: center;
     justify-content: center;
     padding: 0 12px;
-    color: rgb(var(--auth-text-mute));
+    color: var(--console-input-icon);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -209,10 +250,9 @@
   }
 
   .auth-input-console__toggle:hover {
-    color: rgb(var(--auth-text));
+    color: var(--console-input-text);
   }
 
-  /* Validation state — error. */
   .auth-input-console.state-error .auth-input-console__field {
     border-color: hsl(var(--color-danger-border));
   }
@@ -225,7 +265,6 @@
       0 0 18px -4px hsl(var(--color-danger-bg) / 0.4);
   }
 
-  /* Validation state — warning. */
   .auth-input-console.state-warning .auth-input-console__field {
     border-color: hsl(var(--color-warning-border));
   }
@@ -233,7 +272,6 @@
     color: hsl(var(--color-warning-text));
   }
 
-  /* Validation state — success. */
   .auth-input-console.state-success .auth-input-console__field {
     border-color: hsl(var(--color-success-border));
   }
