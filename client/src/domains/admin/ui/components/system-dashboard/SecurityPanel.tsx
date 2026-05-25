@@ -601,6 +601,10 @@ export function SecurityPanel() {
           </span>
 
           <div className="relative h-24">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-primary/[0.06] to-transparent"
+            />
             <span aria-hidden className="absolute inset-x-0 top-1/4 h-px bg-foreground/[0.05]" />
             <span aria-hidden className="absolute inset-x-0 top-1/2 h-px bg-foreground/[0.05]" />
             <span aria-hidden className="absolute inset-x-0 top-3/4 h-px bg-foreground/[0.05]" />
