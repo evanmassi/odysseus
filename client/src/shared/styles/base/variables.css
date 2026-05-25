@@ -235,13 +235,20 @@
     --alpha-cell-rim: 0.12;
     --alpha-header-rim: 0.09;
     --alpha-header-rule: 0.18;
-    --alpha-header-emit: 0.3;
-    --alpha-header-bloom: 0.18;
+    --alpha-header-emit: 0.18;
+    --alpha-header-bloom: 0.1;
     --alpha-phosphor-rim: 0.045;
     --alpha-phosphor-bloom: 0.04;
     --alpha-hover-stripe: 0.45;
     --alpha-hover-edge: 0.18;
     --alpha-hover-bloom: 0.08;
+    --alpha-hover-wash-1: 0.1;
+    --alpha-hover-wash-2: 0.06;
+    --alpha-hover-wash-3: 0.03;
+    --alpha-hover-wash-4: 0.01;
+    --alpha-hover-rim: 0.07;
+    --alpha-hover-bloom-edge: 0.06;
+    --alpha-hover-bloom-far: 0.04;
     --alpha-stripe-muted: 0.3;
     --bg-header-band: 0 0% 0% / 0.15;
 

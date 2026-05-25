@@ -92,7 +92,8 @@ const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
     'text-left text-foreground/60',
-    'bg-[hsl(var(--bg-panel-2))] shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]',
+    '[background:linear-gradient(0deg,hsl(0_0%_0%/0.06),hsl(0_0%_0%/0.06)),hsl(var(--bg-panel-2)/0.92)]',
+    'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
   {
@@ -181,11 +182,22 @@ const STATE_TEXT: Record<RowState, string> = {
 const PHOSPHOR_ROW =
   'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom))]';
 
-// Hover preview of the selection glow at ~40% intensity. Directional primary stripe + soft halo —
-// reads as "this row is about to be selected" without committing the full glow.
-// Overrides PHOSPHOR_ROW on :hover. Only applied to unselected hoverable default-state rows.
-const HOVER_GLOW =
-  'hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/var(--alpha-hover-stripe)),inset_10px_0_24px_-10px_hsl(var(--primary)/var(--alpha-hover-edge)),0_0_22px_-6px_hsl(var(--primary)/var(--alpha-hover-bloom))]';
+// Hover preview of the selection glow at ~40% intensity. Mirrors ROW_GLOW structure
+// (directional wash + full 8-layer shadow) with halved alphas, plus suppresses the cell bg tint
+// so no gray stacks under the glow. Tone matches the row's state — success rows get a dim-success
+// hover, default rows get a dim-primary hover. Reads as "this row is about to be selected".
+const HOVER_GLOW: Record<GlowTone, string> = {
+  primary: [
+    'hover:[background-image:linear-gradient(90deg,hsl(var(--primary)/var(--alpha-hover-wash-1))_0%,hsl(var(--primary)/var(--alpha-hover-wash-2))_18%,hsl(var(--primary)/var(--alpha-hover-wash-3))_48%,hsl(var(--primary)/var(--alpha-hover-wash-4))_78%,hsl(var(--primary)/0)_100%)]',
+    'hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--primary)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--primary)/var(--alpha-hover-bloom-far))]',
+    '[&:hover>td]:!bg-transparent',
+  ].join(' '),
+  success: [
+    'hover:[background-image:linear-gradient(90deg,hsl(var(--color-success-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-success-bg)/0)_100%)]',
+    'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-success-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-success-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-success-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-far))]',
+    '[&:hover>td]:!bg-transparent',
+  ].join(' '),
+};
 
 // Leading 3px stripe per row state. Shown when row is selected (without glow) or has a non-default state.
 // Strings are literal so Tailwind JIT can see them.
@@ -319,7 +331,7 @@ const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
 
   return (
     <thead>
-      <tr className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/var(--alpha-header-emit))_10%,hsl(var(--primary)/var(--alpha-header-emit))_90%,transparent_100%)] after:[box-shadow:0_0_6px_hsl(var(--primary)/var(--alpha-header-bloom))]">
+      <tr className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.07)_22%,hsl(var(--foreground)/0.07)_78%,transparent_100%)]">
         {selectable && (
           <th className={`${headerVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
             {multiSelect && (
@@ -422,12 +434,17 @@ const TableBody = <T extends TableRowBase>({
         const isSelected = selectedRows.includes(row.id);
         const state = rowState?.(row, index) ?? 'default';
         const zebra =
-          index % 2 === 0 ? '[&>td]:bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
+          index % 2 === 1 ? '[&>td]:bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
         const glow = selectedRowGlow && isSelected ? ROW_GLOW[stateToGlowTone(state)] : '';
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];
         const phosphor = !glow ? PHOSPHOR_ROW : '';
-        const hover = hoverable && !isSelected && state === 'default' ? HOVER_GLOW : '';
+        // Skip hover preview for warning/danger/muted rows — primary/success rows preview their
+        // tone, but a danger row going primary on hover would be jarring color-switching.
+        const hover =
+          hoverable && !isSelected && (state === 'default' || state === 'success')
+            ? HOVER_GLOW[stateToGlowTone(state)]
+            : '';
 
         return (
           <tr
@@ -536,18 +553,29 @@ export function Table<T extends TableRowBase>({
   }
 
   // Table-specific chassis: auth-console vocabulary at table intensity.
-  // Multi-edge inset shadows (top/left lift, bottom/right recess) + theme-aware rim
-  // + outer drop shadow + faint primary ambient bloom.
+  // Background carries a continuous top-band wash (cream sheen + primary right ambient) that
+  // spans both toolbar and header as a single cohesive zone, plus diagonal body lighting
+  // (primary BR, cream TL, dark BC) that shows through transparent rows.
+  // Box-shadow edges match auth-modal lift/recess so the chassis feels like the same family.
   return (
     <div
       className="relative"
       style={{
-        background: 'hsl(var(--card))',
+        background: [
+          // top-band lighting (covers toolbar + header zone)
+          'linear-gradient(180deg, hsl(var(--foreground) / 0.07) 0%, hsl(var(--foreground) / 0.02) 8%, transparent 18%)',
+          'radial-gradient(ellipse 75% 35% at 100% 0%, hsl(var(--primary) / 0.1), transparent 70%)',
+          // body diagonal lighting
+          'radial-gradient(ellipse 75% 95% at 100% 100%, hsl(var(--primary) / 0.09), transparent 60%)',
+          'radial-gradient(ellipse 90% 80% at 0% 0%, hsl(var(--foreground) / 0.04), transparent 60%)',
+          'radial-gradient(ellipse 110% 50% at 50% 100%, rgba(0,0,0,0.1), transparent 65%)',
+          'hsl(var(--card))',
+        ].join(', '),
         boxShadow: [
-          'inset 0 1px 0 rgba(255,255,255,0.12)',
-          'inset 1px 0 0 rgba(255,255,255,0.04)',
-          'inset 0 -1px 0 rgba(0,0,0,0.3)',
-          'inset -1px 0 0 rgba(0,0,0,0.15)',
+          'inset 0 1px 0 rgba(255,255,255,0.2)',
+          'inset 1px 0 0 rgba(255,255,255,0.05)',
+          'inset 0 -1px 0 rgba(0,0,0,0.35)',
+          'inset -1px 0 0 rgba(0,0,0,0.18)',
           '0 0 0 1px hsl(var(--foreground) / 0.06)',
           '0 20px 50px -22px rgba(0,0,0,0.65)',
           '0 0 80px -28px hsl(var(--primary) / 0.12)',
@@ -555,7 +583,17 @@ export function Table<T extends TableRowBase>({
       }}
     >
       {toolbar && (
-        <div className="flex items-center gap-3 border-b border-line-soft bg-[hsl(var(--bg-header-band))] px-4 py-3">
+        <div
+          className="relative flex items-center gap-3 px-4 py-3 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.05)_25%,hsl(var(--foreground)/0.05)_75%,transparent_100%)]"
+          style={{
+            // High-opacity base keeps the toolbar from washing out; a heavier dark overlay
+            // distinguishes it from the header which uses the same base with a lighter overlay.
+            background: [
+              'linear-gradient(180deg, hsl(0 0% 0% / 0.14), hsl(0 0% 0% / 0.14))',
+              'hsl(var(--bg-panel-2) / 0.92)',
+            ].join(', '),
+          }}
+        >
           {toolbar.left}
           <div className="flex-1" />
           {toolbar.right}
