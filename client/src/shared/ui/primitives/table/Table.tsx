@@ -181,6 +181,12 @@ const STATE_TEXT: Record<RowState, string> = {
 const PHOSPHOR_ROW =
   'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom))]';
 
+// Hover preview of the selection glow at ~40% intensity. Directional primary stripe + soft halo —
+// reads as "this row is about to be selected" without committing the full glow.
+// Overrides PHOSPHOR_ROW on :hover. Only applied to unselected hoverable default-state rows.
+const HOVER_GLOW =
+  'hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/var(--alpha-hover-stripe)),inset_10px_0_24px_-10px_hsl(var(--primary)/var(--alpha-hover-edge)),0_0_22px_-6px_hsl(var(--primary)/var(--alpha-hover-bloom))]';
+
 // Leading 3px stripe per row state. Shown when row is selected (without glow) or has a non-default state.
 // Strings are literal so Tailwind JIT can see them.
 const STATE_STRIPE: Record<RowState, string> = {
@@ -421,6 +427,7 @@ const TableBody = <T extends TableRowBase>({
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];
         const phosphor = !glow ? PHOSPHOR_ROW : '';
+        const hover = hoverable && !isSelected && state === 'default' ? HOVER_GLOW : '';
 
         return (
           <tr
@@ -428,7 +435,7 @@ const TableBody = <T extends TableRowBase>({
             className={`${rowVariants({
               hoverable,
               clickable: Boolean(onRowClick),
-            })} ${phosphor} ${zebra} ${stripe} ${text} ${glow}`}
+            })} ${phosphor} ${zebra} ${stripe} ${text} ${glow} ${hover}`}
             onClick={onRowClick ? () => onRowClick(row, index) : undefined}
           >
             {selectable && (
