@@ -228,7 +228,7 @@ export function AppHeader({
     : location.pathname.split('/').filter(Boolean).slice(0, 2);
 
   return (
-    <header className="flex h-full items-stretch bg-background">
+    <header className="relative flex h-full items-stretch bg-background after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.20)_10%,hsl(var(--primary)/0.20)_90%,transparent_100%)] after:[box-shadow:0_0_8px_hsl(var(--primary)/0.14),0_0_18px_hsl(var(--primary)/0.06)]">
       <div className="relative flex items-center px-4">
         <button
           ref={suiteButtonRef}
@@ -533,16 +533,16 @@ export function AppHeader({
           className="group flex items-center gap-3"
         >
           <div className="text-right leading-tight">
-            <div className="max-w-[150px] truncate font-display text-[12.5px] font-medium tracking-[0.04em] text-foreground">
+            <div className="max-w-[150px] truncate font-display text-[14px] font-medium tracking-[0.04em] text-foreground">
               {displayName}
             </div>
             {user?.role && (
-              <div className="font-mono text-[9.5px] font-medium uppercase tracking-[0.20em] text-muted-foreground">
+              <div className="font-mono text-[9.5px] font-medium uppercase tracking-[0.20em] text-foreground/70">
                 {ROLE_LABELS[user.role] ?? user.role}
               </div>
             )}
           </div>
-          <UserBadge type="currentUser" initials={initials} username={user?.username} size="xs" />
+          <UserBadge type="currentUser" initials={initials} username={user?.username} size="md" />
         </button>
 
         <DropdownMenu

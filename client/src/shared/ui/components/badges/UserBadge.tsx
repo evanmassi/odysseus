@@ -11,26 +11,26 @@ import { Badge, Tooltip } from '@shared/ui';
 export type UserBadgeType = 'unassigned' | 'currentUser' | 'otherUser';
 
 export interface UserBadgeStyles {
-  border: string;
   background: string;
   text: string;
+  lit: boolean;
 }
 
 const styleMap: Record<UserBadgeType, UserBadgeStyles> = {
   currentUser: {
-    border: 'border-l-ownership-user-badge',
-    background: 'bg-ownership-user-badge',
-    text: 'text-white',
+    background: 'bg-ownership-user-badge/20',
+    text: 'text-ownership-user-badge',
+    lit: true,
   },
   otherUser: {
-    border: 'border-l-ownership-other-badge',
-    background: 'bg-ownership-other-badge',
-    text: 'text-white',
+    background: 'bg-ownership-other-badge/20',
+    text: 'text-ownership-other-badge',
+    lit: false,
   },
   unassigned: {
-    border: 'border-l-ownership-unassigned-badge',
-    background: 'bg-ownership-unassigned-badge',
-    text: 'text-white',
+    background: 'bg-ownership-unassigned-badge/20',
+    text: 'text-ownership-unassigned-badge',
+    lit: false,
   },
 };
 
@@ -92,8 +92,8 @@ export function UserBadge({
   if (type === 'unassigned') {
     return (
       <Tooltip content="Unassigned/Common" side="bottom">
-        <Badge size={size} className={colorClass}>
-          <UsersRound size={iconSize} />
+        <Badge size={size} lit={ownershipStyles.lit} className={colorClass}>
+          <UsersRound size={iconSize} className="text-foreground" />
         </Badge>
       </Tooltip>
     );
@@ -101,8 +101,8 @@ export function UserBadge({
 
   return (
     <Tooltip content={getAssignmentTitle(type, username)} side="bottom">
-      <Badge size={size} className={colorClass}>
-        {initials}
+      <Badge size={size} lit={ownershipStyles.lit} className={colorClass}>
+        <span className="text-foreground">{initials}</span>
       </Badge>
     </Tooltip>
   );

@@ -58,7 +58,7 @@ export function LabBadge({ labId, labName, size = 'sm', isDemo, isActive }: LabB
   return (
     <Tooltip content={labName} side="bottom">
       <Badge size={size} className={color} lit={isActive}>
-        {initials}
+        <span className="text-foreground">{initials}</span>
       </Badge>
     </Tooltip>
   );
