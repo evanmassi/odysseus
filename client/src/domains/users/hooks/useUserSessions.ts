@@ -51,6 +51,7 @@ export function useUserSessions() {
     error: sessionsQuery.error,
     refetch: sessionsQuery.refetch,
     revokeSession: revokeSessionMutation.mutate,
+    revokeSessionAsync: revokeSessionMutation.mutateAsync,
     isRevoking: revokeSessionMutation.isPending,
     revokeAll: revokeAllMutation.mutate,
     isRevokingAll: revokeAllMutation.isPending,
