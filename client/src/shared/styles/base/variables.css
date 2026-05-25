@@ -212,6 +212,32 @@
     --grid-copied: 215.4 19.3% 34.5%;
     --grid-copied-alt: 0 0% 100%;
 
+    /* Table — alpha scale for row glow, checkbox glow, and surface overlays.
+       Defined theme-agnostic; same values in light and dark. */
+    --alpha-glow-wash-1: 0.21;
+    --alpha-glow-wash-2: 0.13;
+    --alpha-glow-wash-3: 0.06;
+    --alpha-glow-wash-4: 0.02;
+    --alpha-glow-tint: 0.025;
+    --alpha-glow-edge-inner: 0.43;
+    --alpha-glow-edge-rim: 0.16;
+    --alpha-glow-edge-bloom: 0.14;
+    --alpha-glow-outer-near: 0.2;
+    --alpha-glow-outer-far: 0.09;
+    --alpha-glow-bar-strong: 0.5;
+    --alpha-glow-bar-mid: 0.4;
+    --alpha-glow-bar-far: 0.19;
+    --alpha-checkbox-glow-inner: 0.55;
+    --alpha-checkbox-glow-outer: 0.22;
+    --alpha-checkbox-shadow: 0.6;
+    --alpha-zebra: 0.022;
+    --alpha-hover: 0.05;
+    --alpha-cell-rim: 0.12;
+    --alpha-header-rim: 0.09;
+    --alpha-header-rule: 0.18;
+    --alpha-stripe-muted: 0.3;
+    --bg-header-band: 0 0% 0% / 0.15;
+
     /* Always-dark components */
 
     /* Toast */
