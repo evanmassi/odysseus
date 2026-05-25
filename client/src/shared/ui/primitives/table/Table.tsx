@@ -433,8 +433,7 @@ const TableBody = <T extends TableRowBase>({
       {data.map((row, index) => {
         const isSelected = selectedRows.includes(row.id);
         const state = rowState?.(row, index) ?? 'default';
-        const zebra =
-          index % 2 === 1 ? '[&>td]:bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
+        const zebra = index % 2 === 0 ? '[&>td]:bg-[rgb(0_0_0/var(--alpha-zebra))]' : '';
         const glow = selectedRowGlow && isSelected ? ROW_GLOW[stateToGlowTone(state)] : '';
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];
@@ -553,18 +552,22 @@ export function Table<T extends TableRowBase>({
   }
 
   // Table-specific chassis: auth-console vocabulary at table intensity.
-  // Background carries a continuous top-band wash (cream sheen + primary right ambient) that
-  // spans both toolbar and header as a single cohesive zone, plus diagonal body lighting
-  // (primary BR, cream TL, dark BC) that shows through transparent rows.
-  // Box-shadow edges match auth-modal lift/recess so the chassis feels like the same family.
+  // Background carries a continuous top-band wash (cream sheen) that adapts to whether a
+  // toolbar is present — toolbar'd tables get a fuller sheen since the toolbar zone absorbs
+  // it before the header, while header-only tables get a shorter, lighter sheen so the cream
+  // doesn't pile up directly on the header row. Body diagonal lighting stays consistent.
+  // Box-shadow edges match auth-modal lift/recess.
+  const hasToolbar = Boolean(toolbar);
+  const topSheen = hasToolbar
+    ? 'linear-gradient(180deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--primary) / 0.03) 10%, transparent 20%)'
+    : 'linear-gradient(180deg, hsl(var(--primary) / 0.05) 0%, transparent 9%)';
+
   return (
     <div
       className="relative"
       style={{
         background: [
-          // top-band lighting (covers toolbar + header zone)
-          'linear-gradient(180deg, hsl(var(--foreground) / 0.07) 0%, hsl(var(--foreground) / 0.02) 8%, transparent 18%)',
-          'radial-gradient(ellipse 75% 35% at 100% 0%, hsl(var(--primary) / 0.1), transparent 70%)',
+          topSheen,
           // body diagonal lighting
           'radial-gradient(ellipse 75% 95% at 100% 100%, hsl(var(--primary) / 0.09), transparent 60%)',
           'radial-gradient(ellipse 90% 80% at 0% 0%, hsl(var(--foreground) / 0.04), transparent 60%)',
