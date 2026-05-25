@@ -8,8 +8,6 @@ import React, { createContext, useContext } from 'react';
 
 import { cva } from 'class-variance-authority';
 
-import { ConsolePanel } from '../console-panel/ConsolePanel';
-
 import { defaultTableProps } from './types';
 
 import type { RowState, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
@@ -94,7 +92,7 @@ const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
     'text-left text-foreground/60',
-    'bg-[hsl(var(--bg-header-band))] shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]',
+    'bg-[hsl(var(--bg-panel-2))] shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
   {
@@ -310,7 +308,7 @@ const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
 
   return (
     <thead>
-      <tr className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/var(--alpha-header-rule))_10%,hsl(var(--foreground)/var(--alpha-header-rule))_90%,transparent_100%)]">
+      <tr className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/var(--alpha-header-emit))_10%,hsl(var(--primary)/var(--alpha-header-emit))_90%,transparent_100%)] after:[box-shadow:0_0_6px_hsl(var(--primary)/var(--alpha-header-bloom))]">
         {selectable && (
           <th className={`${headerVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
             {multiSelect && (
@@ -524,8 +522,25 @@ export function Table<T extends TableRowBase>({
     return framedBody;
   }
 
+  // Table-specific chassis: auth-console vocabulary at table intensity.
+  // Multi-edge inset shadows (top/left lift, bottom/right recess) + theme-aware rim
+  // + outer drop shadow + faint primary ambient bloom.
   return (
-    <ConsolePanel>
+    <div
+      className="relative"
+      style={{
+        background: 'hsl(var(--card))',
+        boxShadow: [
+          'inset 0 1px 0 rgba(255,255,255,0.12)',
+          'inset 1px 0 0 rgba(255,255,255,0.04)',
+          'inset 0 -1px 0 rgba(0,0,0,0.3)',
+          'inset -1px 0 0 rgba(0,0,0,0.15)',
+          '0 0 0 1px hsl(var(--foreground) / 0.06)',
+          '0 20px 50px -22px rgba(0,0,0,0.65)',
+          '0 0 80px -28px hsl(var(--primary) / 0.12)',
+        ].join(', '),
+      }}
+    >
       {toolbar && (
         <div className="flex items-center gap-3 border-b border-line-soft bg-[hsl(var(--bg-header-band))] px-4 py-3">
           {toolbar.left}
@@ -534,6 +549,6 @@ export function Table<T extends TableRowBase>({
         </div>
       )}
       {framedBody}
-    </ConsolePanel>
+    </div>
   );
 }

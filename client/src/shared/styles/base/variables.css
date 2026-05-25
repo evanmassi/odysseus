@@ -235,6 +235,8 @@
     --alpha-cell-rim: 0.12;
     --alpha-header-rim: 0.09;
     --alpha-header-rule: 0.18;
+    --alpha-header-emit: 0.3;
+    --alpha-header-bloom: 0.18;
     --alpha-stripe-muted: 0.3;
     --bg-header-band: 0 0% 0% / 0.15;
 
