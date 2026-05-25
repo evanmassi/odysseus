@@ -210,11 +210,7 @@ export function SessionListPanel() {
         hoverable
         emptyMessage="No active sessions"
         aria-label="Active sessions"
-        rowClassName={row =>
-          row.isCurrentSession
-            ? 'text-success-text [&>td]:bg-success-light [&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]'
-            : ''
-        }
+        rowState={row => (row.isCurrentSession ? 'success' : 'default')}
         toolbar={{
           left: (
             <p className="text-sm text-secondary-foreground">

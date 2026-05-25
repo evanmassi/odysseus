@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react';
 
 import { ChevronDown, Link2, Trash2 } from 'lucide-react';
 
-import { Button, Chip, rowStripe, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Button, Chip, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -93,7 +93,7 @@ export function LabResearchersPanel({
                   data={inactiveResearchers}
                   emptyMessage=""
                   aria-label="Inactive lab researchers"
-                  rowClassName={() => rowStripe('muted')}
+                  rowState={() => 'muted'}
                 />
               </div>
             )}

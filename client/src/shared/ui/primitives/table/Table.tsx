@@ -12,10 +12,18 @@ import { ConsolePanel } from '../console-panel/ConsolePanel';
 
 import { defaultTableProps } from './types';
 
-import type { RowTone, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
+import type { RowState, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
+
+// Internal lookup keys — RowState collapses onto these for checkbox + glow recipes.
+// 'warning' / 'danger' / 'muted' rows fall through to 'primary' when selected with glow,
+// since no warning/danger/muted glow recipe exists yet.
+type GlowTone = 'primary' | 'success';
+
+const stateToGlowTone = (state: RowState): GlowTone =>
+  state === 'success' ? 'success' : 'primary';
 
 const CHECKBOX_TONE: Record<
-  RowTone,
+  GlowTone,
   {
     bracket: string;
     fill: string;
@@ -47,7 +55,7 @@ const CHECKBOX_TONE: Record<
 };
 
 // Each block is one literal string per tone — Tailwind JIT won't see interpolated classes.
-const ROW_GLOW: Record<RowTone, string> = {
+const ROW_GLOW: Record<GlowTone, string> = {
   primary: [
     '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--primary)/var(--alpha-glow-tint)),hsl(var(--primary)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)]',
     'shadow-[inset_3px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--primary)/var(--alpha-glow-outer-far))]',
@@ -154,33 +162,32 @@ const rowVariants = cva([''], {
       true: 'cursor-pointer',
       false: '',
     },
-    selected: {
-      true: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
-      false: '',
-    },
   },
   defaultVariants: {
     hoverable: false,
     clickable: false,
-    selected: false,
   },
 });
 
-// Class strings must be literal (no interpolation) so Tailwind JIT picks them up.
-const ROW_STRIPE_CLASSES = {
-  primary: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
+// Text styling per row state. Applies whenever state !== 'default', independent of selection.
+const STATE_TEXT: Record<RowState, string> = {
+  default: '',
+  success: 'text-success-text phosphor-text',
+  warning: 'text-warning-text phosphor-text',
+  danger: 'text-danger-text phosphor-text',
+  muted: 'text-foreground/60',
+};
+
+// Leading 3px stripe per row state. Shown when row is selected (without glow) or has a non-default state.
+// Strings are literal so Tailwind JIT can see them.
+const STATE_STRIPE: Record<RowState, string> = {
+  default: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--primary))]',
   success: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg))]',
   warning: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg))]',
   danger: '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg))]',
   muted:
     '[&>td:first-child]:shadow-[inset_3px_0_0_0_hsl(var(--foreground)/var(--alpha-stripe-muted))]',
-} as const;
-
-export type RowStripeTone = keyof typeof ROW_STRIPE_CLASSES;
-
-export function rowStripe(tone: RowStripeTone): string {
-  return ROW_STRIPE_CLASSES[tone];
-}
+};
 
 interface SortIndicatorProps {
   direction?: 'asc' | 'desc';
@@ -215,7 +222,7 @@ interface TableCheckboxProps {
   indeterminate?: boolean;
   onChange: (checked: boolean) => void;
   'aria-label'?: string;
-  tone?: RowTone;
+  state?: RowState;
 }
 
 const TableCheckbox: React.FC<TableCheckboxProps> = ({
@@ -223,10 +230,10 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
   indeterminate,
   onChange,
   'aria-label': ariaLabel,
-  tone = 'primary',
+  state = 'default',
 }) => {
   const isLit = checked || Boolean(indeterminate);
-  const t = CHECKBOX_TONE[tone];
+  const t = CHECKBOX_TONE[stateToGlowTone(state)];
   const bracketColor = isLit ? t.bracket : 'border-line-strong';
   const boxGlow = isLit ? t.glow : '';
   return (
@@ -358,17 +365,15 @@ const TableBody = <T extends TableRowBase>({
   columns,
   data,
   hoverable,
-  rowClassName,
   onRowClick,
-  rowTone,
+  rowState,
   selectedRowGlow,
 }: {
   columns: TableColumn<T>[];
   data: T[];
   hoverable: boolean;
-  rowClassName?: string | ((row: T, index: number) => string);
   onRowClick?: (row: T, index: number) => void;
-  rowTone?: (row: T) => RowTone;
+  rowState?: (row: T, index: number) => RowState;
   selectedRowGlow?: boolean;
 }) => {
   const { selectable, selectedRows, onSelectionChange, density } = useTableContext();
@@ -406,11 +411,12 @@ const TableBody = <T extends TableRowBase>({
     <tbody>
       {data.map((row, index) => {
         const isSelected = selectedRows.includes(row.id);
-        const extra =
-          typeof rowClassName === 'function' ? rowClassName(row, index) : (rowClassName ?? '');
+        const state = rowState?.(row, index) ?? 'default';
         const zebra =
           index % 2 === 0 ? '[&>td]:bg-[hsl(var(--foreground)/var(--alpha-zebra))]' : '';
-        const glow = selectedRowGlow && isSelected ? ROW_GLOW[rowTone?.(row) ?? 'primary'] : '';
+        const glow = selectedRowGlow && isSelected ? ROW_GLOW[stateToGlowTone(state)] : '';
+        const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
+        const text = STATE_TEXT[state];
 
         return (
           <tr
@@ -418,8 +424,7 @@ const TableBody = <T extends TableRowBase>({
             className={`${rowVariants({
               hoverable,
               clickable: Boolean(onRowClick),
-              selected: isSelected && !selectedRowGlow,
-            })} ${zebra} ${extra} ${glow}`}
+            })} ${zebra} ${stripe} ${text} ${glow}`}
             onClick={onRowClick ? () => onRowClick(row, index) : undefined}
           >
             {selectable && (
@@ -428,7 +433,7 @@ const TableBody = <T extends TableRowBase>({
                   checked={isSelected}
                   onChange={checked => handleRowSelect(row.id, checked)}
                   aria-label={`Select row ${index + 1}`}
-                  tone={rowTone?.(row)}
+                  state={state}
                 />
               </td>
             )}
@@ -468,8 +473,7 @@ export function Table<T extends TableRowBase>({
   loadingMessage = defaultTableProps.loadingMessage,
   'aria-label': ariaLabel,
   className,
-  rowClassName,
-  rowTone,
+  rowState,
   selectedRowGlow,
   toolbar,
   chassis = defaultTableProps.chassis,
@@ -505,9 +509,8 @@ export function Table<T extends TableRowBase>({
           columns={columns}
           data={data}
           hoverable={hoverable!}
-          rowClassName={rowClassName}
           onRowClick={onRowClick}
-          rowTone={rowTone}
+          rowState={rowState}
           selectedRowGlow={selectedRowGlow}
         />
       </table>

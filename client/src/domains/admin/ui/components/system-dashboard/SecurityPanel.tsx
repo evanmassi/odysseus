@@ -672,8 +672,7 @@ export function SecurityPanel() {
           hoverable
           emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
           aria-label="Active sessions"
-          rowClassName={row => (isOwnSession(row) ? 'text-success-text phosphor-text' : '')}
-          rowTone={row => (isOwnSession(row) ? 'success' : 'primary')}
+          rowState={row => (isOwnSession(row) ? 'success' : 'default')}
           selectedRowGlow
           toolbar={{
             left: (

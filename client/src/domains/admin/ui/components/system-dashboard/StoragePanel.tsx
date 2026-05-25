@@ -308,17 +308,6 @@ function LabDrillDown({
         ? 'warning'
         : 'default';
 
-  const expandedRowClass = [
-    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--primary)/0.025),hsl(var(--primary)/0.025)),linear-gradient(90deg,hsl(var(--primary)/0.21)_0%,hsl(var(--primary)/0.13)_18%,hsl(var(--primary)/0.06)_48%,hsl(var(--primary)/0.02)_78%,hsl(var(--primary)/0)_100%)]',
-    'shadow-[inset_3px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/0.43),inset_0_1px_0_hsl(var(--primary)/0.16),inset_0_-1px_0_hsl(var(--primary)/0.16),inset_0_10px_16px_-8px_hsl(var(--primary)/0.14),inset_0_-10px_16px_-8px_hsl(var(--primary)/0.14),0_0_32px_-4px_hsl(var(--primary)/0.20),0_0_80px_4px_hsl(var(--primary)/0.09)]',
-    '[&>td]:!bg-transparent',
-    '[&>td:first-child]:relative',
-    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-primary [&>td:first-child]:before:pointer-events-none',
-    '[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--primary)/0.50),0_0_24px_3px_hsl(var(--primary)/0.40),0_0_72px_10px_hsl(var(--primary)/0.19)]',
-    '[&>td]:font-semibold',
-    '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
-  ].join(' ');
-
   const tankColumns: TableColumn<TankRow>[] = [
     {
       id: 'tankName',
@@ -492,7 +481,8 @@ function LabDrillDown({
             setExpandedTankId(row.tankId === expandedTankId ? null : row.tankId);
             setExpandedRackId(null);
           }}
-          rowClassName={row => (row.tankId === expandedTankId ? expandedRowClass : '')}
+          selectedRows={expandedTankId ? [expandedTankId] : []}
+          selectedRowGlow
         />
       </div>
 
@@ -512,7 +502,8 @@ function LabDrillDown({
               onRowClick={row =>
                 setExpandedRackId(row.rackId === expandedRackId ? null : row.rackId)
               }
-              rowClassName={row => (row.rackId === expandedRackId ? expandedRowClass : '')}
+              selectedRows={expandedRackId ? [expandedRackId] : []}
+              selectedRowGlow
             />
           </div>
 

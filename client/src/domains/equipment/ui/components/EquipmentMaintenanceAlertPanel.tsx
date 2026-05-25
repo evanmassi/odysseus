@@ -190,7 +190,7 @@ export function EquipmentMaintenanceAlertPanel({
           onSort={setSortConfig}
           onRowClick={row => onSelectItem(row.id)}
           selectedRows={selectedItemId ? [selectedItemId] : []}
-          rowClassName={row => (row.id === selectedItemId ? '!bg-accent' : '')}
+          selectedRowGlow
           density="compact"
           className="text-xs"
           aria-label="Maintenance alerts"

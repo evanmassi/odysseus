@@ -155,9 +155,9 @@ export function DonorTable({
           onSort={setSortConfig}
           onRowClick={row => onSelectDonor(row.id)}
           selectedRows={selectedDonorId ? [selectedDonorId] : []}
+          selectedRowGlow
           emptyMessage={isLoading ? 'Loading donors...' : 'No donors found'}
           aria-label="Donor registry"
-          rowClassName={row => (row.id === selectedDonorId ? '!bg-accent' : '')}
         />
       </ScrollArea>
     </div>

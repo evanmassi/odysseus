@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 
 export type TableDensity = 'compact' | 'default';
 
-export type RowTone = 'primary' | 'success';
+export type RowState = 'success' | 'warning' | 'danger' | 'muted' | 'default';
 
 export type SortDirection = 'asc' | 'desc';
 
@@ -58,8 +58,7 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   loadingMessage?: string;
   'aria-label'?: string;
   className?: string;
-  rowClassName?: string | ((row: T, index: number) => string);
-  rowTone?: (row: T) => RowTone;
+  rowState?: (row: T, index: number) => RowState;
   selectedRowGlow?: boolean;
   /** Integrated header strip rendered inside the chassis, above the rows. */
   toolbar?: TableToolbar;

@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Link2, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Chip, OverflowMenu, rowStripe, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Chip, OverflowMenu, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -100,9 +100,7 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
                   data={inactiveUsers}
                   emptyMessage=""
                   aria-label="Inactive lab users"
-                  rowClassName={row =>
-                    row.status === 'suspended' ? rowStripe('danger') : rowStripe('muted')
-                  }
+                  rowState={row => (row.status === 'suspended' ? 'danger' : 'muted')}
                 />
               </div>
             )}
