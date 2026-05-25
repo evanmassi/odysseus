@@ -127,7 +127,7 @@ const headerVariants = cva(
 const cellVariants = cva(
   [
     'pr-[18px] pl-0 text-sm font-mono text-foreground align-middle',
-    'first:pl-[14px] first:shadow-[inset_3px_0_0_0_hsl(var(--foreground)/var(--alpha-cell-rim))]',
+    'first:pl-[14px]',
     'group-hover:bg-[hsl(var(--foreground)/var(--alpha-hover))]',
     'group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]',
   ],
@@ -175,6 +175,11 @@ const STATE_TEXT: Record<RowState, string> = {
   danger: 'text-danger-text phosphor-text',
   muted: 'text-foreground/60',
 };
+
+// CRT phosphor: 1px cream hairlines top + bottom of every row + soft inset bloom.
+// Reads as "the screen is on" — applied to all rows except those displaying the full selection glow.
+const PHOSPHOR_ROW =
+  'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom))]';
 
 // Leading 3px stripe per row state. Shown when row is selected (without glow) or has a non-default state.
 // Strings are literal so Tailwind JIT can see them.
@@ -415,6 +420,7 @@ const TableBody = <T extends TableRowBase>({
         const glow = selectedRowGlow && isSelected ? ROW_GLOW[stateToGlowTone(state)] : '';
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];
+        const phosphor = !glow ? PHOSPHOR_ROW : '';
 
         return (
           <tr
@@ -422,7 +428,7 @@ const TableBody = <T extends TableRowBase>({
             className={`${rowVariants({
               hoverable,
               clickable: Boolean(onRowClick),
-            })} ${zebra} ${stripe} ${text} ${glow}`}
+            })} ${phosphor} ${zebra} ${stripe} ${text} ${glow}`}
             onClick={onRowClick ? () => onRowClick(row, index) : undefined}
           >
             {selectable && (

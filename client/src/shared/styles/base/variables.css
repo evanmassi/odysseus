@@ -237,6 +237,8 @@
     --alpha-header-rule: 0.18;
     --alpha-header-emit: 0.3;
     --alpha-header-bloom: 0.18;
+    --alpha-phosphor-rim: 0.045;
+    --alpha-phosphor-bloom: 0.04;
     --alpha-stripe-muted: 0.3;
     --bg-header-band: 0 0% 0% / 0.15;
 
