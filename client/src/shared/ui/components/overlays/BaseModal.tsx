@@ -8,6 +8,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 
 import { useAnimatedClose, useFocusTrap, useModalKeyboardNavigation } from '@shared/hooks';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { ModalPortal } from './ModalPortal';
@@ -15,6 +16,7 @@ import { ModalPortal } from './ModalPortal';
 export type ModalSize = 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
 export type ModalAnimation = 'zoom' | 'slide';
 export type TabOrientation = 'horizontal' | 'vertical';
+export type ModalChassis = 'default' | 'lit';
 
 export interface BaseModalProps {
   isOpen: boolean;
@@ -34,6 +36,10 @@ export interface BaseModalProps {
   tabFooter?: React.ReactNode;
   /** Content pinned to the bottom of the vertical tab sidebar */
   tabSidebarFooter?: React.ReactNode;
+  /** Surface treatment: 'default' = bg-card rounded card; 'lit' = ConsolePanel with primary emission. */
+  chassis?: ModalChassis;
+  /** Strip rendered between header and body. Only honored when chassis='lit'. */
+  locator?: React.ReactNode;
   contentClassName?: string;
   dataAttribute?: string;
   className?: string;
@@ -71,6 +77,8 @@ export function BaseModal({
   footer,
   tabFooter,
   tabSidebarFooter,
+  chassis = 'default',
+  locator,
   contentClassName = 'p-6',
   dataAttribute,
   className = '',
@@ -115,6 +123,105 @@ export function BaseModal({
   const heightClass = fixedHeight ? 'h-[85vh]' : 'max-h-[90vh]';
   const hasVerticalTabs = tabs && tabOrientation === 'vertical';
   const pointerEventsClass = isClosing ? 'pointer-events-none' : 'pointer-events-auto';
+  const isLit = chassis === 'lit';
+
+  const borderClass = isLit ? 'border-line-faint' : 'border-border';
+  const surfaceClass = isLit ? '' : 'bg-card';
+
+  const headerBlock = (
+    <div className={`${surfaceClass} px-6 py-3 border-b ${borderClass} flex-shrink-0`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="p-1.5 text-muted-foreground">{icon}</div>
+          <div>
+            <h2
+              id="modal-title"
+              className={
+                isLit
+                  ? 'text-lg font-medium text-foreground'
+                  : 'text-lg font-bold text-card-foreground'
+              }
+            >
+              {title}
+            </h2>
+            {subtitle && <p className="text-muted-foreground text-xs">{subtitle}</p>}
+          </div>
+        </div>
+        <button
+          onClick={triggerClose}
+          className={`p-1.5 ${isLit ? '' : 'rounded-lg'} text-muted-foreground hover:text-foreground ${isLit ? 'hover:bg-foreground/5' : 'hover:bg-accent'} transition-colors`}
+          aria-label="Close modal"
+        >
+          <X size={20} />
+        </button>
+      </div>
+    </div>
+  );
+
+  const locatorBlock =
+    isLit && locator ? (
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-foreground/[0.015] px-6 py-2.5">
+        {locator}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
+        />
+      </div>
+    ) : null;
+
+  const bodyBlock = (
+    <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>
+      {hasVerticalTabs && (
+        <div
+          className={`w-48 ${surfaceClass} border-r ${borderClass} py-4 flex-shrink-0 flex flex-col`}
+        >
+          <div className="flex-1">{tabs}</div>
+          {tabSidebarFooter && <div className="px-3 pb-2">{tabSidebarFooter}</div>}
+        </div>
+      )}
+
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col">
+        <ScrollArea className="flex-1" tabIndex={-1}>
+          <div className={contentClassName}>{children}</div>
+        </ScrollArea>
+
+        {tabFooter && (
+          <div className={`border-t ${borderClass} px-6 py-2 ${surfaceClass} flex-shrink-0`}>
+            {tabFooter}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const footerBlock = footer ? (
+    <div className={`relative border-t ${borderClass} px-6 py-3 ${surfaceClass} flex-shrink-0`}>
+      {isLit && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -top-px h-px bg-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
+        />
+      )}
+      {footer}
+    </div>
+  ) : null;
+
+  const tabsBlock =
+    tabs && tabOrientation === 'horizontal' ? (
+      <div className={`flex-shrink-0 border-b ${borderClass} ${surfaceClass}`}>{tabs}</div>
+    ) : null;
+
+  const innerChildren = (
+    <>
+      {headerBlock}
+      {locatorBlock}
+      {tabsBlock}
+      {bodyBlock}
+      {footerBlock}
+    </>
+  );
+
+  const sharedClassName = `w-full ${sizeClass} mx-4 ${heightClass} ${modalAnimationClass} ${pointerEventsClass} flex flex-col overflow-hidden ${className}`;
 
   return (
     <ModalPortal>
@@ -123,64 +230,34 @@ export function BaseModal({
       />
 
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-        <div
-          ref={trapRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="modal-title"
-          {...dataAttrs}
-          className={`bg-card rounded-2xl w-full ${sizeClass} mx-4 ${heightClass} shadow-2xl shadow-black/10 border border-border ${modalAnimationClass} ${pointerEventsClass} flex flex-col overflow-hidden ${className}`}
-        >
-          <div className="bg-card px-6 py-3 border-b border-border flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-1.5 text-muted-foreground">{icon}</div>
-                <div>
-                  <h2 id="modal-title" className="text-lg font-bold text-card-foreground">
-                    {title}
-                  </h2>
-                  {subtitle && <p className="text-muted-foreground text-xs">{subtitle}</p>}
-                </div>
-              </div>
-              <button
-                onClick={triggerClose}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary-foreground hover:bg-accent transition-colors"
-                aria-label="Close modal"
-              >
-                <X size={20} />
-              </button>
+        {isLit ? (
+          <ConsolePanel
+            className={sharedClassName}
+            // ConsolePanel renders its own border; we add the dialog role and refs via wrapper props.
+          >
+            <div
+              ref={trapRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+              {...dataAttrs}
+              className="flex flex-1 flex-col min-h-0"
+            >
+              {innerChildren}
             </div>
+          </ConsolePanel>
+        ) : (
+          <div
+            ref={trapRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            {...dataAttrs}
+            className={`bg-card rounded-2xl shadow-2xl shadow-black/10 border border-border ${sharedClassName}`}
+          >
+            {innerChildren}
           </div>
-
-          {tabs && tabOrientation === 'horizontal' && (
-            <div className="flex-shrink-0 border-b border-border bg-card">{tabs}</div>
-          )}
-
-          <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>
-            {hasVerticalTabs && (
-              <div className="w-48 bg-card border-r border-border py-4 flex-shrink-0 flex flex-col">
-                <div className="flex-1">{tabs}</div>
-                {tabSidebarFooter && <div className="px-3 pb-2">{tabSidebarFooter}</div>}
-              </div>
-            )}
-
-            <div className="flex-1 min-w-0 min-h-0 flex flex-col">
-              <ScrollArea className="flex-1" tabIndex={-1}>
-                <div className={contentClassName}>{children}</div>
-              </ScrollArea>
-
-              {tabFooter && (
-                <div className="border-t border-border px-6 py-2 bg-card flex-shrink-0">
-                  {tabFooter}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {footer && (
-            <div className="border-t border-border px-6 py-3 bg-card flex-shrink-0">{footer}</div>
-          )}
-        </div>
+        )}
       </div>
     </ModalPortal>
   );
