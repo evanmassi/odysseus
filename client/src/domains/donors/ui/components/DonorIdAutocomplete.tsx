@@ -64,7 +64,7 @@ export function DonorIdAutocomplete({
   return (
     <div>
       <label
-        className={`block text-sm font-medium mb-1 ${error ? 'text-danger-text' : 'text-secondary-foreground'}`}
+        className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${error ? 'text-danger-text' : 'text-muted-foreground'}`}
       >
         <span className="flex items-center gap-1.5">
           {label}

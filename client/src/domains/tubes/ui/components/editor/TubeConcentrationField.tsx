@@ -73,14 +73,14 @@ export function TubeConcentrationField({
   };
 
   const getLabelClasses = () => {
-    const baseClasses = 'block text-sm font-medium mb-1';
+    const baseClasses = 'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5';
 
     if (validation?.error) {
       return `${baseClasses} text-danger-text`;
     } else if (validation?.warning) {
       return `${baseClasses} text-warning-text`;
     } else {
-      return `${baseClasses} text-secondary-foreground`;
+      return `${baseClasses} text-muted-foreground`;
     }
   };
 
@@ -132,7 +132,7 @@ export function TubeConcentrationField({
         </span>
       </label>
 
-      <div className="flex gap-1">
+      <div className="flex">
         <Input
           type="text"
           value={value}
@@ -142,10 +142,11 @@ export function TubeConcentrationField({
           placeholder={placeholder}
           disabled={disabled}
           state={getInputState()}
+          inputClassName="border-r-0 focus:relative focus:z-10"
           className="flex-1 min-w-0"
         />
 
-        <div className="w-18 relative z-50 flex-shrink-0">
+        <div className="w-20 relative flex-shrink-0 [&_[role=combobox]]:focus-within:relative [&_[role=combobox]]:focus-within:z-10">
           <Select
             options={unitOptions}
             value={unitValue}

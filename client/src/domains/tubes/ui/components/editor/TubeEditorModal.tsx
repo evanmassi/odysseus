@@ -43,6 +43,7 @@ import { formatDateForInput } from '@shared/utils/dateFormatters';
 
 import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
+import { countDirtyFields } from './countDirtyFields';
 import { TubeForm } from './TubeForm';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
@@ -288,6 +289,8 @@ function EditModeForm({
   const { isValid: isFormValid, isDirty } = form.formState;
   const canSubmit = isFormValid && isDirty;
 
+  const dirtyFieldCount = countDirtyFields(form.formState.dirtyFields);
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -297,38 +300,65 @@ function EditModeForm({
       size="md-lg"
       dataAttribute="data-tube-modal"
       mode="edit"
+      chassis="lit"
       contentClassName="p-5"
+      locator={
+        <TubeLocationDisplay
+          variant="strip"
+          tankId={tube.location.tankId}
+          rackId={tube.location.rackId}
+          boxId={tube.location.boxId}
+          position={tube.location.position}
+        />
+      }
       footer={
-        <div className="flex justify-end space-x-4">
-          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            disabled={isSubmitting}
-            leftIcon={<Trash2 className="w-4 h-4" />}
-            onClick={() => {
-              modalService.showDeleteConfirm({
-                title: 'Remove Tube',
-                message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
-                confirmText: 'Remove',
-                onConfirm: handleDelete,
-              });
-            }}
-          >
-            Remove Tube
-          </Button>
-          <Button
-            type="submit"
-            form="tube-edit-form"
-            variant="primary"
-            disabled={!canSubmit}
-            isLoading={isSubmitting}
-            loadingText="Updating..."
-            leftIcon={<Save className="w-4 h-4" />}
-          >
-            Update Tube
-          </Button>
+        <div className="flex items-center justify-between gap-4">
+          {dirtyFieldCount > 0 ? (
+            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+              <span
+                aria-hidden
+                className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+              />
+              Unsaved changes
+              <span className="text-foreground/40">·</span>
+              <span className="text-secondary-foreground">
+                {dirtyFieldCount} {dirtyFieldCount === 1 ? 'field' : 'fields'} edited
+              </span>
+            </div>
+          ) : (
+            <span />
+          )}
+          <div className="flex justify-end space-x-4">
+            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              disabled={isSubmitting}
+              leftIcon={<Trash2 className="w-4 h-4" />}
+              onClick={() => {
+                modalService.showDeleteConfirm({
+                  title: 'Remove Tube',
+                  message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
+                  confirmText: 'Remove',
+                  onConfirm: handleDelete,
+                });
+              }}
+            >
+              Remove Tube
+            </Button>
+            <Button
+              type="submit"
+              form="tube-edit-form"
+              variant="primary"
+              disabled={!canSubmit}
+              isLoading={isSubmitting}
+              loadingText="Updating..."
+              leftIcon={<Save className="w-4 h-4" />}
+            >
+              Update Tube
+            </Button>
+          </div>
         </div>
       }
     >
@@ -337,13 +367,6 @@ function EditModeForm({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-3"
       >
-        <TubeLocationDisplay
-          tankId={tube.location.tankId}
-          rackId={tube.location.rackId}
-          boxId={tube.location.boxId}
-          position={tube.location.position}
-        />
-
         {/* Stale Form Warning Banner */}
         {showStaleWarning && (
           <AlertBanner
@@ -433,13 +456,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
   const { settings: userSettings } = useUserSettings();
 
   const [allowOverwrite, setAllowOverwrite] = useState(false);
-
-  // Defer conditional banners so they mount after the modal entrance animation (400ms)
-  const [mountReady, setMountReady] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setMountReady(true), 400);
-    return () => clearTimeout(timer);
-  }, []);
 
   useTubeModalFocusReturn();
 
@@ -701,6 +717,25 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
 
   const isFormValid = form.formState.isValid;
 
+  const locatorNode =
+    parsedPositions.length === 1 && parsedPositions[0] ? (
+      <TubeLocationDisplay
+        variant="strip"
+        tankId={parsedPositions[0].location.tankId}
+        rackId={parsedPositions[0].location.rackId}
+        boxId={parsedPositions[0].location.boxId}
+        position={parsedPositions[0].location.position}
+      />
+    ) : parsedPositions.length > 1 && bulkLocationDisplay ? (
+      <TubeLocationDisplay
+        variant="strip"
+        tankName={bulkLocationDisplay.tankName}
+        rackName={bulkLocationDisplay.rackName}
+        boxName={bulkLocationDisplay.boxName}
+        positionLabel={bulkLocationDisplay.positionRanges}
+      />
+    ) : null;
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -710,7 +745,9 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
       size="md-lg"
       dataAttribute="data-tube-modal"
       mode="create"
+      chassis="lit"
       contentClassName="p-5"
+      locator={locatorNode}
       footer={
         <div className="flex justify-end space-x-4">
           <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
@@ -736,25 +773,8 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         className="space-y-3"
       >
         <div className="space-y-3">
-          {parsedPositions.length === 1 && parsedPositions[0] && (
-            <TubeLocationDisplay
-              tankId={parsedPositions[0].location.tankId}
-              rackId={parsedPositions[0].location.rackId}
-              boxId={parsedPositions[0].location.boxId}
-              position={parsedPositions[0].location.position}
-            />
-          )}
-          {parsedPositions.length > 1 && bulkLocationDisplay && (
-            <TubeLocationDisplay
-              tankName={bulkLocationDisplay.tankName}
-              rackName={bulkLocationDisplay.rackName}
-              boxName={bulkLocationDisplay.boxName}
-              positionLabel={bulkLocationDisplay.positionRanges}
-            />
-          )}
-
-          {mountReady && positionAnalysis.isMixed && (
-            <AlertBanner variant="warning" spacing="none">
+          {positionAnalysis.isMixed && (
+            <AlertBanner variant="warning" spacing="none" animate={false}>
               <label className="flex items-center gap-2 cursor-pointer">
                 <span>
                   Overwrite {positionAnalysis.occupiedPositions.length} occupied position

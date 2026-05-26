@@ -14,7 +14,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Controller, useWatch } from 'react-hook-form';
 
 import { DonorIdAutocomplete } from '@domains/donors';
-import { DatePicker, Select, ValidatedInput } from '@shared/ui';
+import { DatePicker, SectionHeader, Select, ValidatedInput } from '@shared/ui';
 
 import { TubeConcentrationField } from './TubeConcentrationField';
 
@@ -138,18 +138,14 @@ export const TubeForm = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-3">
-        <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
-          Donor information
-        </h3>
-        <div className="flex-1 h-px bg-muted-foreground/60"></div>
-      </div>
+      <SectionHeader title="Donor information" />
 
       {/* ROW 1: Cell Type + Species */}
       <div className="flex gap-2.5">
         <div className="w-72">
           <ValidatedInput
             label="Cell Type"
+            labelStyle="compact"
             type="text"
             placeholder="e.g., Jurkat, HEK293"
             registration={register('sample.cellType')}
@@ -171,8 +167,8 @@ export const TubeForm = ({
               return (
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-1 ${
-                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                      error ? 'text-danger-text' : 'text-muted-foreground'
                     }`}
                   >
                     <span className="flex items-center gap-1.5">
@@ -253,11 +249,8 @@ export const TubeForm = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 !mt-3.5">
-        <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
-          Sample information
-        </h3>
-        <div className="flex-1 h-px bg-muted-foreground/60"></div>
+      <div className="!mt-3.5">
+        <SectionHeader title="Sample information" />
       </div>
 
       {/* ROW 3: Concentration, Culture Condition, Passage # */}
@@ -302,6 +295,7 @@ export const TubeForm = ({
         <div className="w-56">
           <ValidatedInput
             label="Culture Condition"
+            labelStyle="compact"
             type="text"
             placeholder="e.g., 5% O₂, 37°C"
             registration={register('sample.cultureCondition')}
@@ -315,6 +309,7 @@ export const TubeForm = ({
         <div className="w-20">
           <ValidatedInput
             label="Passage #"
+            labelStyle="compact"
             type="number"
             placeholder="0-999"
             registration={register('sample.passageNumber')}
@@ -339,8 +334,8 @@ export const TubeForm = ({
               return (
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-1 ${
-                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                      error ? 'text-danger-text' : 'text-muted-foreground'
                     }`}
                   >
                     <span className="flex items-center gap-1.5">
@@ -370,6 +365,7 @@ export const TubeForm = ({
         <div className="w-64">
           <ValidatedInput
             label="Supplements"
+            labelStyle="compact"
             type="text"
             placeholder="e.g., 10% FBS"
             registration={register('sample.mediaSupplements')}
@@ -383,6 +379,7 @@ export const TubeForm = ({
         <div className="w-44">
           <ValidatedInput
             label="Selection"
+            labelStyle="compact"
             type="text"
             placeholder="e.g., Puromycin"
             registration={register('sample.mediaSelection')}
@@ -407,8 +404,8 @@ export const TubeForm = ({
               return (
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-1 ${
-                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                      error ? 'text-danger-text' : 'text-muted-foreground'
                     }`}
                   >
                     <span className="flex items-center gap-1.5">
@@ -438,6 +435,7 @@ export const TubeForm = ({
         <div className="w-44">
           <ValidatedInput
             label="Catalog #"
+            labelStyle="compact"
             type="text"
             placeholder="e.g., CRL-2522"
             registration={register('sample.catalogNumber')}
@@ -451,6 +449,7 @@ export const TubeForm = ({
         <div className="w-44">
           <ValidatedInput
             label="Lot #"
+            labelStyle="compact"
             type="text"
             placeholder="e.g., LOT001"
             registration={register('sample.lotNumber')}
@@ -475,8 +474,8 @@ export const TubeForm = ({
               return (
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-1 ${
-                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                      error ? 'text-danger-text' : 'text-muted-foreground'
                     }`}
                   >
                     <span className="flex items-center gap-1.5">
@@ -512,8 +511,8 @@ export const TubeForm = ({
               return (
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-1 ${
-                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                      error ? 'text-danger-text' : 'text-muted-foreground'
                     }`}
                   >
                     <span className="flex items-center gap-1.5">
@@ -549,30 +548,25 @@ export const TubeForm = ({
       </div>
 
       {/* ROW 7: Notes */}
-      <div className="flex items-center gap-3 !mt-3.5">
-        <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap flex items-center gap-1.5">
-          Notes
-          {getConflictBadge('sample.notes')}
-        </h3>
-        <div className="flex-1 h-px bg-muted-foreground/60"></div>
+      <div className="!mt-3.5">
+        <SectionHeader
+          title="Notes"
+          meta={hasConflict('sample.notes') ? <ConflictIcon /> : undefined}
+          rightMeta={`${(notesValue ?? '').length}/500`}
+        />
       </div>
 
-      <div className="relative">
-        <ValidatedInput
-          label=""
-          type="textarea"
-          maxLength={500}
-          placeholder="Additional notes and observations..."
-          registration={register('sample.notes')}
-          error={Boolean(getFieldError('sample.notes', errors))}
-          helperText={getFieldError('sample.notes', errors)}
-          disabled={isLoading}
-          hasConflict={hasConflict('sample.notes')}
-        />
-        <span className="absolute bottom-1.5 right-2.5 text-[10px] text-muted-foreground/50 pointer-events-none">
-          {(notesValue ?? '').length}/500
-        </span>
-      </div>
+      <ValidatedInput
+        label=""
+        type="textarea"
+        maxLength={500}
+        placeholder="Additional notes and observations..."
+        registration={register('sample.notes')}
+        error={Boolean(getFieldError('sample.notes', errors))}
+        helperText={getFieldError('sample.notes', errors)}
+        disabled={isLoading}
+        hasConflict={hasConflict('sample.notes')}
+      />
     </div>
   );
 };
