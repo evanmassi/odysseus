@@ -45,6 +45,9 @@
     --line-mid: 222 47% 11% / 0.14;
     --line-strong: 222 47% 11% / 0.28;
 
+    /* Input well — sunken surface overlay for text inputs/selects/etc. */
+    --input-well: 0 0% 0% / 0.04;
+
     /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
@@ -296,6 +299,9 @@
     --line-soft: 45 27% 87% / 0.1;
     --line-mid: 45 27% 87% / 0.18;
     --line-strong: 45 27% 87% / 0.32;
+
+    /* Input well — dark theme: deeper black wash so fields read as recessed against panels */
+    --input-well: 0 0% 0% / 0.15;
 
     /* Card */
     --card: 217 32% 9%;

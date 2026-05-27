@@ -49,7 +49,7 @@ export interface BaseModalProps {
 const SIZE_CLASSES: Record<ModalSize, string> = {
   sm: 'max-w-md',
   md: 'max-w-lg',
-  'md-lg': 'max-w-2xl',
+  'md-lg': 'max-w-[736px]',
   lg: 'max-w-4xl',
   xl: 'max-w-5xl',
   full: 'max-w-[90vw]',
@@ -126,10 +126,14 @@ export function BaseModal({
   const isLit = chassis === 'lit';
 
   const borderClass = isLit ? 'border-line-faint' : 'border-border';
-  const surfaceClass = isLit ? '' : 'bg-card';
+  // Lit chrome (footer/tabs/sidebar) gets a dark wash so it sits on top of the
+  // chassis lighting. The header stays transparent so it reads body-tone — the
+  // light is concentrated inside the form, framed by the dark locator + footer.
+  const surfaceClass = isLit ? 'bg-black/15' : 'bg-card';
+  const headerSurface = isLit ? '' : 'bg-card';
 
   const headerBlock = (
-    <div className={`${surfaceClass} px-6 py-3 border-b ${borderClass} flex-shrink-0`}>
+    <div className={`${headerSurface} px-6 py-3 border-b ${borderClass} flex-shrink-0`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="p-1.5 text-muted-foreground">{icon}</div>
@@ -160,7 +164,11 @@ export function BaseModal({
 
   const locatorBlock =
     isLit && locator ? (
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-foreground/[0.015] px-6 py-2.5">
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-6 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
         {locator}
         <span
           aria-hidden
@@ -232,6 +240,7 @@ export function BaseModal({
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
         {isLit ? (
           <ConsolePanel
+            intensity="lit"
             className={sharedClassName}
             // ConsolePanel renders its own border; we add the dialog role and refs via wrapper props.
           >

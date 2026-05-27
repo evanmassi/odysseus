@@ -314,16 +314,13 @@ function EditModeForm({
       footer={
         <div className="flex items-center justify-between gap-4">
           {dirtyFieldCount > 0 ? (
-            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground whitespace-nowrap">
               <span
                 aria-hidden
-                className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+                className="h-2.5 w-0.5 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
               />
-              Unsaved changes
-              <span className="text-foreground/40">·</span>
-              <span className="text-secondary-foreground">
-                {dirtyFieldCount} {dirtyFieldCount === 1 ? 'field' : 'fields'} edited
-              </span>
+              <span className="text-secondary-foreground">{dirtyFieldCount}</span>
+              <span>unsaved {dirtyFieldCount === 1 ? 'change' : 'changes'}</span>
             </div>
           ) : (
             <span />

@@ -107,7 +107,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         aria-invalid={ariaInvalid ?? state === 'error'}
         className={`
           ${fullWidth ? 'w-full' : 'w-auto'}
-          bg-foreground/[0.02] border
+          bg-[hsl(var(--input-well))] border
           text-foreground
           placeholder:text-foreground/40
           transition-[border-color,background,box-shadow] duration-200

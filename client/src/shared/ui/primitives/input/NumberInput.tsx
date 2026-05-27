@@ -160,7 +160,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         className={`
           inline-flex items-center
           ${styles.container}
-          bg-foreground/[0.02]
+          bg-[hsl(var(--input-well))]
           border border-line-faint
           transition-[border-color,background,box-shadow] duration-200
           hover:border-foreground/30

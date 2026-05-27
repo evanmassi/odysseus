@@ -26,7 +26,7 @@ const ICON_BUTTON =
 const selectVariants = cva(
   [
     'relative w-full cursor-pointer',
-    'bg-foreground/[0.02] border',
+    'bg-[hsl(var(--input-well))] border',
     'transition-[border-color,background,box-shadow] duration-200',
     'disabled:opacity-50 disabled:cursor-not-allowed',
     'focus-visible:outline-none',

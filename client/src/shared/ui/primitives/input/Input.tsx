@@ -19,7 +19,7 @@ const inputVariants = cva(
   [
     'w-full relative',
     'text-foreground',
-    'bg-foreground/[0.02] border border-line-faint',
+    'bg-[hsl(var(--input-well))] border border-line-faint',
     'placeholder:text-foreground/40',
     'transition-[border-color,background,box-shadow] duration-200',
     'hover:border-foreground/30',

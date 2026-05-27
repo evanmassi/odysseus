@@ -91,7 +91,7 @@ function padSegmentForAdvance(segment: Segment, rawValue: string): string {
 const triggerVariants = cva(
   [
     'relative w-full',
-    'bg-foreground/[0.02] border',
+    'bg-[hsl(var(--input-well))] border',
     'flex items-center justify-between',
     'font-mono tracking-[0.04em]',
     'transition-[border-color,background,box-shadow] duration-200',

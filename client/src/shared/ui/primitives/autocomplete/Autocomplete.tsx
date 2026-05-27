@@ -246,7 +246,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
           disabled={disabled}
           className={
             inputClassName ??
-            `w-full h-9 px-3 text-sm bg-foreground/[0.02] border ${stateBorder} text-foreground placeholder:text-foreground/40 transition-[border-color,background,box-shadow] duration-200 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] ${FOCUS_SHADOW} disabled:opacity-50 disabled:cursor-not-allowed`
+            `w-full h-9 px-3 text-sm bg-[hsl(var(--input-well))] border ${stateBorder} text-foreground placeholder:text-foreground/40 transition-[border-color,background,box-shadow] duration-200 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] ${FOCUS_SHADOW} disabled:opacity-50 disabled:cursor-not-allowed`
           }
         />
         {dropdown}

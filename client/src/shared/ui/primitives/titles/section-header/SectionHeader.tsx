@@ -6,21 +6,38 @@
 
 import type { ReactNode } from 'react';
 
+export type SectionHeaderSize = 'sm' | 'md';
+
 export interface SectionHeaderProps {
   title: string;
   meta?: ReactNode;
   rightMeta?: ReactNode;
+  /** Title typography. 'md' (default, 12px) for admin/dashboard surfaces; 'sm' (10px) for in-form section dividers. */
+  size?: SectionHeaderSize;
   className?: string;
 }
 
-export function SectionHeader({ title, meta, rightMeta, className }: SectionHeaderProps) {
+const TITLE_SIZE: Record<SectionHeaderSize, string> = {
+  sm: 'text-[10px]',
+  md: 'text-[12px]',
+};
+
+export function SectionHeader({
+  title,
+  meta,
+  rightMeta,
+  size = 'md',
+  className,
+}: SectionHeaderProps) {
   return (
-    <div className={`flex items-center gap-3.5 pb-3.5 ${className ?? ''}`}>
+    <div className={`flex items-center gap-2.5 pb-3.5 ${className ?? ''}`}>
+      <span aria-hidden className="flex shrink-0 flex-col items-center gap-px">
+        <span className="h-0.5 w-0.5 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)]" />
+        <span className="h-2 w-0.5 [background:linear-gradient(180deg,hsl(var(--foreground)/0.6)_0%,hsl(var(--foreground)/0.55)_55%,transparent_100%)] shadow-[0_0_4px_hsl(var(--foreground)/0.35)]" />
+      </span>
       <span
-        aria-hidden
-        className="h-1.5 w-1.5 shrink-0 bg-foreground/80 shadow-[0_0_6px_hsl(var(--foreground)/0.5)]"
-      />
-      <span className="phosphor-text font-mono text-[12px] font-semibold uppercase tracking-[0.22em] text-foreground">
+        className={`phosphor-text font-mono ${TITLE_SIZE[size]} font-semibold uppercase tracking-[0.22em] text-foreground`}
+      >
         {title}
       </span>
       {meta && (
@@ -36,11 +53,7 @@ export function SectionHeader({ title, meta, rightMeta, className }: SectionHead
       <div className="relative flex flex-1 items-center">
         <span
           aria-hidden
-          className="absolute left-0 top-1/2 z-10 h-px w-2 -translate-y-1/2 bg-background"
-        />
-        <span
-          aria-hidden
-          className="h-px flex-1 [background:linear-gradient(90deg,hsl(var(--foreground)/0.08)_0%,hsl(var(--foreground)/0.22)_75%,hsl(var(--foreground)/0.18)_88%,transparent_100%)]"
+          className="h-px flex-1 [background:linear-gradient(90deg,transparent_0%,hsl(var(--foreground)/0.22)_30%,hsl(var(--foreground)/0.18)_85%,transparent_100%)]"
         />
         <span
           aria-hidden

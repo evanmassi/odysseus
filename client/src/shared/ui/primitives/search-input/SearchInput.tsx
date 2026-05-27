@@ -113,7 +113,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             ${styles.text}
             ${padding}
             font-mono tracking-[0.04em] text-foreground
-            bg-foreground/[0.02] border border-line-faint
+            bg-[hsl(var(--input-well))] border border-line-faint
             placeholder:text-foreground/40 placeholder:font-normal
             transition-[border-color,background,box-shadow] duration-200
             hover:border-foreground/30
