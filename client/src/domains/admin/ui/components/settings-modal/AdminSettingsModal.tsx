@@ -9,7 +9,6 @@ import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
 import {
   Shield,
   Activity,
-  Info,
   Save,
   ShieldUser,
   Gauge,
@@ -23,7 +22,16 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useStorageData } from '@domains/storage';
 import { logger } from '@infra/logger';
-import { AlertBanner, Button, Tab, LoadingSkeleton, Tabs, Tooltip } from '@shared/ui';
+import {
+  AlertBanner,
+  Button,
+  ConsolePanel,
+  Tab,
+  LoadingSkeleton,
+  Tabs,
+  Tooltip,
+  UnsavedChangesIndicator,
+} from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
 
@@ -158,10 +166,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  const hasChanges = Object.keys(config).some(key => {
-    const configKey = key as keyof SecurityConfig;
-    return config[configKey] !== originalConfig[configKey];
-  });
+  const changedCount = (Object.keys(config) as (keyof SecurityConfig)[]).filter(
+    key => config[key] !== originalConfig[key]
+  ).length;
+  const hasChanges = changedCount > 0;
 
   const handleClose = () => {
     if (hasChanges && activeTab === 'security') {
@@ -233,10 +241,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     activeTab === 'security' ? (
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-shrink min-w-0">
-          <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
-            <Info size={14} className="flex-shrink-0" />
-            <span className="truncate">Changes apply to all users immediately</span>
-          </div>
+          <UnsavedChangesIndicator count={changedCount} />
           {isDemo && (
             <Tooltip content="Some management features are restricted" side="top">
               <div>
@@ -299,7 +304,13 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     >
       {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <SecurityTab config={config} onChange={handleConfigChange} readOnly={securityReadOnly} />
+          <ConsolePanel>
+            <SecurityTab
+              config={config}
+              onChange={handleConfigChange}
+              readOnly={securityReadOnly}
+            />
+          </ConsolePanel>
         </Suspense>
       )}
 

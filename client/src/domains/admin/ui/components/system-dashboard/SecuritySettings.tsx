@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 import { ChevronDown, Save } from 'lucide-react';
 
-import { Button, ConsolePanel, SectionHeader } from '@shared/ui';
+import { Button, ConsolePanel, SectionHeader, UnsavedChangesIndicator } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
@@ -89,19 +89,7 @@ export function SecuritySettings() {
           <ConsolePanel>
             <SecurityTab config={config} onChange={handleConfigChange} />
             <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-black/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
-              {hasChanges ? (
-                <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-warning-text">
-                  <span
-                    aria-hidden
-                    className="h-[11px] w-0.5 bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]"
-                  />
-                  {changedKeys.length} unsaved {changedKeys.length === 1 ? 'change' : 'changes'}
-                </span>
-              ) : (
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground/35">
-                  No unsaved changes
-                </span>
-              )}
+              <UnsavedChangesIndicator count={changedKeys.length} />
               <Button
                 variant="primary"
                 size="sm"

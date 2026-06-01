@@ -123,5 +123,8 @@ export type {
 export { Toggle } from './toggle/Toggle';
 export type { ToggleProps } from './toggle/Toggle';
 
+export { UnsavedChangesIndicator } from './unsaved-changes-indicator/UnsavedChangesIndicator';
+export type { UnsavedChangesIndicatorProps } from './unsaved-changes-indicator/UnsavedChangesIndicator';
+
 export { Tooltip } from './tooltip/Tooltip';
 export type { TooltipProps } from './tooltip/Tooltip';

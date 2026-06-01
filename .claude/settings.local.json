@@ -133,7 +133,9 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\evanm\\\\odysseus\\\\client\\\\src\" -Recurse -Filter \"*.tsx\" -o File)",
       "Bash(Measure-Object)",
       "Bash(Select-Object -ExpandProperty Count)",
-      "PowerShell(Get-ChildItem *)"
+      "PowerShell(Get-ChildItem *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\dev\\\\odysseus\\\\client\\\\src\" -Directory)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

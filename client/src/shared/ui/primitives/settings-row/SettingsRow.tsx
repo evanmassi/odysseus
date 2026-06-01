@@ -1,7 +1,7 @@
 /**
  * Settings Row
  *
- * Label + hint on the left, single control on the right.
+ * Labeled control rows and the bracket-titled sections that group them.
  */
 
 import type { ReactNode } from 'react';
@@ -55,18 +55,22 @@ export interface BracketSectionProps {
   className?: string;
 }
 
-// A chassis compartment: a banded bracket-header strip over a two-column row
-// grid. Sections stack flush, split by a hairline (the first omits its top
-// rule). The 1px grid gaps render as hairline dividers; cells need an opaque
-// background to mask the gap fill — bg-card matches both the panel chassis and
-// the settings-modal surface. A child may carry `col-span-2` for a full row.
-const GRID_CLASSES = 'grid grid-cols-2 gap-px bg-line-soft [&>*]:bg-card [&>*]:px-5';
+// Transparent cells let the panel's ambient wash through, as in the table. Rows
+// separate with a crisp phosphor hairline — no bloom, which on these short rows
+// reads as haze rather than a divider; columns split on padding alone.
+const GRID_CLASSES =
+  'grid grid-cols-2 [&>*]:px-5 ' +
+  '[&>*]:shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim))]';
 
 export function BracketSection({ title, meta, children, className }: BracketSectionProps) {
   return (
     <div className={`border-t border-line-soft first:border-t-0 ${className ?? ''}`}>
-      <div className="border-b border-line-soft bg-black/15 [background-image:linear-gradient(180deg,hsl(var(--foreground)/0.06)_0%,transparent_85%)] px-5 py-3 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.09)]">
+      <div className="relative border-b border-line-soft bg-black/15 [background-image:linear-gradient(180deg,hsl(var(--foreground)/0.06)_0%,transparent_85%)] px-5 py-3 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.09)]">
         <BracketHeader title={title} meta={meta} />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -bottom-px h-px [background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.18)_12%,hsl(var(--primary)/0.18)_88%,transparent_100%)] shadow-[0_0_8px_hsl(var(--primary)/0.12),0_0_18px_hsl(var(--primary)/0.05)]"
+        />
       </div>
       <div className={GRID_CLASSES}>{children}</div>
     </div>
