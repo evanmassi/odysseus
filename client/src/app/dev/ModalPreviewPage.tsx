@@ -104,16 +104,23 @@ const SPECS: ModalSpec[] = [
   {
     id: 'session-timeout',
     group: 'Auth gateway',
-    label: 'Session Timeout — 5:00',
-    note: 'Warning tone, depleting ring',
+    label: 'Session Timeout — 5:00 (calm)',
+    note: 'Amber phosphor digits + diamond track',
     render: close => <SessionTimeoutPreview timeRemainingMs={5 * 60 * 1000} onClose={close} />,
   },
   {
-    id: 'session-timeout-urgent',
+    id: 'session-timeout-warn',
     group: 'Auth gateway',
-    label: 'Session Timeout — 0:45 (urgent)',
-    note: 'Danger tone + pulse under 60s',
+    label: 'Session Timeout — 0:45 (warn)',
+    note: 'Crimson tint, bloom heartbeat',
     render: close => <SessionTimeoutPreview timeRemainingMs={45 * 1000} onClose={close} />,
+  },
+  {
+    id: 'session-timeout-crit',
+    group: 'Auth gateway',
+    label: 'Session Timeout — 0:12 (critical)',
+    note: 'Bright crimson, faster beat',
+    render: close => <SessionTimeoutPreview timeRemainingMs={12 * 1000} onClose={close} />,
   },
   {
     id: 'password-reset',

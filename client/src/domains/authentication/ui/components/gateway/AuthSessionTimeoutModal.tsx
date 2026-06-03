@@ -2,7 +2,7 @@
  * Session Timeout Warning Modal
  *
  * Displays a countdown warning when the user's session is about to expire.
- * Features a circular progress ring that visually depletes as time runs out.
+ * Phosphor digits and a diamond depletion track that warm amber → crimson as time runs out.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -11,14 +11,12 @@ import { LogOut } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
-import { Button } from '@shared/ui';
+import { AlertBanner, Button } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 
 const EXIT_DURATION = 200;
 
-// Circle geometry for progress ring
-const CIRCLE_RADIUS = 54;
-const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
+const DIAMOND_COUNT = 24;
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -137,14 +135,10 @@ export function AuthSessionTimeoutModal() {
   const modalAnimationClass = isClosing ? 'animate-modal-blowup-out' : 'animate-modal-blowup-in';
 
   const formattedTime = formatTime(displayTime);
-  const isUrgent = displayTime <= 60000;
-
   const initialTime = initialTimeRef.current ?? timeRemainingMs;
   const progress = initialTime > 0 ? displayTime / initialTime : 0;
-  const strokeOffset = CIRCLE_CIRCUMFERENCE * (1 - progress);
-
-  const ringColor = isUrgent ? 'text-danger-bg' : 'text-warning-bg';
-  const borderColor = isUrgent ? 'border-danger-border' : 'border-warning-border';
+  const state = displayTime > 60000 ? 'calm' : displayTime > 15000 ? 'warn' : 'crit';
+  const litDiamonds = Math.round(progress * DIAMOND_COUNT);
 
   return (
     <ModalPortal>
@@ -157,91 +151,46 @@ export function AuthSessionTimeoutModal() {
           aria-modal="true"
           aria-label="Session expiring warning"
           aria-describedby="session-timeout-message"
-          className={`bg-card rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl border ${borderColor} ${modalAnimationClass}`}
+          data-state={state}
+          className={`auth-console-chrome session-timeout-modal p-6 w-full max-w-lg mx-4 ${modalAnimationClass}`}
         >
-          {/* Circular countdown timer */}
-          <div className="flex flex-col items-center mb-5">
-            <div className={`relative ${ringColor}`}>
-              {/* Glow layer (behind the ring) */}
-              <svg
-                width="140"
-                height="140"
-                viewBox="0 0 120 120"
-                className={`absolute inset-0 transform -rotate-90 ${isUrgent ? 'animate-countdown-pulse' : ''}`}
-                style={{ filter: 'blur(6px)', opacity: 0.5 }}
+          {/* Phosphor countdown readout + diamond depletion track */}
+          <div className="mb-6">
+            <div className="st-readout mb-3">
+              <span
+                className="st-time font-mono"
+                data-text={formattedTime}
+                role="timer"
+                aria-live="polite"
+                aria-label={`Time remaining: ${formattedTime}`}
               >
-                <circle
-                  cx="60"
-                  cy="60"
-                  r={CIRCLE_RADIUS}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  style={{
-                    strokeDasharray: CIRCLE_CIRCUMFERENCE,
-                    strokeDashoffset: strokeOffset,
-                    transition: 'stroke-dashoffset 1s linear',
-                  }}
-                />
-              </svg>
-
-              {/* Main ring */}
-              <svg
-                width="140"
-                height="140"
-                viewBox="0 0 120 120"
-                className="relative transform -rotate-90"
-              >
-                {/* Background track */}
-                <circle
-                  cx="60"
-                  cy="60"
-                  r={CIRCLE_RADIUS}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  className="opacity-15"
-                />
-                {/* Progress ring */}
-                <circle
-                  cx="60"
-                  cy="60"
-                  r={CIRCLE_RADIUS}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  style={{
-                    strokeDasharray: CIRCLE_CIRCUMFERENCE,
-                    strokeDashoffset: strokeOffset,
-                    transition: 'stroke-dashoffset 1s linear',
-                  }}
-                />
-              </svg>
-
-              {/* Timer text centered in ring */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span
-                  className={`text-3xl font-mono font-normal tracking-tight ${ringColor}`}
-                  role="timer"
-                  aria-live="polite"
-                  aria-label={`Time remaining: ${formattedTime}`}
-                >
-                  {formattedTime}
-                </span>
-              </div>
+                {formattedTime}
+              </span>
+              <span className="st-caption">Remaining</span>
             </div>
-
-            <p
-              id="session-timeout-message"
-              className="text-sm text-muted-foreground mt-3 text-center"
-            >
-              Your session will expire due to inactivity
-            </p>
+            <div className="st-track" aria-hidden>
+              {Array.from({ length: DIAMOND_COUNT }, (_, i) => {
+                const spent = i >= litDiamonds;
+                const lead = i === litDiamonds - 1;
+                return (
+                  <span
+                    key={i}
+                    className={`st-slot${spent ? ' is-spent' : ''}${lead ? ' is-lead' : ''}`}
+                  >
+                    <span className="st-diamond" />
+                  </span>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Actions - right aligned */}
+          <div id="session-timeout-message" className="mb-5">
+            <AlertBanner variant={state === 'calm' ? 'warning' : 'error'} spacing="none">
+              Your session will expire due to inactivity
+            </AlertBanner>
+          </div>
+
+          {/* Actions */}
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"
@@ -251,7 +200,7 @@ export function AuthSessionTimeoutModal() {
             >
               Log Out
             </Button>
-            <Button ref={stayLoggedInRef} variant="primary" size="sm" onClick={handleStayLoggedIn}>
+            <Button ref={stayLoggedInRef} variant="solid" size="sm" onClick={handleStayLoggedIn}>
               Stay Logged In
             </Button>
           </div>

@@ -1,0 +1,138 @@
+/**
+ * Session Timer
+ *
+ * Phosphor countdown readout + diamond depletion track for the session-timeout
+ * modal. A single --tint, driven by the modal's data-state, warms amber → crimson
+ * as time runs out; the surrounding chrome glow follows at low intensity.
+ */
+
+@layer components {
+  .session-timeout-modal {
+    --tint: hsl(var(--color-warning-bg));
+    --tint-soft: hsl(var(--color-warning-bg) / 0.5);
+    transition: box-shadow 600ms ease;
+  }
+  .session-timeout-modal[data-state='warn'] {
+    --tint: hsl(var(--color-danger-bg));
+    --tint-soft: hsl(var(--color-danger-bg) / 0.5);
+  }
+  .session-timeout-modal[data-state='crit'] {
+    --tint: color-mix(in srgb, hsl(var(--color-danger-bg)), white 16%);
+    --tint-soft: hsl(var(--color-danger-bg) / 0.62);
+  }
+
+  /* Status halo layered over the auth-console chrome — kept low so it reads as the
+     existing light warming, not a second hard bloom. */
+  .session-timeout-modal::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: 0 0 52px -24px var(--tint-soft);
+    transition: box-shadow 600ms ease;
+  }
+
+  /* ── readout: phosphor digits + faint caption ── */
+  .session-timeout-modal .st-readout {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .session-timeout-modal .st-time {
+    position: relative;
+    font-variant-numeric: tabular-nums;
+    font-size: 52px;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--tint);
+    text-shadow:
+      0 0 18px var(--tint-soft),
+      0 0 3px var(--tint-soft);
+    transition:
+      color 400ms ease,
+      text-shadow 400ms ease;
+  }
+  /* CRT scanlines confined to the glyphs — duplicate text masked by background-clip. */
+  .session-timeout-modal .st-time::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.3) 2px 3px);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    pointer-events: none;
+  }
+  .session-timeout-modal .st-caption {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--foreground) / 0.34);
+  }
+
+  /* Breathe the bloom under 1:00 — soft, no layout shift; faster when critical. */
+  .session-timeout-modal[data-state='warn'] .st-time {
+    animation: st-pulse 1.4s ease-in-out infinite;
+  }
+  .session-timeout-modal[data-state='crit'] .st-time {
+    animation: st-pulse 0.72s ease-in-out infinite;
+  }
+  @keyframes st-pulse {
+    0%,
+    100% {
+      text-shadow:
+        0 0 16px var(--tint-soft),
+        0 0 3px var(--tint-soft);
+    }
+    50% {
+      text-shadow:
+        0 0 23px var(--tint-soft),
+        0 0 4px var(--tint-soft);
+    }
+  }
+
+  /* ── diamond depletion track ── */
+  .session-timeout-modal .st-track {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    width: 100%;
+    height: 16px;
+  }
+  .session-timeout-modal .st-slot {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Clip-path (not rotate) gives the diamond silhouette while keeping the box axis-aligned;
+     drop-shadow carries a very soft phosphor halo along that silhouette. */
+  .session-timeout-modal .st-diamond {
+    width: 10px;
+    height: 10px;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    background: var(--tint);
+    filter: drop-shadow(0 0 1px var(--tint-soft)) drop-shadow(0 0 4px var(--tint-soft));
+    transition:
+      transform 280ms ease,
+      background 280ms ease,
+      filter 280ms ease;
+  }
+  /* Spent slots shrink to a small residual diamond — present but dim, never blacked out. */
+  .session-timeout-modal .st-slot.is-spent .st-diamond {
+    transform: scale(0.4);
+    background: hsl(var(--foreground) / 0.2);
+    filter: none;
+  }
+  .session-timeout-modal .st-slot.is-lead .st-diamond {
+    filter: drop-shadow(0 0 1px var(--tint)) drop-shadow(0 0 6px var(--tint-soft));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .session-timeout-modal .st-time {
+      animation: none !important;
+    }
+  }
+}
