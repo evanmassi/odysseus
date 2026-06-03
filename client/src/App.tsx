@@ -4,6 +4,8 @@
  * Top-level component that orchestrates bootstrap, routing, and global overlays.
  */
 
+import { lazy, Suspense } from 'react';
+
 import { Routes, Route } from 'react-router-dom';
 
 import { useAppBootstrap } from '@app/bootstrap';
@@ -20,6 +22,14 @@ import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/g
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 import { ErrorBanner } from '@shared/ui';
+
+// Dev-only modal preview harness; the dynamic import is dead-code-eliminated from
+// production builds, so neither the route nor its component ships.
+const ModalPreviewPage = import.meta.env.DEV
+  ? lazy(() =>
+      import('@app/dev/ModalPreviewPage').then(module => ({ default: module.ModalPreviewPage }))
+    )
+  : null;
 
 function AppContent() {
   // Only App.tsx calls useAppBootstrap() — other components use BootstrapContext
@@ -58,6 +68,16 @@ function AppContent() {
         <Routes>
           <Route path="/verify-email" element={<AuthEmailVerificationPage />} />
           <Route path="/reset-password" element={<AuthPasswordResetPage />} />
+          {ModalPreviewPage && (
+            <Route
+              path="/__dev/modals"
+              element={
+                <Suspense fallback={null}>
+                  <ModalPreviewPage />
+                </Suspense>
+              }
+            />
+          )}
           <Route
             path="*"
             element={
