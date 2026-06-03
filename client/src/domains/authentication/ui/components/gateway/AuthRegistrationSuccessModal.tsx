@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 import { Copy, Check } from 'lucide-react';
 
-import { AlertBanner, Button } from '@shared/ui';
+import { Button } from '@shared/ui';
 import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
 
 export interface AuthRegistrationSuccessModalProps {
@@ -42,16 +42,19 @@ export function AuthRegistrationSuccessModal({
 
   return (
     <div key="registration-success" className="animate-auth-stack">
-      <div className="flex justify-center mb-3">
-        <AnimatedCheckmark size={64} className="text-success-text" delay={750} />
+      <div className="flex items-center gap-2.5 mb-6">
+        <AnimatedCheckmark size={28} className="text-success-text phosphor-glow" delay={250} />
+        <h2 className="text-base font-semibold text-success-text phosphor-text">Account Created</h2>
       </div>
-      <div className="text-center mb-6">
-        <h2 className="text-base text-success-text phosphor-text mb-1">Account Created</h2>
-        <p className="text-xs text-[rgb(var(--auth-text-mute))]">Ready to sign in</p>
+
+      <div className="auth-microheader mb-6">
+        <span className="auth-microheader-bar" />
+        <span className="phosphor-text">[ Ready to sign in ]</span>
+        <span className="auth-microheader-rule" />
       </div>
 
       <div className="mb-6">
-        <div className="auth-input-console state-default">
+        <div className="auth-input-console state-success">
           <span className="auth-input-console__label">Your username</span>
           <div className="auth-input-console__field">
             <span
@@ -81,15 +84,6 @@ export function AuthRegistrationSuccessModal({
             </button>
           </div>
         </div>
-        <p className="text-[10px] text-[rgb(var(--auth-text-faint))] mt-2 ml-1">
-          Save this username for future login
-        </p>
-      </div>
-
-      <div className="mb-6">
-        <AlertBanner variant="info" spacing="none" className="text-xs">
-          You&apos;re all set. Sign in with your username and password.
-        </AlertBanner>
       </div>
 
       <Button variant="primary" tail ceremonial fullWidth onClick={onClose}>

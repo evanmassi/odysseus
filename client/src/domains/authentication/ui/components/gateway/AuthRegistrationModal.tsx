@@ -231,9 +231,9 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
     regState === 'success'
       ? {
           contentKey: 'registration:success',
-          variant: 'stack',
+          variant: 'console',
           width: 'narrow',
-          showBranding: 'icon',
+          showBranding: true,
         }
       : {
           contentKey: regState === 'form' ? 'registration:form' : 'registration:invite',
