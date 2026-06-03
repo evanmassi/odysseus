@@ -22,7 +22,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 
-import { BracketedStamp, Button, ConsolePanel, IdStamp, SectionHeader, StatCell } from '@shared/ui';
+import { Button, ConsolePanel, IdStamp, PanelHeader, SectionHeader, StatCell } from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -315,7 +315,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
 
   return (
     <div className="space-y-4">
-      <BracketedStamp
+      <PanelHeader
         title="Labs"
         icon={<FlaskConical size={14} />}
         actions={

@@ -1,12 +1,12 @@
 /**
  * Settings Row
  *
- * Labeled control rows and the bracket-titled sections that group them.
+ * Labeled control rows and the index-titled sections that group them.
  */
 
 import type { ReactNode } from 'react';
 
-import { BracketHeader } from '../titles/bracket-header/BracketHeader';
+import { SubsectionHeader } from '../titles/subsection-header/SubsectionHeader';
 
 export interface SettingsRowProps {
   label: string;
@@ -48,8 +48,9 @@ export function SettingsRowGroup({ children, className }: SettingsRowGroupProps)
   return <div className={`${GROUP_CLASSES} ${className ?? ''}`}>{children}</div>;
 }
 
-export interface BracketSectionProps {
+export interface SubsectionProps {
   title: ReactNode;
+  index?: number;
   meta?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -62,11 +63,11 @@ const GRID_CLASSES =
   'grid grid-cols-2 [&>*]:px-5 ' +
   '[&>*]:shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim))]';
 
-export function BracketSection({ title, meta, children, className }: BracketSectionProps) {
+export function Subsection({ title, index, meta, children, className }: SubsectionProps) {
   return (
     <div className={`border-t border-line-soft first:border-t-0 ${className ?? ''}`}>
       <div className="relative border-b border-line-soft bg-black/15 [background-image:linear-gradient(180deg,hsl(var(--foreground)/0.06)_0%,transparent_85%)] px-5 py-3 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.09)]">
-        <BracketHeader title={title} meta={meta} />
+        <SubsectionHeader title={title} index={index} meta={meta} />
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 -bottom-px h-px [background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.18)_12%,hsl(var(--primary)/0.18)_88%,transparent_100%)] shadow-[0_0_8px_hsl(var(--primary)/0.12),0_0_18px_hsl(var(--primary)/0.05)]"

@@ -4,7 +4,7 @@
  * Authentication, session, and login-protection policies for admins.
  */
 
-import { AlertBanner, BracketSection, NumberInput, SettingsRow, Toggle } from '@shared/ui';
+import { AlertBanner, NumberInput, SettingsRow, Subsection, Toggle } from '@shared/ui';
 
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
@@ -26,7 +26,7 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
         </AlertBanner>
       )}
 
-      <BracketSection title="Authentication">
+      <Subsection title="Authentication" index={1}>
         <SettingsRow label="Enhanced Authentication" hint="Stronger password auth">
           <Toggle
             checked={config.useEnhancedAuth}
@@ -65,9 +65,9 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
             aria-label="Require special characters in passwords"
           />
         </SettingsRow>
-      </BracketSection>
+      </Subsection>
 
-      <BracketSection title="Session Management">
+      <Subsection title="Session Management" index={2}>
         <SettingsRow label="Auto-Logout" hint="Logout after inactivity · 5–10080 min">
           <NumberInput
             value={config.sessionTimeoutMinutes}
@@ -112,9 +112,9 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
             aria-label="Access token expiry in minutes"
           />
         </SettingsRow>
-      </BracketSection>
+      </Subsection>
 
-      <BracketSection title="Login Protection">
+      <Subsection title="Login Protection" index={3}>
         <SettingsRow
           label="Enable Login Protection"
           hint="Prevent brute-force attacks"
@@ -149,7 +149,7 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
             aria-label="Lockout duration in minutes"
           />
         </SettingsRow>
-      </BracketSection>
+      </Subsection>
     </div>
   );
 }

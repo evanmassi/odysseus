@@ -13,12 +13,6 @@ export type { AlertBannerProps, AlertBannerVariant } from './banners/types';
 export { Badge } from './badge/Badge';
 export type { BadgeProps } from './badge/Badge';
 
-export { BracketedStamp } from './titles/bracketed-stamp/BracketedStamp';
-export type { BracketedStampProps } from './titles/bracketed-stamp/BracketedStamp';
-
-export { BracketHeader } from './titles/bracket-header/BracketHeader';
-export type { BracketHeaderProps } from './titles/bracket-header/BracketHeader';
-
 export { Button } from './button/Button';
 export type { ButtonProps, ButtonVariant, ButtonSize, ButtonRef } from './button/types';
 
@@ -81,15 +75,21 @@ export type { SelectProps, SelectOption, SelectSize, SelectState, SelectRef } fr
 export { Panel } from './panel/Panel';
 export type { PanelProps } from './panel/Panel';
 
+export { PanelHeader } from './titles/panel-header/PanelHeader';
+export type { PanelHeaderProps } from './titles/panel-header/PanelHeader';
+
 export { SectionHeader } from './titles/section-header/SectionHeader';
 export type { SectionHeaderProps } from './titles/section-header/SectionHeader';
 
 export { SectionToolbar } from './titles/section-toolbar/SectionToolbar';
 export type { SectionToolbarProps } from './titles/section-toolbar/SectionToolbar';
 
-export { BracketSection, SettingsRow, SettingsRowGroup } from './settings-row/SettingsRow';
+export { SubsectionHeader } from './titles/subsection-header/SubsectionHeader';
+export type { SubsectionHeaderProps } from './titles/subsection-header/SubsectionHeader';
+
+export { Subsection, SettingsRow, SettingsRowGroup } from './settings-row/SettingsRow';
 export type {
-  BracketSectionProps,
+  SubsectionProps,
   SettingsRowProps,
   SettingsRowGroupProps,
 } from './settings-row/SettingsRow';

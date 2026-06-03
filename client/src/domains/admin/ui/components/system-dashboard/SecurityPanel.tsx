@@ -20,10 +20,10 @@ import {
 
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import {
-  BracketedStamp,
   Button,
   Chip,
   ConsolePanel,
+  PanelHeader,
   SectionHeader,
   StatCell,
   Table,
@@ -482,7 +482,7 @@ export function SecurityPanel() {
 
   return (
     <div className="space-y-8">
-      <BracketedStamp
+      <PanelHeader
         title="Security"
         icon={<Shield size={14} />}
         actions={

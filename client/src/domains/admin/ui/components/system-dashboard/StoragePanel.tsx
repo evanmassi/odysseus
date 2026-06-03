@@ -21,11 +21,11 @@ import {
 } from 'lucide-react';
 
 import {
-  BracketedStamp,
   Button,
   Chip,
   ConsolePanel,
   IdStamp,
+  PanelHeader,
   SectionHeader,
   StatCell,
   Table,
@@ -198,7 +198,7 @@ export function StoragePanel() {
 
   return (
     <div className="space-y-8">
-      <BracketedStamp
+      <PanelHeader
         title="Storage"
         icon={<HardDrive size={14} />}
         actions={

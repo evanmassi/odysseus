@@ -31,9 +31,9 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className={`flex items-center gap-2.5 pb-3.5 ${className ?? ''}`}>
-      <span aria-hidden className="flex shrink-0 flex-col items-center gap-px">
-        <span className="h-0.5 w-0.5 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)]" />
-        <span className="h-2 w-0.5 [background:linear-gradient(180deg,hsl(var(--foreground)/0.6)_0%,hsl(var(--foreground)/0.55)_55%,transparent_100%)] shadow-[0_0_4px_hsl(var(--foreground)/0.35)]" />
+      <span aria-hidden className="flex shrink-0 items-end gap-0.5">
+        <span className="h-[17px] w-[3px] bg-foreground shadow-[0_0_10px_-3px_hsl(var(--foreground)/0.5)]" />
+        <span className="h-[11px] w-0.5 bg-foreground/45" />
       </span>
       <span
         className={`phosphor-text font-mono ${TITLE_SIZE[size]} font-semibold uppercase tracking-[0.22em] text-foreground`}
@@ -45,7 +45,7 @@ export function SectionHeader({
           <span aria-hidden className="font-mono text-[12px] text-foreground/35">
             ·
           </span>
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.20em] text-muted-foreground">
+          <span className="inline-flex items-center font-mono text-[10.5px] uppercase tracking-[0.20em] text-muted-foreground">
             {meta}
           </span>
         </>

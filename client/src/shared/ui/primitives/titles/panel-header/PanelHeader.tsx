@@ -1,12 +1,12 @@
 /**
- * Bracketed Stamp
+ * Panel Header
  *
  * Tab-level title chip framed by mono brackets, with optional meta and trailing actions.
  */
 
 import type { ReactNode } from 'react';
 
-export interface BracketedStampProps {
+export interface PanelHeaderProps {
   title: ReactNode;
   meta?: string;
   icon?: ReactNode;
@@ -14,7 +14,7 @@ export interface BracketedStampProps {
   className?: string;
 }
 
-export function BracketedStamp({ title, meta, icon, actions, className }: BracketedStampProps) {
+export function PanelHeader({ title, meta, icon, actions, className }: PanelHeaderProps) {
   return (
     <div className={`flex items-baseline gap-3 ${className ?? ''}`}>
       <div className="flex items-baseline gap-2">
