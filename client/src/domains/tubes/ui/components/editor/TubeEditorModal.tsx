@@ -772,7 +772,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         <div className="space-y-3">
           {positionAnalysis.isMixed && (
             <AlertBanner variant="warning" spacing="none" animate={false}>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <span>
                   Overwrite {positionAnalysis.occupiedPositions.length} occupied position
                   {positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}?

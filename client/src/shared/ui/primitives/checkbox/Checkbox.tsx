@@ -1,11 +1,13 @@
 /**
  * Checkbox
  *
- * Status-LED checkbox — dark inner well with hairline frame, L-bracket
- * corners, and a primary fill plus halo when checked.
+ * Status-LED checkbox — dark inner well with hairline frame, diagonal
+ * L-bracket corners, and a tone fill plus halo when checked.
  */
 
 import { forwardRef } from 'react';
+
+export type CheckboxTone = 'primary' | 'success';
 
 export interface CheckboxProps {
   checked: boolean;
@@ -14,8 +16,42 @@ export interface CheckboxProps {
   id?: string;
   disabled?: boolean;
   indeterminate?: boolean;
+  tone?: CheckboxTone;
   className?: string;
 }
+
+// One literal string per field per tone — Tailwind JIT can't see interpolated classes.
+const TONE: Record<
+  CheckboxTone,
+  {
+    bracket: string;
+    fill: string;
+    icon: string;
+    iconShadow: string;
+    glow: string;
+    bar: string;
+    barShadow: string;
+  }
+> = {
+  primary: {
+    bracket: 'border-primary',
+    fill: 'bg-action-light',
+    icon: 'text-primary',
+    iconShadow: 'drop-shadow(0 0 2px hsl(var(--primary) / var(--alpha-checkbox-shadow)))',
+    glow: 'shadow-[0_0_6px_1px_hsl(var(--primary)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--primary)/var(--alpha-checkbox-glow-outer))]',
+    bar: 'bg-primary',
+    barShadow: 'shadow-[0_0_4px_hsl(var(--primary)/var(--alpha-checkbox-shadow))]',
+  },
+  success: {
+    bracket: 'border-success-bg',
+    fill: 'bg-success-light',
+    icon: 'text-success-text',
+    iconShadow: 'drop-shadow(0 0 2px hsl(var(--color-success-bg) / var(--alpha-checkbox-shadow)))',
+    glow: 'shadow-[0_0_6px_1px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-outer))]',
+    bar: 'bg-success-bg',
+    barShadow: 'shadow-[0_0_4px_hsl(var(--color-success-bg)/var(--alpha-checkbox-shadow))]',
+  },
+};
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   (
@@ -26,6 +62,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       id,
       disabled = false,
       indeterminate = false,
+      tone = 'primary',
       className = '',
     },
     ref
@@ -41,13 +78,14 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       }
     };
 
+    const t = TONE[tone];
     const isLit = checked || indeterminate;
-    const bracketColor = isLit ? 'border-primary' : 'border-line-strong';
-    const boxGlow = isLit ? 'shadow-[0_0_4px_hsl(var(--primary)/0.3)]' : '';
+    const bracketColor = isLit ? t.bracket : 'border-line-strong';
+    const boxGlow = isLit ? t.glow : '';
 
     return (
       <label
-        className={`relative inline-flex h-4 w-4 items-center justify-center ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
+        className={`relative inline-flex h-3.5 w-3.5 items-center justify-center ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
       >
         <input
           ref={handleRef}
@@ -61,19 +99,11 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         />
         <span
           aria-hidden
-          className={`absolute inset-0 ${isLit ? 'bg-action-light' : 'bg-surface-void/30'} ${boxGlow}`}
+          className={`absolute inset-0 ${isLit ? t.fill : 'bg-surface-void/30'} ${boxGlow}`}
         />
         <span
           aria-hidden
           className={`absolute -top-px -left-px h-1 w-1 border-t border-l ${bracketColor}`}
-        />
-        <span
-          aria-hidden
-          className={`absolute -top-px -right-px h-1 w-1 border-t border-r ${bracketColor}`}
-        />
-        <span
-          aria-hidden
-          className={`absolute -bottom-px -left-px h-1 w-1 border-b border-l ${bracketColor}`}
         />
         <span
           aria-hidden
@@ -82,8 +112,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         {checked && !indeterminate && (
           <svg
             aria-hidden
-            className="absolute inset-0 text-primary"
-            style={{ filter: 'drop-shadow(0 0 2px hsl(var(--primary) / 0.6))' }}
+            className={`absolute inset-0 ${t.icon}`}
+            style={{ filter: t.iconShadow }}
             viewBox="0 0 16 16"
             fill="none"
             stroke="currentColor"
@@ -97,7 +127,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         {indeterminate && (
           <span
             aria-hidden
-            className="absolute top-1/2 right-[3px] left-[3px] h-0.5 -translate-y-1/2 bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.6)]"
+            className={`absolute top-1/2 right-[3px] left-[3px] h-0.5 -translate-y-1/2 ${t.bar} ${t.barShadow}`}
           />
         )}
       </label>

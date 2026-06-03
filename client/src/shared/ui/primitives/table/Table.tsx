@@ -8,6 +8,8 @@ import React, { createContext, useContext } from 'react';
 
 import { cva } from 'class-variance-authority';
 
+import { Checkbox } from '../checkbox/Checkbox';
+
 import { defaultTableProps } from './types';
 
 import type { RowState, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
@@ -19,38 +21,6 @@ type GlowTone = 'primary' | 'success';
 
 const stateToGlowTone = (state: RowState): GlowTone =>
   state === 'success' ? 'success' : 'primary';
-
-const CHECKBOX_TONE: Record<
-  GlowTone,
-  {
-    bracket: string;
-    fill: string;
-    icon: string;
-    iconShadow: string;
-    glow: string;
-    bar: string;
-    barShadow: string;
-  }
-> = {
-  primary: {
-    bracket: 'border-primary',
-    fill: 'bg-action-light',
-    icon: 'text-primary',
-    iconShadow: 'drop-shadow(0 0 2px hsl(var(--primary) / var(--alpha-checkbox-shadow)))',
-    glow: 'shadow-[0_0_6px_1px_hsl(var(--primary)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--primary)/var(--alpha-checkbox-glow-outer))]',
-    bar: 'bg-primary',
-    barShadow: 'shadow-[0_0_4px_hsl(var(--primary)/var(--alpha-checkbox-shadow))]',
-  },
-  success: {
-    bracket: 'border-success-bg',
-    fill: 'bg-success-light',
-    icon: 'text-success-text',
-    iconShadow: 'drop-shadow(0 0 2px hsl(var(--color-success-bg) / var(--alpha-checkbox-shadow)))',
-    glow: 'shadow-[0_0_6px_1px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-outer))]',
-    bar: 'bg-success-bg',
-    barShadow: 'shadow-[0_0_4px_hsl(var(--color-success-bg)/var(--alpha-checkbox-shadow))]',
-  },
-};
 
 // Each block is one literal string per tone — Tailwind JIT won't see interpolated classes.
 const ROW_GLOW: Record<GlowTone, string> = {
@@ -78,6 +48,19 @@ const ROW_GLOW: Record<GlowTone, string> = {
 
 const CHECKBOX_CELL_OVERRIDE = '!px-3 text-center w-10';
 
+// Warm, opaque header surface ported from the settings subsection header. `lit` adds the
+// top-left → bottom-right directional glow; only the topmost bar gets it (the toolbar when
+// present, else the column-header row) so the light reads once across the top, not twice.
+const HEADER_SHEEN = 'linear-gradient(180deg, hsl(var(--foreground) / 0.025) 0%, transparent 35%)';
+const HEADER_GLOW = [
+  'radial-gradient(ellipse 65% 120% at 0% 0%, hsl(var(--foreground) / 0.05), transparent 60%)',
+  'radial-gradient(ellipse 60% 120% at 100% 100%, hsl(var(--foreground) / 0.035), transparent 70%)',
+];
+const HEADER_BASE = 'color-mix(in srgb, hsl(var(--card)) 85%, black)';
+const HEADER_TOP_EDGE = 'inset 0 1px 0 hsl(var(--foreground) / var(--alpha-header-rim))';
+const headerSurface = (lit: boolean): string =>
+  [HEADER_SHEEN, ...(lit ? HEADER_GLOW : []), HEADER_BASE].join(', ');
+
 const TableContext = createContext<TableContextValue | null>(null);
 
 const useTableContext = () => {
@@ -92,7 +75,6 @@ const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
     'text-left text-foreground/60',
-    '[background:linear-gradient(0deg,hsl(0_0%_0%/0.14),hsl(0_0%_0%/0.14)),hsl(var(--bg-panel-2)/0.92)]',
     'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
@@ -238,75 +220,13 @@ const SortIndicator: React.FC<SortIndicatorProps> = ({ direction }) => (
   </svg>
 );
 
-interface TableCheckboxProps {
-  checked: boolean;
-  indeterminate?: boolean;
-  onChange: (checked: boolean) => void;
-  'aria-label'?: string;
-  state?: RowState;
-}
-
-const TableCheckbox: React.FC<TableCheckboxProps> = ({
-  checked,
-  indeterminate,
-  onChange,
-  'aria-label': ariaLabel,
-  state = 'default',
+const TableHeader = <T,>({
+  columns,
+  hasToolbar,
+}: {
+  columns: TableColumn<T>[];
+  hasToolbar: boolean;
 }) => {
-  const isLit = checked || Boolean(indeterminate);
-  const t = CHECKBOX_TONE[stateToGlowTone(state)];
-  const bracketColor = isLit ? t.bracket : 'border-line-strong';
-  const boxGlow = isLit ? t.glow : '';
-  return (
-    <label className="relative inline-flex h-3.5 w-3.5 cursor-pointer items-center justify-center">
-      <input
-        type="checkbox"
-        checked={checked}
-        ref={input => {
-          if (input) input.indeterminate = Boolean(indeterminate);
-        }}
-        onChange={e => onChange(e.target.checked)}
-        aria-label={ariaLabel}
-        className="sr-only"
-      />
-      <span
-        aria-hidden
-        className={`absolute inset-0 ${isLit ? t.fill : 'bg-surface-void/30'} ${boxGlow}`}
-      />
-      <span
-        aria-hidden
-        className={`absolute -top-px -left-px h-1 w-1 border-t border-l ${bracketColor}`}
-      />
-      <span
-        aria-hidden
-        className={`absolute -right-px -bottom-px h-1 w-1 border-b border-r ${bracketColor}`}
-      />
-      {checked && !indeterminate && (
-        <svg
-          aria-hidden
-          className={`absolute inset-0 ${t.icon}`}
-          style={{ filter: t.iconShadow }}
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 5L6.5 10.5L4 8" />
-        </svg>
-      )}
-      {indeterminate && (
-        <span
-          aria-hidden
-          className={`absolute top-1/2 right-[3px] left-[3px] h-0.5 -translate-y-1/2 ${t.bar} ${t.barShadow}`}
-        />
-      )}
-    </label>
-  );
-};
-
-const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
   const {
     selectable,
     multiSelect,
@@ -331,11 +251,14 @@ const TableHeader = <T,>({ columns }: { columns: TableColumn<T>[] }) => {
 
   return (
     <thead>
-      <tr className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-[hsl(var(--foreground)/0.08)]">
+      <tr
+        className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-[hsl(var(--foreground)/0.08)]"
+        style={{ background: headerSurface(!hasToolbar) }}
+      >
         {selectable && (
           <th className={`${headerVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
             {multiSelect && (
-              <TableCheckbox
+              <Checkbox
                 checked={selectedRows.length > 0}
                 indeterminate={selectedRows.length > 0 && selectedRows.length < allRowIds.length}
                 onChange={handleSelectAll}
@@ -457,11 +380,11 @@ const TableBody = <T extends TableRowBase>({
           >
             {selectable && (
               <td className={`${cellVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
-                <TableCheckbox
+                <Checkbox
                   checked={isSelected}
                   onChange={checked => handleRowSelect(row.id, checked)}
                   aria-label={`Select row ${index + 1}`}
-                  state={state}
+                  tone={stateToGlowTone(state)}
                 />
               </td>
             )}
@@ -532,7 +455,7 @@ export function Table<T extends TableRowBase>({
         role="table"
         aria-label={ariaLabel}
       >
-        <TableHeader columns={columns} />
+        <TableHeader columns={columns} hasToolbar={Boolean(toolbar)} />
         <TableBody
           columns={columns}
           data={data}
@@ -590,12 +513,8 @@ export function Table<T extends TableRowBase>({
         <div
           className="relative flex items-center gap-3 px-4 py-3 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-[hsl(var(--foreground)/0.06)]"
           style={{
-            // High-opacity base keeps the toolbar from washing out; a heavier dark overlay
-            // distinguishes it from the header which uses the same base with a lighter overlay.
-            background: [
-              'linear-gradient(180deg, hsl(0 0% 0% / 0.22), hsl(0 0% 0% / 0.22))',
-              'hsl(var(--bg-panel-2) / 0.92)',
-            ].join(', '),
+            background: headerSurface(true),
+            boxShadow: HEADER_TOP_EDGE,
           }}
         >
           {toolbar.left}
