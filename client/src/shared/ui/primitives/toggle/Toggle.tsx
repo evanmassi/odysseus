@@ -44,7 +44,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
 
     const trackTone = checked
       ? 'bg-[hsl(var(--primary)/0.10)] border-primary/40 shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]'
-      : 'bg-foreground/[0.02] border-line-mid';
+      : 'border-line-mid shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
 
     const knobTone = checked
       ? `${s.knobOnX} bg-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.55),0_0_10px_0_hsl(var(--primary)/0.65)]`

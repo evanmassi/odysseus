@@ -56,12 +56,11 @@ export interface SubsectionProps {
   className?: string;
 }
 
-// Transparent cells let the panel's ambient wash through, as in the table. Rows
-// separate with a crisp phosphor hairline — no bloom, which on these short rows
-// reads as haze rather than a divider; columns split on padding alone.
+// clip-path trims the grid's leftmost 1px so each cell's left rim reads only as an
+// inter-column divider — never at the grid edge or down a full-width row.
 const GRID_CLASSES =
-  'grid grid-cols-2 [&>*]:px-5 ' +
-  '[&>*]:shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim))]';
+  'grid grid-cols-2 [clip-path:inset(-100px_-100px_-100px_1px)] [&>*]:px-5 ' +
+  '[&>*]:shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_1px_0_0_hsl(var(--foreground)/var(--alpha-phosphor-rim))]';
 
 export function Subsection({ title, index, meta, children, className }: SubsectionProps) {
   return (
