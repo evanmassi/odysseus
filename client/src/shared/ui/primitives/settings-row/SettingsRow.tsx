@@ -65,7 +65,7 @@ const GRID_CLASSES =
 export function Subsection({ title, index, meta, children, className }: SubsectionProps) {
   return (
     <div className={`border-t border-line-soft first:border-t-0 ${className ?? ''}`}>
-      <div className="relative border-b border-line-soft bg-black/15 [background-image:linear-gradient(180deg,hsl(var(--foreground)/0.06)_0%,transparent_85%)] px-5 py-3 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.09)]">
+      <div className="relative border-b border-line-soft [background:linear-gradient(180deg,hsl(var(--foreground)/0.025)_0%,transparent_35%),radial-gradient(ellipse_65%_120%_at_0%_0%,hsl(var(--foreground)/0.05),transparent_60%),radial-gradient(ellipse_60%_120%_at_100%_100%,hsl(var(--foreground)/0.035),transparent_70%),color-mix(in_srgb,hsl(var(--card))_85%,black)] px-5 py-3 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.05)]">
         <SubsectionHeader title={title} index={index} meta={meta} />
         <span
           aria-hidden
