@@ -8,8 +8,7 @@ import { useState } from 'react';
 
 import { Copy, Check } from 'lucide-react';
 
-import { Button } from '@shared/ui';
-import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
+import { AlertBanner, Button } from '@shared/ui';
 
 export interface AuthRegistrationSuccessModalProps {
   username: string;
@@ -42,10 +41,9 @@ export function AuthRegistrationSuccessModal({
 
   return (
     <div key="registration-success" className="animate-auth-stack">
-      <div className="flex items-center gap-2.5 mb-6">
-        <AnimatedCheckmark size={28} className="text-success-text phosphor-glow" delay={250} />
-        <h2 className="text-base font-semibold text-success-text phosphor-text">Account Created</h2>
-      </div>
+      <AlertBanner variant="success" spacing="lg">
+        Account created
+      </AlertBanner>
 
       <div className="auth-microheader mb-6">
         <span className="auth-microheader-bar" />
