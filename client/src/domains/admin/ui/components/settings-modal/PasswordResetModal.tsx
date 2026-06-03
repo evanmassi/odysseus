@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 
-import { KeyRound, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react';
+import { KeyRound, Copy, Check, RotateCcwKey, ExternalLink, Clock, RotateCcw } from 'lucide-react';
 
 import { logger } from '@infra/logger';
 import { AuthInput, Button, Tab, Tabs, Toggle } from '@shared/ui';
@@ -29,6 +29,22 @@ function getPasswordStrengthColor(password: string): string {
   if (strength === 'Too short' || strength === 'Weak') return 'text-danger-text';
   if (strength === 'Medium') return 'text-warning-text';
   if (strength === 'Strong') return 'text-success-text';
+  return '';
+}
+
+function getPasswordStrengthLevel(password: string): number {
+  const strength = getPasswordStrength(password);
+  if (strength === 'Strong') return 3;
+  if (strength === 'Medium') return 2;
+  if (strength === 'Weak' || strength === 'Too short') return 1;
+  return 0;
+}
+
+function getPasswordStrengthBar(password: string): string {
+  const strength = getPasswordStrength(password);
+  if (strength === 'Too short' || strength === 'Weak') return 'bg-danger-bg';
+  if (strength === 'Medium') return 'bg-warning-bg';
+  if (strength === 'Strong') return 'bg-success-bg';
   return '';
 }
 
@@ -120,6 +136,11 @@ export function PasswordResetModal({
     }
   };
 
+  const strengthLabel = getPasswordStrength(newPassword);
+  const strengthLevel = getPasswordStrengthLevel(newPassword);
+  const strengthBar = getPasswordStrengthBar(newPassword);
+  const strengthText = getPasswordStrengthColor(newPassword);
+
   const tabs = (
     <Tabs value={activeTab} onChange={v => setActiveTab(v as 'direct' | 'token')}>
       <Tab id="direct" icon={<RotateCcwKey size={14} />}>
@@ -131,26 +152,68 @@ export function PasswordResetModal({
     </Tabs>
   );
 
+  const footer =
+    activeTab === 'direct' ? (
+      <Button
+        variant="primary"
+        tail
+        fullWidth
+        onClick={handleDirectReset}
+        disabled={!newPassword}
+        isLoading={isLoading}
+        loadingText="Resetting..."
+      >
+        Reset Password
+      </Button>
+    ) : !resetUrl ? (
+      <Button
+        variant="primary"
+        tail
+        fullWidth
+        onClick={handleGenerateToken}
+        isLoading={isLoading}
+        loadingText="Generating..."
+      >
+        Generate Reset Link
+      </Button>
+    ) : (
+      <Button variant="primary" tail fullWidth onClick={onClose}>
+        Done
+      </Button>
+    );
+
   return (
     <BaseModal
       isOpen={isOpen}
       icon={<KeyRound size={20} />}
       title="Reset Password"
       size="sm"
+      chassis="lit"
+      contentClassName="p-5"
       animation="slide"
       tabs={tabs}
       tabOrientation="horizontal"
+      footer={footer}
+      locator={
+        <div className="flex items-center gap-2.5">
+          <span
+            aria-hidden
+            className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+          />
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            User
+          </span>
+          <span className="font-mono text-xs text-secondary-foreground phosphor-text">
+            {username}
+          </span>
+        </div>
+      }
       onClose={onClose}
     >
-      {/* Tab Content - Fixed height to prevent shifting */}
-      <div className="min-h-[200px] flex flex-col">
+      {/* Fixed height so switching tabs or generating a link never resizes the modal */}
+      <div className="h-[110px]">
         {activeTab === 'direct' ? (
-          <div className="flex-1 flex flex-col">
-            {/* User Info */}
-            <p className="text-sm text-secondary-foreground mb-6">
-              User: <span className="font-bold text-action">{username}</span>
-            </p>
-
+          <div>
             {/* Password Input */}
             <div className="mb-4">
               <AuthInput
@@ -163,87 +226,102 @@ export function PasswordResetModal({
                 icon={<KeyRound size={16} />}
                 state={newPassword.length >= 4 ? 'success' : 'default'}
                 variant="console"
+                className="![--console-input-surface:rgba(0,0,0,0.42)] ![--console-input-surface-hover:rgba(0,0,0,0.55)]"
               />
-              {newPassword && (
-                <p className={`text-xs mt-1 ml-1 ${getPasswordStrengthColor(newPassword)}`}>
-                  Strength: {getPasswordStrength(newPassword)}
-                </p>
-              )}
+              <div className="mt-2 ml-1 flex items-center gap-2.5">
+                <div className="flex gap-1">
+                  {[0, 1, 2].map(i => (
+                    <span
+                      key={i}
+                      className={`h-1 w-7 transition-colors ${
+                        i < strengthLevel ? strengthBar : 'bg-foreground/15'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span
+                  className={`text-xs ${newPassword ? strengthText : 'text-muted-foreground/50'}`}
+                >
+                  {strengthLabel || '—'}
+                </span>
+              </div>
             </div>
 
             {/* Require Password Change Toggle */}
-            <div className="mb-4 flex items-center space-x-2 group">
+            <div className="flex items-center justify-end gap-2.5">
+              <span className="text-sm text-secondary-foreground">
+                Require password change on next login
+              </span>
               <Toggle
                 checked={requirePasswordChange}
                 onChange={setRequirePasswordChange}
                 size="sm"
+                className="leading-none"
                 aria-label="Require password change on next login"
               />
-              <span className="text-sm text-secondary-foreground group-hover:text-accent-foreground cursor-default">
-                Require password change on next login
-              </span>
             </div>
-
-            {/* Reset Button */}
-            <div className="mt-auto">
-              <Button
-                variant="primary"
-                fullWidth
-                onClick={handleDirectReset}
-                disabled={!newPassword}
-                isLoading={isLoading}
-                loadingText="Resetting..."
-              >
-                Reset Password
-              </Button>
+          </div>
+        ) : !resetUrl ? (
+          <div>
+            <p className="text-sm text-secondary-foreground">
+              Creates a secure, one-time reset link.
+            </p>
+            <div className="mt-3 space-y-2 pl-5">
+              {[
+                { icon: <Clock size={14} />, label: 'Expires', value: '15 minutes' },
+                {
+                  icon: <RotateCcw size={14} />,
+                  label: 'Uses',
+                  value: 'Single use, then invalid',
+                },
+                { icon: <KeyRound size={14} />, label: 'Sets', value: "User's own password" },
+              ].map(({ icon, label, value }) => (
+                <div key={label} className="flex items-center gap-3">
+                  <span className="text-primary phosphor-glow">{icon}</span>
+                  <span className="w-14 font-mono text-[9.5px] uppercase tracking-[0.18em] text-primary phosphor-text">
+                    {label}
+                  </span>
+                  <span className="text-sm text-secondary-foreground">{value}</span>
+                </div>
+              ))}
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col">
-            {!resetUrl ? (
-              <div className="flex-1 flex flex-col">
-                <p className="text-sm text-secondary-foreground mb-4">
-                  User: <span className="font-bold text-action">{username}</span>
-                </p>
-                <p className="text-sm text-secondary-foreground mb-4">
-                  Creates a secure, one-time link that expires in 15 minutes.
-                </p>
-                <div className="mt-auto">
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    onClick={handleGenerateToken}
-                    isLoading={isLoading}
-                    loadingText="Generating..."
-                  >
-                    Generate Reset Link
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p className="text-sm font-medium text-secondary-foreground mb-2">
-                  Reset Link Generated
-                </p>
-                <div className="bg-muted p-3 rounded-md mb-3 break-all text-sm">{resetUrl}</div>
-                <Button
-                  variant="primary"
-                  fullWidth
-                  onClick={handleCopyUrl}
-                  leftIcon={copied ? <Check size={18} /> : <Copy size={18} />}
-                  className="mb-3"
+          <div>
+            <div className="auth-input-console state-default ![--console-input-surface:rgba(0,0,0,0.42)] ![--console-input-surface-hover:rgba(0,0,0,0.55)]">
+              <span className="auth-input-console__label">Reset link</span>
+              <div className="auth-input-console__field">
+                <span
+                  className="flex-1 px-3 py-2.5 font-mono text-sm text-foreground truncate"
+                  role="status"
+                  aria-label="Generated reset link"
                 >
-                  {copied ? 'Copied!' : 'Copy Link'}
-                </Button>
-                {expiresAt && (
-                  <p className="text-xs text-secondary-foreground text-center">
-                    Expires: {new Date(expiresAt).toLocaleString()}
-                  </p>
-                )}
-                <p className="text-xs text-secondary-foreground mt-3">
-                  Share this link with the user. They can use it once to set a new password.
-                </p>
+                  {resetUrl}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  className="flex items-center gap-1.5 px-3 h-full text-muted-foreground hover:text-foreground transition-colors font-mono text-xs border-l border-line-soft"
+                  aria-label="Copy reset link"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={14} />
+                      <span>Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
               </div>
+            </div>
+            {expiresAt && (
+              <p className="text-xs text-secondary-foreground mt-2">
+                Expires {new Date(expiresAt).toLocaleString()}
+              </p>
             )}
           </div>
         )}
