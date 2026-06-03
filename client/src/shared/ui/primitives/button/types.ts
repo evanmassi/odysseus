@@ -8,6 +8,7 @@ import type { ComponentProps, ReactNode } from 'react';
 
 export type ButtonVariant =
   | 'primary'
+  | 'solid'
   | 'secondary'
   | 'danger'
   | 'success'
