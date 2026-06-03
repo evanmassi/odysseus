@@ -135,7 +135,8 @@
       "Bash(Select-Object -ExpandProperty Count)",
       "PowerShell(Get-ChildItem *)",
       "Bash(Get-ChildItem -Path \"C:\\\\dev\\\\odysseus\\\\client\\\\src\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "PowerShell(Get-Process *)"
     ]
   }
 }
