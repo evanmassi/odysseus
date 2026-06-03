@@ -60,10 +60,12 @@ const INACTIVE_STATE =
   'hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]';
 
 const INDICATOR_HORIZONTAL =
-  'bottom-0 left-0 h-0.5 bg-[linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)]';
+  'bottom-0 left-0 h-0.5 bg-[linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)] ' +
+  '[filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.5))]';
 
 const INDICATOR_VERTICAL =
-  'top-0 left-0 w-0.5 bg-[linear-gradient(180deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)]';
+  'top-0 left-0 w-0.5 bg-[linear-gradient(180deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)] ' +
+  '[filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.5))]';
 
 const INDICATOR_TRANSITION =
   'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
