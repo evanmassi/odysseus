@@ -13,10 +13,11 @@ import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
-import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
 import { notifications } from '@shared/utils';
 
 import { AuthPasswordCreateForm } from '../password/AuthPasswordCreateForm';
+
+import { AuthPasswordChangedModal } from './AuthPasswordChangedModal';
 
 import type { ShellConfig } from './shellConfigContext';
 
@@ -150,15 +151,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   if (state === 'change-success') {
     return (
       <div key="change-success" className={`animate-auth-stack ${exitClass}`}>
-        <div className="flex flex-col items-center gap-3 py-2">
-          <AnimatedCheckmark size={64} className="text-success-text" delay={250} />
-          <div className="text-center">
-            <h2 className="text-base font-semibold text-success-text phosphor-text mb-1">
-              Password Changed
-            </h2>
-            <p className="text-xs font-mono text-[rgb(var(--auth-text-mute))]">Logging in...</p>
-          </div>
-        </div>
+        <AuthPasswordChangedModal status="Logging in…" />
       </div>
     );
   }
@@ -322,9 +315,9 @@ function getShellConfig(
     case 'change-success':
       return {
         contentKey: 'login:change-success',
-        variant: 'stack',
+        variant: 'console',
         width: 'narrow',
-        showBranding: 'icon',
+        showBranding: true,
       };
     case 'forgot':
       return {
@@ -338,11 +331,11 @@ function getShellConfig(
     case 'change-required':
       return {
         contentKey: 'login:change-required',
-        variant: 'stack',
+        variant: 'console',
         width: 'narrow',
-        showBranding: 'icon',
-        brandTagline: 'Create new password',
-        microheader: 'New Password',
+        showBranding: true,
+        brandGreeting: 'Choose a new password',
+        microheader: 'Password change required',
       };
     case 'login':
     default:

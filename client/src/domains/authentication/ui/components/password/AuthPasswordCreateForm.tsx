@@ -3,7 +3,7 @@
  * Used by AuthLoginModal (force change) and AuthPasswordResetPage (token reset).
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound } from 'lucide-react';
@@ -25,6 +25,8 @@ export interface AuthPasswordCreateFormProps {
   loadingText?: string;
   error?: string | null;
   onErrorClear?: () => void;
+  /** Optional banner rendered just above the submit button (e.g. a token expiry notice). */
+  notice?: ReactNode;
 }
 
 export function AuthPasswordCreateForm({
@@ -35,6 +37,7 @@ export function AuthPasswordCreateForm({
   loadingText = 'Changing Password...',
   error: externalError,
   onErrorClear,
+  notice,
 }: AuthPasswordCreateFormProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -170,6 +173,8 @@ export function AuthPasswordCreateForm({
           required
           disabled={isLoading}
         />
+
+        {notice}
 
         <Button
           type="submit"
