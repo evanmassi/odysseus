@@ -9,7 +9,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { refrigeratorFreezer } from '@lucide/lab';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  Gauge,
   FlaskConical,
   FileText,
   Check,
@@ -154,11 +153,6 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
-        <Gauge size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-card-foreground">System</h3>
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
         {hasLab && (
           <div>

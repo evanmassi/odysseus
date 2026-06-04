@@ -16,7 +16,6 @@ import {
   RefreshCw,
   Trash2,
   X,
-  BookOpen,
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
@@ -495,11 +494,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
-        <div className="flex items-center space-x-2">
-          <BookOpen size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-card-foreground">Catalog</h3>
-        </div>
+      <div className="mb-4 flex justify-end">
         <Button
           variant="secondary"
           onClick={() => void loadValues()}

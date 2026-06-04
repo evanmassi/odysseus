@@ -377,11 +377,6 @@ export function ResearchersTab({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
-        <Dna size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-card-foreground">Researchers</h3>
-      </div>
-
       <Table
         columns={readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns}
         data={activeResearchers}

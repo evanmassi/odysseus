@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import { TicketCheck, Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
+import { Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 
 import { logger } from '@infra/logger';
 import { Button, Chip, NumberInput, Toggle } from '@shared/ui';
@@ -98,31 +98,25 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-border">
-        <div className="flex items-center space-x-2">
-          <TicketCheck size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-card-foreground">Invite Codes</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={loadCodes}
-            disabled={isLoading}
-            leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
-          >
-            Refresh
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowCreateForm(true)}
-            leftIcon={<Plus size={14} />}
-            disabled={readOnly}
-          >
-            New Code
-          </Button>
-        </div>
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={loadCodes}
+          disabled={isLoading}
+          leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+        >
+          Refresh
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => setShowCreateForm(true)}
+          leftIcon={<Plus size={14} />}
+          disabled={readOnly}
+        >
+          New Code
+        </Button>
       </div>
 
       {showCreateForm && (

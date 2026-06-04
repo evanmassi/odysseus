@@ -25,7 +25,7 @@ import { logger } from '@infra/logger';
 import {
   AlertBanner,
   Button,
-  ConsolePanel,
+  SectionHeader,
   Tab,
   LoadingSkeleton,
   Tabs,
@@ -56,6 +56,25 @@ const InviteCodesTab = lazy(() =>
   import('./tabs/InviteCodesTab').then(m => ({ default: m.InviteCodesTab }))
 );
 
+type TabId =
+  | 'security'
+  | 'users'
+  | 'researchers'
+  | 'catalog'
+  | 'system'
+  | 'monitoring'
+  | 'invite-codes';
+
+const TAB_META: Record<TabId, { icon: React.ReactNode; title: string }> = {
+  system: { icon: <Gauge size={18} />, title: 'System' },
+  security: { icon: <Shield size={18} />, title: 'Security' },
+  users: { icon: <UsersRound size={18} />, title: 'Users' },
+  researchers: { icon: <Dna size={18} />, title: 'Researchers' },
+  'invite-codes': { icon: <TicketCheck size={18} />, title: 'Invite Codes' },
+  catalog: { icon: <BookOpen size={18} />, title: 'Catalog' },
+  monitoring: { icon: <Activity size={18} />, title: 'Monitoring' },
+};
+
 interface AdminSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -74,9 +93,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       false);
   const securityReadOnly = !isSystemAdmin || isDemo;
 
-  const [activeTab, setActiveTab] = useState<
-    'security' | 'users' | 'researchers' | 'catalog' | 'system' | 'monitoring' | 'invite-codes'
-  >('system');
+  const [activeTab, setActiveTab] = useState<TabId>('system');
   const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [isSaving, setSaving] = useState(false);
@@ -186,15 +203,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   const handleTabFooter = useCallback((footer: React.ReactNode) => setTabFooter(footer), []);
 
-  type TabId =
-    | 'security'
-    | 'users'
-    | 'researchers'
-    | 'catalog'
-    | 'system'
-    | 'monitoring'
-    | 'invite-codes';
-
   const tabs = (
     <Tabs
       value={activeTab}
@@ -302,15 +310,11 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       className="h-[85vh]"
       onClose={handleClose}
     >
+      <SectionHeader icon={TAB_META[activeTab].icon} title={TAB_META[activeTab].title} size="lg" />
+
       {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <ConsolePanel>
-            <SecurityTab
-              config={config}
-              onChange={handleConfigChange}
-              readOnly={securityReadOnly}
-            />
-          </ConsolePanel>
+          <SecurityTab config={config} onChange={handleConfigChange} readOnly={securityReadOnly} />
         </Suspense>
       )}
 

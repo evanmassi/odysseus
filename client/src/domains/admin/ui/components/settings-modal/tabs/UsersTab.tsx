@@ -18,7 +18,6 @@ import {
   Unlink2,
   UserRound,
   UserRoundCheck,
-  UsersRound,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -425,11 +424,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
-        <UsersRound size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-card-foreground">Users</h3>
-      </div>
-
       <Table
         columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
         data={activeUsers}
