@@ -1,22 +1,19 @@
 /**
  * Console Panel
  *
- * Bordered chassis surface with rim sheen and a lit background. Optional
- * status- and identity-tinted lighting layers; omit both for a neutral panel.
- * `intensity` controls the strength of the neutral lighting and adds an
- * ambient primary bloom on focal surfaces like modals.
+ * Bordered chassis surface with rim sheen and optional tinted lighting layers.
  */
 
 import type { CSSProperties, ReactNode } from 'react';
 
-export type ConsolePanelIntensity = 'soft' | 'lit';
+export type ConsolePanelIntensity = 'soft' | 'medium' | 'lit';
 
 export interface ConsolePanelProps {
   /** CSS color for the status-tinted layers — diagonal sheen, bottom-right wash, outer bloom. */
   statusColor?: string;
   /** CSS color for the top-left identity wash. */
   identityColor?: string;
-  /** Lighting strength. 'soft' (default) for content panels; 'lit' for focal surfaces like modals. */
+  /** Lighting strength. 'soft' (default) for content panels; 'medium' for large focal surfaces; 'lit' for compact modals. */
   intensity?: ConsolePanelIntensity;
   className?: string;
   children: ReactNode;
@@ -24,8 +21,7 @@ export interface ConsolePanelProps {
 
 const TOP_SHEEN: Record<ConsolePanelIntensity, string> = {
   soft: 'linear-gradient(180deg, hsl(var(--foreground)/0.045) 0%, transparent 12%)',
-  // Lit sheen is primary-tinted so the header reads body-tone (blue) instead of
-  // a warm cream highlight against the dark card.
+  medium: 'linear-gradient(180deg, hsl(var(--primary)/0.09) 0%, transparent 17%)',
   lit: 'linear-gradient(180deg, hsl(var(--primary)/0.12) 0%, transparent 18%)',
 };
 
@@ -35,13 +31,14 @@ const NEUTRAL_LIGHTING: Record<ConsolePanelIntensity, string[]> = {
     'radial-gradient(ellipse 75% 85% at 100% 100%, hsl(var(--primary)/0.065), transparent 66%)',
     'radial-gradient(ellipse 70% 80% at 100% 100%, rgba(0,0,0,0.10), transparent 62%)',
   ],
+  medium: [
+    'radial-gradient(ellipse 115% 58% at 22% 26%, hsl(var(--primary)/0.07), transparent 62%)',
+    'radial-gradient(ellipse 110% 54% at 68% 93%, hsl(var(--primary)/0.07), transparent 62%)',
+    'radial-gradient(ellipse 55% 50% at 100% 100%, rgba(0,0,0,0.13), transparent 55%)',
+  ],
   lit: [
-    // Top-left primary — peak sits at the first section title, spread wide with a low peak alpha so the
-    // glow reads as ambient warmth rather than a concentrated hot spot.
     'radial-gradient(ellipse 120% 60% at 22% 28%, hsl(var(--primary)/0.11), transparent 65%)',
-    // Bottom primary — right-biased floor light; slightly expanded vs. the prior pass
     'radial-gradient(ellipse 115% 55% at 68% 92%, hsl(var(--primary)/0.11), transparent 65%)',
-    // Soft corner shadow keeps the BR grounded without competing with the floor light
     'radial-gradient(ellipse 55% 50% at 100% 100%, rgba(0,0,0,0.14), transparent 55%)',
   ],
 };
@@ -80,7 +77,7 @@ export function ConsolePanel({
   const boxShadow = [
     ...RIM_SHEEN,
     statusColor && `0 0 58px -26px color-mix(in srgb, ${statusColor} 50%, transparent)`,
-    intensity === 'lit' && isNeutral && OUTER_BLOOM,
+    intensity !== 'soft' && isNeutral && OUTER_BLOOM,
   ];
 
   const style: CSSProperties = {

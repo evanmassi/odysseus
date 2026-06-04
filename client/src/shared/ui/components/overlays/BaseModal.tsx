@@ -77,7 +77,7 @@ export function BaseModal({
   footer,
   tabFooter,
   tabSidebarFooter,
-  chassis = 'default',
+  chassis = 'lit',
   locator,
   contentClassName = 'p-6',
   dataAttribute,
@@ -124,6 +124,7 @@ export function BaseModal({
   const hasVerticalTabs = tabs && tabOrientation === 'vertical';
   const pointerEventsClass = isClosing ? 'pointer-events-none' : 'pointer-events-auto';
   const isLit = chassis === 'lit';
+  const chassisIntensity = size === 'lg' || size === 'xl' || size === 'full' ? 'medium' : 'lit';
 
   const borderClass = isLit ? 'border-line-faint' : 'border-border';
   // Lit chrome (footer/tabs/sidebar) gets a dark wash so it sits on top of the
@@ -240,7 +241,7 @@ export function BaseModal({
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
         {isLit ? (
           <ConsolePanel
-            intensity="lit"
+            intensity={chassisIntensity}
             className={sharedClassName}
             // ConsolePanel renders its own border; we add the dialog role and refs via wrapper props.
           >
