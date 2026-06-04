@@ -6,13 +6,15 @@
 
 import type { ReactNode } from 'react';
 
-export type SectionHeaderSize = 'sm' | 'md';
+export type SectionHeaderSize = 'sm' | 'md' | 'lg';
 
 export interface SectionHeaderProps {
   title: string;
+  /** Leading icon shown after the tick-mark glyph (muted). */
+  icon?: ReactNode;
   meta?: ReactNode;
   rightMeta?: ReactNode;
-  /** Title typography. 'md' (default, 12px) for admin/dashboard surfaces; 'sm' (10px) for in-form section dividers. */
+  /** Title typography. 'lg' (14px) for tab headers; 'md' (default, 12px) for admin/dashboard surfaces; 'sm' (10px) for in-form section dividers. */
   size?: SectionHeaderSize;
   className?: string;
 }
@@ -20,10 +22,12 @@ export interface SectionHeaderProps {
 const TITLE_SIZE: Record<SectionHeaderSize, string> = {
   sm: 'text-[10px]',
   md: 'text-[12px]',
+  lg: 'text-[14px]',
 };
 
 export function SectionHeader({
   title,
+  icon,
   meta,
   rightMeta,
   size = 'md',
@@ -35,6 +39,14 @@ export function SectionHeader({
         <span className="h-[17px] w-[3px] bg-foreground shadow-[0_0_10px_-3px_hsl(var(--foreground)/0.5)]" />
         <span className="h-[11px] w-0.5 bg-foreground/45" />
       </span>
+      {icon && (
+        <span
+          aria-hidden
+          className="phosphor-glow flex shrink-0 items-center text-muted-foreground"
+        >
+          {icon}
+        </span>
+      )}
       <span
         className={`phosphor-text font-mono ${TITLE_SIZE[size]} font-semibold uppercase tracking-[0.22em] text-foreground`}
       >
