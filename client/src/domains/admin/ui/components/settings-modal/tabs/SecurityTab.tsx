@@ -4,7 +4,7 @@
  * Authentication, session, and login-protection policies for admins.
  */
 
-import { AlertBanner, NumberInput, SettingsRow, Subsection, Toggle } from '@shared/ui';
+import { NumberInput, SettingsRow, Subsection, Toggle } from '@shared/ui';
 
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
@@ -20,12 +20,6 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
 
   return (
     <div>
-      {readOnly && (
-        <AlertBanner variant="info" spacing="sm">
-          Only system admins can modify security settings.
-        </AlertBanner>
-      )}
-
       <Subsection title="Authentication" index={1}>
         <SettingsRow label="Enhanced Authentication" hint="Stronger password auth">
           <Toggle

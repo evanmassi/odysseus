@@ -25,6 +25,7 @@ import { logger } from '@infra/logger';
 import {
   AlertBanner,
   Button,
+  ConsolePanel,
   SectionHeader,
   Tab,
   LoadingSkeleton,
@@ -35,8 +36,10 @@ import {
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
 
+import { useLabStorageAnalyticsQuery } from '../../../hooks/useStorageAnalyticsQueries';
 import { adminService } from '../../../services/AdminService';
 import { adminUserService } from '../../../services/AdminUserService';
+import { UtilizationBar } from '../displays/UtilizationBar';
 
 import type { SecurityConfig, AdminUser, SystemMetrics } from '@odysseus/shared-schemas';
 
@@ -85,6 +88,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const isSystemAdmin = user?.role === 'system_admin';
   const isDemo = user?.isDemo ?? false;
   const { currentLab } = useStorageData();
+  const { data: utilization } = useLabStorageAnalyticsQuery();
   const demoSeeded =
     isDemo &&
     (currentLab?.equipment.tanks.some(
@@ -295,6 +299,50 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       </div>
     );
 
+  const accentBar = (
+    <span
+      aria-hidden
+      className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+    />
+  );
+
+  const locator = (
+    <div className="flex items-center justify-between gap-4 font-mono">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          {accentBar}
+          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            {isSystemAdmin ? 'Scope' : 'Lab'}
+          </span>
+          <span className="text-xs text-secondary-foreground phosphor-text">
+            {isSystemAdmin ? 'System-wide' : (currentLab?.name ?? '—')}
+          </span>
+        </div>
+        <span aria-hidden className="text-muted-foreground/40">
+          ·
+        </span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            Admin
+          </span>
+          <span className="text-xs text-secondary-foreground phosphor-text">
+            {user?.username ?? '—'}
+          </span>
+        </div>
+      </div>
+
+      {utilization && (
+        <div className="flex items-center gap-2.5">
+          {accentBar}
+          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            Storage
+          </span>
+          <UtilizationBar percent={utilization.utilizationPercent} />
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -307,6 +355,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       tabOrientation="vertical"
       footer={footer}
       tabFooter={tabFooter}
+      locator={locator}
       className="h-[85vh]"
       onClose={handleClose}
     >
@@ -314,7 +363,18 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <SecurityTab config={config} onChange={handleConfigChange} readOnly={securityReadOnly} />
+          {securityReadOnly && (
+            <AlertBanner variant="info" spacing="sm">
+              Only system admins can modify security settings.
+            </AlertBanner>
+          )}
+          <ConsolePanel intensity="soft">
+            <SecurityTab
+              config={config}
+              onChange={handleConfigChange}
+              readOnly={securityReadOnly}
+            />
+          </ConsolePanel>
         </Suspense>
       )}
 
