@@ -34,7 +34,6 @@ interface ToneClasses {
   border: string;
   labelBg: string;
   leadBg: string;
-  selectedLeadBg: string;
 }
 
 const TONE_CLASSES: Record<ChipColor, ToneClasses> = {
@@ -43,58 +42,56 @@ const TONE_CLASSES: Record<ChipColor, ToneClasses> = {
     border: 'border-success-border',
     labelBg: 'bg-success-bg/[0.08]',
     leadBg: 'bg-success-bg/[0.14]',
-    selectedLeadBg: 'bg-success-bg/30',
   },
   warning: {
     text: 'text-warning-text',
     border: 'border-warning-border',
     labelBg: 'bg-warning-bg/[0.08]',
     leadBg: 'bg-warning-bg/[0.14]',
-    selectedLeadBg: 'bg-warning-bg/30',
   },
   danger: {
     text: 'text-danger-text',
     border: 'border-danger-border',
     labelBg: 'bg-danger-bg/[0.08]',
     leadBg: 'bg-danger-bg/[0.14]',
-    selectedLeadBg: 'bg-danger-bg/30',
   },
   info: {
     text: 'text-info-text',
     border: 'border-info-border',
     labelBg: 'bg-info-bg/[0.08]',
     leadBg: 'bg-info-bg/[0.14]',
-    selectedLeadBg: 'bg-info-bg/30',
   },
   primary: {
     text: 'text-action',
     border: 'border-action',
     labelBg: 'bg-primary/[0.08]',
     leadBg: 'bg-primary/[0.14]',
-    selectedLeadBg: 'bg-primary/30',
   },
   default: {
     text: 'text-secondary-foreground',
     border: 'border-border',
     labelBg: 'bg-foreground/[0.03]',
     leadBg: 'bg-foreground/[0.06]',
-    selectedLeadBg: 'bg-foreground/[0.15]',
   },
   outlined: {
     text: 'text-secondary-foreground',
     border: 'border-border',
     labelBg: 'bg-transparent',
     leadBg: 'bg-foreground/[0.03]',
-    selectedLeadBg: 'bg-foreground/[0.10]',
   },
   active: {
     text: 'text-chip-active-foreground',
     border: 'border-chip-active',
     labelBg: 'bg-chip-active',
     leadBg: 'bg-chip-active-hover',
-    selectedLeadBg: 'bg-chip-active-hover',
   },
 };
+
+// Selected selectable chips light up with the primary treatment. clip-path crops
+// outer box-shadows, so the glow must stay inset.
+const SELECTED_BORDER = 'border-primary/55';
+const SELECTED_GLOW = 'shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/0.40)]';
+const SELECTED_LABEL = 'opacity-100 [text-shadow:0_0_6px_hsl(var(--primary)/0.45)]';
 
 interface SizeConfig {
   height: string;
@@ -189,15 +186,20 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     );
     const leadIsAutoFilled = leadFromProps == null;
 
-    const leadBgClass = isSelectable && selected ? tone.selectedLeadBg : tone.leadBg;
+    const isLit = isSelectable && selected;
+    const borderClass = isLit ? SELECTED_BORDER : tone.border;
+    const textClass = isLit ? 'text-foreground' : tone.text;
+    const leadBgClass = isLit ? 'bg-primary/25' : tone.leadBg;
+    const labelBgClass = isLit ? 'bg-primary/[0.10]' : tone.labelBg;
 
     const wrapperClasses = [
       'inline-flex items-stretch border whitespace-nowrap leading-none',
       'font-mono',
-      'transition-[filter,background-color,text-shadow] duration-150',
+      'transition-[filter,background-color,text-shadow,box-shadow,border-color] duration-150',
       sizeCfg.height,
-      tone.border,
-      tone.labelBg,
+      borderClass,
+      labelBgClass,
+      isLit ? SELECTED_GLOW : '',
       LIT_CLASSES[color!] ?? '',
       disabled ? 'opacity-50 cursor-not-allowed' : '',
       isInteractive && !disabled
@@ -236,12 +238,12 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       <>
         <span
           aria-hidden={leadIsAutoFilled}
-          className={`flex items-center border-r ${tone.border} ${leadBgClass} ${tone.text} ${sizeCfg.leadPx} ${sizeCfg.leadText} font-medium tracking-[0.04em]`}
+          className={`flex items-center border-r ${borderClass} ${leadBgClass} ${textClass} ${sizeCfg.leadPx} ${sizeCfg.leadText} font-medium tracking-[0.04em]`}
         >
           {displayLead}
         </span>
         <span
-          className={`flex items-center ${tone.text} ${sizeCfg.lblPx} ${sizeCfg.lblText} tracking-[0.24em] uppercase opacity-[0.82] ${labelClassName ?? ''}`}
+          className={`flex items-center ${textClass} ${sizeCfg.lblPx} ${sizeCfg.lblText} tracking-[0.24em] uppercase ${isLit ? SELECTED_LABEL : 'opacity-[0.82]'} ${labelClassName ?? ''}`}
         >
           {children}
         </span>

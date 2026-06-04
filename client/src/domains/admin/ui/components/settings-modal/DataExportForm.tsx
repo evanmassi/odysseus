@@ -122,71 +122,62 @@ export function DataExportForm() {
   }, [selectedType, selectedFormat, isJsonOnly, currentOption?.label]);
 
   return (
-    <div>
-      <h4 className="text-base font-semibold text-card-foreground mb-2">Data Export</h4>
-      <div className="bg-muted p-3 rounded-lg space-y-2">
-        {/* Main row: Type, Format, and Export Button */}
-        <div className="flex items-center gap-2">
-          <Download size={18} className="text-muted-foreground flex-shrink-0" />
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Download size={18} className="text-muted-foreground flex-shrink-0" />
 
-          {/* Type Selection */}
-          <div className="w-52">
-            <Select
-              value={selectedType}
-              onChange={value => handleTypeChange(String(value))}
-              options={exportOptions.map(opt => ({
-                value: opt.value,
-                label: opt.label,
-              }))}
-              aria-label="Select data to export"
-            />
-          </div>
-
-          {/* Format Toggle */}
-          <div className="flex items-center gap-1.5">
-            <Chip
-              behavior="selectable"
-              selected={selectedFormat === 'csv' && !isJsonOnly}
-              onSelect={() => setSelectedFormat('csv')}
-              disabled={isJsonOnly}
-              size="sm"
-              leftIcon={<FileSpreadsheet size={12} />}
-              aria-label="Export as CSV"
-            >
-              CSV
-            </Chip>
-            <Chip
-              behavior="selectable"
-              selected={selectedFormat === 'json' || isJsonOnly}
-              onSelect={() => setSelectedFormat('json')}
-              size="sm"
-              leftIcon={<FileJson size={12} />}
-              aria-label="Export as JSON"
-            >
-              JSON
-            </Chip>
-          </div>
-
-          {/* Spacer to push button right */}
-          <div className="flex-1" />
-
-          {/* Export Button */}
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleExport}
-            disabled={isExporting}
-            isLoading={isExporting}
-            loadingText="Exporting..."
-            leftIcon={<Download size={14} />}
-          >
-            Export
-          </Button>
+        <div className="w-52">
+          <Select
+            value={selectedType}
+            onChange={value => handleTypeChange(String(value))}
+            options={exportOptions.map(opt => ({
+              value: opt.value,
+              label: opt.label,
+            }))}
+            aria-label="Select data to export"
+          />
         </div>
 
-        {/* Description */}
-        <p className="text-xs text-muted-foreground pl-[30px]">{currentOption?.description}</p>
+        <div className="flex items-center gap-1.5">
+          <Chip
+            behavior="selectable"
+            selected={selectedFormat === 'csv' && !isJsonOnly}
+            onSelect={() => setSelectedFormat('csv')}
+            disabled={isJsonOnly}
+            size="sm"
+            leftIcon={<FileSpreadsheet size={12} />}
+            aria-label="Export as CSV"
+          >
+            CSV
+          </Chip>
+          <Chip
+            behavior="selectable"
+            selected={selectedFormat === 'json' || isJsonOnly}
+            onSelect={() => setSelectedFormat('json')}
+            size="sm"
+            leftIcon={<FileJson size={12} />}
+            aria-label="Export as JSON"
+          >
+            JSON
+          </Chip>
+        </div>
+
+        <div className="flex-1" />
+
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleExport}
+          disabled={isExporting}
+          isLoading={isExporting}
+          loadingText="Exporting..."
+          leftIcon={<Download size={14} />}
+        >
+          Export
+        </Button>
       </div>
+
+      <p className="text-xs text-muted-foreground pl-[30px]">{currentOption?.description}</p>
     </div>
   );
 }

@@ -411,12 +411,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'system' && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <SystemTab
-            config={config}
-            stats={systemStats}
-            onChange={handleConfigChange}
-            onTabFooter={handleTabFooter}
-          />
+          <SystemTab config={config} stats={systemStats} onChange={handleConfigChange} />
         </Suspense>
       )}
 
