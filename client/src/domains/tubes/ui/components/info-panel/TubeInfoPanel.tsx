@@ -4,7 +4,7 @@
  * Read-only detail panel for one or more selected tubes with conflict indicators.
  */
 
-import { useMemo, useState, useEffect, type ReactNode } from 'react';
+import { useMemo, useState, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import {
   formatConcentrationDisplay,
@@ -48,6 +48,10 @@ import type { Researcher, TubeData } from '@odysseus/shared-schemas';
 
 /** Mono-uppercase field label, matching the tube editor form. */
 const FIELD_LABEL = 'font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground';
+
+// Cell-type heading auto-fits the swatch-height box: largest size whose wrapped text doesn't clip.
+const CELL_TYPE_MAX_PX = 36;
+const CELL_TYPE_MIN_PX = 12;
 
 // Row hover mirrors the data Table's row glow: primary directional wash, leading stripe, soft bloom.
 // Shares the same --alpha-hover-* tokens so it reads identically to table-row hover.
@@ -116,7 +120,7 @@ function DetailRow({
       {isMixed ? (
         <span className="text-sm text-card-foreground/30">—</span>
       ) : children ? (
-        <span className="min-w-0 text-right">{children}</span>
+        <span className="min-w-0 text-right text-sm">{children}</span>
       ) : (
         <span className="min-w-0 break-words text-right text-sm font-medium text-card-foreground transition-[text-shadow] duration-150 group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]">
           {value}
@@ -150,6 +154,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const { currentLab } = useStorageData();
 
   const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
+
+  const cellTypeBoxRef = useRef<HTMLDivElement>(null);
+  const cellTypeTextRef = useRef<HTMLDivElement>(null);
 
   const {
     tankName,
@@ -241,6 +248,36 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     }
   }, [showEditLockNoteModal, ownedLockedTubes.length]);
 
+  // Shrink the cell-type heading from its max until the wrapped text fits the fixed-height box.
+  // Box height is stable, so the observer only refires on width changes (no feedback loop).
+  useLayoutEffect(() => {
+    const box = cellTypeBoxRef.current;
+    const text = cellTypeTextRef.current;
+    if (!box || !text) return;
+
+    const fit = () => {
+      let size = CELL_TYPE_MAX_PX;
+      text.style.fontSize = `${size}px`;
+      while (size > CELL_TYPE_MIN_PX && text.scrollHeight > box.clientHeight) {
+        size -= 1;
+        text.style.fontSize = `${size}px`;
+      }
+    };
+
+    fit();
+
+    if (typeof ResizeObserver === 'undefined') return;
+    let lastWidth = box.clientWidth;
+    const observer = new ResizeObserver(entries => {
+      const width = entries[0].contentRect.width;
+      if (Math.abs(width - lastWidth) < 0.5) return;
+      lastWidth = width;
+      fit();
+    });
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [fieldAnalysis]);
+
   // Lit chassis mirroring the tube editor modal.
   const renderPanel = (
     position: { word: string; value: string },
@@ -327,11 +364,36 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
     return renderPanel(
       { word: positionCount > 1 ? 'Positions' : 'Position', value: formattedPositions },
-      <div className="py-8 text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-          <TestTubeDiagonal className="h-6 w-6 text-card-foreground/30" />
+      <div className="py-10 text-center">
+        <div
+          className="relative inline-block max-w-[15rem] px-7 py-6"
+          style={{
+            background:
+              'radial-gradient(ellipse 120% 120% at 50% 45%, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 52%, transparent 85%)',
+          }}
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-0 top-0 h-2.5 w-2.5 border-l border-t border-foreground/15 blur-[0.5px]"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute right-0 top-0 h-2.5 w-2.5 border-r border-t border-foreground/15 blur-[0.5px]"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 border-b border-l border-foreground/15 blur-[0.5px]"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-0 right-0 h-2.5 w-2.5 border-b border-r border-foreground/15 blur-[0.5px]"
+          />
+          <TestTubeDiagonal
+            className="phosphor-glow phosphor-breathe mx-auto mb-4 h-10 w-10 text-card-foreground/30"
+            strokeWidth={1.25}
+          />
+          <p className="text-sm text-card-foreground/40">{positionText}</p>
         </div>
-        <p className="text-sm text-card-foreground/40">{positionText}</p>
       </div>
     );
   }
@@ -414,7 +476,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const swatch = getTubeColor(firstTube);
 
   const speciesTag = species ? (
-    <Chip size="sm">{species}</Chip>
+    <Chip size="sm" color="info">
+      {species}
+    </Chip>
   ) : isFieldMixed('sample.species') ? (
     <span className="flex items-center gap-1 text-sm text-card-foreground/30">
       —
@@ -424,30 +488,52 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   const body = (
     <>
-      <div className="flex items-center gap-3 border-b border-line-faint pb-4">
-        <div
-          className="flex h-11 w-11 flex-shrink-0 items-center justify-center border"
-          style={{ background: swatch.backgroundColor, borderColor: swatch.borderColor }}
-        >
-          <TestTubeDiagonal className="h-5 w-5" style={{ color: swatch.textColor }} />
+      <div className="flex items-center gap-3 border-b border-line-faint pb-5">
+        <div className="relative flex-shrink-0">
+          <div
+            className="flex h-11 w-11 items-center justify-center border"
+            style={{
+              backgroundColor: swatch.backgroundColor,
+              backgroundImage:
+                'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,0.14) 100%)',
+              borderColor: swatch.borderColor,
+            }}
+          >
+            <TestTubeDiagonal className="h-5 w-5" style={{ color: swatch.textColor }} />
+          </div>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-full h-2.5 w-[160%] -translate-x-1/2"
+            style={{
+              background: `linear-gradient(180deg, ${swatch.backgroundColor}, transparent)`,
+              clipPath: 'polygon(19% 0, 81% 0, 100% 100%, 0 100%)',
+              opacity: 0.4,
+            }}
+          />
         </div>
-        <div className="min-w-0 flex-1">
-          {speciesTag && (
-            <div className="mb-1.5 flex flex-wrap items-center gap-1.5">{speciesTag}</div>
-          )}
-          {cellType ? (
-            <div className="truncate text-lg font-semibold leading-tight text-foreground">
+
+        {cellType ? (
+          <div
+            ref={cellTypeBoxRef}
+            className="flex h-11 min-w-0 flex-1 items-center overflow-hidden"
+          >
+            <div
+              ref={cellTypeTextRef}
+              className="w-full break-words font-semibold leading-none text-foreground"
+            >
               {cellType}
             </div>
-          ) : isFieldMixed('sample.cellType') ? (
-            <div className="flex items-center gap-1 text-sm text-card-foreground/30">
-              —
-              <AlertTriangle className="h-3 w-3 text-warning-text" />
-            </div>
-          ) : (
-            <div className="text-sm text-card-foreground/40">Unknown</div>
-          )}
-        </div>
+          </div>
+        ) : isFieldMixed('sample.cellType') ? (
+          <div className="flex flex-1 items-center gap-1 text-sm text-card-foreground/30">
+            —
+            <AlertTriangle className="h-3 w-3 text-warning-text" />
+          </div>
+        ) : (
+          <div className="flex-1 text-sm text-card-foreground/40">Unknown</div>
+        )}
+
+        {speciesTag && <div className="flex-shrink-0">{speciesTag}</div>}
       </div>
 
       {selectedTubes.length > 1 && (
@@ -467,6 +553,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <div className="flex flex-wrap gap-1.5">
           <Chip
             size="sm"
+            lit
             color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'info'}
             leftIcon={<Lock />}
           >
@@ -485,6 +572,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             >
               <Chip
                 size="sm"
+                lit
                 behavior="action"
                 onClick={() => setShowEditLockNoteModal(true)}
                 onFocus={e => {

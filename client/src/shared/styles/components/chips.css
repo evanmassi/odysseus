@@ -76,6 +76,10 @@
   --c: var(--primary);
   border-color: hsl(var(--c) / 0.28);
 }
+.chip-lit.chip-lit--neutral {
+  --c: var(--foreground);
+  border-color: hsl(var(--c) / 0.28);
+}
 
 /* Inner lead/label divider tracks the same alpha so the soft outer frame
    doesn't feel orphaned from a bright internal line. */

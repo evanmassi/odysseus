@@ -19,4 +19,25 @@
     filter: drop-shadow(0 0 1px currentColor)
       drop-shadow(0 0 6px color-mix(in srgb, currentColor 40%, transparent));
   }
+
+  /* Slow idle breathe for a phosphor glyph at rest — reads as a powered-on screen. */
+  .phosphor-breathe {
+    animation: phosphor-breathe 3.6s ease-in-out infinite;
+  }
+}
+
+@keyframes phosphor-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phosphor-breathe {
+    animation: none;
+  }
 }

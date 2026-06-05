@@ -499,6 +499,7 @@ function BiobankWorkspace() {
                     <Chip
                       color="default"
                       size="sm"
+                      lit
                       leftIcon={<UsersRound />}
                       className="cursor-help"
                     >

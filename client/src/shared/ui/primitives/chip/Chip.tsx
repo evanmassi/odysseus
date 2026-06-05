@@ -165,6 +165,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       onRemove,
       onClick,
       labelClassName,
+      lit = defaultChipProps.lit,
       disabled = defaultChipProps.disabled,
       'aria-label': ariaLabel,
       className,
@@ -200,7 +201,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       borderClass,
       labelBgClass,
       isLit ? SELECTED_GLOW : '',
-      LIT_CLASSES[color!] ?? '',
+      LIT_CLASSES[color!] ?? (lit ? 'chip-lit chip-lit--neutral' : ''),
       disabled ? 'opacity-50 cursor-not-allowed' : '',
       isInteractive && !disabled
         ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
