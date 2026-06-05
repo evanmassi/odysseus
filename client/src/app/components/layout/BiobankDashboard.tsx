@@ -8,7 +8,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 
 import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
-import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 'lucide-react';
+import { MapPin, Navigation, ScanEye, UserRound, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication';
@@ -42,7 +42,6 @@ import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { UnsavedConfirmDialog } from '@shared/ui/components/overlays/UnsavedConfirmDialog';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
-import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils/notifications';
 
@@ -529,20 +528,10 @@ function BiobankWorkspace() {
         </div>
 
         <div className="info-panel" ref={infoPanelRef}>
-          <div className="h-full flex flex-col bg-card rounded-lg">
-            <div className="px-4 pt-4 pb-2">
-              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
-                <NotepadText size={16} className="text-secondary-foreground" />
-                Tube Information
-              </h4>
-            </div>
-            <ScrollArea className="flex-1 p-3">
-              <TubeInfoPanel
-                selectedTubes={selectionAnalysis.selectedTubes}
-                lockContext={lockContext}
-              />
-            </ScrollArea>
-          </div>
+          <TubeInfoPanel
+            selectedTubes={selectionAnalysis.selectedTubes}
+            lockContext={lockContext}
+          />
         </div>
       </div>
 

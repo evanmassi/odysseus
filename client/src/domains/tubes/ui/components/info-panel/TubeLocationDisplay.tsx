@@ -62,8 +62,12 @@ function LocationBreadcrumb({
           <span className="text-foreground">{rackName}</span>
           <span className="text-foreground/40">›</span>
           <span className="text-foreground">{boxName}</span>
-          <span className="text-foreground/40">·</span>
-          <span className="text-foreground">{positionLabel}</span>
+          {positionLabel && (
+            <>
+              <span className="text-foreground/40">·</span>
+              <span className="text-foreground">{positionLabel}</span>
+            </>
+          )}
         </div>
       </div>
     );
