@@ -1,5 +1,5 @@
 /**
- * Tube Info Panel
+ * Selected Tube Details
  *
  * Read-only detail panel for one or more selected tubes with conflict indicators.
  */
@@ -89,7 +89,6 @@ const SAMPLE_INFO_PATHS = [
   'researcherId',
 ] as const;
 
-/** Single-column detail row: mono label left, value right, hairline divider. */
 function DetailRow({
   label,
   value,
@@ -242,7 +241,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     }
   }, [showEditLockNoteModal, ownedLockedTubes.length]);
 
-  // Lit chassis mirroring the tube editor modal: header, locator strip, scroll body, footer.
+  // Lit chassis mirroring the tube editor modal.
   const renderPanel = (
     position: { word: string; value: string },
     body: ReactNode,
@@ -275,8 +274,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 />
                 {position.word}
               </span>
-              <span className="break-all font-mono text-[11px] tracking-[0.06em] text-foreground">
-                {position.value}
+              {/* Non-breaking hyphen so position ranges (A1-A9) don't wrap mid-range. */}
+              <span className="min-w-0 font-mono text-[11px] tracking-[0.06em] text-foreground">
+                {position.value.replace(/-/g, '‑')}
               </span>
             </div>
           )}
