@@ -31,7 +31,7 @@ import {
 } from '@domains/storage';
 import { useTubeFieldResolver } from '@domains/tubes/hooks';
 import { useUserSettings } from '@domains/users';
-import { Button, Chip, PanelHeader, SectionHeader, Tooltip } from '@shared/ui';
+import { Button, Chip, NubDivider, PanelHeader, SectionHeader, Tooltip } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
@@ -318,10 +318,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             </div>
           )}
         </div>
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
-        />
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
@@ -365,28 +362,26 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return renderPanel(
       { word: positionCount > 1 ? 'Positions' : 'Position', value: formattedPositions },
       <div className="py-10 text-center">
-        <div
-          className="relative inline-block max-w-[15rem] px-7 py-6"
-          style={{
-            background:
-              'radial-gradient(ellipse 120% 120% at 50% 45%, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 52%, transparent 85%)',
-          }}
-        >
+        <div className="relative isolate inline-block max-w-[15rem] px-7 py-6">
           <span
             aria-hidden
-            className="pointer-events-none absolute left-0 top-0 h-2.5 w-2.5 border-l border-t border-foreground/15 blur-[0.5px]"
+            className="pointer-events-none absolute inset-2 -z-10 rounded-lg bg-black/50 blur-lg"
           />
           <span
             aria-hidden
-            className="pointer-events-none absolute right-0 top-0 h-2.5 w-2.5 border-r border-t border-foreground/15 blur-[0.5px]"
+            className="pointer-events-none absolute left-3 top-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
           />
           <span
             aria-hidden
-            className="pointer-events-none absolute bottom-0 left-0 h-2.5 w-2.5 border-b border-l border-foreground/15 blur-[0.5px]"
+            className="pointer-events-none absolute right-3 top-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
           />
           <span
             aria-hidden
-            className="pointer-events-none absolute bottom-0 right-0 h-2.5 w-2.5 border-b border-r border-foreground/15 blur-[0.5px]"
+            className="pointer-events-none absolute bottom-3 left-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-3 right-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
           />
           <TestTubeDiagonal
             className="phosphor-glow phosphor-breathe mx-auto mb-4 h-10 w-10 text-card-foreground/30"
@@ -488,7 +483,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   const body = (
     <>
-      <div className="flex items-center gap-3 border-b border-line-faint pb-5">
+      <div className="relative flex items-center gap-3 pb-5">
         <div className="relative flex-shrink-0">
           <div
             className="flex h-11 w-11 items-center justify-center border"
@@ -534,6 +529,8 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         )}
 
         {speciesTag && <div className="flex-shrink-0">{speciesTag}</div>}
+
+        <NubDivider tone="neutral" className="absolute inset-x-0 bottom-0" />
       </div>
 
       {selectedTubes.length > 1 && (
@@ -742,10 +739,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const footer =
     selectedTubes.length === 1 ? (
       <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-px h-px bg-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
-        />
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <Button
           variant="primary"
           size="sm"
