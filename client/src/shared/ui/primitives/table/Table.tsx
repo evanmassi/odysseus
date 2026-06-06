@@ -48,6 +48,10 @@ const ROW_GLOW: Record<GlowTone, string> = {
 
 const CHECKBOX_CELL_OVERRIDE = '!px-3 text-center w-10';
 
+// Primary glowing end-cap for the header/body divider (mirrors NubDivider's primary nub).
+const HEADER_NUB =
+  'pointer-events-none absolute bottom-0 z-10 h-0.5 w-0.5 translate-y-1/2 bg-primary shadow-[0_0_6px_1px_hsl(var(--primary)/0.7)]';
+
 // Warm, opaque header surface ported from the settings subsection header. `lit` adds the
 // top-left → bottom-right directional glow; only the topmost bar gets it (the toolbar when
 // present, else the column-header row) so the light reads once across the top, not twice.
@@ -75,7 +79,6 @@ const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
     'text-left text-foreground/60',
-    'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
   {
@@ -238,6 +241,11 @@ const TableHeader = <T,>({
     density,
   } = useTableContext();
 
+  // Header cells carry a top rim; soften it when a toolbar sits above so the divider isn't harsh.
+  const headerRim = hasToolbar
+    ? 'shadow-[inset_0_1px_0_hsl(var(--foreground)/0.04)]'
+    : 'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-header-rim))]';
+
   const handleSelectAll = (checked: boolean) => {
     onSelectionChange(checked ? allRowIds : []);
   };
@@ -252,11 +260,14 @@ const TableHeader = <T,>({
   return (
     <thead>
       <tr
-        className="relative after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-[hsl(var(--foreground)/0.08)]"
+        className="relative z-10 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-primary/30 after:shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
         style={{ background: headerSurface(!hasToolbar) }}
       >
         {selectable && (
-          <th className={`${headerVariants({ density })} ${CHECKBOX_CELL_OVERRIDE}`}>
+          <th
+            className={`relative ${headerVariants({ density })} ${headerRim} ${CHECKBOX_CELL_OVERRIDE}`}
+          >
+            <span aria-hidden className={`${HEADER_NUB} left-0`} />
             {multiSelect && (
               <Checkbox
                 checked={selectedRows.length > 0}
@@ -268,18 +279,20 @@ const TableHeader = <T,>({
           </th>
         )}
 
-        {columns.map(column => {
+        {columns.map((column, colIndex) => {
           const isSorted = sortConfig?.columnId === column.id;
           const sortDirection = isSorted ? sortConfig.direction : undefined;
+          const isFirstCell = colIndex === 0 && !selectable;
+          const isLastCell = colIndex === columns.length - 1;
 
           return (
             <th
               key={column.id}
-              className={headerVariants({
+              className={`${headerVariants({
                 sortable: column.sortable,
                 align: column.align,
                 density,
-              })}
+              })} ${headerRim}${isFirstCell || isLastCell ? ' relative' : ''}`}
               style={{ width: column.width }}
               onClick={column.sortable ? () => handleSort(column.id) : undefined}
               role={column.sortable ? 'columnheader button' : 'columnheader'}
@@ -293,6 +306,8 @@ const TableHeader = <T,>({
                     : undefined
               }
             >
+              {isFirstCell && <span aria-hidden className={`${HEADER_NUB} left-0`} />}
+              {isLastCell && <span aria-hidden className={`${HEADER_NUB} right-0`} />}
               <div className="flex items-center">
                 {column.header}
                 {column.sortable && <SortIndicator direction={sortDirection} />}
@@ -511,7 +526,7 @@ export function Table<T extends TableRowBase>({
     >
       {toolbar && (
         <div
-          className="relative flex items-center gap-3 px-4 py-3 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-[hsl(var(--foreground)/0.06)]"
+          className="relative flex items-center gap-3 px-4 py-3"
           style={{
             background: headerSurface(true),
             boxShadow: HEADER_TOP_EDGE,
