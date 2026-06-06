@@ -183,7 +183,10 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const leadFromProps = lead ?? leftIcon;
     const autoGlyph = AUTO_GLYPHS[color!];
     const displayLead: React.ReactNode = leadFromProps ?? autoGlyph ?? (
-      <span aria-hidden="true" className="block w-1 h-1 bg-current" />
+      <span
+        aria-hidden="true"
+        className="block h-[3px] w-[3px] bg-current shadow-[0_0_6px_1px_color-mix(in_srgb,currentColor_70%,transparent)]"
+      />
     );
     const leadIsAutoFilled = leadFromProps == null;
 
@@ -239,7 +242,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       <>
         <span
           aria-hidden={leadIsAutoFilled}
-          className={`flex items-center border-r ${borderClass} ${leadBgClass} ${textClass} ${sizeCfg.leadPx} ${sizeCfg.leadText} font-medium tracking-[0.04em]`}
+          className={`flex items-center justify-center border-r ${borderClass} ${leadBgClass} ${textClass} ${sizeCfg.leadPx} ${sizeCfg.leadText} font-medium tracking-[0.04em]`}
         >
           {displayLead}
         </span>
