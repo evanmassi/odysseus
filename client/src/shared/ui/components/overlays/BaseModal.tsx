@@ -9,6 +9,7 @@ import { X } from 'lucide-react';
 
 import { useAnimatedClose, useFocusTrap, useModalKeyboardNavigation } from '@shared/hooks';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+import { NubDivider } from '@shared/ui/primitives/nub-divider/NubDivider';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { ModalPortal } from './ModalPortal';
@@ -171,10 +172,7 @@ export function BaseModal({
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
         />
         {locator}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -bottom-px h-px bg-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
-        />
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
       </div>
     ) : null;
 
@@ -205,12 +203,7 @@ export function BaseModal({
 
   const footerBlock = footer ? (
     <div className={`relative border-t ${borderClass} px-6 py-3 ${surfaceClass} flex-shrink-0`}>
-      {isLit && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-px h-px bg-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
-        />
-      )}
+      {isLit && <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />}
       {footer}
     </div>
   ) : null;

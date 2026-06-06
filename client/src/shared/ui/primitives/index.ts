@@ -72,6 +72,9 @@ export type { SearchInputProps } from './search-input/SearchInput';
 export { Select } from './select/Select';
 export type { SelectProps, SelectOption, SelectSize, SelectState, SelectRef } from './select/types';
 
+export { NubDivider } from './nub-divider/NubDivider';
+export type { NubDividerProps, NubDividerTone } from './nub-divider/NubDivider';
+
 export { Panel } from './panel/Panel';
 export type { PanelProps } from './panel/Panel';
 
