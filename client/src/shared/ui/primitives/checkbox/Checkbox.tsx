@@ -1,8 +1,8 @@
 /**
  * Checkbox
  *
- * Status-LED checkbox — dark inner well with hairline frame, diagonal
- * L-bracket corners, and a tone fill plus halo when checked.
+ * Status-LED checkbox — dark inner well, soft connecting edges, and glowing
+ * corner points; adds a tone fill plus halo when checked.
  */
 
 import { forwardRef } from 'react';
@@ -29,6 +29,7 @@ const TONE: Record<
     icon: string;
     iconShadow: string;
     glow: string;
+    cornerGlow: string;
     bar: string;
     barShadow: string;
   }
@@ -39,6 +40,7 @@ const TONE: Record<
     icon: 'text-primary',
     iconShadow: 'drop-shadow(0 0 2px hsl(var(--primary) / var(--alpha-checkbox-shadow)))',
     glow: 'shadow-[0_0_6px_1px_hsl(var(--primary)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--primary)/var(--alpha-checkbox-glow-outer))]',
+    cornerGlow: 'shadow-[0_0_4px_hsl(var(--primary)/0.65)]',
     bar: 'bg-primary',
     barShadow: 'shadow-[0_0_4px_hsl(var(--primary)/var(--alpha-checkbox-shadow))]',
   },
@@ -48,10 +50,17 @@ const TONE: Record<
     icon: 'text-success-text',
     iconShadow: 'drop-shadow(0 0 2px hsl(var(--color-success-bg) / var(--alpha-checkbox-shadow)))',
     glow: 'shadow-[0_0_6px_1px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-outer))]',
+    cornerGlow: 'shadow-[0_0_4px_hsl(var(--color-success-bg)/0.65)]',
     bar: 'bg-success-bg',
     barShadow: 'shadow-[0_0_4px_hsl(var(--color-success-bg)/var(--alpha-checkbox-shadow))]',
   },
 };
+
+// Resting-state corner accent + soft connecting edge (checked state uses the tone above).
+const UNLIT_CORNER = 'bg-foreground/80';
+const UNLIT_CORNER_GLOW =
+  'shadow-[0_0_4px_color-mix(in_srgb,hsl(var(--foreground))_55%,transparent)]';
+const SOFT_EDGE = 'border border-foreground/[0.20] blur-[1px]';
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   (
@@ -80,7 +89,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     const t = TONE[tone];
     const isLit = checked || indeterminate;
-    const bracketColor = isLit ? t.bracket : 'border-line-strong';
+    const cornerFill = isLit ? t.bar : UNLIT_CORNER;
+    const cornerGlow = isLit ? t.cornerGlow : UNLIT_CORNER_GLOW;
     const boxGlow = isLit ? t.glow : '';
 
     return (
@@ -101,13 +111,22 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           aria-hidden
           className={`absolute inset-0 ${isLit ? t.fill : 'bg-surface-void/30'} ${boxGlow}`}
         />
+        <span aria-hidden className={`pointer-events-none absolute inset-0 ${SOFT_EDGE}`} />
         <span
           aria-hidden
-          className={`absolute -top-px -left-px h-1 w-1 border-t border-l ${bracketColor}`}
+          className={`pointer-events-none absolute left-0 top-0 h-0.5 w-0.5 ${cornerFill} ${cornerGlow}`}
         />
         <span
           aria-hidden
-          className={`absolute -right-px -bottom-px h-1 w-1 border-b border-r ${bracketColor}`}
+          className={`pointer-events-none absolute right-0 top-0 h-0.5 w-0.5 ${cornerFill} ${cornerGlow}`}
+        />
+        <span
+          aria-hidden
+          className={`pointer-events-none absolute bottom-0 left-0 h-0.5 w-0.5 ${cornerFill} ${cornerGlow}`}
+        />
+        <span
+          aria-hidden
+          className={`pointer-events-none absolute bottom-0 right-0 h-0.5 w-0.5 ${cornerFill} ${cornerGlow}`}
         />
         {checked && !indeterminate && (
           <svg
