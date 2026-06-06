@@ -25,6 +25,13 @@ const TITLE_SIZE: Record<SectionHeaderSize, string> = {
   lg: 'text-[14px]',
 };
 
+// Leading tick glyph (tall + short bar) scaled per title size, kept at a 3:2 ratio.
+const GLYPH: Record<SectionHeaderSize, { tall: string; short: string }> = {
+  sm: { tall: 'h-3', short: 'h-2' },
+  md: { tall: 'h-[17px]', short: 'h-[11px]' },
+  lg: { tall: 'h-[17px]', short: 'h-[11px]' },
+};
+
 export function SectionHeader({
   title,
   icon,
@@ -36,8 +43,10 @@ export function SectionHeader({
   return (
     <div className={`flex items-center gap-2.5 pb-3.5 ${className ?? ''}`}>
       <span aria-hidden className="flex shrink-0 items-end gap-0.5">
-        <span className="h-[17px] w-[3px] bg-foreground shadow-[0_0_10px_-3px_hsl(var(--foreground)/0.5)]" />
-        <span className="h-[11px] w-0.5 bg-foreground/45" />
+        <span
+          className={`${GLYPH[size].tall} w-[3px] bg-primary shadow-[0_0_10px_-3px_hsl(var(--primary)/0.5)]`}
+        />
+        <span className={`${GLYPH[size].short} w-0.5 bg-primary/45`} />
       </span>
       {icon && (
         <span
@@ -69,7 +78,7 @@ export function SectionHeader({
         />
         <span
           aria-hidden
-          className={`absolute top-1/2 h-1 w-3 -translate-y-1/2 bg-foreground/60 ${rightMeta ? 'right-20' : 'right-1'}`}
+          className={`absolute top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)] ${rightMeta ? 'right-20' : 'right-0'}`}
         />
       </div>
       {rightMeta && (
