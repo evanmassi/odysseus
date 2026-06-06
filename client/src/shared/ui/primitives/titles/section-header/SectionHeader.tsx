@@ -10,7 +10,7 @@ export type SectionHeaderSize = 'sm' | 'md' | 'lg';
 
 export interface SectionHeaderProps {
   title: string;
-  /** Leading icon shown after the tick-mark glyph (muted). */
+  /** Leading icon shown after the marker glyph (muted). */
   icon?: ReactNode;
   meta?: ReactNode;
   rightMeta?: ReactNode;
@@ -25,11 +25,23 @@ const TITLE_SIZE: Record<SectionHeaderSize, string> = {
   lg: 'text-[14px]',
 };
 
-// Leading tick glyph (tall + short bar) scaled per title size, kept at a 3:2 ratio.
-const GLYPH: Record<SectionHeaderSize, { tall: string; short: string }> = {
-  sm: { tall: 'h-3', short: 'h-2' },
-  md: { tall: 'h-[17px]', short: 'h-[11px]' },
-  lg: { tall: 'h-[17px]', short: 'h-[11px]' },
+// Beacon glyph geometry per title size — lit box + two radiating chevrons.
+const BEACON: Record<SectionHeaderSize, { box: string; c1: string; c2: string }> = {
+  sm: {
+    box: 'w-[17px] h-3',
+    c1: 'left-[6px] w-[5px] h-[5px] border-t border-r',
+    c2: 'left-[10px] w-[7px] h-[7px] border-t border-r',
+  },
+  md: {
+    box: 'w-[21px] h-4',
+    c1: 'left-[7px] w-1.5 h-1.5 border-t-[1.5px] border-r-[1.5px]',
+    c2: 'left-3 w-2 h-2 border-t-[1.5px] border-r-[1.5px]',
+  },
+  lg: {
+    box: 'w-[23px] h-[18px]',
+    c1: 'left-2 w-[7px] h-[7px] border-t-[1.5px] border-r-[1.5px]',
+    c2: 'left-[13px] w-[9px] h-[9px] border-t-2 border-r-2',
+  },
 };
 
 export function SectionHeader({
@@ -42,11 +54,14 @@ export function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className={`flex items-center gap-2.5 pb-3.5 ${className ?? ''}`}>
-      <span aria-hidden className="flex shrink-0 items-end gap-0.5">
+      <span aria-hidden className={`relative flex shrink-0 ${BEACON[size].box}`}>
+        <span className="absolute left-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground shadow-[0_0_7px_1px_hsl(var(--primary)/0.75)]" />
         <span
-          className={`${GLYPH[size].tall} w-[3px] bg-primary shadow-[0_0_10px_-3px_hsl(var(--primary)/0.5)]`}
+          className={`absolute top-1/2 -translate-y-1/2 rotate-45 border-foreground/85 ${BEACON[size].c1}`}
         />
-        <span className={`${GLYPH[size].short} w-0.5 bg-primary/45`} />
+        <span
+          className={`absolute top-1/2 -translate-y-1/2 rotate-45 border-foreground/45 ${BEACON[size].c2}`}
+        />
       </span>
       {icon && (
         <span
