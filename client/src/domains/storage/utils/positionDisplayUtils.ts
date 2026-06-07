@@ -105,6 +105,32 @@ export function formatPositionForBox(
   return positionToLabel(position, gridConfig.rows, gridConfig.cols, config);
 }
 
+/** Row/column axis labels for rulers, or null when the box uses numeric (axis-less) positions. */
+export function getAxisLabelsForBox(
+  tankId: string,
+  rackId: string,
+  boxId: string,
+  gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
+  userSettings?: UserSettings | null
+): { rowLabels: string[]; colLabels: string[] } | null {
+  const config = getResolvedPositionDisplay(
+    tankId,
+    rackId,
+    boxId,
+    gridConfig,
+    currentLab,
+    userSettings
+  );
+  if (config.format !== 'alphanumeric' || !config.alphanumericConfig) {
+    return null;
+  }
+  return {
+    rowLabels: config.alphanumericConfig.rowLabels,
+    colLabels: config.alphanumericConfig.colLabels,
+  };
+}
+
 /**
  * Builds consecutive ranges from positions, then formats labels per box config.
  *

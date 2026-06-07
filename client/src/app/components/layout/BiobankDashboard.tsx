@@ -8,11 +8,16 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 
 import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
-import { MapPin, Navigation, ScanEye, UserRound, UsersRound } from 'lucide-react';
+import { FlaskConical, Navigation } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication';
-import { useStorageData, useStorageLocationNames } from '@domains/storage';
+import {
+  useStorageData,
+  useStorageLocationNames,
+  getGridTotalPositions,
+  DEFAULT_GRID_CONFIG,
+} from '@domains/storage';
 import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
 import { useStorageSync } from '@domains/storage/hooks/useStorageSync';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
@@ -37,12 +42,11 @@ import { TubeShareAccessModal } from '@domains/tubes/ui/components/locking/TubeS
 import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@infra/logger';
-import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
+import { ErrorBoundary, NubDivider, PanelHeader, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { UnsavedConfirmDialog } from '@shared/ui/components/overlays/UnsavedConfirmDialog';
-import { Chip } from '@shared/ui/primitives/chip/Chip';
-import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { notifications } from '@shared/utils/notifications';
 
 import { AppHeader } from './AppHeader';
@@ -152,7 +156,7 @@ function BiobankWorkspace() {
     return activeElement && storageNavigatorRef.current?.contains(activeElement);
   };
 
-  const { getCurrentTanks } = useStorageData();
+  const { getCurrentTanks, currentLab } = useStorageData();
 
   const {
     tankName: tankDisplayName,
@@ -161,6 +165,8 @@ function BiobankWorkspace() {
     rack: currentRackObj,
     box: currentBoxObj,
   } = useStorageLocationNames(currentTank, currentRack, currentBox);
+
+  const gridCapacity = getGridTotalPositions(currentBoxObj?.gridConfig ?? DEFAULT_GRID_CONFIG);
 
   const tanks = getCurrentTanks();
   const modalService = useModalStore();
@@ -172,52 +178,15 @@ function BiobankWorkspace() {
 
   const isAdmin = isAdminRole(user?.role);
 
-  const { isViewOnlySpace, spaceOwnerId, isCommonSpace, isOwnSpace } = useMemo(() => {
-    if (!user)
-      return {
-        isViewOnlySpace: true,
-        spaceOwnerId: undefined,
-        isCommonSpace: false,
-        isOwnSpace: false,
-      };
-
-    let effectiveOwnerId: string | null | undefined;
-    if (currentBoxObj?.assignedUserId !== undefined) {
-      effectiveOwnerId = currentBoxObj.assignedUserId;
-    } else {
-      effectiveOwnerId = currentRackObj?.assignedUserId;
-    }
-
-    if (effectiveOwnerId === null || effectiveOwnerId === undefined) {
-      return {
-        isViewOnlySpace: false,
-        spaceOwnerId: undefined,
-        isCommonSpace: true,
-        isOwnSpace: false,
-      };
-    }
-
-    const isOwn = effectiveOwnerId === user.id;
-    const isViewOnly = !isOwn && !isAdmin;
-
-    return {
-      isViewOnlySpace: isViewOnly,
-      spaceOwnerId: effectiveOwnerId,
-      isCommonSpace: false,
-      isOwnSpace: isOwn,
-    };
+  const isViewOnlySpace = useMemo(() => {
+    if (!user) return true;
+    const effectiveOwnerId =
+      currentBoxObj?.assignedUserId !== undefined
+        ? currentBoxObj.assignedUserId
+        : currentRackObj?.assignedUserId;
+    if (effectiveOwnerId === null || effectiveOwnerId === undefined) return false;
+    return effectiveOwnerId !== user.id && !isAdmin;
   }, [user, currentBoxObj?.assignedUserId, currentRackObj?.assignedUserId, isAdmin]);
-
-  const spaceOwnerIds = useMemo(() => (spaceOwnerId ? [spaceOwnerId] : []), [spaceOwnerId]);
-  const { data: spaceOwnerUsers = [] } = useUserLookupQuery(spaceOwnerIds);
-  const spaceOwnerName = useMemo(() => {
-    if (!spaceOwnerId || spaceOwnerUsers.length === 0) return undefined;
-    const ownerUser = spaceOwnerUsers.find(u => u.id === spaceOwnerId);
-    if (!ownerUser) return undefined;
-    return ownerUser.firstName && ownerUser.lastName
-      ? `${ownerUser.firstName} ${ownerUser.lastName}`
-      : ownerUser.username;
-  }, [spaceOwnerId, spaceOwnerUsers]);
 
   const storageHierarchy: StorageHierarchy = useMemo(
     () => ({
@@ -453,61 +422,48 @@ function BiobankWorkspace() {
         </div>
 
         <div className="grid-section">
-          <div className="h-full flex flex-col bg-card rounded-lg">
-            <div className="px-4 pt-4 pb-2 flex items-center">
-              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
-                <MapPin size={16} className="flex-shrink-0 text-secondary-foreground" />
-                <span>{tankDisplayName}</span>
-                <span className="text-xs text-muted-foreground">•</span>
-                <span>{rackDisplayName}</span>
-                <span className="text-xs text-muted-foreground">•</span>
-                <span>{boxDisplayName}</span>
-              </h4>
-              <div className="flex-1 flex justify-end">
-                {isOwnSpace && (
-                  <Tooltip content="This space is assigned to you.">
-                    <Chip
-                      color="success"
-                      size="sm"
-                      leftIcon={<UserRound />}
-                      className="cursor-help"
-                    >
-                      Assigned to You
-                    </Chip>
-                  </Tooltip>
-                )}
-                {isViewOnlySpace && (
-                  <Tooltip content="You can view, but not modify, tubes here.">
-                    <Chip color="warning" size="sm" leftIcon={<ScanEye />} className="cursor-help">
-                      View Only - Assigned to{' '}
-                      <span className="font-semibold">{spaceOwnerName ?? 'another user'}</span>
-                    </Chip>
-                  </Tooltip>
-                )}
-                {!isViewOnlySpace && !isOwnSpace && !isCommonSpace && spaceOwnerId && (
-                  <Tooltip
-                    content={`This space is assigned to ${spaceOwnerName ?? 'another user'}.`}
-                  >
-                    <Chip color="info" size="sm" leftIcon={<UserRound />} className="cursor-help">
-                      Assigned to{' '}
-                      <span className="font-semibold">{spaceOwnerName ?? 'another user'}</span>
-                    </Chip>
-                  </Tooltip>
-                )}
-                {isCommonSpace && (
-                  <Tooltip content="This space is available to all users.">
-                    <Chip
-                      color="default"
-                      size="sm"
-                      lit
-                      leftIcon={<UsersRound />}
-                      className="cursor-help"
-                    >
-                      Unassigned/Common
-                    </Chip>
-                  </Tooltip>
-                )}
+          <ConsolePanel intensity="medium" className="h-full flex flex-col">
+            <div className="flex-shrink-0 border-b border-line-faint px-4 py-2.5">
+              <PanelHeader
+                icon={<FlaskConical className="h-4 w-4" />}
+                title={currentLab?.name ?? 'Biobank'}
+              />
+            </div>
+
+            <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+              />
+              <div className="flex items-center gap-3">
+                <span className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] tracking-[0.04em]">
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
+                  />
+                  <span className="truncate text-foreground">{tankDisplayName}</span>
+                  <span className="flex-shrink-0 text-foreground/30">›</span>
+                  <span className="truncate text-foreground">{rackDisplayName}</span>
+                  <span className="flex-shrink-0 text-foreground/30">›</span>
+                  <span className="truncate font-medium text-foreground">{boxDisplayName}</span>
+                </span>
+                <span className="flex-1" />
+                <span className="flex flex-shrink-0 items-center gap-2">
+                  <span className="relative h-1 w-20 bg-foreground/[0.07]">
+                    <span
+                      className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+                      style={{
+                        width: `${gridCapacity > 0 ? (tubes.length / gridCapacity) * 100 : 0}%`,
+                      }}
+                    />
+                  </span>
+                  <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/60">
+                    {tubes.length}
+                    <span className="text-foreground/35">/{gridCapacity}</span>
+                  </span>
+                </span>
               </div>
+              <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
             </div>
             <div className="grid-container flex-1" ref={gridContainerRef}>
               <ErrorBoundary>
@@ -525,7 +481,7 @@ function BiobankWorkspace() {
                 />
               </ErrorBoundary>
             </div>
-          </div>
+          </ConsolePanel>
         </div>
 
         <div className="info-panel" ref={infoPanelRef}>

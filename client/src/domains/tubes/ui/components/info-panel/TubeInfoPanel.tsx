@@ -285,7 +285,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     footer?: ReactNode
   ) => (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint px-4 py-3">
+      <div className="flex-shrink-0 border-b border-line-faint px-4 py-2.5">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Tube Information" />
       </div>
 

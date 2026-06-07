@@ -6,9 +6,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { useStorageData, getGridTotalPositions, DEFAULT_GRID_CONFIG } from '@domains/storage';
+import { getAxisLabelsForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import { useUserSettings } from '@domains/users/hooks/useUserSettings';
 
 import { TubeGridCell } from './TubeGridCell';
 import { TubeGridContextMenu } from './TubeGridContextMenu';
@@ -50,9 +52,15 @@ export function TubeGrid({
   } = useTubesByLocation(tankId, rackId, boxId, {
     staleTime: 2 * 60 * 1000,
   });
-  const { getBox } = useStorageData();
+  const { getBox, currentLab } = useStorageData();
+  const { settings } = useUserSettings();
   const boxConfig = getBox(tankId, rackId, boxId);
   const gridConfig = boxConfig?.gridConfig ?? DEFAULT_GRID_CONFIG;
+
+  const axisLabels = useMemo(
+    () => getAxisLabelsForBox(tankId, rackId, boxId, gridConfig, currentLab, settings),
+    [tankId, rackId, boxId, gridConfig, currentLab, settings]
+  );
 
   // Clipboard access for Escape key clearing
   const setClipboard = useGridClipboardStore(state => state.setClipboard);
@@ -215,71 +223,104 @@ export function TubeGrid({
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex-1 flex items-start justify-center">
-        <div
-          ref={gridRef}
-          className="tube-grid select-none focus:outline-none"
-          style={{
-            ...gridStyle,
-            outline: 'none !important',
-            outlineOffset: '0 !important',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-          role="grid"
-          aria-label={`Tube storage grid for ${boxId ? `Box ${boxId}` : `Rack ${rackId}`}, ${positions.length} positions`}
-          aria-multiselectable="true"
-          tabIndex={0}
-          data-focus="custom"
-          onKeyDown={keyboardNav.handleGridKeyDown}
-        >
-          {positions.map(position => {
-            const positionKey = toPositionKey(ctx, position);
-            const tube = tubesByPosition[position];
-            const selected = gridController.isPositionSelected(position);
-            const isCut = gridController.clipboard.cutPositions.has(positionKey);
-            const isCopied = gridController.clipboard.copyPositions.has(positionKey);
-            const inDragPreview = dragSelection.dragPreview.has(positionKey);
-            const isKeyboardFocused = position === focusedPosition;
+        <div className={`grid-with-rulers${axisLabels ? ' has-rulers' : ''}`}>
+          {axisLabels && (
+            <>
+              <div className="grid-ruler-corner" />
+              <div
+                className="grid-ruler grid-ruler-cols font-mono"
+                style={{
+                  gridTemplateColumns: `repeat(${gridConfig.cols}, minmax(0, 1fr))`,
+                  fontSize: `${fontSize.positionFont}px`,
+                }}
+              >
+                {axisLabels.colLabels.map((label, index) => (
+                  <span key={index} className="grid-ruler-label">
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <div
+                className="grid-ruler grid-ruler-rows font-mono"
+                style={{
+                  gridTemplateRows: `repeat(${gridConfig.rows}, minmax(0, 1fr))`,
+                  fontSize: `${fontSize.positionFont}px`,
+                }}
+              >
+                {axisLabels.rowLabels.map((label, index) => (
+                  <span key={index} className="grid-ruler-label">
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+          <div
+            ref={gridRef}
+            className="tube-grid select-none focus:outline-none"
+            style={{
+              ...gridStyle,
+              outline: 'none !important',
+              outlineOffset: '0 !important',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+            role="grid"
+            aria-label={`Tube storage grid for ${boxId ? `Box ${boxId}` : `Rack ${rackId}`}, ${positions.length} positions`}
+            aria-multiselectable="true"
+            tabIndex={0}
+            data-focus="custom"
+            onKeyDown={keyboardNav.handleGridKeyDown}
+          >
+            {positions.map(position => {
+              const positionKey = toPositionKey(ctx, position);
+              const tube = tubesByPosition[position];
+              const selected = gridController.isPositionSelected(position);
+              const isCut = gridController.clipboard.cutPositions.has(positionKey);
+              const isCopied = gridController.clipboard.copyPositions.has(positionKey);
+              const inDragPreview = dragSelection.dragPreview.has(positionKey);
+              const isKeyboardFocused = position === focusedPosition;
 
-            const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
-            const isLockedByCurrentUser =
-              tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
-            const hasSharedAccess =
-              tube && lockContext ? lockContext.hasExplicitSharedAccess(tube) : false;
-            const hasAdminOverride =
-              tube?.isLocked && !isLockedByCurrentUser && !hasSharedAccess && !isLockedOut;
-            const lockOwnerName =
-              tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
+              const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
+              const isLockedByCurrentUser =
+                tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
+              const hasSharedAccess =
+                tube && lockContext ? lockContext.hasExplicitSharedAccess(tube) : false;
+              const hasAdminOverride =
+                tube?.isLocked && !isLockedByCurrentUser && !hasSharedAccess && !isLockedOut;
+              const lockOwnerName =
+                tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
 
-            return (
-              <TubeGridCell
-                key={position}
-                position={position}
-                tankId={tankId}
-                rackId={rackId}
-                boxId={boxId}
-                tube={tube}
-                selected={selected}
-                isDragPreview={inDragPreview && !selected}
-                isCut={isCut}
-                isCopied={isCopied}
-                _isKeyboardFocused={isKeyboardFocused}
-                gridConfig={gridConfig}
-                fontSize={fontSize}
-                onPositionClick={handlePositionClick}
-                onPositionRightClick={handlePositionRightClick}
-                onPositionDoubleClick={gridController.handlePositionDoubleClick}
-                onMouseDown={dragSelection.handleMouseDown}
-                onMouseMove={dragSelection.handleMouseMove}
-                onHoverStart={handleHoverStart}
-                onHoverEnd={handleHoverEnd}
-                isLockedOut={isLockedOut}
-                isLockedByCurrentUser={isLockedByCurrentUser}
-                hasSharedAccess={hasSharedAccess}
-                hasAdminOverride={hasAdminOverride}
-                lockOwnerName={lockOwnerName}
-              />
-            );
-          })}
+              return (
+                <TubeGridCell
+                  key={position}
+                  position={position}
+                  tankId={tankId}
+                  rackId={rackId}
+                  boxId={boxId}
+                  tube={tube}
+                  selected={selected}
+                  isDragPreview={inDragPreview && !selected}
+                  isCut={isCut}
+                  isCopied={isCopied}
+                  _isKeyboardFocused={isKeyboardFocused}
+                  gridConfig={gridConfig}
+                  fontSize={fontSize}
+                  onPositionClick={handlePositionClick}
+                  onPositionRightClick={handlePositionRightClick}
+                  onPositionDoubleClick={gridController.handlePositionDoubleClick}
+                  onMouseDown={dragSelection.handleMouseDown}
+                  onMouseMove={dragSelection.handleMouseMove}
+                  onHoverStart={handleHoverStart}
+                  onHoverEnd={handleHoverEnd}
+                  isLockedOut={isLockedOut}
+                  isLockedByCurrentUser={isLockedByCurrentUser}
+                  hasSharedAccess={hasSharedAccess}
+                  hasAdminOverride={hasAdminOverride}
+                  lockOwnerName={lockOwnerName}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 

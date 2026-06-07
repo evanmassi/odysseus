@@ -9,6 +9,7 @@
   --layout-header-height: 52px;
   --layout-top-padding: 8px;
   --panel-title-height: 40px;
+  --grid-chassis-header: 104px;
 
   --space-sm: 8px;
 }
@@ -19,6 +20,9 @@
   flex-direction: column;
   padding-top: var(--layout-top-padding);
   background-color: hsl(var(--page));
+  background-image:
+    repeating-linear-gradient(0deg, hsl(var(--foreground) / 0.013) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, hsl(var(--foreground) / 0.013) 0 1px, transparent 1px 26px);
 }
 
 .app-header {
@@ -33,7 +37,7 @@
   gap: 20px;
   padding: 8px 16px 16px;
   align-items: flex-start;
-  background-color: hsl(var(--page));
+  background-color: transparent;
 }
 
 /* Storage Navigator Panel */
@@ -91,14 +95,47 @@
 /* Tube Grid */
 .tube-grid {
   width: min(
-    100cqw,
+    calc(100cqw - var(--grid-ruler, 0px)),
     calc(
-      100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--panel-title-height) -
-        56px
+      100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--grid-chassis-header) -
+        56px - var(--grid-ruler, 0px)
     )
   );
   aspect-ratio: 1;
   gap: 4px;
+}
+
+/* Row/column rulers wrap the cell grid; tracks collapse to 0 when absent */
+.grid-with-rulers {
+  display: grid;
+  grid-template-columns: var(--grid-ruler, 0px) auto;
+  grid-template-rows: var(--grid-ruler, 0px) auto;
+}
+
+.grid-with-rulers.has-rulers {
+  --grid-ruler: 24px;
+  grid-template-columns: calc(var(--grid-ruler) - 10px) auto;
+  grid-template-rows: calc(var(--grid-ruler) - 10px) auto;
+  column-gap: 10px;
+  row-gap: 10px;
+}
+
+.grid-with-rulers > .tube-grid {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.grid-ruler {
+  display: grid;
+  gap: 4px;
+}
+
+.grid-ruler-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--foreground) / 0.4);
+  line-height: 1;
 }
 
 /* Lab Management Layout */
@@ -107,7 +144,7 @@
   display: flex;
   gap: 20px;
   padding: 8px 16px 16px;
-  background-color: hsl(var(--page));
+  background-color: transparent;
 }
 
 .lab-management-sidebar {
