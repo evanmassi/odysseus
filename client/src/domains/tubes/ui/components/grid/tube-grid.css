@@ -4,20 +4,6 @@
  * Selection glow, drag preview, clipboard marching ants, and position cell layout.
  */
 
-.tube-content {
-  position: relative;
-  width: 94%;
-  height: 88%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  overflow: hidden;
-  box-sizing: border-box;
-  z-index: 2;
-}
-
 .tube-position {
   position: relative;
 }
@@ -25,7 +11,7 @@
 .donor-internal,
 .donor-source {
   font-weight: 500;
-  opacity: 0.9;
+  opacity: 0.82;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -33,23 +19,22 @@
   max-width: 100%;
 }
 
-.cell-line {
-  font-weight: 700;
-  overflow-wrap: break-word;
-  line-height: 1.15;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-clamp: 2;
-  max-width: 100%;
-  text-align: center;
+.donor-source {
+  opacity: 0.6;
 }
 
-.empty-label {
-  color: hsl(var(--grid-empty-foreground));
-  font-style: italic;
-  opacity: 0.8;
+.cell-line {
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.empty-coord {
+  color: hsl(var(--foreground) / 0.22);
+  letter-spacing: 0.04em;
 }
 
 @keyframes tube-select-once {
@@ -104,10 +89,16 @@
 }
 
 .tube-position {
-  border: 1px solid hsl(var(--grid-border));
+  border: 1px solid var(--border-color, hsl(var(--grid-border)));
   /* contain: paint would clip marching ants animation, so only layout+style */
   contain: layout style;
   backface-visibility: hidden;
+}
+
+.tube-position.empty {
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px hsl(var(--foreground) / 0.05);
 }
 
 .tube-position:not(.selected) {

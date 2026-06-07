@@ -5,7 +5,7 @@
  */
 import React, { memo } from 'react';
 
-type IndicatorShape = 'square' | 'triangle';
+type IndicatorShape = 'square' | 'triangle' | 'corner-triangle';
 type IndicatorPattern =
   | 'solid'
   | 'stripe'
@@ -23,6 +23,8 @@ interface TubePropertyIndicatorProps {
   size: number;
   title?: string;
   className?: string;
+  /** Outline override; defaults to a contrast stroke against the shape's own fill. */
+  strokeColor?: string;
 }
 
 // Stroke color based on fill color (white/yellow get dark stroke, others get white)
@@ -232,9 +234,9 @@ function renderTrianglePattern(
 }
 
 export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
-  ({ shape, color, pattern, size, title, className }) => {
+  ({ shape, color, pattern, size, title, className, strokeColor }) => {
     const viewBoxSize = 16;
-    const strokeColor = getStrokeColor(color);
+    const stroke = strokeColor ?? getStrokeColor(color);
     const patternColor = getPatternColor(color);
     const strokeWidth = 1.25;
 
@@ -257,19 +259,27 @@ export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
               width={viewBoxSize - strokeWidth}
               height={viewBoxSize - strokeWidth}
               fill={color}
-              stroke={strokeColor}
+              stroke={stroke}
               strokeWidth={strokeWidth}
               rx={1}
             />
             {renderPattern(pattern, patternColor, viewBoxSize)}
           </>
+        ) : shape === 'corner-triangle' ? (
+          <polygon
+            points={`${viewBoxSize - strokeWidth / 2},${strokeWidth / 2} ${viewBoxSize - strokeWidth / 2},${viewBoxSize - strokeWidth / 2} ${strokeWidth / 2},${viewBoxSize - strokeWidth / 2}`}
+            fill={color}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            strokeLinejoin="round"
+          />
         ) : (
           <>
             {/* Triangle background (pointing up) */}
             <polygon
               points={`${viewBoxSize / 2},${strokeWidth} ${viewBoxSize - strokeWidth},${viewBoxSize - strokeWidth} ${strokeWidth},${viewBoxSize - strokeWidth}`}
               fill={color}
-              stroke={strokeColor}
+              stroke={stroke}
               strokeWidth={strokeWidth}
               strokeLinejoin="round"
             />

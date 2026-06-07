@@ -20,7 +20,7 @@ import { TubeLockIndicator } from '../locking/TubeLockIndicator';
 import { TubePropertyIndicator } from './TubePropertyIndicator';
 
 import type { GridConfiguration } from '@domains/storage';
-import type { TubeData } from '@domains/tubes/types';
+import type { LockVariant, TubeData } from '@domains/tubes/types';
 
 import './tube-grid.css';
 
@@ -123,6 +123,36 @@ export const TubeGridCell = memo<TubeGridCellProps>(
       onHoverEnd();
     }, [onHoverEnd]);
 
+    const ink = colors?.textColor ?? 'hsl(var(--foreground))';
+    const fill = colors?.backgroundColor ?? 'hsl(var(--grid-empty))';
+    const positionLabel = formatPositionForBox(
+      position,
+      tankId,
+      rackId,
+      boxId,
+      gridConfig,
+      currentLab,
+      settings
+    );
+
+    const MARK_INSET = 2;
+    const MARK_STROKE = 'rgba(0, 0, 0, 0.5)';
+    const lotMark = fontSize.positionFont + 1;
+    const lockMark = fontSize.positionFont + 2;
+    const triLeg = fontSize.positionFont + 2;
+
+    const lockVariant: LockVariant | undefined = !tube
+      ? undefined
+      : isLockedByCurrentUser
+        ? 'own'
+        : hasSharedAccess && lockOwnerName
+          ? 'shared'
+          : hasAdminOverride && lockOwnerName
+            ? 'admin-override'
+            : isLockedOut && lockOwnerName
+              ? 'other'
+              : undefined;
+
     return (
       <div
         ref={cellRef}
@@ -158,126 +188,94 @@ export const TubeGridCell = memo<TubeGridCellProps>(
         ${isCut ? 'cut-tube' : ''}
         ${isCopied ? 'copied-tube' : ''}
         ${isLockedOut ? 'opacity-70' : ''}
-        rounded-lg
       `}
         style={
           {
-            backgroundColor: colors?.backgroundColor ?? 'hsl(var(--grid-empty))',
-            color:
-              colors?.textColor ??
-              (tube ? 'hsl(var(--foreground))' : 'hsl(var(--grid-empty-foreground))'),
+            backgroundColor: tube ? fill : 'rgba(0,0,0,0.32)',
+            backgroundImage: tube
+              ? 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 46%, rgba(0,0,0,0.14) 100%)'
+              : 'none',
+            color: tube ? ink : 'hsl(var(--grid-empty-foreground))',
             width: '100%',
             height: '100%',
             aspectRatio: '1',
-            '--border-color': colors?.borderColor ?? 'hsl(var(--grid-border))',
+            '--border-color': tube ? 'rgba(0,0,0,0.22)' : 'transparent',
           } as React.CSSProperties
         }
         data-grid-size={`${gridConfig.rows}x${gridConfig.cols}`}
         data-position={position}
       >
-        <div
-          className="absolute top-0.5 right-0.5 font-semibold rounded-sm shadow-sm border flex items-center justify-center leading-none"
-          style={{
-            fontSize: `${fontSize.positionFont}px`,
-            paddingInline: '3px',
-            paddingBlock: '1px',
-            zIndex: 3,
-            backgroundColor: 'hsl(var(--grid-position-label))',
-            color: 'hsl(var(--grid-position-label-foreground))',
-            borderColor: 'hsl(var(--grid-position-label-border))',
-          }}
-        >
-          {formatPositionForBox(position, tankId, rackId, boxId, gridConfig, currentLab, settings)}
-        </div>
-
-        {/* Lot number indicator - top-left (square) */}
-        {tube && lotStyle && (
-          <div className="absolute top-0.5 left-0.5 z-[1]">
-            <TubePropertyIndicator
-              shape="square"
-              color={lotStyle.color}
-              pattern={lotStyle.pattern}
-              size={fontSize.positionFont + 2}
-            />
-          </div>
-        )}
-
-        {/* Condition indicator - bottom-right (triangle) */}
-        {tube && conditionStyle && (
-          <div className="absolute bottom-0.5 right-0.5 z-[1]">
-            <TubePropertyIndicator
-              shape="triangle"
-              color={conditionStyle.color}
-              pattern="solid"
-              size={fontSize.positionFont + 2}
-            />
-          </div>
-        )}
-
-        {/* Lock indicator - bottom-left */}
-        {tube && isLockedByCurrentUser && (
-          <TubeLockIndicator
-            size={fontSize.positionFont + 2}
-            variant="own"
-            backgroundColor={colors?.backgroundColor}
-          />
-        )}
-        {tube && hasSharedAccess && lockOwnerName && (
-          <TubeLockIndicator
-            size={fontSize.positionFont + 2}
-            variant="shared"
-            backgroundColor={colors?.backgroundColor}
-          />
-        )}
-        {tube && hasAdminOverride && lockOwnerName && (
-          <TubeLockIndicator
-            size={fontSize.positionFont + 2}
-            variant="admin-override"
-            backgroundColor={colors?.backgroundColor}
-          />
-        )}
-        {tube && isLockedOut && lockOwnerName && (
-          <TubeLockIndicator
-            size={fontSize.positionFont + 2}
-            variant="other"
-            backgroundColor={colors?.backgroundColor}
-          />
-        )}
-
-        {/* Tube content - tooltip handled by parent TubeGrid */}
         {tube ? (
-          <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
+          <>
+            {lotStyle && (
+              <div className="absolute z-[1]" style={{ top: MARK_INSET, left: MARK_INSET }}>
+                <TubePropertyIndicator
+                  shape="square"
+                  color={lotStyle.color}
+                  pattern={lotStyle.pattern}
+                  size={lotMark}
+                  strokeColor={MARK_STROKE}
+                />
+              </div>
+            )}
+
             <div
-              className="cell-line font-medium leading-tight"
-              style={{ fontSize: `${cellTypeFontSize}px` }}
+              className="absolute z-[3] flex items-center gap-[2px] leading-none"
+              style={{ top: MARK_INSET, right: MARK_INSET }}
             >
-              {cellTypeText}
+              {lockVariant && (
+                <TubeLockIndicator size={lockMark} variant={lockVariant} backgroundColor={fill} />
+              )}
+              <span
+                className="font-semibold leading-none"
+                style={{ fontSize: `${fontSize.positionFont}px`, color: ink, opacity: 0.82 }}
+              >
+                {positionLabel}
+              </span>
             </div>
-            {donorInfo.internal && (
-              <div
-                className="donor-internal leading-tight"
-                style={{ fontSize: `${fontSize.donorFont}px` }}
-              >
-                {donorInfo.internal}
+
+            {conditionStyle && (
+              <div className="absolute z-[1]" style={{ right: MARK_INSET, bottom: MARK_INSET }}>
+                <TubePropertyIndicator
+                  shape="corner-triangle"
+                  color={conditionStyle.color}
+                  pattern="solid"
+                  size={triLeg}
+                  strokeColor={MARK_STROKE}
+                />
               </div>
             )}
-            {donorInfo.source && (
+
+            <div
+              className="absolute text-left leading-tight"
+              style={{ left: 3, right: triLeg + 3, bottom: 2, color: ink }}
+            >
               <div
-                className="donor-source leading-tight"
-                style={{ fontSize: `${fontSize.donorFont}px` }}
+                className="cell-line font-semibold"
+                style={{ fontSize: `${cellTypeFontSize}px` }}
               >
-                {donorInfo.source}
+                {cellTypeText}
               </div>
-            )}
-          </div>
+              {donorInfo.internal && (
+                <div className="donor-internal" style={{ fontSize: `${fontSize.donorFont}px` }}>
+                  {donorInfo.internal}
+                </div>
+              )}
+              {donorInfo.source && (
+                <div className="donor-source" style={{ fontSize: `${fontSize.donorFont}px` }}>
+                  {donorInfo.source}
+                </div>
+              )}
+            </div>
+          </>
         ) : (
-          <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
-            <div
-              className="empty-label font-medium leading-tight"
-              style={{ fontSize: `${fontSize.cellFont}px` }}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span
+              className="empty-coord font-mono leading-none"
+              style={{ fontSize: `${fontSize.positionFont}px` }}
             >
-              Empty
-            </div>
+              {positionLabel}
+            </span>
           </div>
         )}
       </div>
