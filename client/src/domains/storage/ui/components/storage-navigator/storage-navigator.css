@@ -65,8 +65,26 @@
   border-radius: 0;
 }
 
-[data-tree-id='navigator'] .storage-nav-button:hover {
+/* Hover preview mirrors the data Table's row hover (and the box minimaps): a
+   directional primary wash + glowing leading stripe + bloom. Skipped on
+   selected/expanded rows so they keep their own stripe-on-open treatment. */
+[data-tree-id='navigator'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
   border-color: hsl(var(--primary) / 0.4);
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
+    hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
+    hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
+    hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
+    hsl(var(--primary) / 0) 100%
+  );
+  box-shadow:
+    inset 3px 0 0 0 hsl(var(--primary) / var(--alpha-hover-stripe)),
+    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-hover-edge)),
+    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
+    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
+    0 0 22px -4px hsl(var(--primary) / var(--alpha-hover-bloom)),
+    0 0 50px 4px hsl(var(--primary) / var(--alpha-hover-bloom-far));
 }
 
 [data-tree-id='navigator'] .storage-nav-button.selected,
@@ -76,6 +94,15 @@
   box-shadow:
     inset 2px 0 0 hsl(var(--primary)),
     0 0 12px -6px hsl(var(--primary) / 0.55);
+}
+
+/* Glowing-blue connectors for the dashboard navigator only; the modal keeps the
+   muted stroke from TreeLinesDisplay. The inline opacity is an SVG presentation
+   attribute, so these rules override it without !important. */
+[data-tree-id='navigator'] .tree-line {
+  stroke: hsl(var(--primary) / 0.55);
+  opacity: 1;
+  filter: drop-shadow(0 0 3px hsl(var(--primary) / 0.5));
 }
 
 .storage-nav-button--tank {

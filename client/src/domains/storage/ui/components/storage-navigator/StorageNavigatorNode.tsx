@@ -13,6 +13,8 @@ import { useTextTruncation } from '@shared/hooks';
 import { Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
+import { TreeNub } from './TreeNub';
+
 import type { StorageNavigatorNodeProps } from './storageNavigatorTypes';
 
 const ICON_SIZE = { tank: 20, rack: 18 } as const;
@@ -67,11 +69,12 @@ export function StorageNavigatorNode({
           aria-selected={isSelected}
           aria-label={`${level} ${name}`}
         >
+          {level === 'rack' && <TreeNub />}
           <div className="storage-nav-button__icon">
             <LevelIcon level={level} />
           </div>
           <Tooltip content={name} disabled={!isTruncated} side="right" delayDuration={400}>
-            <span ref={textRef} className="storage-nav-button__text">
+            <span ref={textRef} className="storage-nav-button__text font-mono tracking-[0.02em]">
               {name}
             </span>
           </Tooltip>
@@ -90,12 +93,7 @@ export function StorageNavigatorNode({
             </span>
           )}
           {ownershipType && (
-            <UserBadge
-              type={ownershipType}
-              initials={ownershipInitials}
-              size="sm"
-              variant="navigator"
-            />
+            <UserBadge type={ownershipType} initials={ownershipInitials} size="sm" />
           )}
           {hasChildren && (
             <ChevronDown

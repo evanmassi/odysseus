@@ -9,10 +9,19 @@
 import { getTubeColorFromFields } from '@domains/tubes/utils';
 import { UserBadge } from '@shared/ui/components/badges';
 
+import { TreeNub } from './TreeNub';
+
 import type { StorageBoxMinimapProps } from './storageNavigatorTypes';
 import type { RackTube } from '@odysseus/shared-schemas';
 
 const EMPTY_CELL_COLOR = 'hsl(var(--foreground)/0.05)';
+
+// Selected/hover treatment mirrors the data Table's row glow (shared --alpha-glow-* /
+// --alpha-hover-* tokens): a glowing leading stripe + directional primary wash + soft bloom.
+const SELECTED_GLOW =
+  '[background-image:linear-gradient(180deg,hsl(var(--primary)/var(--alpha-glow-tint)),hsl(var(--primary)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] shadow-[inset_3px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
+const HOVER_GLOW =
+  'hover:[background-image:linear-gradient(90deg,hsl(var(--primary)/var(--alpha-hover-wash-1))_0%,hsl(var(--primary)/var(--alpha-hover-wash-2))_18%,hsl(var(--primary)/var(--alpha-hover-wash-3))_48%,hsl(var(--primary)/var(--alpha-hover-wash-4))_78%,hsl(var(--primary)/0)_100%)] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-hover-edge)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--primary)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--primary)/var(--alpha-hover-bloom-far))]';
 
 export function StorageBoxMinimap({
   box,
@@ -59,20 +68,13 @@ export function StorageBoxMinimap({
         aria-setsize={ariaSetsize}
         aria-selected={isSelected}
         aria-label={`Box ${box.name}, ${filled} of ${capacity} filled`}
-        className={`relative flex w-full items-center gap-2.5 border p-1.5 text-left transition-[background-color,box-shadow,border-color] duration-150 ${
+        className={`relative flex w-full items-center gap-2.5 border p-1.5 text-left transition-[box-shadow,border-color] duration-150 ${
           isSelected
-            ? 'border-primary bg-primary/[0.14] text-foreground shadow-[0_0_16px_-5px_hsl(var(--primary)/0.65)]'
-            : isFull
-              ? 'border-warning-border/60 text-foreground/70 hover:bg-primary/[0.06]'
-              : 'border-line-faint text-foreground/70 hover:bg-primary/[0.06]'
+            ? `border-primary text-foreground ${SELECTED_GLOW}`
+            : `text-foreground/70 ${HOVER_GLOW} ${isFull ? 'border-warning-border/60' : 'border-line-faint'}`
         }`}
       >
-        {isSelected && (
-          <span
-            aria-hidden
-            className="absolute inset-y-0 -left-px w-0.5 bg-primary shadow-[0_0_8px_hsl(var(--primary))]"
-          />
-        )}
+        <TreeNub full={isFull} />
 
         <span
           aria-hidden
@@ -92,19 +94,14 @@ export function StorageBoxMinimap({
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-center justify-between gap-2">
             <span
-              className={`min-w-0 truncate font-mono text-[10px] tracking-[0.06em] ${
+              className={`min-w-0 truncate font-mono text-[13px] tracking-[0.04em] ${
                 isSelected ? 'font-medium' : ''
               }`}
             >
               {box.name}
             </span>
             {ownershipType && (
-              <UserBadge
-                type={ownershipType}
-                initials={ownershipInitials}
-                size="sm"
-                variant="navigator"
-              />
+              <UserBadge type={ownershipType} initials={ownershipInitials} size="sm" />
             )}
           </span>
           <span className="flex items-center gap-1.5">

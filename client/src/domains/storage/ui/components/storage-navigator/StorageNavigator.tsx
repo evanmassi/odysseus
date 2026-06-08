@@ -293,6 +293,7 @@ export function StorageNavigator({
             expandedTanks={expandedTanks}
             expandedRacks={expandedRacks}
             treeId="navigator"
+            lineOffset={2}
           />
           {data.tanks.map(tank => {
             const tankExpanded = expandedTanks.has(tank.id);

@@ -43,7 +43,6 @@ interface UserBadgeProps {
   initials?: string;
   username?: string;
   size?: 'xs' | 'sm' | 'md';
-  variant?: 'default' | 'navigator';
 }
 
 // Icon size scales with badge size so the unassigned glyph fits visually.
@@ -58,34 +57,9 @@ function getAssignmentTitle(type: UserBadgeType, username?: string): string {
   return username ? `Assigned to ${username}` : 'Assigned to another user';
 }
 
-export function UserBadge({
-  type,
-  initials,
-  username,
-  size = 'sm',
-  variant = 'default',
-}: UserBadgeProps) {
+export function UserBadge({ type, initials, username, size = 'sm' }: UserBadgeProps) {
   const ownershipStyles = getUserBadgeStyles(type);
   const iconSize = iconSizeMap[size];
-
-  // Navigator variant: inline text/icon only (inherits colors from parent state).
-  if (variant === 'navigator') {
-    if (type === 'unassigned') {
-      return (
-        <Tooltip content="Unassigned/Common" side="bottom">
-          <span className="text-inherit flex-shrink-0">
-            <UsersRound size={iconSize} />
-          </span>
-        </Tooltip>
-      );
-    }
-
-    return (
-      <Tooltip content={getAssignmentTitle(type, username)} side="bottom">
-        <span className="text-inherit font-semibold flex-shrink-0">{initials}</span>
-      </Tooltip>
-    );
-  }
 
   const colorClass = `${ownershipStyles.background} ${ownershipStyles.text}`;
 
