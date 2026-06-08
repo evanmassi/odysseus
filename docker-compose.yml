@@ -1,5 +1,3 @@
-name: odysseus-app
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -16,3 +14,5 @@ services:
 
 volumes:
   odysseus_pgdata:
+    # Pinned so a project/folder rename can't swap in an empty data volume.
+    name: odysseus_odysseus_pgdata
