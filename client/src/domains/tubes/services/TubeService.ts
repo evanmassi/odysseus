@@ -21,7 +21,11 @@ import {
   type BulkUpdateResponse,
   type TubeFilterableField,
   type TubeFilterOptions,
+  type RackTube,
+  type TubeLocationCount,
   tubeDataSchema,
+  rackTubeSchema,
+  tubeLocationCountSchema,
   tubeFilterOptionsResponseSchema,
   createTubeRequestSchema,
   updateTubeRequestSchema,
@@ -105,6 +109,18 @@ export class TubeService {
       `${this.BASE_PATH}/location?${queryParams.toString()}`,
       tubeDataSchema
     );
+  }
+
+  static async fetchTubesByRack(tankId: string, rackId: string): Promise<RackTube[]> {
+    const queryParams = new URLSearchParams({ tankId, rackId });
+    return await httpClient.getArray(
+      `${this.BASE_PATH}/by-rack?${queryParams.toString()}`,
+      rackTubeSchema
+    );
+  }
+
+  static async fetchLocationCounts(): Promise<TubeLocationCount[]> {
+    return await httpClient.getArray(`${this.BASE_PATH}/location-counts`, tubeLocationCountSchema);
   }
 
   static async pasteTubes(tubes: CreateTubeRequest[]): Promise<PasteTubesResponse> {

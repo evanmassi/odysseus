@@ -50,6 +50,32 @@ export const useTubesByLocation = (
   });
 };
 
+/** Slim per-tube color feed for an open rack's box minimaps; mounts only when the rack is expanded. */
+export const useTubesByRack = (tankId: string, rackId: string) => {
+  const labId = useLabId();
+
+  return useQuery({
+    queryKey: queryKeys.tubes.byRack(labId, tankId, rackId),
+    queryFn: () => TubeService.fetchTubesByRack(tankId, rackId),
+    enabled: !!(labId && tankId && rackId),
+    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
+    gcTime: 10 * 60 * 1000,
+  });
+};
+
+/** Per-box occupancy counts across the lab; loaded once on navigator mount. */
+export const useLocationCounts = () => {
+  const labId = useLabId();
+
+  return useQuery({
+    queryKey: queryKeys.tubes.locationCounts(labId),
+    queryFn: () => TubeService.fetchLocationCounts(),
+    enabled: !!labId,
+    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
+    gcTime: 10 * 60 * 1000,
+  });
+};
+
 /** Searches all cached tube queries for initialData to avoid loading flash. */
 export const useTube = (
   id: string,

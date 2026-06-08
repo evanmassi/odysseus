@@ -46,6 +46,9 @@ export const queryKeys = {
     detail: (labId = '', id: string) => [...queryKeys.tubes.all(labId), 'detail', id] as const,
     location: (labId = '', tankId: string, rackId: string, boxId: string) =>
       [...queryKeys.tubes.all(labId), 'location', tankId, rackId, boxId] as const,
+    byRack: (labId = '', tankId: string, rackId: string) =>
+      [...queryKeys.tubes.all(labId), 'byRack', tankId, rackId] as const,
+    locationCounts: (labId = '') => [...queryKeys.tubes.all(labId), 'locationCounts'] as const,
     locationStats: (labId = '', tankId: string, rackId: string) =>
       [...queryKeys.tubes.all(labId), 'locationStats', tankId, rackId] as const,
     stats: (labId = '') => [...queryKeys.tubes.all(labId), 'stats'] as const,
