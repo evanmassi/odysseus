@@ -4,6 +4,7 @@
  * View-model interfaces for the tree-based storage location picker.
  */
 
+import type { GridConfiguration } from '@odysseus/shared-schemas';
 import type { UserBadgeType } from '@shared/ui/components/badges';
 
 export interface StorageHierarchy {
@@ -28,6 +29,7 @@ export interface Box {
   name: string;
   position: number;
   assignedUserId?: string | null;
+  gridConfig: GridConfiguration;
 }
 
 export interface SelectedLocation {

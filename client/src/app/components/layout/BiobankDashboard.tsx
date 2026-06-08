@@ -204,6 +204,7 @@ function BiobankWorkspace() {
               name: formatStorageDisplayName(box.name, box.customLabel),
               position: box.position!,
               assignedUserId: box.assignedUserId,
+              gridConfig: box.gridConfig,
             })),
         })),
       })),
