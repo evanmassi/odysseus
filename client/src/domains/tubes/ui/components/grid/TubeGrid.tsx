@@ -222,7 +222,7 @@ export function TubeGrid({
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="flex-1 flex items-start justify-center">
+      <div className="flex-1 flex items-center justify-center">
         <div className={`grid-with-rulers${axisLabels ? ' has-rulers' : ''}`}>
           {axisLabels && (
             <>

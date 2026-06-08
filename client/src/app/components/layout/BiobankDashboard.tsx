@@ -423,7 +423,7 @@ function BiobankWorkspace() {
 
         <div className="grid-section">
           <ConsolePanel intensity="medium" className="h-full flex flex-col">
-            <div className="flex-shrink-0 border-b border-line-faint px-4 py-2.5">
+            <div className="flex-shrink-0 border-b border-line-faint pr-4">
               <PanelHeader
                 icon={<FlaskConical className="h-4 w-4" />}
                 title={currentLab?.name ?? 'Biobank'}

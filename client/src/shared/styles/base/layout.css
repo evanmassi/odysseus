@@ -9,7 +9,6 @@
   --layout-header-height: 52px;
   --layout-top-padding: 8px;
   --panel-title-height: 40px;
-  --grid-chassis-header: 104px;
 
   --space-sm: 8px;
 }
@@ -54,6 +53,8 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  /* Fill the column height so the grid can size off its container, not the viewport */
+  align-self: stretch;
   min-width: 0;
   min-height: 0;
   /* Cap width to available height so side space is even */
@@ -75,12 +76,13 @@
 /* Grid Container */
 .grid-container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 12px;
   min-width: 0;
   min-height: 0;
-  container-type: inline-size; /* Width-only so height doesn't create circular dependency */
+  /* Size container: grid-section has a definite height, so cqh is safe (no circular dependency) */
+  container-type: size;
 }
 
 /* Panel Title */
@@ -94,15 +96,11 @@
 
 /* Tube Grid */
 .tube-grid {
-  width: min(
-    calc(100cqw - var(--grid-ruler, 0px)),
-    calc(
-      100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--grid-chassis-header) -
-        56px - var(--grid-ruler, 0px)
-    )
-  );
+  /* Largest square that fits the container on either axis, minus the ruler gutters
+     (mirrored on all four sides), so the grid fills the chassis. */
+  width: min(calc(100cqw - 2 * var(--grid-ruler, 0px)), calc(100cqh - 2 * var(--grid-ruler, 0px)));
   aspect-ratio: 1;
-  gap: 4px;
+  gap: 6px;
 }
 
 /* Row/column rulers wrap the cell grid; tracks collapse to 0 when absent */
@@ -112,12 +110,26 @@
   grid-template-rows: var(--grid-ruler, 0px) auto;
 }
 
+/* Mirror the ruler track on the far side so the cell grid (centre cell) is what
+   gets centred, giving equal margins on all four sides. */
 .grid-with-rulers.has-rulers {
   --grid-ruler: 24px;
-  grid-template-columns: calc(var(--grid-ruler) - 10px) auto;
-  grid-template-rows: calc(var(--grid-ruler) - 10px) auto;
+  grid-template-columns: calc(var(--grid-ruler) - 10px) auto calc(var(--grid-ruler) - 10px);
+  grid-template-rows: calc(var(--grid-ruler) - 10px) auto calc(var(--grid-ruler) - 10px);
   column-gap: 10px;
   row-gap: 10px;
+}
+
+.grid-with-rulers.has-rulers .grid-ruler-corner {
+  grid-area: 1 / 1;
+}
+
+.grid-with-rulers.has-rulers .grid-ruler-cols {
+  grid-area: 1 / 2;
+}
+
+.grid-with-rulers.has-rulers .grid-ruler-rows {
+  grid-area: 2 / 1;
 }
 
 .grid-with-rulers > .tube-grid {
@@ -127,7 +139,7 @@
 
 .grid-ruler {
   display: grid;
-  gap: 4px;
+  gap: 6px;
 }
 
 .grid-ruler-label {
