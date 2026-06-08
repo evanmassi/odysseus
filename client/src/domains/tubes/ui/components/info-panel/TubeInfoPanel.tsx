@@ -282,10 +282,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const renderPanel = (
     position: { word: string; value: string },
     body: ReactNode,
-    footer?: ReactNode
+    footer?: ReactNode,
+    scrollable = true
   ) => (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
-      <div className="flex-shrink-0 border-b border-line-faint px-4 py-2.5">
+      <div className="flex-shrink-0 border-b border-line-faint pr-4">
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Tube Information" />
       </div>
 
@@ -321,9 +322,13 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
       </div>
 
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="space-y-4 p-4">{body}</div>
-      </ScrollArea>
+      {scrollable ? (
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="space-y-4 p-4">{body}</div>
+        </ScrollArea>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col p-4">{body}</div>
+      )}
 
       {footer}
     </ConsolePanel>
@@ -361,35 +366,35 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
     return renderPanel(
       { word: positionCount > 1 ? 'Positions' : 'Position', value: formattedPositions },
-      <div className="py-10 text-center">
-        <div className="relative isolate inline-block max-w-[15rem] px-7 py-6">
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-2 -z-10 rounded-lg bg-black/50 blur-lg"
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute left-3 top-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute right-3 top-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute bottom-3 left-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute bottom-3 right-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
-          />
-          <TestTubeDiagonal
-            className="phosphor-glow phosphor-breathe mx-auto mb-4 h-10 w-10 text-card-foreground/30"
-            strokeWidth={1.25}
-          />
-          <p className="text-sm text-card-foreground/40">{positionText}</p>
-        </div>
-      </div>
+      <div className="relative isolate flex min-h-[11rem] flex-col items-center justify-center text-center">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 rounded-lg bg-black/50 blur-lg"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-3 top-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-3 top-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-3 left-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-3 right-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
+        />
+        <TestTubeDiagonal
+          className="phosphor-glow phosphor-breathe mx-auto mb-4 h-10 w-10 text-card-foreground/30"
+          strokeWidth={1.25}
+        />
+        <p className="text-sm text-card-foreground/40">{positionText}</p>
+      </div>,
+      undefined,
+      false
     );
   }
 
