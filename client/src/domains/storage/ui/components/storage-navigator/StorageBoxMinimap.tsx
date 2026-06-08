@@ -7,6 +7,8 @@
  */
 
 import { getTubeColorFromFields } from '@domains/tubes/utils';
+import { useTextTruncation } from '@shared/hooks';
+import { Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
 import { TreeNub } from './TreeNub';
@@ -41,6 +43,7 @@ export function StorageBoxMinimap({
 }: StorageBoxMinimapProps) {
   const { rows, cols } = box.gridConfig;
   const isFull = capacity > 0 && filled >= capacity;
+  const { ref: nameRef, isTruncated } = useTextTruncation<HTMLSpanElement>([box.name]);
 
   const tubeByPosition = new Map<number, RackTube>();
   for (const tube of tubes) {
@@ -93,13 +96,16 @@ export function StorageBoxMinimap({
 
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-center justify-between gap-2">
-            <span
-              className={`min-w-0 truncate font-mono text-[13px] tracking-[0.04em] ${
-                isSelected ? 'font-medium' : ''
-              }`}
-            >
-              {box.name}
-            </span>
+            <Tooltip content={box.name} disabled={!isTruncated} side="top" delayDuration={400}>
+              <span
+                ref={nameRef}
+                className={`min-w-0 truncate font-mono text-[13px] tracking-[0.04em] ${
+                  isSelected ? 'font-medium' : ''
+                }`}
+              >
+                {box.name}
+              </span>
+            </Tooltip>
             {ownershipType && (
               <UserBadge type={ownershipType} initials={ownershipInitials} size="sm" />
             )}

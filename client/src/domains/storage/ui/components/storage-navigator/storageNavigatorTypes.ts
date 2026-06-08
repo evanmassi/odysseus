@@ -48,7 +48,6 @@ export interface StorageNavigatorProps {
   data: StorageHierarchy;
   selected: SelectedLocation;
   onSelect: (location: SelectedLocation) => void;
-  className?: string;
   currentUser?: CurrentUserInfo;
   getUserInitials?: (userId: string) => string | undefined;
 }

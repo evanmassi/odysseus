@@ -66,7 +66,6 @@ export function StorageNavigator({
   data,
   selected,
   onSelect,
-  className = '',
   currentUser,
   getUserInitials: getUserInitialsFn,
 }: StorageNavigatorProps) {
@@ -238,7 +237,7 @@ export function StorageNavigator({
   });
 
   return (
-    <ConsolePanel intensity="soft" className={`flex h-full min-h-0 flex-col ${className}`}>
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
       <div className="flex-shrink-0 border-b border-line-faint pr-4">
         <PanelHeader icon={<Compass className="h-4 w-4" />} title="Navigator" />
       </div>
