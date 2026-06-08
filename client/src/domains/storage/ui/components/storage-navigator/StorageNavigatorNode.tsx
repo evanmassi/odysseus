@@ -1,12 +1,13 @@
 /**
  * Storage Navigator Node
  *
- * Single tree node representing a tank, rack, or box in the navigator.
+ * A tank or rack row in the navigator, with an inline occupancy bar; boxes are
+ * rendered separately as minimaps.
  */
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Icon, Rows3, Box as BoxIcon } from 'lucide-react';
+import { ChevronDown, Icon, Rows3 } from 'lucide-react';
 
 import { useTextTruncation } from '@shared/hooks';
 import { Tooltip } from '@shared/ui';
@@ -14,19 +15,19 @@ import { UserBadge } from '@shared/ui/components/badges';
 
 import type { StorageNavigatorNodeProps } from './storageNavigatorTypes';
 
-const ICON_SIZE = { tank: 20, rack: 18, box: 16 } as const;
+const ICON_SIZE = { tank: 20, rack: 18 } as const;
 
-function LevelIcon({ level }: { level: 'tank' | 'rack' | 'box' }) {
+function LevelIcon({ level }: { level: 'tank' | 'rack' }) {
   const size = ICON_SIZE[level];
   if (level === 'tank') return <Icon iconNode={refrigeratorFreezer} size={size} />;
-  if (level === 'rack') return <Rows3 size={size} />;
-  return <BoxIcon size={size} />;
+  return <Rows3 size={size} />;
 }
 
 export function StorageNavigatorNode({
   id,
   name,
   level,
+  hasChildren,
   isSelected,
   isExpanded,
   onToggle,
@@ -40,9 +41,14 @@ export function StorageNavigatorNode({
   ariaSetsize,
   ownershipType,
   ownershipInitials,
+  occupancyFilled,
+  occupancyCapacity,
 }: StorageNavigatorNodeProps) {
-  const hasChildren = !!children;
   const { ref: textRef, isTruncated } = useTextTruncation<HTMLSpanElement>([name]);
+  const showOccupancy = occupancyCapacity !== undefined && occupancyCapacity > 0;
+  const fillRatio = showOccupancy
+    ? Math.min(100, ((occupancyFilled ?? 0) / occupancyCapacity) * 100)
+    : 0;
 
   return (
     <Collapsible.Root open={isExpanded} onOpenChange={onToggle}>
@@ -69,6 +75,20 @@ export function StorageNavigatorNode({
               {name}
             </span>
           </Tooltip>
+          {showOccupancy && (
+            <span className="flex flex-none items-center gap-1.5">
+              <span className="relative h-0.5 w-8 bg-foreground/[0.07]">
+                <span
+                  className="absolute inset-y-0 left-0 bg-primary/80"
+                  style={{ width: `${fillRatio}%` }}
+                />
+              </span>
+              <span className="font-mono text-[8.5px] tracking-[0.04em] text-foreground/45">
+                {occupancyFilled ?? 0}
+                <span className="text-foreground/25">/{occupancyCapacity}</span>
+              </span>
+            </span>
+          )}
           {ownershipType && (
             <UserBadge
               type={ownershipType}

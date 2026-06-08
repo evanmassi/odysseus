@@ -8,7 +8,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 
 import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
-import { FlaskConical, Navigation } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication';
@@ -395,30 +395,21 @@ function BiobankWorkspace() {
 
       <div className="main-layout">
         <div className="storage-navigator-panel">
-          <div className="h-full flex flex-col bg-card rounded-lg">
-            <div className="px-4 pt-4 pb-2">
-              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
-                <Navigation size={16} className="text-secondary-foreground" />
-                Navigator
-              </h4>
-            </div>
-            <div
-              className="flex-1 pb-2 overflow-y-auto overflow-x-hidden"
-              style={{ scrollbarWidth: 'none' }}
-              ref={storageNavigatorRef}
-              onFocus={() => setIsSelectorActive(true)}
-              onBlur={() => setIsSelectorActive(false)}
-            >
-              <ErrorBoundary>
-                <StorageNavigator
-                  data={storageHierarchy}
-                  selected={selectedLocation}
-                  onSelect={handleStorageNavigationSelect}
-                  currentUser={currentUserInfo}
-                  getUserInitials={isAdmin ? getNavigatorUserInitials : undefined}
-                />
-              </ErrorBoundary>
-            </div>
+          <div
+            className="h-full"
+            ref={storageNavigatorRef}
+            onFocus={() => setIsSelectorActive(true)}
+            onBlur={() => setIsSelectorActive(false)}
+          >
+            <ErrorBoundary>
+              <StorageNavigator
+                data={storageHierarchy}
+                selected={selectedLocation}
+                onSelect={handleStorageNavigationSelect}
+                currentUser={currentUserInfo}
+                getUserInitials={isAdmin ? getNavigatorUserInitials : undefined}
+              />
+            </ErrorBoundary>
           </div>
         </div>
 

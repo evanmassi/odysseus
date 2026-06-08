@@ -4,7 +4,7 @@
  * View-model interfaces for the tree-based storage location picker.
  */
 
-import type { GridConfiguration } from '@odysseus/shared-schemas';
+import type { GridConfiguration, RackTube } from '@odysseus/shared-schemas';
 import type { UserBadgeType } from '@shared/ui/components/badges';
 
 export interface StorageHierarchy {
@@ -56,7 +56,8 @@ export interface StorageNavigatorProps {
 export interface StorageNavigatorNodeProps {
   id: string;
   name: string;
-  level: 'tank' | 'rack' | 'box';
+  level: 'tank' | 'rack';
+  hasChildren: boolean;
   isSelected: boolean;
   isExpanded: boolean;
   onToggle: () => void;
@@ -65,6 +66,25 @@ export interface StorageNavigatorNodeProps {
   tabIndex?: -1 | 0;
   buttonRef?: ((element: HTMLButtonElement | null) => void) | React.RefObject<HTMLButtonElement>;
   onFocus?: () => void;
+  ariaLevel?: number;
+  ariaPosinset?: number;
+  ariaSetsize?: number;
+  ownershipType?: UserBadgeType;
+  ownershipInitials?: string;
+  occupancyFilled?: number;
+  occupancyCapacity?: number;
+}
+
+export interface StorageBoxMinimapProps {
+  box: Box;
+  tubes: RackTube[];
+  filled: number;
+  capacity: number;
+  isSelected: boolean;
+  onSelect: () => void;
+  tabIndex: -1 | 0;
+  buttonRef: (element: HTMLButtonElement | null) => void;
+  onFocus: () => void;
   ariaLevel?: number;
   ariaPosinset?: number;
   ariaSetsize?: number;

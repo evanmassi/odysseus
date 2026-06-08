@@ -7,6 +7,8 @@
 // Query hooks
 export {
   useTubesByLocation,
+  useTubesByRack,
+  useLocationCounts,
   useTube,
   useBulkTubes,
   useTubeFilterOptionsQuery,

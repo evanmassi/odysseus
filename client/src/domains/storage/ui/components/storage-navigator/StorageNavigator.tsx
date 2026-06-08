@@ -1,17 +1,31 @@
 /**
  * Storage Navigator
  *
- * Tree-based location picker for navigating tank → rack → box hierarchy.
+ * Self-chromed tank → rack → box picker: rack rows open to box minimaps that
+ * show each box's real occupancy, so locations are browsed by sight.
  */
 
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 
+import { Compass } from 'lucide-react';
+
+import { useLocationCounts, useTubesByRack } from '@domains/tubes/hooks';
+import { NubDivider, PanelHeader } from '@shared/ui';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+
+import { StorageBoxMinimap } from './StorageBoxMinimap';
 import { StorageNavigatorNode } from './StorageNavigatorNode';
+import {
+  computeNavigatorOccupancy,
+  rackOccupancyKey,
+  boxOccupancyKey,
+} from './storageNavigatorOccupancy';
 import { TreeLinesByLocation } from './TreeLinesByLocation';
 import { useStorageNavigator } from './useStorageNavigator';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
-import type { StorageNavigatorProps, VisibleTreeNode } from './storageNavigatorTypes';
+import type { Box, StorageNavigatorProps, VisibleTreeNode } from './storageNavigatorTypes';
+import type { RackTube } from '@odysseus/shared-schemas';
 import type { UserBadgeType } from '@shared/ui/components/badges';
 
 function getNodeKey(
@@ -68,6 +82,12 @@ export function StorageNavigator({
     isRackSelected,
     isBoxSelected,
   } = useStorageNavigator(data, selected, onSelect);
+
+  const { data: locationCounts = [] } = useLocationCounts();
+  const occupancy = useMemo(
+    () => computeNavigatorOccupancy(data, locationCounts),
+    [data, locationCounts]
+  );
 
   const nodeRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
@@ -218,126 +238,209 @@ export function StorageNavigator({
   });
 
   return (
-    <nav
-      className={`w-full p-3 flex flex-col gap-1 relative ${className}`}
-      aria-label="Storage Navigator"
-    >
-      <div
-        role="tree"
-        data-tree-id="navigator"
-        aria-label="Storage hierarchy"
-        onKeyDown={handleKeyDown}
-        tabIndex={-1}
-        className="relative flex flex-col gap-1 outline-none"
-      >
-        <TreeLinesByLocation
-          expandedTanks={expandedTanks}
-          expandedRacks={expandedRacks}
-          treeId="navigator"
-        />
-        {data.tanks.map((tank, _tankIndex) => {
-          const tankExpanded = expandedTanks.has(tank.id);
-          const tankSelected = isTankSelected(tank.id);
-          const tankKey = getNodeKey('tank', tank.id);
-          const tankNodeIndex = nodeKeyToIndex.get(tankKey) ?? -1;
-          const tankNode = visibleNodes[tankNodeIndex];
-
-          return (
-            <StorageNavigatorNode
-              key={tank.id}
-              id={tank.id}
-              name={tank.name}
-              level="tank"
-              isSelected={tankSelected}
-              isExpanded={tankExpanded}
-              onToggle={() => toggleTank(tank.id)}
-              onSelect={() => {
-                toggleTank(tank.id);
-                selectTank(tank.id);
-              }}
-              tabIndex={tankNodeIndex === focusedIndex ? 0 : -1}
-              buttonRef={el => setNodeRef(tankKey, el)}
-              onFocus={() => setFocusedKey(tankKey)}
-              ariaLevel={tankNode?.ariaLevel}
-              ariaPosinset={tankNode?.ariaPosinset}
-              ariaSetsize={tankNode?.ariaSetsize}
-            >
-              {tank.racks.map((rack, _rackIndex) => {
-                const compositeKey = `${tank.id}-${rack.id}`;
-                const rackExpanded = expandedRacks.has(compositeKey);
-                const rackSelected = isRackSelected(tank.id, rack.id);
-                const rackKey = getNodeKey('rack', tank.id, rack.id);
-                const rackNodeIndex = nodeKeyToIndex.get(rackKey) ?? -1;
-                const rackNode = visibleNodes[rackNodeIndex];
-
-                return (
-                  <StorageNavigatorNode
-                    key={rack.id}
-                    id={rack.id}
-                    name={rack.name}
-                    level="rack"
-                    isSelected={rackSelected}
-                    isExpanded={rackExpanded}
-                    onToggle={() => toggleRack(tank.id, rack.id)}
-                    onSelect={() => {
-                      toggleRack(tank.id, rack.id);
-                      selectRack(tank.id, rack.id);
-                    }}
-                    tabIndex={rackNodeIndex === focusedIndex ? 0 : -1}
-                    buttonRef={el => setNodeRef(rackKey, el)}
-                    onFocus={() => setFocusedKey(rackKey)}
-                    ariaLevel={rackNode?.ariaLevel}
-                    ariaPosinset={rackNode?.ariaPosinset}
-                    ariaSetsize={rackNode?.ariaSetsize}
-                    ownershipType={computeOwnershipType(
-                      rack.assignedUserId,
-                      currentUser?.id,
-                      currentUser?.isAdmin
-                    )}
-                    ownershipInitials={resolveInitials(rack.assignedUserId)}
-                  >
-                    {rack.boxes.map((box, _boxIndex) => {
-                      const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
-                      const boxKey = getNodeKey('box', tank.id, rack.id, box.id);
-                      const boxNodeIndex = nodeKeyToIndex.get(boxKey) ?? -1;
-                      const boxNode = visibleNodes[boxNodeIndex];
-                      const effectiveBoxOwner = getEffectiveOwner(
-                        box.assignedUserId,
-                        rack.assignedUserId
-                      );
-
-                      return (
-                        <StorageNavigatorNode
-                          key={box.id}
-                          id={box.id}
-                          name={box.name}
-                          level="box"
-                          isSelected={boxSelected}
-                          isExpanded={false}
-                          onToggle={() => {}}
-                          onSelect={() => selectBox(tank.id, rack.id, box.id)}
-                          tabIndex={boxNodeIndex === focusedIndex ? 0 : -1}
-                          buttonRef={el => setNodeRef(boxKey, el)}
-                          onFocus={() => setFocusedKey(boxKey)}
-                          ariaLevel={boxNode?.ariaLevel}
-                          ariaPosinset={boxNode?.ariaPosinset}
-                          ariaSetsize={boxNode?.ariaSetsize}
-                          ownershipType={computeOwnershipType(
-                            effectiveBoxOwner,
-                            currentUser?.id,
-                            currentUser?.isAdmin
-                          )}
-                          ownershipInitials={resolveInitials(effectiveBoxOwner)}
-                        />
-                      );
-                    })}
-                  </StorageNavigatorNode>
-                );
-              })}
-            </StorageNavigatorNode>
-          );
-        })}
+    <ConsolePanel intensity="soft" className={`flex h-full min-h-0 flex-col ${className}`}>
+      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+        <PanelHeader icon={<Compass className="h-4 w-4" />} title="Navigator" />
       </div>
-    </nav>
+
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="flex items-center gap-3">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span
+              aria-hidden
+              className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
+            />
+            <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+              {data.tanks.length} {data.tanks.length === 1 ? 'tank' : 'tanks'}
+            </span>
+          </span>
+          <span className="flex-1" />
+          <span className="flex flex-shrink-0 items-center gap-2">
+            <span className="relative h-1 w-20 bg-foreground/[0.07]">
+              <span
+                className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+                style={{
+                  width: `${occupancy.facility.capacity > 0 ? (occupancy.facility.filled / occupancy.facility.capacity) * 100 : 0}%`,
+                }}
+              />
+            </span>
+            <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/60">
+              {occupancy.facility.filled}
+              <span className="text-foreground/35">/{occupancy.facility.capacity}</span>
+            </span>
+          </span>
+        </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
+      </div>
+
+      <div
+        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        <div
+          role="tree"
+          data-tree-id="navigator"
+          aria-label="Storage hierarchy"
+          onKeyDown={handleKeyDown}
+          tabIndex={-1}
+          className="relative flex flex-col gap-1 outline-none"
+        >
+          <TreeLinesByLocation
+            expandedTanks={expandedTanks}
+            expandedRacks={expandedRacks}
+            treeId="navigator"
+          />
+          {data.tanks.map(tank => {
+            const tankExpanded = expandedTanks.has(tank.id);
+            const tankSelected = isTankSelected(tank.id);
+            const tankKey = getNodeKey('tank', tank.id);
+            const tankNodeIndex = nodeKeyToIndex.get(tankKey) ?? -1;
+            const tankNode = visibleNodes[tankNodeIndex];
+            const tankOccupancy = occupancy.byTank.get(tank.id);
+
+            return (
+              <StorageNavigatorNode
+                key={tank.id}
+                id={tank.id}
+                name={tank.name}
+                level="tank"
+                hasChildren={tank.racks.length > 0}
+                isSelected={tankSelected}
+                isExpanded={tankExpanded}
+                onToggle={() => toggleTank(tank.id)}
+                onSelect={() => {
+                  toggleTank(tank.id);
+                  selectTank(tank.id);
+                }}
+                tabIndex={tankNodeIndex === focusedIndex ? 0 : -1}
+                buttonRef={el => setNodeRef(tankKey, el)}
+                onFocus={() => setFocusedKey(tankKey)}
+                ariaLevel={tankNode?.ariaLevel}
+                ariaPosinset={tankNode?.ariaPosinset}
+                ariaSetsize={tankNode?.ariaSetsize}
+                occupancyFilled={tankOccupancy?.filled}
+                occupancyCapacity={tankOccupancy?.capacity}
+              >
+                {tank.racks.map(rack => {
+                  const compositeKey = `${tank.id}-${rack.id}`;
+                  const rackExpanded = expandedRacks.has(compositeKey);
+                  const rackSelected = isRackSelected(tank.id, rack.id);
+                  const rackKey = getNodeKey('rack', tank.id, rack.id);
+                  const rackNodeIndex = nodeKeyToIndex.get(rackKey) ?? -1;
+                  const rackNode = visibleNodes[rackNodeIndex];
+                  const rackOccupancy = occupancy.byRack.get(rackOccupancyKey(tank.id, rack.id));
+
+                  return (
+                    <StorageNavigatorNode
+                      key={rack.id}
+                      id={rack.id}
+                      name={rack.name}
+                      level="rack"
+                      hasChildren={rack.boxes.length > 0}
+                      isSelected={rackSelected}
+                      isExpanded={rackExpanded}
+                      onToggle={() => toggleRack(tank.id, rack.id)}
+                      onSelect={() => {
+                        toggleRack(tank.id, rack.id);
+                        selectRack(tank.id, rack.id);
+                      }}
+                      tabIndex={rackNodeIndex === focusedIndex ? 0 : -1}
+                      buttonRef={el => setNodeRef(rackKey, el)}
+                      onFocus={() => setFocusedKey(rackKey)}
+                      ariaLevel={rackNode?.ariaLevel}
+                      ariaPosinset={rackNode?.ariaPosinset}
+                      ariaSetsize={rackNode?.ariaSetsize}
+                      ownershipType={computeOwnershipType(
+                        rack.assignedUserId,
+                        currentUser?.id,
+                        currentUser?.isAdmin
+                      )}
+                      ownershipInitials={resolveInitials(rack.assignedUserId)}
+                      occupancyFilled={rackOccupancy?.filled}
+                      occupancyCapacity={rackOccupancy?.capacity}
+                    >
+                      {rackExpanded && (
+                        <RackBoxMinimaps
+                          tankId={tank.id}
+                          rackId={rack.id}
+                          boxes={rack.boxes}
+                          renderBox={(box, tubesForBox) => {
+                            const boxKey = getNodeKey('box', tank.id, rack.id, box.id);
+                            const boxNodeIndex = nodeKeyToIndex.get(boxKey) ?? -1;
+                            const boxNode = visibleNodes[boxNodeIndex];
+                            const effectiveBoxOwner = getEffectiveOwner(
+                              box.assignedUserId,
+                              rack.assignedUserId
+                            );
+                            const boxOccupancy = occupancy.byBox.get(
+                              boxOccupancyKey(tank.id, rack.id, box.id)
+                            );
+
+                            return (
+                              <StorageBoxMinimap
+                                key={box.id}
+                                box={box}
+                                tubes={tubesForBox}
+                                filled={boxOccupancy?.filled ?? 0}
+                                capacity={boxOccupancy?.capacity ?? 0}
+                                isSelected={isBoxSelected(tank.id, rack.id, box.id)}
+                                onSelect={() => selectBox(tank.id, rack.id, box.id)}
+                                tabIndex={boxNodeIndex === focusedIndex ? 0 : -1}
+                                buttonRef={el => setNodeRef(boxKey, el)}
+                                onFocus={() => setFocusedKey(boxKey)}
+                                ariaLevel={boxNode?.ariaLevel}
+                                ariaPosinset={boxNode?.ariaPosinset}
+                                ariaSetsize={boxNode?.ariaSetsize}
+                                ownershipType={computeOwnershipType(
+                                  effectiveBoxOwner,
+                                  currentUser?.id,
+                                  currentUser?.isAdmin
+                                )}
+                                ownershipInitials={resolveInitials(effectiveBoxOwner)}
+                              />
+                            );
+                          }}
+                        />
+                      )}
+                    </StorageNavigatorNode>
+                  );
+                })}
+              </StorageNavigatorNode>
+            );
+          })}
+        </div>
+      </div>
+    </ConsolePanel>
   );
+}
+
+interface RackBoxMinimapsProps {
+  tankId: string;
+  rackId: string;
+  boxes: Box[];
+  renderBox: (box: Box, tubes: RackTube[]) => React.ReactNode;
+}
+
+/** Loads one open rack's slim tube colors once and hands each box its own tubes. */
+function RackBoxMinimaps({ tankId, rackId, boxes, renderBox }: RackBoxMinimapsProps) {
+  const { data: tubes = [] } = useTubesByRack(tankId, rackId);
+
+  const tubesByBox = useMemo(() => {
+    const grouped = new Map<string, RackTube[]>();
+    for (const tube of tubes) {
+      const list = grouped.get(tube.boxId);
+      if (list) {
+        list.push(tube);
+      } else {
+        grouped.set(tube.boxId, [tube]);
+      }
+    }
+    return grouped;
+  }, [tubes]);
+
+  return <>{boxes.map(box => renderBox(box, tubesByBox.get(box.id) ?? []))}</>;
 }
