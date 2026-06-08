@@ -26,6 +26,7 @@ export interface TubeRepository {
 
   findByLocation(location: Location, labId: string): Promise<Tube | null>;
   findByCompleteLocation(tankId: string, rackId: string, boxId: string, labId: string): Promise<Tube[]>;
+  findByRack(tankId: string, rackId: string, labId: string): Promise<Tube[]>;
   findByRackAndBox(rackId: string, boxId: string, labId: string): Promise<Tube[]>;
   findByTank(tankId: string, labId: string): Promise<Tube[]>;
   findByTankIds(tankIds: string[], labId: string): Promise<Tube[]>;

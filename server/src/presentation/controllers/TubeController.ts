@@ -221,6 +221,33 @@ export class TubeController extends BaseController {
     }
   }
 
+  /** GET /api/tubes/by-rack?tankId=X&rackId=Y */
+  async getTubesByRack(req: Request, res: Response): Promise<void> {
+    try {
+      const { tankId, rackId } = req.query as { tankId: string; rackId: string };
+      const authenticatedUser = this.getAuthenticatedUser(req);
+
+      const tubes = await this.deps.tubeApplicationService.getTubesByRack(tankId, rackId, authenticatedUser);
+
+      res.json(ResponseBuilder.success(tubes));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to get tubes by rack', req.requestId);
+    }
+  }
+
+  /** GET /api/tubes/location-counts */
+  async getLocationCounts(req: Request, res: Response): Promise<void> {
+    try {
+      const authenticatedUser = this.getAuthenticatedUser(req);
+
+      const counts = await this.deps.tubeApplicationService.getLocationCounts(authenticatedUser);
+
+      res.json(ResponseBuilder.success(counts));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to get tube location counts', req.requestId);
+    }
+  }
+
   /** GET /api/tubes/filter-options?fields=tankId,cellType,... */
   async getFilterOptions(req: Request, res: Response): Promise<void> {
     try {

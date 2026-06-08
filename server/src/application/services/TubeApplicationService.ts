@@ -5,7 +5,7 @@
  * Input validation is handled by Zod middleware; this layer enforces business rules only.
  */
 
-import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
+import type { TubeFilterableField, TubeFilterOptions, RackTube, TubeLocationCount } from '@odysseus/shared-schemas';
 
 import type { EventBus } from '@application/contracts/EventBus';
 import { TubeDto } from '@application/dto/TubeDto';
@@ -369,6 +369,34 @@ export class TubeApplicationService {
     const tubes = await this.tubeRepository.findByCompleteLocation(tankId, rackId, boxId, authenticatedUser.labId!);
 
     return TubeDto.toResponseList(tubes);
+  }
+
+  /** Slim per-tube color feed for one open rack in the navigator field map. */
+  async getTubesByRack(
+    tankId: string,
+    rackId: string,
+    authenticatedUser: User
+  ): Promise<RackTube[]> {
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
+
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
+    if (!allowedTankIds.includes(tankId)) {
+      return [];
+    }
+
+    const tubes = await this.tubeRepository.findByRack(tankId, rackId, authenticatedUser.labId!);
+
+    return TubeDto.toRackTubeList(tubes);
+  }
+
+  /** Per-box occupancy counts for the navigator, scoped to the user's accessible tanks. */
+  async getLocationCounts(authenticatedUser: User): Promise<TubeLocationCount[]> {
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
+
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
+    const counts = await this.tubeRepository.countGroupedByLocation(authenticatedUser.labId!);
+
+    return counts.filter(c => allowedTankIds.includes(c.tankId));
   }
 
   /**

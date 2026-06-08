@@ -84,6 +84,27 @@ export const tubeDataSchema = z.object({
 export const tubeDataArraySchema = z.array(tubeDataSchema);
 
 /**
+ * Navigator field-map projections.
+ *
+ * The navigator paints box minimaps in each tube's smart color and shows
+ * per-box occupancy, so it needs only color inputs plus position — never the
+ * full record. `rackTubeSchema` is the slim per-tube color feed (one open rack
+ * at a time); `tubeLocationCountSchema` is the per-box count feed (whole lab).
+ */
+export const rackTubeSchema = tubeSampleSchema
+  .pick({ cellType: true, donorInternalId: true, donorSourceId: true, lotNumber: true, cultureCondition: true })
+  .extend({ boxId: z.string(), position: z.number().int().min(1) });
+export type RackTube = z.infer<typeof rackTubeSchema>;
+
+export const tubeLocationCountSchema = z.object({
+  tankId: z.string(),
+  rackId: z.string(),
+  boxId: z.string(),
+  count: z.number().int().min(0),
+});
+export type TubeLocationCount = z.infer<typeof tubeLocationCountSchema>;
+
+/**
  * Preprocesses HTML form data:
  * - Empty strings → error for required fields
  * - Scientific notation → number (unified parser)

@@ -79,6 +79,9 @@ export const CreateResearcherHttpSchema = createResearcherProfileSchema;
 // Omits position from shared location schema
 export const LocationQuerySchema = tubeLocationSchema.omit({ position: true });
 
+// Navigator field map reads a whole rack — tank + rack only, no box or position
+export const RackQuerySchema = tubeLocationSchema.pick({ tankId: true, rackId: true });
+
 export const TubeFilterOptionsQuerySchema = z.object({
   fields: z.string().min(1).transform(val => val.split(',').map(s => s.trim()).filter(Boolean))
     .pipe(z.array(z.enum(TUBE_FILTERABLE_FIELDS)).min(1)),

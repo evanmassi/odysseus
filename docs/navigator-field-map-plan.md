@@ -2,7 +2,10 @@
 
 Port the dialed-in study (`refs/redesign/Navigator Studies.html`, variant C) into the live biobank
 dashboard navigator. This document is the contract: it must satisfy `AGENTS.md` and
-`docs/audit-prompt.txt`. **No code until approved.**
+`docs/audit-prompt.txt`.
+
+**Status: APPROVED — implement in the order of §9. Show the diff and stop for review after each phase
+(backend diff before any client work). Verify with `npm run typecheck` / `npm test`. Do not commit or push.**
 
 > Verified against the codebase (controllers, services, DTOs, repositories, schemas + barrels, hooks,
 > socket bridge, tree-line system, color coding, storage view-model, stats + counts aggregates). Exact
