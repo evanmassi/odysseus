@@ -14,6 +14,9 @@ import { Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
+import { TreeNub } from '../../../storage-navigator/TreeNub';
+import { RowMeta } from '../by-location/RowMeta';
+
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { buildUserAssignments, buildRackGroups } from './buildUserAssignments';
 import { TreeLinesByUser } from './TreeLinesByUser';
@@ -99,7 +102,7 @@ export function ByUserTab({
   }
 
   return (
-    <div className="relative" role="tree" data-view="by-user">
+    <div className="relative" role="tree" data-view="by-user" data-tree-id="modal-user">
       <TreeLinesByUser expandedUsers={expandedUsers} />
       <div className="space-y-1">
         {assignmentsByUser.map(userAssignment => {
@@ -117,6 +120,14 @@ export function ByUserTab({
           const isReassigning = reassigningUserId === userAssignment.userId;
           const showOverflowMenu =
             canManageStorage && !isUnassigned && userAssignment.userId && !isReassigning;
+          const metaParts = [
+            userAssignment.rackCount > 0
+              ? `${userAssignment.rackCount} ${userAssignment.rackCount === 1 ? 'rack' : 'racks'}`
+              : null,
+            userAssignment.boxCount > 0
+              ? `${userAssignment.boxCount} ${userAssignment.boxCount === 1 ? 'box' : 'boxes'}`
+              : null,
+          ].filter((part): part is string => part !== null);
 
           return (
             <Collapsible.Root
@@ -142,42 +153,31 @@ export function ByUserTab({
                       className={`storage-nav-button__chevron transition-transform duration-200 ${!isExpanded ? '-rotate-90' : ''}`}
                       aria-hidden="true"
                     />
-                    {showOverflowMenu && (
-                      <div
-                        role="presentation"
-                        onClick={e => e.stopPropagation()}
-                        onKeyDown={e => e.stopPropagation()}
-                        className="flex-shrink-0"
-                      >
-                        <OverflowMenu
-                          items={buildOverflowMenuItems(userAssignment.userId!)}
-                          dividerBefore={['Unassign All']}
-                          size="sm"
-                          aria-label={`Actions for ${userAssignment.displayName}`}
-                        />
-                      </div>
-                    )}
+                    <div className="flex w-5 flex-shrink-0 justify-center">
+                      {showOverflowMenu && (
+                        <div
+                          role="presentation"
+                          onClick={e => e.stopPropagation()}
+                          onKeyDown={e => e.stopPropagation()}
+                        >
+                          <OverflowMenu
+                            items={buildOverflowMenuItems(userAssignment.userId!)}
+                            dividerBefore={['Unassign All']}
+                            size="sm"
+                            aria-label={`Actions for ${userAssignment.displayName}`}
+                          />
+                        </div>
+                      )}
+                    </div>
                     <UserBadge
                       type={badgeType}
                       initials={userAssignment.initials}
                       username={userAssignment.username}
                       size="md"
                     />
-                    <span className="storage-nav-button__text">{userAssignment.displayName}</span>
-
-                    <div className="flex items-center gap-1.5 text-xs mr-1">
-                      {userAssignment.rackCount > 0 && (
-                        <span className="storage-nav-pill storage-nav-pill--muted flex items-center gap-1">
-                          <RackIcon size={12} />
-                          {userAssignment.rackCount}
-                        </span>
-                      )}
-                      {userAssignment.boxCount > 0 && (
-                        <span className="storage-nav-pill storage-nav-pill--muted flex items-center gap-1">
-                          <BoxIcon size={12} />
-                          {userAssignment.boxCount}
-                        </span>
-                      )}
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="min-w-0 truncate">{userAssignment.displayName}</span>
+                      <RowMeta parts={metaParts} />
                     </div>
                   </div>
 
@@ -197,7 +197,7 @@ export function ByUserTab({
                           }
                           setReassigningUserId(null);
                         }}
-                        size="sm"
+                        currentUserId={currentUserId}
                       />
                       <Tooltip content="Cancel" side="bottom">
                         <button
@@ -227,6 +227,7 @@ export function ByUserTab({
                               className="storage-nav-button storage-nav-button--rack"
                               aria-label={`${rackGroup.tankName} / ${rackGroup.rackName}`}
                             >
+                              <TreeNub />
                               <UserBadge
                                 type={badgeType}
                                 initials={userAssignment.initials}
@@ -236,24 +237,27 @@ export function ByUserTab({
                               <div className="storage-nav-button__icon">
                                 <RackIcon size={16} aria-hidden="true" />
                               </div>
-                              <span className="storage-nav-button__text">
-                                {rackGroup.tankName} /{' '}
-                                {formatStorageDisplayName(
-                                  rackGroup.rackName,
-                                  rackGroup.rackCustomLabel
-                                )}
-                                {!rackGroup.ownsRack && (
-                                  <span className="ml-1.5 text-xs text-muted-foreground italic font-normal">
-                                    (boxes only)
-                                  </span>
-                                )}
-                              </span>
-                              {rackGroup.boxes.length > 0 && (
-                                <span className="storage-nav-pill storage-nav-pill--muted">
-                                  {rackGroup.boxes.length}{' '}
-                                  {rackGroup.boxes.length === 1 ? 'box' : 'boxes'}
+                              <div className="flex min-w-0 flex-1 items-center gap-2">
+                                <span className="min-w-0 truncate">
+                                  {rackGroup.tankName} /{' '}
+                                  {formatStorageDisplayName(
+                                    rackGroup.rackName,
+                                    rackGroup.rackCustomLabel
+                                  )}
+                                  {!rackGroup.ownsRack && (
+                                    <span className="ml-1.5 text-xs text-muted-foreground italic font-normal">
+                                      (boxes only)
+                                    </span>
+                                  )}
                                 </span>
-                              )}
+                                {rackGroup.boxes.length > 0 && (
+                                  <RowMeta
+                                    parts={[
+                                      `${rackGroup.boxes.length} ${rackGroup.boxes.length === 1 ? 'box' : 'boxes'}`,
+                                    ]}
+                                  />
+                                )}
+                              </div>
                             </button>
                           </div>
 
@@ -270,6 +274,7 @@ export function ByUserTab({
                                     role="listitem"
                                   >
                                     <div className="storage-nav-button storage-nav-button--box">
+                                      <TreeNub />
                                       <UserBadge
                                         type={badgeType}
                                         initials={userAssignment.initials}

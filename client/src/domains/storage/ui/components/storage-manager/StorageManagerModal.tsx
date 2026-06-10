@@ -13,11 +13,13 @@ import { useAuthStore } from '@domains/authentication';
 import { useStorageData, extractAssignedUserIds, GRID_TEMPLATES } from '@domains/storage';
 import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
 import { useStoragePermissions } from '@domains/storage/hooks/useStoragePermissions';
+import { useLocationCounts } from '@domains/tubes/hooks';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
+import { buildStorageHierarchy, computeNavigatorOccupancy } from '../storage-navigator';
 import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 
 import '../storage-navigator/storage-navigator.css';
@@ -37,6 +39,12 @@ function toggleSetItem<T>(set: Set<T>, item: T): Set<T> {
   else next.add(item);
   return next;
 }
+
+const OWNERSHIP_LEGEND = [
+  { label: 'You', token: '--ownership-user-badge' },
+  { label: 'Other', token: '--ownership-other-badge' },
+  { label: 'Unassigned/Common', token: '--ownership-unassigned-badge' },
+] as const;
 
 interface StorageManagerModalProps {
   isOpen: boolean;
@@ -84,6 +92,28 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const demoLimitsActive = isDemo && demoLimits && hasSeededResources;
   const nonSeededTankCount = currentLab?.equipment.tanks.filter(t => !t.isSeeded).length ?? 0;
   const tankLimitReached = demoLimitsActive && nonSeededTankCount >= demoLimits.maxTanks;
+
+  const scope = useMemo(() => {
+    let racks = 0;
+    let boxes = 0;
+    currentLab?.equipment.tanks.forEach(tank => {
+      racks += tank.racks.length;
+      tank.racks.forEach(rack => {
+        boxes += rack.boxes.length;
+      });
+    });
+    return { tanks: currentLab?.equipment.tanks.length ?? 0, racks, boxes };
+  }, [currentLab]);
+
+  const { data: locationCounts = [] } = useLocationCounts();
+  const occupancy = useMemo(
+    () =>
+      computeNavigatorOccupancy(
+        buildStorageHierarchy(currentLab?.equipment.tanks ?? []),
+        locationCounts
+      ),
+    [currentLab, locationCounts]
+  );
 
   const [collapsedTanks, setCollapsedTanks] = useState<Set<string>>(new Set());
   const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(() => {
@@ -139,6 +169,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       isDemo,
       demoLimits,
       hasSeededResources,
+      occupancy,
       getUserInfo,
       isOwnedByCurrentUser,
       canEditResource,
@@ -163,6 +194,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       isDemo,
       demoLimits,
       hasSeededResources,
+      occupancy,
       getUserInfo,
       isOwnedByCurrentUser,
       canEditResource,
@@ -196,21 +228,73 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     </Tabs>
   );
 
+  const locator = (
+    <div className="flex items-center gap-3">
+      <span
+        aria-hidden
+        className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
+      />
+      <span className="flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.04em] text-foreground/75">
+        <span className="text-foreground">{scope.tanks}</span> tanks
+        <span className="text-foreground/25">·</span>
+        <span className="text-foreground">{scope.racks}</span> racks
+        <span className="text-foreground/25">·</span>
+        <span className="text-foreground">{scope.boxes}</span> boxes
+      </span>
+      <span className="flex-1" />
+      <span className="flex flex-shrink-0 items-center gap-2" title="Facility occupancy">
+        <span className="relative h-1 w-16 bg-foreground/[0.07]">
+          <span
+            className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+            style={{
+              width: `${occupancy.facility.capacity > 0 ? (occupancy.facility.filled / occupancy.facility.capacity) * 100 : 0}%`,
+            }}
+          />
+        </span>
+        <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/60">
+          {occupancy.facility.filled}
+          <span className="text-foreground/35">/{occupancy.facility.capacity}</span>
+        </span>
+      </span>
+      {canManageStorage && viewMode === 'tree' && (
+        <div className="flex items-center gap-2">
+          {demoLimitsActive && (
+            <span className="text-xs text-muted-foreground">
+              {nonSeededTankCount}/{demoLimits.maxTanks} tanks
+            </span>
+          )}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handlers.handleAddNewTank}
+            isLoading={handlers.addTankMutation.isPending}
+            loadingText="Adding..."
+            leftIcon={<Plus size={16} />}
+            disabled={!!tankLimitReached}
+          >
+            Add Tank
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink min-w-0">
-        <div className="flex items-center gap-1">
-          <div className="w-1 h-3 rounded-sm bg-ownership-user-badge flex-shrink-0" />
-          <span>You</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-1 h-3 rounded-sm bg-ownership-other-badge flex-shrink-0" />
-          <span>Other</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-1 h-3 rounded-sm bg-ownership-unassigned-badge flex-shrink-0" />
-          <span>Unassigned/Common</span>
-        </div>
+      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-shrink min-w-0">
+        {OWNERSHIP_LEGEND.map(({ label, token }) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <span
+              aria-hidden
+              className="h-2 w-2 flex-shrink-0"
+              style={{
+                backgroundColor: `hsl(var(${token}))`,
+                boxShadow: `0 0 6px 1px hsl(var(${token}) / 0.7)`,
+              }}
+            />
+            <span>{label}</span>
+          </div>
+        ))}
       </div>
 
       <Button variant="secondary" onClick={onClose} isLoading={isMutating} loadingText="Saving...">
@@ -226,14 +310,15 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         icon={<TankIcon size={24} />}
         title="Storage Manager"
         subtitle="Storage Layout & Assignments"
-        size="lg"
+        size="md-lg"
         fixedHeight
         animation="slide"
+        locator={locator}
         tabs={tabs}
         tabOrientation="horizontal"
         footer={footer}
         contentClassName="p-3"
-        className="!max-w-lg max-h-[80vh]"
+        className="max-h-[80vh]"
         onClose={onClose}
       >
         <div className={viewMode === 'tree' ? '' : 'hidden'}>
@@ -243,26 +328,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                 Demo mode — locked resources cannot be edited or deleted.
               </AlertBanner>
             )}
-            {canManageStorage && (
-              <div className="flex items-center justify-end gap-2">
-                {demoLimitsActive && (
-                  <span className="text-xs text-muted-foreground">
-                    {nonSeededTankCount}/{demoLimits.maxTanks} tanks
-                  </span>
-                )}
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handlers.handleAddNewTank}
-                  isLoading={handlers.addTankMutation.isPending}
-                  loadingText="Adding..."
-                  leftIcon={<Plus size={16} />}
-                  disabled={!!tankLimitReached}
-                >
-                  Add Tank
-                </Button>
-              </div>
-            )}
 
             <StorageManagerContext.Provider value={contextValue}>
               <div className="relative" role="tree" data-tree-id="modal">
@@ -271,6 +336,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                   expandedRacks={expandedRacks}
                   treeId="modal"
                   initialDelay={420}
+                  lineOffset={2}
                 />
                 <div className="space-y-1">
                   {currentLab.equipment.tanks.map(tank => (

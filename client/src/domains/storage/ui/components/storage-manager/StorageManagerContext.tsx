@@ -8,6 +8,7 @@ import { createContext, useContext } from 'react';
 
 import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
 import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
+import type { NavigatorOccupancy } from '@domains/storage/ui/components/storage-navigator';
 import type { DemoLimits, UserDisplayInfo } from '@odysseus/shared-schemas';
 
 interface StorageManagerContextValue {
@@ -17,6 +18,8 @@ interface StorageManagerContextValue {
   isDemo: boolean;
   demoLimits: DemoLimits | undefined;
   hasSeededResources: boolean;
+  /** Per-box/rack/tank tube fill against capacity, for the occupancy minimaps + bars. */
+  occupancy: NavigatorOccupancy;
 
   // Business logic functions
   getUserInfo: (userId: string) => UserInfo | null;

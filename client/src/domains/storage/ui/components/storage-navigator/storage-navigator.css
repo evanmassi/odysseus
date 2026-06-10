@@ -56,11 +56,10 @@
   background-color: var(--storage-nav-selected-hover-bg);
 }
 
-/* Dashboard navigator only (scoped to its tree): tank/rack rows are framed,
-   square-cornered consoles with a stripe-on-open treatment. The StorageManager
-   modal shares this stylesheet but uses data-tree-id="modal", so it keeps the
-   plain base rows above. */
-[data-tree-id='navigator'] .storage-nav-button {
+/* Framed, square-cornered console rows with a stripe-on-open treatment — shared by
+   the dashboard navigator and the StorageManager modal (both tree-ids). */
+[data-tree-id='navigator'] .storage-nav-button,
+[data-tree-id^='modal'] .storage-nav-button {
   border: 1px solid hsl(var(--line-faint));
   border-radius: 0;
 }
@@ -68,7 +67,8 @@
 /* Hover preview mirrors the data Table's row hover (and the box minimaps): a
    directional primary wash + glowing leading stripe + bloom. Skipped on
    selected/expanded rows so they keep their own stripe-on-open treatment. */
-[data-tree-id='navigator'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
+[data-tree-id='navigator'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover,
+[data-tree-id^='modal'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
   border-color: hsl(var(--primary) / 0.4);
   background: linear-gradient(
     90deg,
@@ -88,7 +88,9 @@
 }
 
 [data-tree-id='navigator'] .storage-nav-button.selected,
-[data-tree-id='navigator'] .storage-nav-button[aria-expanded='true'] {
+[data-tree-id='navigator'] .storage-nav-button[aria-expanded='true'],
+[data-tree-id^='modal'] .storage-nav-button.selected,
+[data-tree-id^='modal'] .storage-nav-button[aria-expanded='true'] {
   border-color: hsl(var(--primary) / 0.5);
   background: linear-gradient(90deg, hsl(var(--primary) / 0.12), transparent 72%);
   box-shadow:
@@ -96,10 +98,11 @@
     0 0 12px -6px hsl(var(--primary) / 0.55);
 }
 
-/* Glowing-blue connectors for the dashboard navigator only; the modal keeps the
-   muted stroke from TreeLinesDisplay. The inline opacity is an SVG presentation
-   attribute, so these rules override it without !important. */
-[data-tree-id='navigator'] .tree-line {
+/* Glowing-blue connectors for both the dashboard navigator and the StorageManager
+   modal. The inline opacity is an SVG presentation attribute, so these rules
+   override it without !important. */
+[data-tree-id='navigator'] .tree-line,
+[data-tree-id^='modal'] .tree-line {
   stroke: hsl(var(--primary) / 0.55);
   opacity: 1;
   filter: drop-shadow(0 0 3px hsl(var(--primary) / 0.5));
@@ -169,6 +172,15 @@
   flex-shrink: 0;
   transition: transform 0.2s ease;
   color: var(--storage-nav-text-muted);
+}
+
+/* Navigator only: leading caret sits left of the icon and tucks toward it. The
+   StorageManager modal shares this class but keeps its trailing chevron. */
+[data-tree-id='navigator'] .storage-nav-button__chevron,
+[data-tree-id='navigator'] .storage-nav-button__chevron-spacer {
+  flex-shrink: 0;
+  width: 11px;
+  margin-right: -0.25rem;
 }
 
 .storage-nav-button:hover .storage-nav-button__chevron {
