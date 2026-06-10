@@ -229,7 +229,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   );
 
   const locator = (
-    <div className="flex items-center gap-3">
+    <div className="flex min-h-[2rem] items-center gap-3">
       <span
         aria-hidden
         className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
