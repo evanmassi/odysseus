@@ -7,7 +7,7 @@
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Icon, Rows3 } from 'lucide-react';
+import { ChevronRight, Icon, Rows3 } from 'lucide-react';
 
 import { useTextTruncation } from '@shared/hooks';
 import { Tooltip } from '@shared/ui';
@@ -70,6 +70,14 @@ export function StorageNavigatorNode({
           aria-label={`${level} ${name}`}
         >
           {level === 'rack' && <TreeNub />}
+          {hasChildren ? (
+            <ChevronRight
+              size={11}
+              className={`storage-nav-button__chevron ${isExpanded ? 'rotate-90' : ''}`}
+            />
+          ) : (
+            <span className="storage-nav-button__chevron-spacer" aria-hidden />
+          )}
           <div className="storage-nav-button__icon">
             <LevelIcon level={level} />
           </div>
@@ -94,12 +102,6 @@ export function StorageNavigatorNode({
           )}
           {ownershipType && (
             <UserBadge type={ownershipType} initials={ownershipInitials} size="sm" />
-          )}
-          {hasChildren && (
-            <ChevronDown
-              size={14}
-              className={`storage-nav-button__chevron ${isExpanded ? 'rotate-180' : ''}`}
-            />
           )}
         </button>
 
