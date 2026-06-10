@@ -7,7 +7,7 @@
 
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 
-import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
+import { isAdminRole } from '@odysseus/shared-schemas';
 import { FlaskConical } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
@@ -20,7 +20,10 @@ import {
 } from '@domains/storage';
 import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
 import { useStorageSync } from '@domains/storage/hooks/useStorageSync';
-import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
+import {
+  StorageNavigator,
+  buildStorageHierarchy,
+} from '@domains/storage/ui/components/storage-navigator';
 import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
 import {
   useTubesByLocation,
@@ -188,29 +191,7 @@ function BiobankWorkspace() {
     return effectiveOwnerId !== user.id && !isAdmin;
   }, [user, currentBoxObj?.assignedUserId, currentRackObj?.assignedUserId, isAdmin]);
 
-  const storageHierarchy: StorageHierarchy = useMemo(
-    () => ({
-      tanks: tanks.map(tank => ({
-        id: tank.id,
-        name: tank.name,
-        racks: tank.racks.map(rack => ({
-          id: rack.id,
-          name: formatStorageDisplayName(rack.name, rack.customLabel),
-          assignedUserId: rack.assignedUserId,
-          boxes: rack.boxes
-            .filter(box => box.position !== undefined)
-            .map(box => ({
-              id: box.id,
-              name: formatStorageDisplayName(box.name, box.customLabel),
-              position: box.position!,
-              assignedUserId: box.assignedUserId,
-              gridConfig: box.gridConfig,
-            })),
-        })),
-      })),
-    }),
-    [tanks]
-  );
+  const storageHierarchy: StorageHierarchy = useMemo(() => buildStorageHierarchy(tanks), [tanks]);
 
   const { data: activeUsers = [] } = useActiveUsersQuery();
 

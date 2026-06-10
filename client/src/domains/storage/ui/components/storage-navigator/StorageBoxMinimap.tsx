@@ -6,17 +6,14 @@
  * rather than reading a list.
  */
 
-import { getTubeColorFromFields } from '@domains/tubes/utils';
 import { useTextTruncation } from '@shared/hooks';
 import { Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
+import { BoxOccupancyMatrix } from './BoxOccupancyMatrix';
 import { TreeNub } from './TreeNub';
 
 import type { StorageBoxMinimapProps } from './storageNavigatorTypes';
-import type { RackTube } from '@odysseus/shared-schemas';
-
-const EMPTY_CELL_COLOR = 'hsl(var(--foreground)/0.05)';
 
 // Selected/hover treatment mirrors the data Table's row glow (shared --alpha-glow-* /
 // --alpha-hover-* tokens): a glowing leading stripe + directional primary wash + soft bloom.
@@ -41,21 +38,8 @@ export function StorageBoxMinimap({
   ownershipType,
   ownershipInitials,
 }: StorageBoxMinimapProps) {
-  const { rows, cols } = box.gridConfig;
   const isFull = capacity > 0 && filled >= capacity;
   const { ref: nameRef, isTruncated } = useTextTruncation<HTMLSpanElement>([box.name]);
-
-  const tubeByPosition = new Map<number, RackTube>();
-  for (const tube of tubes) {
-    tubeByPosition.set(tube.position, tube);
-  }
-
-  // Cells follow the real grid order (row-major, 1-based), so the thumbnail
-  // mirrors what the box looks like in the full grid.
-  const cellColors = Array.from({ length: rows * cols }, (_, index) => {
-    const tube = tubeByPosition.get(index + 1);
-    return tube ? getTubeColorFromFields(tube).backgroundColor : EMPTY_CELL_COLOR;
-  });
 
   return (
     <div data-level="box" data-id={box.id} className="ml-8 w-[calc(100%-2rem)]">
@@ -79,20 +63,7 @@ export function StorageBoxMinimap({
       >
         <TreeNub full={isFull} />
 
-        <span
-          aria-hidden
-          className="grid flex-none gap-px"
-          style={{
-            width: 48,
-            aspectRatio: '1 / 1',
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
-            gridTemplateRows: `repeat(${rows}, 1fr)`,
-          }}
-        >
-          {cellColors.map((color, index) => (
-            <span key={index} style={{ backgroundColor: color, aspectRatio: '1 / 1' }} />
-          ))}
-        </span>
+        <BoxOccupancyMatrix gridConfig={box.gridConfig} tubes={tubes} size={48} />
 
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-center justify-between gap-2">
