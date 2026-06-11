@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Professional Liquid Nitrogen Tube Inventory Management System",
   "scripts": {
-    "predev": "docker compose up -d postgres && npm run build:shared",
+    "predev": "node scripts/ensure-docker.mjs && docker compose up -d postgres && npm run build:shared",
     "dev": "concurrently \"npm --workspace @odysseus/shared-schemas run watch\" \"npm run dev:server\" \"npm run dev:client\"",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose stop postgres",
