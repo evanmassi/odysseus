@@ -7,22 +7,13 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  Check,
-  ChevronDown,
-  ChevronRight,
-  SquarePen,
-  Plus,
-  RefreshCw,
-  Trash2,
-  X,
-} from 'lucide-react';
+import { Check, ChevronDown, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
 import { logger } from '@infra/logger';
-import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
+import { AlertBanner, Button, Chip, SubsectionHeader, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
@@ -77,6 +68,7 @@ const CATEGORY_USAGE_LABELS: Record<
 
 interface CategorySectionProps {
   category: LookupCategory;
+  index: number;
   title: string;
   values: LookupValueWithCount[];
   loading: boolean;
@@ -89,6 +81,7 @@ interface CategorySectionProps {
 
 function CategorySection({
   category,
+  index,
   title,
   values,
   loading,
@@ -187,17 +180,19 @@ function CategorySection({
       header: CATEGORY_USAGE_LABELS[category].header,
       sortable: true,
       width: 80,
-      render: (_, item) => {
-        return (
+      render: (_, item) =>
+        item.usageCount > 0 ? (
           <Chip
             size="sm"
-            color={item.usageCount > 0 ? 'primary' : 'default'}
-            className={item.usageCount > 0 ? 'border border-action' : 'border border-border'}
+            color="primary"
+            className="border border-action"
+            labelClassName="!text-[12.5px] !tracking-[0.02em] !opacity-100 font-semibold tabular-nums"
           >
             {item.usageCount}
           </Chip>
-        );
-      },
+        ) : (
+          <span className="font-mono text-sm text-muted-foreground/40">—</span>
+        ),
     },
     {
       id: 'actions',
@@ -271,52 +266,125 @@ function CategorySection({
   ];
 
   return (
-    <div className="space-y-3">
-      <h4 className="text-sm font-semibold text-card-foreground capitalize">{title}</h4>
+    <Table
+      columns={columns}
+      toolbar={{
+        left: (
+          <div className="flex items-center gap-2.5">
+            <span
+              aria-hidden
+              className="h-3 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+            />
+            <SubsectionHeader
+              index={index}
+              title={title}
+              meta={String(values.length)}
+              className="phosphor-text"
+            />
+          </div>
+        ),
+        right: (
+          <>
+            <Input
+              type="text"
+              value={newValue}
+              onChange={e => setNewValue(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !readOnly) void handleAdd();
+              }}
+              placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category] ?? category}...`}
+              size="sm"
+              disabled={readOnly}
+            />
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => void handleAdd()}
+              disabled={readOnly || !newValue.trim() || adding}
+              isLoading={adding}
+              leftIcon={<Plus size={14} />}
+            >
+              Add
+            </Button>
+          </>
+        ),
+      }}
+      data={sortedValues}
+      hoverable
+      sortable
+      sortConfig={sortConfig}
+      onSort={setSortConfig}
+      loading={loading}
+      emptyMessage={`No ${CATEGORY_PLURAL_LABELS[category] ?? category} yet`}
+      loadingMessage={`Loading ${CATEGORY_PLURAL_LABELS[category] ?? category}...`}
+      aria-label={`${title} list`}
+    />
+  );
+}
 
-      <Table
-        columns={columns}
-        toolbar={{
-          right: (
-            <>
-              <Chip size="sm" color="info">
-                {values.length} {CATEGORY_PLURAL_LABELS[category] ?? category}
-              </Chip>
-              <Input
-                type="text"
-                value={newValue}
-                onChange={e => setNewValue(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !readOnly) void handleAdd();
-                }}
-                placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category] ?? category}...`}
-                size="sm"
-                disabled={readOnly}
-              />
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => void handleAdd()}
-                disabled={readOnly || !newValue.trim() || adding}
-                isLoading={adding}
-                leftIcon={<Plus size={14} />}
-              >
-                Add
-              </Button>
-            </>
-          ),
-        }}
-        data={sortedValues}
-        hoverable
-        sortable
-        sortConfig={sortConfig}
-        onSort={setSortConfig}
-        loading={loading}
-        className="w-auto"
-        emptyMessage={`No ${CATEGORY_PLURAL_LABELS[category] ?? category} yet`}
-        loadingMessage={`Loading ${CATEGORY_PLURAL_LABELS[category] ?? category}...`}
-        aria-label={`${title} list`}
+interface CatalogGroupProps {
+  title: string;
+  count: number;
+  expanded: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+// Reticle marker (Header Marker Studies · "05 · Reticle"): a bone diamond frame around a
+// lit core, here tinted primary. Brightens when its group is expanded for quick identification.
+function GroupReticle({ active }: { active: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`relative flex h-3.5 w-3.5 shrink-0 rotate-45 items-center justify-center border transition ${
+        active
+          ? 'border-primary/80 shadow-[0_0_6px_1px_hsl(var(--primary)/0.65)]'
+          : 'border-foreground/35'
+      }`}
+    >
+      <span
+        className={`h-1 w-1 bg-primary transition-shadow ${
+          active
+            ? 'shadow-[0_0_7px_1px_hsl(var(--primary)/0.85)]'
+            : 'shadow-[0_0_5px_0_hsl(var(--primary)/0.5)]'
+        }`}
       />
+    </span>
+  );
+}
+
+function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGroupProps) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        className="group flex w-full items-center gap-2.5"
+      >
+        <GroupReticle active={expanded} />
+        <span className="font-mono text-[11px] uppercase tracking-[0.26em] text-foreground/80 transition-colors group-hover:text-foreground/95">
+          {title}
+        </span>
+        <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/35">
+          {count}
+        </span>
+        <span className="relative flex flex-1 items-center">
+          <span
+            aria-hidden
+            className="h-px flex-1 [background:linear-gradient(90deg,hsl(var(--foreground)/0.22)_0%,hsl(var(--foreground)/0.12)_60%,transparent_100%)]"
+          />
+          <span
+            aria-hidden
+            className="absolute right-0 top-1/2 h-0.5 w-0.5 -translate-y-1/2 bg-foreground shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
+          />
+        </span>
+        <ChevronDown
+          size={13}
+          className={`text-foreground/40 transition-transform ${expanded ? 'rotate-0' : '-rotate-90'}`}
+        />
+      </button>
+      {expanded && <div className="mt-3 space-y-3">{children}</div>}
     </div>
   );
 }
@@ -425,8 +493,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   useEffect(() => {
     onTabFooter?.(
       <AlertBanner variant="info" spacing="none" className="text-xs">
-        Entries referenced by tubes cannot be deleted. Renaming an entry updates all tubes that use
-        it.
+        Entries in use cannot be deleted. Renaming an entry updates every record that references it.
       </AlertBanner>
     );
   }, [onTabFooter]);
@@ -492,6 +559,15 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     }
   };
 
+  const biobankCount =
+    speciesValues.length + sourceValues.length + mediaValues.length + specimenTypeValues.length;
+  const equipmentCount = equipmentMaintenanceTypeValues.length;
+  const suppliesCount =
+    supplyItemPropertyValues.length +
+    supplyStockUnitValues.length +
+    supplyVendorValues.length +
+    supplyManufacturerValues.length;
+
   return (
     <div className="space-y-2">
       <div className="mb-4 flex justify-end">
@@ -505,157 +581,138 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
         </Button>
       </div>
 
-      <div className="space-y-4">
-        {/* Biobank Catalogs */}
-        <div className="rounded-lg border border-border overflow-hidden">
-          <button
-            type="button"
-            className="w-full flex items-center gap-2 px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left"
-            onClick={() => setBiobankExpanded(!biobankExpanded)}
-          >
-            {biobankExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            <span className="text-sm font-semibold text-secondary-foreground">Biobank</span>
-          </button>
-          {biobankExpanded && (
-            <div className="p-3 space-y-6">
-              <CategorySection
-                category="species"
-                title="Species"
-                values={speciesValues}
-                loading={loading}
-                onAdd={value => handleAdd('species', value)}
-                onRename={(id, newValue) => handleRename('species', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('species', id, value)}
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-              <CategorySection
-                category="source"
-                title="Sources"
-                values={sourceValues}
-                loading={loading}
-                onAdd={value => handleAdd('source', value)}
-                onRename={(id, newValue) => handleRename('source', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('source', id, value)}
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-              <CategorySection
-                category="media"
-                title="Media Types"
-                values={mediaValues}
-                loading={loading}
-                onAdd={value => handleAdd('media', value)}
-                onRename={(id, newValue) => handleRename('media', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('media', id, value)}
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-              <CategorySection
-                category="specimen_type"
-                title="Specimens"
-                values={specimenTypeValues}
-                loading={loading}
-                onAdd={value => handleAdd('specimen_type', value)}
-                onRename={(id, newValue) => handleRename('specimen_type', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('specimen_type', id, value)}
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-            </div>
-          )}
-        </div>
+      <div className="space-y-7">
+        <CatalogGroup
+          title="Biobank"
+          count={biobankCount}
+          expanded={biobankExpanded}
+          onToggle={() => setBiobankExpanded(!biobankExpanded)}
+        >
+          <CategorySection
+            category="species"
+            index={1}
+            title="Species"
+            values={speciesValues}
+            loading={loading}
+            onAdd={value => handleAdd('species', value)}
+            onRename={(id, newValue) => handleRename('species', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('species', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+          <CategorySection
+            category="source"
+            index={2}
+            title="Sources"
+            values={sourceValues}
+            loading={loading}
+            onAdd={value => handleAdd('source', value)}
+            onRename={(id, newValue) => handleRename('source', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('source', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+          <CategorySection
+            category="media"
+            index={3}
+            title="Media Types"
+            values={mediaValues}
+            loading={loading}
+            onAdd={value => handleAdd('media', value)}
+            onRename={(id, newValue) => handleRename('media', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('media', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+          <CategorySection
+            category="specimen_type"
+            index={4}
+            title="Specimens"
+            values={specimenTypeValues}
+            loading={loading}
+            onAdd={value => handleAdd('specimen_type', value)}
+            onRename={(id, newValue) => handleRename('specimen_type', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('specimen_type', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+        </CatalogGroup>
 
-        {/* Equipment Catalogs */}
-        <div className="rounded-lg border border-border overflow-hidden">
-          <button
-            type="button"
-            className="w-full flex items-center gap-2 px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left"
-            onClick={() => setEquipmentExpanded(!equipmentExpanded)}
-          >
-            {equipmentExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            <span className="text-sm font-semibold text-secondary-foreground">Equipment</span>
-          </button>
-          {equipmentExpanded && (
-            <div className="p-3 space-y-6">
-              <CategorySection
-                category="equipment_maintenance_type"
-                title="Maintenance Activities"
-                values={equipmentMaintenanceTypeValues}
-                loading={loading}
-                onAdd={value => handleAdd('equipment_maintenance_type', value)}
-                onRename={(id, newValue) =>
-                  handleRename('equipment_maintenance_type', id, newValue)
-                }
-                onDelete={(id, value) =>
-                  handleDeleteRequest('equipment_maintenance_type', id, value)
-                }
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-            </div>
-          )}
-        </div>
+        <CatalogGroup
+          title="Equipment"
+          count={equipmentCount}
+          expanded={equipmentExpanded}
+          onToggle={() => setEquipmentExpanded(!equipmentExpanded)}
+        >
+          <CategorySection
+            category="equipment_maintenance_type"
+            index={1}
+            title="Maintenance Activities"
+            values={equipmentMaintenanceTypeValues}
+            loading={loading}
+            onAdd={value => handleAdd('equipment_maintenance_type', value)}
+            onRename={(id, newValue) => handleRename('equipment_maintenance_type', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('equipment_maintenance_type', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+        </CatalogGroup>
 
-        {/* Supplies Catalogs */}
-        <div className="rounded-lg border border-border overflow-hidden">
-          <button
-            type="button"
-            className="w-full flex items-center gap-2 px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left"
-            onClick={() => setSuppliesExpanded(!suppliesExpanded)}
-          >
-            {suppliesExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            <span className="text-sm font-semibold text-secondary-foreground">Supplies</span>
-          </button>
-          {suppliesExpanded && (
-            <div className="p-3 space-y-6">
-              <CategorySection
-                category="supply_item_property"
-                title="Item Properties"
-                values={supplyItemPropertyValues}
-                loading={loading}
-                onAdd={value => handleAdd('supply_item_property', value)}
-                onRename={(id, newValue) => handleRename('supply_item_property', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('supply_item_property', id, value)}
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-              <CategorySection
-                category="supply_stock_unit"
-                title="Stock Units"
-                values={supplyStockUnitValues}
-                loading={loading}
-                onAdd={value => handleAdd('supply_stock_unit', value)}
-                onRename={(id, newValue) => handleRename('supply_stock_unit', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('supply_stock_unit', id, value)}
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-              <CategorySection
-                category="supply_vendor"
-                title="Vendors"
-                values={supplyVendorValues}
-                loading={loading}
-                onAdd={value => handleAdd('supply_vendor', value)}
-                onRename={(id, newValue) => handleRename('supply_vendor', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('supply_vendor', id, value)}
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-              <CategorySection
-                category="supply_manufacturer"
-                title="Manufacturers"
-                values={supplyManufacturerValues}
-                loading={loading}
-                onAdd={value => handleAdd('supply_manufacturer', value)}
-                onRename={(id, newValue) => handleRename('supply_manufacturer', id, newValue)}
-                onDelete={(id, value) => handleDeleteRequest('supply_manufacturer', id, value)}
-                deletingId={deletingId}
-                readOnly={readOnly}
-              />
-            </div>
-          )}
-        </div>
+        <CatalogGroup
+          title="Supplies"
+          count={suppliesCount}
+          expanded={suppliesExpanded}
+          onToggle={() => setSuppliesExpanded(!suppliesExpanded)}
+        >
+          <CategorySection
+            category="supply_item_property"
+            index={1}
+            title="Item Properties"
+            values={supplyItemPropertyValues}
+            loading={loading}
+            onAdd={value => handleAdd('supply_item_property', value)}
+            onRename={(id, newValue) => handleRename('supply_item_property', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('supply_item_property', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+          <CategorySection
+            category="supply_stock_unit"
+            index={2}
+            title="Stock Units"
+            values={supplyStockUnitValues}
+            loading={loading}
+            onAdd={value => handleAdd('supply_stock_unit', value)}
+            onRename={(id, newValue) => handleRename('supply_stock_unit', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('supply_stock_unit', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+          <CategorySection
+            category="supply_vendor"
+            index={3}
+            title="Vendors"
+            values={supplyVendorValues}
+            loading={loading}
+            onAdd={value => handleAdd('supply_vendor', value)}
+            onRename={(id, newValue) => handleRename('supply_vendor', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('supply_vendor', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+          <CategorySection
+            category="supply_manufacturer"
+            index={4}
+            title="Manufacturers"
+            values={supplyManufacturerValues}
+            loading={loading}
+            onAdd={value => handleAdd('supply_manufacturer', value)}
+            onRename={(id, newValue) => handleRename('supply_manufacturer', id, newValue)}
+            onDelete={(id, value) => handleDeleteRequest('supply_manufacturer', id, value)}
+            deletingId={deletingId}
+            readOnly={readOnly}
+          />
+        </CatalogGroup>
       </div>
 
       {confirmDialog && (
@@ -663,7 +720,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
           isOpen={true}
           variant="danger"
           title={`Delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`}
-          message={`Are you sure you want to delete "${confirmDialog.value}" from ${confirmDialog.category}? This action cannot be undone.`}
+          message={`Are you sure you want to delete "${confirmDialog.value}" from ${CATEGORY_PLURAL_LABELS[confirmDialog.category] ?? confirmDialog.category}? This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => void executeDelete()}
           onCancel={() => setConfirmDialog(null)}
