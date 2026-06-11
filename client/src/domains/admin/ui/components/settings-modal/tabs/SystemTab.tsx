@@ -173,7 +173,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
       )}
 
       <ConsolePanel intensity="soft">
-        <Subsection title="Laboratory" index={1}>
+        <Subsection title="Laboratory" index={1} accent>
           {hasLab && (
             <SettingsRow label="Lab Name" hint="Display name shown across the app">
               <div className="flex w-48 items-center justify-end gap-2">
@@ -222,7 +222,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
         {hasLab && <StorageUtilizationSection />}
 
-        <Subsection title="Data Export" index={hasLab ? 3 : 2}>
+        <Subsection title="Data Export" index={hasLab ? 3 : 2} accent>
           <div className="col-span-2 py-4">
             <DataExportForm />
           </div>
@@ -249,7 +249,7 @@ function StorageUtilizationSection() {
   if (!data) return null;
 
   return (
-    <Subsection title="Storage Utilization" index={2}>
+    <Subsection title="Storage Utilization" index={2} accent>
       <div className="col-span-2 space-y-3 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

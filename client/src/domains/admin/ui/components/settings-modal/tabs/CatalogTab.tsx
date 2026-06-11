@@ -270,18 +270,13 @@ function CategorySection({
       columns={columns}
       toolbar={{
         left: (
-          <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="h-3 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-            />
-            <SubsectionHeader
-              index={index}
-              title={title}
-              meta={String(values.length)}
-              className="phosphor-text"
-            />
-          </div>
+          <SubsectionHeader
+            index={index}
+            title={title}
+            meta={String(values.length)}
+            accent
+            className="phosphor-text"
+          />
         ),
         right: (
           <>

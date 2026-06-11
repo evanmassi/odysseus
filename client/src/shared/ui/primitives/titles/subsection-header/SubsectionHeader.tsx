@@ -11,12 +11,20 @@ export interface SubsectionHeaderProps {
   /** Zero-padded section ordinal rendered before the title (e.g. 1 → "01 /"). */
   index?: number;
   meta?: ReactNode;
+  /** Lead the header with a glowing primary accent bar. */
+  accent?: boolean;
   className?: string;
 }
 
-export function SubsectionHeader({ title, index, meta, className }: SubsectionHeaderProps) {
-  return (
-    <div className={`flex items-baseline gap-2.5 ${className ?? ''}`}>
+export function SubsectionHeader({
+  title,
+  index,
+  meta,
+  accent = false,
+  className,
+}: SubsectionHeaderProps) {
+  const content = (
+    <>
       {index !== undefined && (
         <span aria-hidden className="font-mono text-[10.5px] tracking-[0.1em] text-foreground/40">
           {String(index).padStart(2, '0')}
@@ -31,6 +39,20 @@ export function SubsectionHeader({ title, index, meta, className }: SubsectionHe
           {meta}
         </span>
       )}
-    </div>
+    </>
   );
+
+  if (accent) {
+    return (
+      <div className={`flex items-center gap-2.5 ${className ?? ''}`}>
+        <span
+          aria-hidden
+          className="h-3 w-0.5 shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+        />
+        <div className="flex items-baseline gap-2.5">{content}</div>
+      </div>
+    );
+  }
+
+  return <div className={`flex items-baseline gap-2.5 ${className ?? ''}`}>{content}</div>;
 }

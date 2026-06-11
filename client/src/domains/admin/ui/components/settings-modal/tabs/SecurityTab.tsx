@@ -20,7 +20,7 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
 
   return (
     <div>
-      <Subsection title="Authentication" index={1}>
+      <Subsection title="Authentication" index={1} accent>
         <SettingsRow label="Enhanced Authentication" hint="Stronger password auth">
           <Toggle
             checked={config.useEnhancedAuth}
@@ -61,7 +61,7 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
         </SettingsRow>
       </Subsection>
 
-      <Subsection title="Session Management" index={2}>
+      <Subsection title="Session Management" index={2} accent>
         <SettingsRow label="Auto-Logout" hint="Logout after inactivity · 5–10080 min">
           <NumberInput
             value={config.sessionTimeoutMinutes}
@@ -108,7 +108,7 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
         </SettingsRow>
       </Subsection>
 
-      <Subsection title="Login Protection" index={3}>
+      <Subsection title="Login Protection" index={3} accent>
         <SettingsRow
           label="Enable Login Protection"
           hint="Prevent brute-force attacks"

@@ -52,6 +52,7 @@ export interface SubsectionProps {
   title: ReactNode;
   index?: number;
   meta?: ReactNode;
+  accent?: boolean;
   children: ReactNode;
   className?: string;
 }
@@ -62,11 +63,11 @@ const GRID_CLASSES =
   'grid grid-cols-2 [clip-path:inset(-100px_-100px_-100px_1px)] [&>*]:px-5 ' +
   '[&>*]:shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_1px_0_0_hsl(var(--foreground)/var(--alpha-phosphor-rim))]';
 
-export function Subsection({ title, index, meta, children, className }: SubsectionProps) {
+export function Subsection({ title, index, meta, accent, children, className }: SubsectionProps) {
   return (
     <div className={`border-t border-line-soft first:border-t-0 ${className ?? ''}`}>
       <div className="relative border-b border-line-soft [background:linear-gradient(180deg,hsl(var(--foreground)/0.025)_0%,transparent_35%),radial-gradient(ellipse_65%_120%_at_0%_0%,hsl(var(--foreground)/0.05),transparent_60%),radial-gradient(ellipse_60%_120%_at_100%_100%,hsl(var(--foreground)/0.035),transparent_70%),color-mix(in_srgb,hsl(var(--card))_85%,black)] px-5 py-3 shadow-[inset_0_1px_0_hsl(var(--foreground)/0.05)]">
-        <SubsectionHeader title={title} index={index} meta={meta} />
+        <SubsectionHeader title={title} index={index} meta={meta} accent={accent} />
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 -bottom-px h-px [background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.18)_12%,hsl(var(--primary)/0.18)_88%,transparent_100%)] shadow-[0_0_8px_hsl(var(--primary)/0.12),0_0_18px_hsl(var(--primary)/0.05)]"
