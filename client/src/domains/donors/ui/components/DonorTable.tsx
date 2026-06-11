@@ -8,7 +8,7 @@ import { useState, useMemo } from 'react';
 
 import { Plus } from 'lucide-react';
 
-import { Button, Chip, ScrollArea, SearchInput, Table } from '@shared/ui';
+import { Button, Chip, ConsolePanel, ScrollArea, SearchInput, Table } from '@shared/ui';
 
 import type { DonorWithTubeCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
@@ -87,7 +87,7 @@ export function DonorTable({
           <div className="flex items-center gap-1.5">
             {!row.isCurated && (
               <span
-                className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"
+                className="h-3 w-0.5 flex-shrink-0 bg-warning-bg shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]"
                 title="Needs review — awaiting lab admin curation"
               />
             )}
@@ -123,14 +123,14 @@ export function DonorTable({
   );
 
   return (
-    <div className="flex flex-col gap-2 h-full pt-1 px-1">
-      <div className="flex items-center justify-between gap-2">
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">
         <SearchInput
           value={searchQuery}
           onChange={onSearchChange}
-          placeholder="Search…"
+          placeholder="Search donors…"
           size="sm"
-          className="w-64"
+          className="flex-1"
           aria-label="Search donors"
         />
         {isAdmin && (
@@ -138,14 +138,14 @@ export function DonorTable({
             variant="primary"
             size="sm"
             onClick={onAddDonor}
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
+            leftIcon={<Plus className="h-3.5 w-3.5" />}
           >
             Add Donor
           </Button>
         )}
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 border border-border rounded-lg overflow-hidden">
+      <ScrollArea className="min-h-0 flex-1">
         <Table
           chassis={false}
           columns={columns}
@@ -161,6 +161,6 @@ export function DonorTable({
           aria-label="Donor registry"
         />
       </ScrollArea>
-    </div>
+    </ConsolePanel>
   );
 }

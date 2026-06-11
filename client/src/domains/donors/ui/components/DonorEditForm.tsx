@@ -14,8 +14,9 @@ import {
   useUpdateDonorMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Select } from '@shared/ui';
+import { Button, NubDivider, SectionHeader, Select } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import type { DonorWithTubeCount, CreateDonorRequest } from '@odysseus/shared-schemas';
@@ -25,6 +26,9 @@ interface DonorEditFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
+
+const SELECT_LABEL =
+  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 const SEX_OPTIONS = [
   { value: '', label: 'Select sex...' },
@@ -73,7 +77,39 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
     },
   });
 
-  const clinicalStatus = watch('clinicalStatus');
+  const allValues = watch();
+  const clinicalStatus = allValues.clinicalStatus;
+
+  // Profile completeness — diagnosis/disease stage only count when the donor is diseased.
+  const trackedFields: (keyof CreateDonorRequest)[] =
+    clinicalStatus === 'Diseased'
+      ? [
+          'donorSourceId',
+          'donorInternalId',
+          'species',
+          'age',
+          'sex',
+          'ethnicity',
+          'clinicalStatus',
+          'diagnosis',
+          'diseaseStage',
+          'notes',
+        ]
+      : [
+          'donorSourceId',
+          'donorInternalId',
+          'species',
+          'age',
+          'sex',
+          'ethnicity',
+          'clinicalStatus',
+          'notes',
+        ];
+  const filledCount = trackedFields.filter(f => {
+    const v = allValues[f];
+    return v != null && String(v).trim() !== '';
+  }).length;
+  const completionPct = Math.round((filledCount / trackedFields.length) * 100);
 
   const handleFormSubmit = (data: CreateDonorRequest) => {
     if (isEditMode && donor) {
@@ -87,211 +123,193 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
     errors.root?.message ?? (errors as Record<string, { message?: string }>)['']?.message;
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <ScrollArea className="flex-1 min-h-0">
-        <form id="donor-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3 p-1">
-          <h3 className="text-sm font-semibold text-secondary-foreground inline-flex items-center gap-1.5">
-            {isEditMode ? (
-              <>
-                <SquarePen size={14} className="text-muted-foreground" />
-                Edit Donor
-              </>
-            ) : (
-              <>
-                <Plus size={14} className="text-muted-foreground" />
-                Add Donor
-              </>
-            )}
-          </h3>
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-3 border-b border-line-faint px-4 py-3">
+        <span className="p-1.5 text-muted-foreground">
+          {isEditMode ? <SquarePen size={20} /> : <Plus size={20} />}
+        </span>
+        <h2 className="text-lg font-medium text-foreground">
+          {isEditMode ? 'Edit Donor' : 'Add Donor'}
+        </h2>
+      </div>
 
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            <span
+              aria-hidden
+              className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+            />
+            Completeness
+          </span>
+          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
+            {filledCount}/{trackedFields.length}
+          </span>
+          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
+            <span
+              className="absolute inset-y-0 left-0 bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
+              style={{ width: `${completionPct}%` }}
+            />
+          </span>
+        </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
+      </div>
+
+      <ScrollArea className="min-h-0 flex-1">
+        <form id="donor-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-2 p-4">
           {rootError && <p className="text-xs text-danger-text">{rootError}</p>}
 
-          <div className="flex items-center gap-3">
-            <h4 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
-              Identifiers
-            </h4>
-            <div className="flex-1 h-px bg-muted-foreground/60" />
+          <SectionHeader title="Identifiers" size="sm" />
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
+            <ValidatedInput
+              label="Source ID"
+              labelStyle="compact"
+              type="text"
+              placeholder="External source ID"
+              registration={register('donorSourceId')}
+              error={!!errors.donorSourceId}
+              helperText={errors.donorSourceId?.message}
+              disabled={isPending}
+            />
+            <ValidatedInput
+              label="Internal ID"
+              labelStyle="compact"
+              type="text"
+              placeholder="Lab internal ID"
+              registration={register('donorInternalId')}
+              error={!!errors.donorInternalId}
+              helperText={errors.donorInternalId?.message}
+              disabled={isPending}
+            />
           </div>
 
-          <div className="flex gap-2.5">
-            <div className="flex-1">
-              <ValidatedInput
-                label="Source ID"
-                type="text"
-                placeholder="External source ID"
-                registration={register('donorSourceId')}
-                error={!!errors.donorSourceId}
-                helperText={errors.donorSourceId?.message}
-                disabled={isPending}
-              />
-            </div>
-            <div className="flex-1">
-              <ValidatedInput
-                label="Internal ID"
-                type="text"
-                placeholder="Lab internal ID"
-                registration={register('donorInternalId')}
-                error={!!errors.donorInternalId}
-                helperText={errors.donorInternalId?.message}
-                disabled={isPending}
-              />
-            </div>
+          <div className="!mt-3.5">
+            <SectionHeader title="Demographics" size="sm" />
+          </div>
+          <div className="grid grid-cols-[1.4fr_70px_1.1fr] gap-2.5 [&>*]:min-w-0">
+            <Controller
+              name="species"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="species-label" className={SELECT_LABEL}>
+                    Species
+                  </label>
+                  <Select
+                    options={speciesOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v ?? '')}
+                    disabled={isPending}
+                    fullWidth
+                    placeholder="Select species..."
+                    aria-labelledby="species-label"
+                  />
+                </div>
+              )}
+            />
+            <ValidatedInput
+              label="Age"
+              labelStyle="compact"
+              type="text"
+              placeholder="45"
+              registration={register('age')}
+              error={!!errors.age}
+              helperText={errors.age?.message}
+              disabled={isPending}
+            />
+            <Controller
+              name="sex"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="sex-label" className={SELECT_LABEL}>
+                    Sex
+                  </label>
+                  <Select
+                    options={SEX_OPTIONS}
+                    value={value ?? ''}
+                    onChange={v => onChange(v ?? '')}
+                    disabled={isPending}
+                    fullWidth
+                    aria-labelledby="sex-label"
+                  />
+                </div>
+              )}
+            />
           </div>
 
-          <div className="flex items-center gap-3">
-            <h4 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
-              Demographics
-            </h4>
-            <div className="flex-1 h-px bg-muted-foreground/60" />
-          </div>
-
-          <div className="flex gap-2.5">
-            <div className="w-44">
-              <Controller
-                name="species"
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <div>
-                    {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                    <label
-                      id="species-label"
-                      className="block text-sm font-medium mb-1 text-secondary-foreground"
-                    >
-                      Species
-                    </label>
-                    <Select
-                      options={speciesOptions}
-                      value={value ?? ''}
-                      onChange={v => onChange(v ?? '')}
-                      disabled={isPending}
-                      fullWidth
-                      placeholder="Select species..."
-                      aria-labelledby="species-label"
-                    />
-                  </div>
-                )}
-              />
-            </div>
-            <div className="w-24">
-              <ValidatedInput
-                label="Age"
-                type="text"
-                placeholder="e.g., 45"
-                registration={register('age')}
-                error={!!errors.age}
-                helperText={errors.age?.message}
-                disabled={isPending}
-              />
-            </div>
-            <div className="w-36">
-              <Controller
-                name="sex"
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <div>
-                    {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                    <label
-                      id="sex-label"
-                      className="block text-sm font-medium mb-1 text-secondary-foreground"
-                    >
-                      Sex
-                    </label>
-                    <Select
-                      options={SEX_OPTIONS}
-                      value={value ?? ''}
-                      onChange={v => onChange(v ?? '')}
-                      disabled={isPending}
-                      fullWidth
-                      aria-labelledby="sex-label"
-                    />
-                  </div>
-                )}
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2.5">
-            <div className="flex-1">
-              <ValidatedInput
-                label="Ethnicity"
-                type="text"
-                placeholder="e.g., Caucasian"
-                registration={register('ethnicity')}
-                error={!!errors.ethnicity}
-                helperText={errors.ethnicity?.message}
-                disabled={isPending}
-              />
-            </div>
-            <div className="w-40">
-              <Controller
-                name="clinicalStatus"
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <div>
-                    {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                    <label
-                      id="clinical-status-label"
-                      className="block text-sm font-medium mb-1 text-secondary-foreground"
-                    >
-                      Clinical Status
-                    </label>
-                    <Select
-                      options={CLINICAL_STATUS_OPTIONS}
-                      value={value ?? ''}
-                      onChange={v => onChange(v ?? '')}
-                      disabled={isPending}
-                      fullWidth
-                      aria-labelledby="clinical-status-label"
-                    />
-                  </div>
-                )}
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
+            <ValidatedInput
+              label="Ethnicity"
+              labelStyle="compact"
+              type="text"
+              placeholder="e.g., Caucasian"
+              registration={register('ethnicity')}
+              error={!!errors.ethnicity}
+              helperText={errors.ethnicity?.message}
+              disabled={isPending}
+            />
+            <Controller
+              name="clinicalStatus"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="clinical-status-label" className={SELECT_LABEL}>
+                    Clinical Status
+                  </label>
+                  <Select
+                    options={CLINICAL_STATUS_OPTIONS}
+                    value={value ?? ''}
+                    onChange={v => onChange(v ?? '')}
+                    disabled={isPending}
+                    fullWidth
+                    aria-labelledby="clinical-status-label"
+                  />
+                </div>
+              )}
+            />
           </div>
 
           {clinicalStatus === 'Diseased' && (
             <>
-              <div className="flex items-center gap-3">
-                <h4 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
-                  Clinical Details
-                </h4>
-                <div className="flex-1 h-px bg-muted-foreground/60" />
+              <div className="!mt-3.5">
+                <SectionHeader title="Clinical Details" size="sm" />
               </div>
-
-              <div className="flex gap-2.5">
-                <div className="flex-1">
-                  <ValidatedInput
-                    label="Diagnosis"
-                    type="text"
-                    placeholder="e.g., AML"
-                    registration={register('diagnosis')}
-                    error={!!errors.diagnosis}
-                    helperText={errors.diagnosis?.message}
-                    disabled={isPending}
-                  />
-                </div>
-                <div className="flex-1">
-                  <ValidatedInput
-                    label="Disease Stage"
-                    type="text"
-                    placeholder="e.g., Stage III"
-                    registration={register('diseaseStage')}
-                    error={!!errors.diseaseStage}
-                    helperText={errors.diseaseStage?.message}
-                    disabled={isPending}
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
+                <ValidatedInput
+                  label="Diagnosis"
+                  labelStyle="compact"
+                  type="text"
+                  placeholder="e.g., AML"
+                  registration={register('diagnosis')}
+                  error={!!errors.diagnosis}
+                  helperText={errors.diagnosis?.message}
+                  disabled={isPending}
+                />
+                <ValidatedInput
+                  label="Disease Stage"
+                  labelStyle="compact"
+                  type="text"
+                  placeholder="e.g., Stage III"
+                  registration={register('diseaseStage')}
+                  error={!!errors.diseaseStage}
+                  helperText={errors.diseaseStage?.message}
+                  disabled={isPending}
+                />
               </div>
             </>
           )}
 
-          <div className="flex items-center gap-3">
-            <h4 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
-              Notes
-            </h4>
-            <div className="flex-1 h-px bg-muted-foreground/60" />
+          <div className="!mt-3.5">
+            <SectionHeader title="Notes" size="sm" />
           </div>
-
           <ValidatedInput
             label=""
             type="textarea"
@@ -302,21 +320,24 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
         </form>
       </ScrollArea>
 
-      <div className="flex items-center justify-end gap-2 px-1 py-3 border-t border-border flex-shrink-0">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          form="donor-form"
-          variant="primary"
-          size="sm"
-          disabled={isPending}
-          leftIcon={<Save className="w-3.5 h-3.5" />}
-        >
-          {isPending ? 'Saving...' : 'Save'}
-        </Button>
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <div className="flex items-center justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="donor-form"
+            variant="primary"
+            size="sm"
+            disabled={isPending}
+            leftIcon={<Save className="h-3.5 w-3.5" />}
+          >
+            {isPending ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
       </div>
-    </div>
+    </ConsolePanel>
   );
 }
