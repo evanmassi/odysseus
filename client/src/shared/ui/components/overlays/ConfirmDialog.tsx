@@ -13,7 +13,7 @@ import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 import { AnimatedXMark } from '@shared/ui/components/icons/AnimatedXMark';
 
-import { Button, type ButtonVariant } from '../../primitives';
+import { Button, NubDivider, type ButtonVariant } from '../../primitives';
 
 import { ModalPortal } from './ModalPortal';
 
@@ -28,11 +28,18 @@ export interface ConfirmDialogProps {
   isLoading?: boolean;
 }
 
+const CORNER_PINS = [
+  'left-2 top-2',
+  'right-2 top-2',
+  'bottom-2 left-2',
+  'bottom-2 right-2',
+] as const;
+
 function getVariantStyles(variant: 'danger' | 'warning') {
   if (variant === 'danger') {
     return {
       iconColor: 'text-danger-text',
-      shadowColor: 'hsl(var(--color-danger-bg))',
+      pin: 'bg-danger-bg shadow-[0_0_6px_1px_hsl(var(--color-danger-bg)/0.7)]',
       buttonVariant: 'danger' as ButtonVariant,
       Mark: AnimatedXMark,
     };
@@ -40,7 +47,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
 
   return {
     iconColor: 'text-warning-text',
-    shadowColor: 'hsl(var(--color-warning-bg))',
+    pin: 'bg-warning-bg shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
     buttonVariant: 'warning' as ButtonVariant,
     Mark: AnimatedWarningMark,
   };
@@ -145,37 +152,54 @@ export function ConfirmDialog({
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
           aria-describedby="confirm-dialog-message"
-          className={`bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-border ${modalAnimationClass} ${closingPointerEvents}`}
-          style={{ '--tw-shadow-color': styles.shadowColor } as React.CSSProperties}
+          className={`relative isolate mx-4 w-full max-w-md px-7 py-6 ${modalAnimationClass} ${closingPointerEvents}`}
         >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
+          />
+          {CORNER_PINS.map(pos => (
+            <span
+              key={pos}
+              aria-hidden
+              className={`pointer-events-none absolute h-0.5 w-2 ${styles.pin} ${pos}`}
+            />
+          ))}
+
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <MarkComponent size={24} className={styles.iconColor} />
-              <h2 id="confirm-dialog-title" className="text-xl font-bold text-card-foreground">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <MarkComponent size={22} className={styles.iconColor} />
+              <h2
+                id="confirm-dialog-title"
+                className="phosphor-text font-mono text-[15px] font-semibold uppercase tracking-[0.14em] text-tooltip-foreground"
+              >
                 {title}
               </h2>
             </div>
             <button
               onClick={handleCancel}
               disabled={isLoading}
-              className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-all duration-200 disabled:opacity-50"
+              className="text-tooltip-muted transition-colors hover:text-tooltip-foreground disabled:opacity-50"
               aria-label="Close dialog"
               type="button"
             >
-              <X className="w-5 h-5" />
+              <X size={18} />
             </button>
           </div>
 
+          <NubDivider tone="neutral" className="relative my-4" />
+
           {/* Message */}
-          <div className="mb-8">
-            <p id="confirm-dialog-message" className="text-muted-foreground leading-relaxed">
-              {message}
-            </p>
-          </div>
+          <p
+            id="confirm-dialog-message"
+            className="mb-7 text-sm leading-relaxed text-tooltip-foreground/80"
+          >
+            {message}
+          </p>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={handleCancel} disabled={isLoading}>
               Cancel
             </Button>
