@@ -182,12 +182,7 @@ function CategorySection({
       width: 80,
       render: (_, item) =>
         item.usageCount > 0 ? (
-          <Chip
-            size="sm"
-            color="primary"
-            className="border border-action"
-            labelClassName="!text-[12.5px] !tracking-[0.02em] !opacity-100 font-semibold tabular-nums"
-          >
+          <Chip size="sm" color="primary" className="border border-action" numeric>
             {item.usageCount}
           </Chip>
         ) : (
@@ -325,8 +320,6 @@ interface CatalogGroupProps {
   children: React.ReactNode;
 }
 
-// Reticle marker (Header Marker Studies · "05 · Reticle"): a bone diamond frame around a
-// lit core, here tinted primary. Brightens when its group is expanded for quick identification.
 function GroupReticle({ active }: { active: boolean }) {
   return (
     <span

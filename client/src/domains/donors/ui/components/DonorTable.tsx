@@ -112,6 +112,7 @@ export function DonorTable({
             size="sm"
             color={row.tubeCount > 0 ? 'primary' : 'default'}
             className={row.tubeCount > 0 ? 'border border-action' : 'border border-border'}
+            numeric
           >
             {row.tubeCount}
           </Chip>

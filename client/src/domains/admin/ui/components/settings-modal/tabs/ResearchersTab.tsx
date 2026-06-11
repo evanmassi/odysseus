@@ -282,6 +282,7 @@ export function ResearchersTab({
             size="sm"
             color={researcher.tubeCount > 0 ? 'primary' : 'default'}
             className={researcher.tubeCount > 0 ? 'border border-action' : 'border border-border'}
+            numeric
           >
             {researcher.tubeCount}
           </Chip>

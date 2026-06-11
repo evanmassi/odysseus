@@ -38,6 +38,8 @@ export interface ChipProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
   onClick?: () => void;
   /** Override classes applied to the label cell. Use to opt out of uppercase/tracking on free-text content. */
   labelClassName?: string;
+  /** Render the label as a legible number — larger, tabular, normal tracking. The standard for counts. */
+  numeric?: boolean;
   /** Applies the lit edge + wash to neutral (`default`/`outlined`) tones. Semantic tones are always lit. */
   lit?: boolean;
   /** @deprecated Use `lead`. Forwarded to the lead cell during the migration period. */

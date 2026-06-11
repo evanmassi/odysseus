@@ -98,6 +98,8 @@ interface SizeConfig {
   chamfer: number;
   leadText: string;
   lblText: string;
+  /** Label size when `numeric` — larger than lblText so counts stay legible. */
+  numText: string;
   leadPx: string;
   lblPx: string;
   removeIcon: number;
@@ -109,6 +111,7 @@ const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
     chamfer: 6,
     leadText: 'text-[11px]',
     lblText: 'text-[9.5px]',
+    numText: 'text-[12.5px]',
     leadPx: 'px-[7px]',
     lblPx: 'pl-2 pr-2.5',
     removeIcon: 10,
@@ -118,6 +121,7 @@ const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
     chamfer: 5,
     leadText: 'text-[10px]',
     lblText: 'text-[9px]',
+    numText: 'text-[11px]',
     leadPx: 'px-1.5',
     lblPx: 'pl-1.5 pr-2',
     removeIcon: 9,
@@ -165,6 +169,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       onRemove,
       onClick,
       labelClassName,
+      numeric = false,
       lit = defaultChipProps.lit,
       disabled = defaultChipProps.disabled,
       'aria-label': ariaLabel,
@@ -238,6 +243,11 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       if (!disabled && onRemove) onRemove();
     };
 
+    const labelTypography = numeric
+      ? `${sizeCfg.numText} font-semibold tabular-nums tracking-[0.02em]`
+      : `${sizeCfg.lblText} uppercase tracking-[0.24em]`;
+    const labelState = isLit ? SELECTED_LABEL : numeric ? '' : 'opacity-[0.82]';
+
     const content = (
       <>
         <span
@@ -247,7 +257,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           {displayLead}
         </span>
         <span
-          className={`flex items-center ${textClass} ${sizeCfg.lblPx} ${sizeCfg.lblText} tracking-[0.24em] uppercase ${isLit ? SELECTED_LABEL : 'opacity-[0.82]'} ${labelClassName ?? ''}`}
+          className={`flex items-center ${textClass} ${sizeCfg.lblPx} ${labelTypography} ${labelState} ${labelClassName ?? ''}`}
         >
           {children}
         </span>
