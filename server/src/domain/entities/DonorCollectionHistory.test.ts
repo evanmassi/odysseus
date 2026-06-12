@@ -15,21 +15,20 @@ describe('DonorCollectionHistory', () => {
       expect(entry.donorId).toBe('donor_123');
     });
 
-    it('should accept string collection date', () => {
+    it('should keep a string collection date as a date-only string', () => {
       const entry = DonorCollectionHistory.create({
         donorId: 'donor_123',
         collectionDate: '2025-05-05',
       });
-      expect(entry.collectionDate).toBeInstanceOf(Date);
+      expect(entry.collectionDate).toBe('2025-05-05');
     });
 
-    it('should accept Date object for collection date', () => {
-      const date = new Date('2025-05-05');
+    it('should normalize a Date object to a date-only string', () => {
       const entry = DonorCollectionHistory.create({
         donorId: 'donor_123',
-        collectionDate: date,
+        collectionDate: new Date('2025-05-05'),
       });
-      expect(entry.collectionDate!.getTime()).toBe(date.getTime());
+      expect(entry.collectionDate).toBe('2025-05-05');
     });
 
     it('should accept optional specimen type and source', () => {
@@ -90,31 +89,19 @@ describe('DonorCollectionHistory', () => {
     });
 
     it('should handle Date objects for timestamps', () => {
-      const date = new Date('2025-05-05');
       const now = new Date();
       const entry = DonorCollectionHistory.fromData({
         id: 'donorCollection_test',
         donorId: 'donor_123',
-        collectionDate: date,
+        collectionDate: new Date('2025-05-05'),
         createdAt: now,
       });
-      expect(entry.collectionDate!.getTime()).toBe(date.getTime());
+      expect(entry.collectionDate).toBe('2025-05-05');
       expect(entry.createdAt.getTime()).toBe(now.getTime());
     });
   });
 
   describe('date immutability', () => {
-    it('should return copies of collectionDate', () => {
-      const entry = DonorCollectionHistory.create({
-        donorId: 'donor_123',
-        collectionDate: '2025-05-05',
-      });
-      const date1 = entry.collectionDate;
-      const date2 = entry.collectionDate;
-      expect(date1).not.toBe(date2);
-      expect(date1!.getTime()).toBe(date2!.getTime());
-    });
-
     it('should return copies of createdAt', () => {
       const entry = DonorCollectionHistory.create({
         donorId: 'donor_123',

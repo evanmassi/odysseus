@@ -16,6 +16,7 @@ import {
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { Button, DatePicker, Select, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -100,7 +101,7 @@ export function CollectionHistoryTimeline({
 
   const handleEditStart = (entry: DonorCollectionHistory) => {
     setEditingId(entry.id);
-    setEditDate(entry.collectionDate ? entry.collectionDate.toISOString().split('T')[0] : '');
+    setEditDate(entry.collectionDate ?? '');
     setEditSpecimenType(entry.specimenType ?? '');
     setEditSource(entry.source ?? '');
   };
@@ -110,9 +111,7 @@ export function CollectionHistoryTimeline({
     const entry = history.find(e => e.id === editingId);
     if (!entry) return;
 
-    const originalDate = entry.collectionDate
-      ? entry.collectionDate.toISOString().split('T')[0]
-      : '';
+    const originalDate = entry.collectionDate ?? '';
     const dateChanged = editDate !== originalDate;
     const specimenChanged = editSpecimenType !== (entry.specimenType ?? '');
     const sourceChanged = editSource !== (entry.source ?? '');
@@ -140,10 +139,6 @@ export function CollectionHistoryTimeline({
   };
 
   const handleEditCancel = () => setEditingId(null);
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
 
   return (
     <div className="space-y-2 pl-1">
@@ -223,7 +218,7 @@ export function CollectionHistoryTimeline({
               <div key={entry.id} className="flex items-center gap-2 text-sm group">
                 {entry.collectionDate && (
                   <span className="text-card-foreground/60 whitespace-nowrap">
-                    {formatDate(entry.collectionDate)}
+                    {formatDateForDisplay(entry.collectionDate)}
                   </span>
                 )}
                 {entry.specimenType && (

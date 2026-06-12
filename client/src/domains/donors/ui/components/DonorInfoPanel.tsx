@@ -9,6 +9,7 @@ import { BookUser, SquarePen, Trash2 } from 'lucide-react';
 import { Button, Chip, DetailRow, NubDivider, PanelHeader, SectionHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { CollectionHistoryTimeline } from './CollectionHistoryTimeline';
 
@@ -34,15 +35,9 @@ export function DonorInfoPanel({
   const collectionCount = collectionHistory.length;
   const lastCollectionDate = collectionHistory
     .map(e => e.collectionDate)
-    .filter((d): d is Date => Boolean(d))
-    .sort((a, b) => b.getTime() - a.getTime())[0];
-  const lastDateStr = lastCollectionDate
-    ? lastCollectionDate.toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      })
-    : undefined;
+    .filter((d): d is string => Boolean(d))
+    .sort((a, b) => b.localeCompare(a))[0];
+  const lastDateStr = lastCollectionDate ? formatDateForDisplay(lastCollectionDate) : undefined;
   const hasDemographics = [donor.species, donor.age, donor.sex, donor.ethnicity].some(Boolean);
   const hasClinical = [donor.clinicalStatus, donor.diagnosis, donor.diseaseStage].some(Boolean);
 

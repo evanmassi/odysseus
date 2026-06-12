@@ -13,6 +13,9 @@ import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 const DONOR_COLUMNS = 'id, lab_id, donor_source_id, donor_internal_id, species, age, sex, ethnicity, clinical_status, diagnosis, disease_stage, notes, is_curated, created_at, updated_at';
 const HISTORY_COLUMNS = 'id, donor_id, collection_date, specimen_type, source, created_at';
+// Read collection_date as text — a parsed DATE column becomes a timezone-shifting Date object.
+const HISTORY_SELECT_COLUMNS =
+  'id, donor_id, collection_date::text AS collection_date, specimen_type, source, created_at';
 
 export class DonorRepository implements IDonorRepository {
 
@@ -193,7 +196,7 @@ export class DonorRepository implements IDonorRepository {
 
   async findCollectionHistory(donorId: string): Promise<DonorCollectionHistory[]> {
     const rows = await this.db.queryMany<DonorCollectionHistoryRow>(
-      `SELECT ${HISTORY_COLUMNS} FROM donor_collection_history WHERE donor_id = $1 ORDER BY COALESCE(collection_date, created_at::date) DESC, created_at DESC`,
+      `SELECT ${HISTORY_SELECT_COLUMNS} FROM donor_collection_history WHERE donor_id = $1 ORDER BY COALESCE(collection_date, created_at::date) DESC, created_at DESC`,
       [donorId]
     );
     return DonorMapper.historyFromRows(rows);
@@ -201,7 +204,7 @@ export class DonorRepository implements IDonorRepository {
 
   async findCollectionHistoryById(id: string): Promise<DonorCollectionHistory | null> {
     const row = await this.db.queryOne<DonorCollectionHistoryRow>(
-      `SELECT ${HISTORY_COLUMNS} FROM donor_collection_history WHERE id = $1`,
+      `SELECT ${HISTORY_SELECT_COLUMNS} FROM donor_collection_history WHERE id = $1`,
       [id]
     );
     return row ? DonorMapper.historyFromRow(row) : null;

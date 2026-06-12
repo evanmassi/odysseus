@@ -29,7 +29,7 @@ export interface DonorRow {
 export interface DonorCollectionHistoryRow {
   id: string;
   donor_id: string;
-  collection_date: Date | string | null;
+  collection_date: string | null;
   specimen_type: string | null;
   source: string | null;
   created_at: Date | string;
@@ -96,7 +96,7 @@ export class DonorMapper {
     return DonorCollectionHistory.fromData({
       id: row.id,
       donorId: row.donor_id,
-      collectionDate: row.collection_date ? toISOString(row.collection_date) : undefined,
+      collectionDate: row.collection_date ?? undefined,
       specimenType: row.specimen_type ?? undefined,
       source: row.source ?? undefined,
       createdAt: toISOString(row.created_at),
