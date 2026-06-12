@@ -5,6 +5,8 @@
  */
 import { SearchX } from 'lucide-react';
 
+import { Well } from '@shared/ui';
+
 import { HELP_TAB_META, searchHelpSections } from '../../../content/helpContent';
 
 import { useHelpNav } from './HelpNavContext';
@@ -33,13 +35,12 @@ export function HelpSearchResults({ query, includeAdmin }: HelpSearchResultsProp
         const tab = HELP_TAB_META[section.tabId];
         const SectionIcon = section.icon;
         return (
-          <button
+          <Well
             key={section.id}
-            type="button"
             onClick={() => goToSection(section.id)}
-            className="group flex w-full items-center gap-3 rounded-lg border border-line-faint bg-black/15 px-3 py-2.5 text-left transition-colors hover:border-line-soft hover:bg-black/25"
+            className="group flex w-full items-center gap-3 px-3 py-2.5 text-left"
           >
-            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-line-faint bg-black/20 text-secondary-foreground">
+            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-none border border-line-faint bg-black/30 text-secondary-foreground">
               <SectionIcon size={15} />
             </span>
             <span className="min-w-0 flex-1 truncate text-sm font-medium text-card-foreground">
@@ -48,7 +49,7 @@ export function HelpSearchResults({ query, includeAdmin }: HelpSearchResultsProp
             <span className="flex-shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
               {tab.label}
             </span>
-          </button>
+          </Well>
         );
       })}
     </div>

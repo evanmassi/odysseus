@@ -4,6 +4,8 @@
  * Admin-only help content covering the Admin Settings panel.
  * Section order matches the tab order in the Admin Settings modal.
  */
+import { Well } from '@shared/ui';
+
 import { HelpSection } from '../HelpSection';
 
 export function AdministrationTab() {
@@ -67,7 +69,7 @@ export function AdministrationTab() {
           <li>Link to researchers — connect a user account to a researcher profile</li>
           <li>Activate or deactivate accounts</li>
         </ul>
-        <div className="rounded-lg border border-line-faint bg-black/15 p-3 mt-3">
+        <Well className="p-3 mt-3">
           <h4 className="text-xs font-medium text-card-foreground mb-1">
             Researcher Link & Access
           </h4>
@@ -76,7 +78,7 @@ export function AdministrationTab() {
             and manage tubes in their assigned storage. Users without a linked researcher have
             read-only access and can browse the system but cannot modify tube data.
           </p>
-        </div>
+        </Well>
       </HelpSection>
 
       {/* Researcher Management */}

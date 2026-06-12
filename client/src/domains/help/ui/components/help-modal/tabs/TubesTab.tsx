@@ -8,6 +8,7 @@ import { Lock, Notebook, ShieldCheck } from 'lucide-react';
 
 import { TubePropertyIndicator } from '@domains/tubes/ui/components/grid/TubePropertyIndicator';
 import { cellLineCategories } from '@domains/tubes/utils/tubeColorCoding';
+import { Well } from '@shared/ui';
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 
 import { HelpSection } from '../HelpSection';
@@ -281,29 +282,29 @@ export function TubesTab() {
       {/* Section B: Lock States Legend */}
       <HelpSection id="tubes-lock-states">
         <div className="grid grid-cols-3 gap-4">
-          <div className="flex flex-col items-center gap-2 rounded-none border border-line-faint bg-black/15 p-3">
+          <Well className="flex flex-col items-center gap-2 p-3">
             <Lock size={20} className="text-secondary-foreground" />
             <span className="text-xs font-medium text-card-foreground">Your Lock</span>
             <span className="text-[11px] text-muted-foreground text-center">
               You locked this tube
             </span>
-          </div>
+          </Well>
 
-          <div className="flex flex-col items-center gap-2 rounded-none border border-line-faint bg-black/15 p-3">
+          <Well className="flex flex-col items-center gap-2 p-3">
             <ShieldCheck size={20} className="text-secondary-foreground" />
             <span className="text-xs font-medium text-card-foreground">Shared Access</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Another user shared access with you
             </span>
-          </div>
+          </Well>
 
-          <div className="flex flex-col items-center gap-2 rounded-none border border-line-faint bg-black/15 p-3">
+          <Well className="flex flex-col items-center gap-2 p-3">
             <Lock size={20} className="text-red-500" />
             <span className="text-xs font-medium text-card-foreground">Locked Out</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Locked by another user; cell appears dimmed
             </span>
-          </div>
+          </Well>
         </div>
         <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1.5">
           <Notebook size={14} className="flex-shrink-0 text-secondary-foreground" />

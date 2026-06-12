@@ -8,7 +8,7 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { MousePointerClick, Share2, UsersRound, Lock } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { AlertBanner, SubsectionHeader } from '@shared/ui';
+import { AlertBanner, SubsectionHeader, Well } from '@shared/ui';
 
 import { HELP_TABS } from '../../../../content/helpContent';
 import { useHelpNav } from '../HelpNavContext';
@@ -111,13 +111,12 @@ export function GettingStartedTab() {
           {quickLinks.map(tab => {
             const Icon = tab.icon;
             return (
-              <button
+              <Well
                 key={tab.id}
-                type="button"
                 onClick={() => goToTab(tab.id)}
-                className="group flex items-start gap-3 rounded-lg border border-line-faint bg-black/15 p-3 text-left transition-colors hover:border-line-soft hover:bg-black/25"
+                className="group flex items-start gap-3 p-3 text-left"
               >
-                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-line-faint bg-black/20 text-secondary-foreground">
+                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-none border border-line-faint bg-black/30 text-secondary-foreground">
                   <Icon size={16} />
                 </span>
                 <span className="min-w-0">
@@ -128,7 +127,7 @@ export function GettingStartedTab() {
                     {TAB_BLURBS[tab.id]}
                   </span>
                 </span>
-              </button>
+              </Well>
             );
           })}
         </div>

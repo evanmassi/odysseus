@@ -6,6 +6,7 @@
  */
 import { Grid3X3, ShieldUser, Tag, UserRound } from 'lucide-react';
 
+import { Well } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { BoxIcon } from '@shared/ui/components/icons/BoxIcon';
 import { RackIcon } from '@shared/ui/components/icons/RackIcon';
@@ -26,7 +27,7 @@ export function StorageTab() {
         <div className="space-y-0.5 pl-1">
           {/* Tank */}
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
               <TankIcon size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -42,7 +43,7 @@ export function StorageTab() {
 
           {/* Rack */}
           <div className="ml-6 flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
               <RackIcon size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -58,7 +59,7 @@ export function StorageTab() {
 
           {/* Box */}
           <div className="ml-12 flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
               <BoxIcon size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -81,42 +82,42 @@ export function StorageTab() {
 
         {/* Ownership badges */}
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-line-faint bg-black/15 p-3">
+          <Well className="flex flex-col items-center gap-2 p-3">
             <UserBadge type="currentUser" initials="ME" size="md" />
             <span className="text-xs font-medium text-card-foreground">Yours</span>
             <span className="text-[11px] text-muted-foreground text-center">Assigned to you</span>
-          </div>
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-line-faint bg-black/15 p-3">
+          </Well>
+          <Well className="flex flex-col items-center gap-2 p-3">
             <UserBadge type="otherUser" initials="JD" username="jdoe" size="md" />
             <span className="text-xs font-medium text-card-foreground">Other User</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Assigned to someone else
             </span>
-          </div>
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-line-faint bg-black/15 p-3">
+          </Well>
+          <Well className="flex flex-col items-center gap-2 p-3">
             <UserBadge type="unassigned" size="md" />
             <span className="text-xs font-medium text-card-foreground">Common</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Unassigned, shared by all
             </span>
-          </div>
+          </Well>
         </div>
 
         {/* Inheritance explanation */}
-        <div className="rounded-lg border border-line-faint bg-black/15 p-3">
+        <Well className="p-3">
           <h4 className="text-xs font-medium text-card-foreground mb-1">Default Assignment</h4>
           <p className="text-xs text-muted-foreground">
             Boxes inherit their rack&apos;s owner by default. An admin can override this by
             assigning a box to a different user or marking it as common.
           </p>
-        </div>
+        </Well>
       </HelpSection>
 
       {/* Section C: Roles & Permissions */}
       <HelpSection id="storage-roles">
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
               <ShieldUser size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -130,7 +131,7 @@ export function StorageTab() {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
               <UserRound size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
