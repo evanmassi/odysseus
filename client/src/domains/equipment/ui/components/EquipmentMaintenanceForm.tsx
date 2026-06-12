@@ -5,7 +5,10 @@
  */
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createEquipmentMaintenanceLogRequestSchema } from '@odysseus/shared-schemas';
+import {
+  createEquipmentMaintenanceLogRequestSchema,
+  updateEquipmentMaintenanceLogRequestSchema,
+} from '@odysseus/shared-schemas';
 import { Save } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
@@ -23,6 +26,7 @@ import { notifications } from '@shared/utils/notifications';
 import type {
   EquipmentMaintenanceLog,
   CreateEquipmentMaintenanceLogRequest,
+  UpdateEquipmentMaintenanceLogRequest,
 } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
@@ -55,7 +59,11 @@ export function EquipmentMaintenanceForm({
     control,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(createEquipmentMaintenanceLogRequestSchema) as never,
+    resolver: zodResolver(
+      isEditing
+        ? updateEquipmentMaintenanceLogRequestSchema
+        : createEquipmentMaintenanceLogRequestSchema
+    ) as never,
     defaultValues: isEditing
       ? {
           datePerformed: formatDateForInput(entry.datePerformed),
@@ -71,13 +79,19 @@ export function EquipmentMaintenanceForm({
   });
 
   const onFormSubmit = async (data: FieldValues) => {
-    const validated = data as CreateEquipmentMaintenanceLogRequest;
     try {
       if (isEditing) {
-        await updateMutation.mutateAsync({ itemId, entryId: entry.id, data: validated });
+        await updateMutation.mutateAsync({
+          itemId,
+          entryId: entry.id,
+          data: data as UpdateEquipmentMaintenanceLogRequest,
+        });
         notifications.success('Maintenance entry updated');
       } else {
-        await addMutation.mutateAsync({ itemId, data: validated });
+        await addMutation.mutateAsync({
+          itemId,
+          data: data as CreateEquipmentMaintenanceLogRequest,
+        });
         notifications.success('Maintenance entry added');
       }
       onSubmit();

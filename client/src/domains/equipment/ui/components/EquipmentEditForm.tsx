@@ -7,7 +7,10 @@
 import { useMemo } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createEquipmentItemRequestSchema } from '@odysseus/shared-schemas';
+import {
+  createEquipmentItemRequestSchema,
+  updateEquipmentItemRequestSchema,
+} from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Save, SquarePen } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
@@ -28,6 +31,7 @@ import type {
   EquipmentItem,
   EquipmentCategory,
   CreateEquipmentItemRequest,
+  UpdateEquipmentItemRequest,
 } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
@@ -92,7 +96,9 @@ export function EquipmentEditForm({
     control,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(createEquipmentItemRequestSchema) as never,
+    resolver: zodResolver(
+      isEditing ? updateEquipmentItemRequestSchema : createEquipmentItemRequestSchema
+    ) as never,
     defaultValues: isEditing
       ? {
           categoryId: item.categoryId,
@@ -117,13 +123,15 @@ export function EquipmentEditForm({
   });
 
   const onFormSubmit = async (data: FieldValues) => {
-    const validated = data as CreateEquipmentItemRequest;
     try {
       if (isEditing) {
-        await updateMutation.mutateAsync({ id: item.id, data: validated });
+        await updateMutation.mutateAsync({
+          id: item.id,
+          data: data as UpdateEquipmentItemRequest,
+        });
         notifications.success('Equipment updated');
       } else {
-        await createMutation.mutateAsync(validated);
+        await createMutation.mutateAsync(data as CreateEquipmentItemRequest);
         notifications.success('Equipment created');
       }
       await queryClient.refetchQueries({ queryKey: queryKeys.equipment.items(labId) });
