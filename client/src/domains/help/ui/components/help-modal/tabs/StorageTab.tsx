@@ -4,31 +4,20 @@
  * Explains the storage hierarchy, ownership model, and key workflows
  * in the Storage Manager.
  */
-import {
-  BookmarkCheck,
-  Grid3X3,
-  IdCardLanyard,
-  ListTree,
-  ShieldUser,
-  Tag,
-  UserRound,
-  UsersRound,
-} from 'lucide-react';
+import { Grid3X3, ShieldUser, Tag, UserRound } from 'lucide-react';
 
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { BoxIcon } from '@shared/ui/components/icons/BoxIcon';
 import { RackIcon } from '@shared/ui/components/icons/RackIcon';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 
+import { HelpSection } from '../HelpSection';
+
 export function StorageTab() {
   return (
     <div className="space-y-8">
       {/* Section A: Storage Hierarchy */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <ListTree size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Storage Hierarchy</h3>
-        </div>
+      <HelpSection id="storage-hierarchy">
         <p className="text-xs text-muted-foreground mb-4">
           Storage is organized as a physical hierarchy. Each level nests inside the one above it.
         </p>
@@ -37,7 +26,7 @@ export function StorageTab() {
         <div className="space-y-0.5 pl-1">
           {/* Tank */}
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
               <TankIcon size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -49,11 +38,11 @@ export function StorageTab() {
           </div>
 
           {/* Connector */}
-          <div className="ml-[15px] border-l-2 border-border h-3" />
+          <div className="ml-[15px] border-l-2 border-line-mid h-3" />
 
           {/* Rack */}
           <div className="ml-6 flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
               <RackIcon size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -65,11 +54,11 @@ export function StorageTab() {
           </div>
 
           {/* Connector */}
-          <div className="ml-[39px] border-l-2 border-border h-3" />
+          <div className="ml-[39px] border-l-2 border-line-mid h-3" />
 
           {/* Box */}
           <div className="ml-12 flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
               <BoxIcon size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -81,14 +70,10 @@ export function StorageTab() {
             </div>
           </div>
         </div>
-      </section>
+      </HelpSection>
 
       {/* Section B: Ownership & Assignment */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <UsersRound size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Ownership & Assignment</h3>
-        </div>
+      <HelpSection id="storage-ownership">
         <p className="text-xs text-muted-foreground mb-3">
           Racks and boxes can be assigned to users. Badges in the Storage Manager indicate ownership
           at a glance.
@@ -96,19 +81,19 @@ export function StorageTab() {
 
         {/* Ownership badges */}
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
+          <div className="flex flex-col items-center gap-2 rounded-lg border border-line-faint bg-black/15 p-3">
             <UserBadge type="currentUser" initials="ME" size="md" />
             <span className="text-xs font-medium text-card-foreground">Yours</span>
             <span className="text-[11px] text-muted-foreground text-center">Assigned to you</span>
           </div>
-          <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
+          <div className="flex flex-col items-center gap-2 rounded-lg border border-line-faint bg-black/15 p-3">
             <UserBadge type="otherUser" initials="JD" username="jdoe" size="md" />
             <span className="text-xs font-medium text-card-foreground">Other User</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Assigned to someone else
             </span>
           </div>
-          <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
+          <div className="flex flex-col items-center gap-2 rounded-lg border border-line-faint bg-black/15 p-3">
             <UserBadge type="unassigned" size="md" />
             <span className="text-xs font-medium text-card-foreground">Common</span>
             <span className="text-[11px] text-muted-foreground text-center">
@@ -118,24 +103,20 @@ export function StorageTab() {
         </div>
 
         {/* Inheritance explanation */}
-        <div className="rounded-lg border border-border p-3 bg-muted/30">
+        <div className="rounded-lg border border-line-faint bg-black/15 p-3">
           <h4 className="text-xs font-medium text-card-foreground mb-1">Default Assignment</h4>
           <p className="text-xs text-muted-foreground">
             Boxes inherit their rack&apos;s owner by default. An admin can override this by
             assigning a box to a different user or marking it as common.
           </p>
         </div>
-      </section>
+      </HelpSection>
 
       {/* Section C: Roles & Permissions */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <IdCardLanyard size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Roles</h3>
-        </div>
+      <HelpSection id="storage-roles">
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
               <ShieldUser size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -149,7 +130,7 @@ export function StorageTab() {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-md border border-line-faint bg-black/20 flex-shrink-0">
               <UserRound size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -161,14 +142,10 @@ export function StorageTab() {
             </div>
           </div>
         </div>
-      </section>
+      </HelpSection>
 
       {/* Section D: Quick Reference */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <BookmarkCheck size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Quick Reference</h3>
-        </div>
+      <HelpSection id="storage-quick-ref">
         <div className="space-y-2">
           <div className="flex items-start gap-2">
             <Tag size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />
@@ -193,7 +170,7 @@ export function StorageTab() {
             </p>
           </div>
         </div>
-      </section>
+      </HelpSection>
     </div>
   );
 }

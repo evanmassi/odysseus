@@ -3,9 +3,11 @@
  *
  * Keyboard shortcut reference grouped by context: grid, navigator, and global.
  */
-import type { ReactNode } from 'react';
+import { Fragment } from 'react';
 
-import { Globe, Grid3X3, Navigation } from 'lucide-react';
+import { Kbd } from '@shared/ui';
+
+import { HelpSection } from '../HelpSection';
 
 const isMac = /mac/i.test(navigator.userAgent);
 const mod = isMac ? '⌘' : 'Ctrl';
@@ -43,54 +45,49 @@ const GLOBAL_SHORTCUTS: Shortcut[] = [
   { keys: 'Escape', action: 'Close modal or menu' },
 ];
 
-function ShortcutGroup({
-  title,
-  icon,
-  shortcuts,
-}: {
-  title: string;
-  icon: ReactNode;
-  shortcuts: Shortcut[];
-}) {
+function KeyCombo({ keys }: { keys: string }) {
+  const parts = keys.split('+').map(p => p.trim());
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-2">
-        {icon}
-        <h3 className="text-sm font-semibold text-card-foreground">{title}</h3>
-      </div>
-      <div className="space-y-1">
-        {shortcuts.map(s => (
-          <div key={s.keys} className="flex items-center gap-3 py-1 px-2 rounded hover:bg-muted/50">
-            <kbd className="text-[11px] font-mono text-secondary-foreground bg-muted px-1.5 py-0.5 rounded border border-border min-w-[100px] text-center flex-shrink-0">
-              {s.keys}
-            </kbd>
-            <span className="text-xs text-muted-foreground">{s.action}</span>
-          </div>
-        ))}
-      </div>
+    <span className="flex min-w-[124px] flex-shrink-0 items-center gap-1">
+      {parts.map((part, i) => (
+        <Fragment key={part}>
+          {i > 0 && <span className="text-[10px] text-muted-foreground/50">+</span>}
+          <Kbd>{part}</Kbd>
+        </Fragment>
+      ))}
+    </span>
+  );
+}
+
+function ShortcutList({ shortcuts }: { shortcuts: Shortcut[] }) {
+  return (
+    <div className="space-y-1">
+      {shortcuts.map(s => (
+        <div
+          key={s.keys}
+          className="flex items-center gap-3 py-1 px-2 rounded hover:bg-foreground/[0.04]"
+        >
+          <KeyCombo keys={s.keys} />
+          <span className="text-xs text-muted-foreground">{s.action}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
 export function ShortcutsTab() {
   return (
-    <div className="grid grid-cols-2 gap-6">
-      <ShortcutGroup
-        title="Grid"
-        icon={<Grid3X3 size={14} className="text-secondary-foreground" />}
-        shortcuts={GRID_SHORTCUTS}
-      />
+    <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+      <HelpSection id="shortcuts-grid">
+        <ShortcutList shortcuts={GRID_SHORTCUTS} />
+      </HelpSection>
       <div className="space-y-6">
-        <ShortcutGroup
-          title="Navigator"
-          icon={<Navigation size={14} className="text-secondary-foreground" />}
-          shortcuts={NAVIGATOR_SHORTCUTS}
-        />
-        <ShortcutGroup
-          title="Global"
-          icon={<Globe size={14} className="text-secondary-foreground" />}
-          shortcuts={GLOBAL_SHORTCUTS}
-        />
+        <HelpSection id="shortcuts-navigator">
+          <ShortcutList shortcuts={NAVIGATOR_SHORTCUTS} />
+        </HelpSection>
+        <HelpSection id="shortcuts-global">
+          <ShortcutList shortcuts={GLOBAL_SHORTCUTS} />
+        </HelpSection>
       </div>
     </div>
   );
