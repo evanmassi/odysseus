@@ -25,6 +25,9 @@ export type { ChipProps, ChipColor, ChipSize, ChipBehavior, ChipRef } from './ch
 export { DatePicker } from './date-picker/DatePicker';
 export type { DatePickerProps, DatePickerSize, DatePickerState } from './date-picker/types';
 
+export { Kbd } from './kbd/Kbd';
+export type { KbdProps } from './kbd/Kbd';
+
 export { AuthInput, Input, NumberInput } from './input';
 export type { AuthInputProps, AuthInputValidationState } from './input/AuthInput';
 export type { NumberInputProps } from './input/NumberInput';
