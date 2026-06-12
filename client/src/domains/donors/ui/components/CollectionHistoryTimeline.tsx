@@ -14,9 +14,11 @@ import {
   useDeleteCollectionHistoryMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, DatePicker, Select, Tooltip } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
+
+import { CollectionHistoryEntryForm } from './CollectionHistoryEntryForm';
 
 import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -143,36 +145,20 @@ export function CollectionHistoryTimeline({
   return (
     <div className="space-y-2 pl-1">
       {isAdding && (
-        <div className="space-y-2 p-2 rounded-md bg-muted/30 border border-border/50">
-          <DatePicker value={newDate} onChange={setNewDate} size="sm" />
-          <Select
-            options={specimenTypeOptions}
-            value={newSpecimenType}
-            onChange={v => setNewSpecimenType(String(v ?? ''))}
-            fullWidth
-            placeholder="Specimen type..."
-          />
-          <Select
-            options={sourceOptions}
-            value={newSource}
-            onChange={v => setNewSource(String(v ?? ''))}
-            fullWidth
-            placeholder="Source..."
-          />
-          <div className="flex gap-1.5">
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={handleAdd}
-              disabled={!hasAnyField || addMutation.isPending}
-            >
-              Save
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setIsAdding(false)}>
-              Cancel
-            </Button>
-          </div>
-        </div>
+        <CollectionHistoryEntryForm
+          date={newDate}
+          specimenType={newSpecimenType}
+          source={newSource}
+          specimenTypeOptions={specimenTypeOptions}
+          sourceOptions={sourceOptions}
+          onDateChange={setNewDate}
+          onSpecimenTypeChange={setNewSpecimenType}
+          onSourceChange={setNewSource}
+          onSave={handleAdd}
+          onCancel={() => setIsAdding(false)}
+          saveDisabled={!hasAnyField}
+          isPending={addMutation.isPending}
+        />
       )}
 
       {history.length === 0 && !isAdding ? (
@@ -181,41 +167,22 @@ export function CollectionHistoryTimeline({
         <div className="space-y-1.5">
           {history.map(entry =>
             editingId === entry.id ? (
-              <div
+              <CollectionHistoryEntryForm
                 key={entry.id}
-                className="space-y-2 p-2 rounded-md bg-muted/30 border border-border/50"
-              >
-                <DatePicker value={editDate} onChange={setEditDate} size="sm" />
-                <Select
-                  options={specimenTypeOptions}
-                  value={editSpecimenType}
-                  onChange={v => setEditSpecimenType(String(v ?? ''))}
-                  fullWidth
-                  placeholder="Specimen type..."
-                />
-                <Select
-                  options={sourceOptions}
-                  value={editSource}
-                  onChange={v => setEditSource(String(v ?? ''))}
-                  fullWidth
-                  placeholder="Source..."
-                />
-                <div className="flex gap-1.5">
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    onClick={handleEditSave}
-                    disabled={updateMutation.isPending}
-                  >
-                    Save
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={handleEditCancel}>
-                    Cancel
-                  </Button>
-                </div>
-              </div>
+                date={editDate}
+                specimenType={editSpecimenType}
+                source={editSource}
+                specimenTypeOptions={specimenTypeOptions}
+                sourceOptions={sourceOptions}
+                onDateChange={setEditDate}
+                onSpecimenTypeChange={setEditSpecimenType}
+                onSourceChange={setEditSource}
+                onSave={handleEditSave}
+                onCancel={handleEditCancel}
+                isPending={updateMutation.isPending}
+              />
             ) : (
-              <div key={entry.id} className="flex items-center gap-2 text-sm group">
+              <div key={entry.id} className="group flex items-center gap-2 text-sm font-medium">
                 {entry.collectionDate && (
                   <span className="text-card-foreground/60 whitespace-nowrap">
                     {formatDateForDisplay(entry.collectionDate)}
