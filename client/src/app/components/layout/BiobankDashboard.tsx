@@ -395,7 +395,7 @@ function BiobankWorkspace() {
         </div>
 
         <div className="grid-section">
-          <ConsolePanel intensity="medium" className="h-full flex flex-col">
+          <ConsolePanel intensity="medium" className="flex flex-col">
             <div className="flex-shrink-0 border-b border-line-faint pr-4">
               <PanelHeader
                 icon={<FlaskConical className="h-4 w-4" />}
@@ -438,7 +438,7 @@ function BiobankWorkspace() {
               </div>
               <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
             </div>
-            <div className="grid-container flex-1" ref={gridContainerRef}>
+            <div className="grid-container" ref={gridContainerRef}>
               <ErrorBoundary>
                 <TubeGrid
                   tankId={currentTank}

@@ -53,14 +53,13 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  /* Fill the column height so the grid can size off its container, not the viewport */
-  align-self: stretch;
   min-width: 0;
   min-height: 0;
-  /* Cap width to available height so side space is even */
+  /* Cap width so the square grid plus the chrome stacked above it (panel title +
+     breadcrumb) never grows taller than the column, which would clip bottom rows. */
   max-width: calc(
     100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--panel-title-height) -
-      32px
+      72px
   );
 }
 
@@ -81,7 +80,9 @@
   padding: 12px;
   min-width: 0;
   min-height: 0;
-  /* Size container: grid-section has a definite height, so cqh is safe (no circular dependency) */
+  /* Square chassis: height tracks the width-bound size so the panel hugs the grid
+     instead of stretching past it. aspect-ratio gives a definite height, so cqh is safe. */
+  aspect-ratio: 1;
   container-type: size;
 }
 
