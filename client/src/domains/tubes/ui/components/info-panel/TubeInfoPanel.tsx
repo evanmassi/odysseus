@@ -36,6 +36,7 @@ import {
   Chip,
   DetailRow,
   NubDivider,
+  PanelEmptyState,
   PanelHeader,
   SectionHeader,
   Tooltip,
@@ -329,33 +330,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
     return renderPanel(
       { word: positionCount > 1 ? 'Positions' : 'Position', value: formattedPositions },
-      <div className="relative isolate flex min-h-[11rem] flex-col items-center justify-center text-center">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 rounded-lg bg-black/50 blur-lg"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute left-3 top-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute right-3 top-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute bottom-3 left-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute bottom-3 right-3 h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]"
-        />
-        <TestTubeDiagonal
-          className="phosphor-glow phosphor-breathe mx-auto mb-4 h-10 w-10 text-card-foreground/30"
-          strokeWidth={1.25}
-        />
-        <p className="text-sm text-card-foreground/40">{positionText}</p>
-      </div>,
+      <PanelEmptyState icon={TestTubeDiagonal} message={positionText} />,
       undefined,
       false
     );

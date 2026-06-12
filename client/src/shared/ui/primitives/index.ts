@@ -78,6 +78,9 @@ export type { NubDividerProps, NubDividerTone } from './nub-divider/NubDivider';
 export { Panel } from './panel/Panel';
 export type { PanelProps } from './panel/Panel';
 
+export { PanelEmptyState } from './panel-empty-state/PanelEmptyState';
+export type { PanelEmptyStateProps } from './panel-empty-state/PanelEmptyState';
+
 export { PanelHeader } from './titles/panel-header/PanelHeader';
 export type { PanelHeaderProps } from './titles/panel-header/PanelHeader';
 
