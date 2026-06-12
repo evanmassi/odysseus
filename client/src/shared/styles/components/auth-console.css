@@ -34,6 +34,14 @@
     transition: max-width 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
+  /* Lit field shared by the gateway backdrop and the boot splash — navy surface
+     with one anchored ambient pool. Opaque: the gateway sits over nothing pre-auth. */
+  .auth-field {
+    background:
+      radial-gradient(ellipse 55% 45% at 50% 40%, rgb(var(--auth-ambient) / 0.1), transparent 70%),
+      rgb(var(--auth-field-bg));
+  }
+
   .auth-console-divider {
     border-right: 1px solid rgb(var(--auth-divider));
   }

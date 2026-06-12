@@ -86,6 +86,8 @@
        multi-alpha box-shadow + gradient stacks in auth-console.css. */
     --auth-ambient: 91 157 217;
     --auth-surface: 14 22 34;
+    /* Field behind the console — darker than --auth-surface so the navy chrome floats. */
+    --auth-field-bg: 6 10 18;
     --auth-edge-lift-top: 255 255 255 / 0.2;
     --auth-edge-lift-left: 255 255 255 / 0.06;
     --auth-edge-recess-bottom: 0 0 0 / 0.5;

@@ -13,7 +13,7 @@ import { AppDashboard } from '@app/components/layout/AppDashboard';
 import { AppErrorBoundary } from '@app/components/layout/AppErrorBoundary';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
-import { useAuthSocketSync } from '@app/hooks';
+import { useAuthSocketSync, useSplashFloor } from '@app/hooks';
 import { AppProviders } from '@app/providers/AppProviders';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
@@ -22,6 +22,9 @@ import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/g
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 import { ErrorBanner } from '@shared/ui';
+
+// Minimum time the boot splash stays up so a fast bootstrap doesn't flash by.
+const SPLASH_FLOOR_MS = 1000;
 
 // Dev-only modal preview harness; the dynamic import is dead-code-eliminated from
 // production builds, so neither the route nor its component ships.
@@ -35,6 +38,7 @@ function AppContent() {
   // Only App.tsx calls useAppBootstrap() — other components use BootstrapContext
   const bootstrapState = useAppBootstrap();
   const { isReady, isLoading, isError, retry } = bootstrapState;
+  const revealApp = useSplashFloor(isReady, SPLASH_FLOOR_MS);
 
   const { errors, clearErrors } = useErrorStore();
   const { isAuthenticated } = useAuthStore();
@@ -42,7 +46,7 @@ function AppContent() {
   useAuthSocketSync();
   useUserSettingsQuery({ enabled: isAuthenticated });
 
-  if (isLoading || isError) {
+  if (isLoading || isError || !revealApp) {
     return (
       <AppErrorBoundary onRetry={retry}>
         <AppLoader context={bootstrapState} onRetry={retry} />

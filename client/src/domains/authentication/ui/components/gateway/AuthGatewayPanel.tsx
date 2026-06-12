@@ -81,7 +81,6 @@ export function AuthGatewayPanel({ children }: AuthGatewayPanelProps) {
 
   const widthClass = computeWidthClass(config);
   const introClass = shouldAnimateIntro ? 'animate-auth-power-on' : 'animate-auth-chrome-in';
-  const backdropAnimClass = shouldAnimateIntro ? 'animate-modal-backdrop-in' : '';
 
   const isStack = config?.variant === 'stack';
 
@@ -92,9 +91,7 @@ export function AuthGatewayPanel({ children }: AuthGatewayPanelProps) {
   return (
     <ShellConfigContext.Provider value={contextValue}>
       <ModalPortal>
-        <div
-          className={`fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center overflow-y-auto py-8 z-50 ${backdropAnimClass}`}
-        >
+        <div className="auth-field fixed inset-0 flex items-center justify-center overflow-y-auto py-8 z-50">
           <div
             ref={trapRef}
             className={`auth-console-chrome relative overflow-hidden my-auto ${widthClass} mx-4 ${introClass}`}
