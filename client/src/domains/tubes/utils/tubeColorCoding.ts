@@ -75,7 +75,7 @@ export const cellLineCategories: CellLineCategory[] = [
   // Lab's commonly used cell lines (muted versions)
   {
     name: 'jurkat',
-    color: '#A85A4A', // Muted terracotta red
+    color: '#B84A5A', // Muted crimson
     patterns: [
       'jurkat',
       'jur-kat',
@@ -187,7 +187,7 @@ export const cellLineCategories: CellLineCategory[] = [
   },
   {
     name: 'k562',
-    color: '#B84A5A', // Muted crimson
+    color: '#A85A4A', // Muted terracotta red
     patterns: ['k562', 'k-562', 'k 562', 'k_562'],
   },
   {
