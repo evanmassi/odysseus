@@ -4,8 +4,8 @@
  * Unified data access contract for equipment items, documents, and maintenance logs.
  */
 
-import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
+import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 
 export interface EquipmentItemRepository {

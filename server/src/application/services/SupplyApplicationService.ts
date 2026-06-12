@@ -22,8 +22,8 @@ import {
 } from '@application/dto/SupplyDto';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
-import { SupplyLocation } from '@domain/entities/SupplyLocation';
 import { SupplyItem } from '@domain/entities/SupplyItem';
+import { SupplyLocation } from '@domain/entities/SupplyLocation';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -50,8 +50,8 @@ import {
   type BulkVoidItemDetail,
 } from '@domain/events/SupplyEvents';
 import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
-import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { SupplyItemRepository, SupplyBarcodeRow } from '@domain/repositories/SupplyItemRepository';
+import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';

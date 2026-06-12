@@ -5,9 +5,6 @@
  */
 
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
-import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
-import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
-import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
@@ -18,15 +15,15 @@ import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
+import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
-import { SupplyCategoryRepository as SupplyCategoryRepositoryImpl } from '@infrastructure/repositories/SupplyCategoryRepository';
-import { SupplyLocationRepository as SupplyLocationRepositoryImpl } from '@infrastructure/repositories/SupplyLocationRepository';
-import { SupplyItemRepository as SupplyItemRepositoryImpl } from '@infrastructure/repositories/SupplyItemRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
 import { EquipmentCategoryRepository as EquipmentCategoryRepositoryImpl } from '@infrastructure/repositories/EquipmentCategoryRepository';
 import { EquipmentItemRepository as EquipmentItemRepositoryImpl } from '@infrastructure/repositories/EquipmentItemRepository';
@@ -37,6 +34,9 @@ import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/reposi
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
 import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { StorageRepository as StorageRepositoryImpl } from '@infrastructure/repositories/StorageRepository';
+import { SupplyCategoryRepository as SupplyCategoryRepositoryImpl } from '@infrastructure/repositories/SupplyCategoryRepository';
+import { SupplyItemRepository as SupplyItemRepositoryImpl } from '@infrastructure/repositories/SupplyItemRepository';
+import { SupplyLocationRepository as SupplyLocationRepositoryImpl } from '@infrastructure/repositories/SupplyLocationRepository';
 import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
 import { UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';

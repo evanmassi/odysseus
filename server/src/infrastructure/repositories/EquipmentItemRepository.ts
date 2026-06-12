@@ -4,14 +4,14 @@
  * PostgreSQL implementation for equipment items, documents, and maintenance logs.
  */
 
-import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
+import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 import type { EquipmentItemRepository as IEquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
-import type { EquipmentItemRow } from '@infrastructure/database/mappers/EquipmentItemMapper';
-import { EquipmentItemMapper } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import type { EquipmentDocumentRow } from '@infrastructure/database/mappers/EquipmentDocumentMapper';
 import { EquipmentDocumentMapper } from '@infrastructure/database/mappers/EquipmentDocumentMapper';
+import type { EquipmentItemRow } from '@infrastructure/database/mappers/EquipmentItemMapper';
+import { EquipmentItemMapper } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import type { EquipmentMaintenanceLogRow } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import { EquipmentMaintenanceLogMapper } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';

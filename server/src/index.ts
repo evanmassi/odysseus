@@ -23,7 +23,6 @@ import { sanitizeStrings } from '@presentation/middleware/requestValidation';
 import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth';
 import { AdminRouteModule } from '@presentation/routes/AdminRouteModule';
 import { AuthRouteModule } from '@presentation/routes/AuthRouteModule';
-import { SupplyRouteModule } from '@presentation/routes/SupplyRouteModule';
 import { DonorRouteModule } from '@presentation/routes/DonorRouteModule';
 import { EquipmentRouteModule } from '@presentation/routes/EquipmentRouteModule';
 import { PublicRouteModule } from '@presentation/routes/PublicRouteModule';
@@ -31,6 +30,7 @@ import { ResourceRouteModule } from '@presentation/routes/ResourceRouteModule';
 import { RouteRegistry } from '@presentation/routes/RouteRegistry';
 import { SearchRouteModule } from '@presentation/routes/SearchRouteModule';
 import { StorageRouteModule } from '@presentation/routes/StorageRouteModule';
+import { SupplyRouteModule } from '@presentation/routes/SupplyRouteModule';
 import { SystemAdminRouteModule } from '@presentation/routes/SystemAdminRouteModule';
 import { UserRouteModule } from '@presentation/routes/UserRouteModule';
 

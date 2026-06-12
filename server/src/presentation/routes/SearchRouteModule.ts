@@ -14,6 +14,7 @@ import { createModerateRateLimiter } from '@presentation/middleware/apiRateLimit
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { validateBody } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
+
 import type { Router, RequestHandler } from 'express';
 
 export class SearchRouteModule implements RouteModule {

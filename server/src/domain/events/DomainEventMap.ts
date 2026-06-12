@@ -5,27 +5,6 @@
  */
 
 import type {
-  SupplyItemCreatedEvent,
-  SupplyItemUpdatedEvent,
-  SupplyItemArchivedEvent,
-  SupplyItemDeletedEvent,
-  SupplyCategoryCreatedEvent,
-  SupplyCategoryUpdatedEvent,
-  SupplyCategoryDeletedEvent,
-  SupplyDocumentAddedEvent,
-  SupplyDocumentRemovedEvent,
-  SupplyStockReceivedEvent,
-  SupplyStockIssuedEvent,
-  SupplyStockCountAdjustedEvent,
-  SupplyStockDisposedEvent,
-  SupplyStockVoidedEvent,
-  SupplyBulkReceivedEvent,
-  SupplyBulkIssuedEvent,
-  SupplyBulkCategoryReassignedEvent,
-  SupplyBulkArchivedEvent,
-  SupplyBulkVoidedEvent,
-} from './SupplyEvents';
-import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
   DonorDeletedEvent
@@ -96,6 +75,27 @@ import type {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from './StorageEvents';
+import type {
+  SupplyItemCreatedEvent,
+  SupplyItemUpdatedEvent,
+  SupplyItemArchivedEvent,
+  SupplyItemDeletedEvent,
+  SupplyCategoryCreatedEvent,
+  SupplyCategoryUpdatedEvent,
+  SupplyCategoryDeletedEvent,
+  SupplyDocumentAddedEvent,
+  SupplyDocumentRemovedEvent,
+  SupplyStockReceivedEvent,
+  SupplyStockIssuedEvent,
+  SupplyStockCountAdjustedEvent,
+  SupplyStockDisposedEvent,
+  SupplyStockVoidedEvent,
+  SupplyBulkReceivedEvent,
+  SupplyBulkIssuedEvent,
+  SupplyBulkCategoryReassignedEvent,
+  SupplyBulkArchivedEvent,
+  SupplyBulkVoidedEvent,
+} from './SupplyEvents';
 import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesCreatedEvent, BulkTubesUpdatedEvent, BulkTubesDeletedEvent, BulkTubesMovedEvent } from './TubeEvents';
 import type { TubesLockedEvent, TubesUnlockedEvent, TubeAccessSharedEvent, TubeAccessRevokedEvent } from './TubeLockEvents';
 import type {

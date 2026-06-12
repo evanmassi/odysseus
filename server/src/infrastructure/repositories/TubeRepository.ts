@@ -4,7 +4,6 @@
  * Data access for tube sample records with multi-layer full-text search and location queries.
  */
 
-import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
 
 import type { Tube } from '@domain/entities/Tube';
 import { ConflictError } from '@domain/errors/ConflictError';
@@ -27,6 +26,8 @@ import {
   SearchRankTier,
 } from '@infrastructure/database/searchQueryPreprocessing';
 import { logger } from '@infrastructure/logging/logger';
+
+import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
 
 export class TubeRepository implements ITubeRepository {
   constructor(

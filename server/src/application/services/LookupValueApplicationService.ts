@@ -8,10 +8,10 @@ import { LookupValue } from '@domain/entities/LookupValue';
 import type { LookupCategory } from '@domain/entities/LookupValue';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 
 export class LookupValueApplicationService {
   constructor(

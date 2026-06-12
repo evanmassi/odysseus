@@ -6,8 +6,8 @@
 
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
-import type { SupplyLocation } from '@domain/entities/SupplyLocation';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
+import type { SupplyLocation } from '@domain/entities/SupplyLocation';
 import type {
   SupplyStockRow,
   SupplyBarcodeRow,

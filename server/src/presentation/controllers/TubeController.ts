@@ -4,7 +4,6 @@
  * HTTP handlers for tube CRUD, bulk operations, location queries, and search.
  */
 
-import type { TubeFilterableField } from '@odysseus/shared-schemas';
 
 import type { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest } from '@application/dto/TubeDto';
 import type { TubeApplicationService } from '@application/services/TubeApplicationService';
@@ -13,6 +12,7 @@ import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
+import type { TubeFilterableField } from '@odysseus/shared-schemas';
 import type { Request, Response } from 'express';
 export interface TubeControllerDeps {
   tubeApplicationService: TubeApplicationService;

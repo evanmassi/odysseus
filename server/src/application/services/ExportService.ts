@@ -5,12 +5,12 @@
  */
 
 import type { Person } from '@domain/entities/Person';
-import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import { logger } from '@infrastructure/logging/logger';

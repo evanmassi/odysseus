@@ -7,27 +7,6 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { AuditService, LogActionParams } from '@application/services/AuditService';
 import type {
-  SupplyItemCreatedEvent,
-  SupplyItemUpdatedEvent,
-  SupplyItemArchivedEvent,
-  SupplyItemDeletedEvent,
-  SupplyCategoryCreatedEvent,
-  SupplyCategoryUpdatedEvent,
-  SupplyCategoryDeletedEvent,
-  SupplyDocumentAddedEvent,
-  SupplyDocumentRemovedEvent,
-  SupplyStockReceivedEvent,
-  SupplyStockIssuedEvent,
-  SupplyStockCountAdjustedEvent,
-  SupplyStockDisposedEvent,
-  SupplyStockVoidedEvent,
-  SupplyBulkReceivedEvent,
-  SupplyBulkIssuedEvent,
-  SupplyBulkCategoryReassignedEvent,
-  SupplyBulkArchivedEvent,
-  SupplyBulkVoidedEvent,
-} from '@domain/events/SupplyEvents';
-import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
   DonorDeletedEvent,
@@ -87,6 +66,27 @@ import type {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from '@domain/events/StorageEvents';
+import type {
+  SupplyItemCreatedEvent,
+  SupplyItemUpdatedEvent,
+  SupplyItemArchivedEvent,
+  SupplyItemDeletedEvent,
+  SupplyCategoryCreatedEvent,
+  SupplyCategoryUpdatedEvent,
+  SupplyCategoryDeletedEvent,
+  SupplyDocumentAddedEvent,
+  SupplyDocumentRemovedEvent,
+  SupplyStockReceivedEvent,
+  SupplyStockIssuedEvent,
+  SupplyStockCountAdjustedEvent,
+  SupplyStockDisposedEvent,
+  SupplyStockVoidedEvent,
+  SupplyBulkReceivedEvent,
+  SupplyBulkIssuedEvent,
+  SupplyBulkCategoryReassignedEvent,
+  SupplyBulkArchivedEvent,
+  SupplyBulkVoidedEvent,
+} from '@domain/events/SupplyEvents';
 import type {
   TubeCreatedEvent,
   TubeUpdatedEvent,
