@@ -132,6 +132,9 @@ export type {
 export { Toggle } from './toggle/Toggle';
 export type { ToggleProps } from './toggle/Toggle';
 
+export { Well } from './well/Well';
+export type { WellProps } from './well/Well';
+
 export { UnsavedChangesIndicator } from './unsaved-changes-indicator/UnsavedChangesIndicator';
 export type { UnsavedChangesIndicatorProps } from './unsaved-changes-indicator/UnsavedChangesIndicator';
 
