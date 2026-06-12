@@ -5,23 +5,33 @@
  */
 import { type ReactNode } from 'react';
 
-import { Monitor, Moon, Sun, Table2, type LucideIcon } from 'lucide-react';
+import { Monitor, Moon, Save, Sun, type LucideIcon } from 'lucide-react';
+
+import { Button, ConsolePanel, Subsection, UnsavedChangesIndicator } from '@shared/ui';
 
 import type { PositionDisplayPreference, ThemePreference } from '@odysseus/shared-schemas';
 
-const SELECTED_CLASS =
-  'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md';
-const UNSELECTED_CLASS =
-  'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10';
+const CARD_BASE =
+  'relative border px-3 py-3 text-left ' +
+  'transition-[background-color,border-color,box-shadow,color] duration-200 ' +
+  'focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-primary/40';
+const CARD_SELECTED =
+  'border-primary/60 bg-[hsl(var(--primary)/0.10)] text-foreground ' +
+  'shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
+const CARD_UNSELECTED =
+  'border-line-mid text-secondary-foreground ' +
+  'shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
+  'hover:border-primary/40 hover:text-foreground ' +
+  'hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
 
-function ActiveBadge({ isSelected }: { isSelected: boolean }) {
+function SavedMarker() {
   return (
-    <span
-      className={`absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
-        isSelected ? 'bg-white/20 text-white' : 'bg-action text-white'
-      }`}
-    >
-      Active
+    <span className="absolute right-2 top-2 flex items-center gap-1 font-mono text-[8px] uppercase tracking-[0.16em] text-primary">
+      <span
+        aria-hidden
+        className="h-1 w-1 rounded-full bg-primary shadow-[0_0_5px_hsl(var(--primary)/0.85)]"
+      />
+      Saved
     </span>
   );
 }
@@ -29,8 +39,10 @@ function ActiveBadge({ isSelected }: { isSelected: boolean }) {
 function SampleChip({ isSelected, children }: { isSelected: boolean; children: ReactNode }) {
   return (
     <span
-      className={`font-mono px-1.5 py-0.5 rounded ${
-        isSelected ? 'bg-action-hover text-white' : 'bg-muted text-secondary-foreground'
+      className={`phosphor-text border px-1.5 py-0.5 font-mono ${
+        isSelected
+          ? 'border-primary/30 bg-primary/15 text-foreground'
+          : 'border-transparent bg-foreground/[0.06] text-secondary-foreground'
       }`}
     >
       {children}
@@ -82,6 +94,9 @@ interface DisplayTabProps {
   theme: ThemePreference;
   savedTheme: ThemePreference;
   onThemeChange: (theme: ThemePreference) => void;
+  onSave: () => void;
+  isSaving: boolean;
+  dirtyCount: number;
 }
 
 export function DisplayTab({
@@ -91,6 +106,9 @@ export function DisplayTab({
   theme,
   savedTheme,
   onThemeChange,
+  onSave,
+  isSaving,
+  dirtyCount,
 }: DisplayTabProps) {
   const currentFormat = defaultPositionDisplay?.format ?? null;
   const savedFormat = savedPositionDisplay?.format ?? null;
@@ -104,88 +122,91 @@ export function DisplayTab({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-2 pb-3 border-b border-border">
-        <Table2 size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-card-foreground">Display</h3>
-      </div>
+    <ConsolePanel intensity="soft">
+      <Subsection title="Theme" index={1} accent>
+        <div className="col-span-2 py-4">
+          <div className="grid grid-cols-3 gap-2">
+            {THEME_OPTIONS.map(({ value, label, description, Icon }) => {
+              const isSelected = theme === value;
+              const isSaved = savedTheme === value;
 
-      {/* Theme Section */}
-      <div>
-        <h4 className="text-base font-semibold text-card-foreground mb-3">Theme</h4>
-
-        <div className="grid grid-cols-3 gap-2">
-          {THEME_OPTIONS.map(({ value, label, description, Icon }) => {
-            const isSelected = theme === value;
-            const isSaved = savedTheme === value;
-
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => onThemeChange(value)}
-                className={`px-3 py-3 rounded-lg border-2 text-left transition-all relative ${
-                  isSelected ? SELECTED_CLASS : UNSELECTED_CLASS
-                }`}
-              >
-                {isSaved && <ActiveBadge isSelected={isSelected} />}
-                <Icon
-                  size={20}
-                  className={`mb-2 ${isSelected ? 'text-white' : 'text-secondary-foreground'}`}
-                />
-                <h5 className="text-sm font-semibold">{label}</h5>
-                <p
-                  className={`text-xs ${isSelected ? 'text-white/80' : 'text-secondary-foreground'}`}
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onThemeChange(value)}
+                  className={`${CARD_BASE} ${isSelected ? CARD_SELECTED : CARD_UNSELECTED}`}
                 >
-                  {description}
-                </p>
-              </button>
-            );
-          })}
+                  {isSaved && <SavedMarker />}
+                  <Icon
+                    size={20}
+                    className={`mb-2 ${
+                      isSelected
+                        ? 'text-primary [filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.6))]'
+                        : 'text-muted-foreground'
+                    }`}
+                  />
+                  <h5 className={`text-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
+                    {label}
+                  </h5>
+                  <p className="text-xs text-secondary-foreground">{description}</p>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </Subsection>
 
-      {/* Position Display Format Section */}
-      <div>
-        <h4 className="text-base font-semibold text-card-foreground mb-2">
-          Position Display Format
-        </h4>
-        <p className="text-xs text-secondary-foreground mb-3">
-          Choose how position labels are displayed throughout the application.
-        </p>
+      <Subsection title="Position Format" index={2} accent>
+        <div className="col-span-2 py-4">
+          <p className="mb-3 text-xs text-secondary-foreground">
+            Choose how position labels are displayed throughout the application.
+          </p>
 
-        <div className="grid grid-cols-3 gap-2">
-          {FORMAT_OPTIONS.map(({ value, label, description, samples }) => {
-            const isSelected = currentFormat === value;
-            const isSaved = savedFormat === value;
+          <div className="grid grid-cols-3 gap-2">
+            {FORMAT_OPTIONS.map(({ value, label, description, samples }) => {
+              const isSelected = currentFormat === value;
+              const isSaved = savedFormat === value;
 
-            return (
-              <button
-                key={label}
-                type="button"
-                onClick={() => handleFormatChange(value)}
-                className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative ${
-                  isSelected ? SELECTED_CLASS : UNSELECTED_CLASS
-                }`}
-              >
-                {isSaved && <ActiveBadge isSelected={isSelected} />}
-                <h5 className="text-sm font-semibold mb-1">{label}</h5>
-                <p
-                  className={`text-xs mb-2 ${isSelected ? 'text-white/80' : 'text-secondary-foreground'}`}
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => handleFormatChange(value)}
+                  className={`${CARD_BASE} ${isSelected ? CARD_SELECTED : CARD_UNSELECTED}`}
                 >
-                  {description}
-                </p>
-                <div className="flex items-center space-x-1 text-xs">
-                  <SampleChip isSelected={isSelected}>{samples[0]}</SampleChip>
-                  <SampleChip isSelected={isSelected}>{samples[1]}</SampleChip>
-                  <span>...</span>
-                  <SampleChip isSelected={isSelected}>{samples[2]}</SampleChip>
-                </div>
-              </button>
-            );
-          })}
+                  {isSaved && <SavedMarker />}
+                  <h5 className={`mb-1 text-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
+                    {label}
+                  </h5>
+                  <p className="mb-2 text-xs text-secondary-foreground">{description}</p>
+                  <div className="flex items-center space-x-1 text-xs">
+                    <SampleChip isSelected={isSelected}>{samples[0]}</SampleChip>
+                    <SampleChip isSelected={isSelected}>{samples[1]}</SampleChip>
+                    <span className="text-muted-foreground">...</span>
+                    <SampleChip isSelected={isSelected}>{samples[2]}</SampleChip>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
+      </Subsection>
+
+      <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-black/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+        <UnsavedChangesIndicator count={dirtyCount} />
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={onSave}
+          disabled={dirtyCount === 0}
+          isLoading={isSaving}
+          loadingText="Saving..."
+          leftIcon={<Save size={14} />}
+        >
+          Save Display Settings
+        </Button>
       </div>
-    </div>
+    </ConsolePanel>
   );
 }

@@ -18,7 +18,7 @@ import {
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
 import { logger } from '@infra/logger';
-import { AlertBanner, AuthInput, Button } from '@shared/ui';
+import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
@@ -29,10 +29,11 @@ function getValidationState(touched: boolean, isValid: boolean) {
 }
 
 interface AccountTabProps {
-  onSaveComplete?: () => void;
+  /** Reports the number of unsaved profile field edits to the modal footer. */
+  onDirtyChange?: (count: number) => void;
 }
 
-export function AccountTab({ onSaveComplete }: AccountTabProps) {
+export function AccountTab({ onDirtyChange }: AccountTabProps) {
   const user = useAuthStore(state => state.user);
   const isDemo = user?.isDemo ?? false;
   const { profile, isLoading } = useUserProfile();
@@ -66,16 +67,24 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
     return emailPattern.test(email.trim());
   }, [email]);
 
-  const hasChanges = useMemo(() => {
-    if (!profile) return false;
-    return (
-      firstName !== profile.firstName ||
-      lastName !== profile.lastName ||
-      email !== profile.email ||
-      department !== (profile.department ?? '') ||
-      position !== (profile.position ?? '')
-    );
+  const dirtyCount = useMemo(() => {
+    if (!profile) return 0;
+    let count = 0;
+    if (firstName !== profile.firstName) count++;
+    if (lastName !== profile.lastName) count++;
+    if (email !== profile.email) count++;
+    if (department !== (profile.department ?? '')) count++;
+    if (position !== (profile.position ?? '')) count++;
+    return count;
   }, [profile, firstName, lastName, email, department, position]);
+
+  const hasChanges = dirtyCount > 0;
+
+  useEffect(() => {
+    onDirtyChange?.(dirtyCount);
+  }, [dirtyCount, onDirtyChange]);
+
+  useEffect(() => () => onDirtyChange?.(0), [onDirtyChange]);
 
   const handleSave = async () => {
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
@@ -111,9 +120,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         notifications.success('Profile updated successfully');
         setCurrentPassword('');
         setPasswordTouched(false);
-        if (onSaveComplete) {
-          onSaveComplete();
-        }
       },
       onError: (error: Error) => {
         logger.error('AccountTab update failed', { error });
@@ -134,104 +140,100 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
-        <UserRound size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-card-foreground">Account Information</h3>
-      </div>
+    <ConsolePanel intensity="soft">
+      <Subsection title="Identity" index={1} accent>
+        <div className="col-span-2 space-y-4 py-4">
+          {isDemo && (
+            <AlertBanner variant="demo" spacing="sm">
+              Account changes are not available in demo mode
+            </AlertBanner>
+          )}
 
-      <div className="space-y-4 max-w-2xl">
-        {isDemo && (
-          <AlertBanner variant="demo" spacing="sm">
-            Account changes are not available in demo mode
-          </AlertBanner>
-        )}
+          <div className="grid grid-cols-2 gap-3">
+            <AuthInput
+              id="account-firstName"
+              value={firstName}
+              onChange={setFirstName}
+              onBlur={() => setFirstNameTouched(true)}
+              label="First Name"
+              placeholder="First name"
+              icon={<UserRound size={16} />}
+              state={getValidationState(firstNameTouched, firstName.trim().length > 0)}
+              variant="console"
+              required
+              disabled={isUpdating || isDemo}
+              maxLength={50}
+            />
 
-        <div className="grid grid-cols-2 gap-3">
+            <AuthInput
+              id="account-lastName"
+              value={lastName}
+              onChange={setLastName}
+              onBlur={() => setLastNameTouched(true)}
+              label="Last Name"
+              placeholder="Last name"
+              icon={<UserRound size={16} />}
+              state={getValidationState(lastNameTouched, lastName.trim().length > 0)}
+              variant="console"
+              required
+              disabled={isUpdating || isDemo}
+              maxLength={50}
+            />
+          </div>
+
           <AuthInput
-            id="account-firstName"
-            value={firstName}
-            onChange={setFirstName}
-            onBlur={() => setFirstNameTouched(true)}
-            label="First Name"
-            placeholder="First name"
-            icon={<UserRound size={16} />}
-            state={getValidationState(firstNameTouched, firstName.trim().length > 0)}
+            id="account-email"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            onBlur={() => {
+              setEmail(email.trim());
+              setEmailTouched(true);
+            }}
+            label="Email"
+            placeholder="name@institution.edu"
+            icon={<Mail size={16} />}
+            state={getValidationState(emailTouched, emailIsValid)}
             variant="console"
             required
             disabled={isUpdating || isDemo}
-            maxLength={50}
+            maxLength={255}
           />
 
-          <AuthInput
-            id="account-lastName"
-            value={lastName}
-            onChange={setLastName}
-            onBlur={() => setLastNameTouched(true)}
-            label="Last Name"
-            placeholder="Last name"
-            icon={<UserRound size={16} />}
-            state={getValidationState(lastNameTouched, lastName.trim().length > 0)}
-            variant="console"
-            required
-            disabled={isUpdating || isDemo}
-            maxLength={50}
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <AuthInput
+              id="account-department"
+              value={department}
+              onChange={setDepartment}
+              label="Department"
+              placeholder="Department name"
+              icon={<Building2 size={16} />}
+              variant="console"
+              disabled={isUpdating || isDemo}
+              maxLength={100}
+            />
+
+            <AuthInput
+              id="account-position"
+              value={position}
+              onChange={setPosition}
+              label="Position"
+              placeholder="Title or role"
+              icon={<BriefcaseBusiness size={16} />}
+              variant="console"
+              disabled={isUpdating || isDemo}
+              maxLength={100}
+            />
+          </div>
         </div>
+      </Subsection>
 
-        <AuthInput
-          id="account-email"
-          type="email"
-          value={email}
-          onChange={setEmail}
-          onBlur={() => {
-            setEmail(email.trim());
-            setEmailTouched(true);
-          }}
-          label="Email"
-          placeholder="name@institution.edu"
-          icon={<Mail size={16} />}
-          state={getValidationState(emailTouched, emailIsValid)}
-          variant="console"
-          required
-          disabled={isUpdating || isDemo}
-          maxLength={255}
-        />
-
-        <div className="grid grid-cols-2 gap-3">
-          <AuthInput
-            id="account-department"
-            value={department}
-            onChange={setDepartment}
-            label="Department"
-            placeholder="Department name"
-            icon={<Building2 size={16} />}
-            variant="console"
-            disabled={isUpdating || isDemo}
-            maxLength={100}
-          />
-
-          <AuthInput
-            id="account-position"
-            value={position}
-            onChange={setPosition}
-            label="Position"
-            placeholder="Title or role"
-            icon={<BriefcaseBusiness size={16} />}
-            variant="console"
-            disabled={isUpdating || isDemo}
-            maxLength={100}
-          />
-        </div>
-
-        {hasChanges && (
-          <div className="pt-4 border-t border-border space-y-2">
-            <div className="mb-2">
-              <p className="text-sm font-semibold text-card-foreground">Confirm Changes</p>
-              <p className="text-xs text-secondary-foreground">
-                Enter your current password to save changes
-              </p>
-            </div>
+      {hasChanges && (
+        <Subsection title="Confirm Changes" index={2} accent>
+          <div className="col-span-2 space-y-3 py-4">
+            <p className="text-xs text-secondary-foreground">
+              Enter your current password to save changes
+            </p>
 
             <AuthInput
               id="account-currentPassword"
@@ -255,19 +257,13 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               isLoading={isUpdating}
               loadingText="Saving..."
               leftIcon={<Save size={14} />}
-              className="mt-3"
+              className="mt-1"
             >
               Save Changes
             </Button>
           </div>
-        )}
-
-        {!hasChanges && (
-          <div className="pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground italic">No changes to save</p>
-          </div>
-        )}
-      </div>
-    </div>
+        </Subsection>
+      )}
+    </ConsolePanel>
   );
 }
