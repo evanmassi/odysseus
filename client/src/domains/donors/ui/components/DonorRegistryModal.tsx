@@ -19,6 +19,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { DonorEditForm } from './DonorEditForm';
 import { DonorInfoPanel } from './DonorInfoPanel';
+import { DonorInfoPanelEmpty } from './DonorInfoPanelEmpty';
 import { DonorTable } from './DonorTable';
 
 import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
@@ -177,7 +178,7 @@ export function DonorRegistryModal({
         contentClassName="p-4 h-full"
       >
         <div className="flex gap-4 h-full min-h-0 overflow-hidden">
-          <div className="w-[60%] min-w-0 min-h-0 flex flex-col overflow-hidden">
+          <div className="w-[60%] min-w-0 min-h-0 flex flex-col overflow-hidden pb-4">
             <DonorTable
               donors={donors}
               selectedDonorId={selectedDonorId}
@@ -190,7 +191,7 @@ export function DonorRegistryModal({
             />
           </div>
 
-          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden">
+          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden pb-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <LoadingSpinner />
@@ -213,12 +214,7 @@ export function DonorRegistryModal({
                 isAdmin={isAdmin}
               />
             ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-3">
-                <BookUser className="h-7 w-7 text-foreground/20" />
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground/60">
-                  Select a donor to view details
-                </p>
-              </div>
+              <DonorInfoPanelEmpty />
             )}
           </div>
         </div>
