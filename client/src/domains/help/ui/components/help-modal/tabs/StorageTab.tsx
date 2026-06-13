@@ -9,68 +9,16 @@ import { Grid3X3, ShieldUser, Tag, UserRound } from 'lucide-react';
 import { Well } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { BoxIcon } from '@shared/ui/components/icons/BoxIcon';
-import { RackIcon } from '@shared/ui/components/icons/RackIcon';
-import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 
 import { HelpSection } from '../HelpSection';
+import { StorageHierarchyExample } from '../StorageHierarchyExample';
 
 export function StorageTab() {
   return (
     <div className="space-y-8">
       {/* Section A: Storage Hierarchy */}
       <HelpSection id="storage-hierarchy">
-        <p className="text-xs text-muted-foreground mb-4">
-          Storage is organized as a physical hierarchy. Each level nests inside the one above it.
-        </p>
-
-        {/* Tree diagram */}
-        <div className="space-y-0.5 pl-1">
-          {/* Tank */}
-          <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
-              <TankIcon size={18} className="text-secondary-foreground" />
-            </div>
-            <div className="pt-0.5">
-              <span className="text-sm font-medium text-card-foreground">Tank</span>
-              <p className="text-xs text-muted-foreground">
-                Represents a physical freezer, dewar, or similar storage device.
-              </p>
-            </div>
-          </div>
-
-          {/* Connector */}
-          <div className="ml-[15px] border-l-2 border-line-mid h-3" />
-
-          {/* Rack */}
-          <div className="ml-6 flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
-              <RackIcon size={18} className="text-secondary-foreground" />
-            </div>
-            <div className="pt-0.5">
-              <span className="text-sm font-medium text-card-foreground">Rack</span>
-              <p className="text-xs text-muted-foreground">
-                A named slot within a tank. Can be assigned to a user to organize their storage.
-              </p>
-            </div>
-          </div>
-
-          {/* Connector */}
-          <div className="ml-[39px] border-l-2 border-line-mid h-3" />
-
-          {/* Box */}
-          <div className="ml-12 flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
-              <BoxIcon size={18} className="text-secondary-foreground" />
-            </div>
-            <div className="pt-0.5">
-              <span className="text-sm font-medium text-card-foreground">Box</span>
-              <p className="text-xs text-muted-foreground">
-                A grid where tubes are stored, ranging from 5x5 up to 10x10 positions. Can be
-                assigned to a user or left as common.
-              </p>
-            </div>
-          </div>
-        </div>
+        <StorageHierarchyExample />
       </HelpSection>
 
       {/* Section B: Ownership & Assignment */}
