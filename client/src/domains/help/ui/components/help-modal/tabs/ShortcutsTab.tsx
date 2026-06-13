@@ -3,9 +3,7 @@
  *
  * Keyboard shortcut reference grouped by context: grid, navigator, and global.
  */
-import { Fragment } from 'react';
-
-import { Kbd } from '@shared/ui';
+import { KeyCombo } from '@shared/ui';
 
 import { HelpSection } from '../HelpSection';
 
@@ -45,20 +43,6 @@ const GLOBAL_SHORTCUTS: Shortcut[] = [
   { keys: 'Escape', action: 'Close modal or menu' },
 ];
 
-function KeyCombo({ keys }: { keys: string }) {
-  const parts = keys.split('+').map(p => p.trim());
-  return (
-    <span className="flex min-w-[124px] flex-shrink-0 items-center gap-1">
-      {parts.map((part, i) => (
-        <Fragment key={part}>
-          {i > 0 && <span className="text-[10px] text-muted-foreground/50">+</span>}
-          <Kbd>{part}</Kbd>
-        </Fragment>
-      ))}
-    </span>
-  );
-}
-
 function ShortcutList({ shortcuts }: { shortcuts: Shortcut[] }) {
   return (
     <div className="space-y-1">
@@ -67,7 +51,7 @@ function ShortcutList({ shortcuts }: { shortcuts: Shortcut[] }) {
           key={s.keys}
           className="flex items-center gap-3 py-1 px-2 rounded hover:bg-foreground/[0.04]"
         >
-          <KeyCombo keys={s.keys} />
+          <KeyCombo keys={s.keys} className="min-w-[124px] flex-shrink-0" />
           <span className="text-xs text-muted-foreground">{s.action}</span>
         </div>
       ))}

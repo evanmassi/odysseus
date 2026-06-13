@@ -50,7 +50,7 @@ export function MenuItem({
             ? 'bg-primary/[0.08] text-foreground font-medium'
             : danger
               ? 'text-danger-text hover:bg-danger-light'
-              : 'text-secondary-foreground hover:bg-primary/[0.06] hover:text-foreground'
+              : 'text-foreground hover:bg-primary/[0.06]'
         }
       `}
     >
@@ -73,7 +73,7 @@ export function MenuItem({
       </div>
       {shortcut && (
         <span
-          className={`text-xs font-mono ml-4 ${danger ? 'text-danger-text' : 'text-muted-foreground'}`}
+          className={`ml-4 font-mono text-xs ${danger ? 'text-danger-text/80' : 'text-muted-foreground/70'}`}
         >
           {shortcut}
         </span>

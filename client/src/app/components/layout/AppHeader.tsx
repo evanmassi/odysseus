@@ -566,7 +566,7 @@ export function AppHeader({
                   </span>
                 </div>
               </div>
-              <MenuDivider />
+              <MenuDivider subtle />
             </>
           )}
 
@@ -628,7 +628,7 @@ export function AppHeader({
             )}
           </div>
 
-          <MenuDivider />
+          <MenuDivider subtle />
 
           <div className="px-1">
             <HamburgerMenuItem

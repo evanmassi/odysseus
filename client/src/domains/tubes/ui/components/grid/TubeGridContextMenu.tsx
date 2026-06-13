@@ -130,7 +130,9 @@ export function TubeGridContextMenu({
               <MenuItem icon={OpenIcon} label={openLabel} shortcut="Enter" onClick={onOpen} />
             </div>
             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-            {(hasClipboardSection || hasLockSection || hasFilledSelection) && <MenuDivider />}
+            {(hasClipboardSection || hasLockSection || hasFilledSelection) && (
+              <MenuDivider subtle />
+            )}
           </>
         )}
 
@@ -172,7 +174,7 @@ export function TubeGridContextMenu({
               )}
             </div>
             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-            {(hasLockSection || hasFilledSelection) && <MenuDivider />}
+            {(hasLockSection || hasFilledSelection) && <MenuDivider subtle />}
           </>
         )}
 
@@ -216,7 +218,7 @@ export function TubeGridContextMenu({
                 />
               )}
             </div>
-            {hasFilledSelection && <MenuDivider />}
+            {hasFilledSelection && <MenuDivider subtle />}
           </>
         )}
 

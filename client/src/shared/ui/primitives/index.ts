@@ -27,6 +27,8 @@ export type { DatePickerProps, DatePickerSize, DatePickerState } from './date-pi
 
 export { Kbd } from './kbd/Kbd';
 export type { KbdProps } from './kbd/Kbd';
+export { KeyCombo } from './kbd/KeyCombo';
+export type { KeyComboProps } from './kbd/KeyCombo';
 
 export { AuthInput, Input, NumberInput } from './input';
 export type { AuthInputProps, AuthInputValidationState } from './input/AuthInput';
