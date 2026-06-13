@@ -240,7 +240,7 @@ export function AppHeader({
           aria-label="Switch management suite"
         >
           <OdysseusLogo
-            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_30%,transparent)] [[data-theme=dark]_&]:text-muted-foreground"
+            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_30%,transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover [[data-theme=dark]_&]:text-muted-foreground"
             aria-label="Odysseus"
           />
           {hasLab && (
@@ -249,20 +249,20 @@ export function AppHeader({
                 <span
                   key={`sep-${i}`}
                   aria-hidden
-                  className="font-mono text-[12px] text-foreground/40"
+                  className="font-mono text-[12px] text-foreground/40 transition-colors duration-200 group-hover:text-foreground/70"
                 >
                   {'//'}
                 </span>,
                 <span
                   key={`crumb-${i}`}
-                  className="font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-primary"
+                  className="font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-primary transition duration-200 group-hover:drop-shadow-icon-bloom-hover"
                 >
                   {crumb}
                 </span>,
               ])}
               <ChevronDown
                 size={12}
-                className="text-muted-foreground transition-colors group-hover:text-foreground"
+                className="text-muted-foreground transition duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover"
               />
             </>
           )}
@@ -533,16 +533,18 @@ export function AppHeader({
           className="group flex items-center gap-3"
         >
           <div className="text-right leading-tight">
-            <div className="max-w-[150px] truncate font-display text-[14px] font-medium tracking-[0.04em] text-foreground">
+            <div className="max-w-[150px] truncate font-display text-[14px] font-medium tracking-[0.04em] text-foreground transition duration-200 group-hover:drop-shadow-icon-bloom-hover">
               {displayName}
             </div>
             {user?.role && (
-              <div className="font-mono text-[9.5px] font-medium uppercase tracking-[0.20em] text-foreground/70">
+              <div className="font-mono text-[9.5px] font-medium uppercase tracking-[0.20em] text-foreground/70 transition duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover">
                 {ROLE_LABELS[user.role] ?? user.role}
               </div>
             )}
           </div>
-          <UserBadge type="currentUser" initials={initials} username={user?.username} size="md" />
+          <span className="inline-flex text-ownership-user-badge transition duration-200 group-hover:drop-shadow-icon-bloom-hover">
+            <UserBadge type="currentUser" initials={initials} username={user?.username} size="md" />
+          </span>
         </button>
 
         <DropdownMenu
