@@ -21,8 +21,9 @@ import {
   useCreateEquipmentItemMutation,
   useUpdateEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, Select, DatePicker } from '@shared/ui';
+import { Button, DatePicker, NubDivider, SectionHeader, Select } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForInput } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
@@ -42,11 +43,32 @@ interface EquipmentEditFormProps {
   onCancel: () => void;
 }
 
+const SELECT_LABEL =
+  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
   { value: 'inactive', label: 'Inactive' },
   { value: 'under_maintenance', label: 'Under Maintenance' },
   { value: 'out_of_service', label: 'Out of Service' },
+];
+
+const TRACKED_FIELDS = [
+  'name',
+  'categoryId',
+  'status',
+  'manufacturer',
+  'model',
+  'serialNumber',
+  'assetTag',
+  'description',
+  'location',
+  'purchaseDate',
+  'purchaseCost',
+  'warrantyExpiration',
+  'nextMaintenanceDate',
+  'conditionNotes',
+  'notes',
 ];
 
 export function EquipmentEditForm({
@@ -94,6 +116,7 @@ export function EquipmentEditForm({
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(
@@ -122,6 +145,13 @@ export function EquipmentEditForm({
         },
   });
 
+  const allValues = watch() as Record<string, unknown>;
+  const filledCount = TRACKED_FIELDS.filter(f => {
+    const v = allValues[f];
+    return v != null && String(v).trim() !== '';
+  }).length;
+  const completionPct = Math.round((filledCount / TRACKED_FIELDS.length) * 100);
+
   const onFormSubmit = async (data: FieldValues) => {
     try {
       if (isEditing) {
@@ -142,148 +172,194 @@ export function EquipmentEditForm({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <ScrollArea className="flex-1 min-h-0">
-        <form id="equipment-form" onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-secondary-foreground inline-flex items-center gap-1.5">
-            {isEditing ? (
-              <>
-                <SquarePen size={14} className="text-muted-foreground" />
-                Edit Equipment Information
-              </>
-            ) : (
-              <>
-                <Plus size={14} className="text-muted-foreground" />
-                Add Equipment
-              </>
-            )}
-          </h3>
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-3 border-b border-line-faint px-4 py-3">
+        <span className="p-1.5 text-muted-foreground">
+          {isEditing ? <SquarePen size={20} /> : <Plus size={20} />}
+        </span>
+        <h2 className="text-lg font-medium text-foreground">
+          {isEditing ? 'Edit Equipment' : 'Add Equipment'}
+        </h2>
+      </div>
 
-          <div className="space-y-3">
-            <ValidatedInput
-              label="Name"
-              required
-              placeholder="e.g., P200 Pipette"
-              error={!!errors.name}
-              helperText={errors.name?.message}
-              registration={register('name')}
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            <span
+              aria-hidden
+              className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
             />
+            Completeness
+          </span>
+          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
+            {filledCount}/{TRACKED_FIELDS.length}
+          </span>
+          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
+            <span
+              className="absolute inset-y-0 left-0 bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
+              style={{ width: `${completionPct}%` }}
+            />
+          </span>
+        </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
+      </div>
 
+      <ScrollArea className="min-h-0 flex-1">
+        <form id="equipment-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-2 p-4">
+          <SectionHeader title="Identification" size="sm" />
+          <ValidatedInput
+            label="Name"
+            labelStyle="compact"
+            required
+            placeholder="e.g., P200 Pipette"
+            error={!!errors.name}
+            helperText={errors.name?.message}
+            registration={register('name')}
+          />
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
             <Controller
               name="categoryId"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
-                <Select
-                  label="Category"
-                  options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  state={error ? 'error' : 'default'}
-                  error={error?.message}
-                  fullWidth
-                  renderOption={option => {
-                    const isSub = !!option.description;
-                    return (
-                      <div className="w-full">
-                        {isSub ? (
-                          <span className="pl-4 text-sm">{option.label}</span>
-                        ) : (
-                          <span className="text-sm font-semibold">{option.label}</span>
-                        )}
-                      </div>
-                    );
-                  }}
-                  renderValue={selected => {
-                    const opt = selected[0];
-                    if (!opt)
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="category-label" className={SELECT_LABEL}>
+                    Category
+                  </label>
+                  <Select
+                    options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    state={error ? 'error' : 'default'}
+                    error={error?.message}
+                    fullWidth
+                    aria-labelledby="category-label"
+                    renderOption={option => {
+                      const isSub = !!option.description;
                       return (
-                        <span className="text-muted-foreground opacity-40">Select category...</span>
+                        <div className="w-full">
+                          {isSub ? (
+                            <span className="pl-4 text-sm">{option.label}</span>
+                          ) : (
+                            <span className="text-sm font-semibold">{option.label}</span>
+                          )}
+                        </div>
                       );
-                    const parentName = parentNameMap.get(opt.value as string);
-                    if (parentName) {
-                      return (
-                        <span className="text-foreground text-sm">
-                          <span className="text-muted-foreground">{parentName}</span>
-                          <span className="text-muted-foreground mx-1">›</span>
-                          {opt.label}
-                        </span>
-                      );
-                    }
-                    return <span className="text-foreground text-sm">{opt.label}</span>;
-                  }}
-                />
+                    }}
+                    renderValue={selected => {
+                      const opt = selected[0];
+                      if (!opt)
+                        return (
+                          <span className="text-muted-foreground opacity-40">
+                            Select category...
+                          </span>
+                        );
+                      const parentName = parentNameMap.get(opt.value as string);
+                      if (parentName) {
+                        return (
+                          <span className="text-sm text-foreground">
+                            <span className="text-muted-foreground">{parentName}</span>
+                            <span className="mx-1 text-muted-foreground">›</span>
+                            {opt.label}
+                          </span>
+                        );
+                      }
+                      return <span className="text-sm text-foreground">{opt.label}</span>;
+                    }}
+                  />
+                </div>
               )}
             />
-
             <Controller
               name="status"
               control={control}
               render={({ field: { value, onChange } }) => (
-                <Select
-                  label="Status"
-                  options={STATUS_OPTIONS}
-                  value={value ?? 'active'}
-                  onChange={v => onChange(v)}
-                  fullWidth
-                />
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="status-label" className={SELECT_LABEL}>
+                    Status
+                  </label>
+                  <Select
+                    options={STATUS_OPTIONS}
+                    value={value ?? 'active'}
+                    onChange={v => onChange(v)}
+                    fullWidth
+                    aria-labelledby="status-label"
+                  />
+                </div>
               )}
             />
+          </div>
 
+          <div className="!mt-3.5">
+            <SectionHeader title="Details" size="sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
             <ValidatedInput
               label="Manufacturer"
-              placeholder="e.g., Eppendorf, Thermo Fisher"
+              labelStyle="compact"
+              placeholder="e.g., Eppendorf"
               error={!!errors.manufacturer}
               helperText={errors.manufacturer?.message}
               registration={register('manufacturer')}
             />
-
             <ValidatedInput
               label="Model"
+              labelStyle="compact"
               placeholder="e.g., Research Plus"
               error={!!errors.model}
               helperText={errors.model?.message}
               registration={register('model')}
             />
-
             <ValidatedInput
               label="Serial Number"
+              labelStyle="compact"
               placeholder="e.g., SN-2024-001"
               error={!!errors.serialNumber}
               helperText={errors.serialNumber?.message}
               registration={register('serialNumber')}
             />
-
             <ValidatedInput
               label="Asset Tag"
+              labelStyle="compact"
               placeholder="e.g., EQ-0042"
               error={!!errors.assetTag}
               helperText={errors.assetTag?.message}
               registration={register('assetTag')}
             />
-
-            <ValidatedInput
-              label="Description"
-              type="textarea"
-              placeholder="Brief description of the equipment..."
-              registration={register('description')}
-            />
-
             <ValidatedInput
               label="Location"
+              labelStyle="compact"
+              className="col-span-2"
               placeholder="e.g., Room 204, Bench 3"
               error={!!errors.location}
               helperText={errors.location?.message}
               registration={register('location')}
             />
+            <ValidatedInput
+              label="Description"
+              labelStyle="compact"
+              type="textarea"
+              className="col-span-2"
+              placeholder="Brief description of the equipment..."
+              registration={register('description')}
+            />
+          </div>
 
+          <div className="!mt-3.5">
+            <SectionHeader title="Procurement & Warranty" size="sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
             <Controller
               name="purchaseDate"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                    Purchase Date
-                  </span>
+                  <span className={SELECT_LABEL}>Purchase Date</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -291,13 +367,13 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
-
             <ValidatedInput
               label="Purchase Cost"
+              labelStyle="compact"
               type="number"
               step="0.01"
               error={!!errors.purchaseCost}
@@ -306,15 +382,12 @@ export function EquipmentEditForm({
                 setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
               })}
             />
-
             <Controller
               name="warrantyExpiration"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                    Warranty Expiration
-                  </span>
+                  <span className={SELECT_LABEL}>Warranty Expiration</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -322,19 +395,22 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
+          </div>
 
+          <div className="!mt-3.5">
+            <SectionHeader title="Maintenance" size="sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
             <Controller
               name="nextMaintenanceDate"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                    Next Maintenance Date
-                  </span>
+                  <span className={SELECT_LABEL}>Next Maintenance</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -342,43 +418,52 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
-
             <ValidatedInput
               label="Condition Notes"
+              labelStyle="compact"
               placeholder="Current condition or issues..."
               error={!!errors.conditionNotes}
               helperText={errors.conditionNotes?.message}
               registration={register('conditionNotes')}
             />
-
-            <ValidatedInput
-              label="Notes"
-              type="textarea"
-              placeholder="Additional notes and observations..."
-              registration={register('notes')}
-            />
           </div>
+
+          <div className="!mt-3.5">
+            <SectionHeader title="Notes" size="sm" />
+          </div>
+          <ValidatedInput
+            label=""
+            type="textarea"
+            placeholder="Additional notes and observations..."
+            registration={register('notes')}
+          />
         </form>
       </ScrollArea>
 
-      <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          form="equipment-form"
-          size="sm"
-          disabled={isSubmitting}
-          leftIcon={isEditing ? <Save className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-        >
-          {isEditing ? 'Save Changes' : 'Add Equipment'}
-        </Button>
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <div className="flex items-center justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="equipment-form"
+            variant="primary"
+            size="sm"
+            disabled={isSubmitting}
+            leftIcon={
+              isEditing ? <Save className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />
+            }
+          >
+            {isEditing ? 'Save Changes' : 'Add Equipment'}
+          </Button>
+        </div>
       </div>
-    </div>
+    </ConsolePanel>
   );
 }

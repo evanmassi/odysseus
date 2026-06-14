@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucide-react';
+import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
@@ -26,6 +26,7 @@ import { EquipmentCategoryModal } from './EquipmentCategoryModal';
 import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
 import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
 import { EquipmentEditForm } from './EquipmentEditForm';
+import { EquipmentInfoPanelEmpty } from './EquipmentInfoPanelEmpty';
 import { EquipmentItemInfoPanel } from './EquipmentItemInfoPanel';
 import { EquipmentMaintenanceAlertPanel } from './EquipmentMaintenanceAlertPanel';
 import { EquipmentMaintenanceForm } from './EquipmentMaintenanceForm';
@@ -294,19 +295,10 @@ export function EquipmentTab() {
 
         {/* Right Panel: Detail / Edit / Maintenance */}
         <div
-          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden bg-card rounded-lg"
+          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
-          {!rightPanel && (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
-                  <Microscope className="w-6 h-6 text-card-foreground/30" />
-                </div>
-                <p className="text-card-foreground/40 text-sm">Select equipment to view details</p>
-              </div>
-            </div>
-          )}
+          {!rightPanel && <EquipmentInfoPanelEmpty />}
 
           {rightPanel?.type === 'info' && (
             <EquipmentItemInfoPanel

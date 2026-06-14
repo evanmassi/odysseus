@@ -9,7 +9,7 @@ import {
   createEquipmentMaintenanceLogRequestSchema,
   updateEquipmentMaintenanceLogRequestSchema,
 } from '@odysseus/shared-schemas';
-import { Save } from 'lucide-react';
+import { Save, Wrench } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import {
@@ -17,8 +17,9 @@ import {
   useUpdateEquipmentMaintenanceEntryMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Select, DatePicker } from '@shared/ui';
+import { Button, DatePicker, NubDivider, Select } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForInput } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
@@ -36,6 +37,9 @@ interface EquipmentMaintenanceFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
+
+const SELECT_LABEL =
+  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 export function EquipmentMaintenanceForm({
   itemId,
@@ -101,80 +105,93 @@ export function EquipmentMaintenanceForm({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <ScrollArea className="flex-1 min-h-0">
-        <form id="maintenance-form" onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-secondary-foreground">
-            {isEditing ? 'Edit Maintenance Entry' : 'Add Maintenance Entry'}
-          </h3>
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-3 border-b border-line-faint px-4 py-3">
+        <span className="p-1.5 text-muted-foreground">
+          <Wrench size={20} />
+        </span>
+        <h2 className="text-lg font-medium text-foreground">
+          {isEditing ? 'Edit Maintenance Entry' : 'Add Maintenance Entry'}
+        </h2>
+      </div>
 
-          <div className="space-y-3">
-            <Controller
-              name="datePerformed"
-              control={control}
-              render={({ field: { value, onChange }, fieldState: { error } }) => (
-                <div>
-                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                    Date Performed *
-                  </span>
-                  <DatePicker
-                    value={(value as string) ?? ''}
-                    onChange={onChange}
-                    state={error ? 'error' : 'default'}
-                    fullWidth
-                  />
-                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
-                </div>
-              )}
-            />
+      <ScrollArea className="min-h-0 flex-1">
+        <form id="maintenance-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3 p-4">
+          <Controller
+            name="datePerformed"
+            control={control}
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <div>
+                <span className={SELECT_LABEL}>
+                  Date Performed <span className="text-danger-bg">*</span>
+                </span>
+                <DatePicker
+                  value={(value as string) ?? ''}
+                  onChange={onChange}
+                  state={error ? 'error' : 'default'}
+                  fullWidth
+                />
+                {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+              </div>
+            )}
+          />
 
-            <Controller
-              name="maintenanceType"
-              control={control}
-              render={({ field: { value, onChange }, fieldState: { error } }) => (
+          <Controller
+            name="maintenanceType"
+            control={control}
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <div>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                <label id="maintenance-type-label" className={SELECT_LABEL}>
+                  Maintenance Type <span className="text-danger-bg">*</span>
+                </label>
                 <Select
-                  label="Maintenance Type"
                   options={typeOptions}
                   value={value ?? ''}
                   onChange={v => onChange(v)}
                   state={error ? 'error' : 'default'}
                   error={error?.message}
                   fullWidth
+                  aria-labelledby="maintenance-type-label"
                 />
-              )}
-            />
+              </div>
+            )}
+          />
 
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
             <ValidatedInput
-              label="Performed By (Vendor/Service)"
+              label="Performed By"
+              labelStyle="compact"
               placeholder="e.g., TSS, In-house"
               error={!!errors.performedBy}
               helperText={errors.performedBy?.message}
               registration={register('performedBy')}
             />
-
             <ValidatedInput
               label="Technician"
+              labelStyle="compact"
               placeholder="e.g., John Smith"
               error={!!errors.technician}
               helperText={errors.technician?.message}
               registration={register('technician')}
             />
+          </div>
 
-            <ValidatedInput
-              label="Description"
-              type="textarea"
-              placeholder="Work performed, parts replaced, etc."
-              registration={register('description')}
-            />
+          <ValidatedInput
+            label="Description"
+            labelStyle="compact"
+            type="textarea"
+            placeholder="Work performed, parts replaced, etc."
+            registration={register('description')}
+          />
 
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
             <Controller
               name="nextScheduledDate"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                    Next Scheduled Date
-                  </span>
+                  <span className={SELECT_LABEL}>Next Scheduled</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -182,13 +199,13 @@ export function EquipmentMaintenanceForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
-
             <ValidatedInput
               label="Cost ($)"
+              labelStyle="compact"
               type="number"
               step="0.01"
               error={!!errors.cost}
@@ -197,31 +214,36 @@ export function EquipmentMaintenanceForm({
                 setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
               })}
             />
-
-            <ValidatedInput
-              label="Notes"
-              type="textarea"
-              placeholder="Additional notes and observations..."
-              registration={register('notes')}
-            />
           </div>
+
+          <ValidatedInput
+            label="Notes"
+            labelStyle="compact"
+            type="textarea"
+            placeholder="Additional notes and observations..."
+            registration={register('notes')}
+          />
         </form>
       </ScrollArea>
 
-      <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          form="maintenance-form"
-          size="sm"
-          disabled={isSubmitting}
-          leftIcon={<Save className="w-3.5 h-3.5" />}
-        >
-          {isEditing ? 'Save Changes' : 'Add Entry'}
-        </Button>
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <div className="flex items-center justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="maintenance-form"
+            variant="primary"
+            size="sm"
+            disabled={isSubmitting}
+            leftIcon={<Save className="h-3.5 w-3.5" />}
+          >
+            {isEditing ? 'Save Changes' : 'Add Entry'}
+          </Button>
+        </div>
       </div>
-    </div>
+    </ConsolePanel>
   );
 }
