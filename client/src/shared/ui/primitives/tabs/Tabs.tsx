@@ -1,7 +1,7 @@
 /**
  * Tabs
  *
- * Recessive tab navigation — mono uppercase chrome, active state lit via phosphor glow + thin indicator bar.
+ * Recessive tab navigation — mono uppercase chrome, active state lit by a sliding phosphor glow tile.
  */
 import {
   createContext,
@@ -50,22 +50,26 @@ function useTabsContext() {
 }
 
 const BASE =
-  'font-mono uppercase tracking-[0.18em] text-xs font-medium ' +
+  'relative z-10 font-mono uppercase tracking-[0.18em] text-xs font-medium ' +
   'transition-colors duration-150 focus:outline-none cursor-pointer';
 
-const ACTIVE_STATE = 'text-foreground border-transparent phosphor-text';
+const ACTIVE_STATE = 'text-foreground phosphor-text';
 
 const INACTIVE_STATE =
-  'text-muted-foreground border-transparent ' +
+  'text-muted-foreground ' +
   'hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]';
 
-const INDICATOR_HORIZONTAL =
-  'bottom-0 left-0 h-0.5 bg-[linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)] ' +
-  '[filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.5))]';
+// Sliding glow tile that fills the active tab — table-row recipe at chrome intensity.
+// Horizontal lights from the bottom edge, vertical from the left edge: same wash + edge
+// stripe + bloom, rotated 90°. Wash stops mirror the table's ROW_GLOW; outer bloom radii
+// are pulled in a notch since a tab is smaller than a selected data row.
+const TILE_HORIZONTAL =
+  'bg-[linear-gradient(0deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
+  'shadow-[inset_0_-2px_0_0_hsl(var(--primary)),inset_0_-14px_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_1px_0_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_-1px_0_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
 
-const INDICATOR_VERTICAL =
-  'top-0 left-0 w-0.5 bg-[linear-gradient(180deg,transparent_0%,hsl(var(--primary)/0.85)_20%,hsl(var(--primary))_50%,hsl(var(--primary)/0.85)_80%,transparent_100%)] ' +
-  '[filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.5))]';
+const TILE_VERTICAL =
+  'bg-[linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
+  'shadow-[inset_2px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
 
 const INDICATOR_TRANSITION =
   'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
@@ -74,8 +78,7 @@ export function Tab({ id, icon, children }: TabProps) {
   const { value, onChange, orientation } = useTabsContext();
   const isActive = value === id;
 
-  // Icon-pop is a vertical-only hover micro-affordance, replacing the larger
-  // bg/border affordances horizontal tabs already get from the underline.
+  // Icon-pop is a vertical-only hover micro-affordance.
   const [isAnimating, setIsAnimating] = useState(false);
   const handleMouseEnter = useCallback(() => {
     if (orientation === 'vertical') {
@@ -95,8 +98,8 @@ export function Tab({ id, icon, children }: TabProps) {
 
   const orientationClasses =
     orientation === 'vertical'
-      ? 'w-full flex items-center gap-2 px-4 py-2.5 text-left border-l-2'
-      : 'flex items-center gap-2 px-4 py-2.5 border-b-2 -mb-px';
+      ? 'w-full flex items-center gap-2 px-4 py-2.5 text-left'
+      : 'flex items-center gap-2 px-4 py-2.5';
 
   const className = `${BASE} ${orientationClasses} ${isActive ? ACTIVE_STATE : INACTIVE_STATE}`;
 
@@ -137,13 +140,13 @@ export function Tabs({ value, onChange, children, orientation, className = '' }:
     if (!list) return;
     const active = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
     if (!active) return;
-    setIndicatorStyle(
-      resolvedOrientation === 'horizontal'
-        ? { transform: `translateX(${active.offsetLeft}px)`, width: active.offsetWidth }
-        : { transform: `translateY(${active.offsetTop}px)`, height: active.offsetHeight }
-    );
+    setIndicatorStyle({
+      transform: `translate(${active.offsetLeft}px, ${active.offsetTop}px)`,
+      width: active.offsetWidth,
+      height: active.offsetHeight,
+    });
     setHasMeasured(true);
-  }, [resolvedOrientation]);
+  }, []);
 
   useLayoutEffect(() => {
     recomputeIndicator();
@@ -159,11 +162,11 @@ export function Tabs({ value, onChange, children, orientation, className = '' }:
 
   const containerClass =
     resolvedOrientation === 'vertical'
-      ? 'relative space-y-1'
+      ? 'relative flex flex-col gap-1'
       : 'relative flex items-center gap-6 px-4';
 
-  const indicatorClass = `pointer-events-none absolute ${
-    resolvedOrientation === 'horizontal' ? INDICATOR_HORIZONTAL : INDICATOR_VERTICAL
+  const indicatorClass = `pointer-events-none absolute top-0 left-0 before:content-[''] before:absolute before:inset-0 before:bg-scanlines ${
+    resolvedOrientation === 'horizontal' ? TILE_HORIZONTAL : TILE_VERTICAL
   } ${hasMeasured ? INDICATOR_TRANSITION : ''}`;
 
   return (
