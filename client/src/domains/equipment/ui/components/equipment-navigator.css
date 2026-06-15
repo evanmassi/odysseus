@@ -67,6 +67,13 @@
 [data-tree-id='equipment'] .equip-nav-row--item.is-selected {
   border-color: hsl(var(--primary) / 0.6);
   background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.12) 0,
+      rgba(0, 0, 0, 0.12) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
     linear-gradient(
       180deg,
       hsl(var(--primary) / var(--alpha-glow-tint)),
