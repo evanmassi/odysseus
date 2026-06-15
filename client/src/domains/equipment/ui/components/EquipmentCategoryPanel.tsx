@@ -458,9 +458,7 @@ function SubcategorySection({
           size={12}
           className={`flex-shrink-0 ${effectiveExpanded ? 'text-primary' : 'text-muted-foreground'}`}
         />
-        <span className="equip-nav-row__label font-mono text-xs tracking-[0.02em]">
-          {subcategory.name}
-        </span>
+        <span className="equip-nav-row__label font-display text-xs">{subcategory.name}</span>
         <span aria-hidden className="flex-shrink-0 font-mono text-[10px] text-foreground/30">
           {'//'}
         </span>
