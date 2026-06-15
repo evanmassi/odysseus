@@ -20,7 +20,7 @@ import {
 
 import { useAuthStore } from '@domains/authentication';
 import { useSupplyLocationsQuery } from '@domains/supplies/hooks';
-import { Button, InfoField, Tooltip } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
@@ -49,6 +49,19 @@ interface SupplyTransactionTimelineProps {
   ) => void;
 }
 
+function TxnDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+        {label}
+      </span>
+      <span className="min-w-0 break-words text-right text-sm text-card-foreground/85">
+        {value}
+      </span>
+    </div>
+  );
+}
+
 export function SupplyTransactionTimeline({
   transactions,
   stockUnit,
@@ -61,16 +74,12 @@ export function SupplyTransactionTimeline({
   const [voidingTransaction, setVoidingTransaction] = useState<SupplyTransaction | null>(null);
 
   if (transactions.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground italic text-center py-3">
-        No transactions recorded
-      </p>
-    );
+    return <p className="text-sm italic text-card-foreground/30">No transactions recorded</p>;
   }
 
   return (
     <>
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {transactions.map(txn => (
           <TransactionEntry
             key={txn.id}
@@ -131,11 +140,9 @@ function TransactionEntry({
   /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
   return (
-    <div
-      className={`border border-border rounded-md overflow-hidden ${isVoided ? 'opacity-60' : ''}`}
-    >
+    <div className={isVoided ? 'opacity-60' : ''}>
       <div
-        className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-accent/30 transition-colors cursor-pointer"
+        className="group flex cursor-pointer items-center gap-2 py-1 text-sm"
         onClick={() => hasDetails && setIsExpanded(!isExpanded)}
         onKeyDown={e => {
           if (e.key === 'Enter' && hasDetails) setIsExpanded(!isExpanded);
@@ -143,85 +150,59 @@ function TransactionEntry({
         role={hasDetails ? 'button' : undefined}
         tabIndex={hasDetails ? 0 : undefined}
       >
-        {hasDetails && (
-          <ChevronRight
-            size={12}
-            className={`flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-          />
-        )}
-        {!hasDetails && <div className="w-3 flex-shrink-0" />}
-
+        <ChevronRight
+          size={12}
+          className={`flex-shrink-0 text-card-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''} ${!hasDetails ? 'invisible' : ''}`}
+        />
         <Icon size={14} className={`flex-shrink-0 ${config.color}`} />
-
-        <span className="text-xs text-muted-foreground flex-shrink-0">
+        <span className="whitespace-nowrap font-mono text-[11px] tracking-[0.04em] text-card-foreground/70">
           {formatDateForDisplay(transaction.createdAt)}
         </span>
-
         {isVoided && (
           <Chip color="danger" size="xs">
             Voided
           </Chip>
         )}
-
-        <span className="text-card-foreground/30 flex-shrink-0">·</span>
-
+        <span className="text-card-foreground/25">·</span>
         <span
-          className={`text-xs font-semibold flex-shrink-0 ${config.color} ${isVoided ? 'line-through' : ''}`}
+          className={`whitespace-nowrap text-xs font-semibold ${config.color} ${isVoided ? 'line-through' : ''}`}
         >
           {quantityDisplay} {unit}
         </span>
-
-        <span className="text-card-foreground/30 flex-shrink-0">·</span>
-
-        <span className="text-xs text-muted-foreground truncate flex-1">{locationName}</span>
-
+        <span className="text-card-foreground/25">·</span>
+        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+          {locationName}
+        </span>
         {canVoid && (
-          <Tooltip content="Void transaction" side="bottom">
-            <Button
-              variant="ghost"
-              size="xs"
-              iconOnly
-              onClick={e => {
-                e.stopPropagation();
-                onVoid(transaction);
-              }}
-            >
-              <Ban className="w-3 h-3" />
-            </Button>
-          </Tooltip>
+          <div
+            className="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+            role="toolbar"
+          >
+            <Tooltip content="Void transaction" side="left">
+              <Button variant="ghost" size="xs" iconOnly onClick={() => onVoid(transaction)}>
+                <Ban className="h-3 w-3" />
+              </Button>
+            </Tooltip>
+          </div>
         )}
       </div>
 
       {isExpanded && hasDetails && (
-        <div className="px-3 pb-2 pt-1 border-t border-border/50">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-            {transaction.lotNumber && (
-              <InfoField label="Lot #" value={transaction.lotNumber} inline={false} />
-            )}
-            {transaction.poNumber && (
-              <InfoField label="PO #" value={transaction.poNumber} inline={false} />
-            )}
-            {transaction.cost !== undefined && (
-              <InfoField label="Cost" value={formatCurrency(transaction.cost)} inline={false} />
-            )}
-            {transaction.expirationDate && (
-              <InfoField
-                label="Expires"
-                value={formatDateForDisplay(transaction.expirationDate)}
-                inline={false}
-              />
-            )}
-          </div>
+        <div className="mb-1.5 ml-[18px] space-y-1 border-l border-line-soft pl-3">
+          {transaction.lotNumber && <TxnDetail label="Lot #" value={transaction.lotNumber} />}
+          {transaction.poNumber && <TxnDetail label="PO #" value={transaction.poNumber} />}
+          {transaction.cost !== undefined && (
+            <TxnDetail label="Cost" value={formatCurrency(transaction.cost) ?? '—'} />
+          )}
+          {transaction.expirationDate && (
+            <TxnDetail label="Expires" value={formatDateForDisplay(transaction.expirationDate)} />
+          )}
           {transaction.voidReason && (
-            <div className="mt-1.5 pt-1.5 border-t border-border/50">
-              <InfoField label="Void Reason" value={transaction.voidReason} inline={false} />
-            </div>
+            <TxnDetail label="Void Reason" value={transaction.voidReason} />
           )}
-          {transaction.notes && (
-            <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
-              {transaction.notes}
-            </p>
-          )}
+          {transaction.notes && <TxnDetail label="Notes" value={transaction.notes} />}
         </div>
       )}
     </div>

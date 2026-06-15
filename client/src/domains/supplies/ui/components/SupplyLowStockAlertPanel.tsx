@@ -7,10 +7,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 
-import { AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 import { useSupplyReorderListQuery } from '@domains/supplies/hooks';
-import { Button, Table } from '@shared/ui';
+import { Button, NubDivider, Table } from '@shared/ui';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyReorderList } from './SupplyReorderList';
@@ -29,10 +29,14 @@ interface LowStockRow {
 }
 
 interface SupplyLowStockAlertPanelProps {
+  selectedItemId?: string;
   onSelectItem: (id: string) => void;
 }
 
-export function SupplyLowStockAlertPanel({ onSelectItem }: SupplyLowStockAlertPanelProps) {
+export function SupplyLowStockAlertPanel({
+  selectedItemId,
+  onSelectItem,
+}: SupplyLowStockAlertPanelProps) {
   const { data: lowStockItems = [] } = useSupplyReorderListQuery();
   const [isExpanded, setIsExpanded] = useState(false);
   const [manuallyCollapsed, setManuallyCollapsed] = useState(false);
@@ -127,11 +131,18 @@ export function SupplyLowStockAlertPanel({ onSelectItem }: SupplyLowStockAlertPa
     setManuallyCollapsed(!next);
   };
 
+  const lowCount = totalAlerts - outOfStockCount;
+  const hasOutOfStock = outOfStockCount > 0;
+  const stripeClass = hasOutOfStock
+    ? 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
+    : 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
+  const labelClass = hasOutOfStock ? 'text-danger-text' : 'text-warning-text';
+
   return (
     <>
-      <div className="rounded-lg border border-border mb-2 flex-shrink-0 overflow-hidden">
+      <div className="mb-2 flex-shrink-0 overflow-hidden border border-line-faint">
         <div
-          className="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-accent/30 transition-colors"
+          className="relative flex items-center gap-2 bg-black/35 px-3 py-2 cursor-pointer transition-colors hover:bg-black/45"
           onClick={toggleExpanded}
           onKeyDown={e => {
             if (e.key === 'Enter') toggleExpanded();
@@ -139,16 +150,32 @@ export function SupplyLowStockAlertPanel({ onSelectItem }: SupplyLowStockAlertPa
           role="button"
           tabIndex={0}
         >
-          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <AlertTriangle size={14} className="text-warning-text" />
-          <span className="text-xs font-semibold text-warning-text">
-            Low Stock Alerts ({totalAlerts})
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+          />
+          <ChevronRight
+            size={11}
+            className={`flex-shrink-0 text-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+          />
+          <span aria-hidden className={`h-[11px] w-0.5 flex-shrink-0 ${stripeClass}`} />
+          <span className={`font-mono text-[10px] uppercase tracking-[0.22em] ${labelClass}`}>
+            Low Stock Alerts
           </span>
-          {!isExpanded && outOfStockCount > 0 && (
-            <span className="text-xs text-danger-text font-medium ml-auto">
-              {outOfStockCount} out of stock
-            </span>
-          )}
+          <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/55">
+            {totalAlerts}
+          </span>
+          <span className="ml-auto flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
+            {outOfStockCount > 0 && (
+              <span className="text-danger-text">{outOfStockCount} out of stock</span>
+            )}
+            {outOfStockCount > 0 && lowCount > 0 && <span className="text-foreground/25">·</span>}
+            {lowCount > 0 && <span className="text-warning-text">{lowCount} low</span>}
+          </span>
+          <NubDivider
+            tone={hasOutOfStock ? 'danger' : 'warning'}
+            className="absolute inset-x-0 -bottom-px"
+          />
         </div>
 
         {isExpanded && (
@@ -162,6 +189,9 @@ export function SupplyLowStockAlertPanel({ onSelectItem }: SupplyLowStockAlertPa
               sortConfig={sortConfig}
               onSort={setSortConfig}
               onRowClick={row => onSelectItem(row.id)}
+              selectedRows={selectedItemId ? [selectedItemId] : []}
+              selectedRowGlow
+              rowState={row => (row.totalStock <= 0 ? 'danger' : 'warning')}
               density="compact"
               className="text-xs"
               aria-label="Low stock alerts"

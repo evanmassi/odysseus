@@ -1,13 +1,12 @@
 /**
  * Supply Item Row
  *
- * Single-line row for a supply item with stock level indicator,
- * category info, and key identifying details.
+ * Inset card for an individual supply item: a status line, the colored low-stock
+ * icon, a two-line identity, and location/stock chips.
  */
 
-import { MapPin } from 'lucide-react';
+import { AlertTriangle, MapPin } from 'lucide-react';
 
-import { useTextTruncation } from '@shared/hooks/useTextTruncation';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
@@ -19,6 +18,14 @@ interface SupplyItemRowProps {
   isSelected: boolean;
   onSelect: (id: string) => void;
 }
+
+/** Short status stripe — same idiom as the navigator locator strip. */
+const STATUS_LINE: Record<'success' | 'warning' | 'danger' | 'muted', string> = {
+  success: 'bg-success-bg shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.6)]',
+  warning: 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]',
+  danger: 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]',
+  muted: 'bg-muted-foreground/40',
+};
 
 function getStockChipColor(
   totalStock: number,
@@ -42,18 +49,29 @@ const STATUS_CHIP: Record<
 export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps) {
   const isArchived = item.status === 'archived';
   const stockColor = getStockChipColor(item.totalStock, item.reorderThreshold);
-  const detailParts = [item.manufacturer, item.catalogNumber].filter(Boolean);
   const statusInfo = STATUS_CHIP[item.status];
-  const { ref: nameRef, isTruncated } = useTextTruncation<HTMLSpanElement>([item.name]);
+
+  // The low-stock triangle (and the warning/danger line tone) only show when the
+  // item is actually at or below reorder — a healthy stock reads as active.
+  const isUrgent = !isArchived && (stockColor === 'danger' || stockColor === 'warning');
+  const statusTone = isArchived ? 'muted' : stockColor === 'default' ? 'success' : stockColor;
+
+  const unit = pluralizeUnit(item.stockUnit ?? 'unit', item.totalStock);
+  const urgentTooltip =
+    item.totalStock <= 0
+      ? 'Out of stock'
+      : stockColor === 'danger'
+        ? `Low stock — ${item.totalStock} ${unit}${
+            item.reorderThreshold !== undefined ? ` (reorder at ${item.reorderThreshold})` : ''
+          }`
+        : `Running low — ${item.totalStock} ${unit}`;
+
+  const identityParts = [item.manufacturer, item.catalogNumber].filter(Boolean);
 
   return (
     <div
-      className={`rounded-lg px-3 py-1.5 cursor-pointer transition-all duration-200 ${
-        isSelected
-          ? 'bg-card brightness-125 border-l-2 border-l-primary border-y border-r border-border shadow-sm'
-          : isArchived
-            ? 'bg-card border border-border opacity-50 hover:opacity-65'
-            : 'bg-card border border-border hover:bg-accent/50'
+      className={`nav-tree-row nav-tree-row--item ${isSelected ? 'is-selected' : ''} ${
+        isArchived ? 'opacity-50 hover:opacity-65' : ''
       }`}
       onClick={() => onSelect(item.id)}
       onKeyDown={e => {
@@ -62,40 +80,56 @@ export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps
       role="button"
       tabIndex={0}
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 min-w-0 truncate">
-          <Tooltip content={item.name} side="top" disabled={!isTruncated}>
-            <span ref={nameRef} className="text-sm font-semibold text-card-foreground truncate">
-              {item.name}
-            </span>
-          </Tooltip>
+      <span aria-hidden className={`h-7 w-0.5 flex-shrink-0 ${STATUS_LINE[statusTone]}`} />
+
+      {isUrgent && (
+        <Tooltip content={urgentTooltip}>
+          <AlertTriangle
+            className={`h-5 w-5 flex-shrink-0 cursor-help ${
+              stockColor === 'danger' ? 'text-danger-text' : 'text-warning-text'
+            }`}
+          />
+        </Tooltip>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-display text-base font-medium leading-tight text-card-foreground">
+            {item.name}
+          </span>
           {item.status !== 'active' && statusInfo && (
             <Chip
               color={statusInfo.color}
               size="sm"
-              className="uppercase tracking-wide flex-shrink-0 ml-1"
+              className="flex-shrink-0 uppercase tracking-wide"
             >
               {statusInfo.label}
             </Chip>
           )}
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {item.locationNames.map(name => (
-            <Chip key={name} color="info" size="sm" leftIcon={<MapPin />}>
-              {name}
-            </Chip>
-          ))}
-          <Chip color={stockColor} size="sm">
-            {item.totalStock}{' '}
-            {item.stockUnit ? pluralizeUnit(item.stockUnit, item.totalStock) : 'in stock'}
-          </Chip>
-        </div>
+        {identityParts.length > 0 && (
+          <span className="truncate font-mono text-[10px] tracking-[0.02em] text-muted-foreground">
+            {identityParts.map((part, i) => (
+              <span key={i}>
+                {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
+                {part}
+              </span>
+            ))}
+          </span>
+        )}
       </div>
-      {detailParts.length > 0 && (
-        <div className="flex items-center gap-1 mt-0.5">
-          <span className="text-xs text-muted-foreground truncate">{detailParts.join(' · ')}</span>
-        </div>
-      )}
+
+      <div className="flex flex-shrink-0 items-center gap-1.5">
+        {item.locationNames.map(name => (
+          <Chip key={name} color="info" size="sm" leftIcon={<MapPin />}>
+            {name}
+          </Chip>
+        ))}
+        <Chip color={stockColor} size="sm">
+          {item.totalStock}{' '}
+          {item.stockUnit ? pluralizeUnit(item.stockUnit, item.totalStock) : 'in stock'}
+        </Chip>
+      </div>
     </div>
   );
 }

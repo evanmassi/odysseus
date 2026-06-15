@@ -13,11 +13,13 @@ import {
   Trash2,
   Archive,
   ExternalLink,
-  Package,
   ClipboardList,
   RefreshCw,
   MapPin,
   Printer,
+  FolderOpen,
+  NotepadText,
+  SquarePen,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -31,9 +33,19 @@ import {
   useUpdateSupplyBarcodeMutation,
   useRegenerateInternalBarcodeMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, InfoField, InfoGroup, Input, OverflowMenu, Tooltip } from '@shared/ui';
+import {
+  Button,
+  Chip,
+  DetailRow,
+  Input,
+  NubDivider,
+  OverflowMenu,
+  PanelHeader,
+  SectionHeader,
+  Tooltip,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { Chip } from '@shared/ui/primitives/chip/Chip';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
@@ -76,6 +88,18 @@ interface SupplyItemInfoPanelProps {
   categoryName?: string;
 }
 
+function StripLabel({ children }: { children: string }) {
+  return (
+    <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+      <span
+        aria-hidden
+        className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+      />
+      {children}
+    </span>
+  );
+}
+
 export function SupplyItemInfoPanel({
   itemId,
   onEdit,
@@ -114,9 +138,14 @@ export function SupplyItemInfoPanel({
 
   if (!detail) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-        Loading...
-      </div>
+      <ConsolePanel
+        intensity="soft"
+        className="flex h-full min-h-0 flex-col items-center justify-center"
+      >
+        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+          Loading…
+        </span>
+      </ConsolePanel>
     );
   }
 
@@ -124,6 +153,41 @@ export function SupplyItemInfoPanel({
   const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['active'];
   const isArchived = item.status === 'archived';
   const totalStock = stock.reduce((sum, s) => sum + s.quantity, 0);
+
+  const locationChips = stock
+    .map(s => ({ id: s.locationId, name: locationNameMap.get(s.locationId) }))
+    .filter((l): l is { id: string; name: string } => !!l.name);
+
+  const thresholdNode =
+    item.reorderThreshold != null ? (
+      <span>
+        {(() => {
+          if (!item.reorderThresholdUnit || item.reorderThresholdUnit === item.stockUnit) {
+            return `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)}`;
+          }
+          const levels = detail.packagingLevels;
+          let multiplier = 1;
+          let current = item.reorderThresholdUnit;
+          for (let i = 0; i < levels.length + 1; i++) {
+            const level = levels.find(l => l.unitName === current);
+            if (!level) break;
+            multiplier *= level.quantity;
+            if (level.parentUnit === null || level.parentUnit === item.stockUnit) break;
+            current = level.parentUnit;
+          }
+          const inputQty = Math.round(item.reorderThreshold / multiplier);
+          return `${inputQty} ${pluralizeUnit(item.reorderThresholdUnit, inputQty)}`;
+        })()}
+        {item.reorderThresholdUnit && item.reorderThresholdUnit !== item.stockUnit && (
+          <span className="ml-1 text-xs text-muted-foreground">
+            ({item.reorderThreshold}{' '}
+            {pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)})
+          </span>
+        )}
+      </span>
+    ) : (
+      <span className="text-muted-foreground">—</span>
+    );
 
   const handleDelete = async () => {
     try {
@@ -196,91 +260,56 @@ export function SupplyItemInfoPanel({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="px-4 pt-4 pb-2 flex-shrink-0">
-        <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
-          <Package size={16} className="text-secondary-foreground" />
-          Item Information
-        </h4>
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+        <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Supply Information" />
       </div>
 
-      <div className="bg-muted rounded-md px-3 py-2 mx-4 mb-3 flex-shrink-0 space-y-2">
-        {isAdmin && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onEdit}
-                leftIcon={<Edit className="w-3.5 h-3.5" />}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onRecordTransaction}
-                leftIcon={<ClipboardList className="w-3.5 h-3.5" />}
-              >
-                Record Transaction
-              </Button>
-            </div>
-            <OverflowMenu
-              items={[
-                ...(!isArchived
-                  ? [
-                      {
-                        icon: Archive,
-                        label: 'Archive',
-                        onClick: () => void handleArchive(),
-                        danger: true,
-                      },
-                    ]
-                  : []),
-                {
-                  icon: Trash2,
-                  label: 'Remove',
-                  onClick: () => setShowDeleteConfirm(true),
-                  danger: true,
-                },
-              ]}
-              dividerBefore={['Remove']}
-              size="sm"
-              aria-label="More item actions"
-            />
-          </div>
-        )}
-        <div
-          className={`flex items-center gap-1.5 flex-wrap ${isAdmin ? 'pt-2 mt-2 border-t border-border' : ''}`}
-        >
-          {stock.map(s => {
-            const locName = locationNameMap.get(s.locationId);
-            return locName ? (
-              <Chip key={s.locationId} color="info" size="sm" leftIcon={<MapPin />}>
-                {locName}
-              </Chip>
-            ) : null;
-          })}
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="grid grid-cols-[auto_1fr] items-center justify-items-start gap-x-3 gap-y-2">
+          <StripLabel>Status</StripLabel>
+          <Chip size="sm" color={statusConfig.color}>
+            {statusConfig.label}
+          </Chip>
           {categoryName && (
-            <Chip color="info" size="sm">
-              {categoryName}
-            </Chip>
+            <>
+              <StripLabel>Category</StripLabel>
+              <Chip size="sm" color="info" leftIcon={<FolderOpen />}>
+                {categoryName}
+              </Chip>
+            </>
+          )}
+          {locationChips.length > 0 && (
+            <>
+              <StripLabel>Location</StripLabel>
+              <div className="flex flex-wrap gap-1.5">
+                {locationChips.map(loc => (
+                  <Chip key={loc.id} size="sm" color="info" leftIcon={<MapPin />}>
+                    {loc.name}
+                  </Chip>
+                ))}
+              </div>
+            </>
           )}
         </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
       </div>
 
-      <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
-        <div className="px-4 pb-4 space-y-5">
-          {/* Item name + status + properties */}
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="text-card-foreground font-semibold text-sm">{item.name}</span>
-              <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
-                {statusConfig.label}
-              </Chip>
-            </div>
+      <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
+        <div className="space-y-4 p-4">
+          <div>
+            <h3 className="text-base font-semibold text-card-foreground">{item.name}</h3>
+            {item.description && (
+              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-card-foreground/70">
+                {item.description}
+              </p>
+            )}
             {item.properties.length > 0 && (
-              <div className="flex flex-wrap gap-1">
+              <div className="mt-2 flex flex-wrap gap-1">
                 {item.properties.map(prop => (
                   <Chip key={prop} color="default" size="sm">
                     {prop}
@@ -290,21 +319,21 @@ export function SupplyItemInfoPanel({
             )}
           </div>
 
-          {/* Item details */}
-          <InfoGroup title="Item Details">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <InfoField label="Manufacturer" value={item.manufacturer} inline={false} />
-              <InfoField label="Catalog #" value={item.catalogNumber} inline={false} />
-              <InfoField label="Vendor" value={item.vendorName} inline={false} />
-              <InfoField label="Vendor Catalog #" value={item.vendorCatalogNumber} inline={false} />
-              <InfoField label="Stock Unit" value={item.stockUnit} inline={false} />
-              <InfoField label="Item" value={item.baseItemName} inline={false} />
+          <div>
+            <SectionHeader title="Item Details" size="sm" />
+            <div>
+              <DetailRow label="Manufacturer" value={item.manufacturer} />
+              <DetailRow label="Catalog #" value={item.catalogNumber} />
+              <DetailRow label="Vendor" value={item.vendorName} />
+              <DetailRow label="Vendor Catalog #" value={item.vendorCatalogNumber} />
+              <DetailRow label="Stock Unit" value={item.stockUnit} />
+              <DetailRow label="Item" value={item.baseItemName} />
             </div>
-          </InfoGroup>
+          </div>
 
-          {/* Packaging chain */}
           {detail.packagingLevels.length > 0 && (
-            <InfoGroup title="Packaging">
+            <div>
+              <SectionHeader title="Packaging" size="sm" />
               <div className="text-sm text-card-foreground">
                 {(() => {
                   const levels = detail.packagingLevels;
@@ -324,7 +353,7 @@ export function SupplyItemInfoPanel({
                     const parentName = level.parentUnit ?? item.baseItemName ?? 'item';
                     return (
                       <span key={level.id}>
-                        {i > 0 && <span className="text-muted-foreground/40 mx-1.5">·</span>}
+                        {i > 0 && <span className="mx-1.5 text-muted-foreground/40">·</span>}
                         {level.quantity} {pluralizeUnit(parentName, level.quantity)}{' '}
                         <span className="text-muted-foreground">per</span> {level.unitName}
                       </span>
@@ -332,11 +361,11 @@ export function SupplyItemInfoPanel({
                   });
                 })()}
               </div>
-            </InfoGroup>
+            </div>
           )}
 
-          {/* Stock levels */}
-          <InfoGroup title="Stock Levels">
+          <div>
+            <SectionHeader title="Stock Levels" size="sm" />
             {stock.length > 0 ? (
               <div className="space-y-1">
                 {stock.map(s => (
@@ -349,7 +378,7 @@ export function SupplyItemInfoPanel({
                     </span>
                   </div>
                 ))}
-                <div className="flex justify-between text-sm font-semibold pt-1 border-t border-border">
+                <div className="flex justify-between border-t border-border pt-1 text-sm font-semibold">
                   <span>Total</span>
                   <span>
                     {totalStock} {pluralizeUnit(item.stockUnit ?? 'unit', totalStock)}
@@ -357,17 +386,16 @@ export function SupplyItemInfoPanel({
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground italic">No stock entries</p>
+              <p className="text-xs italic text-muted-foreground">No stock entries</p>
             )}
-          </InfoGroup>
+          </div>
 
-          {/* Current lot number */}
           {item.currentLotNumber && (
-            <InfoField label="Current Lot #" value={item.currentLotNumber} inline={false} />
+            <DetailRow label="Current Lot #" value={item.currentLotNumber} />
           )}
 
-          {/* Barcodes */}
-          <InfoGroup title="Barcodes">
+          <div>
+            <SectionHeader title="Barcodes" size="sm" />
             {barcodes.length > 0 ? (
               <div className="space-y-1.5">
                 {barcodes.map(bc => (
@@ -426,7 +454,7 @@ export function SupplyItemInfoPanel({
                                   onClick={() => void regenerateBarcodeMutation.mutateAsync(itemId)}
                                   isLoading={regenerateBarcodeMutation.isPending}
                                 >
-                                  <RefreshCw className="w-3 h-3" />
+                                  <RefreshCw className="h-3 w-3" />
                                 </Button>
                               </Tooltip>
                             )}
@@ -437,7 +465,7 @@ export function SupplyItemInfoPanel({
                                 iconOnly
                                 onClick={() => setPrintingBarcode(bc)}
                               >
-                                <Printer className="w-3 h-3" />
+                                <Printer className="h-3 w-3" />
                               </Button>
                             </Tooltip>
                             <Tooltip content="Edit label" side="bottom">
@@ -450,7 +478,7 @@ export function SupplyItemInfoPanel({
                                   setEditingLabel(bc.label ?? '');
                                 }}
                               >
-                                <Edit className="w-3 h-3" />
+                                <Edit className="h-3 w-3" />
                               </Button>
                             </Tooltip>
                             <Tooltip content="Remove" side="bottom">
@@ -460,7 +488,7 @@ export function SupplyItemInfoPanel({
                                 iconOnly
                                 onClick={() => void handleRemoveBarcode(bc.id)}
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="h-3 w-3" />
                               </Button>
                             </Tooltip>
                           </div>
@@ -471,23 +499,23 @@ export function SupplyItemInfoPanel({
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground italic">No barcodes</p>
+              <p className="text-xs italic text-muted-foreground">No barcodes</p>
             )}
             {isAdmin && (
               <div className="mt-2">
                 <SupplyBarcodeForm itemId={itemId} onAdded={() => {}} />
               </div>
             )}
-          </InfoGroup>
+          </div>
 
-          {/* Documents */}
-          <InfoGroup title="Documents">
+          <div>
+            <SectionHeader title="Documents" size="sm" />
             {documents.length > 0 ? (
               <div className="space-y-1.5">
                 {documents.map(doc => (
                   <div key={doc.id}>
                     {editingDocId === doc.id ? (
-                      <div className="space-y-1.5 p-2 border border-border rounded-md">
+                      <div className="space-y-1.5 rounded-md border border-border p-2">
                         <Input
                           type="text"
                           value={editingDocLabel}
@@ -533,10 +561,10 @@ export function SupplyItemInfoPanel({
                             href={doc.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-primary hover:underline inline-flex items-center gap-1"
+                            className="inline-flex items-center gap-1 text-primary hover:underline"
                           >
                             {doc.label}
-                            <ExternalLink className="w-3 h-3" />
+                            <ExternalLink className="h-3 w-3" />
                           </a>
                           {isAdmin && (
                             <div className="flex items-center gap-0.5">
@@ -552,7 +580,7 @@ export function SupplyItemInfoPanel({
                                     setEditingDocNotes(doc.notes ?? '');
                                   }}
                                 >
-                                  <Edit className="w-3 h-3" />
+                                  <Edit className="h-3 w-3" />
                                 </Button>
                               </Tooltip>
                               <Tooltip content="Remove" side="bottom">
@@ -562,14 +590,14 @@ export function SupplyItemInfoPanel({
                                   iconOnly
                                   onClick={() => void handleRemoveDocument(doc.id)}
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash2 className="h-3 w-3" />
                                 </Button>
                               </Tooltip>
                             </div>
                           )}
                         </div>
                         {doc.notes && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{doc.notes}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
                         )}
                       </div>
                     )}
@@ -577,89 +605,92 @@ export function SupplyItemInfoPanel({
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground italic">No documents</p>
+              <p className="text-xs italic text-muted-foreground">No documents</p>
             )}
             {isAdmin && <SupplyDocumentForm itemId={itemId} onAdded={() => {}} />}
-          </InfoGroup>
+          </div>
 
-          {/* Description */}
-          {item.description && (
-            <InfoGroup title="Description">
-              <p className="text-sm text-card-foreground whitespace-pre-wrap">{item.description}</p>
-            </InfoGroup>
-          )}
-
-          {/* Notes */}
           {item.notes && (
-            <InfoGroup title="Notes">
-              <p className="text-sm text-card-foreground whitespace-pre-wrap">{item.notes}</p>
-            </InfoGroup>
+            <div>
+              <SectionHeader title="Notes" size="sm" />
+              <p className="whitespace-pre-wrap text-sm text-card-foreground">{item.notes}</p>
+            </div>
           )}
 
-          {/* Reorder settings */}
-          <InfoGroup title="Reorder Settings">
-            <div className="grid grid-cols-3 gap-x-3 gap-y-1">
-              <div>
-                <span className="text-xs text-muted-foreground block mb-0.5">Threshold</span>
-                {item.reorderThreshold != null ? (
-                  <div>
-                    <span className="text-sm text-card-foreground">
-                      {(() => {
-                        if (
-                          !item.reorderThresholdUnit ||
-                          item.reorderThresholdUnit === item.stockUnit
-                        ) {
-                          return `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)}`;
-                        }
-                        const levels = detail?.packagingLevels ?? [];
-                        let multiplier = 1;
-                        let current = item.reorderThresholdUnit;
-                        for (let i = 0; i < levels.length + 1; i++) {
-                          const level = levels.find(l => l.unitName === current);
-                          if (!level) break;
-                          multiplier *= level.quantity;
-                          if (level.parentUnit === null || level.parentUnit === item.stockUnit)
-                            break;
-                          current = level.parentUnit;
-                        }
-                        const inputQty = Math.round(item.reorderThreshold / multiplier);
-                        return `${inputQty} ${pluralizeUnit(item.reorderThresholdUnit, inputQty)}`;
-                      })()}
-                    </span>
-                    {item.reorderThresholdUnit && item.reorderThresholdUnit !== item.stockUnit && (
-                      <span className="text-xs text-muted-foreground block">
-                        ({item.reorderThreshold}{' '}
-                        {pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)})
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-sm text-muted-foreground">—</span>
-                )}
-              </div>
-              <InfoField
+          <div>
+            <SectionHeader title="Reorder Settings" size="sm" />
+            <div>
+              <DetailRow label="Threshold">{thresholdNode}</DetailRow>
+              <DetailRow
                 label="Reorder Qty"
                 value={
                   item.reorderQuantity != null
                     ? `${item.reorderQuantity} ${item.reorderUnit ? pluralizeUnit(item.reorderUnit, item.reorderQuantity) : ''}`
                     : undefined
                 }
-                inline={false}
               />
-              <InfoField label="Price" value={formatCurrency(item.unitPrice)} inline={false} />
+              <DetailRow label="Price" value={formatCurrency(item.unitPrice)} />
             </div>
-          </InfoGroup>
+          </div>
 
-          {/* Transaction history */}
-          <InfoGroup title="Recent Transactions">
+          <div>
+            <SectionHeader title="Recent Transactions" size="sm" />
             <SupplyTransactionTimeline
               transactions={detail.recentTransactions}
               stockUnit={item.stockUnit}
               onVoidAndReplace={onVoidAndReplace}
             />
-          </InfoGroup>
+          </div>
         </div>
       </ScrollArea>
+
+      {isAdmin && (
+        <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+          <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+          <div className="flex items-center gap-2">
+            <OverflowMenu
+              items={[
+                ...(!isArchived
+                  ? [
+                      {
+                        icon: Archive,
+                        label: 'Archive',
+                        onClick: () => void handleArchive(),
+                        warning: true,
+                      },
+                    ]
+                  : []),
+                {
+                  icon: Trash2,
+                  label: 'Remove',
+                  onClick: () => setShowDeleteConfirm(true),
+                  danger: true,
+                },
+              ]}
+              dividerBefore={['Remove']}
+              size="sm"
+              aria-label="More item actions"
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<ClipboardList className="h-4 w-4" />}
+              onClick={onRecordTransaction}
+            >
+              Record Transaction
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex-1"
+              leftIcon={<SquarePen className="h-4 w-4" />}
+              onClick={onEdit}
+            >
+              Edit
+            </Button>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
@@ -681,6 +712,6 @@ export function SupplyItemInfoPanel({
           catalogNumber={item.catalogNumber}
         />
       )}
-    </div>
+    </ConsolePanel>
   );
 }

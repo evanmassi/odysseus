@@ -13,14 +13,24 @@ import { Plus, Eye, EyeOff, ArrowUp, ArrowDown, Package, MapPin, Layers } from '
 import { useAuthStore } from '@domains/authentication';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
 import { useDeleteSupplyCategoryMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, SearchInput, Select, Tooltip, OverflowMenu } from '@shared/ui';
+import {
+  Button,
+  NubDivider,
+  OverflowMenu,
+  PanelHeader,
+  SearchInput,
+  Select,
+  Tooltip,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
 import { SupplyCategoryModal } from './SupplyCategoryModal';
 import { SupplyCategoryPanel } from './SupplyCategoryPanel';
+import { SupplyInfoPanelEmpty } from './SupplyInfoPanelEmpty';
 import { SupplyItemForm } from './SupplyItemForm';
 import { SupplyItemInfoPanel } from './SupplyItemInfoPanel';
 import { SupplyLocationModal } from './SupplyLocationModal';
@@ -179,46 +189,62 @@ export function SuppliesTab() {
     { icon: Layers, label: 'Bulk Operations', onClick: () => setIsBulkUpdateOpen(true) },
   ];
 
+  const itemCount = showArchived ? items.length : items.filter(p => p.status !== 'archived').length;
+  const categoryCount = categories.filter(c => !c.parentId).length;
+
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
-        {/* Left Panel: Category Browser */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          {/* Row 1: Search + Actions */}
-          <div className="flex items-center justify-between gap-4 mb-2 flex-shrink-0 px-0.5">
-            <div className="flex items-center gap-2">
-              <SearchInput
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Search supplies…"
-                size="sm"
-                className="w-64"
-                aria-label="Search supplies"
-              />
-              <SupplyQuickScanBar
-                items={items}
-                onViewItem={handleScanViewItem}
-                onRecordTransaction={handleScanRecordTransaction}
-              />
-            </div>
-            {isAdmin && (
-              <div className="flex items-center gap-2">
-                <OverflowMenu items={bulkMenuItems} size="sm" aria-label="Actions" />
-                <Button
-                  size="sm"
-                  onClick={handleAddItem}
-                  className="h-8"
-                  leftIcon={<Plus className="w-3.5 h-3.5" />}
-                >
-                  Add Item
-                </Button>
-              </div>
-            )}
+        {/* Left Panel: Supplies list chassis */}
+        <ConsolePanel
+          intensity="soft"
+          className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
+        >
+          <div className="flex-shrink-0 border-b border-line-faint pr-4">
+            <PanelHeader icon={<Package className="h-4 w-4" />} title="Supplies" />
           </div>
 
-          {/* Row 2: Sort + Show Archived */}
-          <div className="flex items-center gap-2 h-8 px-0.5 mb-2 flex-shrink-0">
-            <span className="text-xs font-medium text-secondary-foreground">Sort:</span>
+          {/* Locator strip: inventory counts */}
+          <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-line-faint bg-black/35 px-4 py-2.5">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+            />
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span
+                aria-hidden
+                className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+              />
+              <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+                {itemCount}{' '}
+                <span className="text-foreground/45">{itemCount === 1 ? 'item' : 'items'}</span>
+              </span>
+            </span>
+            <span className="flex-1" />
+            <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+              {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
+            </span>
+            <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
+          </div>
+
+          {/* Toolbar: search · scan · sort · archived · actions — the table's own header */}
+          <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search supplies…"
+              size="sm"
+              className="w-64"
+              aria-label="Search supplies"
+            />
+            <SupplyQuickScanBar
+              items={items}
+              onViewItem={handleScanViewItem}
+              onRecordTransaction={handleScanRecordTransaction}
+            />
+            <span className="flex-shrink-0 text-xs font-medium text-secondary-foreground">
+              Sort
+            </span>
             <Select
               options={SORT_OPTIONS}
               value={sortField}
@@ -231,12 +257,12 @@ export function SuppliesTab() {
               <button
                 type="button"
                 onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
-                className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors"
+                className="rounded p-1 text-secondary-foreground transition-colors hover:bg-secondary hover:text-accent-foreground"
               >
                 {sortDirection === 'asc' ? (
-                  <ArrowUp className="w-4 h-4" />
+                  <ArrowUp className="h-4 w-4" />
                 ) : (
-                  <ArrowDown className="w-4 h-4" />
+                  <ArrowDown className="h-4 w-4" />
                 )}
               </button>
             </Tooltip>
@@ -246,50 +272,61 @@ export function SuppliesTab() {
               onClick={() => setShowArchived(!showArchived)}
               className="h-8 text-xs"
               leftIcon={
-                showArchived ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />
+                showArchived ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />
               }
             >
               {showArchived ? 'Hide' : 'Show'} Archived
             </Button>
+            <span className="flex-1" />
+            {isAdmin && (
+              <>
+                <OverflowMenu items={bulkMenuItems} size="sm" aria-label="Actions" />
+                <Button
+                  size="sm"
+                  onClick={handleAddItem}
+                  className="h-8"
+                  leftIcon={<Plus className="h-3.5 w-3.5" />}
+                >
+                  Add Item
+                </Button>
+              </>
+            )}
           </div>
 
-          <SupplyLowStockAlertPanel onSelectItem={handleSelectItem} />
-
-          {/* Category list */}
-          <ScrollArea className="flex-1">
-            <SupplyCategoryPanel
-              categories={categories}
-              items={items}
+          {/* Body: pinned low-stock alerts + scrolling category tree */}
+          <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
+            <SupplyLowStockAlertPanel
               selectedItemId={selectedItemId}
               onSelectItem={handleSelectItem}
-              showArchived={showArchived}
-              searchQuery={searchQuery}
-              isAdmin={isAdmin}
-              onAddCategory={handleAddCategory}
-              onAddSubcategory={handleAddSubcategory}
-              onRenameCategory={handleRenameCategory}
-              onDeleteCategory={handleDeleteCategory}
-              sortField={sortField}
-              sortDirection={sortDirection}
             />
-          </ScrollArea>
-        </div>
+            <ScrollArea className="min-h-0 flex-1">
+              <SupplyCategoryPanel
+                categories={categories}
+                items={items}
+                selectedItemId={selectedItemId}
+                onSelectItem={handleSelectItem}
+                showArchived={showArchived}
+                searchQuery={searchQuery}
+                isAdmin={isAdmin}
+                onAddCategory={handleAddCategory}
+                onAddSubcategory={handleAddSubcategory}
+                onRenameCategory={handleRenameCategory}
+                onDeleteCategory={handleDeleteCategory}
+                sortField={sortField}
+                sortDirection={sortDirection}
+              />
+            </ScrollArea>
+          </div>
+        </ConsolePanel>
 
         {/* Right Panel: Detail / Edit / Transaction */}
         <div
-          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden bg-card rounded-lg"
+          className={`flex-shrink-0 flex flex-col min-h-0 overflow-hidden ${
+            rightPanel && rightPanel.type !== 'info' ? 'bg-card rounded-lg' : ''
+          }`}
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
-          {!rightPanel && (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
-                  <Package className="w-6 h-6 text-card-foreground/30" />
-                </div>
-                <p className="text-card-foreground/40 text-sm">Select a item to view details</p>
-              </div>
-            </div>
-          )}
+          {!rightPanel && <SupplyInfoPanelEmpty />}
 
           {rightPanel?.type === 'info' && (
             <SupplyItemInfoPanel
