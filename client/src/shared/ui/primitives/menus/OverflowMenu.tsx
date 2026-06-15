@@ -136,6 +136,7 @@ export function OverflowMenu({
                   handleClose();
                 }}
                 danger={item.danger}
+                warning={item.warning}
                 disabled={item.disabled}
               />
             </div>

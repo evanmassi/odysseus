@@ -13,6 +13,7 @@ export function MenuItem({
   label,
   onClick,
   danger = false,
+  warning = false,
   disabled = false,
   shortcut,
   isActive = false,
@@ -50,7 +51,9 @@ export function MenuItem({
             ? 'bg-primary/[0.08] text-foreground font-medium'
             : danger
               ? 'text-danger-text hover:bg-danger-light'
-              : 'text-foreground hover:bg-primary/[0.06]'
+              : warning
+                ? 'text-warning-text hover:bg-warning-light'
+                : 'text-foreground hover:bg-primary/[0.06]'
         }
       `}
     >
@@ -64,7 +67,9 @@ export function MenuItem({
                   ? 'text-foreground'
                   : danger
                     ? 'text-danger-text'
-                    : 'text-muted-foreground group-hover:text-foreground'
+                    : warning
+                      ? 'text-warning-text'
+                      : 'text-muted-foreground group-hover:text-foreground'
               }`}
             />
           </span>

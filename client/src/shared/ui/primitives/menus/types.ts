@@ -15,6 +15,7 @@ export interface MenuItemProps {
   label: string;
   onClick?: () => void;
   danger?: boolean;
+  warning?: boolean;
   disabled?: boolean;
   shortcut?: string;
   isActive?: boolean;
@@ -26,6 +27,7 @@ export interface OverflowMenuItem {
   label: string;
   onClick: () => void;
   danger?: boolean;
+  warning?: boolean;
   disabled?: boolean;
 }
 
