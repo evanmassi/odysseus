@@ -307,7 +307,12 @@ export function EquipmentCategoryPanel({
                 >
                   {category.name}
                 </span>
-                <span className="text-card-foreground/30 flex-shrink-0">·</span>
+                <span
+                  aria-hidden
+                  className="flex-shrink-0 font-mono text-[10px] text-foreground/30"
+                >
+                  {'//'}
+                </span>
                 <span className="equip-nav-row__count font-mono text-[10px] tracking-[0.04em]">
                   {totalCount}{' '}
                   <span className="text-foreground/25">{totalCount === 1 ? 'unit' : 'units'}</span>
@@ -456,7 +461,9 @@ function SubcategorySection({
         <span className="equip-nav-row__label font-mono text-xs tracking-[0.02em]">
           {subcategory.name}
         </span>
-        <span className="text-card-foreground/30 flex-shrink-0">·</span>
+        <span aria-hidden className="flex-shrink-0 font-mono text-[10px] text-foreground/30">
+          {'//'}
+        </span>
         <span className="equip-nav-row__count font-mono text-[10px] tracking-[0.04em]">
           {items.length}{' '}
           <span className="text-foreground/25">{items.length === 1 ? 'unit' : 'units'}</span>
