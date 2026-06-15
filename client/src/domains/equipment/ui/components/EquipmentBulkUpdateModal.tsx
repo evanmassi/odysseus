@@ -690,6 +690,26 @@ export function EquipmentBulkUpdateModal({
 
   const itemLabel = selectedIds.size === 1 ? 'item' : 'items';
 
+  const selectableCount = items.filter(i => i.status !== 'decommissioned').length;
+
+  const locator = (
+    <div className="flex items-center gap-3">
+      <span className="flex items-center gap-1.5">
+        <span
+          aria-hidden
+          className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+        />
+        <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+          {selectedIds.size} <span className="text-foreground/45">selected</span>
+        </span>
+      </span>
+      <span className="flex-1" />
+      <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+        {selectableCount} total
+      </span>
+    </div>
+  );
+
   const footer = (
     <div className="flex items-center justify-end gap-2">
       <Button variant="secondary" size="sm" onClick={handleClose}>
@@ -715,8 +735,9 @@ export function EquipmentBulkUpdateModal({
         title="Bulk Update"
         icon={<Layers className="w-4 h-4" />}
         onClose={handleClose}
-        size="md-lg"
+        size="lg"
         fixedHeight
+        locator={locator}
         contentClassName="p-0 h-full"
         footer={footer}
       >
