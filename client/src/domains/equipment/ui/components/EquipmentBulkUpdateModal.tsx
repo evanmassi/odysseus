@@ -52,6 +52,10 @@ const STATUS_LABELS: Record<string, string> = {
   out_of_service: 'Out of Service',
 };
 
+// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
+const SELECT_LABEL =
+  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+
 // Selection
 
 interface CategoryGroup {
@@ -360,8 +364,8 @@ function MaintenanceForm({
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <div>
-            <span className="block text-sm font-medium text-secondary-foreground mb-1">
-              Date Performed *
+            <span className={SELECT_LABEL}>
+              Date Performed <span className="text-danger-bg">*</span>
             </span>
             <DatePicker
               value={(value as string) ?? ''}
@@ -378,20 +382,27 @@ function MaintenanceForm({
         name="maintenanceType"
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <Select
-            label="Maintenance Type"
-            options={typeOptions}
-            value={value ?? ''}
-            onChange={v => onChange(v)}
-            state={error ? 'error' : 'default'}
-            error={error?.message}
-            fullWidth
-          />
+          <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+            <label id="bulk-maint-type-label" className={SELECT_LABEL}>
+              Maintenance Type
+            </label>
+            <Select
+              options={typeOptions}
+              value={value ?? ''}
+              onChange={v => onChange(v)}
+              state={error ? 'error' : 'default'}
+              error={error?.message}
+              fullWidth
+              aria-labelledby="bulk-maint-type-label"
+            />
+          </div>
         )}
       />
 
       <ValidatedInput
         label="Performed By (Vendor/Service)"
+        labelStyle="compact"
         placeholder="e.g., TSS, In-house"
         error={!!errors['performedBy']}
         helperText={errors['performedBy']?.message as string}
@@ -400,6 +411,7 @@ function MaintenanceForm({
 
       <ValidatedInput
         label="Technician"
+        labelStyle="compact"
         placeholder="e.g., John Smith"
         error={!!errors['technician']}
         helperText={errors['technician']?.message as string}
@@ -408,6 +420,7 @@ function MaintenanceForm({
 
       <ValidatedInput
         label="Description"
+        labelStyle="compact"
         type="textarea"
         placeholder="Work performed, parts replaced, etc."
         registration={register('description')}
@@ -418,9 +431,7 @@ function MaintenanceForm({
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <div>
-            <span className="block text-sm font-medium text-secondary-foreground mb-1">
-              Next Scheduled Date
-            </span>
+            <span className={SELECT_LABEL}>Next Scheduled Date</span>
             <DatePicker
               value={(value as string) ?? ''}
               onChange={onChange}
@@ -435,6 +446,7 @@ function MaintenanceForm({
 
       <ValidatedInput
         label="Cost ($)"
+        labelStyle="compact"
         type="number"
         step="0.01"
         error={!!errors['cost']}
@@ -446,6 +458,7 @@ function MaintenanceForm({
 
       <ValidatedInput
         label="Notes"
+        labelStyle="compact"
         type="textarea"
         placeholder="Additional notes and observations..."
         registration={register('notes')}
@@ -492,20 +505,27 @@ function StatusForm({
         name="status"
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <Select
-            label="Status"
-            options={[{ value: '', label: 'Select status...' }, ...statusOptions]}
-            value={value ?? ''}
-            onChange={v => onChange(v)}
-            state={error ? 'error' : 'default'}
-            error={error?.message}
-            fullWidth
-          />
+          <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+            <label id="bulk-status-label" className={SELECT_LABEL}>
+              Status
+            </label>
+            <Select
+              options={[{ value: '', label: 'Select status...' }, ...statusOptions]}
+              value={value ?? ''}
+              onChange={v => onChange(v)}
+              state={error ? 'error' : 'default'}
+              error={error?.message}
+              fullWidth
+              aria-labelledby="bulk-status-label"
+            />
+          </div>
         )}
       />
 
       <ValidatedInput
         label="Condition Notes"
+        labelStyle="compact"
         type="textarea"
         placeholder="Current condition or issues..."
         registration={register('conditionNotes')}
@@ -577,43 +597,51 @@ function RelocateForm({
         name="categoryId"
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <Select
-            label="Category"
-            options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
-            value={value ?? ''}
-            onChange={v => onChange(v)}
-            state={error ? 'error' : 'default'}
-            error={error?.message}
-            fullWidth
-            renderOption={option => {
-              const isSub = !!option.description;
-              return (
-                <div className="w-full">
-                  {isSub ? (
-                    <span className="pl-4 text-sm">{option.label}</span>
-                  ) : (
-                    <span className="text-sm font-semibold">{option.label}</span>
-                  )}
-                </div>
-              );
-            }}
-            renderValue={selected => {
-              const opt = selected[0];
-              if (!opt)
-                return <span className="text-muted-foreground opacity-40">Select category...</span>;
-              const parentName = parentNameMap.get(opt.value as string);
-              if (parentName) {
+          <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+            <label id="bulk-relocate-label" className={SELECT_LABEL}>
+              Category
+            </label>
+            <Select
+              aria-labelledby="bulk-relocate-label"
+              options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
+              value={value ?? ''}
+              onChange={v => onChange(v)}
+              state={error ? 'error' : 'default'}
+              error={error?.message}
+              fullWidth
+              renderOption={option => {
+                const isSub = !!option.description;
                 return (
-                  <span className="text-foreground text-sm">
-                    <span className="text-muted-foreground">{parentName}</span>
-                    <span className="text-muted-foreground mx-1">›</span>
-                    {opt.label}
-                  </span>
+                  <div className="w-full">
+                    {isSub ? (
+                      <span className="pl-4 text-sm">{option.label}</span>
+                    ) : (
+                      <span className="text-sm font-semibold">{option.label}</span>
+                    )}
+                  </div>
                 );
-              }
-              return <span className="text-foreground text-sm">{opt.label}</span>;
-            }}
-          />
+              }}
+              renderValue={selected => {
+                const opt = selected[0];
+                if (!opt)
+                  return (
+                    <span className="text-muted-foreground opacity-40">Select category...</span>
+                  );
+                const parentName = parentNameMap.get(opt.value as string);
+                if (parentName) {
+                  return (
+                    <span className="text-foreground text-sm">
+                      <span className="text-muted-foreground">{parentName}</span>
+                      <span className="text-muted-foreground mx-1">›</span>
+                      {opt.label}
+                    </span>
+                  );
+                }
+                return <span className="text-foreground text-sm">{opt.label}</span>;
+              }}
+            />
+          </div>
         )}
       />
     </form>
