@@ -7,9 +7,11 @@
 
 import { useCallback } from 'react';
 
-import { calculateTreeLines } from '../../../storage-navigator/calculateTreeLines';
-import { TreeLinesDisplay } from '../../../storage-navigator/TreeLinesDisplay';
-import { useTreeLines } from '../../../storage-navigator/useTreeLines';
+import {
+  calculateTreeLines,
+  TreeLinesDisplay,
+  useTreeLines,
+} from '@shared/ui/components/tree-lines';
 
 interface TreeLinesByUserProps {
   expandedUsers: Set<string | null>;

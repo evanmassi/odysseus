@@ -67,12 +67,8 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
 
   return (
     <div
-      className={`rounded-lg px-3 py-1.5 cursor-pointer transition-all duration-200 ${
-        isSelected
-          ? 'bg-card brightness-125 border-l-2 border-l-primary border-y border-r border-border shadow-sm'
-          : isDecommissioned
-            ? 'bg-card border border-border opacity-50 hover:opacity-65'
-            : 'bg-card border border-border hover:bg-accent/50'
+      className={`equip-nav-row equip-nav-row--item ${isSelected ? 'is-selected' : ''} ${
+        isDecommissioned ? 'opacity-50 hover:opacity-65' : ''
       }`}
       onClick={() => onSelect(item.id)}
       onKeyDown={e => {
@@ -81,48 +77,48 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
       role="button"
       tabIndex={0}
     >
-      <div className="flex items-center gap-2">
-        {maintIndicator && (
-          <Tooltip content={maintIndicator.tooltip}>
-            <Wrench className={`w-3.5 h-3.5 flex-shrink-0 cursor-help ${maintIndicator.color}`} />
-          </Tooltip>
+      {maintIndicator && (
+        <Tooltip content={maintIndicator.tooltip}>
+          <Wrench className={`w-3.5 h-3.5 flex-shrink-0 cursor-help ${maintIndicator.color}`} />
+        </Tooltip>
+      )}
+
+      <div className="flex items-center gap-1 min-w-0 flex-1 truncate">
+        <span className="font-mono text-xs tracking-[0.02em] text-card-foreground truncate">
+          {item.name}
+        </span>
+        {detailParts.length > 0 && (
+          <>
+            <span className="text-card-foreground/30 flex-shrink-0">·</span>
+            <span className="text-xs text-muted-foreground truncate">
+              {detailParts.join(' · ')}
+            </span>
+          </>
         )}
+        {snPart && (
+          <>
+            <span className="text-card-foreground/30 flex-shrink-0">·</span>
+            <span className="text-xs text-muted-foreground/60 truncate">{snPart}</span>
+          </>
+        )}
+        {isDecommissioned && (
+          <Chip color="danger" size="sm" className="uppercase tracking-wide flex-shrink-0 ml-1">
+            Decommissioned
+          </Chip>
+        )}
+      </div>
 
-        <div className="flex items-center gap-1 min-w-0 flex-1 truncate">
-          <span className="text-sm font-semibold text-card-foreground truncate">{item.name}</span>
-          {detailParts.length > 0 && (
-            <>
-              <span className="text-card-foreground/30 flex-shrink-0">·</span>
-              <span className="text-xs text-muted-foreground truncate">
-                {detailParts.join(' · ')}
-              </span>
-            </>
-          )}
-          {snPart && (
-            <>
-              <span className="text-card-foreground/30 flex-shrink-0">·</span>
-              <span className="text-xs text-muted-foreground/60 truncate">{snPart}</span>
-            </>
-          )}
-          {isDecommissioned && (
-            <Chip color="danger" size="sm" className="uppercase tracking-wide flex-shrink-0 ml-1">
-              Decommissioned
-            </Chip>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {item.location && (
-            <Chip color="info" size="sm" leftIcon={<MapPin />}>
-              {item.location}
-            </Chip>
-          )}
-          {item.assetTag && (
-            <Chip color="info" size="sm" leftIcon={<Tag />}>
-              {item.assetTag}
-            </Chip>
-          )}
-        </div>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {item.location && (
+          <Chip color="info" size="sm" leftIcon={<MapPin />}>
+            {item.location}
+          </Chip>
+        )}
+        {item.assetTag && (
+          <Chip color="info" size="sm" leftIcon={<Tag />}>
+            {item.assetTag}
+          </Chip>
+        )}
       </div>
     </div>
   );

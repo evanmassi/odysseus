@@ -7,9 +7,11 @@
 
 import { useCallback } from 'react';
 
-import { calculateTreeLines } from './calculateTreeLines';
-import { TreeLinesDisplay } from './TreeLinesDisplay';
-import { useTreeLines } from './useTreeLines';
+import {
+  calculateTreeLines,
+  TreeLinesDisplay,
+  useTreeLines,
+} from '@shared/ui/components/tree-lines';
 
 interface TreeLinesByLocationProps {
   expandedTanks: Set<string>;
