@@ -236,7 +236,7 @@ export function EquipmentCategoryPanel({
   return (
     <div className="pt-1">
       {isAdmin && (
-        <div className="flex justify-end px-1 mb-2">
+        <div className="mb-2 flex justify-end px-1">
           <Button
             variant="secondary"
             size="sm"

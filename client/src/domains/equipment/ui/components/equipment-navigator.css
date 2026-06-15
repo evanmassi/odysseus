@@ -53,9 +53,10 @@
     0 0 50px 4px hsl(var(--primary) / var(--alpha-hover-bloom-far));
 }
 
-/* Containers recede when open: a quiet wash + leading stripe, no border, no glow. */
+/* Containers when open: a quiet wash + leading stripe, kept legible against the
+   chassis by a faint primary outline (still well below the selected card). */
 [data-tree-id='equipment'] .equip-nav-row.is-open {
-  border-color: transparent;
+  border-color: hsl(var(--primary) / 0.3);
   background: linear-gradient(90deg, hsl(var(--primary) / 0.07), transparent 72%);
   box-shadow: inset 2px 0 0 hsl(var(--primary) / 0.55);
   color: var(--equip-nav-selected-text);
