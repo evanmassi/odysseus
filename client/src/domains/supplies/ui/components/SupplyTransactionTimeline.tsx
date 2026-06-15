@@ -155,7 +155,7 @@ function TransactionEntry({
           className={`flex-shrink-0 text-card-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''} ${!hasDetails ? 'invisible' : ''}`}
         />
         <Icon size={14} className={`flex-shrink-0 ${config.color}`} />
-        <span className="whitespace-nowrap font-mono text-[11px] tracking-[0.04em] text-card-foreground/70">
+        <span className="whitespace-nowrap font-mono text-[11px] tracking-[0.04em] text-foreground">
           {formatDateForDisplay(transaction.createdAt)}
         </span>
         {isVoided && (
@@ -163,13 +163,17 @@ function TransactionEntry({
             Voided
           </Chip>
         )}
-        <span className="text-card-foreground/25">·</span>
+        <span aria-hidden className="text-foreground/30">
+          {'//'}
+        </span>
         <span
           className={`whitespace-nowrap text-xs font-semibold ${config.color} ${isVoided ? 'line-through' : ''}`}
         >
           {quantityDisplay} {unit}
         </span>
-        <span className="text-card-foreground/25">·</span>
+        <span aria-hidden className="text-foreground/30">
+          {'//'}
+        </span>
         <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
           {locationName}
         </span>
@@ -181,7 +185,7 @@ function TransactionEntry({
             role="toolbar"
           >
             <Tooltip content="Void transaction" side="left">
-              <Button variant="ghost" size="xs" iconOnly onClick={() => onVoid(transaction)}>
+              <Button variant="ghost-danger" size="xs" iconOnly onClick={() => onVoid(transaction)}>
                 <Ban className="h-3 w-3" />
               </Button>
             </Tooltip>
