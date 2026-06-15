@@ -15,12 +15,11 @@ import { defaultTableProps } from './types';
 import type { RowState, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
 
 // Internal lookup keys — RowState collapses onto these for checkbox + glow recipes.
-// 'warning' / 'danger' / 'muted' rows fall through to 'primary' when selected with glow,
-// since no warning/danger/muted glow recipe exists yet.
-type GlowTone = 'primary' | 'success';
+// 'success' / 'warning' / 'danger' carry their own tone; 'muted' / 'default' fall through to 'primary'.
+type GlowTone = 'primary' | 'success' | 'warning' | 'danger';
 
 const stateToGlowTone = (state: RowState): GlowTone =>
-  state === 'success' ? 'success' : 'primary';
+  state === 'success' || state === 'warning' || state === 'danger' ? state : 'primary';
 
 // Each block is one literal string per tone — Tailwind JIT won't see interpolated classes.
 const ROW_GLOW: Record<GlowTone, string> = {
@@ -41,6 +40,26 @@ const ROW_GLOW: Record<GlowTone, string> = {
     '[&>td:first-child]:relative',
     '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-success-bg [&>td:first-child]:before:pointer-events-none',
     '[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--color-success-bg)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--color-success-bg)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--color-success-bg)/var(--alpha-glow-bar-far))]',
+    '[&>td]:font-semibold',
+    '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
+  ].join(' '),
+  warning: [
+    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-warning-bg)/var(--alpha-glow-tint)),hsl(var(--color-warning-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)]',
+    'shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)),inset_14px_0_36px_-10px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-warning-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-warning-bg)/var(--alpha-glow-outer-far))]',
+    '[&>td]:!bg-transparent',
+    '[&>td:first-child]:relative',
+    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-warning-bg [&>td:first-child]:before:pointer-events-none',
+    '[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--color-warning-bg)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--color-warning-bg)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--color-warning-bg)/var(--alpha-glow-bar-far))]',
+    '[&>td]:font-semibold',
+    '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
+  ].join(' '),
+  danger: [
+    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-danger-bg)/var(--alpha-glow-tint)),hsl(var(--color-danger-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-danger-bg)/0)_100%)]',
+    'shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg)),inset_14px_0_36px_-10px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-danger-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-danger-bg)/var(--alpha-glow-outer-far))]',
+    '[&>td]:!bg-transparent',
+    '[&>td:first-child]:relative',
+    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-danger-bg [&>td:first-child]:before:pointer-events-none',
+    '[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--color-danger-bg)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--color-danger-bg)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--color-danger-bg)/var(--alpha-glow-bar-far))]',
     '[&>td]:font-semibold',
     '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
   ].join(' '),
@@ -180,6 +199,16 @@ const HOVER_GLOW: Record<GlowTone, string> = {
   success: [
     'hover:[background-image:linear-gradient(90deg,hsl(var(--color-success-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-success-bg)/0)_100%)]',
     'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-success-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-success-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-success-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-far))]',
+    '[&:hover>td]:!bg-transparent',
+  ].join(' '),
+  warning: [
+    'hover:[background-image:linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)]',
+    'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-warning-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-warning-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-warning-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-far))]',
+    '[&:hover>td]:!bg-transparent',
+  ].join(' '),
+  danger: [
+    'hover:[background-image:linear-gradient(90deg,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-danger-bg)/0)_100%)]',
+    'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-danger-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-danger-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-danger-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-far))]',
     '[&:hover>td]:!bg-transparent',
   ].join(' '),
 };
@@ -377,12 +406,10 @@ const TableBody = <T extends TableRowBase>({
         const stripe = !glow && (isSelected || state !== 'default') ? STATE_STRIPE[state] : '';
         const text = STATE_TEXT[state];
         const phosphor = !glow ? PHOSPHOR_ROW : '';
-        // Skip hover preview for warning/danger/muted rows — primary/success rows preview their
-        // tone, but a danger row going primary on hover would be jarring color-switching.
+        // Hover previews the row's own tone (primary/success/warning/danger); muted rows skip it
+        // since there is no muted glow recipe.
         const hover =
-          hoverable && !isSelected && (state === 'default' || state === 'success')
-            ? HOVER_GLOW[stateToGlowTone(state)]
-            : '';
+          hoverable && !isSelected && state !== 'muted' ? HOVER_GLOW[stateToGlowTone(state)] : '';
 
         return (
           <tr
@@ -399,7 +426,7 @@ const TableBody = <T extends TableRowBase>({
                   checked={isSelected}
                   onChange={checked => handleRowSelect(row.id, checked)}
                   aria-label={`Select row ${index + 1}`}
-                  tone={stateToGlowTone(state)}
+                  tone={state === 'success' ? 'success' : 'primary'}
                 />
               </td>
             )}

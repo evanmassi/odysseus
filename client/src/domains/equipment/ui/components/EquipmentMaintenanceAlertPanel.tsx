@@ -217,6 +217,7 @@ export function EquipmentMaintenanceAlertPanel({
           onRowClick={row => onSelectItem(row.id)}
           selectedRows={selectedItemId ? [selectedItemId] : []}
           selectedRowGlow
+          rowState={row => (row.daysUntil < 0 ? 'danger' : 'warning')}
           density="compact"
           className="text-xs"
           aria-label="Maintenance alerts"
