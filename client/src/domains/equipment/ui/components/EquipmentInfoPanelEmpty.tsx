@@ -3,7 +3,7 @@
  *
  * Shown in place of the equipment info panel when no item is selected.
  */
-import { Microscope } from 'lucide-react';
+import { Microscope, NotepadText } from 'lucide-react';
 
 import { NubDivider, PanelEmptyState, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -12,7 +12,7 @@ export function EquipmentInfoPanelEmpty() {
   return (
     <ConsolePanel intensity="soft" className="flex flex-col">
       <div className="flex-shrink-0 border-b border-line-faint pr-4">
-        <PanelHeader icon={<Microscope className="h-4 w-4" />} title="Equipment Information" />
+        <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Equipment Information" />
       </div>
 
       <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">

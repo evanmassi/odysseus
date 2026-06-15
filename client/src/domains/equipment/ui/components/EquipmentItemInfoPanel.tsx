@@ -15,7 +15,7 @@ import {
   Plus,
   ExternalLink,
   X,
-  Microscope,
+  NotepadText,
   MapPin,
   FolderOpen,
 } from 'lucide-react';
@@ -146,7 +146,7 @@ export function EquipmentItemInfoPanel({
   return (
     <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
       <div className="flex-shrink-0 border-b border-line-faint pr-4">
-        <PanelHeader icon={<Microscope className="h-4 w-4" />} title="Equipment Information" />
+        <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Equipment Information" />
       </div>
 
       <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
