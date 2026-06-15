@@ -193,7 +193,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
     <div key="login" className={`animate-auth-stack ${exitClass}`}>
       {logoutReason === 'idle_timeout' && (
         <AlertBanner variant="warning" icon={Clock}>
-          Session timed out due to inactivity
+          Session timed out
         </AlertBanner>
       )}
 
