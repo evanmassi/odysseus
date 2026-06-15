@@ -14,6 +14,8 @@ import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import { Input, Select } from '@shared/ui';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
+import { SELECT_LABEL } from './fieldLabelStyle';
+
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface BulkItemRowProps {
@@ -177,7 +179,7 @@ export function BulkItemRow({
       ) : (
         <div className="flex items-center gap-2">
           <div className="w-16">
-            <span className="text-xs text-muted-foreground block mb-0.5">Qty *</span>
+            <span className={SELECT_LABEL}>Qty *</span>
             <Input
               type="number"
               value={String(simpleQty)}
@@ -195,7 +197,7 @@ export function BulkItemRow({
       )}
 
       <div>
-        <span className="text-xs text-muted-foreground block mb-0.5">Location *</span>
+        <span className={SELECT_LABEL}>Location *</span>
         <Select
           options={locationOptions}
           value={locationId}

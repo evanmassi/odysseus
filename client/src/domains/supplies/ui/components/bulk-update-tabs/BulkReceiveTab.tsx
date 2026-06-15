@@ -10,7 +10,7 @@ import { Search } from 'lucide-react';
 
 import { useSupplyLocationsQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkReceiveMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { Autocomplete, Button, Input } from '@shared/ui';
+import { Autocomplete, Button, Input, NubDivider } from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { notifications } from '@shared/utils/notifications';
@@ -18,6 +18,7 @@ import { notifications } from '@shared/utils/notifications';
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
 import { BulkItemRow } from './BulkItemRow';
+import { SEARCH_INPUT_CLASS, SELECT_LABEL } from './fieldLabelStyle';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
@@ -147,7 +148,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
     <div className="flex flex-col h-full min-h-0">
       <div className="px-4 pt-4 pb-3 flex-shrink-0 flex items-start gap-3">
         <div className="flex-1 relative">
-          <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground z-10" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground z-10" />
           <Autocomplete
             options={itemOptions}
             value={searchValue}
@@ -155,7 +156,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
             onSelect={handleAddItem}
             placeholder="Search items..."
             fullWidth
-            inputClassName="input-search w-full pl-8"
+            inputClassName={SEARCH_INPUT_CLASS}
           />
         </div>
         <div className="flex-1">
@@ -184,7 +185,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
             >
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <span className="text-xs text-muted-foreground block mb-0.5">Lot #</span>
+                  <span className={SELECT_LABEL}>Lot #</span>
                   <Input
                     type="text"
                     value={row.lotNumber}
@@ -194,7 +195,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
                   />
                 </div>
                 <div>
-                  <span className="text-xs text-muted-foreground block mb-0.5">PO #</span>
+                  <span className={SELECT_LABEL}>PO #</span>
                   <Input
                     type="text"
                     value={row.poNumber}
@@ -204,7 +205,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
                   />
                 </div>
                 <div>
-                  <span className="text-xs text-muted-foreground block mb-0.5">Cost ($)</span>
+                  <span className={SELECT_LABEL}>Cost ($)</span>
                   <Input
                     type="number"
                     value={row.cost}
@@ -219,7 +220,8 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
         </div>
       </ScrollArea>
 
-      <div className="flex items-center justify-between px-4 py-3 border-t border-border flex-shrink-0">
+      <div className="relative flex items-center justify-between px-4 py-3 border-t border-line-faint flex-shrink-0">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <span className="text-xs text-muted-foreground">
           {validRowCount} item{validRowCount !== 1 ? 's' : ''} to receive
         </span>

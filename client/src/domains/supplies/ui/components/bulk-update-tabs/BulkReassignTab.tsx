@@ -8,6 +8,8 @@ import { useMemo } from 'react';
 
 import { Select } from '@shared/ui';
 
+import { SELECT_LABEL } from './fieldLabelStyle';
+
 import type { SupplyCategory } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
@@ -51,20 +53,26 @@ export function BulkReassignTab({
       <p className="text-sm text-muted-foreground">
         Move {selectedCount} selected item{selectedCount !== 1 ? 's' : ''} to a different category.
       </p>
-      <Select
-        label="Category"
-        options={categoryOptions}
-        value={targetCategoryId}
-        onChange={v => onTargetChange(String(v ?? ''))}
-        fullWidth
-        renderOption={option =>
-          option.description ? (
-            <span className="pl-4 text-sm">{option.label}</span>
-          ) : (
-            <span className="text-sm font-semibold">{option.label}</span>
-          )
-        }
-      />
+      <div>
+        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+        <label id="bulk-reassign-category-label" className={SELECT_LABEL}>
+          Category
+        </label>
+        <Select
+          aria-labelledby="bulk-reassign-category-label"
+          options={categoryOptions}
+          value={targetCategoryId}
+          onChange={v => onTargetChange(String(v ?? ''))}
+          fullWidth
+          renderOption={option =>
+            option.description ? (
+              <span className="pl-4 text-sm">{option.label}</span>
+            ) : (
+              <span className="text-sm font-semibold">{option.label}</span>
+            )
+          }
+        />
+      </div>
     </div>
   );
 }

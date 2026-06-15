@@ -10,7 +10,7 @@ import { PackagePlus, PackageMinus, ClipboardCheck, Trash2, Search } from 'lucid
 
 import { useSupplyLocationsQuery, useSupplyTransactionHistoryQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkVoidMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { Autocomplete, Button, Checkbox } from '@shared/ui';
+import { Autocomplete, Button, Checkbox, NubDivider } from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
@@ -19,6 +19,8 @@ import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
+
+import { SEARCH_INPUT_CLASS, SELECT_LABEL } from './fieldLabelStyle';
 
 import type { SupplyItemWithStock, SupplyTransaction } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
@@ -124,7 +126,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
       <div className="px-4 pt-4 pb-3 flex-shrink-0 space-y-3">
         <div className="flex items-start gap-3">
           <div className="flex-1 relative">
-            <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground z-10" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground z-10" />
             <Autocomplete
               options={itemOptions}
               value={searchValue}
@@ -132,7 +134,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
               onSelect={handleItemSelect}
               placeholder="Search items..."
               fullWidth
-              inputClassName="input-search w-full pl-8"
+              inputClassName={SEARCH_INPUT_CLASS}
             />
           </div>
           <div className="flex-1">
@@ -191,12 +193,10 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
         </div>
       </ScrollArea>
 
-      <div className="px-4 pt-3 pb-4 border-t border-border flex-shrink-0 space-y-3">
+      <div className="relative px-4 pt-3 pb-4 border-t border-line-faint flex-shrink-0 space-y-3">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <div>
-          <label
-            htmlFor="bulk-void-reason"
-            className="text-sm font-medium text-secondary-foreground block mb-1"
-          >
+          <label htmlFor="bulk-void-reason" className={SELECT_LABEL}>
             Reason for voiding *
           </label>
           <Textarea

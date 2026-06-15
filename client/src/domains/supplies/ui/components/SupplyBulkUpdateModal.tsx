@@ -16,12 +16,15 @@ import {
   Archive,
   Ban,
   Printer,
+  FolderOpen,
+  CornerDownRight,
 } from 'lucide-react';
 
 import { useSupplyBulkUpdateMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, Checkbox, SearchInput, Tabs, Tab } from '@shared/ui';
+import { Button, Checkbox, NubDivider, SearchInput, Tabs, Tab } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import { BulkSelectTreeLines } from '@shared/ui/components/tree-lines';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { notifications } from '@shared/utils/notifications';
@@ -33,6 +36,8 @@ import { BulkReassignTab } from './bulk-update-tabs/BulkReassignTab';
 import { BulkReceiveTab } from './bulk-update-tabs/BulkReceiveTab';
 import { BulkVoidTab } from './bulk-update-tabs/BulkVoidTab';
 import { SupplyBarcodeSheetModal } from './SupplyBarcodeSheetModal';
+
+import '@shared/ui/components/nav-tree/nav-tree.css';
 
 import type {
   SupplyCategory,
@@ -66,6 +71,29 @@ export function SupplyBulkUpdateModal({
   const printState = usePrintTabState(items, selectedIds);
 
   const showSelector = SELECTOR_TABS.has(actionType);
+  const selectableCount = items.filter(p => p.status === 'active').length;
+
+  const locator = (
+    <div className="flex items-center gap-3">
+      <span className="flex items-center gap-1.5">
+        <span
+          aria-hidden
+          className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+        />
+        <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+          {selectableCount} <span className="text-foreground/45">items</span>
+        </span>
+      </span>
+      {showSelector && (
+        <>
+          <span className="flex-1" />
+          <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+            {selectedIds.size} selected
+          </span>
+        </>
+      )}
+    </div>
+  );
 
   const handleResult = useCallback(
     (result: SupplyBulkResponse) => {
@@ -118,6 +146,37 @@ export function SupplyBulkUpdateModal({
   const isFormValid =
     actionType === 'archive' || (actionType === 'reassign-category' && !!targetCategoryId);
 
+  // Selector-tab footer — runs the full modal width via BaseModal's footer slot
+  // (the receive/issue/void tabs carry their own footers).
+  const selectorFooter = (
+    <div className="flex items-center justify-end gap-2">
+      <Button variant="secondary" size="sm" onClick={handleClose}>
+        Cancel
+      </Button>
+      {actionType === 'print' ? (
+        <Button
+          size="sm"
+          onClick={() => void printState.handlePreviewPrint()}
+          disabled={!printState.canPreview}
+          isLoading={printState.isLoading}
+          leftIcon={<Printer size={16} />}
+        >
+          Preview & Print ({selectedIds.size})
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          onClick={() => setPendingAction(true)}
+          disabled={selectedIds.size === 0 || !isFormValid}
+          isLoading={bulkMutation.isPending}
+          variant={actionType === 'archive' ? 'danger' : 'primary'}
+        >
+          {actionType === 'reassign-category' ? 'Reassign' : 'Archive'} ({selectedIds.size})
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <>
       <BaseModal
@@ -127,6 +186,8 @@ export function SupplyBulkUpdateModal({
         onClose={handleClose}
         size="lg"
         fixedHeight
+        locator={locator}
+        footer={showSelector ? selectorFooter : undefined}
         contentClassName="p-0 h-full"
       >
         <div className="flex flex-col h-full min-h-0">
@@ -171,7 +232,7 @@ export function SupplyBulkUpdateModal({
                 />
               </div>
 
-              <div className="w-3/5 flex flex-col min-h-0">
+              <div className="w-3/5 flex flex-col min-h-0 overflow-auto">
                 <div className="px-4 pt-4 flex-1">
                   {actionType === 'reassign-category' && (
                     <BulkReassignTab
@@ -184,32 +245,6 @@ export function SupplyBulkUpdateModal({
                   {actionType === 'archive' && <BulkArchiveTab selectedCount={selectedIds.size} />}
                   {actionType === 'print' && (
                     <BulkPrintTab selectedCount={selectedIds.size} state={printState} />
-                  )}
-                </div>
-
-                <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
-                  <Button variant="secondary" onClick={handleClose}>
-                    Cancel
-                  </Button>
-                  {actionType === 'print' ? (
-                    <Button
-                      onClick={() => void printState.handlePreviewPrint()}
-                      disabled={!printState.canPreview}
-                      isLoading={printState.isLoading}
-                      leftIcon={<Printer size={16} />}
-                    >
-                      Preview & Print ({selectedIds.size})
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => setPendingAction(true)}
-                      disabled={selectedIds.size === 0 || !isFormValid}
-                      isLoading={bulkMutation.isPending}
-                      variant={actionType === 'archive' ? 'danger' : 'primary'}
-                    >
-                      {actionType === 'reassign-category' ? 'Reassign' : 'Archive'} (
-                      {selectedIds.size})
-                    </Button>
                   )}
                 </div>
               </div>
@@ -387,20 +422,24 @@ function ItemSelector({
         inputClassName="text-xs"
         aria-label="Filter items"
       />
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50 flex-shrink-0">
-        <Checkbox
-          checked={allSelected}
-          indeterminate={someSelected && !allSelected}
-          onChange={toggleAll}
-          aria-label="Select all items"
-        />
-        <span className="text-sm font-medium text-card-foreground flex-1">All Items</span>
-        <span className="text-xs text-muted-foreground">
-          {selectedCount}/{allSelectableIds.length}
-        </span>
+      <div className="mb-3 flex-shrink-0">
+        <div className="flex items-center gap-2 pb-2">
+          <Checkbox
+            checked={allSelected}
+            indeterminate={someSelected && !allSelected}
+            onChange={toggleAll}
+            aria-label="Select all items"
+          />
+          <span className="text-sm font-medium text-card-foreground flex-1">All Items</span>
+          <span className="text-xs text-muted-foreground">
+            {selectedCount}/{allSelectableIds.length} items
+          </span>
+        </div>
+        <NubDivider tone="neutral" className="relative" />
       </div>
       <ScrollArea className="flex-1 min-h-0">
-        <div className="space-y-2 pr-2">
+        <div data-tree-id="bulk-select" className="nav-tree-select relative space-y-2 pr-2">
+          <BulkSelectTreeLines />
           {groups.length === 0 && searchQuery && (
             <p className="text-sm text-muted-foreground text-center py-4">
               No items matching &ldquo;{searchQuery}&rdquo;
@@ -414,44 +453,31 @@ function ItemSelector({
               group.items.length > 0 || group.subcategories.some(s => s.items.length > 0);
 
             return (
-              <div key={group.category.id}>
-                <div className="flex items-center gap-2 py-1 px-1 rounded hover:bg-accent/30 transition-colors">
+              <div key={group.category.id} data-level="l1" data-id={group.category.id}>
+                <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
                   <Checkbox
                     checked={groupAllChecked}
                     indeterminate={groupSomeChecked && !groupAllChecked}
                     onChange={() => toggleCategory(groupIds)}
                     aria-label={`Select all in ${group.category.name}`}
                   />
-                  <span className="text-sm font-medium text-card-foreground">
-                    {group.category.name}
+                  <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
+                  <span className="text-sm text-secondary-foreground">{group.category.name}</span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {groupIds.length} {groupIds.length === 1 ? 'item' : 'items'}
                   </span>
-                  <span className="text-xs text-muted-foreground ml-auto">{groupIds.length}</span>
                 </div>
 
                 {hasChildren && (
-                  <div className="ml-3 border-l border-muted-foreground/30">
+                  <div className="ml-3">
                     {group.items.map(item => (
-                      <div
+                      <BulkSelectItem
                         key={item.id}
-                        className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors"
-                      >
-                        <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
-                        <Checkbox
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleItem(item.id)}
-                          aria-label={`Select ${item.name}`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <span className="text-sm text-card-foreground/80 truncate block">
-                            {item.name}
-                          </span>
-                          {item.manufacturer && (
-                            <span className="text-xs text-muted-foreground truncate block">
-                              {item.manufacturer}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                        item={item}
+                        level="l2"
+                        selected={selectedIds.has(item.id)}
+                        onToggle={() => toggleItem(item.id)}
+                      />
                     ))}
 
                     {group.subcategories.map(sub => {
@@ -461,45 +487,34 @@ function ItemSelector({
                       const subSomeChecked = subIds.some(id => selectedIds.has(id));
 
                       return (
-                        <div key={sub.category.id}>
-                          <div className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors">
-                            <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
+                        <div key={sub.category.id} data-level="l2" data-id={sub.category.id}>
+                          <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
                             <Checkbox
                               checked={subAllChecked}
                               indeterminate={subSomeChecked && !subAllChecked}
                               onChange={() => toggleCategory(subIds)}
                               aria-label={`Select all in ${sub.category.name}`}
                             />
-                            <span className="text-sm font-medium text-card-foreground/80">
+                            <CornerDownRight
+                              size={13}
+                              className="flex-shrink-0 text-muted-foreground"
+                            />
+                            <span className="text-sm text-secondary-foreground">
                               {sub.category.name}
                             </span>
                             <span className="text-xs text-muted-foreground ml-auto">
-                              {subIds.length}
+                              {subIds.length} {subIds.length === 1 ? 'item' : 'items'}
                             </span>
                           </div>
-                          <div className="ml-[30px] border-l border-muted-foreground/30">
+                          <div className="ml-[30px]">
                             {sub.items.map(item => (
-                              <div
+                              <BulkSelectItem
                                 key={item.id}
-                                className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors"
-                              >
-                                <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
-                                <Checkbox
-                                  checked={selectedIds.has(item.id)}
-                                  onChange={() => toggleItem(item.id)}
-                                  aria-label={`Select ${item.name}`}
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <span className="text-sm text-card-foreground/80 truncate block">
-                                    {item.name}
-                                  </span>
-                                  {item.manufacturer && (
-                                    <span className="text-xs text-muted-foreground truncate block">
-                                      {item.manufacturer}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
+                                item={item}
+                                level="l3"
+                                selected={selectedIds.has(item.id)}
+                                onToggle={() => toggleItem(item.id)}
+                              />
                             ))}
                           </div>
                         </div>
@@ -512,6 +527,44 @@ function ItemSelector({
           })}
         </div>
       </ScrollArea>
+    </div>
+  );
+}
+
+/** A single supply row in the selector — brighter than its containers, with mfr // cat#. */
+function BulkSelectItem({
+  item,
+  level,
+  selected,
+  onToggle,
+}: {
+  item: SupplyItemWithStock;
+  level: 'l2' | 'l3';
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  const identity = [item.manufacturer, item.catalogNumber].filter(Boolean);
+
+  return (
+    <div data-level={level} data-id={item.id}>
+      <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
+        <Checkbox checked={selected} onChange={onToggle} aria-label={`Select ${item.name}`} />
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium text-card-foreground">
+            {item.name}
+          </span>
+          {identity.length > 0 && (
+            <span className="block truncate text-xs text-muted-foreground">
+              {identity.map((part, i) => (
+                <span key={i}>
+                  {i > 0 && <span className="mx-1 text-foreground/30">{'//'}</span>}
+                  {part}
+                </span>
+              ))}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

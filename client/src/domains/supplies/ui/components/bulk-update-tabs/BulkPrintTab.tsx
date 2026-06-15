@@ -21,14 +21,23 @@ import {
 } from '../sheetTemplates';
 import { FORMAT_OPTIONS, type BarcodeFormat } from '../SupplyBarcodePrint';
 
+import { SELECT_LABEL } from './fieldLabelStyle';
+
 import type { PrintableLabel } from '../supplyBarcodeSheetTypes';
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
-const SELECTED_CLASS =
-  'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md';
-const UNSELECTED_CLASS =
-  'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10';
+// Selection-card styling shared with the user-settings display-preferences tab.
+const FORMAT_CARD_BASE =
+  'relative border px-3 py-2 transition-[background-color,border-color,box-shadow,color] duration-200 ' +
+  'focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-primary/40';
+const FORMAT_CARD_SELECTED =
+  'border-primary/60 bg-[hsl(var(--primary)/0.10)] text-foreground ' +
+  'shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
+const FORMAT_CARD_UNSELECTED =
+  'border-line-mid text-secondary-foreground shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
+  'hover:border-primary/40 hover:text-foreground ' +
+  'hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
 
 const PAPER_ORDER: Record<SheetTemplate['paperSize'], number> = { letter: 0, a4: 1 };
 
@@ -305,7 +314,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
       </p>
 
       <div>
-        <h4 className="text-sm font-semibold text-card-foreground mb-2">Format</h4>
+        <h4 className={SELECT_LABEL}>Format</h4>
         <div className="grid grid-cols-2 gap-2">
           {FORMAT_OPTIONS.map(({ value, label, Icon }) => {
             const isSelected = format === value;
@@ -314,48 +323,66 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
                 key={value}
                 type="button"
                 onClick={() => setFormat(value)}
-                className={`px-3 py-2 rounded-lg border-2 text-center transition-all flex items-center justify-center gap-2 ${
-                  isSelected ? SELECTED_CLASS : UNSELECTED_CLASS
+                className={`flex items-center justify-center gap-2 ${FORMAT_CARD_BASE} ${
+                  isSelected ? FORMAT_CARD_SELECTED : FORMAT_CARD_UNSELECTED
                 }`}
               >
                 <Icon
                   size={18}
-                  className={isSelected ? 'text-white' : 'text-secondary-foreground'}
+                  className={
+                    isSelected
+                      ? 'text-primary [filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.6))]'
+                      : 'text-muted-foreground'
+                  }
                 />
-                <span className="text-sm font-semibold">{label}</span>
+                <span className={`text-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
+                  {label}
+                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <Select
-        label="Sheet template"
-        options={TEMPLATE_OPTIONS}
-        value={templateId}
-        onChange={v => handleTemplateChange(String(v ?? DEFAULT_TEMPLATE_ID))}
-        fullWidth
-        renderOption={option => (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium text-card-foreground">{option.label}</span>
-            {option.description && (
-              <span className="text-xs text-muted-foreground">({option.description})</span>
-            )}
-          </div>
-        )}
-      />
+      <div>
+        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+        <label id="bulk-print-template-label" className={SELECT_LABEL}>
+          Sheet template
+        </label>
+        <Select
+          aria-labelledby="bulk-print-template-label"
+          options={TEMPLATE_OPTIONS}
+          value={templateId}
+          onChange={v => handleTemplateChange(String(v ?? DEFAULT_TEMPLATE_ID))}
+          fullWidth
+          renderOption={option => (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium text-card-foreground">{option.label}</span>
+              {option.description && (
+                <span className="text-xs text-muted-foreground">({option.description})</span>
+              )}
+            </div>
+          )}
+        />
+      </div>
 
       {isCustom && (
         <div className="space-y-3 p-3 rounded-md border border-border bg-muted/20">
-          <Select
-            label="Paper size"
-            options={PAPER_SIZE_OPTIONS}
-            value={customInputs.paperSize}
-            onChange={v =>
-              updateCustomInput('paperSize', String(v ?? 'letter') as SheetTemplate['paperSize'])
-            }
-            fullWidth
-          />
+          <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+            <label id="bulk-print-paper-label" className={SELECT_LABEL}>
+              Paper size
+            </label>
+            <Select
+              aria-labelledby="bulk-print-paper-label"
+              options={PAPER_SIZE_OPTIONS}
+              value={customInputs.paperSize}
+              onChange={v =>
+                updateCustomInput('paperSize', String(v ?? 'letter') as SheetTemplate['paperSize'])
+              }
+              fullWidth
+            />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <CustomField
               label="Label width (inches)"
@@ -425,7 +452,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
       )}
 
       <div>
-        <h4 className="text-sm font-semibold text-card-foreground mb-2">Starting position</h4>
+        <h4 className={SELECT_LABEL}>Starting position</h4>
         <div className="flex items-center gap-2">
           <NumberInput
             value={startingPosition}
@@ -454,8 +481,8 @@ interface CustomFieldProps {
 
 function CustomField({ label, value, onChange, min, step, allowDecimals }: CustomFieldProps) {
   return (
-    <div className="flex flex-col gap-1 items-start">
-      <span className="text-xs text-muted-foreground">{label}</span>
+    <div className="flex flex-col items-start">
+      <span className={SELECT_LABEL}>{label}</span>
       <NumberInput
         value={value}
         onChange={onChange}
