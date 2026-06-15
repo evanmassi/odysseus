@@ -324,7 +324,7 @@ function GroupReticle({ active }: { active: boolean }) {
   return (
     <span
       aria-hidden
-      className={`relative flex h-3.5 w-3.5 shrink-0 rotate-45 items-center justify-center border transition ${
+      className={`relative flex h-3 w-3 shrink-0 rotate-45 items-center justify-center border transition ${
         active
           ? 'border-primary/80 shadow-[0_0_6px_1px_hsl(var(--primary)/0.65)]'
           : 'border-foreground/35'
@@ -350,12 +350,27 @@ function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGro
         aria-expanded={expanded}
         className="group flex w-full items-center gap-2.5"
       >
-        <GroupReticle active={expanded} />
-        <span className="font-mono text-[11px] uppercase tracking-[0.26em] text-foreground/80 transition-colors group-hover:text-foreground/95">
+        <span className="flex items-center gap-2.5">
+          <ChevronDown
+            size={13}
+            className={`text-foreground/40 transition-transform ${expanded ? 'rotate-0' : '-rotate-90'}`}
+          />
+          <GroupReticle active={expanded} />
+        </span>
+        <span
+          className={`font-mono text-[12.5px] uppercase tracking-[0.26em] transition-colors ${
+            expanded
+              ? 'phosphor-text font-medium text-foreground'
+              : 'text-foreground/80 group-hover:text-foreground/95'
+          }`}
+        >
           {title}
         </span>
+        <span aria-hidden className="font-mono text-[9.5px] text-foreground/30">
+          {'//'}
+        </span>
         <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/35">
-          {count}
+          {count} {count === 1 ? 'entry' : 'entries'}
         </span>
         <span className="relative flex flex-1 items-center">
           <span
@@ -367,10 +382,6 @@ function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGro
             className="absolute right-0 top-1/2 h-0.5 w-0.5 -translate-y-1/2 bg-foreground shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
           />
         </span>
-        <ChevronDown
-          size={13}
-          className={`text-foreground/40 transition-transform ${expanded ? 'rotate-0' : '-rotate-90'}`}
-        />
       </button>
       {expanded && <div className="mt-3 space-y-3">{children}</div>}
     </div>
