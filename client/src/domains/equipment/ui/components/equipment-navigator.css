@@ -203,3 +203,40 @@
   flex-shrink: 0;
   color: var(--equip-nav-text-muted);
 }
+
+/* ── Bulk-update selector tree ──────────────────────────────────────────────
+   Same depth-tiered SVG connectors + directional hover wash as the nav, tuned a
+   touch dimmer for the dense checkbox list. (Fold into the shared nav-tree sheet
+   when supplies lands.) */
+[data-tree-id='bulk-select'] .tree-line {
+  stroke: hsl(var(--primary) / 0.4);
+  opacity: 1;
+  filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.4));
+}
+
+[data-tree-id='bulk-select'] .bulk-select-row {
+  position: relative;
+  z-index: 10;
+  margin-bottom: 0.25rem;
+  border: 1px solid hsl(var(--foreground) / 0.08);
+  border-left: 3px solid hsl(var(--foreground) / 0.25);
+  transition: all 0.15s ease;
+}
+
+[data-tree-id='bulk-select'] .bulk-select-row:hover {
+  border-color: hsl(var(--primary) / 0.55);
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
+    hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
+    hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
+    hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
+    hsl(var(--primary) / 0) 100%
+  );
+  box-shadow:
+    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-hover-edge)),
+    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
+    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
+    0 0 22px -4px hsl(var(--primary) / var(--alpha-hover-bloom)),
+    0 0 50px 4px hsl(var(--primary) / var(--alpha-hover-bloom-far));
+}

@@ -14,17 +14,33 @@ import {
   equipmentBulkStatusRequestSchema,
   equipmentBulkRelocateRequestSchema,
 } from '@odysseus/shared-schemas';
-import { Layers, Wrench, RefreshCw, FolderInput } from 'lucide-react';
+import { Layers, Wrench, RefreshCw, FolderInput, FolderOpen, CornerDownRight } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 
 import { useEquipmentBulkUpdateMutation, type EquipmentBulkAction } from '@domains/equipment/hooks';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Checkbox, DatePicker, SearchInput, Select, Tabs, Tab } from '@shared/ui';
+import {
+  Button,
+  Checkbox,
+  DatePicker,
+  NubDivider,
+  SearchInput,
+  Select,
+  Tabs,
+  Tab,
+} from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import {
+  calculateTreeLines,
+  TreeLinesDisplay,
+  useTreeLines,
+} from '@shared/ui/components/tree-lines';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
+
+import './equipment-navigator.css';
 
 import type {
   EquipmentItem,
@@ -98,6 +114,66 @@ function getAllItemIds(group: CategoryGroup): string[] {
     ...group.items.map(i => i.id),
     ...group.subcategories.flatMap(s => s.items.map(i => i.id)),
   ];
+}
+
+/** SVG connectors for the selector tree, depth-tiered l1/l2/l3 like the equipment nav. */
+function BulkSelectTreeLines() {
+  const calculate = useCallback(
+    () =>
+      calculateTreeLines({
+        containerSelector: '[data-tree-id="bulk-select"]',
+        topLevelAttr: 'l1',
+        midLevelAttr: 'l2',
+        leafLevelAttr: 'l3',
+        rowSelector: '.bulk-select-row',
+        leafRowSelector: '.bulk-select-row',
+        lineOffset: 2,
+        isTopExpanded: () => true,
+      }),
+    []
+  );
+
+  const lines = useTreeLines(calculate);
+
+  return <TreeLinesDisplay lines={lines} />;
+}
+
+/** A single equipment row in the selector — brighter than its containers, with mfr // asset. */
+function BulkSelectItem({
+  item,
+  level,
+  selected,
+  onToggle,
+}: {
+  item: EquipmentItem;
+  level: 'l2' | 'l3';
+  selected: boolean;
+  onToggle: () => void;
+}) {
+  const identity = [item.manufacturer, item.assetTag].filter(Boolean);
+
+  return (
+    <div data-level={level} data-id={item.id}>
+      <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
+        <Checkbox checked={selected} onChange={onToggle} aria-label={`Select ${item.name}`} />
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium text-card-foreground">
+            {item.name}
+          </span>
+          {identity.length > 0 && (
+            <span className="block truncate text-xs text-muted-foreground">
+              {identity.map((part, i) => (
+                <span key={i}>
+                  {i > 0 && <span className="mx-1 text-foreground/30">{'//'}</span>}
+                  {part}
+                </span>
+              ))}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ItemSelector({
@@ -194,20 +270,24 @@ function ItemSelector({
         inputClassName="text-xs"
         aria-label="Filter equipment"
       />
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/50 flex-shrink-0">
-        <Checkbox
-          checked={allSelected}
-          indeterminate={someSelected && !allSelected}
-          onChange={toggleAll}
-          aria-label="Select all equipment"
-        />
-        <span className="text-sm font-medium text-card-foreground flex-1">All Equipment</span>
-        <span className="text-xs text-muted-foreground">
-          {selectedCount}/{allSelectableIds.length}
-        </span>
+      <div className="mb-3 flex-shrink-0">
+        <div className="flex items-center gap-2 pb-2">
+          <Checkbox
+            checked={allSelected}
+            indeterminate={someSelected && !allSelected}
+            onChange={toggleAll}
+            aria-label="Select all equipment"
+          />
+          <span className="text-sm font-medium text-card-foreground flex-1">All Equipment</span>
+          <span className="text-xs text-muted-foreground">
+            {selectedCount}/{allSelectableIds.length} units
+          </span>
+        </div>
+        <NubDivider tone="neutral" className="relative" />
       </div>
       <ScrollArea className="flex-1 min-h-0">
-        <div className="space-y-2 pr-2">
+        <div data-tree-id="bulk-select" className="relative space-y-2 pr-2">
+          <BulkSelectTreeLines />
           {groups.length === 0 && searchQuery && (
             <p className="text-sm text-muted-foreground text-center py-4">
               No equipment matching &ldquo;{searchQuery}&rdquo;
@@ -221,44 +301,31 @@ function ItemSelector({
               group.items.length > 0 || group.subcategories.some(s => s.items.length > 0);
 
             return (
-              <div key={group.category.id}>
-                <div className="flex items-center gap-2 py-1 px-1 rounded hover:bg-accent/30 transition-colors">
+              <div key={group.category.id} data-level="l1" data-id={group.category.id}>
+                <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
                   <Checkbox
                     checked={groupAllChecked}
                     indeterminate={groupSomeChecked && !groupAllChecked}
                     onChange={() => toggleCategory(groupIds)}
                     aria-label={`Select all in ${group.category.name}`}
                   />
-                  <span className="text-sm font-medium text-card-foreground">
-                    {group.category.name}
+                  <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
+                  <span className="text-sm text-secondary-foreground">{group.category.name}</span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {groupIds.length} {groupIds.length === 1 ? 'unit' : 'units'}
                   </span>
-                  <span className="text-xs text-muted-foreground ml-auto">{groupIds.length}</span>
                 </div>
 
                 {hasChildren && (
-                  <div className="ml-3 border-l border-muted-foreground/30">
+                  <div className="ml-3">
                     {group.items.map(item => (
-                      <div
+                      <BulkSelectItem
                         key={item.id}
-                        className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors relative"
-                      >
-                        <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
-                        <Checkbox
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleItem(item.id)}
-                          aria-label={`Select ${item.name}`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <span className="text-sm text-card-foreground/80 truncate block">
-                            {item.name}
-                          </span>
-                          {item.manufacturer && (
-                            <span className="text-xs text-muted-foreground truncate block">
-                              {item.manufacturer}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                        item={item}
+                        level="l2"
+                        selected={selectedIds.has(item.id)}
+                        onToggle={() => toggleItem(item.id)}
+                      />
                     ))}
 
                     {group.subcategories.map(sub => {
@@ -268,45 +335,34 @@ function ItemSelector({
                       const subSomeChecked = subIds.some(id => selectedIds.has(id));
 
                       return (
-                        <div key={sub.category.id}>
-                          <div className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors">
-                            <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
+                        <div key={sub.category.id} data-level="l2" data-id={sub.category.id}>
+                          <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
                             <Checkbox
                               checked={subAllChecked}
                               indeterminate={subSomeChecked && !subAllChecked}
                               onChange={() => toggleCategory(subIds)}
                               aria-label={`Select all in ${sub.category.name}`}
                             />
-                            <span className="text-sm font-medium text-card-foreground/80">
+                            <CornerDownRight
+                              size={13}
+                              className="flex-shrink-0 text-muted-foreground"
+                            />
+                            <span className="text-sm text-secondary-foreground">
                               {sub.category.name}
                             </span>
                             <span className="text-xs text-muted-foreground ml-auto">
-                              {subIds.length}
+                              {subIds.length} {subIds.length === 1 ? 'unit' : 'units'}
                             </span>
                           </div>
-                          <div className="ml-[30px] border-l border-muted-foreground/30">
+                          <div className="ml-[30px]">
                             {sub.items.map(item => (
-                              <div
+                              <BulkSelectItem
                                 key={item.id}
-                                className="flex items-center gap-2 py-1 pr-1 rounded-r hover:bg-accent/30 transition-colors"
-                              >
-                                <div className="w-2.5 border-b border-muted-foreground/30 flex-shrink-0" />
-                                <Checkbox
-                                  checked={selectedIds.has(item.id)}
-                                  onChange={() => toggleItem(item.id)}
-                                  aria-label={`Select ${item.name}`}
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <span className="text-sm text-card-foreground/80 truncate block">
-                                    {item.name}
-                                  </span>
-                                  {item.manufacturer && (
-                                    <span className="text-xs text-muted-foreground truncate block">
-                                      {item.manufacturer}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
+                                item={item}
+                                level="l3"
+                                selected={selectedIds.has(item.id)}
+                                onToggle={() => toggleItem(item.id)}
+                              />
                             ))}
                           </div>
                         </div>
