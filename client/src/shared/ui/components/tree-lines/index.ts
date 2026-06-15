@@ -8,3 +8,5 @@
 export { calculateTreeLines, type TreeLineCalcConfig } from './calculateTreeLines';
 export { TreeLinesDisplay } from './TreeLinesDisplay';
 export { useTreeLines, type TreeLine } from './useTreeLines';
+export { NavTreeLines } from './NavTreeLines';
+export { BulkSelectTreeLines } from './BulkSelectTreeLines';

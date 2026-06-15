@@ -32,15 +32,11 @@ import {
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import {
-  calculateTreeLines,
-  TreeLinesDisplay,
-  useTreeLines,
-} from '@shared/ui/components/tree-lines';
+import { BulkSelectTreeLines } from '@shared/ui/components/tree-lines';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
-import './equipment-navigator.css';
+import '@shared/ui/components/nav-tree/nav-tree.css';
 
 import type {
   EquipmentItem,
@@ -114,28 +110,6 @@ function getAllItemIds(group: CategoryGroup): string[] {
     ...group.items.map(i => i.id),
     ...group.subcategories.flatMap(s => s.items.map(i => i.id)),
   ];
-}
-
-/** SVG connectors for the selector tree, depth-tiered l1/l2/l3 like the equipment nav. */
-function BulkSelectTreeLines() {
-  const calculate = useCallback(
-    () =>
-      calculateTreeLines({
-        containerSelector: '[data-tree-id="bulk-select"]',
-        topLevelAttr: 'l1',
-        midLevelAttr: 'l2',
-        leafLevelAttr: 'l3',
-        rowSelector: '.bulk-select-row',
-        leafRowSelector: '.bulk-select-row',
-        lineOffset: 2,
-        isTopExpanded: () => true,
-      }),
-    []
-  );
-
-  const lines = useTreeLines(calculate);
-
-  return <TreeLinesDisplay lines={lines} />;
 }
 
 /** A single equipment row in the selector — brighter than its containers, with mfr // asset. */
@@ -286,7 +260,7 @@ function ItemSelector({
         <NubDivider tone="neutral" className="relative" />
       </div>
       <ScrollArea className="flex-1 min-h-0">
-        <div data-tree-id="bulk-select" className="relative space-y-2 pr-2">
+        <div data-tree-id="bulk-select" className="nav-tree-select relative space-y-2 pr-2">
           <BulkSelectTreeLines />
           {groups.length === 0 && searchQuery && (
             <p className="text-sm text-muted-foreground text-center py-4">

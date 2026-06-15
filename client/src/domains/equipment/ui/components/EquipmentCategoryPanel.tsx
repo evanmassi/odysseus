@@ -17,11 +17,11 @@ import {
 } from 'lucide-react';
 
 import { Button, OverflowMenu } from '@shared/ui';
+import { NavTreeLines } from '@shared/ui/components/tree-lines';
 
 import { EquipmentItemRow } from './EquipmentItemRow';
-import { TreeLinesByCategory } from './TreeLinesByCategory';
 
-import './equipment-navigator.css';
+import '@shared/ui/components/nav-tree/nav-tree.css';
 
 import type { EquipmentCategory, EquipmentItem } from '@odysseus/shared-schemas';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
@@ -254,8 +254,8 @@ export function EquipmentCategoryPanel({
         </p>
       )}
 
-      <div data-tree-id="equipment" className="relative flex flex-col gap-1">
-        <TreeLinesByCategory expandedCategoryIds={expandedCategoryIds} />
+      <div data-tree-id="equipment" className="nav-tree relative flex flex-col gap-1">
+        <NavTreeLines treeId="equipment" expandedCategoryIds={expandedCategoryIds} />
         {topLevelCategories.map(category => {
           const subs = subcategoriesByParent.get(category.id) ?? [];
           const totalCount = getCategoryItemCount(category.id);
@@ -267,7 +267,7 @@ export function EquipmentCategoryPanel({
           return (
             <div key={category.id} data-level="l1" data-id={category.id}>
               <div
-                className={`equip-nav-row equip-nav-row--category ${isExpanded ? 'is-open' : ''}`}
+                className={`nav-tree-row nav-tree-row--category ${isExpanded ? 'is-open' : ''}`}
                 onClick={() => toggleCategory(category.id)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') toggleCategory(category.id);
@@ -278,7 +278,7 @@ export function EquipmentCategoryPanel({
               >
                 <ChevronRight
                   size={11}
-                  className={`equip-nav-row__chevron ${isExpanded ? 'rotate-90' : ''}`}
+                  className={`nav-tree-row__chevron ${isExpanded ? 'rotate-90' : ''}`}
                 />
                 {isAdmin && (
                   <div
@@ -301,7 +301,7 @@ export function EquipmentCategoryPanel({
                   <Folder size={14} className="flex-shrink-0 text-muted-foreground" />
                 )}
                 <span
-                  className={`equip-nav-row__label font-display text-sm ${
+                  className={`nav-tree-row__label font-display text-sm ${
                     isExpanded ? 'text-foreground' : 'text-secondary-foreground'
                   }`}
                 >
@@ -313,7 +313,7 @@ export function EquipmentCategoryPanel({
                 >
                   {'//'}
                 </span>
-                <span className="equip-nav-row__count font-mono text-[10px] tracking-[0.04em]">
+                <span className="nav-tree-row__count font-mono text-[10px] tracking-[0.04em]">
                   {totalCount}{' '}
                   <span className="text-foreground/25">{totalCount === 1 ? 'unit' : 'units'}</span>
                 </span>
@@ -339,7 +339,7 @@ export function EquipmentCategoryPanel({
               </div>
 
               {isExpanded && (
-                <div className="equip-nav-children">
+                <div className="nav-tree-children">
                   {subs.map(sub => {
                     const subItems = itemsByCategoryId.get(sub.id) ?? [];
                     if (isSearching && subItems.length === 0) return null;
@@ -360,7 +360,7 @@ export function EquipmentCategoryPanel({
 
                   {/* Direct items (categories without subcategories) sit at the mid tier */}
                   {subs.length === 0 && directItems.length > 0 && (
-                    <div className="equip-nav-well">
+                    <div className="nav-tree-well">
                       {directItems.map(item => (
                         <div key={item.id} data-level="l2" data-id={item.id}>
                           <EquipmentItemRow
@@ -426,7 +426,7 @@ function SubcategorySection({
   return (
     <div data-level="l2" data-id={subcategory.id}>
       <div
-        className={`equip-nav-row equip-nav-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
+        className={`nav-tree-row nav-tree-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={e => {
           if (e.key === 'Enter') setIsExpanded(!isExpanded);
@@ -437,7 +437,7 @@ function SubcategorySection({
       >
         <ChevronRight
           size={11}
-          className={`equip-nav-row__chevron ${effectiveExpanded ? 'rotate-90' : ''}`}
+          className={`nav-tree-row__chevron ${effectiveExpanded ? 'rotate-90' : ''}`}
         />
         {isAdmin && (
           <div
@@ -458,19 +458,19 @@ function SubcategorySection({
           size={12}
           className={`flex-shrink-0 ${effectiveExpanded ? 'text-primary' : 'text-muted-foreground'}`}
         />
-        <span className="equip-nav-row__label font-display text-xs">{subcategory.name}</span>
+        <span className="nav-tree-row__label font-display text-xs">{subcategory.name}</span>
         <span aria-hidden className="flex-shrink-0 font-mono text-[10px] text-foreground/30">
           {'//'}
         </span>
-        <span className="equip-nav-row__count font-mono text-[10px] tracking-[0.04em]">
+        <span className="nav-tree-row__count font-mono text-[10px] tracking-[0.04em]">
           {items.length}{' '}
           <span className="text-foreground/25">{items.length === 1 ? 'unit' : 'units'}</span>
         </span>
       </div>
 
       {effectiveExpanded && items.length > 0 && (
-        <div className="equip-nav-children">
-          <div className="equip-nav-well">
+        <div className="nav-tree-children">
+          <div className="nav-tree-well">
             {items.map(item => (
               <div key={item.id} data-level="l3" data-id={item.id}>
                 <EquipmentItemRow

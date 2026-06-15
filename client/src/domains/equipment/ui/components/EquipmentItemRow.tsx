@@ -89,7 +89,7 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
 
   return (
     <div
-      className={`equip-nav-row equip-nav-row--item ${isSelected ? 'is-selected' : ''} ${
+      className={`nav-tree-row nav-tree-row--item ${isSelected ? 'is-selected' : ''} ${
         isDecommissioned ? 'opacity-50 hover:opacity-65' : ''
       }`}
       onClick={() => onSelect(item.id)}
