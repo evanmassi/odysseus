@@ -99,16 +99,17 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
       role="button"
       tabIndex={0}
     >
-      <span aria-hidden className={`h-6 w-0.5 flex-shrink-0 ${STATUS_LINE[statusTone]}`} />
+      <span aria-hidden className={`h-7 w-0.5 flex-shrink-0 ${STATUS_LINE[statusTone]}`} />
+
+      {isUrgent && maint && (
+        <Tooltip content={maint.tooltip}>
+          <Wrench className={`h-5 w-5 flex-shrink-0 cursor-help ${maint.color}`} />
+        </Tooltip>
+      )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex min-w-0 items-center gap-2">
-          {isUrgent && maint && (
-            <Tooltip content={maint.tooltip}>
-              <Wrench className={`h-3.5 w-3.5 flex-shrink-0 cursor-help ${maint.color}`} />
-            </Tooltip>
-          )}
-          <span className="truncate font-display text-sm font-medium text-card-foreground">
+          <span className="truncate font-display text-base font-medium leading-tight text-card-foreground">
             {item.name}
           </span>
           {isDecommissioned && (

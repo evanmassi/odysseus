@@ -309,7 +309,8 @@ export function EquipmentCategoryPanel({
                 </span>
                 <span className="text-card-foreground/30 flex-shrink-0">·</span>
                 <span className="equip-nav-row__count font-mono text-[10px] tracking-[0.04em]">
-                  {totalCount}
+                  {totalCount}{' '}
+                  <span className="text-foreground/25">{totalCount === 1 ? 'unit' : 'units'}</span>
                 </span>
                 <span className="flex-1" />
                 {isAdmin && (
@@ -457,7 +458,8 @@ function SubcategorySection({
         </span>
         <span className="text-card-foreground/30 flex-shrink-0">·</span>
         <span className="equip-nav-row__count font-mono text-[10px] tracking-[0.04em]">
-          {items.length}
+          {items.length}{' '}
+          <span className="text-foreground/25">{items.length === 1 ? 'unit' : 'units'}</span>
         </span>
       </div>
 
