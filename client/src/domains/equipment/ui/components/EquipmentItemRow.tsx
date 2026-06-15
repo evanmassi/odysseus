@@ -1,8 +1,8 @@
 /**
  * Equipment Item Row
  *
- * Single-line row for an individual equipment item with maintenance
- * status indicator and key identifying information.
+ * Inset card for an individual equipment item: a status line, the colored
+ * maintenance icon, a two-line identity, and location/asset chips.
  */
 
 import { MapPin, Tag, Wrench } from 'lucide-react';
@@ -18,6 +18,14 @@ interface EquipmentItemRowProps {
   isSelected: boolean;
   onSelect: (id: string) => void;
 }
+
+/** Short status stripe — same idiom as the navigator locator strip. */
+const STATUS_LINE: Record<'success' | 'warning' | 'danger' | 'muted', string> = {
+  success: 'bg-success-bg shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.6)]',
+  warning: 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]',
+  danger: 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]',
+  muted: 'bg-muted-foreground/40',
+};
 
 function getMaintenanceIndicator(
   nextMaintenanceDate: Date | string
@@ -58,12 +66,26 @@ function getMaintenanceIndicator(
 
 export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRowProps) {
   const isDecommissioned = item.status === 'decommissioned';
-  const maintIndicator = item.nextMaintenanceDate
+  const maint = item.nextMaintenanceDate
     ? getMaintenanceIndicator(item.nextMaintenanceDate)
     : undefined;
 
-  const detailParts = [item.manufacturer, item.model].filter(Boolean);
-  const snPart = item.serialNumber ? `SN: ${item.serialNumber}` : undefined;
+  // Maintenance wrench (and the warning/danger line tone) only show when actually
+  // due or overdue — a far-future schedule reads as active.
+  const isUrgent = maint?.color === 'text-warning-text' || maint?.color === 'text-danger-text';
+  const statusTone = isDecommissioned
+    ? 'muted'
+    : maint?.color === 'text-danger-text'
+      ? 'danger'
+      : maint?.color === 'text-warning-text'
+        ? 'warning'
+        : 'success';
+
+  const identityParts = [
+    item.manufacturer,
+    item.model,
+    item.serialNumber ? `SN ${item.serialNumber}` : '',
+  ].filter(Boolean);
 
   return (
     <div
@@ -77,38 +99,37 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
       role="button"
       tabIndex={0}
     >
-      {maintIndicator && (
-        <Tooltip content={maintIndicator.tooltip}>
-          <Wrench className={`w-3.5 h-3.5 flex-shrink-0 cursor-help ${maintIndicator.color}`} />
-        </Tooltip>
-      )}
+      <span aria-hidden className={`h-6 w-0.5 flex-shrink-0 ${STATUS_LINE[statusTone]}`} />
 
-      <div className="flex items-center gap-1 min-w-0 flex-1 truncate">
-        <span className="font-mono text-xs tracking-[0.02em] text-card-foreground truncate">
-          {item.name}
-        </span>
-        {detailParts.length > 0 && (
-          <>
-            <span className="text-card-foreground/30 flex-shrink-0">·</span>
-            <span className="text-xs text-muted-foreground truncate">
-              {detailParts.join(' · ')}
-            </span>
-          </>
-        )}
-        {snPart && (
-          <>
-            <span className="text-card-foreground/30 flex-shrink-0">·</span>
-            <span className="text-xs text-muted-foreground/60 truncate">{snPart}</span>
-          </>
-        )}
-        {isDecommissioned && (
-          <Chip color="danger" size="sm" className="uppercase tracking-wide flex-shrink-0 ml-1">
-            Decommissioned
-          </Chip>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 items-center gap-2">
+          {isUrgent && maint && (
+            <Tooltip content={maint.tooltip}>
+              <Wrench className={`h-3.5 w-3.5 flex-shrink-0 cursor-help ${maint.color}`} />
+            </Tooltip>
+          )}
+          <span className="truncate font-display text-sm font-medium text-card-foreground">
+            {item.name}
+          </span>
+          {isDecommissioned && (
+            <Chip color="danger" size="sm" className="flex-shrink-0 uppercase tracking-wide">
+              Decommissioned
+            </Chip>
+          )}
+        </div>
+        {identityParts.length > 0 && (
+          <span className="truncate font-mono text-[10px] tracking-[0.02em] text-muted-foreground">
+            {identityParts.map((part, i) => (
+              <span key={i}>
+                {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
+                {part}
+              </span>
+            ))}
+          </span>
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 flex-shrink-0">
+      <div className="flex flex-shrink-0 items-center gap-1.5">
         {item.location && (
           <Chip color="info" size="sm" leftIcon={<MapPin />}>
             {item.location}

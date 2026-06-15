@@ -6,7 +6,15 @@
 
 import { useState, useMemo, useCallback } from 'react';
 
-import { ChevronRight, Plus, SquarePen, Trash2 } from 'lucide-react';
+import {
+  ChevronRight,
+  CornerDownRight,
+  Folder,
+  FolderOpen,
+  Plus,
+  SquarePen,
+  Trash2,
+} from 'lucide-react';
 
 import { Button, OverflowMenu } from '@shared/ui';
 
@@ -287,7 +295,16 @@ export function EquipmentCategoryPanel({
                     />
                   </div>
                 )}
-                <span className="equip-nav-row__label font-mono text-sm tracking-[0.02em]">
+                {isExpanded ? (
+                  <FolderOpen size={14} className="flex-shrink-0 text-primary" />
+                ) : (
+                  <Folder size={14} className="flex-shrink-0 text-muted-foreground" />
+                )}
+                <span
+                  className={`equip-nav-row__label font-display text-sm ${
+                    isExpanded ? 'text-foreground' : 'text-secondary-foreground'
+                  }`}
+                >
                   {category.name}
                 </span>
                 <span className="text-card-foreground/30 flex-shrink-0">·</span>
@@ -336,16 +353,19 @@ export function EquipmentCategoryPanel({
                   })}
 
                   {/* Direct items (categories without subcategories) sit at the mid tier */}
-                  {subs.length === 0 &&
-                    directItems.map(item => (
-                      <div key={item.id} data-level="l2" data-id={item.id}>
-                        <EquipmentItemRow
-                          item={item}
-                          isSelected={item.id === selectedItemId}
-                          onSelect={onSelectItem}
-                        />
-                      </div>
-                    ))}
+                  {subs.length === 0 && directItems.length > 0 && (
+                    <div className="equip-nav-well">
+                      {directItems.map(item => (
+                        <div key={item.id} data-level="l2" data-id={item.id}>
+                          <EquipmentItemRow
+                            item={item}
+                            isSelected={item.id === selectedItemId}
+                            onSelect={onSelectItem}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {totalCount === 0 && (
                     <p className="text-xs text-card-foreground/30 italic text-center py-3">
@@ -428,6 +448,10 @@ function SubcategorySection({
             />
           </div>
         )}
+        <CornerDownRight
+          size={12}
+          className={`flex-shrink-0 ${effectiveExpanded ? 'text-primary' : 'text-muted-foreground'}`}
+        />
         <span className="equip-nav-row__label font-mono text-xs tracking-[0.02em]">
           {subcategory.name}
         </span>
@@ -439,15 +463,17 @@ function SubcategorySection({
 
       {effectiveExpanded && items.length > 0 && (
         <div className="equip-nav-children">
-          {items.map(item => (
-            <div key={item.id} data-level="l3" data-id={item.id}>
-              <EquipmentItemRow
-                item={item}
-                isSelected={item.id === selectedItemId}
-                onSelect={onSelectItem}
-              />
-            </div>
-          ))}
+          <div className="equip-nav-well">
+            {items.map(item => (
+              <div key={item.id} data-level="l3" data-id={item.id}>
+                <EquipmentItemRow
+                  item={item}
+                  isSelected={item.id === selectedItemId}
+                  onSelect={onSelectItem}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
