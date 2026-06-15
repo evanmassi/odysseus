@@ -99,8 +99,8 @@
      any surface. Defaults pull from theme-aware design tokens; the gateway
      overrides below lock to the always-dark palette regardless of theme. */
   .auth-input-console {
-    --console-input-surface: hsl(var(--input));
-    --console-input-surface-hover: hsl(var(--muted-hover));
+    --console-input-surface: hsl(var(--foreground) / 0.045);
+    --console-input-surface-hover: hsl(var(--foreground) / 0.07);
     --console-input-text: hsl(var(--foreground));
     --console-input-placeholder: hsl(var(--muted-foreground) / 0.4);
     --console-input-border: hsl(var(--line-soft));
@@ -115,11 +115,11 @@
     position: relative;
   }
 
-  /* Dark theme: invert the conventional "input lighter than card" pattern.
-     bg-void is darker than --card, so the input recedes below the panel surface. */
+  /* Dark theme: translucent black so the panel surface shows through, matching
+     the gateway's smoked-glass fields. */
   [data-theme='dark'] .auth-input-console {
-    --console-input-surface: hsl(var(--bg-void));
-    --console-input-surface-hover: hsl(var(--bg-base));
+    --console-input-surface: rgba(0, 0, 0, 0.42);
+    --console-input-surface-hover: rgba(0, 0, 0, 0.55);
   }
 
   /* Gateway override: locks to the always-dark palette regardless of theme,
@@ -187,13 +187,20 @@
     color: var(--console-input-label-text-focus);
   }
 
+  /* Overlaid on the full-width input (not a flex cell) so the input — and thus the
+     browser autofill highlight — spans the whole field with no separate icon zone. */
   .auth-input-console__icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 10px 0 12px;
     color: var(--console-input-icon);
-    flex-shrink: 0;
+    pointer-events: none;
+    z-index: 1;
   }
 
   .auth-input-console__control {
@@ -208,8 +215,13 @@
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
   }
 
-  .auth-input-console__icon + .auth-input-console__control {
-    padding-left: 0;
+  /* Reserve room for the overlaid icon/toggle without giving them their own cells. */
+  .auth-input-console__control--has-icon {
+    padding-left: 38px;
+  }
+
+  .auth-input-console__control--has-toggle {
+    padding-right: 42px;
   }
 
   .auth-input-console__control::placeholder {
@@ -230,15 +242,15 @@
     text-indent: 0;
   }
 
-  /* Browsers paint autofilled inputs with a hard-coded yellow bg + dark text that
-     overrides normal styling. The inset box-shadow trick provides our fill since
-     background-color is locked; transition delay parks the yellow bg out-of-frame. */
+  /* Keep autofilled cells genuinely translucent: no opaque box-shadow cover (which
+     would hide the watermark/gradient the gutters show). text-fill-color keeps the
+     value legible; the long transition defers WebKit's yellow wash off-frame. Firefox
+     applies its own autofill highlight that CSS can't fully suppress. */
   .auth-input-console__control:-webkit-autofill,
   .auth-input-console__control:-webkit-autofill:hover,
   .auth-input-console__control:-webkit-autofill:focus,
   .auth-input-console__control:autofill {
-    -webkit-box-shadow: 0 0 0 1000px var(--console-input-surface) inset !important;
-    box-shadow: 0 0 0 1000px var(--console-input-surface) inset !important;
+    background-color: transparent !important;
     -webkit-text-fill-color: var(--console-input-text) !important;
     caret-color: var(--console-input-text);
     transition: background-color 9999s ease-out 0s;
@@ -246,6 +258,10 @@
   }
 
   .auth-input-console__toggle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -254,6 +270,7 @@
     background: transparent;
     border: none;
     cursor: pointer;
+    z-index: 1;
     transition: color 120ms ease;
   }
 

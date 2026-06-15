@@ -84,7 +84,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
               // eslint-disable-next-line jsx-a11y/no-autofocus -- Controlled by parent for intentional UX
               autoFocus={autoFocus}
               placeholder={placeholder}
-              className="auth-input-console__control"
+              className={`auth-input-console__control${icon ? ' auth-input-console__control--has-icon' : ''}${isPasswordType ? ' auth-input-console__control--has-toggle' : ''}`}
             />
             {isPasswordType && (
               <button
