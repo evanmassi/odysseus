@@ -25,6 +25,7 @@ interface ReorderRow {
   manufacturer: string;
   catalogNumber: string;
   vendorName: string;
+  vendorCatalogNumber: string;
   stock: string;
   totalStock: number;
   reorder: string;
@@ -54,6 +55,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
           manufacturer: p.manufacturer ?? '—',
           catalogNumber: p.catalogNumber ?? '—',
           vendorName: p.vendorName ?? '—',
+          vendorCatalogNumber: p.vendorCatalogNumber ?? '—',
           stock: `${p.totalStock} ${pluralizeUnit(unit, p.totalStock)}`,
           totalStock: p.totalStock,
           reorder: p.reorderQuantity
@@ -75,8 +77,6 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
       if (columnId === 'name') return a.name.localeCompare(b.name) * multiplier;
       if (columnId === 'manufacturer')
         return a.manufacturer.localeCompare(b.manufacturer) * multiplier;
-      if (columnId === 'catalogNumber')
-        return a.catalogNumber.localeCompare(b.catalogNumber) * multiplier;
       if (columnId === 'vendorName') return a.vendorName.localeCompare(b.vendorName) * multiplier;
       return 0;
     });
@@ -96,23 +96,35 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
         id: 'manufacturer',
         header: 'Manufacturer',
         sortable: true,
-        render: (_value, row) => <span className="text-muted-foreground">{row.manufacturer}</span>,
-      },
-      {
-        id: 'catalogNumber',
-        header: 'Cat #',
-        sortable: true,
-        render: (_value, row) => <span className="text-muted-foreground">{row.catalogNumber}</span>,
+        render: (_value, row) => (
+          <div className="flex flex-col leading-tight">
+            <span className="text-muted-foreground">{row.manufacturer}</span>
+            {row.catalogNumber !== '—' && (
+              <span className="font-mono text-[11px] tracking-[0.02em] text-foreground/45">
+                {row.catalogNumber}
+              </span>
+            )}
+          </div>
+        ),
       },
       {
         id: 'vendorName',
         header: 'Vendor',
         sortable: true,
-        render: (_value, row) => <span className="text-muted-foreground">{row.vendorName}</span>,
+        render: (_value, row) => (
+          <div className="flex flex-col leading-tight">
+            <span className="text-muted-foreground">{row.vendorName}</span>
+            {row.vendorCatalogNumber !== '—' && (
+              <span className="font-mono text-[11px] tracking-[0.02em] text-foreground/45">
+                {row.vendorCatalogNumber}
+              </span>
+            )}
+          </div>
+        ),
       },
       {
         id: 'totalStock',
-        header: 'Stock',
+        header: 'Current Stock',
         sortable: true,
         align: 'left',
         render: (_value, row) => (
@@ -156,39 +168,41 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
       icon={<ShoppingCart size={24} />}
       onClose={onClose}
       size="lg"
-      fixedHeight
-    >
-      <div className="flex flex-col h-full min-h-0">
-        <div className="flex items-center justify-between px-4 pb-3 flex-shrink-0">
-          <span className="text-sm text-muted-foreground">
-            {items.length} item{items.length !== 1 ? 's' : ''} below reorder threshold
-          </span>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => void handleExportCsv()}
-            leftIcon={<Download className="w-3.5 h-3.5" />}
-          >
-            Export CSV
-          </Button>
-        </div>
-
-        <div className="flex-1 min-h-0 overflow-auto">
-          <Table
-            chassis={false}
-            columns={columns}
-            data={sortedRows}
-            hoverable
-            sortable
-            sortConfig={sortConfig}
-            onSort={setSortConfig}
-            density="compact"
-            className="text-xs"
-            stickyHeader
-            aria-label="Reorder list"
+      locator={
+        <div className="flex items-center gap-2.5">
+          <span
+            aria-hidden
+            className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
           />
+          <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+            {items.length} <span className="text-foreground/45">below reorder</span>
+          </span>
         </div>
-      </div>
+      }
+    >
+      <Table
+        columns={columns}
+        data={sortedRows}
+        hoverable
+        sortable
+        sortConfig={sortConfig}
+        onSort={setSortConfig}
+        density="compact"
+        className="text-xs"
+        toolbar={{
+          right: (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void handleExportCsv()}
+              leftIcon={<Download className="h-3.5 w-3.5" />}
+            >
+              Export CSV
+            </Button>
+          ),
+        }}
+        aria-label="Reorder list"
+      />
     </BaseModal>
   );
 }
