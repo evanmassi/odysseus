@@ -1,7 +1,7 @@
 /**
  * Toast Notification
  *
- * Left-border-accent notification component for react-hot-toast integration.
+ * Notification card for react-hot-toast integration.
  */
 
 import { CheckCircle, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react';
@@ -18,32 +18,42 @@ export interface ToastProps {
 const TOAST_CONFIG = {
   success: {
     icon: CheckCircle,
-    borderClass: 'border-l-[hsl(var(--color-success-bg))]',
-    iconClass: 'text-[hsl(var(--color-success-bg))]',
+    iconClass:
+      'text-[hsl(var(--color-success-bg))] drop-shadow-[0_0_5px_hsl(var(--color-success-bg)/0.75)]',
+    coreClass: 'bg-[hsl(var(--color-success-bg))]',
+    glowClass: 'bg-[hsl(var(--color-success-bg)/0.6)]',
     ariaLive: 'polite' as const,
   },
   error: {
     icon: XCircle,
-    borderClass: 'border-l-[hsl(var(--color-danger-bg))]',
-    iconClass: 'text-[hsl(var(--color-danger-bg))]',
+    iconClass:
+      'text-[hsl(var(--color-danger-bg))] drop-shadow-[0_0_5px_hsl(var(--color-danger-bg)/0.75)]',
+    coreClass: 'bg-[hsl(var(--color-danger-bg))]',
+    glowClass: 'bg-[hsl(var(--color-danger-bg)/0.6)]',
     ariaLive: 'assertive' as const,
   },
   warning: {
     icon: AlertTriangle,
-    borderClass: 'border-l-[hsl(var(--color-warning-bg))]',
-    iconClass: 'text-[hsl(var(--color-warning-bg))]',
+    iconClass:
+      'text-[hsl(var(--color-warning-bg))] drop-shadow-[0_0_5px_hsl(var(--color-warning-bg)/0.75)]',
+    coreClass: 'bg-[hsl(var(--color-warning-bg))]',
+    glowClass: 'bg-[hsl(var(--color-warning-bg)/0.6)]',
     ariaLive: 'assertive' as const,
   },
   info: {
     icon: Info,
-    borderClass: 'border-l-[hsl(var(--color-info-bg))]',
-    iconClass: 'text-[hsl(var(--color-info-bg))]',
+    iconClass:
+      'text-[hsl(var(--color-info-bg))] drop-shadow-[0_0_5px_hsl(var(--color-info-bg)/0.75)]',
+    coreClass: 'bg-[hsl(var(--color-info-bg))]',
+    glowClass: 'bg-[hsl(var(--color-info-bg)/0.6)]',
     ariaLive: 'polite' as const,
   },
   loading: {
     icon: Loader2,
-    borderClass: 'border-l-[hsl(var(--color-info-bg))]',
-    iconClass: 'text-[hsl(var(--color-info-bg))]',
+    iconClass:
+      'text-[hsl(var(--color-info-bg))] drop-shadow-[0_0_5px_hsl(var(--color-info-bg)/0.75)]',
+    coreClass: 'bg-[hsl(var(--color-info-bg))]',
+    glowClass: 'bg-[hsl(var(--color-info-bg)/0.6)]',
     ariaLive: 'polite' as const,
   },
 } as const;
@@ -59,15 +69,27 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
       aria-live={config.ariaLive}
       aria-atomic="true"
       className={`
-        flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg
+        relative isolate flex items-center gap-3 px-4 py-3
         min-w-[280px] max-w-[420px]
-        bg-toast border-l-4 ${config.borderClass}
         transition-all duration-300 ease-out
         ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
       `}
     >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
+      />
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute inset-y-3 left-[3px] w-1.5 rounded-full blur-[4px] ${config.glowClass}`}
+      />
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute inset-y-3 left-[5px] w-[1.5px] rounded-full ${config.coreClass}`}
+      />
       <Icon
         className={`w-5 h-5 flex-shrink-0 ${config.iconClass} ${isLoading ? 'animate-spin' : ''}`}
+        strokeWidth={2.25}
         aria-hidden="true"
       />
       <span className="text-sm text-toast-foreground leading-snug">{message}</span>
