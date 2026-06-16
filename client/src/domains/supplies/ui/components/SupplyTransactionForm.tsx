@@ -16,8 +16,9 @@ import {
   useRecordSupplyTransactionMutation,
   useRecordSupplyStockCountMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, Input, Select, DatePicker, Tabs, Tab } from '@shared/ui';
+import { Button, DatePicker, Input, NubDivider, Select, Tab, Tabs } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForInput } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
@@ -28,11 +29,15 @@ import type { SelectOption } from '@shared/ui/primitives/select/types';
 type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';
 
 const MODE_LABELS: Record<TransactionMode, string> = {
-  received: 'Receive:',
-  issued: 'Issue:',
-  count: 'Count:',
-  disposed: 'Dispose:',
+  received: 'Receive',
+  issued: 'Issue',
+  count: 'Count',
+  disposed: 'Dispose',
 };
+
+// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
+const SELECT_LABEL =
+  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 export interface TransactionPrefill {
   locationId?: string;
@@ -83,6 +88,8 @@ export function SupplyTransactionForm({
   const stockUnit = detail?.item.stockUnit ?? '';
   const stockUnitSingular = stockUnit || 'unit';
   const stockUnitLabel = pluralizeUnit(stockUnitSingular, 2);
+
+  const identityParts = [manufacturer, catalogNumber].filter(Boolean);
 
   const computeMultiplier = useCallback(
     (fromUnit: string): number => {
@@ -249,21 +256,40 @@ export function SupplyTransactionForm({
       : `Quantity${stockUnit ? ` (${stockUnitLabel})` : ''}`;
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="px-4 pt-4 pb-2 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5 mb-1.5">
-          <ClipboardList size={14} className="text-secondary-foreground" />
-          Record Transaction
-        </h3>
-        <p className="text-sm font-semibold text-card-foreground">{itemName}</p>
-        {(manufacturer ?? catalogNumber) && (
-          <p className="text-xs text-muted-foreground truncate">
-            {[manufacturer, catalogNumber].filter(Boolean).join(' · ')}
-          </p>
-        )}
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-3 border-b border-line-faint px-4 py-3">
+        <span className="p-1.5 text-muted-foreground">
+          <ClipboardList size={20} />
+        </span>
+        <h2 className="text-lg font-medium text-foreground">Record Transaction</h2>
       </div>
 
-      <div className="px-4 pb-2 flex-shrink-0">
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            aria-hidden
+            className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+          />
+          <span className="truncate font-display text-sm text-foreground">{itemName}</span>
+          {identityParts.length > 0 && (
+            <span className="truncate font-mono text-[11px] tracking-[0.04em] text-muted-foreground">
+              {identityParts.map((part, i) => (
+                <span key={i}>
+                  {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
+                  {part}
+                </span>
+              ))}
+            </span>
+          )}
+        </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
+      </div>
+
+      <div className="flex-shrink-0 border-b border-line-faint px-4">
         <Tabs
           value={mode}
           onChange={handleModeChange}
@@ -285,20 +311,18 @@ export function SupplyTransactionForm({
         </Tabs>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0">
+      <ScrollArea className="min-h-0 flex-1">
         <form
           id="supply-transaction-form"
           onSubmit={handleSubmit(onFormSubmit)}
-          className="px-4 pb-4 space-y-3"
+          className="space-y-3 p-4"
         >
           <input type="hidden" {...register('itemId')} />
           <input type="hidden" {...register('type')} />
 
           {hasPackaging ? (
             <div className="space-y-2">
-              <span className="text-sm font-medium text-secondary-foreground block">
-                {MODE_LABELS[mode]}
-              </span>
+              <span className={SELECT_LABEL}>{MODE_LABELS[mode]}</span>
               <div className="space-y-1.5">
                 {orderedLevels.map(level => (
                   <div key={level.unitName} className="flex items-center gap-2">
@@ -346,7 +370,7 @@ export function SupplyTransactionForm({
                 )}
               </div>
               {computedTotal !== undefined && computedTotal > 0 && (
-                <div className="bg-muted rounded-md px-3 py-1.5 text-sm font-medium">
+                <div className="border border-line-faint bg-black/20 px-3 py-1.5 text-sm font-medium">
                   Total: {computedTotal} {pluralizeUnit(stockUnitSingular, computedTotal)}
                 </div>
               )}
@@ -360,6 +384,7 @@ export function SupplyTransactionForm({
           ) : (
             <ValidatedInput
               label={quantityLabel}
+              labelStyle="compact"
               type="number"
               required
               placeholder={mode === 'count' ? 'Enter actual count...' : 'Enter quantity...'}
@@ -372,7 +397,7 @@ export function SupplyTransactionForm({
           )}
 
           {mode === 'count' && selectedLocationId && actualCount !== undefined && (
-            <div className="text-xs space-y-0.5 px-1">
+            <div className="space-y-0.5 px-1 text-xs">
               <div className="flex justify-between text-muted-foreground">
                 <span>Current stock at location:</span>
                 <span className="font-medium">
@@ -403,30 +428,35 @@ export function SupplyTransactionForm({
             name="locationId"
             control={control}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <Select
-                label="Location"
-                options={locationOptions}
-                value={value ?? ''}
-                onChange={v => onChange(v)}
-                state={error ? 'error' : 'default'}
-                error={error?.message}
-                fullWidth
-              />
+              <div>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                <label id="txn-location-label" className={SELECT_LABEL}>
+                  Location
+                </label>
+                <Select
+                  aria-labelledby="txn-location-label"
+                  options={locationOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  state={error ? 'error' : 'default'}
+                  error={error?.message}
+                  fullWidth
+                />
+              </div>
             )}
           />
 
           {mode === 'received' && (
             <>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
                 <ValidatedInput
                   label="Lot #"
+                  labelStyle="compact"
                   placeholder="Lot number"
                   registration={register('lotNumber')}
                 />
                 <div>
-                  <span className="text-sm font-medium text-secondary-foreground block mb-1">
-                    Expiration Date
-                  </span>
+                  <span className={SELECT_LABEL}>Expiration Date</span>
                   <Controller
                     name="expirationDate"
                     control={control}
@@ -441,14 +471,16 @@ export function SupplyTransactionForm({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
                 <ValidatedInput
                   label="PO #"
+                  labelStyle="compact"
                   placeholder="PO number"
                   registration={register('poNumber')}
                 />
                 <ValidatedInput
                   label="Cost ($)"
+                  labelStyle="compact"
                   type="number"
                   step="0.01"
                   placeholder="e.g., 225.00"
@@ -462,6 +494,7 @@ export function SupplyTransactionForm({
 
           <ValidatedInput
             label="Notes"
+            labelStyle="compact"
             type="textarea"
             placeholder={mode === 'count' ? 'e.g., Weekly inventory count' : 'Optional notes'}
             registration={register('notes')}
@@ -469,25 +502,30 @@ export function SupplyTransactionForm({
         </form>
       </ScrollArea>
 
-      <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
-        <Button variant="secondary" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          form="supply-transaction-form"
-          isLoading={isSubmitting}
-          loadingText="Recording..."
-        >
-          {mode === 'received'
-            ? 'Receive Stock'
-            : mode === 'issued'
-              ? 'Record Consumption'
-              : mode === 'count'
-                ? 'Save Count'
-                : 'Record Disposal'}
-        </Button>
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <div className="flex items-center justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="supply-transaction-form"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
+            loadingText="Recording..."
+          >
+            {mode === 'received'
+              ? 'Receive Stock'
+              : mode === 'issued'
+                ? 'Record Consumption'
+                : mode === 'count'
+                  ? 'Save Count'
+                  : 'Record Disposal'}
+          </Button>
+        </div>
       </div>
-    </div>
+    </ConsolePanel>
   );
 }

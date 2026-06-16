@@ -21,9 +21,10 @@ import {
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Select, Checkbox, Input } from '@shared/ui';
+import { Button, Checkbox, Input, NubDivider, SectionHeader, Select } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
@@ -47,6 +48,28 @@ interface LocalPackagingLevel {
   quantity: number;
   parentUnit: string | null;
 }
+
+// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
+const SELECT_LABEL =
+  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+
+const TRACKED_FIELDS = [
+  'name',
+  'categoryId',
+  'manufacturer',
+  'catalogNumber',
+  'vendorName',
+  'vendorCatalogNumber',
+  'baseItemName',
+  'stockUnit',
+  'properties',
+  'reorderThreshold',
+  'reorderQuantity',
+  'reorderUnit',
+  'unitPrice',
+  'description',
+  'notes',
+];
 
 export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyItemFormProps) {
   const isEditing = !!item;
@@ -241,8 +264,16 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
         },
   });
 
-  const currentBaseItemName = watch('baseItemName') as string | undefined;
-  const currentStockUnit = watch('stockUnit') as string | undefined;
+  const allValues = watch() as Record<string, unknown>;
+  const filledCount = TRACKED_FIELDS.filter(f => {
+    const v = allValues[f];
+    if (Array.isArray(v)) return v.length > 0;
+    return v != null && String(v).trim() !== '';
+  }).length;
+  const completionPct = Math.round((filledCount / TRACKED_FIELDS.length) * 100);
+
+  const currentBaseItemName = allValues['baseItemName'] as string | undefined;
+  const currentStockUnit = allValues['stockUnit'] as string | undefined;
 
   const handleAddLevel = useCallback(() => {
     const qty = Number(newLevelQty);
@@ -346,71 +377,98 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <ScrollArea className="flex-1 min-h-0">
-        <form id="supply-item-form" onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-secondary-foreground inline-flex items-center gap-1.5">
-            {isEditing ? (
-              <>
-                <SquarePen size={14} className="text-muted-foreground" /> Edit Item
-              </>
-            ) : (
-              <>
-                <Plus size={14} className="text-muted-foreground" /> Add Item
-              </>
-            )}
-          </h3>
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-3 border-b border-line-faint px-4 py-3">
+        <span className="p-1.5 text-muted-foreground">
+          {isEditing ? <SquarePen size={20} /> : <Plus size={20} />}
+        </span>
+        <h2 className="text-lg font-medium text-foreground">
+          {isEditing ? 'Edit Item' : 'Add Item'}
+        </h2>
+      </div>
 
-          {/* Name */}
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            <span
+              aria-hidden
+              className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+            />
+            Completeness
+          </span>
+          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
+            {filledCount}/{TRACKED_FIELDS.length}
+          </span>
+          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
+            <span
+              className="absolute inset-y-0 left-0 bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
+              style={{ width: `${completionPct}%` }}
+            />
+          </span>
+        </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
+      </div>
+
+      <ScrollArea className="min-h-0 flex-1">
+        <form id="supply-item-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-2 p-4">
+          <SectionHeader title="Identification" size="sm" />
           <ValidatedInput
             label="Name"
+            labelStyle="compact"
             required
             placeholder="e.g., 200μL Filter Tips"
             error={!!errors.name}
             helperText={(errors.name?.message as string) ?? undefined}
             registration={register('name')}
           />
-
-          {/* Category */}
           <Controller
             name="categoryId"
             control={control}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <Select
-                label="Category"
-                options={categoryOptions}
-                value={value ?? ''}
-                onChange={v => onChange(v)}
-                state={error ? 'error' : 'default'}
-                error={error?.message}
-                fullWidth
-                renderOption={option => (
-                  <div className="w-full">
-                    {option.description ? (
-                      <span className="pl-4 text-sm">{option.label}</span>
-                    ) : (
-                      <span className="text-sm font-semibold">{option.label}</span>
-                    )}
-                  </div>
-                )}
-                renderValue={selected => {
-                  const opt = selected[0];
-                  if (!opt?.value) return 'Select category...';
-                  return opt.description ? `${opt.description} > ${opt.label}` : opt.label;
-                }}
-              />
+              <div>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                <label id="supply-category-label" className={SELECT_LABEL}>
+                  Category
+                </label>
+                <Select
+                  aria-labelledby="supply-category-label"
+                  options={categoryOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  state={error ? 'error' : 'default'}
+                  error={error?.message}
+                  fullWidth
+                  renderOption={option => (
+                    <div className="w-full">
+                      {option.description ? (
+                        <span className="pl-4 text-sm">{option.label}</span>
+                      ) : (
+                        <span className="text-sm font-semibold">{option.label}</span>
+                      )}
+                    </div>
+                  )}
+                  renderValue={selected => {
+                    const opt = selected[0];
+                    if (!opt?.value) return 'Select category...';
+                    return opt.description ? `${opt.description} > ${opt.label}` : opt.label;
+                  }}
+                />
+              </div>
             )}
           />
 
-          {/* Manufacturer Barcode — create only */}
+          <div className="!mt-3.5">
+            <SectionHeader title="Sourcing" size="sm" />
+          </div>
           {!isEditing && (
             <div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
                 <div>
-                  <label
-                    htmlFor="mfg-barcode"
-                    className="text-sm font-medium text-secondary-foreground block mb-1"
-                  >
+                  <label htmlFor="mfg-barcode" className={SELECT_LABEL}>
                     Manufacturer Barcode
                   </label>
                   <Input
@@ -423,10 +481,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   />
                 </div>
                 <div>
-                  <label
-                    htmlFor="mfg-barcode-label"
-                    className="text-sm font-medium text-secondary-foreground block mb-1"
-                  >
+                  <label htmlFor="mfg-barcode-label" className={SELECT_LABEL}>
                     Barcode Label
                   </label>
                   <Input
@@ -439,60 +494,71 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Optional — scan the barcode on the physical box to link it automatically
               </p>
             </div>
           )}
-
-          {/* Manufacturer / Catalog # */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
             <Controller
               name="manufacturer"
               control={control}
               render={({ field: { value, onChange } }) => (
-                <Select
-                  label="Manufacturer"
-                  options={manufacturerOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  fullWidth
-                />
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="supply-manufacturer-label" className={SELECT_LABEL}>
+                    Manufacturer
+                  </label>
+                  <Select
+                    aria-labelledby="supply-manufacturer-label"
+                    options={manufacturerOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    fullWidth
+                  />
+                </div>
               )}
             />
             <ValidatedInput
               label="Catalog #"
+              labelStyle="compact"
               placeholder="e.g., 4806"
               registration={register('catalogNumber')}
             />
-          </div>
-
-          {/* Vendor / Vendor Catalog # */}
-          <div className="grid grid-cols-2 gap-3">
             <Controller
               name="vendorName"
               control={control}
               render={({ field: { value, onChange } }) => (
-                <Select
-                  label="Vendor"
-                  options={vendorOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  fullWidth
-                />
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="supply-vendor-label" className={SELECT_LABEL}>
+                    Vendor
+                  </label>
+                  <Select
+                    aria-labelledby="supply-vendor-label"
+                    options={vendorOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    fullWidth
+                  />
+                </div>
               )}
             />
             <ValidatedInput
               label="Vendor Catalog #"
+              labelStyle="compact"
               placeholder="e.g., 07-200-XXX"
               registration={register('vendorCatalogNumber')}
             />
           </div>
 
-          {/* Item / Stock Unit */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="!mt-3.5">
+            <SectionHeader title="Unit & Packaging" size="sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
             <ValidatedInput
               label="Item"
+              labelStyle="compact"
               placeholder="e.g., tip, glove, filter"
               registration={register('baseItemName')}
             />
@@ -500,23 +566,105 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               name="stockUnit"
               control={control}
               render={({ field: { value, onChange } }) => (
-                <Select
-                  label="Stock Unit"
-                  options={stockUnitOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  fullWidth
-                />
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="supply-stock-unit-label" className={SELECT_LABEL}>
+                    Stock Unit
+                  </label>
+                  <Select
+                    aria-labelledby="supply-stock-unit-label"
+                    options={stockUnitOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    fullWidth
+                  />
+                </div>
               )}
             />
           </div>
+          <div>
+            <span className={SELECT_LABEL}>Packaging</span>
+            {packagingLevels.length > 0 && (
+              <div className="mb-2 space-y-1">
+                {packagingLevels.map((level, index) => {
+                  const levelData = {
+                    unitName: level.unitName,
+                    quantity: level.quantity,
+                    parentUnit: ('parentUnit' in level ? level.parentUnit : null) as string | null,
+                  };
+                  const levelId = 'id' in level ? (level.id as string) : undefined;
+                  const hasChildren = packagingLevels.some(
+                    l => ('parentUnit' in l ? l.parentUnit : null) === levelData.unitName
+                  );
+                  return (
+                    <div
+                      key={levelId ?? `local-${index}`}
+                      className="flex items-center justify-between border border-line-faint bg-black/20 px-2.5 py-1.5 text-sm"
+                    >
+                      <span>{formatLevelDisplay(levelData)}</span>
+                      <button
+                        type="button"
+                        className={`p-0.5 ${hasChildren ? 'cursor-not-allowed text-muted-foreground' : 'text-danger-text hover:text-danger-text/80'}`}
+                        disabled={hasChildren}
+                        title={hasChildren ? 'Remove child levels first' : 'Remove'}
+                        onClick={() => handleRemoveLevel(index, levelId)}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="flex items-end gap-2">
+              <div className="w-16">
+                <Input
+                  type="number"
+                  value={newLevelQty}
+                  onValueChange={setNewLevelQty}
+                  placeholder="Qty"
+                  size="sm"
+                  fullWidth
+                  aria-label="Quantity"
+                />
+              </div>
+              <div className="flex-1">
+                <Select
+                  options={parentOptions}
+                  value={newLevelParent ?? topOfChain ?? '__base__'}
+                  onChange={v => setNewLevelParent(v === '__base__' ? null : String(v ?? ''))}
+                  size="sm"
+                  fullWidth
+                  aria-label="Contents"
+                />
+              </div>
+              <span className="pb-1.5 text-xs text-muted-foreground">per</span>
+              <div className="flex-1">
+                <Select
+                  options={availableUnitOptions}
+                  value={newLevelUnit}
+                  onChange={v => setNewLevelUnit(String(v ?? ''))}
+                  size="sm"
+                  fullWidth
+                  aria-label="New unit"
+                />
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={!newLevelUnit || !newLevelQty || Number(newLevelQty) <= 0}
+                onClick={handleAddLevel}
+              >
+                Add
+              </Button>
+            </div>
+          </div>
 
-          {/* Properties */}
           {itemProperties.length > 0 && (
-            <div>
-              <span className="text-sm font-medium text-secondary-foreground mb-1 block">
-                Properties
-              </span>
+            <>
+              <div className="!mt-3.5">
+                <SectionHeader title="Properties" size="sm" />
+              </div>
               <Controller
                 name="properties"
                 control={control}
@@ -542,7 +690,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                       {itemProperties.map((pp: { id: string; value: string }) => (
                         <label
                           key={pp.id}
-                          className="flex items-center gap-1.5 text-sm cursor-pointer"
+                          className="flex cursor-pointer items-center gap-1.5 text-sm"
                         >
                           <Checkbox
                             checked={(value as string[]).includes(pp.value)}
@@ -559,248 +707,168 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   </div>
                 )}
               />
-            </div>
+            </>
           )}
 
-          {/* Packaging */}
-          <div>
-            <span className="text-sm font-medium text-secondary-foreground block mb-1">
-              Packaging
-            </span>
-
-            {packagingLevels.length > 0 && (
-              <div className="space-y-1 mb-2">
-                {packagingLevels.map((level, index) => {
-                  const levelData = {
-                    unitName: level.unitName,
-                    quantity: level.quantity,
-                    parentUnit: ('parentUnit' in level ? level.parentUnit : null) as string | null,
-                  };
-                  const levelId = 'id' in level ? (level.id as string) : undefined;
-                  const hasChildren = packagingLevels.some(
-                    l => ('parentUnit' in l ? l.parentUnit : null) === levelData.unitName
-                  );
-                  return (
-                    <div
-                      key={levelId ?? `local-${index}`}
-                      className="flex items-center justify-between text-sm px-2 py-1 bg-muted rounded"
-                    >
-                      <span>{formatLevelDisplay(levelData)}</span>
-                      <button
-                        type="button"
-                        className={`p-0.5 ${hasChildren ? 'text-muted-foreground cursor-not-allowed' : 'text-danger-text hover:text-danger-text/80'}`}
-                        disabled={hasChildren}
-                        title={hasChildren ? 'Remove child levels first' : 'Remove'}
-                        onClick={() => handleRemoveLevel(index, levelId)}
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="flex items-end gap-2">
-              <div className="w-16">
-                <Input
-                  type="number"
-                  value={newLevelQty}
-                  onValueChange={setNewLevelQty}
-                  placeholder="Qty"
-                  size="sm"
-                  fullWidth
-                  aria-label="Quantity"
-                />
-              </div>
-              <div className="flex-1">
-                <Select
-                  options={parentOptions}
-                  value={newLevelParent ?? topOfChain ?? '__base__'}
-                  onChange={v => setNewLevelParent(v === '__base__' ? null : String(v ?? ''))}
-                  size="sm"
-                  fullWidth
-                  aria-label="Contents"
-                />
-              </div>
-              <span className="text-xs text-muted-foreground pb-1.5">per</span>
-              <div className="flex-1">
-                <Select
-                  options={availableUnitOptions}
-                  value={newLevelUnit}
-                  onChange={v => setNewLevelUnit(String(v ?? ''))}
-                  size="sm"
-                  fullWidth
-                  aria-label="New unit"
-                />
-              </div>
-              <Button
-                variant="secondary"
+          <div className="!mt-3.5">
+            <SectionHeader title="Reorder Settings" size="sm" />
+          </div>
+          <div className="grid grid-cols-3 items-end gap-2.5">
+            <div>
+              <label htmlFor="threshold-qty" className={SELECT_LABEL}>
+                Threshold
+              </label>
+              <Input
+                id="threshold-qty"
+                type="number"
+                value={thresholdInputQty}
+                onValueChange={v => {
+                  setThresholdInputQty(v);
+                  const qty = v === '' ? undefined : Number(v);
+                  const multiplier = thresholdUnit
+                    ? computeThresholdMultiplier(thresholdUnit, currentStockUnit)
+                    : 1;
+                  setValue('reorderThreshold', qty !== undefined ? qty * multiplier : undefined);
+                  setValue('reorderThresholdUnit', thresholdUnit || undefined);
+                }}
+                placeholder="e.g., 2"
                 size="sm"
-                disabled={!newLevelUnit || !newLevelQty || Number(newLevelQty) <= 0}
-                onClick={handleAddLevel}
-              >
-                Add
-              </Button>
+                fullWidth
+              />
+            </div>
+            {thresholdUnitOptions.length > 0 ? (
+              <div>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                <label id="supply-threshold-unit-label" className={SELECT_LABEL}>
+                  Unit
+                </label>
+                <Select
+                  aria-labelledby="supply-threshold-unit-label"
+                  options={thresholdUnitOptions}
+                  value={thresholdUnit}
+                  onChange={v => {
+                    const unit = String(v ?? '');
+                    setThresholdUnit(unit);
+                    const qty = thresholdInputQty === '' ? undefined : Number(thresholdInputQty);
+                    const multiplier = unit
+                      ? computeThresholdMultiplier(unit, currentStockUnit)
+                      : 1;
+                    setValue('reorderThreshold', qty !== undefined ? qty * multiplier : undefined);
+                    setValue('reorderThresholdUnit', unit || undefined);
+                  }}
+                  size="sm"
+                  fullWidth
+                />
+              </div>
+            ) : (
+              <div />
+            )}
+            <div className="flex items-end pb-1">
+              {thresholdUnit &&
+                thresholdInputQty &&
+                computeThresholdMultiplier(thresholdUnit, currentStockUnit) > 1 && (
+                  <span className="whitespace-nowrap text-xs text-muted-foreground">
+                    ={' '}
+                    {Number(thresholdInputQty) *
+                      computeThresholdMultiplier(thresholdUnit, currentStockUnit)}{' '}
+                    {pluralizeUnit(
+                      currentStockUnit ?? 'unit',
+                      Number(thresholdInputQty) *
+                        computeThresholdMultiplier(thresholdUnit, currentStockUnit)
+                    )}
+                  </span>
+                )}
             </div>
           </div>
+          <input
+            type="hidden"
+            {...register('reorderThreshold', {
+              setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+            })}
+          />
+          <input type="hidden" {...register('reorderThresholdUnit')} />
+          <div className="grid grid-cols-3 gap-2.5 [&>*]:min-w-0">
+            <ValidatedInput
+              label="Reorder Qty"
+              labelStyle="compact"
+              type="number"
+              placeholder="e.g., 5"
+              registration={register('reorderQuantity', {
+                setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+              })}
+            />
+            <Controller
+              name="reorderUnit"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                  <label id="supply-reorder-unit-label" className={SELECT_LABEL}>
+                    Reorder Unit
+                  </label>
+                  <Select
+                    aria-labelledby="supply-reorder-unit-label"
+                    options={stockUnitOptions}
+                    value={value ?? ''}
+                    onChange={v => onChange(v)}
+                    fullWidth
+                  />
+                </div>
+              )}
+            />
+            <ValidatedInput
+              label="Price ($)"
+              labelStyle="compact"
+              type="number"
+              step="0.01"
+              placeholder="e.g., 45"
+              registration={register('unitPrice', {
+                setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+              })}
+            />
+          </div>
 
-          {/* Description */}
+          <div className="!mt-3.5">
+            <SectionHeader title="Notes" size="sm" />
+          </div>
           <ValidatedInput
             label="Description"
+            labelStyle="compact"
             type="textarea"
             placeholder="Optional description"
             registration={register('description')}
           />
-
-          {/* Notes */}
           <ValidatedInput
             label="Notes"
+            labelStyle="compact"
             type="textarea"
             placeholder="Admin notes"
             registration={register('notes')}
           />
-
-          {/* Reorder Settings — at the bottom */}
-          <div>
-            <div className="flex items-center gap-3 mb-2.5">
-              <span className="text-xs text-muted-foreground/60 whitespace-nowrap font-medium">
-                Reorder Settings
-              </span>
-              <div className="h-px flex-1 bg-muted-foreground/60" />
-            </div>
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-3 items-end">
-                <div>
-                  <label
-                    htmlFor="threshold-qty"
-                    className="text-sm font-medium text-secondary-foreground block mb-1"
-                  >
-                    Threshold
-                  </label>
-                  <Input
-                    id="threshold-qty"
-                    type="number"
-                    value={thresholdInputQty}
-                    onValueChange={v => {
-                      setThresholdInputQty(v);
-                      const qty = v === '' ? undefined : Number(v);
-                      const multiplier = thresholdUnit
-                        ? computeThresholdMultiplier(thresholdUnit, currentStockUnit)
-                        : 1;
-                      setValue(
-                        'reorderThreshold',
-                        qty !== undefined ? qty * multiplier : undefined
-                      );
-                      setValue('reorderThresholdUnit', thresholdUnit || undefined);
-                    }}
-                    placeholder="e.g., 2"
-                    size="sm"
-                    fullWidth
-                  />
-                </div>
-                {thresholdUnitOptions.length > 0 ? (
-                  <div>
-                    <Select
-                      label="Unit"
-                      options={thresholdUnitOptions}
-                      value={thresholdUnit}
-                      onChange={v => {
-                        const unit = String(v ?? '');
-                        setThresholdUnit(unit);
-                        const qty =
-                          thresholdInputQty === '' ? undefined : Number(thresholdInputQty);
-                        const multiplier = unit
-                          ? computeThresholdMultiplier(unit, currentStockUnit)
-                          : 1;
-                        setValue(
-                          'reorderThreshold',
-                          qty !== undefined ? qty * multiplier : undefined
-                        );
-                        setValue('reorderThresholdUnit', unit || undefined);
-                      }}
-                      size="sm"
-                      fullWidth
-                    />
-                  </div>
-                ) : (
-                  <div />
-                )}
-                <div className="flex items-end pb-1">
-                  {thresholdUnit &&
-                    thresholdInputQty &&
-                    computeThresholdMultiplier(thresholdUnit, currentStockUnit) > 1 && (
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        ={' '}
-                        {Number(thresholdInputQty) *
-                          computeThresholdMultiplier(thresholdUnit, currentStockUnit)}{' '}
-                        {pluralizeUnit(
-                          currentStockUnit ?? 'unit',
-                          Number(thresholdInputQty) *
-                            computeThresholdMultiplier(thresholdUnit, currentStockUnit)
-                        )}
-                      </span>
-                    )}
-                </div>
-              </div>
-              <input
-                type="hidden"
-                {...register('reorderThreshold', {
-                  setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-                })}
-              />
-              <input type="hidden" {...register('reorderThresholdUnit')} />
-              <div className="grid grid-cols-3 gap-3">
-                <ValidatedInput
-                  label="Reorder Qty"
-                  type="number"
-                  placeholder="e.g., 5"
-                  registration={register('reorderQuantity', {
-                    setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-                  })}
-                />
-                <Controller
-                  name="reorderUnit"
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <Select
-                      label="Reorder Unit"
-                      options={stockUnitOptions}
-                      value={value ?? ''}
-                      onChange={v => onChange(v)}
-                      fullWidth
-                    />
-                  )}
-                />
-                <ValidatedInput
-                  label="Price ($)"
-                  type="number"
-                  step="0.01"
-                  placeholder="e.g., 45"
-                  registration={register('unitPrice', {
-                    setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-                  })}
-                />
-              </div>
-            </div>
-          </div>
         </form>
       </ScrollArea>
 
-      <div className="flex justify-end gap-2 px-4 py-3 border-t border-border flex-shrink-0">
-        <Button variant="secondary" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          form="supply-item-form"
-          isLoading={isSubmitting}
-          loadingText={isEditing ? 'Saving...' : 'Adding...'}
-          leftIcon={isEditing ? <Save size={16} /> : <Plus size={16} />}
-        >
-          {isEditing ? 'Save' : 'Add Item'}
-        </Button>
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <div className="flex items-center justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="supply-item-form"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
+            loadingText={isEditing ? 'Saving...' : 'Adding...'}
+            leftIcon={
+              isEditing ? <Save className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />
+            }
+          >
+            {isEditing ? 'Save Changes' : 'Add Item'}
+          </Button>
+        </div>
       </div>
-    </div>
+    </ConsolePanel>
   );
 }

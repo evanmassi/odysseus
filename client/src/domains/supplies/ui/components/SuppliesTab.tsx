@@ -321,9 +321,7 @@ export function SuppliesTab() {
 
         {/* Right Panel: Detail / Edit / Transaction */}
         <div
-          className={`flex-shrink-0 flex flex-col min-h-0 overflow-hidden ${
-            rightPanel && rightPanel.type !== 'info' ? 'bg-card rounded-lg' : ''
-          }`}
+          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
           {!rightPanel && <SupplyInfoPanelEmpty />}
