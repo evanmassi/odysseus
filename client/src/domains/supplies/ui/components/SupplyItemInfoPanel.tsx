@@ -334,33 +334,81 @@ export function SupplyItemInfoPanel({
           {detail.packagingLevels.length > 0 && (
             <div>
               <SectionHeader title="Packaging" size="sm" />
-              <div className="text-sm text-card-foreground">
-                {(() => {
-                  const levels = detail.packagingLevels;
-                  const ordered: typeof levels = [];
-                  const bottom = levels.find(l => l.parentUnit === null);
-                  if (bottom) {
-                    ordered.push(bottom);
-                    let current = bottom;
-                    for (let i = 0; i < levels.length; i++) {
-                      const next = levels.find(l => l.parentUnit === current.unitName);
-                      if (!next) break;
-                      ordered.push(next);
-                      current = next;
-                    }
+              {(() => {
+                // Walk the chain base-up, accumulating the running base-unit total so
+                // each tier can show the multiplicative scale the flat text hid.
+                const levels = detail.packagingLevels;
+                const bottomUp: typeof levels = [];
+                const bottom = levels.find(l => l.parentUnit === null);
+                if (bottom) {
+                  bottomUp.push(bottom);
+                  let current = bottom;
+                  for (let i = 0; i < levels.length; i++) {
+                    const next = levels.find(l => l.parentUnit === current.unitName);
+                    if (!next) break;
+                    bottomUp.push(next);
+                    current = next;
                   }
-                  return ordered.map((level, i) => {
-                    const parentName = level.parentUnit ?? item.baseItemName ?? 'item';
-                    return (
-                      <span key={level.id}>
-                        {i > 0 && <span className="mx-1.5 text-muted-foreground/40">·</span>}
-                        {level.quantity} {pluralizeUnit(parentName, level.quantity)}{' '}
-                        <span className="text-muted-foreground">per</span> {level.unitName}
-                      </span>
-                    );
-                  });
-                })()}
-              </div>
+                }
+                const baseName = item.baseItemName ?? item.stockUnit ?? 'unit';
+                let running = 1;
+                const tiers = bottomUp.map(level => {
+                  running *= level.quantity;
+                  const childUnit = level.parentUnit ?? baseName;
+                  return {
+                    id: level.id,
+                    name: level.unitName,
+                    contains: `${level.quantity} ${pluralizeUnit(childUnit, level.quantity)}`,
+                    roll: running,
+                  };
+                });
+                // Largest unit on top; base unit as the final rung.
+                const rows = [
+                  ...tiers.slice().reverse(),
+                  { id: '__base__', name: baseName, contains: 'base unit', roll: 1 },
+                ];
+
+                return (
+                  <div className="border border-line-soft">
+                    {rows.map((row, i) => {
+                      const toned = i === 0;
+                      return (
+                        <div
+                          key={row.id}
+                          className={`grid grid-cols-[1fr_1.3fr_auto] items-center gap-4 px-4 py-3 ${
+                            i < rows.length - 1 ? 'border-b border-line-faint' : ''
+                          } ${toned ? 'bg-primary/[0.06]' : ''}`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              aria-hidden
+                              className={`h-4 w-[3px] flex-shrink-0 ${
+                                toned ? 'bg-primary' : 'bg-muted-foreground/30'
+                              }`}
+                            />
+                            <span className="font-display text-sm capitalize text-card-foreground">
+                              {row.name}
+                            </span>
+                          </div>
+                          <span className="font-mono text-[11px] tracking-[0.04em] text-muted-foreground">
+                            contains {row.contains}
+                          </span>
+                          <span
+                            className={`text-right font-mono text-xs tracking-[0.04em] ${
+                              toned ? 'text-primary' : 'text-foreground/70'
+                            }`}
+                          >
+                            {row.roll.toLocaleString()}
+                            <span className="ml-1 text-[9.5px] text-foreground/40">
+                              {pluralizeUnit(baseName, row.roll)}
+                            </span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
