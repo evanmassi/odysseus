@@ -19,6 +19,9 @@
 }
 
 .nav-tree .nav-tree-row {
+  /* Hover/selected glow tone — defaults to primary; rows (e.g. low-stock supply
+     items) override it to warning/danger to tint their glow without new rules. */
+  --row-tone: var(--primary);
   display: flex;
   align-items: center;
   position: relative;
@@ -37,37 +40,69 @@
    primary wash + glowing leading stripe + bloom. Skipped on selected/open rows so
    they keep their own stripe-on-open treatment. */
 .nav-tree .nav-tree-row:not(.is-selected):not(.is-open):hover {
-  border-color: hsl(var(--primary) / 0.4);
-  background: linear-gradient(
-    90deg,
-    hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
-    hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
-    hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
-    hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
-    hsl(var(--primary) / 0) 100%
-  );
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.12) 0,
+      rgba(0, 0, 0, 0.12) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      90deg,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-1)) 0%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-2)) 18%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-3)) 48%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-4)) 78%,
+      hsl(var(--row-tone) / 0) 100%
+    );
   box-shadow:
-    inset 3px 0 0 0 hsl(var(--primary) / var(--alpha-hover-stripe)),
-    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-hover-edge)),
-    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
-    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
-    0 0 22px -4px hsl(var(--primary) / var(--alpha-hover-bloom)),
-    0 0 50px 4px hsl(var(--primary) / var(--alpha-hover-bloom-far));
+    inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe)),
+    inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-hover-edge)),
+    inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
+    inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
+    0 0 22px -4px hsl(var(--row-tone) / var(--alpha-hover-bloom)),
+    0 0 50px 4px hsl(var(--row-tone) / var(--alpha-hover-bloom-far));
 }
 
-/* Containers when open: a quiet wash + leading stripe, kept legible against the
-   chassis by a faint primary outline (still well below the selected card). */
+/* Open container: the active state for a category/subcategory (only items get
+   .is-selected). Sits above the closed-row hover, below a selected item. */
 .nav-tree .nav-tree-row.is-open {
-  border-color: hsl(var(--primary) / 0.3);
-  background: linear-gradient(90deg, hsl(var(--primary) / 0.07), transparent 72%);
-  box-shadow: inset 2px 0 0 hsl(var(--primary) / 0.55);
+  border-color: hsl(var(--primary) / 0.5);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.12) 0,
+      rgba(0, 0, 0, 0.12) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      90deg,
+      hsl(var(--primary) / 0.12) 0%,
+      hsl(var(--primary) / 0.05) 60%,
+      transparent 100%
+    );
+  box-shadow:
+    inset 3px 0 0 0 hsl(var(--primary)),
+    inset 14px 0 30px -12px hsl(var(--primary) / 0.16),
+    0 0 18px -6px hsl(var(--primary) / 0.3);
   color: var(--nav-tree-selected-text);
+}
+
+/* Open container, hovered: a small lift so it isn't a dead zone (still below selected). */
+.nav-tree .nav-tree-row.is-open:hover {
+  border-color: hsl(var(--primary) / 0.65);
+  box-shadow:
+    inset 3px 0 0 0 hsl(var(--primary)),
+    inset 14px 0 30px -12px hsl(var(--primary) / 0.2),
+    0 0 22px -6px hsl(var(--primary) / 0.4);
 }
 
 /* Selected leaf pops: lit border + the data Table's inner edge bloom + outer
    glow, so the real object reads above its receded containers. */
 .nav-tree .nav-tree-row--item.is-selected {
-  border-color: hsl(var(--primary) / 0.6);
+  border-color: hsl(var(--row-tone) / 0.6);
   background:
     repeating-linear-gradient(
       to bottom,
@@ -78,29 +113,34 @@
     ),
     linear-gradient(
       180deg,
-      hsl(var(--primary) / var(--alpha-glow-tint)),
-      hsl(var(--primary) / var(--alpha-glow-tint))
+      hsl(var(--row-tone) / var(--alpha-glow-tint)),
+      hsl(var(--row-tone) / var(--alpha-glow-tint))
     ),
     linear-gradient(
       90deg,
-      hsl(var(--primary) / var(--alpha-glow-wash-1)) 0%,
-      hsl(var(--primary) / var(--alpha-glow-wash-2)) 18%,
-      hsl(var(--primary) / var(--alpha-glow-wash-3)) 48%,
-      hsl(var(--primary) / var(--alpha-glow-wash-4)) 78%,
-      hsl(var(--primary) / 0) 100%
+      hsl(var(--row-tone) / var(--alpha-glow-wash-1)) 0%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-2)) 18%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-3)) 48%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-4)) 78%,
+      hsl(var(--row-tone) / 0) 100%
     ),
     hsl(var(--card));
   box-shadow:
-    inset 3px 0 0 0 hsl(var(--primary)),
-    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-glow-edge-inner)),
-    inset 0 1px 0 hsl(var(--primary) / var(--alpha-glow-edge-rim)),
-    inset 0 -1px 0 hsl(var(--primary) / var(--alpha-glow-edge-rim)),
-    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-glow-edge-bloom)),
-    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-glow-edge-bloom)),
-    0 0 32px -4px hsl(var(--primary) / var(--alpha-glow-outer-near)),
-    0 0 80px 4px hsl(var(--primary) / var(--alpha-glow-outer-far));
+    inset 3px 0 0 0 hsl(var(--row-tone)),
+    inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-glow-edge-inner)),
+    inset 0 1px 0 hsl(var(--row-tone) / var(--alpha-glow-edge-rim)),
+    inset 0 -1px 0 hsl(var(--row-tone) / var(--alpha-glow-edge-rim)),
+    inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
+    inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
+    0 0 32px -4px hsl(var(--row-tone) / var(--alpha-glow-outer-near)),
+    0 0 80px 4px hsl(var(--row-tone) / var(--alpha-glow-outer-far));
   color: var(--nav-tree-selected-text);
   font-weight: 600;
+}
+
+/* Selected item, hovered: subtle border lift — it is already the brightest state. */
+.nav-tree .nav-tree-row--item.is-selected:hover {
+  border-color: hsl(var(--row-tone) / 0.8);
 }
 
 /* Closed top-level categories read as raised section bars — a faint fill, defined
@@ -226,14 +266,22 @@
 
 .nav-tree-select .bulk-select-row:hover {
   border-color: hsl(var(--primary) / 0.55);
-  background: linear-gradient(
-    90deg,
-    hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
-    hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
-    hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
-    hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
-    hsl(var(--primary) / 0) 100%
-  );
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.12) 0,
+      rgba(0, 0, 0, 0.12) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      90deg,
+      hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
+      hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
+      hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
+      hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
+      hsl(var(--primary) / 0) 100%
+    );
   box-shadow:
     inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-hover-edge)),
     inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),

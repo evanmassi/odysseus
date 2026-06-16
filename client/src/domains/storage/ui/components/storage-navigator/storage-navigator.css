@@ -69,15 +69,22 @@
    selected/expanded rows so they keep their own stripe-on-open treatment. */
 [data-tree-id='navigator'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover,
 [data-tree-id^='modal'] .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
-  border-color: hsl(var(--primary) / 0.4);
-  background: linear-gradient(
-    90deg,
-    hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
-    hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
-    hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
-    hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
-    hsl(var(--primary) / 0) 100%
-  );
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.12) 0,
+      rgba(0, 0, 0, 0.12) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      90deg,
+      hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
+      hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
+      hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
+      hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
+      hsl(var(--primary) / 0) 100%
+    );
   box-shadow:
     inset 3px 0 0 0 hsl(var(--primary) / var(--alpha-hover-stripe)),
     inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-hover-edge)),
@@ -87,15 +94,58 @@
     0 0 50px 4px hsl(var(--primary) / var(--alpha-hover-bloom-far));
 }
 
-[data-tree-id='navigator'] .storage-nav-button.selected,
-[data-tree-id='navigator'] .storage-nav-button[aria-expanded='true'],
-[data-tree-id^='modal'] .storage-nav-button.selected,
-[data-tree-id^='modal'] .storage-nav-button[aria-expanded='true'] {
+/* Open container that isn't the current selection: a quiet wash + leading stripe
+   so it recedes beneath the selected target (which gets the full glow below). */
+[data-tree-id='navigator'] .storage-nav-button[aria-expanded='true']:not(.selected),
+[data-tree-id^='modal'] .storage-nav-button[aria-expanded='true']:not(.selected) {
   border-color: hsl(var(--primary) / 0.5);
-  background: linear-gradient(90deg, hsl(var(--primary) / 0.12), transparent 72%);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.12) 0,
+      rgba(0, 0, 0, 0.12) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(90deg, hsl(var(--primary) / 0.12), transparent 72%);
   box-shadow:
     inset 2px 0 0 hsl(var(--primary)),
     0 0 12px -6px hsl(var(--primary) / 0.55);
+}
+
+/* Selected node at any level (tank/rack/box): the full data-table glow shared
+   with the box minimaps, so the actual pick always reads strongest. */
+[data-tree-id='navigator'] .storage-nav-button.selected,
+[data-tree-id^='modal'] .storage-nav-button.selected {
+  border-color: hsl(var(--primary) / 0.6);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.12) 0,
+      rgba(0, 0, 0, 0.12) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(
+      180deg,
+      hsl(var(--primary) / var(--alpha-glow-tint)),
+      hsl(var(--primary) / var(--alpha-glow-tint))
+    ),
+    linear-gradient(
+      90deg,
+      hsl(var(--primary) / var(--alpha-glow-wash-1)) 0%,
+      hsl(var(--primary) / var(--alpha-glow-wash-2)) 18%,
+      hsl(var(--primary) / var(--alpha-glow-wash-3)) 48%,
+      hsl(var(--primary) / var(--alpha-glow-wash-4)) 78%,
+      hsl(var(--primary) / 0) 100%
+    );
+  box-shadow:
+    inset 3px 0 0 0 hsl(var(--primary)),
+    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-glow-edge-inner)),
+    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-glow-edge-bloom)),
+    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-glow-edge-bloom)),
+    0 0 32px -4px hsl(var(--primary) / var(--alpha-glow-outer-near)),
+    0 0 80px 4px hsl(var(--primary) / var(--alpha-glow-outer-far));
 }
 
 /* Glowing-blue connectors for both the dashboard navigator and the StorageManager
