@@ -27,7 +27,8 @@ export function BulkSelectTreeLines() {
     []
   );
 
-  const lines = useTreeLines(calculate);
+  // Wait out the modal entrance animation before measuring, else lines land mid-transform.
+  const lines = useTreeLines(calculate, { initialDelay: 450 });
 
   return <TreeLinesDisplay lines={lines} />;
 }
