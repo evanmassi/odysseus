@@ -50,6 +50,7 @@ import type {
   UpdateEquipmentItemRequest,
   DecommissionEquipmentItemRequest,
   CreateEquipmentDocumentRequest,
+  UpdateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
   EquipmentStatus,
@@ -355,6 +356,26 @@ export class EquipmentApplicationService {
     ));
 
     return EquipmentDto.documentToResponse(document);
+  }
+
+  async updateDocument(
+    labId: string,
+    itemId: string,
+    docId: string,
+    data: UpdateEquipmentDocumentRequest,
+    user: User
+  ): Promise<EquipmentDocumentResponse> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getItemOrThrow(itemId, labId);
+    await this.itemRepository.updateDocument(docId, {
+      label: data.label,
+      url: data.url,
+      notes: data.notes,
+    });
+    const docs = await this.itemRepository.findDocumentsByItemId(itemId);
+    const updated = docs.find(d => d.id === docId);
+    if (!updated) throw new NotFoundError(`Document ${docId} not found`);
+    return EquipmentDto.documentToResponse(updated);
   }
 
   async removeDocument(labId: string, itemId: string, docId: string, user: User): Promise<void> {

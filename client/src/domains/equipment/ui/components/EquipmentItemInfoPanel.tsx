@@ -13,6 +13,7 @@ import {
   Trash2,
   Power,
   Plus,
+  Edit,
   ExternalLink,
   X,
   NotepadText,
@@ -23,26 +24,31 @@ import {
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks';
 import {
+  useAddEquipmentDocumentMutation,
+  useUpdateEquipmentDocumentMutation,
   useRemoveEquipmentDocumentMutation,
   useDeleteEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
 import { Button, Chip, DetailRow, NubDivider, PanelHeader, SectionHeader } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import {
+  DocumentLinkModal,
+  type DocumentLinkValues,
+} from '@shared/ui/components/overlays/DocumentLinkModal';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 
-import type { EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
+import type { EquipmentDocument, EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface EquipmentItemInfoPanelProps {
   itemId: string;
   onEdit: () => void;
   onDecommission: () => void;
-  onAddDocument: () => void;
   onAddMaintenance: () => void;
   onEditMaintenance: (entry: EquipmentMaintenanceLog) => void;
   onDeleted: () => void;
@@ -81,7 +87,6 @@ export function EquipmentItemInfoPanel({
   itemId,
   onEdit,
   onDecommission,
-  onAddDocument,
   onAddMaintenance,
   onEditMaintenance,
   onDeleted,
@@ -97,8 +102,15 @@ export function EquipmentItemInfoPanel({
   }, [itemId]);
   const { data: detail } = useEquipmentItemDetailQuery(itemId);
   const deleteItemMutation = useDeleteEquipmentItemMutation();
+  const addDocumentMutation = useAddEquipmentDocumentMutation();
+  const updateDocumentMutation = useUpdateEquipmentDocumentMutation();
   const removeDocumentMutation = useRemoveEquipmentDocumentMutation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [documentModal, setDocumentModal] = useState<{
+    isOpen: boolean;
+    mode: 'add' | 'edit';
+    doc?: EquipmentDocument;
+  }>({ isOpen: false, mode: 'add' });
 
   if (!detail) {
     return (
@@ -140,6 +152,33 @@ export function EquipmentItemInfoPanel({
       notifications.success('Document removed');
     } catch {
       notifications.error('Failed to remove document');
+    }
+  };
+
+  const handleSaveDocument = async (values: DocumentLinkValues) => {
+    if (documentModal.mode === 'edit' && documentModal.doc) {
+      try {
+        await updateDocumentMutation.mutateAsync({
+          itemId,
+          docId: documentModal.doc.id,
+          data: { label: values.label, url: values.url, notes: values.notes ?? null },
+        });
+        notifications.success('Document updated');
+      } catch (error) {
+        notifications.error('Failed to update document');
+        throw error;
+      }
+    } else {
+      try {
+        await addDocumentMutation.mutateAsync({
+          itemId,
+          data: { label: values.label, url: values.url, notes: values.notes },
+        });
+        notifications.success('Document added');
+      } catch (error) {
+        notifications.error('Failed to add document');
+        throw error;
+      }
     }
   };
 
@@ -241,27 +280,43 @@ export function EquipmentItemInfoPanel({
                 {documents.map(doc => (
                   <div
                     key={doc.id}
-                    className="-mx-4 flex items-center justify-between gap-3 border-b border-line-faint px-4 py-2 last:border-b-0"
+                    className="-mx-4 border-b border-line-faint px-4 py-2 last:border-b-0"
                   >
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex min-w-0 items-center gap-1.5 text-sm text-primary hover:underline"
-                    >
-                      <ExternalLink size={12} className="flex-shrink-0" />
-                      <span className="truncate">{doc.label}</span>
-                    </a>
-                    {isAdmin && (
-                      <Button
-                        variant="ghost-danger"
-                        size="xs"
-                        iconOnly
-                        onClick={() => void handleRemoveDocument(doc.id)}
-                        aria-label="Remove document"
+                    <div className="flex items-center justify-between gap-3">
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex min-w-0 items-center gap-1.5 text-sm text-primary hover:underline"
                       >
-                        <X size={12} />
-                      </Button>
+                        <ExternalLink size={12} className="flex-shrink-0" />
+                        <span className="truncate">{doc.label}</span>
+                      </a>
+                      {isAdmin && (
+                        <div className="flex flex-shrink-0 items-center gap-0.5">
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            iconOnly
+                            onClick={() => setDocumentModal({ isOpen: true, mode: 'edit', doc })}
+                            aria-label="Edit document"
+                          >
+                            <Edit size={12} />
+                          </Button>
+                          <Button
+                            variant="ghost-danger"
+                            size="xs"
+                            iconOnly
+                            onClick={() => void handleRemoveDocument(doc.id)}
+                            aria-label="Remove document"
+                          >
+                            <X size={12} />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    {doc.notes && (
+                      <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
                     )}
                   </div>
                 ))}
@@ -271,7 +326,7 @@ export function EquipmentItemInfoPanel({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onAddDocument}
+                onClick={() => setDocumentModal({ isOpen: true, mode: 'add' })}
                 className="mt-1.5"
                 leftIcon={<Plus className="h-3.5 w-3.5" />}
               >
@@ -345,6 +400,23 @@ export function EquipmentItemInfoPanel({
         confirmText="Remove"
         onConfirm={() => void handleDelete()}
         onCancel={() => setShowDeleteConfirm(false)}
+      />
+
+      <DocumentLinkModal
+        isOpen={documentModal.isOpen}
+        mode={documentModal.mode}
+        initialValues={
+          documentModal.doc
+            ? {
+                label: documentModal.doc.label,
+                url: documentModal.doc.url,
+                notes: documentModal.doc.notes,
+              }
+            : undefined
+        }
+        isPending={addDocumentMutation.isPending || updateDocumentMutation.isPending}
+        onSave={handleSaveDocument}
+        onClose={() => setDocumentModal(prev => ({ ...prev, isOpen: false }))}
       />
     </ConsolePanel>
   );

@@ -12,10 +12,7 @@ import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucid
 
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
-import {
-  useAddEquipmentDocumentMutation,
-  useDeleteEquipmentCategoryMutation,
-} from '@domains/equipment/hooks/useEquipmentMutations';
+import { useDeleteEquipmentCategoryMutation } from '@domains/equipment/hooks/useEquipmentMutations';
 import { Button, NubDivider, PanelHeader, SearchInput, Select, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -59,7 +56,6 @@ export function EquipmentTab() {
 
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
-  const addDocumentMutation = useAddEquipmentDocumentMutation();
   const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
@@ -169,24 +165,6 @@ export function EquipmentTab() {
     }
     setDeleteConfirm({ isOpen: false });
   }, [deleteConfirm.category, deleteCategoryMutation]);
-
-  const handleAddDocumentSubmit = useCallback(async () => {
-    if (!selectedItemId) return;
-    const label = window.prompt('Document label (e.g., "User Manual"):');
-    if (!label?.trim()) return;
-    const url = window.prompt('Document URL:');
-    if (!url?.trim()) return;
-    try {
-      await addDocumentMutation.mutateAsync({
-        itemId: selectedItemId,
-        data: { label: label.trim(), url: url.trim() },
-      });
-      notifications.success('Document added');
-      setRightPanel({ type: 'info', itemId: selectedItemId });
-    } catch {
-      notifications.error('Failed to add document');
-    }
-  }, [selectedItemId, addDocumentMutation]);
 
   const unitCount = showDecommissioned
     ? items.length
@@ -341,7 +319,6 @@ export function EquipmentTab() {
               itemId={rightPanel.itemId}
               onEdit={handleEditItem}
               onDecommission={handleDecommission}
-              onAddDocument={() => void handleAddDocumentSubmit()}
               onAddMaintenance={handleAddMaintenance}
               onEditMaintenance={handleEditMaintenance}
               onDeleted={handleItemDeleted}

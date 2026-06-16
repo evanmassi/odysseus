@@ -146,6 +146,12 @@ export const createEquipmentDocumentRequestSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+export const updateEquipmentDocumentRequestSchema = z.object({
+  label: z.string().min(1).max(200).optional(),
+  url: z.string().min(1).max(2000).optional(),
+  notes: z.string().max(500).nullish(),
+});
+
 export const equipmentDocumentResponseSchema = z.object({
   document: equipmentDocumentSchema,
 });
@@ -260,6 +266,7 @@ export type CreateEquipmentItemRequest = z.infer<typeof createEquipmentItemReque
 export type UpdateEquipmentItemRequest = z.infer<typeof updateEquipmentItemRequestSchema>;
 export type DecommissionEquipmentItemRequest = z.infer<typeof decommissionEquipmentItemRequestSchema>;
 export type CreateEquipmentDocumentRequest = z.infer<typeof createEquipmentDocumentRequestSchema>;
+export type UpdateEquipmentDocumentRequest = z.infer<typeof updateEquipmentDocumentRequestSchema>;
 export type CreateEquipmentMaintenanceLogRequest = z.infer<typeof createEquipmentMaintenanceLogRequestSchema>;
 export type UpdateEquipmentMaintenanceLogRequest = z.infer<typeof updateEquipmentMaintenanceLogRequestSchema>;
 export type EquipmentBulkMaintenanceRequest = z.infer<typeof equipmentBulkMaintenanceRequestSchema>;

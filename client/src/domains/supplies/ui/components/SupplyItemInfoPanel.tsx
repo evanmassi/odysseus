@@ -20,6 +20,7 @@ import {
   FolderOpen,
   NotepadText,
   SquarePen,
+  Plus,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -27,6 +28,7 @@ import { useSupplyItemDetailQuery, useSupplyLocationsQuery } from '@domains/supp
 import {
   useDeleteSupplyItemMutation,
   useArchiveSupplyItemMutation,
+  useAddSupplyDocumentMutation,
   useRemoveSupplyDocumentMutation,
   useUpdateSupplyDocumentMutation,
   useRemoveSupplyBarcodeMutation,
@@ -45,6 +47,10 @@ import {
   Tooltip,
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import {
+  DocumentLinkModal,
+  type DocumentLinkValues,
+} from '@shared/ui/components/overlays/DocumentLinkModal';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatCurrency } from '@shared/utils/formatCurrency';
@@ -53,11 +59,10 @@ import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeForm } from './SupplyBarcodeForm';
 import { SupplyBarcodePrint } from './SupplyBarcodePrint';
-import { SupplyDocumentForm } from './SupplyDocumentForm';
 import { SupplyTransactionTimeline } from './SupplyTransactionTimeline';
 
 import type { TransactionPrefill } from './SupplyTransactionForm';
-import type { SupplyBarcode } from '@odysseus/shared-schemas';
+import type { SupplyBarcode, SupplyDocument } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 const STATUS_LABELS: Record<
@@ -122,6 +127,7 @@ export function SupplyItemInfoPanel({
   const locationNameMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
   const deleteItemMutation = useDeleteSupplyItemMutation();
   const archiveItemMutation = useArchiveSupplyItemMutation();
+  const addDocumentMutation = useAddSupplyDocumentMutation();
   const removeDocumentMutation = useRemoveSupplyDocumentMutation();
   const updateDocumentMutation = useUpdateSupplyDocumentMutation();
   const removeBarcodeMutation = useRemoveSupplyBarcodeMutation();
@@ -131,10 +137,11 @@ export function SupplyItemInfoPanel({
   const [editingBarcodeId, setEditingBarcodeId] = useState<string | null>(null);
   const [editingLabel, setEditingLabel] = useState('');
   const [printingBarcode, setPrintingBarcode] = useState<SupplyBarcode | null>(null);
-  const [editingDocId, setEditingDocId] = useState<string | null>(null);
-  const [editingDocLabel, setEditingDocLabel] = useState('');
-  const [editingDocUrl, setEditingDocUrl] = useState('');
-  const [editingDocNotes, setEditingDocNotes] = useState('');
+  const [documentModal, setDocumentModal] = useState<{
+    isOpen: boolean;
+    mode: 'add' | 'edit';
+    doc?: SupplyDocument;
+  }>({ isOpen: false, mode: 'add' });
 
   if (!detail) {
     return (
@@ -219,21 +226,30 @@ export function SupplyItemInfoPanel({
     }
   };
 
-  const handleSaveDocument = async (docId: string) => {
-    if (!editingDocLabel.trim() || !editingDocUrl.trim()) return;
-    try {
-      await updateDocumentMutation.mutateAsync({
-        itemId,
-        docId,
-        data: {
-          label: editingDocLabel.trim(),
-          url: editingDocUrl.trim(),
-          notes: editingDocNotes.trim() ? editingDocNotes.trim() : null,
-        },
-      });
-      setEditingDocId(null);
-    } catch {
-      notifications.error('Failed to update document');
+  const handleSaveDocument = async (values: DocumentLinkValues) => {
+    if (documentModal.mode === 'edit' && documentModal.doc) {
+      try {
+        await updateDocumentMutation.mutateAsync({
+          itemId,
+          docId: documentModal.doc.id,
+          data: { label: values.label, url: values.url, notes: values.notes ?? null },
+        });
+        notifications.success('Document updated');
+      } catch (error) {
+        notifications.error('Failed to update document');
+        throw error;
+      }
+    } else {
+      try {
+        await addDocumentMutation.mutateAsync({
+          itemId,
+          data: { label: values.label, url: values.url, notes: values.notes },
+        });
+        notifications.success('Document added');
+      } catch (error) {
+        notifications.error('Failed to add document');
+        throw error;
+      }
     }
   };
 
@@ -562,92 +578,43 @@ export function SupplyItemInfoPanel({
               <div className="space-y-1.5">
                 {documents.map(doc => (
                   <div key={doc.id}>
-                    {editingDocId === doc.id ? (
-                      <div className="space-y-1.5 rounded-md border border-border p-2">
-                        <Input
-                          type="text"
-                          value={editingDocLabel}
-                          onValueChange={setEditingDocLabel}
-                          placeholder="Label"
-                          size="sm"
-                          fullWidth
-                        />
-                        <Input
-                          type="text"
-                          value={editingDocUrl}
-                          onValueChange={setEditingDocUrl}
-                          placeholder="URL"
-                          size="sm"
-                          fullWidth
-                        />
-                        <Input
-                          type="text"
-                          value={editingDocNotes}
-                          onValueChange={setEditingDocNotes}
-                          placeholder="Notes (optional)"
-                          size="sm"
-                          fullWidth
-                        />
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="xs" onClick={() => setEditingDocId(null)}>
-                            Cancel
-                          </Button>
-                          <Button
-                            size="xs"
-                            onClick={() => void handleSaveDocument(doc.id)}
-                            disabled={!editingDocLabel.trim() || !editingDocUrl.trim()}
-                            isLoading={updateDocumentMutation.isPending}
-                          >
-                            Save
-                          </Button>
+                    <div className="flex items-center justify-between text-sm">
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                      >
+                        {doc.label}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                      {isAdmin && (
+                        <div className="flex items-center gap-0.5">
+                          <Tooltip content="Edit" side="bottom">
+                            <Button
+                              variant="ghost"
+                              size="xs"
+                              iconOnly
+                              onClick={() => setDocumentModal({ isOpen: true, mode: 'edit', doc })}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </Tooltip>
+                          <Tooltip content="Remove" side="bottom">
+                            <Button
+                              variant="ghost-danger"
+                              size="xs"
+                              iconOnly
+                              onClick={() => void handleRemoveDocument(doc.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </Tooltip>
                         </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="flex items-center justify-between text-sm">
-                          <a
-                            href={doc.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-primary hover:underline"
-                          >
-                            {doc.label}
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                          {isAdmin && (
-                            <div className="flex items-center gap-0.5">
-                              <Tooltip content="Edit" side="bottom">
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  iconOnly
-                                  onClick={() => {
-                                    setEditingDocId(doc.id);
-                                    setEditingDocLabel(doc.label);
-                                    setEditingDocUrl(doc.url);
-                                    setEditingDocNotes(doc.notes ?? '');
-                                  }}
-                                >
-                                  <Edit className="h-3 w-3" />
-                                </Button>
-                              </Tooltip>
-                              <Tooltip content="Remove" side="bottom">
-                                <Button
-                                  variant="ghost-danger"
-                                  size="xs"
-                                  iconOnly
-                                  onClick={() => void handleRemoveDocument(doc.id)}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </Tooltip>
-                            </div>
-                          )}
-                        </div>
-                        {doc.notes && (
-                          <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
-                        )}
-                      </div>
+                      )}
+                    </div>
+                    {doc.notes && (
+                      <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
                     )}
                   </div>
                 ))}
@@ -655,7 +622,17 @@ export function SupplyItemInfoPanel({
             ) : (
               <p className="text-xs italic text-muted-foreground">No documents</p>
             )}
-            {isAdmin && <SupplyDocumentForm itemId={itemId} onAdded={() => {}} />}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-1.5"
+                leftIcon={<Plus className="h-3.5 w-3.5" />}
+                onClick={() => setDocumentModal({ isOpen: true, mode: 'add' })}
+              >
+                Add Document
+              </Button>
+            )}
           </div>
 
           {item.notes && (
@@ -760,6 +737,23 @@ export function SupplyItemInfoPanel({
           catalogNumber={item.catalogNumber}
         />
       )}
+
+      <DocumentLinkModal
+        isOpen={documentModal.isOpen}
+        mode={documentModal.mode}
+        initialValues={
+          documentModal.doc
+            ? {
+                label: documentModal.doc.label,
+                url: documentModal.doc.url,
+                notes: documentModal.doc.notes,
+              }
+            : undefined
+        }
+        isPending={addDocumentMutation.isPending || updateDocumentMutation.isPending}
+        onSave={handleSaveDocument}
+        onClose={() => setDocumentModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </ConsolePanel>
   );
 }

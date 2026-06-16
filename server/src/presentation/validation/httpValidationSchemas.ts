@@ -26,6 +26,7 @@ import {
   updateEquipmentItemRequestSchema,
   decommissionEquipmentItemRequestSchema,
   createEquipmentDocumentRequestSchema,
+  updateEquipmentDocumentRequestSchema,
   createEquipmentMaintenanceLogRequestSchema,
   updateEquipmentMaintenanceLogRequestSchema,
   equipmentBulkMaintenanceRequestSchema,
@@ -200,6 +201,7 @@ export const CreateEquipmentItemHttpSchema = createEquipmentItemRequestSchema;
 export const UpdateEquipmentItemHttpSchema = updateEquipmentItemRequestSchema;
 export const DecommissionEquipmentItemHttpSchema = decommissionEquipmentItemRequestSchema;
 export const CreateEquipmentDocumentHttpSchema = createEquipmentDocumentRequestSchema;
+export const UpdateEquipmentDocumentHttpSchema = updateEquipmentDocumentRequestSchema;
 export const CreateEquipmentMaintenanceLogHttpSchema = createEquipmentMaintenanceLogRequestSchema;
 export const UpdateEquipmentMaintenanceLogHttpSchema = updateEquipmentMaintenanceLogRequestSchema;
 export const EquipmentBulkMaintenanceHttpSchema = equipmentBulkMaintenanceRequestSchema;
