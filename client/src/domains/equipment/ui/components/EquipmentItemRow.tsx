@@ -5,6 +5,8 @@
  * maintenance icon, a two-line identity, and location/asset chips.
  */
 
+import type { CSSProperties } from 'react';
+
 import { MapPin, Tag, Wrench } from 'lucide-react';
 
 import { Chip } from '@shared/ui/primitives/chip/Chip';
@@ -46,16 +48,10 @@ function getMaintenanceIndicator(
       tooltip: `Overdue — was due ${formatDateForDisplay(dateStr)}`,
     };
   }
-  if (daysUntil <= 7) {
-    return {
-      color: 'text-danger-text',
-      tooltip: `Due in ${daysUntil} day${daysUntil === 1 ? '' : 's'} — ${formatDateForDisplay(dateStr)}`,
-    };
-  }
   if (daysUntil <= 30) {
     return {
       color: 'text-warning-text',
-      tooltip: `Due in ${daysUntil} days — ${formatDateForDisplay(dateStr)}`,
+      tooltip: `Due in ${daysUntil} day${daysUntil === 1 ? '' : 's'} — ${formatDateForDisplay(dateStr)}`,
     };
   }
   return {
@@ -87,11 +83,22 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
     item.serialNumber ? `SN ${item.serialNumber}` : '',
   ].filter(Boolean);
 
+  // Due-soon/overdue items tint their hover + selected glow to match the maintenance
+  // alert table (overdue = danger/red, due-soon = warning/amber); healthy and
+  // decommissioned rows stay primary.
+  const rowStyle: CSSProperties | undefined =
+    statusTone === 'danger'
+      ? ({ '--row-tone': 'var(--color-danger-bg)' } as CSSProperties)
+      : statusTone === 'warning'
+        ? ({ '--row-tone': 'var(--color-warning-bg)' } as CSSProperties)
+        : undefined;
+
   return (
     <div
       className={`nav-tree-row nav-tree-row--item ${isSelected ? 'is-selected' : ''} ${
         isDecommissioned ? 'opacity-50 hover:opacity-65' : ''
       }`}
+      style={rowStyle}
       onClick={() => onSelect(item.id)}
       onKeyDown={e => {
         if (e.key === 'Enter') onSelect(item.id);

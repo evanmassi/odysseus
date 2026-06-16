@@ -9,7 +9,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 import { NubDivider, Table } from '@shared/ui';
-import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
 
 import type { EquipmentItem } from '@odysseus/shared-schemas';
@@ -110,7 +109,7 @@ export function EquipmentMaintenanceAlertPanel({
         header: 'Category',
         sortable: true,
         render: (_value, row) => (
-          <span className="font-mono text-[11px] tracking-[0.02em] text-muted-foreground">
+          <span className="font-mono tracking-[0.02em] text-muted-foreground">
             {row.categoryName}
           </span>
         ),
@@ -121,7 +120,7 @@ export function EquipmentMaintenanceAlertPanel({
         sortable: true,
         render: (_value, row) => (
           <span
-            className={`font-mono text-[11px] tracking-[0.04em] ${row.daysUntil < 0 ? 'text-danger-text' : 'text-warning-text'}`}
+            className={`font-mono tracking-[0.04em] ${row.daysUntil < 0 ? 'text-danger-text' : 'text-warning-text'}`}
           >
             {formatDateForDisplay(row.dueDate)}
           </span>
@@ -132,20 +131,19 @@ export function EquipmentMaintenanceAlertPanel({
         header: 'Status',
         sortable: true,
         render: (_value, row) => {
-          if (row.daysUntil < 0) {
-            const days = Math.abs(row.daysUntil);
-            return (
-              <Chip color="danger" size="sm" className="uppercase tracking-wide">
-                {days} day{days === 1 ? '' : 's'} overdue
-              </Chip>
-            );
-          }
-          return (
-            <Chip color="warning" size="sm" className="uppercase tracking-wide">
-              {row.daysUntil === 0
+          const days = Math.abs(row.daysUntil);
+          const label =
+            row.daysUntil < 0
+              ? `${days} day${days === 1 ? '' : 's'} overdue`
+              : row.daysUntil === 0
                 ? 'Due today'
-                : `${row.daysUntil} day${row.daysUntil === 1 ? '' : 's'}`}
-            </Chip>
+                : `${row.daysUntil} day${row.daysUntil === 1 ? '' : 's'}`;
+          return (
+            <span
+              className={`font-mono tracking-[0.04em] ${row.daysUntil < 0 ? 'text-danger-text' : 'text-warning-text'}`}
+            >
+              {label}
+            </span>
           );
         },
       },

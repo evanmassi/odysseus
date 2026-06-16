@@ -5,6 +5,8 @@
  * icon, a two-line identity, and location/stock chips.
  */
 
+import type { CSSProperties } from 'react';
+
 import { AlertTriangle, MapPin } from 'lucide-react';
 
 import { Chip } from '@shared/ui/primitives/chip/Chip';
@@ -32,7 +34,7 @@ function getStockChipColor(
   threshold: number | undefined
 ): 'success' | 'warning' | 'danger' | 'default' {
   if (threshold === undefined) return 'default';
-  if (totalStock <= 0 || totalStock <= threshold) return 'danger';
+  if (totalStock <= 0) return 'danger';
   if (totalStock <= threshold * 2) return 'warning';
   return 'success';
 }
@@ -60,19 +62,28 @@ export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps
   const urgentTooltip =
     item.totalStock <= 0
       ? 'Out of stock'
-      : stockColor === 'danger'
-        ? `Low stock — ${item.totalStock} ${unit}${
-            item.reorderThreshold !== undefined ? ` (reorder at ${item.reorderThreshold})` : ''
-          }`
+      : item.reorderThreshold !== undefined && item.totalStock <= item.reorderThreshold
+        ? `Low stock — ${item.totalStock} ${unit} (reorder at ${item.reorderThreshold})`
         : `Running low — ${item.totalStock} ${unit}`;
 
   const identityParts = [item.manufacturer, item.catalogNumber].filter(Boolean);
+
+  // Low/out items tint their hover + selected glow to match the alert table
+  // (empty = danger/red, low = warning/amber); healthy and archived rows stay primary.
+  const rowStyle: CSSProperties | undefined =
+    isArchived || stockColor === 'success' || stockColor === 'default'
+      ? undefined
+      : ({
+          '--row-tone':
+            stockColor === 'danger' ? 'var(--color-danger-bg)' : 'var(--color-warning-bg)',
+        } as CSSProperties);
 
   return (
     <div
       className={`nav-tree-row nav-tree-row--item ${isSelected ? 'is-selected' : ''} ${
         isArchived ? 'opacity-50 hover:opacity-65' : ''
       }`}
+      style={rowStyle}
       onClick={() => onSelect(item.id)}
       onKeyDown={e => {
         if (e.key === 'Enter') onSelect(item.id);
