@@ -124,7 +124,7 @@ export function OverflowMenu({
           transformOrigin: `${placement.vertical === 'above' ? 'bottom' : 'top'} ${placement.horizontal}`,
         }}
       >
-        <div className="px-1">
+        <div>
           {items.map((item, index) => (
             <div key={item.label}>
               {dividerSet.has(item.label) && index > 0 && <MenuDivider />}

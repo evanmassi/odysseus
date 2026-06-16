@@ -135,7 +135,7 @@ function HamburgerMenuItem({ icon: Icon, label, onClick, triggerProps }: Hamburg
       role="menuitem"
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
-      className="group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-[12px] tracking-[0.04em] text-secondary-foreground hover:bg-primary/[0.06] hover:text-foreground transition-colors"
+      className="group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-[12px] tracking-[0.04em] text-secondary-foreground hover:bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)] hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors"
     >
       <span className={isAnimating ? 'animate-icon-pop' : ''}>
         <Icon
@@ -280,7 +280,7 @@ export function AppHeader({
           aria-label="Switch management suite"
           className="top-full mt-1 min-w-[200px]"
         >
-          <div className="px-1">
+          <div>
             <MenuItem
               icon={TestTubeDiagonal}
               label="Biobank"
@@ -317,7 +317,7 @@ export function AppHeader({
                 aria-label="Lab management options"
                 className="left-full top-0 ml-1 min-w-[160px]"
               >
-                <div className="relative z-10 px-1">
+                <div className="relative z-10">
                   <MenuItem
                     icon={Microscope}
                     label="Equipment"
@@ -554,11 +554,11 @@ export function AppHeader({
           align="end"
           motion="slide-down"
           aria-label="Main menu"
-          className="top-full mt-1 min-w-48 p-1"
+          className="top-full mt-1 min-w-48"
         >
           {currentLab && (
             <>
-              <div className="px-1">
+              <div>
                 <div className="relative z-10 flex items-center gap-3 px-3 py-2">
                   <FlaskConical size={16} className="text-primary/70" />
                   <span className="phosphor-text font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-foreground">
@@ -570,7 +570,7 @@ export function AppHeader({
             </>
           )}
 
-          <div className="px-1">
+          <div>
             <HamburgerMenuItem
               icon={CircleHelp}
               label="Help"
@@ -630,7 +630,7 @@ export function AppHeader({
 
           <MenuDivider subtle />
 
-          <div className="px-1">
+          <div>
             <HamburgerMenuItem
               icon={LogOut}
               label="Logout"

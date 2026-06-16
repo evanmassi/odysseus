@@ -126,7 +126,7 @@ export function TubeGridContextMenu({
       <div ref={measureRef}>
         {selectedCount > 0 && (
           <>
-            <div className="px-1">
+            <div>
               <MenuItem icon={OpenIcon} label={openLabel} shortcut="Enter" onClick={onOpen} />
             </div>
             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
@@ -138,7 +138,7 @@ export function TubeGridContextMenu({
 
         {hasClipboardSection && (
           <>
-            <div className="px-1">
+            <div>
               {hasFilledSelection && (
                 <>
                   <MenuItem
@@ -180,7 +180,7 @@ export function TubeGridContextMenu({
 
         {hasLockSection && (
           <>
-            <div className="px-1">
+            <div>
               {lockableCount > 0 && onLock && (
                 <MenuItem
                   icon={Lock}
@@ -223,7 +223,7 @@ export function TubeGridContextMenu({
         )}
 
         {hasFilledSelection && (
-          <div className="px-1">
+          <div>
             <MenuItem
               icon={Trash2}
               label="Remove"
