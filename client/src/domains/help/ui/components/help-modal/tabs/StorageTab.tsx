@@ -65,7 +65,7 @@ export function StorageTab() {
       <HelpSection id="storage-roles">
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-shade/20 flex-shrink-0">
               <ShieldUser size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">
@@ -79,7 +79,7 @@ export function StorageTab() {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-black/20 flex-shrink-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-none border border-line-faint bg-shade/20 flex-shrink-0">
               <UserRound size={18} className="text-secondary-foreground" />
             </div>
             <div className="pt-0.5">

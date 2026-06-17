@@ -17,7 +17,7 @@ interface CustomLabelButtonProps {
 export function CustomLabelButton({
   onClick,
   size = 14,
-  className = 'text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded',
+  className = 'text-secondary-foreground hover:bg-shade/10 transition-colors p-1 rounded',
 }: CustomLabelButtonProps) {
   return (
     <Tooltip content="Edit custom label" side="bottom">

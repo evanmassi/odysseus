@@ -42,7 +42,7 @@ export function CollectionHistoryEntryForm({
   isPending = false,
 }: CollectionHistoryEntryFormProps) {
   return (
-    <div className="space-y-2.5 rounded-md border border-line-faint bg-black/20 p-3">
+    <div className="space-y-2.5 rounded-md border border-line-faint bg-shade/20 p-3">
       <div>
         <span className={FIELD_LABEL}>Date</span>
         <DatePicker

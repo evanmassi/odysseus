@@ -36,7 +36,7 @@ const buttonVariants = cva(
         // Backlit-glass weight: translucent tinted panel lit from inside (never opaque),
         // light-on-glass label, layered bloom. The loud, focal register above `primary`.
         solid:
-          'bg-[hsl(var(--primary)/0.32)] border-[hsl(var(--primary)/0.85)] text-[color-mix(in_srgb,hsl(var(--primary))_25%,white)] [text-shadow:0_0_6px_hsl(var(--primary)/0.55)] shadow-[inset_0_0_22px_-2px_hsl(var(--primary)/0.5),inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-1px_0_rgba(0,0,0,0.2),0_0_22px_-2px_hsl(var(--primary)/0.7),0_0_48px_-10px_hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.45)] hover:text-white hover:shadow-[inset_0_0_26px_-2px_hsl(var(--primary)/0.65),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-1px_0_rgba(0,0,0,0.2),0_0_28px_-2px_hsl(var(--primary)/0.85),0_0_60px_-10px_hsl(var(--primary)/0.6)]',
+          'bg-[hsl(var(--primary)/0.32)] border-[hsl(var(--primary)/0.85)] text-[color-mix(in_srgb,hsl(var(--primary))_25%,white)] [text-shadow:0_0_6px_hsl(var(--primary)/0.55)] shadow-[inset_0_0_22px_-2px_hsl(var(--primary)/0.5),inset_0_1px_0_hsl(var(--sheen)/0.3),inset_0_-1px_0_hsl(var(--shade)/0.2),0_0_22px_-2px_hsl(var(--primary)/0.7),0_0_48px_-10px_hsl(var(--primary)/0.5)] hover:bg-[hsl(var(--primary)/0.45)] hover:text-white hover:shadow-[inset_0_0_26px_-2px_hsl(var(--primary)/0.65),inset_0_1px_0_hsl(var(--sheen)/0.4),inset_0_-1px_0_hsl(var(--shade)/0.2),0_0_28px_-2px_hsl(var(--primary)/0.85),0_0_60px_-10px_hsl(var(--primary)/0.6)]',
 
         danger:
           'bg-danger-bg/10 border-danger-bg/45 text-foreground shadow-standard-danger hover:bg-danger-bg/20 hover:border-danger-bg hover:shadow-standard-danger-hover',
@@ -108,7 +108,7 @@ const buttonVariants = cva(
 const MARKER_CLASSES: Record<ButtonVariant, string> = {
   primary: 'bg-primary shadow-[0_0_6px_-1px_hsl(var(--primary)/0.55)]',
   solid:
-    'bg-white/95 shadow-[0_0_8px_0_rgba(255,255,255,0.65),inset_0_0_2px_hsl(var(--primary)/0.5)]',
+    'bg-sheen/95 shadow-[0_0_8px_0_hsl(var(--sheen)/0.65),inset_0_0_2px_hsl(var(--primary)/0.5)]',
   danger: 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.55)]',
   success: 'bg-success-bg shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.55)]',
   warning: 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.55)]',
@@ -122,7 +122,7 @@ const MARKER_CLASSES: Record<ButtonVariant, string> = {
 // Hover state for ghost + solid markers; other variants' markers have no hover transition.
 const MARKER_HOVER_CLASSES: Partial<Record<ButtonVariant, string>> = {
   solid:
-    'group-hover:bg-white group-hover:shadow-[0_0_12px_0_rgba(255,255,255,0.85),inset_0_0_2px_hsl(var(--primary)/0.6)]',
+    'group-hover:bg-sheengroup-hover:shadow-[0_0_12px_0_hsl(var(--sheen)/0.85),inset_0_0_2px_hsl(var(--primary)/0.6)]',
   ghost:
     'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
   'ghost-danger':

@@ -387,7 +387,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
         </h2>
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
@@ -599,7 +599,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   return (
                     <div
                       key={levelId ?? `local-${index}`}
-                      className="flex items-center justify-between border border-line-faint bg-black/20 px-2.5 py-1.5 text-sm"
+                      className="flex items-center justify-between border border-line-faint bg-shade/20 px-2.5 py-1.5 text-sm"
                     >
                       <span>{formatLevelDisplay(levelData)}</span>
                       <button
@@ -848,7 +848,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
         </form>
       </ScrollArea>
 
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-shade/15 px-4 py-3">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>

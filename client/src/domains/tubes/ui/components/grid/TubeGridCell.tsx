@@ -191,15 +191,15 @@ export const TubeGridCell = memo<TubeGridCellProps>(
       `}
         style={
           {
-            backgroundColor: tube ? fill : 'rgba(0,0,0,0.32)',
+            backgroundColor: tube ? fill : 'hsl(var(--shade) / 0.32)',
             backgroundImage: tube
-              ? 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 46%, rgba(0,0,0,0.14) 100%)'
+              ? 'linear-gradient(180deg, hsl(var(--sheen) / 0.12) 0%, hsl(var(--sheen) / 0) 46%, hsl(var(--shade) / 0.14) 100%)'
               : 'none',
             color: tube ? ink : 'hsl(var(--grid-empty-foreground))',
             width: '100%',
             height: '100%',
             aspectRatio: '1',
-            '--border-color': tube ? 'rgba(0,0,0,0.22)' : 'transparent',
+            '--border-color': tube ? 'hsl(var(--shade) / 0.22)' : 'transparent',
           } as React.CSSProperties
         }
         data-grid-size={`${gridConfig.rows}x${gridConfig.cols}`}

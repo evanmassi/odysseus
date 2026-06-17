@@ -101,7 +101,7 @@ export function TubeGridTooltip({
     <div className="relative isolate min-w-[172px] max-w-[260px] px-4 py-3.5">
       <span
         aria-hidden
-        className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
+        className="pointer-events-none absolute -inset-2 -z-10 bg-shade/[0.93] blur-md"
       />
       <span
         aria-hidden

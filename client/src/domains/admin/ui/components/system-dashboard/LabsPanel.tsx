@@ -237,7 +237,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
               </div>
               <div
                 className="flex aspect-square shrink-0 items-center justify-center border-l border-line-soft"
-                style={{ background: 'rgba(0,0,0,0.13)' }}
+                style={{ background: 'hsl(var(--shade) / 0.13)' }}
               >
                 <LabPowerToggle
                   isActive={lab.isActive}
@@ -267,7 +267,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                     <TicketCheck size={11} className="shrink-0" />
                     Lab Admin Code
                   </span>
-                  <div className="flex items-center border border-line-mid bg-black/25 py-1.5 pl-2.5 shadow-[inset_0_1px_3px_-1px_rgba(0,0,0,0.45)]">
+                  <div className="flex items-center border border-line-mid bg-shade/25 py-1.5 pl-2.5 shadow-[inset_0_1px_3px_-1px_hsl(var(--shade)/0.45)]">
                     <code
                       className={`mr-auto pr-2 font-mono text-[15px] font-medium leading-none phosphor-text ${latestCode ? 'text-foreground' : 'text-foreground/25 select-none'}`}
                     >

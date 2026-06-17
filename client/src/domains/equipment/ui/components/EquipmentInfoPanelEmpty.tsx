@@ -15,7 +15,7 @@ export function EquipmentInfoPanelEmpty() {
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Equipment Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"

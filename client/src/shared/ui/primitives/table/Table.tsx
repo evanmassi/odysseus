@@ -24,7 +24,7 @@ const stateToGlowTone = (state: RowState): GlowTone =>
 // Each block is one literal string per tone — Tailwind JIT won't see interpolated classes.
 const ROW_GLOW: Record<GlowTone, string> = {
   primary: [
-    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--primary)/var(--alpha-glow-tint)),hsl(var(--primary)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)]',
+    '[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--primary)/var(--alpha-glow-tint)),hsl(var(--primary)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)]',
     'shadow-[inset_3px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--primary)/var(--alpha-glow-outer-far))]',
     '[&>td]:!bg-transparent',
     '[&>td:first-child]:relative',
@@ -34,7 +34,7 @@ const ROW_GLOW: Record<GlowTone, string> = {
     '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
   ].join(' '),
   success: [
-    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-success-bg)/var(--alpha-glow-tint)),hsl(var(--color-success-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-success-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-success-bg)/0)_100%)]',
+    '[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-success-bg)/var(--alpha-glow-tint)),hsl(var(--color-success-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-success-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-success-bg)/0)_100%)]',
     'shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg)),inset_14px_0_36px_-10px_hsl(var(--color-success-bg)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--color-success-bg)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--color-success-bg)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-success-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-success-bg)/var(--alpha-glow-outer-far))]',
     '[&>td]:!bg-transparent',
     '[&>td:first-child]:relative',
@@ -44,7 +44,7 @@ const ROW_GLOW: Record<GlowTone, string> = {
     '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
   ].join(' '),
   warning: [
-    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-warning-bg)/var(--alpha-glow-tint)),hsl(var(--color-warning-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)]',
+    '[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-warning-bg)/var(--alpha-glow-tint)),hsl(var(--color-warning-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)]',
     'shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)),inset_14px_0_36px_-10px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-warning-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-warning-bg)/var(--alpha-glow-outer-far))]',
     '[&>td]:!bg-transparent',
     '[&>td:first-child]:relative',
@@ -54,7 +54,7 @@ const ROW_GLOW: Record<GlowTone, string> = {
     '[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
   ].join(' '),
   danger: [
-    '[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-danger-bg)/var(--alpha-glow-tint)),hsl(var(--color-danger-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-danger-bg)/0)_100%)]',
+    '[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-danger-bg)/var(--alpha-glow-tint)),hsl(var(--color-danger-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-danger-bg)/0)_100%)]',
     'shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg)),inset_14px_0_36px_-10px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-danger-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-danger-bg)/var(--alpha-glow-outer-far))]',
     '[&>td]:!bg-transparent',
     '[&>td:first-child]:relative',
@@ -192,22 +192,22 @@ const PHOSPHOR_ROW =
 // hover, default rows get a dim-primary hover. Reads as "this row is about to be selected".
 const HOVER_GLOW: Record<GlowTone, string> = {
   primary: [
-    'hover:[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-hover-wash-1))_0%,hsl(var(--primary)/var(--alpha-hover-wash-2))_18%,hsl(var(--primary)/var(--alpha-hover-wash-3))_48%,hsl(var(--primary)/var(--alpha-hover-wash-4))_78%,hsl(var(--primary)/0)_100%)]',
+    'hover:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-hover-wash-1))_0%,hsl(var(--primary)/var(--alpha-hover-wash-2))_18%,hsl(var(--primary)/var(--alpha-hover-wash-3))_48%,hsl(var(--primary)/var(--alpha-hover-wash-4))_78%,hsl(var(--primary)/0)_100%)]',
     'hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--primary)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--primary)/var(--alpha-hover-bloom-far))]',
     '[&:hover>td]:!bg-transparent',
   ].join(' '),
   success: [
-    'hover:[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-success-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-success-bg)/0)_100%)]',
+    'hover:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-success-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-success-bg)/0)_100%)]',
     'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-success-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-success-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-success-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-far))]',
     '[&:hover>td]:!bg-transparent',
   ].join(' '),
   warning: [
-    'hover:[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)]',
+    'hover:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)]',
     'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-warning-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-warning-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-warning-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-far))]',
     '[&:hover>td]:!bg-transparent',
   ].join(' '),
   danger: [
-    'hover:[background-image:repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-danger-bg)/0)_100%)]',
+    'hover:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-danger-bg)/0)_100%)]',
     'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-danger-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-danger-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-danger-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-far))]',
     '[&:hover>td]:!bg-transparent',
   ].join(' '),
@@ -537,16 +537,16 @@ export function Table<T extends TableRowBase>({
           // body diagonal lighting
           'radial-gradient(ellipse 75% 95% at 100% 100%, hsl(var(--primary) / 0.09), transparent 60%)',
           'radial-gradient(ellipse 90% 80% at 0% 0%, hsl(var(--foreground) / 0.04), transparent 60%)',
-          'radial-gradient(ellipse 110% 50% at 50% 100%, rgba(0,0,0,0.1), transparent 65%)',
+          'radial-gradient(ellipse 110% 50% at 50% 100%, hsl(var(--shade) / 0.1), transparent 65%)',
           'hsl(var(--card))',
         ].join(', '),
         boxShadow: [
-          'inset 0 1px 0 rgba(255,255,255,0.2)',
-          'inset 1px 0 0 rgba(255,255,255,0.05)',
-          'inset 0 -1px 0 rgba(0,0,0,0.35)',
-          'inset -1px 0 0 rgba(0,0,0,0.18)',
+          'inset 0 1px 0 hsl(var(--sheen) / 0.2)',
+          'inset 1px 0 0 hsl(var(--sheen) / 0.05)',
+          'inset 0 -1px 0 hsl(var(--shade) / 0.35)',
+          'inset -1px 0 0 hsl(var(--shade) / 0.18)',
           '0 0 0 1px hsl(var(--foreground) / 0.06)',
-          '0 20px 50px -22px rgba(0,0,0,0.65)',
+          '0 20px 50px -22px hsl(var(--shade) / 0.65)',
           '0 0 80px -28px hsl(var(--primary) / 0.12)',
         ].join(', '),
       }}

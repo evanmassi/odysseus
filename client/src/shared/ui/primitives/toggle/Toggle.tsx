@@ -50,7 +50,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
       ? `${s.knobOnX} bg-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.55),0_0_10px_0_hsl(var(--primary)/0.65)]`
       : 'translate-x-0 bg-muted-foreground';
 
-    const knobLineTone = checked ? 'bg-black/35' : 'bg-black/40';
+    const knobLineTone = checked ? 'bg-shade/35' : 'bg-shade/40';
 
     return (
       <label

@@ -281,7 +281,7 @@ export function SupplyItemInfoPanel({
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Supply Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
@@ -670,7 +670,7 @@ export function SupplyItemInfoPanel({
       </ScrollArea>
 
       {isAdmin && (
-        <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <div className="relative flex-shrink-0 border-t border-line-faint bg-shade/15 px-4 py-3">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex items-center gap-2">
             <OverflowMenu

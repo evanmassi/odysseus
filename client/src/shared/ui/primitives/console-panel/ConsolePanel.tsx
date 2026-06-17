@@ -29,26 +29,26 @@ const NEUTRAL_LIGHTING: Record<ConsolePanelIntensity, string[]> = {
   soft: [
     'radial-gradient(ellipse 100% 130% at 0% 0%, hsl(var(--primary)/0.05), transparent 68%)',
     'radial-gradient(ellipse 75% 85% at 100% 100%, hsl(var(--primary)/0.065), transparent 66%)',
-    'radial-gradient(ellipse 70% 80% at 100% 100%, rgba(0,0,0,0.10), transparent 62%)',
+    'radial-gradient(ellipse 70% 80% at 100% 100%, hsl(var(--shade) / 0.10), transparent 62%)',
   ],
   medium: [
     'radial-gradient(ellipse 115% 58% at 22% 26%, hsl(var(--primary)/0.07), transparent 62%)',
     'radial-gradient(ellipse 110% 54% at 68% 93%, hsl(var(--primary)/0.07), transparent 62%)',
-    'radial-gradient(ellipse 55% 50% at 100% 100%, rgba(0,0,0,0.13), transparent 55%)',
+    'radial-gradient(ellipse 55% 50% at 100% 100%, hsl(var(--shade) / 0.13), transparent 55%)',
   ],
   lit: [
     'radial-gradient(ellipse 120% 60% at 22% 28%, hsl(var(--primary)/0.11), transparent 65%)',
     'radial-gradient(ellipse 115% 55% at 68% 92%, hsl(var(--primary)/0.11), transparent 65%)',
-    'radial-gradient(ellipse 55% 50% at 100% 100%, rgba(0,0,0,0.14), transparent 55%)',
+    'radial-gradient(ellipse 55% 50% at 100% 100%, hsl(var(--shade) / 0.14), transparent 55%)',
   ],
 };
 
 const RIM_SHEEN = [
   'inset 0 1px 0 hsl(var(--foreground)/0.07)',
   'inset 1px 0 0 hsl(var(--foreground)/0.035)',
-  'inset -1px 0 0 rgba(0,0,0,0.22)',
-  'inset 0 -1px 0 rgba(0,0,0,0.32)',
-  '0 20px 44px -24px rgba(0,0,0,0.65)',
+  'inset -1px 0 0 hsl(var(--shade) / 0.22)',
+  'inset 0 -1px 0 hsl(var(--shade) / 0.32)',
+  '0 20px 44px -24px hsl(var(--shade) / 0.65)',
 ];
 
 const OUTER_BLOOM = '0 0 60px -16px hsl(var(--primary)/0.18)';

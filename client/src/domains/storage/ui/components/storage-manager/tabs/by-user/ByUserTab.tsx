@@ -203,7 +203,7 @@ export function ByUserTab({
                         <button
                           type="button"
                           onClick={() => setReassigningUserId(null)}
-                          className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-black/10 transition-colors"
+                          className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-shade/10 transition-colors"
                         >
                           ×
                         </button>

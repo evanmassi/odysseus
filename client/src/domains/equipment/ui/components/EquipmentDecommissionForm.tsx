@@ -122,7 +122,7 @@ export function EquipmentDecommissionForm({
         </form>
       </ScrollArea>
 
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-shade/15 px-4 py-3">
         <NubDivider tone="warning" className="absolute inset-x-0 -top-px" />
         <div className="flex items-center justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>

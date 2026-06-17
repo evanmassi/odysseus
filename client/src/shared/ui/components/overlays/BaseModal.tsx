@@ -131,7 +131,7 @@ export function BaseModal({
   // Lit chrome (footer/tabs/sidebar) gets a dark wash so it sits on top of the
   // chassis lighting. The header stays transparent so it reads body-tone — the
   // light is concentrated inside the form, framed by the dark locator + footer.
-  const surfaceClass = isLit ? 'bg-black/15' : 'bg-card';
+  const surfaceClass = isLit ? 'bg-shade/15' : 'bg-card';
   const headerSurface = isLit ? '' : 'bg-card';
 
   const headerBlock = (
@@ -166,7 +166,7 @@ export function BaseModal({
 
   const locatorBlock =
     isLit && locator ? (
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-6 py-2.5">
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-6 py-2.5">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"

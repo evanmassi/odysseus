@@ -135,7 +135,7 @@ function HamburgerMenuItem({ icon: Icon, label, onClick, triggerProps }: Hamburg
       role="menuitem"
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
-      className="group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-[12px] tracking-[0.04em] text-secondary-foreground hover:bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)] hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors"
+      className="group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-[12px] tracking-[0.04em] text-secondary-foreground hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)] hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors"
     >
       <span className={isAnimating ? 'animate-icon-pop' : ''}>
         <Icon

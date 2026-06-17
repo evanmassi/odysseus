@@ -58,7 +58,7 @@
     content: attr(data-text);
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.3) 2px 3px);
+    background: repeating-linear-gradient(0deg, transparent 0 2px, hsl(var(--shade) / 0.3) 2px 3px);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;

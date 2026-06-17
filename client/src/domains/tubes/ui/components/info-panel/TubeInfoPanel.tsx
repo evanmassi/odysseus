@@ -254,7 +254,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Tube Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
@@ -433,7 +433,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             style={{
               backgroundColor: swatch.backgroundColor,
               backgroundImage:
-                'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,0.14) 100%)',
+                'linear-gradient(180deg, hsl(var(--sheen) / 0.18) 0%, hsl(var(--sheen) / 0) 48%, hsl(var(--shade) / 0.14) 100%)',
               borderColor: swatch.borderColor,
             }}
           >
@@ -681,7 +681,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   const footer =
     selectedTubes.length === 1 ? (
-      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-shade/15 px-4 py-3">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <Button
           variant="primary"

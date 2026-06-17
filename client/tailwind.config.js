@@ -61,6 +61,10 @@ export default {
           strong: 'hsl(var(--line-strong))',
         },
 
+        /* Console overlay washes — alpha set per use (bg-shade/35, bg-sheen/20). */
+        shade: 'hsl(var(--shade) / <alpha-value>)',
+        sheen: 'hsl(var(--sheen) / <alpha-value>)',
+
         /* Application-specific extensions */
 
         action: {
@@ -176,18 +180,18 @@ export default {
         ],
       },
       boxShadow: {
-        sheen: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.18)',
+        sheen: 'inset 0 1px 0 0 hsl(var(--sheen) / 0.18)',
         /* Inset top sheen + single soft halo. Mirrors LabBadge `lit` + Toggle ON vocabulary. */
         'glow-primary':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--primary) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--primary) / 0.50)',
         'glow-danger':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-danger-bg) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-danger-bg) / 0.50)',
         'glow-success':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-success-bg) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-success-bg) / 0.50)',
         'glow-warning':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
         'glow-info':
-          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
+          'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
         'standard-primary':
           'inset 0 0 12px -2px hsl(var(--primary) / 0.20), 0 0 14px -4px hsl(var(--primary) / 0.40)',
         'standard-primary-hover':
@@ -211,14 +215,14 @@ export default {
       },
       backgroundImage: {
         scanlines:
-          'repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+          'repeating-linear-gradient(to bottom, hsl(var(--scanline)) 0, hsl(var(--scanline)) 1px, transparent 1px, transparent 3px)',
         /* Stacked, paints front-to-back:
            1. Primary-tinted 1px hairline at the very top — etched HUD edge
            2. Off-axis sheen (115°) — implies a light source above-left, not the
               symmetric top-down sheen used by generic glass UI
            3. Scanlines — material texture */
         'lit-fill':
-          'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+          'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, hsl(var(--sheen) / 0.08) 0%, hsl(var(--sheen) / 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, hsl(var(--scanline)) 0, hsl(var(--scanline)) 1px, transparent 1px, transparent 3px)',
       },
       dropShadow: {
         /* SVG-icon parallel to the text-bloom text-shadow — glows in the icon's own color. */

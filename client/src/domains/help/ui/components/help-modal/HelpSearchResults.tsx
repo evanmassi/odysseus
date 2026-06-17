@@ -40,7 +40,7 @@ export function HelpSearchResults({ query, includeAdmin }: HelpSearchResultsProp
             onClick={() => goToSection(section.id)}
             className="group flex w-full items-center gap-3 px-3 py-2.5 text-left"
           >
-            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-none border border-line-faint bg-black/30 text-secondary-foreground">
+            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-none border border-line-faint bg-shade/30 text-secondary-foreground">
               <SectionIcon size={15} />
             </span>
             <span className="min-w-0 flex-1 truncate text-sm font-medium text-card-foreground">

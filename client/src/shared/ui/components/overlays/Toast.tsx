@@ -77,7 +77,7 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
+        className="pointer-events-none absolute -inset-2 -z-10 bg-shade/[0.93] blur-md"
       />
       <span
         aria-hidden

@@ -156,7 +156,7 @@ export function ConfirmDialog({
         >
           <span
             aria-hidden
-            className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
+            className="pointer-events-none absolute -inset-2 -z-10 bg-shade/[0.93] blur-md"
           />
           {CORNER_PINS.map(pos => (
             <span

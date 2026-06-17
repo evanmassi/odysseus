@@ -44,7 +44,7 @@ export function LabPowerToggle({
   const bgStyle: CSSProperties = {
     background: isActive
       ? `radial-gradient(circle at 50% 35%, hsl(var(--color-success-bg)/0.35), hsl(var(--color-success-bg)/0.05) 70%), hsl(var(--card))`
-      : `radial-gradient(circle at 50% 35%, rgba(255,255,255,0.025), rgba(255,255,255,0) 60%), hsl(var(--card))`,
+      : `radial-gradient(circle at 50% 35%, hsl(var(--sheen) / 0.025), hsl(var(--sheen) / 0) 60%), hsl(var(--card))`,
   };
 
   return (

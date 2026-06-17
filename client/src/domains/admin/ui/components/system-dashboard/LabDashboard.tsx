@@ -284,7 +284,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                 </div>
                 <div
                   className="flex aspect-square shrink-0 items-center justify-center border-l border-line-soft"
-                  style={{ background: 'rgba(0,0,0,0.13)' }}
+                  style={{ background: 'hsl(var(--shade) / 0.13)' }}
                 >
                   <LabPowerToggle
                     isActive={lab.isActive}

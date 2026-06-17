@@ -57,7 +57,7 @@ const ACTIVE_STATE = 'text-foreground phosphor-text';
 
 const INACTIVE_STATE =
   'text-muted-foreground ' +
-  'hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]';
+  'hover:text-foreground hover:[text-shadow:0_0_8px_hsl(var(--sheen)/0.7)]';
 
 // Sliding glow tile that fills the active tab — table-row recipe at chrome intensity.
 // Horizontal lights from the bottom edge, vertical from the left edge: same wash + edge

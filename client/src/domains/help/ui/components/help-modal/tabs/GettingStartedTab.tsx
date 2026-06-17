@@ -116,7 +116,7 @@ export function GettingStartedTab() {
                 onClick={() => goToTab(tab.id)}
                 className="group flex items-start gap-3 p-3 text-left"
               >
-                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-none border border-line-faint bg-black/30 text-secondary-foreground">
+                <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-none border border-line-faint bg-shade/30 text-secondary-foreground">
                   <Icon size={16} />
                 </span>
                 <span className="min-w-0">

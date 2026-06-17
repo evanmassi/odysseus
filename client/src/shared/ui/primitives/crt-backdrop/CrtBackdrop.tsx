@@ -25,15 +25,15 @@ const FADE_INSETS: Record<CrtBackdropSize, { x: number; y: number }> = {
 };
 
 const SCANLINES =
-  'repeating-linear-gradient(to bottom, rgba(0,0,0,0.12) 0, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 3px)';
+  'repeating-linear-gradient(to bottom, hsl(var(--scanline)) 0, hsl(var(--scanline)) 1px, transparent 1px, transparent 3px)';
 
 const LIGHTING_LAYERS: Record<CrtBackdropLighting, string[]> = {
   anchored: [
     'radial-gradient(ellipse 60% 80% at 18% 10%, hsl(var(--primary)/0.07), transparent 90%)',
-    'radial-gradient(ellipse 60% 60% at 100% 100%, rgba(0,0,0,0.16), transparent 85%)',
+    'radial-gradient(ellipse 60% 60% at 100% 100%, hsl(var(--shade) / 0.16), transparent 85%)',
   ],
   diffuse: [
-    'linear-gradient(135deg, hsl(var(--primary)/0.04) 0%, transparent 55%, rgba(0,0,0,0.05) 100%)',
+    'linear-gradient(135deg, hsl(var(--primary)/0.04) 0%, transparent 55%, hsl(var(--shade) / 0.05) 100%)',
   ],
 };
 

@@ -48,6 +48,14 @@
     /* Input well — sunken surface overlay for text inputs/selects/etc. */
     --input-well: 0 0% 0% / 0.04;
 
+    /* CRT scanline tint — repeating 1px line overlaid on console surfaces. */
+    --scanline: 0 0% 0% / 0.12;
+
+    /* Console overlay bases: shade darkens, sheen lightens. Alpha applied per use
+       (bg-shade/35 or hsl(var(--shade) / .35)). Light theme overrides the base tone. */
+    --shade: 0 0% 0%;
+    --sheen: 0 0% 100%;
+
     /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
@@ -306,6 +314,10 @@
 
     /* Input well — dark theme: deeper black wash so fields read as recessed against panels */
     --input-well: 0 0% 0% / 0.15;
+
+    --scanline: 0 0% 0% / 0.12;
+    --shade: 0 0% 0%;
+    --sheen: 0 0% 100%;
 
     /* Card */
     --card: 217 32% 9%;
