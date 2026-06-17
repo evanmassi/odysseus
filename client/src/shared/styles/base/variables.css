@@ -33,7 +33,7 @@
     --page: 0 0% 100%;
 
     /* Surfaces */
-    --bg-void: 220 20% 95%;
+    --bg-void: 214 24% 94%;
     --bg-base: 0 0% 100%;
     --bg-panel: 0 0% 100%;
     --bg-panel-2: 210 30% 98%;
@@ -66,8 +66,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
 
-    /* Primary */
-    --primary: 210 50% 56.7%;
+    /* Primary — light mode: deep-navy "steel anchor" accent (#234a82). */
+    --primary: 215 58% 32%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
@@ -111,8 +111,8 @@
 
     /* Action Colors */
     --color-action-default: var(--primary);
-    --color-action-hover: 210 43.1% 50%;
-    --color-action-focus: 210 43.1% 50%;
+    --color-action-hover: 215 55% 27%;
+    --color-action-focus: 215 55% 27%;
     --color-action-light: 210 50% 97%;
     --color-action-light-hover: 210 50% 94%;
 
@@ -229,45 +229,45 @@
     --grid-copied: 215.4 19.3% 34.5%;
     --grid-copied-alt: 0 0% 100%;
 
-    /* Table — alpha scale for row glow, checkbox glow, and surface overlays.
-       Defined theme-agnostic; same values in light and dark. */
-    --alpha-glow-wash-1: 0.21;
-    --alpha-glow-wash-2: 0.13;
-    --alpha-glow-wash-3: 0.06;
-    --alpha-glow-wash-4: 0.02;
-    --alpha-glow-tint: 0.025;
-    --alpha-glow-edge-inner: 0.43;
-    --alpha-glow-edge-rim: 0.16;
-    --alpha-glow-edge-bloom: 0.14;
-    --alpha-glow-outer-near: 0.2;
-    --alpha-glow-outer-far: 0.09;
-    --alpha-glow-bar-strong: 0.5;
-    --alpha-glow-bar-mid: 0.4;
-    --alpha-glow-bar-far: 0.19;
-    --alpha-checkbox-glow-inner: 0.55;
-    --alpha-checkbox-glow-outer: 0.22;
-    --alpha-checkbox-shadow: 0.6;
+    /* Row/table glow alpha scale — light flattens the blooms to 0 (no additive glow
+       on white); fill, accent bar, and rims stay. Dark block re-pins the lit values. */
+    --alpha-glow-wash-1: 0.14;
+    --alpha-glow-wash-2: 0.09;
+    --alpha-glow-wash-3: 0.045;
+    --alpha-glow-wash-4: 0.015;
+    --alpha-glow-tint: 0.05;
+    --alpha-glow-edge-inner: 0.12;
+    --alpha-glow-edge-rim: 0.12;
+    --alpha-glow-edge-bloom: 0;
+    --alpha-glow-outer-near: 0;
+    --alpha-glow-outer-far: 0;
+    --alpha-glow-bar-strong: 0;
+    --alpha-glow-bar-mid: 0;
+    --alpha-glow-bar-far: 0;
+    --alpha-checkbox-glow-inner: 0;
+    --alpha-checkbox-glow-outer: 0;
+    --alpha-checkbox-shadow: 0.25;
     --alpha-zebra: 0.02;
     --alpha-hover: 0.05;
     --alpha-cell-rim: 0.12;
     --alpha-header-rim: 0.09;
     --alpha-header-rule: 0.18;
-    --alpha-header-emit: 0.18;
-    --alpha-header-bloom: 0.1;
-    --alpha-phosphor-rim: 0.045;
-    --alpha-phosphor-bloom: 0.04;
+    --alpha-header-emit: 0;
+    --alpha-header-bloom: 0;
+    --alpha-phosphor-rim: 0;
+    --alpha-phosphor-bloom: 0;
     --alpha-hover-stripe: 0.45;
-    --alpha-hover-edge: 0.18;
-    --alpha-hover-bloom: 0.08;
+    --alpha-hover-edge: 0.1;
+    --alpha-hover-bloom: 0;
     --alpha-hover-wash-1: 0.1;
     --alpha-hover-wash-2: 0.06;
     --alpha-hover-wash-3: 0.03;
     --alpha-hover-wash-4: 0.01;
     --alpha-hover-rim: 0.07;
-    --alpha-hover-bloom-edge: 0.06;
-    --alpha-hover-bloom-far: 0.04;
+    --alpha-hover-bloom-edge: 0;
+    --alpha-hover-bloom-far: 0;
     --alpha-stripe-muted: 0.3;
-    --bg-header-band: 0 0% 0% / 0.15;
+    --bg-header-band: 0 0% 0% / 0.04;
 
     /* Always-dark components */
 
@@ -456,5 +456,32 @@
     --grid-cut-opacity: 0.5;
     --grid-copied: 215 20.2% 65.1%;
     --grid-copied-alt: 217.2 32.6% 17.5%;
+
+    /* Lit glow scale — dark re-pins the bloom/glow values that light flattens. */
+    --alpha-glow-wash-1: 0.21;
+    --alpha-glow-wash-2: 0.13;
+    --alpha-glow-wash-3: 0.06;
+    --alpha-glow-wash-4: 0.02;
+    --alpha-glow-tint: 0.025;
+    --alpha-glow-edge-inner: 0.43;
+    --alpha-glow-edge-rim: 0.16;
+    --alpha-glow-edge-bloom: 0.14;
+    --alpha-glow-outer-near: 0.2;
+    --alpha-glow-outer-far: 0.09;
+    --alpha-glow-bar-strong: 0.5;
+    --alpha-glow-bar-mid: 0.4;
+    --alpha-glow-bar-far: 0.19;
+    --alpha-checkbox-glow-inner: 0.55;
+    --alpha-checkbox-glow-outer: 0.22;
+    --alpha-checkbox-shadow: 0.6;
+    --alpha-header-emit: 0.18;
+    --alpha-header-bloom: 0.1;
+    --alpha-phosphor-rim: 0.045;
+    --alpha-phosphor-bloom: 0.04;
+    --alpha-hover-edge: 0.18;
+    --alpha-hover-bloom: 0.08;
+    --alpha-hover-bloom-edge: 0.06;
+    --alpha-hover-bloom-far: 0.04;
+    --bg-header-band: 0 0% 0% / 0.15;
   }
 }

@@ -43,11 +43,11 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
     const s = SIZES[size];
 
     const trackTone = checked
-      ? 'bg-[hsl(var(--primary)/0.10)] border-primary/40 shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]'
-      : 'border-line-mid shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
+      ? 'bg-[hsl(var(--primary)/0.10)] border-primary/40 dark:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]'
+      : 'border-line-mid dark:shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
 
     const knobTone = checked
-      ? `${s.knobOnX} bg-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.55),0_0_10px_0_hsl(var(--primary)/0.65)]`
+      ? `${s.knobOnX} bg-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.55)] dark:shadow-[0_0_0_1px_hsl(var(--primary)/0.55),0_0_10px_0_hsl(var(--primary)/0.65)]`
       : 'translate-x-0 bg-muted-foreground';
 
     const knobLineTone = checked ? 'bg-shade/35' : 'bg-shade/40';

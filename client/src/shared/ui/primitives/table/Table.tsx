@@ -69,7 +69,7 @@ const CHECKBOX_CELL_OVERRIDE = '!px-3 text-center w-10';
 
 // Primary glowing end-cap for the header/body divider (mirrors NubDivider's primary nub).
 const HEADER_NUB =
-  'pointer-events-none absolute bottom-0 z-10 h-0.5 w-0.5 translate-y-1/2 bg-primary shadow-[0_0_6px_1px_hsl(var(--primary)/0.7)]';
+  'pointer-events-none absolute bottom-0 z-10 h-0.5 w-0.5 translate-y-1/2 bg-primary dark:shadow-[0_0_6px_1px_hsl(var(--primary)/0.7)]';
 
 // Warm, opaque header surface ported from the settings subsection header. `lit` adds the
 // top-left → bottom-right directional glow; only the topmost bar gets it (the toolbar when
@@ -289,7 +289,7 @@ const TableHeader = <T,>({
   return (
     <thead>
       <tr
-        className="relative z-10 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-primary/30 after:shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
+        className="relative z-10 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:bg-primary/30 dark:after:shadow-[0_0_8px_hsl(var(--primary)/0.45)]"
         style={{ background: headerSurface(!hasToolbar) }}
       >
         {selectable && (
