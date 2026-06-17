@@ -326,15 +326,15 @@ function GroupReticle({ active }: { active: boolean }) {
       aria-hidden
       className={`relative flex h-3 w-3 shrink-0 rotate-45 items-center justify-center border transition ${
         active
-          ? 'border-primary/80 shadow-[0_0_6px_1px_hsl(var(--primary)/0.65)]'
+          ? 'border-primary/80 dark:shadow-[0_0_6px_1px_hsl(var(--primary)/0.65)]'
           : 'border-foreground/35'
       }`}
     >
       <span
         className={`h-1 w-1 bg-primary transition-shadow ${
           active
-            ? 'shadow-[0_0_7px_1px_hsl(var(--primary)/0.85)]'
-            : 'shadow-[0_0_5px_0_hsl(var(--primary)/0.5)]'
+            ? 'dark:shadow-[0_0_7px_1px_hsl(var(--primary)/0.85)]'
+            : 'dark:shadow-[0_0_5px_0_hsl(var(--primary)/0.5)]'
         }`}
       />
     </span>
@@ -379,7 +379,7 @@ function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGro
           />
           <span
             aria-hidden
-            className="absolute right-0 top-1/2 h-0.5 w-0.5 -translate-y-1/2 bg-foreground shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
+            className="absolute right-0 top-1/2 h-0.5 w-0.5 -translate-y-1/2 bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
           />
         </span>
       </button>

@@ -77,7 +77,7 @@ export function LabManagementPage() {
               <span className="flex min-w-0 items-center gap-1.5">
                 <span
                   aria-hidden
-                  className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+                  className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
                 />
                 <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
                   {TABS.length} <span className="text-foreground/45">suites</span>

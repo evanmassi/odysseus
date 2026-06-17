@@ -106,31 +106,31 @@ const buttonVariants = cva(
 );
 
 const MARKER_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-primary shadow-[0_0_6px_-1px_hsl(var(--primary)/0.55)]',
+  primary: 'bg-primary dark:shadow-[0_0_6px_-1px_hsl(var(--primary)/0.55)]',
   solid:
-    'bg-sheen/95 shadow-[0_0_8px_0_hsl(var(--sheen)/0.65),inset_0_0_2px_hsl(var(--primary)/0.5)]',
-  danger: 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.55)]',
-  success: 'bg-success-bg shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.55)]',
-  warning: 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.55)]',
-  info: 'bg-info-bg shadow-[0_0_6px_-1px_hsl(var(--color-info-bg)/0.55)]',
-  ghost: 'bg-muted-foreground shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
-  'ghost-danger': 'bg-danger-text shadow-[0_0_6px_-1px_hsl(var(--color-danger-text)/0.55)]',
-  secondary: 'bg-muted-foreground shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
-  cancel: 'bg-muted-foreground shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
+    'bg-sheen/95 dark:shadow-[0_0_8px_0_hsl(var(--sheen)/0.65),inset_0_0_2px_hsl(var(--primary)/0.5)]',
+  danger: 'bg-danger-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.55)]',
+  success: 'bg-success-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.55)]',
+  warning: 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.55)]',
+  info: 'bg-info-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-info-bg)/0.55)]',
+  ghost: 'bg-muted-foreground dark:shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
+  'ghost-danger': 'bg-danger-text dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-text)/0.55)]',
+  secondary: 'bg-muted-foreground dark:shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
+  cancel: 'bg-muted-foreground dark:shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
 };
 
 // Hover state for ghost + solid markers; other variants' markers have no hover transition.
 const MARKER_HOVER_CLASSES: Partial<Record<ButtonVariant, string>> = {
   solid:
-    'group-hover:bg-sheengroup-hover:shadow-[0_0_12px_0_hsl(var(--sheen)/0.85),inset_0_0_2px_hsl(var(--primary)/0.6)]',
+    'group-hover:bg-sheen dark:group-hover:shadow-[0_0_12px_0_hsl(var(--sheen)/0.85),inset_0_0_2px_hsl(var(--primary)/0.6)]',
   ghost:
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
   'ghost-danger':
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--color-danger-text)/0.7),0_0_14px_2px_hsl(var(--color-danger-text)/0.35)]',
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--color-danger-text)/0.7),0_0_14px_2px_hsl(var(--color-danger-text)/0.35)]',
   secondary:
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
   cancel:
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
 };
 
 // Standard variants set the icon color explicitly; ghost variants inherit it from text-*.

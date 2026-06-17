@@ -21,7 +21,7 @@ const TOAST_CONFIG = {
   success: {
     icon: CheckCircle,
     iconClass:
-      'text-[hsl(var(--color-success-bg))] drop-shadow-[0_0_5px_hsl(var(--color-success-bg)/0.75)]',
+      'text-[hsl(var(--color-success-bg))] dark:drop-shadow-[0_0_5px_hsl(var(--color-success-bg)/0.75)]',
     coreClass: 'bg-[hsl(var(--color-success-bg))]',
     glowClass: 'bg-[hsl(var(--color-success-bg)/0.6)]',
     ariaLive: 'polite' as const,
@@ -29,7 +29,7 @@ const TOAST_CONFIG = {
   error: {
     icon: XCircle,
     iconClass:
-      'text-[hsl(var(--color-danger-bg))] drop-shadow-[0_0_5px_hsl(var(--color-danger-bg)/0.75)]',
+      'text-[hsl(var(--color-danger-bg))] dark:drop-shadow-[0_0_5px_hsl(var(--color-danger-bg)/0.75)]',
     coreClass: 'bg-[hsl(var(--color-danger-bg))]',
     glowClass: 'bg-[hsl(var(--color-danger-bg)/0.6)]',
     ariaLive: 'assertive' as const,
@@ -37,7 +37,7 @@ const TOAST_CONFIG = {
   warning: {
     icon: AlertTriangle,
     iconClass:
-      'text-[hsl(var(--color-warning-bg))] drop-shadow-[0_0_5px_hsl(var(--color-warning-bg)/0.75)]',
+      'text-[hsl(var(--color-warning-bg))] dark:drop-shadow-[0_0_5px_hsl(var(--color-warning-bg)/0.75)]',
     coreClass: 'bg-[hsl(var(--color-warning-bg))]',
     glowClass: 'bg-[hsl(var(--color-warning-bg)/0.6)]',
     ariaLive: 'assertive' as const,
@@ -45,7 +45,7 @@ const TOAST_CONFIG = {
   info: {
     icon: Info,
     iconClass:
-      'text-[hsl(var(--color-info-bg))] drop-shadow-[0_0_5px_hsl(var(--color-info-bg)/0.75)]',
+      'text-[hsl(var(--color-info-bg))] dark:drop-shadow-[0_0_5px_hsl(var(--color-info-bg)/0.75)]',
     coreClass: 'bg-[hsl(var(--color-info-bg))]',
     glowClass: 'bg-[hsl(var(--color-info-bg)/0.6)]',
     ariaLive: 'polite' as const,
@@ -53,7 +53,7 @@ const TOAST_CONFIG = {
   loading: {
     icon: Loader2,
     iconClass:
-      'text-[hsl(var(--color-info-bg))] drop-shadow-[0_0_5px_hsl(var(--color-info-bg)/0.75)]',
+      'text-[hsl(var(--color-info-bg))] dark:drop-shadow-[0_0_5px_hsl(var(--color-info-bg)/0.75)]',
     coreClass: 'bg-[hsl(var(--color-info-bg))]',
     glowClass: 'bg-[hsl(var(--color-info-bg)/0.6)]',
     ariaLive: 'polite' as const,

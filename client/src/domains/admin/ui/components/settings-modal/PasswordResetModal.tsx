@@ -198,7 +198,7 @@ export function PasswordResetModal({
         <div className="flex items-center gap-2.5">
           <span
             aria-hidden
-            className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+            className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
           />
           <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
             User

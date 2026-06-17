@@ -190,7 +190,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const displayLead: React.ReactNode = leadFromProps ?? autoGlyph ?? (
       <span
         aria-hidden="true"
-        className="block h-[3px] w-[3px] bg-current shadow-[0_0_6px_1px_color-mix(in_srgb,currentColor_70%,transparent)]"
+        className="block h-[3px] w-[3px] bg-current dark:shadow-[0_0_6px_1px_color-mix(in_srgb,currentColor_70%,transparent)]"
       />
     );
     const leadIsAutoFilled = leadFromProps == null;

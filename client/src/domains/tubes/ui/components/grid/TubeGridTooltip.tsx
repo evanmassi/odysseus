@@ -102,13 +102,13 @@ export function TubeGridTooltip({
       <ScrimHalo />
       <span
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-full h-1.5 w-1.5 -translate-x-1/2 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)]"
+        className="pointer-events-none absolute left-1/2 top-full h-1.5 w-1.5 -translate-x-1/2 bg-foreground dark:shadow-[0_0_5px_hsl(var(--foreground)/0.8)]"
       />
       {CORNER_PINS.map(pos => (
         <span
           key={pos}
           aria-hidden
-          className={`pointer-events-none absolute h-0.5 w-1.5 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)] ${pos}`}
+          className={`pointer-events-none absolute h-0.5 w-1.5 bg-foreground dark:shadow-[0_0_5px_hsl(var(--foreground)/0.8)] ${pos}`}
         />
       ))}
 

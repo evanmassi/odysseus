@@ -240,7 +240,7 @@ export function AppHeader({
           aria-label="Switch management suite"
         >
           <OdysseusLogo
-            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_30%,transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover [[data-theme=dark]_&]:text-muted-foreground"
+            className="h-7 w-auto text-secondary-foreground dark:drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_30%,transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover [[data-theme=dark]_&]:text-muted-foreground"
             aria-label="Odysseus"
           />
           {hasLab && (

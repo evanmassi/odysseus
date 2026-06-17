@@ -134,8 +134,8 @@ export function SupplyLowStockAlertPanel({
   const lowCount = totalAlerts - outOfStockCount;
   const hasOutOfStock = outOfStockCount > 0;
   const stripeClass = hasOutOfStock
-    ? 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
-    : 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
+    ? 'bg-danger-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
+    : 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
   const labelClass = hasOutOfStock ? 'text-danger-text' : 'text-warning-text';
 
   return (

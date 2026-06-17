@@ -87,7 +87,7 @@ export function DonorTable({
           <div className="flex items-center gap-1.5">
             {!row.isCurated && (
               <span
-                className="h-3 w-0.5 flex-shrink-0 bg-warning-bg shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]"
+                className="h-3 w-0.5 flex-shrink-0 bg-warning-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]"
                 title="Needs review — awaiting lab admin curation"
               />
             )}

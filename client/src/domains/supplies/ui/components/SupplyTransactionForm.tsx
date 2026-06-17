@@ -272,7 +272,7 @@ export function SupplyTransactionForm({
         <div className="flex min-w-0 items-center gap-2">
           <span
             aria-hidden
-            className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+            className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
           />
           <span className="truncate font-display text-sm text-foreground">{itemName}</span>
           {identityParts.length > 0 && (

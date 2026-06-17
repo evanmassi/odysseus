@@ -23,7 +23,7 @@ export function UnsavedChangesIndicator({ count }: UnsavedChangesIndicatorProps)
     <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-warning-text">
       <span
         aria-hidden
-        className="h-[11px] w-0.5 bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]"
+        className="h-[11px] w-0.5 bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]"
       />
       {count} unsaved {count === 1 ? 'change' : 'changes'}
     </span>

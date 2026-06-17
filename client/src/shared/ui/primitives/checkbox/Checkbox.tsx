@@ -39,27 +39,27 @@ const TONE: Record<
     fill: 'bg-action-light',
     icon: 'text-primary',
     iconShadow: 'drop-shadow(0 0 2px hsl(var(--primary) / var(--alpha-checkbox-shadow)))',
-    glow: 'shadow-[0_0_6px_1px_hsl(var(--primary)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--primary)/var(--alpha-checkbox-glow-outer))]',
-    cornerGlow: 'shadow-[0_0_4px_hsl(var(--primary)/0.65)]',
+    glow: 'dark:shadow-[0_0_6px_1px_hsl(var(--primary)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--primary)/var(--alpha-checkbox-glow-outer))]',
+    cornerGlow: 'dark:shadow-[0_0_4px_hsl(var(--primary)/0.65)]',
     bar: 'bg-primary',
-    barShadow: 'shadow-[0_0_4px_hsl(var(--primary)/var(--alpha-checkbox-shadow))]',
+    barShadow: 'dark:shadow-[0_0_4px_hsl(var(--primary)/var(--alpha-checkbox-shadow))]',
   },
   success: {
     bracket: 'border-success-bg',
     fill: 'bg-success-light',
     icon: 'text-success-text',
     iconShadow: 'drop-shadow(0 0 2px hsl(var(--color-success-bg) / var(--alpha-checkbox-shadow)))',
-    glow: 'shadow-[0_0_6px_1px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-outer))]',
-    cornerGlow: 'shadow-[0_0_4px_hsl(var(--color-success-bg)/0.65)]',
+    glow: 'dark:shadow-[0_0_6px_1px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-inner)),0_0_16px_2px_hsl(var(--color-success-bg)/var(--alpha-checkbox-glow-outer))]',
+    cornerGlow: 'dark:shadow-[0_0_4px_hsl(var(--color-success-bg)/0.65)]',
     bar: 'bg-success-bg',
-    barShadow: 'shadow-[0_0_4px_hsl(var(--color-success-bg)/var(--alpha-checkbox-shadow))]',
+    barShadow: 'dark:shadow-[0_0_4px_hsl(var(--color-success-bg)/var(--alpha-checkbox-shadow))]',
   },
 };
 
 // Resting-state corner accent + soft connecting edge (checked state uses the tone above).
 const UNLIT_CORNER = 'bg-foreground/80';
 const UNLIT_CORNER_GLOW =
-  'shadow-[0_0_4px_color-mix(in_srgb,hsl(var(--foreground))_55%,transparent)]';
+  'dark:shadow-[0_0_4px_color-mix(in_srgb,hsl(var(--foreground))_55%,transparent)]';
 const SOFT_EDGE = 'border border-foreground/[0.20] blur-[1px]';
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(

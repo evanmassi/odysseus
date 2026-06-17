@@ -191,7 +191,7 @@ export function EquipmentEditForm({
           <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
             <span
               aria-hidden
-              className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+              className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
             />
             Completeness
           </span>
@@ -200,7 +200,7 @@ export function EquipmentEditForm({
           </span>
           <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
             <span
-              className="absolute inset-y-0 left-0 bg-primary/70 shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
+              className="absolute inset-y-0 left-0 bg-primary/70 dark:shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
               style={{ width: `${completionPct}%` }}
             />
           </span>

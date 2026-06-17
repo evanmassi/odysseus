@@ -26,7 +26,7 @@ export function PanelEmptyState({ icon: Icon, message, className }: PanelEmptySt
         <span
           key={corner}
           aria-hidden
-          className={`pointer-events-none absolute ${corner} h-0.5 w-1 bg-foreground/25 shadow-[0_0_4px_hsl(var(--foreground)/0.45)]`}
+          className={`pointer-events-none absolute ${corner} h-0.5 w-1 bg-foreground/25 dark:shadow-[0_0_4px_hsl(var(--foreground)/0.45)]`}
         />
       ))}
       <Icon

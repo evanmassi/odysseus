@@ -23,9 +23,9 @@ interface SupplyItemRowProps {
 
 /** Short status stripe — same idiom as the navigator locator strip. */
 const STATUS_LINE: Record<'success' | 'warning' | 'danger' | 'muted', string> = {
-  success: 'bg-success-bg shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.6)]',
-  warning: 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]',
-  danger: 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]',
+  success: 'bg-success-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.6)]',
+  warning: 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]',
+  danger: 'bg-danger-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]',
   muted: 'bg-muted-foreground/40',
 };
 

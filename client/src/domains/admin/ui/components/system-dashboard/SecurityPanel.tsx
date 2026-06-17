@@ -627,8 +627,8 @@ export function SecurityPanel() {
                 }
 
                 const toneClasses = isHigh
-                  ? `bg-warning-bg ${isPeak ? 'shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.5)] hover:shadow-[0_0_14px_hsl(var(--color-warning-bg)/0.75)]' : 'shadow-[0_0_4px_hsl(var(--color-warning-bg)/0.3)] hover:shadow-[0_0_10px_hsl(var(--color-warning-bg)/0.6)]'}`
-                  : 'bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_10px_hsl(var(--primary)/0.6)]';
+                  ? `bg-warning-bg ${isPeak ? 'dark:shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.5)] dark:hover:shadow-[0_0_14px_hsl(var(--color-warning-bg)/0.75)]' : 'dark:shadow-[0_0_4px_hsl(var(--color-warning-bg)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--color-warning-bg)/0.6)]'}`
+                  : 'bg-primary dark:shadow-[0_0_4px_hsl(var(--primary)/0.3)] dark:hover:shadow-[0_0_10px_hsl(var(--primary)/0.6)]';
 
                 return (
                   <Tooltip key={bar.hour} content={tooltip} side="top">

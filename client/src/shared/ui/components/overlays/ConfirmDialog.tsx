@@ -39,7 +39,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
   if (variant === 'danger') {
     return {
       iconColor: 'text-danger-text',
-      pin: 'bg-danger-bg shadow-[0_0_6px_1px_hsl(var(--color-danger-bg)/0.7)]',
+      pin: 'bg-danger-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-danger-bg)/0.7)]',
       buttonVariant: 'danger' as ButtonVariant,
       Mark: AnimatedXMark,
     };
@@ -47,7 +47,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
 
   return {
     iconColor: 'text-warning-text',
-    pin: 'bg-warning-bg shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
+    pin: 'bg-warning-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
     buttonVariant: 'warning' as ButtonVariant,
     Mark: AnimatedWarningMark,
   };

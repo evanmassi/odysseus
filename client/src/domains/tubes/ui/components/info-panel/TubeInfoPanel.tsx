@@ -272,7 +272,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
                 <span
                   aria-hidden
-                  className="h-2.5 w-0.5 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
+                  className="h-2.5 w-0.5 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
                 />
                 {position.word}
               </span>

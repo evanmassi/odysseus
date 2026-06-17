@@ -29,7 +29,7 @@ function SavedMarker() {
     <span className="absolute right-2 top-2 flex items-center gap-1 font-mono text-[8px] uppercase tracking-[0.16em] text-primary">
       <span
         aria-hidden
-        className="h-1 w-1 rounded-full bg-primary shadow-[0_0_5px_hsl(var(--primary)/0.85)]"
+        className="h-1 w-1 rounded-full bg-primary dark:shadow-[0_0_5px_hsl(var(--primary)/0.85)]"
       />
       Saved
     </span>

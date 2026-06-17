@@ -13,10 +13,10 @@ export interface UtilizationBarProps {
 export function UtilizationBar({ percent, width = 'w-20' }: UtilizationBarProps) {
   const tone =
     percent >= 90
-      ? 'bg-danger-bg shadow-[0_0_6px_hsl(var(--color-danger-bg)/0.6)]'
+      ? 'bg-danger-bg dark:shadow-[0_0_6px_hsl(var(--color-danger-bg)/0.6)]'
       : percent >= 70
-        ? 'bg-warning-bg shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.6)]'
-        : 'bg-success-bg shadow-[0_0_6px_hsl(var(--color-success-bg)/0.6)]';
+        ? 'bg-warning-bg dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.6)]'
+        : 'bg-success-bg dark:shadow-[0_0_6px_hsl(var(--color-success-bg)/0.6)]';
   const clamped = Math.min(percent, 100);
   return (
     <div className="flex items-center gap-2">

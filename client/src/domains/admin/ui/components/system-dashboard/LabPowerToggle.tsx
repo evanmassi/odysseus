@@ -31,7 +31,7 @@ export function LabPowerToggle({
 
   const bodyTone = isActive
     ? 'border-success-bg shadow-[inset_0_0_14px_-2px_hsl(var(--color-success-bg)/0.45),0_0_22px_-2px_hsl(var(--color-success-bg)/0.55)] hover:shadow-[inset_0_0_16px_-2px_hsl(var(--color-success-bg)/0.6),0_0_32px_-2px_hsl(var(--color-success-bg)/0.8)]'
-    : 'border-line-mid hover:border-line-strong hover:shadow-[0_0_20px_-4px_hsl(var(--foreground)/0.28)]';
+    : 'border-line-mid hover:border-line-strong dark:hover:shadow-[0_0_20px_-4px_hsl(var(--foreground)/0.28)]';
 
   const tickTone = isActive
     ? 'border-success-bg/70 group-hover:border-success-bg'

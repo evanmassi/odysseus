@@ -412,7 +412,7 @@ function BiobankWorkspace() {
                 <span className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] tracking-[0.04em]">
                   <span
                     aria-hidden
-                    className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
+                    className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
                   />
                   <span className="truncate text-foreground">{tankDisplayName}</span>
                   <span className="flex-shrink-0 text-foreground/30">›</span>
@@ -424,7 +424,7 @@ function BiobankWorkspace() {
                 <span className="flex flex-shrink-0 items-center gap-2">
                   <span className="relative h-1 w-20 bg-foreground/[0.07]">
                     <span
-                      className="absolute inset-y-0 left-0 bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+                      className="absolute inset-y-0 left-0 bg-primary dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
                       style={{
                         width: `${gridCapacity > 0 ? (tubes.length / gridCapacity) * 100 : 0}%`,
                       }}

@@ -134,7 +134,7 @@ export function DonorRegistryModal({
   const accentBar = (
     <span
       aria-hidden
-      className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+      className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
     />
   );
   const reviewCount = donors.filter(d => !d.isCurated).length;

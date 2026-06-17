@@ -35,14 +35,14 @@ function getVariantStyles(variant: 'warning' | 'info') {
   if (variant === 'warning') {
     return {
       iconColor: 'text-warning-text',
-      pin: 'bg-warning-bg shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
+      pin: 'bg-warning-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
       Mark: AnimatedWarningMark,
     };
   }
 
   return {
     iconColor: 'text-info-text',
-    pin: 'bg-info-bg shadow-[0_0_6px_1px_hsl(var(--color-info-bg)/0.7)]',
+    pin: 'bg-info-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-info-bg)/0.7)]',
     Mark: AnimatedInfoMark,
   };
 }

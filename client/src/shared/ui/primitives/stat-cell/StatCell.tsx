@@ -25,10 +25,10 @@ export interface StatCellProps {
 const tickVariants = cva('w-1.5 h-1.5 shrink-0', {
   variants: {
     tone: {
-      default: 'bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.7)]',
-      success: 'bg-success-bg shadow-[0_0_8px_hsl(var(--color-success-bg)/0.7)]',
-      warning: 'bg-warning-bg shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.7)]',
-      danger: 'bg-danger-bg shadow-[0_0_8px_hsl(var(--color-danger-bg)/0.7)]',
+      default: 'bg-primary dark:shadow-[0_0_8px_hsl(var(--primary)/0.7)]',
+      success: 'bg-success-bg dark:shadow-[0_0_8px_hsl(var(--color-success-bg)/0.7)]',
+      warning: 'bg-warning-bg dark:shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.7)]',
+      danger: 'bg-danger-bg dark:shadow-[0_0_8px_hsl(var(--color-danger-bg)/0.7)]',
     },
   },
   defaultVariants: { tone: 'default' },

@@ -162,8 +162,8 @@ export function EquipmentMaintenanceAlertPanel({
   const dueSoonCount = totalAlerts - overdueCount;
   const hasOverdue = overdueCount > 0;
   const stripeClass = hasOverdue
-    ? 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
-    : 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
+    ? 'bg-danger-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
+    : 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
   const labelClass = hasOverdue ? 'text-danger-text' : 'text-warning-text';
 
   return (

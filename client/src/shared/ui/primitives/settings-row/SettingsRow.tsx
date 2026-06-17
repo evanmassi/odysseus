@@ -70,7 +70,7 @@ export function Subsection({ title, index, meta, accent, children, className }: 
         <SubsectionHeader title={title} index={index} meta={meta} accent={accent} />
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 -bottom-px h-px [background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.18)_12%,hsl(var(--primary)/0.18)_88%,transparent_100%)] shadow-[0_0_8px_hsl(var(--primary)/0.12),0_0_18px_hsl(var(--primary)/0.05)]"
+          className="pointer-events-none absolute inset-x-0 -bottom-px h-px [background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.18)_12%,hsl(var(--primary)/0.18)_88%,transparent_100%)] dark:shadow-[0_0_8px_hsl(var(--primary)/0.12),0_0_18px_hsl(var(--primary)/0.05)]"
         />
       </div>
       <div className={GRID_CLASSES}>{children}</div>
