@@ -525,8 +525,8 @@ export function Table<T extends TableRowBase>({
   // Box-shadow edges match auth-modal lift/recess.
   const hasToolbar = Boolean(toolbar);
   const topSheen = hasToolbar
-    ? 'linear-gradient(180deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--primary) / 0.03) 10%, transparent 20%)'
-    : 'linear-gradient(180deg, hsl(var(--primary) / 0.05) 0%, transparent 9%)';
+    ? 'linear-gradient(180deg, hsl(var(--primary) / calc(0.1 * var(--lit))) 0%, hsl(var(--primary) / calc(0.03 * var(--lit))) 10%, transparent 20%)'
+    : 'linear-gradient(180deg, hsl(var(--primary) / calc(0.05 * var(--lit))) 0%, transparent 9%)';
 
   return (
     <div
@@ -535,19 +535,19 @@ export function Table<T extends TableRowBase>({
         background: [
           topSheen,
           // body diagonal lighting
-          'radial-gradient(ellipse 75% 95% at 100% 100%, hsl(var(--primary) / 0.09), transparent 60%)',
-          'radial-gradient(ellipse 90% 80% at 0% 0%, hsl(var(--foreground) / 0.04), transparent 60%)',
-          'radial-gradient(ellipse 110% 50% at 50% 100%, hsl(var(--shade) / 0.1), transparent 65%)',
+          'radial-gradient(ellipse 75% 95% at 100% 100%, hsl(var(--primary) / calc(0.09 * var(--lit))), transparent 60%)',
+          'radial-gradient(ellipse 90% 80% at 0% 0%, hsl(var(--foreground) / calc(0.04 * var(--lit))), transparent 60%)',
+          'radial-gradient(ellipse 110% 50% at 50% 100%, hsl(var(--shade) / calc(0.1 * var(--lit))), transparent 65%)',
           'hsl(var(--card))',
         ].join(', '),
         boxShadow: [
-          'inset 0 1px 0 hsl(var(--sheen) / 0.2)',
-          'inset 1px 0 0 hsl(var(--sheen) / 0.05)',
-          'inset 0 -1px 0 hsl(var(--shade) / 0.35)',
-          'inset -1px 0 0 hsl(var(--shade) / 0.18)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.2 * var(--lit)))',
+          'inset 1px 0 0 hsl(var(--sheen) / calc(0.05 * var(--lit)))',
+          'inset 0 -1px 0 hsl(var(--shade) / calc(0.35 * var(--lit)))',
+          'inset -1px 0 0 hsl(var(--shade) / calc(0.18 * var(--lit)))',
           '0 0 0 1px hsl(var(--foreground) / 0.06)',
-          '0 20px 50px -22px hsl(var(--shade) / 0.65)',
-          '0 0 80px -28px hsl(var(--primary) / 0.12)',
+          '0 20px 50px -22px hsl(var(--recess) / 0.65)',
+          '0 0 80px -28px hsl(var(--primary) / calc(0.12 * var(--lit)))',
         ].join(', '),
       }}
     >

@@ -17,7 +17,7 @@ export interface PanelHeaderProps {
 export function PanelHeader({ title, meta, icon, actions, className }: PanelHeaderProps) {
   return (
     <div className={`flex items-center ${className ?? ''}`}>
-      <span className="relative isolate inline-flex flex-none items-center gap-2.5 px-[18px] py-[7px] [background:linear-gradient(90deg,hsl(var(--primary)/0.14),hsl(var(--primary)/0.02)_50%,hsl(var(--primary)/0.14))] before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-scanlines before:content-['']">
+      <span className="relative isolate inline-flex flex-none items-center gap-2.5 px-[18px] py-[7px] dark:[background:linear-gradient(90deg,hsl(var(--primary)/0.14),hsl(var(--primary)/0.02)_50%,hsl(var(--primary)/0.14))] before:pointer-events-none before:absolute before:inset-0 before:-z-10 dark:before:bg-scanlines before:content-['']">
         <span
           aria-hidden
           className="absolute inset-y-0 left-0 w-0.5 bg-primary dark:shadow-[0_0_11px_0_hsl(var(--primary)/0.9)]"

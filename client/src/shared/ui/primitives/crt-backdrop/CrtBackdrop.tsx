@@ -29,11 +29,11 @@ const SCANLINES =
 
 const LIGHTING_LAYERS: Record<CrtBackdropLighting, string[]> = {
   anchored: [
-    'radial-gradient(ellipse 60% 80% at 18% 10%, hsl(var(--primary)/0.07), transparent 90%)',
-    'radial-gradient(ellipse 60% 60% at 100% 100%, hsl(var(--shade) / 0.16), transparent 85%)',
+    'radial-gradient(ellipse 60% 80% at 18% 10%, hsl(var(--primary) / calc(0.07 * var(--lit))), transparent 90%)',
+    'radial-gradient(ellipse 60% 60% at 100% 100%, hsl(var(--shade) / calc(0.16 * var(--lit))), transparent 85%)',
   ],
   diffuse: [
-    'linear-gradient(135deg, hsl(var(--primary)/0.04) 0%, transparent 55%, hsl(var(--shade) / 0.05) 100%)',
+    'linear-gradient(135deg, hsl(var(--primary) / calc(0.04 * var(--lit))) 0%, transparent 55%, hsl(var(--shade) / calc(0.05 * var(--lit))) 100%)',
   ],
 };
 

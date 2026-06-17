@@ -166,7 +166,7 @@ export function BaseModal({
 
   const locatorBlock =
     isLit && locator ? (
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-6 py-2.5">
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-surface-void shadow-[inset_0_1px_3px_hsl(var(--recess)/0.45),inset_0_0_0_1px_hsl(var(--foreground)/0.05)] dark:bg-shade/35 dark:shadow-none px-6 py-2.5">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
