@@ -45,7 +45,7 @@ import { TubeShareAccessModal } from '@domains/tubes/ui/components/locking/TubeS
 import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@infra/logger';
-import { ErrorBoundary, NubDivider, PanelHeader, SuspenseBoundary } from '@shared/ui';
+import { ErrorBoundary, HeaderStrip, PanelHeader, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { UnsavedConfirmDialog } from '@shared/ui/components/overlays/UnsavedConfirmDialog';
@@ -403,11 +403,7 @@ function BiobankWorkspace() {
               />
             </div>
 
-            <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-              />
+            <HeaderStrip className="px-4 py-2.5">
               <div className="flex items-center gap-3">
                 <span className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] tracking-[0.04em]">
                   <span
@@ -436,8 +432,7 @@ function BiobankWorkspace() {
                   </span>
                 </span>
               </div>
-              <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-            </div>
+            </HeaderStrip>
             <div className="grid-container" ref={gridContainerRef}>
               <ErrorBoundary>
                 <TubeGrid

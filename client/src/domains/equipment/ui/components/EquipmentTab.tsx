@@ -13,7 +13,7 @@ import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucid
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
 import { useDeleteEquipmentCategoryMutation } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, NubDivider, PanelHeader, SearchInput, Select, Tooltip } from '@shared/ui';
+import { Button, HeaderStrip, PanelHeader, SearchInput, Select, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -184,11 +184,7 @@ export function EquipmentTab() {
           </div>
 
           {/* Locator strip: inventory counts */}
-          <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-            />
+          <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 items-center gap-1.5">
               <span
                 aria-hidden
@@ -203,8 +199,7 @@ export function EquipmentTab() {
             <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
               {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
             </span>
-            <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-          </div>
+          </HeaderStrip>
 
           {/* Toolbar: search · sort · decommissioned · actions — the table's own header */}
           <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">

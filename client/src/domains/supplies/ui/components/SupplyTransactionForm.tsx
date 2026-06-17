@@ -16,7 +16,7 @@ import {
   useRecordSupplyTransactionMutation,
   useRecordSupplyStockCountMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, DatePicker, Input, NubDivider, Select, Tab, Tabs } from '@shared/ui';
+import { Button, DatePicker, HeaderStrip, Input, NubDivider, Select, Tab, Tabs } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -264,11 +264,7 @@ export function SupplyTransactionForm({
         <h2 className="text-lg font-medium text-foreground">Record Transaction</h2>
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
           <span
             aria-hidden
@@ -286,8 +282,7 @@ export function SupplyTransactionForm({
             </span>
           )}
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <div className="flex-shrink-0 border-b border-line-faint px-4">
         <Tabs

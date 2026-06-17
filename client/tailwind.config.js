@@ -20,6 +20,7 @@ export default {
           panel: 'hsl(var(--bg-panel) / <alpha-value>)',
           'panel-2': 'hsl(var(--bg-panel-2) / <alpha-value>)',
           elev: 'hsl(var(--bg-elev) / <alpha-value>)',
+          strip: 'hsl(var(--strip-surface) / <alpha-value>)',
         },
         card: {
           DEFAULT: 'hsl(var(--card) / <alpha-value>)',

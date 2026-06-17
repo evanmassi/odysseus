@@ -9,6 +9,7 @@ import { X } from 'lucide-react';
 
 import { useAnimatedClose, useFocusTrap, useModalKeyboardNavigation } from '@shared/hooks';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+import { HeaderStrip } from '@shared/ui/primitives/header-strip/HeaderStrip';
 import { NubDivider } from '@shared/ui/primitives/nub-divider/NubDivider';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
@@ -165,16 +166,7 @@ export function BaseModal({
   );
 
   const locatorBlock =
-    isLit && locator ? (
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-surface-void shadow-[inset_0_1px_3px_hsl(var(--recess)/0.45),inset_0_0_0_1px_hsl(var(--foreground)/0.05)] dark:bg-shade/35 dark:shadow-none px-6 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
-        {locator}
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
-    ) : null;
+    isLit && locator ? <HeaderStrip className="px-6 py-2.5">{locator}</HeaderStrip> : null;
 
   const bodyBlock = (
     <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>

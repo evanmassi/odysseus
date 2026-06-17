@@ -10,7 +10,7 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { Compass } from 'lucide-react';
 
 import { useLocationCounts, useTubesByRack } from '@domains/tubes/hooks';
-import { NubDivider, PanelHeader } from '@shared/ui';
+import { HeaderStrip, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
 import { StorageBoxMinimap } from './StorageBoxMinimap';
@@ -242,11 +242,7 @@ export function StorageNavigator({
         <PanelHeader icon={<Compass className="h-4 w-4" />} title="Navigator" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-center gap-3">
           <span className="flex min-w-0 items-center gap-1.5">
             <span
@@ -273,8 +269,7 @@ export function StorageNavigator({
             </span>
           </span>
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <div
         className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3"

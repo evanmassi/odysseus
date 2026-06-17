@@ -12,7 +12,7 @@ import { AppHeader } from '@app/components/layout/AppHeader';
 import { EquipmentTab } from '@domains/equipment/ui/components/EquipmentTab';
 import { useStorageData } from '@domains/storage';
 import { SuppliesTab } from '@domains/supplies/ui/components/SuppliesTab';
-import { NubDivider, PanelHeader, Tab, Tabs } from '@shared/ui';
+import { HeaderStrip, PanelHeader, Tab, Tabs } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
 import '@shared/styles/base/layout.css';
@@ -69,11 +69,7 @@ export function LabManagementPage() {
             </div>
 
             {/* Locator strip: suite counts */}
-            <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-              />
+            <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
               <span className="flex min-w-0 items-center gap-1.5">
                 <span
                   aria-hidden
@@ -87,8 +83,7 @@ export function LabManagementPage() {
               <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
                 {onlineCount} online
               </span>
-              <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-            </div>
+            </HeaderStrip>
 
             <nav className="py-2">
               <Tabs orientation="vertical" value={activeTab} onChange={handleTabChange}>

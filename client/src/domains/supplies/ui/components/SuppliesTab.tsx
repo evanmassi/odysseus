@@ -15,7 +15,7 @@ import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies
 import { useDeleteSupplyCategoryMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import {
   Button,
-  NubDivider,
+  HeaderStrip,
   OverflowMenu,
   PanelHeader,
   SearchInput,
@@ -205,11 +205,7 @@ export function SuppliesTab() {
           </div>
 
           {/* Locator strip: inventory counts */}
-          <div className="relative flex flex-shrink-0 items-center gap-3 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-            />
+          <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 items-center gap-1.5">
               <span
                 aria-hidden
@@ -224,8 +220,7 @@ export function SuppliesTab() {
             <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
               {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
             </span>
-            <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-          </div>
+          </HeaderStrip>
 
           {/* Toolbar: search · scan · sort · archived · actions — the table's own header */}
           <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">

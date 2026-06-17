@@ -14,7 +14,7 @@ import {
   useUpdateDonorMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, NubDivider, SectionHeader, Select } from '@shared/ui';
+import { Button, HeaderStrip, NubDivider, SectionHeader, Select } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -133,11 +133,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
         </h2>
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
             <span
@@ -156,8 +152,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
             />
           </span>
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="donor-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-2 p-4">

@@ -25,6 +25,9 @@ export type { ChipProps, ChipColor, ChipSize, ChipBehavior, ChipRef } from './ch
 export { DatePicker } from './date-picker/DatePicker';
 export type { DatePickerProps, DatePickerSize, DatePickerState } from './date-picker/types';
 
+export { HeaderStrip } from './header-strip/HeaderStrip';
+export type { HeaderStripProps } from './header-strip/HeaderStrip';
+
 export { Kbd } from './kbd/Kbd';
 export type { KbdProps } from './kbd/Kbd';
 export { KeyCombo } from './kbd/KeyCombo';

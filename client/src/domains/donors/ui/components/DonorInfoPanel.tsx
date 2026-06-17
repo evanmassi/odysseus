@@ -6,7 +6,15 @@
 
 import { BookUser, SquarePen, Trash2 } from 'lucide-react';
 
-import { Button, Chip, DetailRow, NubDivider, PanelHeader, SectionHeader } from '@shared/ui';
+import {
+  Button,
+  Chip,
+  DetailRow,
+  HeaderStrip,
+  NubDivider,
+  PanelHeader,
+  SectionHeader,
+} from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
@@ -47,11 +55,7 @@ export function DonorInfoPanel({
         <PanelHeader icon={<BookUser className="h-4 w-4" />} title="Donor Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-baseline gap-2">
           <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
             <span
@@ -73,8 +77,7 @@ export function DonorInfoPanel({
             )}
           </span>
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <ScrollArea className="min-h-0 flex-1">
         <div className="space-y-4 p-4">

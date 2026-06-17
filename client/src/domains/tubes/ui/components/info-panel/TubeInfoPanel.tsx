@@ -35,6 +35,7 @@ import {
   Button,
   Chip,
   DetailRow,
+  HeaderStrip,
   NubDivider,
   PanelEmptyState,
   PanelHeader,
@@ -254,11 +255,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Tube Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="space-y-2">
           <TubeLocationDisplay
             variant="strip"
@@ -283,8 +280,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             </div>
           )}
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       {scrollable ? (
         <ScrollArea className="min-h-0 flex-1">

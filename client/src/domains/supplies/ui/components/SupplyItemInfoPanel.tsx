@@ -39,6 +39,7 @@ import {
   Button,
   Chip,
   DetailRow,
+  HeaderStrip,
   Input,
   NubDivider,
   OverflowMenu,
@@ -281,11 +282,7 @@ export function SupplyItemInfoPanel({
         <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Supply Information" />
       </div>
 
-      <div className="relative flex-shrink-0 border-b border-line-faint bg-shade/35 px-4 py-2.5">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
-        />
+      <HeaderStrip className="px-4 py-2.5">
         <div className="grid grid-cols-[auto_1fr] items-center justify-items-start gap-x-3 gap-y-2">
           <StripLabel>Status</StripLabel>
           <Chip size="sm" color={statusConfig.color}>
@@ -312,8 +309,7 @@ export function SupplyItemInfoPanel({
             </>
           )}
         </div>
-        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
-      </div>
+      </HeaderStrip>
 
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
