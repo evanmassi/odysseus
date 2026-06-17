@@ -11,7 +11,7 @@ import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { AnimatedInfoMark } from '@shared/ui/components/icons/AnimatedInfoMark';
 import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 
-import { Button, NubDivider } from '../../primitives';
+import { Button, NubDivider, ScrimHalo } from '../../primitives';
 
 import { ModalPortal } from './ModalPortal';
 
@@ -113,12 +113,10 @@ export function InfoDialog({
           aria-modal="true"
           aria-labelledby="info-dialog-title"
           aria-describedby="info-dialog-message"
+          data-theme="dark"
           className={`relative isolate mx-4 w-full max-w-md px-7 py-6 ${modalAnimationClass} ${closingPointerEvents}`}
         >
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -inset-2 -z-10 bg-shade/[0.93] blur-md"
-          />
+          <ScrimHalo />
           {CORNER_PINS.map(pos => (
             <span
               key={pos}

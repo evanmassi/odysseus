@@ -68,6 +68,8 @@ export type {
   OverflowMenuItem,
 } from './menus/types';
 
+export { ScrimHalo } from './scrim-halo/ScrimHalo';
+
 export { ScrollArea } from './scroll-area/ScrollArea';
 export type { ScrollAreaProps } from './scroll-area/ScrollArea';
 

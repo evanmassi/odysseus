@@ -65,7 +65,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
               <summary className="cursor-pointer text-xs text-[rgb(var(--auth-text-mute))] hover:text-[rgb(var(--auth-text-dim))]">
                 Debug information
               </summary>
-              <pre className="mt-2 overflow-auto rounded bg-shade/30 p-2 text-xs text-[rgb(var(--auth-text-mute))]">
+              <pre className="mt-2 overflow-auto rounded bg-scrim/30 p-2 text-xs text-[rgb(var(--auth-text-mute))]">
                 {error}
               </pre>
             </details>

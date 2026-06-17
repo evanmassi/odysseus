@@ -6,6 +6,8 @@
 
 import { CheckCircle, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react';
 
+import { ScrimHalo } from '../../primitives';
+
 export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
 export interface ToastProps {
@@ -75,10 +77,7 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
         ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
       `}
     >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -inset-2 -z-10 bg-shade/[0.93] blur-md"
-      />
+      <ScrimHalo />
       <span
         aria-hidden
         className={`pointer-events-none absolute inset-y-3 left-[3px] w-1.5 rounded-full blur-[4px] ${config.glowClass}`}

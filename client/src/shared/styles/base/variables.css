@@ -48,13 +48,15 @@
     /* Input well — sunken surface overlay for text inputs/selects/etc. */
     --input-well: 0 0% 0% / 0.04;
 
-    /* CRT scanline tint — repeating 1px line overlaid on console surfaces. */
-    --scanline: 0 0% 0% / 0.12;
+    /* CRT scanline tint — faint on the light surface; dark theme overrides to full. */
+    --scanline: 0 0% 0% / 0.035;
 
-    /* Console overlay bases: shade darkens, sheen lightens. Alpha applied per use
-       (bg-shade/35 or hsl(var(--shade) / .35)). Light theme overrides the base tone. */
-    --shade: 0 0% 0%;
+    /* Console overlay bases: shade darkens (a cool slate in light so bands read as
+       soft tints, not heavy gray), sheen lightens, scrim is always-dark for floating
+       halos (tooltips/toasts). Dark theme overrides shade/scanline to black. */
+    --shade: 212 45% 43%;
     --sheen: 0 0% 100%;
+    --scrim: 0 0% 0%;
 
     /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;

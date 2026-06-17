@@ -8,6 +8,8 @@ import React from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
+import { ScrimHalo } from '../scrim-halo/ScrimHalo';
+
 export interface TooltipProps {
   content: React.ReactNode;
   children: React.ReactNode;
@@ -62,14 +64,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
             side={side}
             align={align}
             sideOffset={6}
+            data-theme="dark"
             className={contentClassName}
           >
-            {!bare && (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -inset-2 -z-10 bg-shade/[0.93] blur-md"
-              />
-            )}
+            {!bare && <ScrimHalo />}
             {content}
           </TooltipPrimitive.Content>
         </TooltipPrimitive.Portal>

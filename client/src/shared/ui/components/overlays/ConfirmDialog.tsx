@@ -13,7 +13,7 @@ import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 import { AnimatedXMark } from '@shared/ui/components/icons/AnimatedXMark';
 
-import { Button, NubDivider, type ButtonVariant } from '../../primitives';
+import { Button, NubDivider, ScrimHalo, type ButtonVariant } from '../../primitives';
 
 import { ModalPortal } from './ModalPortal';
 
@@ -152,12 +152,10 @@ export function ConfirmDialog({
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
           aria-describedby="confirm-dialog-message"
+          data-theme="dark"
           className={`relative isolate mx-4 w-full max-w-md px-7 py-6 ${modalAnimationClass} ${closingPointerEvents}`}
         >
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -inset-2 -z-10 bg-shade/[0.93] blur-md"
-          />
+          <ScrimHalo />
           {CORNER_PINS.map(pos => (
             <span
               key={pos}

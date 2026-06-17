@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-import { NubDivider, Tooltip } from '@shared/ui';
+import { NubDivider, ScrimHalo, Tooltip } from '@shared/ui';
 
 import { parseDonorInfo } from '../../../utils/tubeColorCoding';
 
@@ -99,10 +99,7 @@ export function TubeGridTooltip({
 
   const tooltipContent = (
     <div className="relative isolate min-w-[172px] max-w-[260px] px-4 py-3.5">
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -inset-2 -z-10 bg-shade/[0.93] blur-md"
-      />
+      <ScrimHalo />
       <span
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-full h-1.5 w-1.5 -translate-x-1/2 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)]"

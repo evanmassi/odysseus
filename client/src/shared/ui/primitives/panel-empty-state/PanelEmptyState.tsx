@@ -20,7 +20,7 @@ export function PanelEmptyState({ icon: Icon, message, className }: PanelEmptySt
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 rounded-lg bg-shade/50 blur-lg"
+        className="pointer-events-none absolute inset-0 -z-10 rounded-lg dark:bg-shade/50 dark:blur-lg"
       />
       {CORNER_PINS.map(corner => (
         <span

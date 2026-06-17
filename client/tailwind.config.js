@@ -64,6 +64,7 @@ export default {
         /* Console overlay washes — alpha set per use (bg-shade/35, bg-sheen/20). */
         shade: 'hsl(var(--shade) / <alpha-value>)',
         sheen: 'hsl(var(--sheen) / <alpha-value>)',
+        scrim: 'hsl(var(--scrim) / <alpha-value>)',
 
         /* Application-specific extensions */
 
