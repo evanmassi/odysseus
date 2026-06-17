@@ -39,7 +39,7 @@
     --bg-panel-2: 210 30% 98%;
     --bg-elev: 0 0% 100%;
     /* Recessed header-strip channel fill (light); dark uses the shade wash. */
-    --strip-surface: 214 33% 96%;
+    --strip-surface: 0 0% 100%;
 
     /* Hairlines */
     --line-faint: 222 47% 11% / 0.04;

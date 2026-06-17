@@ -1,9 +1,9 @@
 /**
  * Header Strip
  *
- * Recessed strip beneath a panel/modal header, terminated by a primary nub divider.
- * Holds location or meta content. Recessed cool-gray in light, a dark wash in dark.
- * Pass padding/layout via className — the strip chassis itself is fixed here.
+ * Strip beneath a panel/modal header, terminated by a primary nub divider. Holds
+ * location or meta content; flat tinted in light, a dark wash in dark. Pass
+ * padding/layout via className — the strip chassis itself is fixed here.
  */
 
 import type { ReactNode } from 'react';
@@ -20,7 +20,7 @@ export interface HeaderStripProps {
 export function HeaderStrip({ children, className = '', tone = 'primary' }: HeaderStripProps) {
   return (
     <div
-      className={`relative flex-shrink-0 border-b border-line-faint bg-surface-strip shadow-[inset_0_1px_3px_hsl(var(--recess)/0.45),inset_0_0_0_1px_hsl(var(--foreground)/0.05)] dark:bg-shade/35 dark:shadow-none ${className}`}
+      className={`relative flex-shrink-0 border-b border-line-faint bg-surface-strip dark:bg-shade/35 ${className}`}
     >
       <span
         aria-hidden
