@@ -18,24 +18,24 @@ export interface NubDividerProps {
 
 const TONE: Record<NubDividerTone, { line: string; nub: string }> = {
   primary: {
-    line: 'bg-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.45)]',
-    nub: 'bg-primary shadow-[0_0_6px_1px_hsl(var(--primary)/0.7)]',
+    line: 'bg-primary/30 dark:shadow-[0_0_8px_hsl(var(--primary)/0.45)]',
+    nub: 'bg-primary dark:shadow-[0_0_6px_1px_hsl(var(--primary)/0.7)]',
   },
   success: {
-    line: 'bg-success-bg/30 shadow-[0_0_8px_hsl(var(--color-success-bg)/0.45)]',
-    nub: 'bg-success-bg shadow-[0_0_6px_1px_hsl(var(--color-success-bg)/0.7)]',
+    line: 'bg-success-bg/30 dark:shadow-[0_0_8px_hsl(var(--color-success-bg)/0.45)]',
+    nub: 'bg-success-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-success-bg)/0.7)]',
   },
   warning: {
-    line: 'bg-warning-bg/30 shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.45)]',
-    nub: 'bg-warning-bg shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
+    line: 'bg-warning-bg/30 dark:shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.45)]',
+    nub: 'bg-warning-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
   },
   danger: {
-    line: 'bg-danger-bg/30 shadow-[0_0_8px_hsl(var(--color-danger-bg)/0.45)]',
-    nub: 'bg-danger-bg shadow-[0_0_6px_1px_hsl(var(--color-danger-bg)/0.7)]',
+    line: 'bg-danger-bg/30 dark:shadow-[0_0_8px_hsl(var(--color-danger-bg)/0.45)]',
+    nub: 'bg-danger-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-danger-bg)/0.7)]',
   },
   neutral: {
     line: 'bg-line-faint',
-    nub: 'bg-foreground shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]',
+    nub: 'bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]',
   },
 };
 

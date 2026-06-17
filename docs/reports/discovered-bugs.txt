@@ -1,0 +1,4 @@
+Discovered bugs:
+
+-share access doesn't appear to work from the context menu
+-reassign all from the by users tab in storage manager doesn't seem to actually reassign all there is some logic issue in which boxes it's "choosing" to reassign for that.

@@ -191,7 +191,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
       `}
         style={
           {
-            backgroundColor: tube ? fill : 'hsl(var(--shade) / 0.32)',
+            backgroundColor: tube ? fill : 'hsl(var(--grid-empty))',
             backgroundImage: tube
               ? 'linear-gradient(180deg, hsl(var(--sheen) / 0.12) 0%, hsl(var(--sheen) / 0) 46%, hsl(var(--shade) / 0.14) 100%)'
               : 'none',

@@ -18,8 +18,8 @@ export function TreeNub({ full = false }: TreeNubProps) {
       style={{
         background: full ? 'hsl(var(--color-warning-bg))' : 'hsl(var(--primary))',
         boxShadow: full
-          ? '0 0 6px 1px hsl(var(--color-warning-bg) / 0.85)'
-          : '0 0 6px 1px hsl(var(--primary) / 0.85)',
+          ? '0 0 6px 1px hsl(var(--color-warning-bg) / calc(0.85 * var(--lit)))'
+          : '0 0 6px 1px hsl(var(--primary) / calc(0.85 * var(--lit)))',
       }}
     />
   );

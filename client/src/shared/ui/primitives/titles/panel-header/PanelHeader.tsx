@@ -20,11 +20,11 @@ export function PanelHeader({ title, meta, icon, actions, className }: PanelHead
       <span className="relative isolate inline-flex flex-none items-center gap-2.5 px-[18px] py-[7px] [background:linear-gradient(90deg,hsl(var(--primary)/0.14),hsl(var(--primary)/0.02)_50%,hsl(var(--primary)/0.14))] before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-scanlines before:content-['']">
         <span
           aria-hidden
-          className="absolute inset-y-0 left-0 w-0.5 bg-primary shadow-[0_0_11px_0_hsl(var(--primary)/0.9)]"
+          className="absolute inset-y-0 left-0 w-0.5 bg-primary dark:shadow-[0_0_11px_0_hsl(var(--primary)/0.9)]"
         />
         <span
           aria-hidden
-          className="absolute inset-y-0 right-0 w-0.5 bg-primary shadow-[0_0_11px_0_hsl(var(--primary)/0.9)]"
+          className="absolute inset-y-0 right-0 w-0.5 bg-primary dark:shadow-[0_0_11px_0_hsl(var(--primary)/0.9)]"
         />
         {icon && (
           <span aria-hidden className="inline-flex flex-none items-center text-foreground/55">
@@ -46,7 +46,7 @@ export function PanelHeader({ title, meta, icon, actions, className }: PanelHead
       >
         <span
           aria-hidden
-          className="absolute right-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
+          className="absolute right-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
         />
       </div>
       {actions && <div className="ml-3 flex items-center gap-2">{actions}</div>}

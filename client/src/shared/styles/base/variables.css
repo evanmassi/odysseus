@@ -51,12 +51,16 @@
     /* CRT scanline tint — faint on the light surface; dark theme overrides to full. */
     --scanline: 0 0% 0% / 0.035;
 
-    /* Console overlay bases: shade darkens (a cool slate in light so bands read as
-       soft tints, not heavy gray), sheen lightens, scrim is always-dark for floating
-       halos (tooltips/toasts). Dark theme overrides shade/scanline to black. */
+    /* Overlay/shadow bases — alpha applied per use. shade = brand-navy band/fill tint;
+       recess = neutral inset/drop shadow (kept off the brand hue); sheen = light
+       highlight; scrim = always-dark floating halo. Dark theme overrides to black. */
     --shade: 212 45% 43%;
+    --recess: 218 16% 34%;
     --sheen: 0 0% 100%;
     --scrim: 0 0% 0%;
+    /* Lit switch: 0 = unlit (light), 1 = lit (dark). Multiplies the glow/sheen/bloom
+       alphas across chassis, tree nubs, and connector lines; elevation ignores it. */
+    --lit: 0;
 
     /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;
@@ -211,8 +215,8 @@
 
     /* Tube Grid */
     --grid-border: 220 13% 91%;
-    --grid-empty: 210 20% 96%;
-    --grid-empty-foreground: 0 0% 60%;
+    --grid-empty: 214 33% 96%;
+    --grid-empty-foreground: 213 16% 63%;
     --grid-position-label: 0 0% 100%;
     --grid-position-label-foreground: 215.4 19.3% 34.5%;
     --grid-position-label-border: 220 13% 82.7%;
@@ -319,7 +323,9 @@
 
     --scanline: 0 0% 0% / 0.12;
     --shade: 0 0% 0%;
+    --recess: 0 0% 0%;
     --sheen: 0 0% 100%;
+    --lit: 1;
 
     /* Card */
     --card: 217 32% 9%;
@@ -439,7 +445,7 @@
 
     /* Tube Grid */
     --grid-border: 217.2 19.2% 26.7%;
-    --grid-empty: 215 24% 19%;
+    --grid-empty: 0 0% 0% / 0.32;
     --grid-position-label: 217.2 32.6% 15.5%;
     --grid-position-label-foreground: 220 10.6% 64.9%;
     --grid-position-label-border: 217.2 19.2% 26.7%;

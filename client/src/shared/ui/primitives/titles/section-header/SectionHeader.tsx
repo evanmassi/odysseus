@@ -55,7 +55,7 @@ export function SectionHeader({
   return (
     <div className={`flex items-center gap-2.5 pb-3.5 ${className ?? ''}`}>
       <span aria-hidden className={`relative flex shrink-0 ${BEACON[size].box}`}>
-        <span className="absolute left-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground shadow-[0_0_7px_1px_hsl(var(--primary)/0.75)]" />
+        <span className="absolute left-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground dark:shadow-[0_0_7px_1px_hsl(var(--primary)/0.75)]" />
         <span
           className={`absolute top-1/2 -translate-y-1/2 rotate-45 border-foreground/85 ${BEACON[size].c1}`}
         />
@@ -93,7 +93,7 @@ export function SectionHeader({
         />
         <span
           aria-hidden
-          className={`absolute top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)] ${rightMeta ? 'right-20' : 'right-0'}`}
+          className={`absolute top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)] ${rightMeta ? 'right-20' : 'right-0'}`}
         />
       </div>
       {rightMeta && (
