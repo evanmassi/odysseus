@@ -5,8 +5,8 @@
  */
 
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
-import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
+import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 
 export interface EquipmentCategoryResponse {

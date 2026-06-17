@@ -26,6 +26,7 @@ export interface AutocompleteProps {
   minChars?: number;
   'aria-label'?: string;
   className?: string;
+  inputClassName?: string;
   renderOption?: (option: AutocompleteOption, state: { isHighlighted: boolean }) => ReactNode;
 }
 

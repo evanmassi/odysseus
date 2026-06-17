@@ -18,6 +18,7 @@ import type { ExportService } from '@application/services/ExportService';
 import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import type { PresenceService } from '@application/services/PresenceService';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
+import type { SupplyApplicationService } from '@application/services/SupplyApplicationService';
 import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { AccessControlService } from '@domain/services/AccessControlService';
@@ -31,6 +32,7 @@ import { EquipmentModule } from '@infrastructure/di/modules/EquipmentModule';
 import { EventModule } from '@infrastructure/di/modules/EventModule';
 import { LabModule } from '@infrastructure/di/modules/LabModule';
 import { StorageModule } from '@infrastructure/di/modules/StorageModule';
+import { SupplyModule } from '@infrastructure/di/modules/SupplyModule';
 import { TubeModule } from '@infrastructure/di/modules/TubeModule';
 import { UserModule } from '@infrastructure/di/modules/UserModule';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
@@ -56,6 +58,7 @@ import type { PersonController } from '@presentation/controllers/PersonControlle
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
 import type { SearchController } from '@presentation/controllers/SearchController';
 import type { StorageController } from '@presentation/controllers/StorageController';
+import type { SupplyController } from '@presentation/controllers/SupplyController';
 import type { SecurityMonitoringController } from '@presentation/controllers/system/SecurityMonitoringController';
 import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import type { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
@@ -89,6 +92,7 @@ export class ServiceContainer {
   private _storageModule?: StorageModule;
   private _authModule?: AuthModule;
   private _donorModule?: DonorModule;
+  private _supplyModule?: SupplyModule;
   private _equipmentModule?: EquipmentModule;
 
   constructor(repositoryFactory: RepositoryFactory, configurationService: ConfigurationService) {
@@ -211,6 +215,13 @@ export class ServiceContainer {
       this._donorModule = new DonorModule(this.getShared(), this.repositoryFactory);
     }
     return this._donorModule;
+  }
+
+  private getSupplyModule(): SupplyModule {
+    if (!this._supplyModule) {
+      this._supplyModule = new SupplyModule(this.getShared(), this.repositoryFactory);
+    }
+    return this._supplyModule;
   }
 
   private getEquipmentModule(): EquipmentModule {
@@ -384,6 +395,16 @@ export class ServiceContainer {
 
   getDonorController(): DonorController {
     return this.getDonorModule().getDonorController();
+  }
+
+  // Public API — SupplyModule
+
+  getSupplyApplicationService(): SupplyApplicationService {
+    return this.getSupplyModule().getSupplyApplicationService();
+  }
+
+  getSupplyController(): SupplyController {
+    return this.getSupplyModule().getSupplyController();
   }
 
   // Public API — EquipmentModule

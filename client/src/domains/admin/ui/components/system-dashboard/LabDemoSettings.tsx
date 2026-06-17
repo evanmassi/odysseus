@@ -1,16 +1,23 @@
 /**
  * Lab Demo Settings
  *
- * Collapsible panel for managing demo lab limits, seeding, and data reset.
+ * Demo lab management: per-resource limits, seed/unseed, reset.
  */
 
 import { useState } from 'react';
 
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
-import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Save, RotateCcw, BeanOff, Sprout } from 'lucide-react';
+import { BeanOff, ChevronDown, RotateCcw, Save, Sprout } from 'lucide-react';
 
-import { Button, NumberInput } from '@shared/ui';
+import {
+  Button,
+  ConsolePanel,
+  NumberInput,
+  SectionHeader,
+  SettingsRow,
+  Subsection,
+  UnsavedChangesIndicator,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -36,6 +43,7 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
   const seedDemoMutation = useSeedDemoMutation();
   const unseedDemoMutation = useUnseedDemoMutation();
 
+  const [isExpanded, setIsExpanded] = useState(true);
   const [resetDemoConfirm, setResetDemoConfirm] = useState(false);
   const [seedConfirm, setSeedConfirm] = useState(false);
   const [unseedConfirm, setUnseedConfirm] = useState(false);
@@ -82,132 +90,125 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
     }
   };
 
+  const baselineTanks = demoLimits?.maxTanks ?? DEMO_LIMITS_DEFAULTS.maxTanks;
+  const baselineRacksPerTank = demoLimits?.maxRacksPerTank ?? DEMO_LIMITS_DEFAULTS.maxRacksPerTank;
+  const baselineBoxesPerRack = demoLimits?.maxBoxesPerRack ?? DEMO_LIMITS_DEFAULTS.maxBoxesPerRack;
+
+  const maxTanks = editedLimits?.maxTanks ?? baselineTanks;
+  const maxRacksPerTank = editedLimits?.maxRacksPerTank ?? baselineRacksPerTank;
+  const maxBoxesPerRack = editedLimits?.maxBoxesPerRack ?? baselineBoxesPerRack;
+
+  const changedCount =
+    (maxTanks !== baselineTanks ? 1 : 0) +
+    (maxRacksPerTank !== baselineRacksPerTank ? 1 : 0) +
+    (maxBoxesPerRack !== baselineBoxesPerRack ? 1 : 0);
+
   return (
     <>
-      <Collapsible.Root
-        defaultOpen={false}
-        className="rounded-lg border border-border bg-card max-w-md"
-      >
-        <Collapsible.Trigger className="flex w-full items-center justify-between p-3 cursor-pointer group">
-          <div className="flex items-center gap-2">
-            <ChevronDown
-              size={14}
-              className="text-secondary-foreground transition-transform duration-200 group-data-[state=closed]:-rotate-90"
-            />
-            <h3 className="text-sm font-semibold text-card-foreground">Demo Settings</h3>
-          </div>
-        </Collapsible.Trigger>
-        <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-          <div className="px-3 pb-3 space-y-3">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-                <div>
-                  <h5 className="text-sm font-medium text-card-foreground">Additional Tanks</h5>
-                  <p className="text-xs text-secondary-foreground">
-                    Max tanks beyond seeded baseline
-                  </p>
-                </div>
+      <div>
+        <SectionHeader
+          title="Demo Settings"
+          meta={
+            <button
+              type="button"
+              onClick={() => setIsExpanded(o => !o)}
+              className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
+            >
+              <ChevronDown
+                size={12}
+                className={`transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+              />
+              {isExpanded ? 'Hide' : 'Show'}
+            </button>
+          }
+        />
+        {isExpanded && (
+          <ConsolePanel>
+            <Subsection title="Resource Limits" index={1}>
+              <SettingsRow label="Additional Tanks" hint="Max tanks beyond seeded baseline">
                 <NumberInput
-                  value={
-                    editedLimits?.maxTanks ?? demoLimits?.maxTanks ?? DEMO_LIMITS_DEFAULTS.maxTanks
-                  }
+                  value={maxTanks}
                   onChange={v => setEditedLimits(prev => ({ ...prev, maxTanks: v }))}
                   min={0}
                   max={50}
                   size="sm"
-                  aria-label="Max additional tanks"
+                  aria-label="Additional Tanks"
                 />
-              </div>
-              <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-                <div>
-                  <h5 className="text-sm font-medium text-card-foreground">
-                    Additional Racks per Tank
-                  </h5>
-                  <p className="text-xs text-secondary-foreground">
-                    Max racks beyond seeded baseline
-                  </p>
-                </div>
+              </SettingsRow>
+              <SettingsRow
+                label="Additional Racks per Tank"
+                hint="Max racks beyond seeded baseline"
+              >
                 <NumberInput
-                  value={
-                    editedLimits?.maxRacksPerTank ??
-                    demoLimits?.maxRacksPerTank ??
-                    DEMO_LIMITS_DEFAULTS.maxRacksPerTank
-                  }
+                  value={maxRacksPerTank}
                   onChange={v => setEditedLimits(prev => ({ ...prev, maxRacksPerTank: v }))}
                   min={0}
                   max={50}
                   size="sm"
-                  aria-label="Max racks per tank"
+                  aria-label="Additional Racks per Tank"
                 />
-              </div>
-              <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-                <div>
-                  <h5 className="text-sm font-medium text-card-foreground">
-                    Additional Boxes per Rack
-                  </h5>
-                  <p className="text-xs text-secondary-foreground">
-                    Max boxes beyond seeded baseline
-                  </p>
-                </div>
+              </SettingsRow>
+              <SettingsRow
+                label="Additional Boxes per Rack"
+                hint="Max boxes beyond seeded baseline"
+              >
                 <NumberInput
-                  value={
-                    editedLimits?.maxBoxesPerRack ??
-                    demoLimits?.maxBoxesPerRack ??
-                    DEMO_LIMITS_DEFAULTS.maxBoxesPerRack
-                  }
+                  value={maxBoxesPerRack}
                   onChange={v => setEditedLimits(prev => ({ ...prev, maxBoxesPerRack: v }))}
                   min={0}
                   max={26}
                   size="sm"
-                  aria-label="Max boxes per rack"
+                  aria-label="Additional Boxes per Rack"
                 />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-1">
-              {editedLimits && (
+              </SettingsRow>
+            </Subsection>
+            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-black/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+              <UnsavedChangesIndicator count={changedCount} />
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setResetDemoConfirm(true)}
+                  leftIcon={<RotateCcw size={14} />}
+                >
+                  Reset Demo
+                </Button>
+                {isSeeded ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setUnseedConfirm(true)}
+                    leftIcon={<BeanOff size={14} />}
+                    isLoading={unseedDemoMutation.isPending}
+                  >
+                    Unseed
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setSeedConfirm(true)}
+                    leftIcon={<Sprout size={14} />}
+                    isLoading={seedDemoMutation.isPending}
+                  >
+                    Seed Demo
+                  </Button>
+                )}
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={handleSaveLimits}
                   isLoading={updateDemoLimitsMutation.isPending}
+                  disabled={changedCount === 0}
                   leftIcon={<Save size={14} />}
                 >
                   Save Limits
                 </Button>
-              )}
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setResetDemoConfirm(true)}
-                leftIcon={<RotateCcw size={14} />}
-              >
-                Reset Demo
-              </Button>
-              {isSeeded ? (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setUnseedConfirm(true)}
-                  leftIcon={<BeanOff size={14} />}
-                  isLoading={unseedDemoMutation.isPending}
-                >
-                  Unseed
-                </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setSeedConfirm(true)}
-                  leftIcon={<Sprout size={14} />}
-                  isLoading={seedDemoMutation.isPending}
-                >
-                  Seed Demo
-                </Button>
-              )}
+              </div>
             </div>
-          </div>
-        </Collapsible.Content>
-      </Collapsible.Root>
+          </ConsolePanel>
+        )}
+      </div>
 
       <ConfirmDialog
         isOpen={resetDemoConfirm}

@@ -43,7 +43,10 @@ vi.mock('../../../infrastructure/api', () => ({
 
 vi.mock('@app/services/SessionService', () => ({
   SessionService: vi.fn(() => mockSessionService),
-  LocalStorageSessionStorage: vi.fn(),
+}));
+
+vi.mock('@app/services/BrowserSessionStorage', () => ({
+  BrowserSessionStorage: vi.fn(),
 }));
 
 vi.mock('@app/stores/modalStore', () => ({

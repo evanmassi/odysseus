@@ -34,6 +34,17 @@ const MONTH_ABBR = [
 type Segment = 'month' | 'day' | 'year';
 const SEGMENT_ORDER: Segment[] = ['month', 'day', 'year'];
 
+const TRIGGER_FOCUS_SHADOW =
+  'shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+const POPUP_SHADOW =
+  'shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_0_24px_-4px_hsl(var(--primary)/0.30)]';
+
+const ICON_BUTTON =
+  'p-0.5 text-secondary-foreground transition-colors hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)] focus:outline-none focus-visible:text-foreground focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]';
+
+const NAV_BUTTON =
+  'p-1 text-primary/80 transition-colors hover:text-primary hover:[filter:drop-shadow(0_0_4px_hsl(var(--primary)/0.55))] focus:outline-none focus-visible:text-primary focus-visible:[filter:drop-shadow(0_0_4px_hsl(var(--primary)/0.55))]';
+
 function formatForDisplay(dateStr: string): string {
   if (!dateStr) return '';
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -80,9 +91,11 @@ function padSegmentForAdvance(segment: Segment, rawValue: string): string {
 const triggerVariants = cva(
   [
     'relative w-full',
-    'bg-card border rounded-lg',
-    'transition-all duration-200',
+    'bg-[hsl(var(--input-well))] border',
     'flex items-center justify-between',
+    'font-mono tracking-[0.04em]',
+    'transition-[border-color,background,box-shadow] duration-200',
+    'focus-visible:outline-none focus-visible:border-primary/70',
   ],
   {
     variants: {
@@ -93,20 +106,30 @@ const triggerVariants = cva(
         lg: 'h-12 px-4 text-base',
       },
       focused: {
-        true: 'ring-2 ring-ring border-ring',
+        true: `bg-primary/[0.04] ${TRIGGER_FOCUS_SHADOW}`,
         false: '',
       },
       state: {
-        default: 'border-border hover:border-muted-foreground',
-        error: 'border-2 border-danger-border',
-        warning: 'border-2 border-warning-border',
-        success: 'border-2 border-success-border',
+        default: 'border-line-faint',
+        error: 'border-danger-border',
+        warning: 'border-warning-border',
+        success: 'border-success-border',
       },
       disabled: {
         true: 'opacity-50 cursor-not-allowed',
         false: '',
       },
     },
+    compoundVariants: [
+      // Primary edge only when no state override; hover lift only when idle.
+      { focused: true, state: 'default', class: 'border-primary/70' },
+      {
+        focused: false,
+        state: 'default',
+        disabled: false,
+        class: 'hover:border-foreground/30',
+      },
+    ],
     defaultVariants: {
       size: 'md',
       focused: false,
@@ -396,12 +419,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         role="spinbutton"
         aria-label={segment}
         aria-valuenow={parseInt(val, 10) || undefined}
-        className={`outline-none rounded px-0.5 cursor-text ${
+        className={`cursor-text px-0.5 outline-none transition-colors ${
           isActive
-            ? 'bg-ring text-white'
+            ? 'bg-primary/15 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.55)]'
             : val
               ? 'text-foreground'
-              : 'text-muted-foreground opacity-40'
+              : 'text-foreground/35'
         }`}
         onClick={e => {
           e.stopPropagation();
@@ -458,30 +481,26 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         {isEditing ? (
           <div className="flex items-center">
             {renderSegment('month', 'MM')}
-            <span className="text-muted-foreground mx-0.5">/</span>
+            <span className="mx-0.5 text-foreground/30">/</span>
             {renderSegment('day', 'DD')}
-            <span className="text-muted-foreground mx-0.5">/</span>
+            <span className="mx-0.5 text-foreground/30">/</span>
             {renderSegment('year', 'YYYY')}
           </div>
         ) : (
-          <span
-            className={
-              value ? 'text-foreground truncate' : 'text-muted-foreground opacity-40 truncate'
-            }
-          >
+          <span className={`truncate ${value ? 'text-foreground' : 'text-foreground/40'}`}>
             {value ? formatForDisplay(value) : (placeholder ?? 'MM/DD/YYYY')}
           </span>
         )}
 
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex flex-shrink-0 items-center gap-1">
           {clearable && value && !disabled && (
             <button
               type="button"
               onClick={handleClear}
-              className="p-0.5 hover:bg-accent rounded"
+              className={ICON_BUTTON}
               aria-label="Clear date"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
           <button
@@ -492,11 +511,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               if (isOpen) close();
               else openCalendar();
             }}
-            className="p-0.5 hover:bg-accent rounded"
+            className={ICON_BUTTON}
             aria-label="Open calendar"
             tabIndex={-1}
           >
-            <Calendar className="w-4 h-4 text-muted-foreground" />
+            <Calendar className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -505,8 +524,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         <div
           ref={dropdownRef}
           id={dialogId}
-          className={`fixed z-[9999] bg-card border border-border rounded-lg shadow-lg p-3 ${
-            isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`fixed z-[9999] border border-line-mid bg-card p-3 ${POPUP_SHADOW} ${
+            isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
           role="presentation"
           onMouseDown={e => e.stopPropagation()}
@@ -521,29 +540,32 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             onSelect={handleSelect}
             defaultMonth={selectedDate}
             classNames={{
-              root: 'text-foreground',
+              root: 'text-foreground font-mono',
               months: 'flex',
               month: 'space-y-3',
               month_caption: 'flex justify-center items-center h-8',
-              caption_label: 'text-sm font-medium text-foreground',
+              caption_label: 'font-mono text-[11px] uppercase tracking-[0.18em] text-foreground/85',
               nav: 'flex items-center justify-between absolute inset-x-0 top-0 px-1 h-8',
-              button_previous:
-                'p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors',
-              button_next:
-                'p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors',
+              button_previous: NAV_BUTTON,
+              button_next: NAV_BUTTON,
               month_grid: 'border-collapse',
               weekdays: '',
-              weekday: 'text-muted-foreground text-xs font-medium w-8 h-8',
+              weekday:
+                'font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 w-8 h-8 pb-1 border-b border-line-faint',
               weeks: '',
               week: '',
-              day: 'text-center',
+              day: 'text-center p-0',
               day_button:
-                'w-8 h-8 rounded text-sm transition-colors hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring',
-              selected: 'bg-ring text-white hover:bg-ring',
-              today: 'font-bold',
+                'w-8 h-8 text-sm font-mono text-foreground transition-colors hover:bg-foreground/5 hover:[text-shadow:0_0_6px_color-mix(in_srgb,currentColor_60%,transparent)] focus:outline-none focus-visible:[box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.5)]',
+              selected:
+                'bg-primary/20 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.7)] hover:bg-primary/25',
+              today:
+                'text-primary [text-decoration:underline] [text-decoration-thickness:1px] [text-underline-offset:3px]',
               outside: 'text-muted-foreground opacity-30',
               disabled: 'text-muted-foreground opacity-30 cursor-not-allowed',
-              chevron: 'w-4 h-4',
+              // fill-current — react-day-picker's Chevron polygons ship without an explicit
+              // fill attribute, so without this they render in SVG's default (black).
+              chevron: 'w-4 h-4 fill-current',
             }}
           />
         </div>,

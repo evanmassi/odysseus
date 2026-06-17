@@ -1,10 +1,10 @@
 /**
  * Tube Inventory Icon
  *
- * Semantic wrapper around Lucide's TestTube icon for tube records.
+ * Semantic wrapper around Lucide's TestTubeDiagonal icon for tube records.
  */
 
-import { TestTube } from 'lucide-react';
+import { TestTubeDiagonal } from 'lucide-react';
 
 interface TubeIconProps {
   size?: number;
@@ -12,5 +12,5 @@ interface TubeIconProps {
 }
 
 export function TubeIcon({ size = 24, className = '' }: TubeIconProps) {
-  return <TestTube size={size} className={className} />;
+  return <TestTubeDiagonal size={size} className={className} />;
 }

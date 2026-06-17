@@ -1,0 +1,43 @@
+/**
+ * Text Effects
+ *
+ * Phosphor/CRT-style text treatments.
+ */
+
+@layer utilities {
+  /* Sharp 1px core + soft 6px halo — mimics CRT phosphor optics so glyphs read
+     crisp while the surround glows. Inherits the host's text color. */
+  .phosphor-text {
+    text-shadow:
+      0 0 1px currentColor,
+      0 0 6px color-mix(in srgb, currentColor 40%, transparent);
+  }
+
+  /* Icon/SVG analog of .phosphor-text — text-shadow can't reach SVG strokes, so the
+     same crisp-core + soft-halo recipe is applied as a drop-shadow filter. */
+  .phosphor-glow {
+    filter: drop-shadow(0 0 1px currentColor)
+      drop-shadow(0 0 6px color-mix(in srgb, currentColor 40%, transparent));
+  }
+
+  /* Slow idle breathe for a phosphor glyph at rest — reads as a powered-on screen. */
+  .phosphor-breathe {
+    animation: phosphor-breathe 3.6s ease-in-out infinite;
+  }
+}
+
+@keyframes phosphor-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phosphor-breathe {
+    animation: none;
+  }
+}

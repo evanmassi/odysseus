@@ -6,11 +6,11 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X } from 'lucide-react';
 
 import { useSearch, useSearchStore } from '@domains/search';
 import { logger } from '@infra/logger';
-import { Tooltip } from '@shared/ui';
+import { SearchInput, Tooltip } from '@shared/ui';
 
 import { SearchFilterPanel } from './SearchFilterPanel';
 import { SearchResultsPanel } from './SearchResultsPanel';
@@ -138,39 +138,41 @@ export function SearchPanel() {
     <div ref={containerRef} className="relative">
       <div className="relative">
         <div className="flex items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search..."
-              value={query}
-              onChange={e => search(e.target.value)}
-              onKeyDown={handleInputKeyDown}
-              className="input-search w-56 pl-8 pr-[4.5rem]"
-            />
+          <SearchInput
+            ref={searchInputRef}
+            value={query}
+            onChange={search}
+            onKeyDown={handleInputKeyDown}
+            placeholder="Search…"
+            size="sm"
+            className="flex-1"
+            inputClassName="pr-[4.5rem]"
+            aria-label="Search"
+            trailingSlot={
+              <>
+                {!query && (
+                  <span className="font-mono text-xs text-muted-foreground/40">Ctrl+F</span>
+                )}
 
-            <div className="absolute right-1 top-1 flex items-center space-x-1 z-50">
-              {!query && <span className="text-xs text-muted-foreground/40 font-mono">Ctrl+F</span>}
+                <Tooltip content="Filters" side="bottom">
+                  <button
+                    onClick={handleFilterToggle}
+                    className={
+                      hasActiveFilters || showFilters ? 'btn-icon-action' : 'btn-icon-secondary'
+                    }
+                  >
+                    <SlidersHorizontal className="h-2.5 w-2.5" />
+                  </button>
+                </Tooltip>
 
-              <Tooltip content="Filters" side="bottom">
-                <button
-                  onClick={handleFilterToggle}
-                  className={
-                    hasActiveFilters || showFilters ? 'btn-icon-action' : 'btn-icon-secondary'
-                  }
-                >
-                  <SlidersHorizontal className="w-2.5 h-2.5" />
-                </button>
-              </Tooltip>
-
-              <Tooltip content="Clear" side="bottom">
-                <button onClick={handleClear} className="btn-icon-secondary">
-                  <X className="w-2.5 h-2.5" />
-                </button>
-              </Tooltip>
-            </div>
-          </div>
+                <Tooltip content="Clear" side="bottom">
+                  <button onClick={handleClear} className="btn-icon-secondary">
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </Tooltip>
+              </>
+            }
+          />
         </div>
       </div>
 
@@ -183,7 +185,7 @@ export function SearchPanel() {
         >
           <div className="flex items-stretch">
             <div
-              className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
                 showFilters ? 'w-80' : 'w-0'
               }`}
             >

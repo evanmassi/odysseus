@@ -4,9 +4,6 @@
  * HTTP handlers for tube search operations — advanced, quick, and field-specific.
  */
 
-import { API_ERROR_CODES } from '@odysseus/shared-schemas';
-
-
 import type { TubeResponse } from '@application/dto/TubeDto';
 import type { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { logger } from '@infrastructure/logging/logger';
@@ -96,64 +93,6 @@ export class SearchController extends BaseController {
       logger.error('Search failed:', error);
       handleControllerError(error, res, 'Failed to perform advanced search');
     }
-  }
-
-  /** GET /api/search/quick */
-  async quickSearch(req: Request, res: Response): Promise<void> {
-    try {
-      const { q: query, limit } = req.query;
-      const authenticatedUser = this.getAuthenticatedUser(req);
-
-      if (!query || typeof query !== 'string') {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Query parameter "q" is required'));
-        return;
-      }
-
-      const parsedLimit = (limit as number | undefined) ?? 20;
-      const tubes = await this.deps.tubeApplicationService.searchTubes(
-        { query, limit: parsedLimit },
-        authenticatedUser
-      );
-
-      res.json(this.buildSearchResponse(tubes, query, parsedLimit, 0));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to perform quick search');
-    }
-  }
-
-  /** POST /api/search/field */
-  async fieldSearch(req: Request, res: Response): Promise<void> {
-    try {
-      const { field, value, exact, limit = 50, offset = 0 } = req.body;
-      const authenticatedUser = this.getAuthenticatedUser(req);
-
-      const fieldQuery = exact ? `${field}:"${value}"` : `${field}:${value}`;
-      const tubes = await this.deps.tubeApplicationService.searchTubes(
-        { query: fieldQuery, limit, offset },
-        authenticatedUser
-      );
-
-      res.json(this.buildSearchResponse(tubes, fieldQuery, limit, offset));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to perform field search');
-    }
-  }
-
-  private buildSearchResponse(tubes: TubeResponse[], query: string, limit: number, offset: number) {
-    return ResponseBuilder.success({
-      data: tubes,
-      pagination: {
-        total: tubes.length,
-        limit,
-        offset,
-        hasMore: tubes.length >= limit
-      },
-      metadata: {
-        query,
-        searchTime: Date.now(),
-        totalMatches: tubes.length
-      }
-    });
   }
 
   /** Groups tubes by identical properties including box location */

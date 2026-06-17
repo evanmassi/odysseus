@@ -17,12 +17,14 @@ import { ChevronDown, Lock, Plus, SquarePen, Tag, Trash2 } from 'lucide-react';
 import { Button, NumberInput, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
+import { TreeNub } from '../../../storage-navigator/TreeNub';
 import { useStorageManagerContext } from '../../StorageManagerContext';
 import { AssignmentBadge } from '../by-user/AssignmentBadge';
 import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 
-import { BoxRow } from './BoxRow';
 import { CustomLabelButton } from './CustomLabelButton';
+import { RackBoxMinimaps } from './RackBoxMinimaps';
+import { RowMeta } from './RowMeta';
 
 import type { RackConfiguration } from '@domains/storage';
 
@@ -130,6 +132,7 @@ export function RackRow({
             aria-controls={`rack-content-${rackKey}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
           >
+            <TreeNub />
             <ChevronDown
               size={12}
               className={`storage-nav-button__chevron transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
@@ -158,24 +161,30 @@ export function RackRow({
             <div className="storage-nav-button__icon">
               <RackIcon size={16} aria-hidden="true" />
             </div>
-            <span className="storage-nav-button__text">
-              {formatStorageDisplayName(rack.name, rack.customLabel)}
-            </span>
-            <span className="storage-nav-pill storage-nav-pill--muted">
-              {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
-            </span>
-          </div>
-
-          {canManageStorage && !locked && isAdminRole(currentUser?.role) && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <AssignmentDropdown
-                value={rack.assignedUserId}
-                users={users}
-                onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
-                size="md"
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <span className="min-w-0 truncate">
+                {formatStorageDisplayName(rack.name, rack.customLabel)}
+              </span>
+              <RowMeta
+                parts={[`${rack.boxes.length} ${rack.boxes.length === 1 ? 'box' : 'boxes'}`]}
               />
             </div>
-          )}
+            {canManageStorage && !locked && isAdminRole(currentUser?.role) && (
+              <div
+                role="presentation"
+                onClick={e => e.stopPropagation()}
+                onKeyDown={e => e.stopPropagation()}
+                className="flex items-center gap-1 flex-shrink-0"
+              >
+                <AssignmentDropdown
+                  value={rack.assignedUserId}
+                  users={users}
+                  onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
+                  currentUserId={currentUser?.id}
+                />
+              </div>
+            )}
+          </div>
           {locked && (
             <div className="flex items-center px-1.5">
               <Tooltip content="Protected — part of demo setup" side="left">
@@ -197,9 +206,7 @@ export function RackRow({
 
         <Collapsible.Content className="overflow-visible">
           <div id={`rack-content-${rackKey}`} className="storage-nav-children mt-0.5 space-y-0.5">
-            {rack.boxes.map(box => (
-              <BoxRow key={box.id} box={box} rack={rack} tankId={tankId} rackId={rack.id} />
-            ))}
+            <RackBoxMinimaps tankId={tankId} rack={rack} />
 
             {canManageStorage && !locked && (
               <div className="storage-nav-add-controls storage-nav-item--box">

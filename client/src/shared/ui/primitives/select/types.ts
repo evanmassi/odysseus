@@ -6,8 +6,6 @@
 
 import type { ReactNode } from 'react';
 
-export type SelectVariant = 'default' | 'filled' | 'outlined';
-
 export type SelectSize = 'xs' | 'sm' | 'md' | 'lg';
 
 export type SelectState = 'default' | 'error' | 'warning' | 'success';
@@ -35,7 +33,6 @@ export interface SelectProps {
   isLoading?: boolean;
 
   // Appearance
-  variant?: SelectVariant;
   size?: SelectSize;
   state?: SelectState;
   placeholder?: string;
@@ -79,7 +76,6 @@ export interface SelectProps {
 export type SelectRef = HTMLDivElement;
 
 export const defaultSelectProps: Partial<SelectProps> = {
-  variant: 'outlined',
   size: 'md',
   state: 'default',
   multiple: false,

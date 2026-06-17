@@ -7,15 +7,18 @@
 
 import { useCallback } from 'react';
 
-import { calculateTreeLines } from './calculateTreeLines';
-import { TreeLinesDisplay } from './TreeLinesDisplay';
-import { useTreeLines } from './useTreeLines';
+import {
+  calculateTreeLines,
+  TreeLinesDisplay,
+  useTreeLines,
+} from '@shared/ui/components/tree-lines';
 
 interface TreeLinesByLocationProps {
   expandedTanks: Set<string>;
   expandedRacks: Set<string>;
   treeId?: string;
   initialDelay?: number;
+  lineOffset?: number;
 }
 
 export function TreeLinesByLocation({
@@ -23,6 +26,7 @@ export function TreeLinesByLocation({
   expandedRacks,
   treeId,
   initialDelay,
+  lineOffset,
 }: TreeLinesByLocationProps) {
   const calculate = useCallback(
     () =>
@@ -31,8 +35,9 @@ export function TreeLinesByLocation({
         topLevelAttr: 'tank',
         isTopExpanded: id => expandedTanks.has(id),
         isRackExpanded: (tankId, rackId) => expandedRacks.has(`${tankId}-${rackId}`),
+        lineOffset,
       }),
-    [expandedTanks, expandedRacks, treeId]
+    [expandedTanks, expandedRacks, treeId, lineOffset]
   );
 
   const lines = useTreeLines(calculate, initialDelay ? { initialDelay } : undefined);

@@ -4,8 +4,8 @@
  * Unified data access contract for equipment items, documents, and maintenance logs.
  */
 
-import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
+import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 
 export interface EquipmentItemRepository {
@@ -22,6 +22,7 @@ export interface EquipmentItemRepository {
 
   findDocumentsByItemId(itemId: string): Promise<EquipmentDocument[]>;
   saveDocument(document: EquipmentDocument): Promise<void>;
+  updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void>;
   deleteDocument(id: string): Promise<boolean>;
 
   // Maintenance log

@@ -9,13 +9,14 @@ import { useState, useEffect, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
-  Edit,
+  SquarePen,
   Trash2,
   Power,
   Plus,
+  Edit,
   ExternalLink,
   X,
-  Microscope,
+  NotepadText,
   MapPin,
   FolderOpen,
 } from 'lucide-react';
@@ -23,25 +24,31 @@ import {
 import { useAuthStore } from '@domains/authentication';
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks';
 import {
+  useAddEquipmentDocumentMutation,
+  useUpdateEquipmentDocumentMutation,
   useRemoveEquipmentDocumentMutation,
   useDeleteEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
-import { Button, InfoField, InfoGroup } from '@shared/ui';
+import { Button, Chip, DetailRow, NubDivider, PanelHeader, SectionHeader } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { Chip } from '@shared/ui/primitives/chip/Chip';
+import {
+  DocumentLinkModal,
+  type DocumentLinkValues,
+} from '@shared/ui/components/overlays/DocumentLinkModal';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
+import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 
-import type { EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
+import type { EquipmentDocument, EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface EquipmentItemInfoPanelProps {
   itemId: string;
   onEdit: () => void;
   onDecommission: () => void;
-  onAddDocument: () => void;
   onAddMaintenance: () => void;
   onEditMaintenance: (entry: EquipmentMaintenanceLog) => void;
   onDeleted: () => void;
@@ -64,16 +71,22 @@ function formatDate(date: Date | string | undefined): string | undefined {
   return formatDateForDisplay(date) || undefined;
 }
 
-function formatCurrency(amount: number | undefined): string | undefined {
-  if (amount === undefined) return undefined;
-  return `$${amount.toFixed(2)}`;
+function StripLabel({ children }: { children: string }) {
+  return (
+    <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+      <span
+        aria-hidden
+        className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+      />
+      {children}
+    </span>
+  );
 }
 
 export function EquipmentItemInfoPanel({
   itemId,
   onEdit,
   onDecommission,
-  onAddDocument,
   onAddMaintenance,
   onEditMaintenance,
   onDeleted,
@@ -89,20 +102,38 @@ export function EquipmentItemInfoPanel({
   }, [itemId]);
   const { data: detail } = useEquipmentItemDetailQuery(itemId);
   const deleteItemMutation = useDeleteEquipmentItemMutation();
+  const addDocumentMutation = useAddEquipmentDocumentMutation();
+  const updateDocumentMutation = useUpdateEquipmentDocumentMutation();
   const removeDocumentMutation = useRemoveEquipmentDocumentMutation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [documentModal, setDocumentModal] = useState<{
+    isOpen: boolean;
+    mode: 'add' | 'edit';
+    doc?: EquipmentDocument;
+  }>({ isOpen: false, mode: 'add' });
 
   if (!detail) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-        Loading...
-      </div>
+      <ConsolePanel
+        intensity="soft"
+        className="flex h-full min-h-0 flex-col items-center justify-center"
+      >
+        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+          Loading…
+        </span>
+      </ConsolePanel>
     );
   }
 
   const { item, documents, maintenanceLog } = detail;
   const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['active'];
   const isDecommissioned = item.status === 'decommissioned';
+
+  const hasIdentification = [item.manufacturer, item.model, item.serialNumber, item.assetTag].some(
+    Boolean
+  );
+  const hasProcurement =
+    item.purchaseCost != null || Boolean(item.purchaseDate) || Boolean(item.warrantyExpiration);
 
   const handleDelete = async () => {
     try {
@@ -124,222 +155,242 @@ export function EquipmentItemInfoPanel({
     }
   };
 
+  const handleSaveDocument = async (values: DocumentLinkValues) => {
+    if (documentModal.mode === 'edit' && documentModal.doc) {
+      try {
+        await updateDocumentMutation.mutateAsync({
+          itemId,
+          docId: documentModal.doc.id,
+          data: { label: values.label, url: values.url, notes: values.notes ?? null },
+        });
+        notifications.success('Document updated');
+      } catch (error) {
+        notifications.error('Failed to update document');
+        throw error;
+      }
+    } else {
+      try {
+        await addDocumentMutation.mutateAsync({
+          itemId,
+          data: { label: values.label, url: values.url, notes: values.notes },
+        });
+        notifications.success('Document added');
+      } catch (error) {
+        notifications.error('Failed to add document');
+        throw error;
+      }
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="px-4 pt-4 pb-2 flex-shrink-0">
-        <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
-          <Microscope size={16} className="text-secondary-foreground" />
-          Equipment Information
-        </h4>
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+        <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Equipment Information" />
       </div>
 
-      <div className="bg-muted rounded-md px-3 py-2 mx-4 mb-3 flex-shrink-0 space-y-2">
-        {isAdmin && (
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onEdit}
-              leftIcon={<Edit className="w-3.5 h-3.5" />}
-            >
-              Edit
-            </Button>
-            {!isDecommissioned && (
-              <Button
-                variant="ghost-danger"
-                size="sm"
-                onClick={onDecommission}
-                leftIcon={<Power className="w-3.5 h-3.5" />}
-              >
-                Decommission
-              </Button>
-            )}
-            <Button
-              variant="ghost-danger"
-              size="sm"
-              onClick={() => setShowDeleteConfirm(true)}
-              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-            >
-              Remove
-            </Button>
-          </div>
-        )}
-        <div
-          className={`flex items-center gap-1.5 flex-wrap ${isAdmin ? 'pt-2 mt-2 border-t border-border' : ''}`}
-        >
-          {item.location && (
-            <Chip color="info" size="sm" leftIcon={<MapPin />}>
-              {item.location}
-            </Chip>
-          )}
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="grid grid-cols-[auto_1fr] items-center justify-items-start gap-x-3 gap-y-2">
+          <StripLabel>Status</StripLabel>
+          <Chip size="sm" color={statusConfig.color}>
+            {statusConfig.label}
+          </Chip>
           {categoryName && (
-            <Chip color="info" size="sm" leftIcon={<FolderOpen />}>
-              {categoryName}
-            </Chip>
+            <>
+              <StripLabel>Category</StripLabel>
+              <Chip size="sm" color="info" leftIcon={<FolderOpen />}>
+                {categoryName}
+              </Chip>
+            </>
+          )}
+          {item.location && (
+            <>
+              <StripLabel>Location</StripLabel>
+              <Chip size="sm" color="info" leftIcon={<MapPin />}>
+                {item.location}
+              </Chip>
+            </>
           )}
         </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
       </div>
 
-      <ScrollArea ref={scrollRef} className="flex-1 min-h-0 px-4 pb-4">
-        <div className="space-y-4">
-          {/* Product Details */}
-          <InfoGroup title="Product Details">
-            <div className="flex items-center gap-2 mb-2.5">
-              <span className="text-card-foreground font-semibold text-sm">{item.name}</span>
-              <Chip color={statusConfig.color} size="sm" className="uppercase tracking-wide">
-                {statusConfig.label}
-              </Chip>
-            </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-              <InfoField
-                label="Manufacturer"
-                value={item.manufacturer}
-                inline={false}
-                emptyText="—"
-              />
-              <InfoField label="Model" value={item.model} inline={false} emptyText="—" />
-              <InfoField
-                label="Serial Number"
-                value={item.serialNumber}
-                inline={false}
-                emptyText="—"
-              />
-              <InfoField label="Asset Tag" value={item.assetTag} inline={false} emptyText="—" />
-              <InfoField
-                label="Description"
-                value={item.description}
-                inline={false}
-                emptyText="—"
-                className="col-span-2"
-              />
-            </div>
-          </InfoGroup>
+      <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
+        <div className="space-y-4 p-4">
+          <div>
+            <h3 className="text-base font-semibold text-card-foreground">{item.name}</h3>
+            {item.description && (
+              <p className="mt-1 text-sm leading-relaxed text-card-foreground/70">
+                {item.description}
+              </p>
+            )}
+          </div>
 
-          {/* Procurement & Warranty */}
-          <InfoGroup title="Procurement & Warranty">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-              <InfoField
-                label="Purchase Date"
-                value={formatDate(item.purchaseDate)}
-                inline={false}
-                emptyText="—"
-              />
-              <InfoField
-                label="Purchase Cost"
-                value={formatCurrency(item.purchaseCost)}
-                inline={false}
-                emptyText="—"
-              />
-              <InfoField
-                label="Warranty Expiration"
-                value={formatDate(item.warrantyExpiration)}
-                inline={false}
-                emptyText="—"
-              />
+          {hasIdentification && (
+            <div>
+              <SectionHeader title="Identification" size="sm" />
+              <div>
+                <DetailRow label="Manufacturer" value={item.manufacturer} />
+                <DetailRow label="Model" value={item.model} />
+                <DetailRow label="Serial Number" value={item.serialNumber} />
+                <DetailRow label="Asset Tag" value={item.assetTag} />
+              </div>
             </div>
-          </InfoGroup>
+          )}
 
-          {/* Maintenance */}
-          <InfoGroup title="Maintenance">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-              <InfoField
-                label="Condition"
-                value={item.conditionNotes}
-                inline={false}
-                emptyText="—"
-              />
-              <InfoField
-                label="Maintenance Due"
-                value={formatDate(item.nextMaintenanceDate)}
-                inline={false}
-                emptyText="—"
-              />
+          {hasProcurement && (
+            <div>
+              <SectionHeader title="Procurement & Warranty" size="sm" />
+              <div>
+                <DetailRow label="Purchase Date" value={formatDate(item.purchaseDate)} />
+                <DetailRow label="Purchase Cost" value={formatCurrency(item.purchaseCost)} />
+                <DetailRow
+                  label="Warranty Expiration"
+                  value={formatDate(item.warrantyExpiration)}
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
+            <SectionHeader title="Maintenance" size="sm" />
+            <div>
+              <DetailRow label="Condition" value={item.conditionNotes} />
+              <DetailRow label="Maintenance Due" value={formatDate(item.nextMaintenanceDate)} />
             </div>
             <EquipmentMaintenanceTimeline
-              className="mt-3 pt-3 border-t border-border/50"
+              className="mt-3"
               maintenanceLog={maintenanceLog}
               itemId={itemId}
               isAdmin={isAdmin}
               onEditEntry={onEditMaintenance}
               onAddEntry={onAddMaintenance}
             />
-          </InfoGroup>
+          </div>
 
-          {/* Documents */}
-          <InfoGroup title="Documents">
-            {documents.length === 0 && (
-              <p className="text-xs text-card-foreground/30 italic">No documents attached</p>
-            )}
-            {documents.map(doc => (
-              <div key={doc.id} className="flex items-center justify-between py-1">
-                <a
-                  href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline flex items-center gap-1"
-                >
-                  <ExternalLink size={12} />
-                  {doc.label}
-                </a>
-                {isAdmin && (
-                  <Button
-                    variant="ghost-danger"
-                    size="sm"
-                    onClick={() => void handleRemoveDocument(doc.id)}
-                    className="h-6"
+          <div>
+            <SectionHeader title="Documents" size="sm" />
+            {documents.length === 0 ? (
+              <p className="text-sm italic text-card-foreground/30">No documents attached</p>
+            ) : (
+              <div>
+                {documents.map(doc => (
+                  <div
+                    key={doc.id}
+                    className="-mx-4 border-b border-line-faint px-4 py-2 last:border-b-0"
                   >
-                    <X size={12} />
-                  </Button>
-                )}
+                    <div className="flex items-center justify-between gap-3">
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex min-w-0 items-center gap-1.5 text-sm text-primary hover:underline"
+                      >
+                        <ExternalLink size={12} className="flex-shrink-0" />
+                        <span className="truncate">{doc.label}</span>
+                      </a>
+                      {isAdmin && (
+                        <div className="flex flex-shrink-0 items-center gap-0.5">
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            iconOnly
+                            onClick={() => setDocumentModal({ isOpen: true, mode: 'edit', doc })}
+                            aria-label="Edit document"
+                          >
+                            <Edit size={12} />
+                          </Button>
+                          <Button
+                            variant="ghost-danger"
+                            size="xs"
+                            iconOnly
+                            onClick={() => void handleRemoveDocument(doc.id)}
+                            aria-label="Remove document"
+                          >
+                            <X size={12} />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    {doc.notes && (
+                      <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
             {isAdmin && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onAddDocument}
-                className="mt-1"
-                leftIcon={<Plus className="w-3.5 h-3.5" />}
+                onClick={() => setDocumentModal({ isOpen: true, mode: 'add' })}
+                className="mt-1.5"
+                leftIcon={<Plus className="h-3.5 w-3.5" />}
               >
                 Add Document
               </Button>
             )}
-          </InfoGroup>
+          </div>
 
-          {/* Notes */}
           {item.notes && (
-            <InfoGroup title="Notes">
-              <p className="text-sm text-secondary-foreground whitespace-pre-wrap">{item.notes}</p>
-            </InfoGroup>
+            <div>
+              <SectionHeader title="Notes" size="sm" />
+              <div className="whitespace-pre-wrap text-sm leading-relaxed text-card-foreground/85">
+                {item.notes}
+              </div>
+            </div>
           )}
 
-          {/* Decommission Information */}
           {isDecommissioned && (
-            <InfoGroup title="Decommission Information">
-              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-                <InfoField
-                  label="Date"
-                  value={formatDate(item.decommissionDate)}
-                  inline={false}
-                  emptyText="—"
-                />
-                <InfoField
-                  label="Reason"
-                  value={item.decommissionReason}
-                  inline={false}
-                  emptyText="—"
-                />
-                <InfoField
-                  label="Disposal Method"
-                  value={item.disposalMethod}
-                  inline={false}
-                  emptyText="—"
-                />
+            <div>
+              <SectionHeader title="Decommission Information" size="sm" />
+              <div>
+                <DetailRow label="Date" value={formatDate(item.decommissionDate)} />
+                <DetailRow label="Reason" value={item.decommissionReason} />
+                <DetailRow label="Disposal Method" value={item.disposalMethod} />
               </div>
-            </InfoGroup>
+            </div>
           )}
         </div>
       </ScrollArea>
+
+      {isAdmin && (
+        <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+          <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+          <div className="flex gap-2">
+            <Button
+              variant="danger"
+              size="sm"
+              leftIcon={<Trash2 className="h-4 w-4" />}
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              Remove
+            </Button>
+            {!isDecommissioned && (
+              <Button
+                variant="warning"
+                size="sm"
+                leftIcon={<Power className="h-4 w-4" />}
+                onClick={onDecommission}
+              >
+                Decommission
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex-1"
+              leftIcon={<SquarePen className="h-4 w-4" />}
+              onClick={onEdit}
+            >
+              Edit
+            </Button>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
@@ -350,6 +401,23 @@ export function EquipmentItemInfoPanel({
         onConfirm={() => void handleDelete()}
         onCancel={() => setShowDeleteConfirm(false)}
       />
-    </div>
+
+      <DocumentLinkModal
+        isOpen={documentModal.isOpen}
+        mode={documentModal.mode}
+        initialValues={
+          documentModal.doc
+            ? {
+                label: documentModal.doc.label,
+                url: documentModal.doc.url,
+                notes: documentModal.doc.notes,
+              }
+            : undefined
+        }
+        isPending={addDocumentMutation.isPending || updateDocumentMutation.isPending}
+        onSave={handleSaveDocument}
+        onClose={() => setDocumentModal(prev => ({ ...prev, isOpen: false }))}
+      />
+    </ConsolePanel>
   );
 }

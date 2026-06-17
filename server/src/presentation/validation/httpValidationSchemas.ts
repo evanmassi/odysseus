@@ -7,6 +7,7 @@ import {
   createTubeRequestSchema,
   updateTubeRequestSchema,
   tubeLocationSchema,
+  TUBE_FILTERABLE_FIELDS,
   createResearcherProfileSchema,
   lockTubesRequestSchema,
   unlockTubesRequestSchema,
@@ -25,11 +26,33 @@ import {
   updateEquipmentItemRequestSchema,
   decommissionEquipmentItemRequestSchema,
   createEquipmentDocumentRequestSchema,
+  updateEquipmentDocumentRequestSchema,
   createEquipmentMaintenanceLogRequestSchema,
   updateEquipmentMaintenanceLogRequestSchema,
   equipmentBulkMaintenanceRequestSchema,
   equipmentBulkStatusRequestSchema,
   equipmentBulkRelocateRequestSchema,
+  createSupplyCategoryRequestSchema,
+  updateSupplyCategoryRequestSchema,
+  createSupplyLocationRequestSchema,
+  updateSupplyLocationRequestSchema,
+  createSupplyItemRequestSchema,
+  updateSupplyItemRequestSchema,
+  createSupplyBarcodeRequestSchema,
+  updateSupplyBarcodeRequestSchema,
+  createSupplyDocumentRequestSchema,
+  updateSupplyDocumentRequestSchema,
+  createSupplyPackagingLevelRequestSchema,
+  updateSupplyPackagingLevelRequestSchema,
+  recordSupplyTransactionRequestSchema,
+  recordSupplyStockCountRequestSchema,
+  supplyBulkReceiveRequestSchema,
+  supplyBulkIssueRequestSchema,
+  supplyBulkReassignCategoryRequestSchema,
+  supplyBulkArchiveRequestSchema,
+  supplyBulkBarcodesRequestSchema,
+  voidSupplyTransactionRequestSchema,
+  supplyBulkVoidRequestSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -56,6 +79,14 @@ export const CreateResearcherHttpSchema = createResearcherProfileSchema;
 
 // Omits position from shared location schema
 export const LocationQuerySchema = tubeLocationSchema.omit({ position: true });
+
+// Navigator field map reads a whole rack — tank + rack only, no box or position
+export const RackQuerySchema = tubeLocationSchema.pick({ tankId: true, rackId: true });
+
+export const TubeFilterOptionsQuerySchema = z.object({
+  fields: z.string().min(1).transform(val => val.split(',').map(s => s.trim()).filter(Boolean))
+    .pipe(z.array(z.enum(TUBE_FILTERABLE_FIELDS)).min(1)),
+});
 
 export const BulkUpdateHttpSchema = z.object({
   updates: z.array(z.object({
@@ -170,23 +201,40 @@ export const CreateEquipmentItemHttpSchema = createEquipmentItemRequestSchema;
 export const UpdateEquipmentItemHttpSchema = updateEquipmentItemRequestSchema;
 export const DecommissionEquipmentItemHttpSchema = decommissionEquipmentItemRequestSchema;
 export const CreateEquipmentDocumentHttpSchema = createEquipmentDocumentRequestSchema;
+export const UpdateEquipmentDocumentHttpSchema = updateEquipmentDocumentRequestSchema;
 export const CreateEquipmentMaintenanceLogHttpSchema = createEquipmentMaintenanceLogRequestSchema;
 export const UpdateEquipmentMaintenanceLogHttpSchema = updateEquipmentMaintenanceLogRequestSchema;
 export const EquipmentBulkMaintenanceHttpSchema = equipmentBulkMaintenanceRequestSchema;
 export const EquipmentBulkStatusHttpSchema = equipmentBulkStatusRequestSchema;
 export const EquipmentBulkRelocateHttpSchema = equipmentBulkRelocateRequestSchema;
 
-// Search schemas
+// Supply schemas
 
-export const QuickSearchQuerySchema = z.object({
-  q: z.string().min(1),
-  limit: z.coerce.number().int().min(1).max(50).optional(),
-});
+export const SupplyCategoryIdParams = z.object({ categoryId: z.string().min(1) });
+export const SupplyLocationIdParams = z.object({ locationId: z.string().min(1) });
+export const SupplyDocIdParams = z.object({ id: z.string().min(1), docId: z.string().min(1) });
+export const SupplyBarcodeIdParams = z.object({ id: z.string().min(1), barcodeId: z.string().min(1) });
+export const SupplyPackagingLevelIdParams = z.object({ id: z.string().min(1), levelId: z.string().min(1) });
+export const CreateSupplyCategoryHttpSchema = createSupplyCategoryRequestSchema;
+export const UpdateSupplyCategoryHttpSchema = updateSupplyCategoryRequestSchema;
+export const CreateSupplyLocationHttpSchema = createSupplyLocationRequestSchema;
+export const UpdateSupplyLocationHttpSchema = updateSupplyLocationRequestSchema;
+export const CreateSupplyItemHttpSchema = createSupplyItemRequestSchema;
+export const UpdateSupplyItemHttpSchema = updateSupplyItemRequestSchema;
+export const CreateSupplyBarcodeHttpSchema = createSupplyBarcodeRequestSchema;
+export const UpdateSupplyBarcodeHttpSchema = updateSupplyBarcodeRequestSchema;
+export const CreateSupplyDocumentHttpSchema = createSupplyDocumentRequestSchema;
+export const UpdateSupplyDocumentHttpSchema = updateSupplyDocumentRequestSchema;
+export const RecordSupplyTransactionHttpSchema = recordSupplyTransactionRequestSchema;
+export const RecordSupplyStockCountHttpSchema = recordSupplyStockCountRequestSchema;
+export const SupplyBulkReceiveHttpSchema = supplyBulkReceiveRequestSchema;
+export const SupplyBulkIssueHttpSchema = supplyBulkIssueRequestSchema;
+export const SupplyBulkReassignCategoryHttpSchema = supplyBulkReassignCategoryRequestSchema;
+export const SupplyBulkArchiveHttpSchema = supplyBulkArchiveRequestSchema;
+export const SupplyBulkBarcodesHttpSchema = supplyBulkBarcodesRequestSchema;
+export const VoidSupplyTransactionHttpSchema = voidSupplyTransactionRequestSchema;
+export const SupplyBulkVoidHttpSchema = supplyBulkVoidRequestSchema;
+export const SupplyTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
+export const CreateSupplyPackagingLevelHttpSchema = createSupplyPackagingLevelRequestSchema;
+export const UpdateSupplyPackagingLevelHttpSchema = updateSupplyPackagingLevelRequestSchema;
 
-export const FieldSearchBodySchema = z.object({
-  field: z.string().min(1),
-  value: z.string().min(1),
-  exact: z.boolean().optional(),
-  limit: z.number().min(1).max(1000).optional(),
-  offset: z.number().min(0).optional(),
-});

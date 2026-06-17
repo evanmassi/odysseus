@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 import { dateField, optionalDateField } from '../utils/dateFields';
+import { optionalText, patchText } from '../utils/stringFields';
 
 // Status and category enums
 
@@ -81,37 +82,37 @@ export const equipmentItemSchema = z.object({
 export const createEquipmentItemRequestSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   name: z.string().min(1, 'Equipment name is required').max(200),
-  serialNumber: z.string().max(200).optional(),
-  manufacturer: z.string().max(200).optional(),
-  model: z.string().max(200).optional(),
-  description: z.string().max(2000).optional(),
-  location: z.string().max(500).optional(),
+  serialNumber: optionalText(200),
+  manufacturer: optionalText(200),
+  model: optionalText(200),
+  description: optionalText(2000),
+  location: optionalText(500),
   status: equipmentStatusSchema.default('active'),
-  conditionNotes: z.string().max(2000).optional(),
-  purchaseDate: z.string().optional(),
-  warrantyExpiration: z.string().optional(),
+  conditionNotes: optionalText(2000),
+  purchaseDate: optionalText(),
+  warrantyExpiration: optionalText(),
   purchaseCost: z.number().min(0).optional(),
-  assetTag: z.string().max(200).optional(),
-  nextMaintenanceDate: z.string().optional(),
-  notes: z.string().max(5000).optional(),
+  assetTag: optionalText(200),
+  nextMaintenanceDate: optionalText(),
+  notes: optionalText(5000),
 });
 
 export const updateEquipmentItemRequestSchema = z.object({
-  categoryId: z.string().min(1).nullish(),
-  name: z.string().min(1).max(200).nullish(),
-  serialNumber: z.string().max(200).nullish(),
-  manufacturer: z.string().max(200).nullish(),
-  model: z.string().max(200).nullish(),
-  description: z.string().max(2000).nullish(),
-  location: z.string().max(500).nullish(),
+  categoryId: z.string().min(1, 'Category is required').nullish(),
+  name: z.string().min(1, 'Equipment name is required').max(200).nullish(),
+  serialNumber: patchText(200),
+  manufacturer: patchText(200),
+  model: patchText(200),
+  description: patchText(2000),
+  location: patchText(500),
   status: equipmentStatusSchema.nullish(),
-  conditionNotes: z.string().max(2000).nullish(),
-  purchaseDate: z.string().nullish(),
-  warrantyExpiration: z.string().nullish(),
+  conditionNotes: patchText(2000),
+  purchaseDate: patchText(),
+  warrantyExpiration: patchText(),
   purchaseCost: z.number().min(0).nullish(),
-  assetTag: z.string().max(200).nullish(),
-  nextMaintenanceDate: z.string().nullish(),
-  notes: z.string().max(5000).nullish(),
+  assetTag: patchText(200),
+  nextMaintenanceDate: patchText(),
+  notes: patchText(5000),
 });
 
 export const decommissionEquipmentItemRequestSchema = z.object({
@@ -145,6 +146,12 @@ export const createEquipmentDocumentRequestSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 
+export const updateEquipmentDocumentRequestSchema = z.object({
+  label: z.string().min(1).max(200).optional(),
+  url: z.string().min(1).max(2000).optional(),
+  notes: z.string().max(500).nullish(),
+});
+
 export const equipmentDocumentResponseSchema = z.object({
   document: equipmentDocumentSchema,
 });
@@ -173,23 +180,23 @@ export const equipmentMaintenanceLogSchema = z.object({
 export const createEquipmentMaintenanceLogRequestSchema = z.object({
   datePerformed: z.string().min(1, 'Date performed is required'),
   maintenanceType: z.string().min(1, 'Maintenance type is required').max(200),
-  performedBy: z.string().max(200).optional(),
-  technician: z.string().max(200).optional(),
-  description: z.string().max(5000).optional(),
-  nextScheduledDate: z.string().optional(),
+  performedBy: optionalText(200),
+  technician: optionalText(200),
+  description: optionalText(5000),
+  nextScheduledDate: optionalText(),
   cost: z.number().min(0).optional(),
-  notes: z.string().max(5000).optional(),
+  notes: optionalText(5000),
 });
 
 export const updateEquipmentMaintenanceLogRequestSchema = z.object({
-  datePerformed: z.string().min(1).nullish(),
-  maintenanceType: z.string().min(1).max(200).nullish(),
-  performedBy: z.string().max(200).nullish(),
-  technician: z.string().max(200).nullish(),
-  description: z.string().max(5000).nullish(),
-  nextScheduledDate: z.string().nullish(),
+  datePerformed: z.string().min(1, 'Date performed is required').nullish(),
+  maintenanceType: z.string().min(1, 'Maintenance type is required').max(200).nullish(),
+  performedBy: patchText(200),
+  technician: patchText(200),
+  description: patchText(5000),
+  nextScheduledDate: patchText(),
   cost: z.number().min(0).nullish(),
-  notes: z.string().max(5000).nullish(),
+  notes: patchText(5000),
 });
 
 export const equipmentMaintenanceLogEntryResponseSchema = z.object({
@@ -259,6 +266,7 @@ export type CreateEquipmentItemRequest = z.infer<typeof createEquipmentItemReque
 export type UpdateEquipmentItemRequest = z.infer<typeof updateEquipmentItemRequestSchema>;
 export type DecommissionEquipmentItemRequest = z.infer<typeof decommissionEquipmentItemRequestSchema>;
 export type CreateEquipmentDocumentRequest = z.infer<typeof createEquipmentDocumentRequestSchema>;
+export type UpdateEquipmentDocumentRequest = z.infer<typeof updateEquipmentDocumentRequestSchema>;
 export type CreateEquipmentMaintenanceLogRequest = z.infer<typeof createEquipmentMaintenanceLogRequestSchema>;
 export type UpdateEquipmentMaintenanceLogRequest = z.infer<typeof updateEquipmentMaintenanceLogRequestSchema>;
 export type EquipmentBulkMaintenanceRequest = z.infer<typeof equipmentBulkMaintenanceRequestSchema>;

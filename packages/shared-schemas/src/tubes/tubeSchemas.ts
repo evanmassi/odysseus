@@ -84,6 +84,27 @@ export const tubeDataSchema = z.object({
 export const tubeDataArraySchema = z.array(tubeDataSchema);
 
 /**
+ * Navigator field-map projections.
+ *
+ * The navigator paints box minimaps in each tube's smart color and shows
+ * per-box occupancy, so it needs only color inputs plus position — never the
+ * full record. `rackTubeSchema` is the slim per-tube color feed (one open rack
+ * at a time); `tubeLocationCountSchema` is the per-box count feed (whole lab).
+ */
+export const rackTubeSchema = tubeSampleSchema
+  .pick({ cellType: true, donorInternalId: true, donorSourceId: true, lotNumber: true, cultureCondition: true })
+  .extend({ boxId: z.string(), position: z.number().int().min(1) });
+export type RackTube = z.infer<typeof rackTubeSchema>;
+
+export const tubeLocationCountSchema = z.object({
+  tankId: z.string(),
+  rackId: z.string(),
+  boxId: z.string(),
+  count: z.number().int().min(0),
+});
+export type TubeLocationCount = z.infer<typeof tubeLocationCountSchema>;
+
+/**
  * Preprocesses HTML form data:
  * - Empty strings → error for required fields
  * - Scientific notation → number (unified parser)
@@ -201,20 +222,6 @@ export const updateTubeRequestSchema = z.object({
   lockNote: z.string().max(100).optional()
 });
 
-export const tubeQueryFiltersSchema = z.object({
-  tankId: z.string().optional(),
-  rackId: z.string().optional(),
-  boxId: z.string().optional(),
-  researcherId: z.string().optional(),
-  cellType: z.string().optional(),
-  dateFrom: z.string().datetime().optional(),
-  dateTo: z.string().datetime().optional(),
-  hasNotes: z.boolean().optional(),
-  search: z.string().optional(),
-  limit: z.number().int().positive().max(1000).optional(),
-  offset: z.number().int().min(0).optional()
-});
-
 export const bulkTubeOperationSchema = z.object({
   action: z.enum(['create', 'update', 'delete']),
   tubes: z.union([
@@ -226,6 +233,36 @@ export const bulkTubeOperationSchema = z.object({
     z.array(z.string().min(1))
   ])
 });
+
+export const TUBE_FILTERABLE_FIELDS = [
+  'tankId',
+  'rackId',
+  'boxId',
+  'cellType',
+  'lotNumber',
+  'donorInternalId',
+  'donorSourceId',
+  'cultureCondition',
+  'species',
+  'source',
+] as const;
+
+export type TubeFilterableField = typeof TUBE_FILTERABLE_FIELDS[number];
+
+export const tubeFilterOptionsResponseSchema = z.object({
+  tankId: z.array(z.string()).optional(),
+  rackId: z.array(z.string()).optional(),
+  boxId: z.array(z.string()).optional(),
+  cellType: z.array(z.string()).optional(),
+  lotNumber: z.array(z.string()).optional(),
+  donorInternalId: z.array(z.string()).optional(),
+  donorSourceId: z.array(z.string()).optional(),
+  cultureCondition: z.array(z.string()).optional(),
+  species: z.array(z.string()).optional(),
+  source: z.array(z.string()).optional(),
+});
+
+export type TubeFilterOptions = z.infer<typeof tubeFilterOptionsResponseSchema>;
 
 export const tubeValidationResultSchema = z.object({
   isValid: z.boolean(),
@@ -245,7 +282,6 @@ export type TubeLocation = z.infer<typeof tubeLocationSchema>;
 export type TubeSample = z.infer<typeof tubeSampleSchema>;
 export type TubeUpdateSample = z.infer<typeof tubeUpdateSampleSchema>;
 export type TubeTimestamps = z.infer<typeof tubeTimestampsSchema>;
-export type TubeQueryFilters = z.infer<typeof tubeQueryFiltersSchema>;
 export type TubeValidationResult = z.infer<typeof tubeValidationResultSchema>;
 
 /**

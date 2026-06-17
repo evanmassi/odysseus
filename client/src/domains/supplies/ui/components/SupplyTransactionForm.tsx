@@ -1,0 +1,531 @@
+/**
+ * Supply Transaction Form
+ *
+ * Tabbed stock operation form for receiving, consuming, counting, and disposing
+ * supply inventory. Multi-level packaging inputs on all tabs when packaging
+ * levels are defined, with auto-computed totals in stock units.
+ */
+
+import { useMemo, useState, useCallback, useEffect } from 'react';
+
+import { PackagePlus, PackageMinus, ClipboardCheck, ClipboardList, Trash2 } from 'lucide-react';
+import { useForm, Controller, type FieldValues } from 'react-hook-form';
+
+import { useSupplyItemDetailQuery, useSupplyLocationsQuery } from '@domains/supplies/hooks';
+import {
+  useRecordSupplyTransactionMutation,
+  useRecordSupplyStockCountMutation,
+} from '@domains/supplies/hooks/useSupplyMutations';
+import { Button, DatePicker, Input, NubDivider, Select, Tab, Tabs } from '@shared/ui';
+import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { notifications } from '@shared/utils/notifications';
+import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
+
+import type { SelectOption } from '@shared/ui/primitives/select/types';
+
+type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';
+
+const MODE_LABELS: Record<TransactionMode, string> = {
+  received: 'Receive',
+  issued: 'Issue',
+  count: 'Count',
+  disposed: 'Dispose',
+};
+
+// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
+const SELECT_LABEL =
+  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+
+export interface TransactionPrefill {
+  locationId?: string;
+  quantity?: number;
+  lotNumber?: string;
+  expirationDate?: string;
+  poNumber?: string;
+  cost?: number;
+  notes?: string;
+}
+
+interface SupplyTransactionFormProps {
+  itemId: string;
+  itemName: string;
+  manufacturer?: string;
+  catalogNumber?: string;
+  initialTab?: TransactionMode;
+  prefill?: TransactionPrefill;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+export function SupplyTransactionForm({
+  itemId,
+  itemName,
+  manufacturer,
+  catalogNumber,
+  initialTab,
+  prefill,
+  onSubmit,
+  onCancel,
+}: SupplyTransactionFormProps) {
+  const { data: detail } = useSupplyItemDetailQuery(itemId);
+  const { data: locations = [] } = useSupplyLocationsQuery();
+  const recordTransactionMutation = useRecordSupplyTransactionMutation();
+  const recordStockCountMutation = useRecordSupplyStockCountMutation();
+
+  const locationOptions: SelectOption[] = useMemo(
+    () => [
+      { value: '', label: 'Select location...' },
+      ...locations.map(l => ({ value: l.id, label: l.name })),
+    ],
+    [locations]
+  );
+
+  const packagingLevels = useMemo(() => detail?.packagingLevels ?? [], [detail?.packagingLevels]);
+  const hasPackaging = packagingLevels.length > 0;
+  const stockUnit = detail?.item.stockUnit ?? '';
+  const stockUnitSingular = stockUnit || 'unit';
+  const stockUnitLabel = pluralizeUnit(stockUnitSingular, 2);
+
+  const identityParts = [manufacturer, catalogNumber].filter(Boolean);
+
+  const computeMultiplier = useCallback(
+    (fromUnit: string): number => {
+      if (fromUnit === stockUnit) return 1;
+      let multiplier = 1;
+      let current = fromUnit;
+      for (let i = 0; i < packagingLevels.length + 1; i++) {
+        const level = packagingLevels.find(l => l.unitName === current);
+        if (!level) return 1;
+        multiplier *= level.quantity;
+        if (level.parentUnit === null || level.parentUnit === stockUnit) return multiplier;
+        current = level.parentUnit;
+      }
+      return multiplier;
+    },
+    [stockUnit, packagingLevels]
+  );
+
+  const orderedLevels = useMemo(() => {
+    if (!hasPackaging) return [];
+    const levels = [...packagingLevels];
+    const ordered: typeof levels = [];
+    const bottom = levels.find(l => l.parentUnit === null);
+    if (bottom) {
+      ordered.push(bottom);
+      let current = bottom;
+      for (let i = 0; i < levels.length; i++) {
+        const next = levels.find(l => l.parentUnit === current.unitName);
+        if (!next) break;
+        ordered.push(next);
+        current = next;
+      }
+    }
+    return ordered;
+  }, [hasPackaging, packagingLevels]);
+
+  const showLooseRow = hasPackaging && !packagingLevels.some(l => l.unitName === stockUnit);
+
+  const [qtyByLevel, setQtyByLevel] = useState<Record<string, number>>({});
+
+  const computedTotal = useMemo(() => {
+    if (!hasPackaging) return undefined;
+    let total = qtyByLevel['__stock__'] ?? 0;
+    for (const level of packagingLevels) {
+      const qty = qtyByLevel[level.unitName] ?? 0;
+      if (qty > 0) {
+        total += qty * computeMultiplier(level.unitName);
+      }
+    }
+    return total;
+  }, [hasPackaging, qtyByLevel, packagingLevels, computeMultiplier]);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    reset,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      itemId,
+      locationId: prefill?.locationId ?? '',
+      type: (initialTab ?? 'received') as string,
+      quantity: prefill?.quantity as number | undefined,
+      lotNumber: prefill?.lotNumber ?? '',
+      expirationDate: prefill?.expirationDate ?? '',
+      poNumber: prefill?.poNumber ?? '',
+      cost: prefill?.cost as number | undefined,
+      notes: prefill?.notes ?? '',
+    },
+  });
+
+  const mode = watch('type') as TransactionMode;
+  const selectedLocationId = watch('locationId') as string;
+
+  const currentStockAtLocation = useMemo(() => {
+    if (!detail || !selectedLocationId) return 0;
+    return detail.stock.find(s => s.locationId === selectedLocationId)?.quantity ?? 0;
+  }, [detail, selectedLocationId]);
+
+  const actualCount = watch('quantity') as number | undefined;
+  const countDelta =
+    mode === 'count' && actualCount !== undefined
+      ? actualCount - currentStockAtLocation
+      : undefined;
+
+  const handleLevelChange = useCallback((key: string, value: string) => {
+    setQtyByLevel(prev => ({ ...prev, [key]: value === '' ? 0 : Number(value) }));
+  }, []);
+
+  useEffect(() => {
+    if (hasPackaging && computedTotal !== undefined) {
+      setValue('quantity', computedTotal);
+    }
+  }, [hasPackaging, computedTotal, setValue]);
+
+  const onFormSubmit = async (data: FieldValues) => {
+    const quantity = Number(data['quantity']);
+    const locationId = data['locationId'] as string;
+    if (!locationId || isNaN(quantity)) {
+      notifications.error('Quantity and location are required');
+      return;
+    }
+
+    try {
+      if (mode === 'count') {
+        await recordStockCountMutation.mutateAsync({
+          itemId,
+          locationId: data['locationId'] as string,
+          actualCount: quantity,
+          lotNumber: (data['lotNumber'] as string) || undefined,
+          expirationDate: (data['expirationDate'] as string) || undefined,
+          notes: (data['notes'] as string) || undefined,
+        });
+      } else {
+        await recordTransactionMutation.mutateAsync({
+          itemId,
+          locationId: data['locationId'] as string,
+          type: data['type'] as 'received' | 'issued' | 'disposed',
+          quantity,
+          lotNumber: (data['lotNumber'] as string) || undefined,
+          expirationDate: (data['expirationDate'] as string) || undefined,
+          poNumber: (data['poNumber'] as string) || undefined,
+          cost: data['cost'] as number | undefined,
+          notes: (data['notes'] as string) || undefined,
+        });
+      }
+      notifications.success(
+        mode === 'received'
+          ? 'Stock received'
+          : mode === 'issued'
+            ? 'Stock issued'
+            : mode === 'count'
+              ? 'Stock count recorded'
+              : 'Stock disposed'
+      );
+      reset();
+      onSubmit();
+    } catch {
+      notifications.error('Failed to record transaction');
+    }
+  };
+
+  const handleModeChange = (newMode: string) => {
+    setQtyByLevel({});
+    reset({
+      itemId,
+      locationId: '',
+      type: newMode,
+      quantity: undefined,
+      lotNumber: '',
+      expirationDate: '',
+      poNumber: '',
+      cost: undefined,
+      notes: '',
+    });
+  };
+
+  const quantityLabel =
+    mode === 'count'
+      ? `Actual Count${stockUnit ? ` (${stockUnitLabel})` : ''}`
+      : `Quantity${stockUnit ? ` (${stockUnitLabel})` : ''}`;
+
+  return (
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-3 border-b border-line-faint px-4 py-3">
+        <span className="p-1.5 text-muted-foreground">
+          <ClipboardList size={20} />
+        </span>
+        <h2 className="text-lg font-medium text-foreground">Record Transaction</h2>
+      </div>
+
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            aria-hidden
+            className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+          />
+          <span className="truncate font-display text-sm text-foreground">{itemName}</span>
+          {identityParts.length > 0 && (
+            <span className="truncate font-mono text-[11px] tracking-[0.04em] text-muted-foreground">
+              {identityParts.map((part, i) => (
+                <span key={i}>
+                  {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
+                  {part}
+                </span>
+              ))}
+            </span>
+          )}
+        </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
+      </div>
+
+      <div className="flex-shrink-0 border-b border-line-faint px-4">
+        <Tabs
+          value={mode}
+          onChange={handleModeChange}
+          orientation="horizontal"
+          className="!gap-0 !px-0 [&_button]:!px-2.5 [&_button]:flex-1 [&_button]:justify-center"
+        >
+          <Tab id="count" icon={<ClipboardCheck size={14} />}>
+            Count
+          </Tab>
+          <Tab id="received" icon={<PackagePlus size={14} />}>
+            Receive
+          </Tab>
+          <Tab id="issued" icon={<PackageMinus size={14} />}>
+            Issue
+          </Tab>
+          <Tab id="disposed" icon={<Trash2 size={14} />}>
+            Dispose
+          </Tab>
+        </Tabs>
+      </div>
+
+      <ScrollArea className="min-h-0 flex-1">
+        <form
+          id="supply-transaction-form"
+          onSubmit={handleSubmit(onFormSubmit)}
+          className="space-y-3 p-4"
+        >
+          <input type="hidden" {...register('itemId')} />
+          <input type="hidden" {...register('type')} />
+
+          {hasPackaging ? (
+            <div className="space-y-2">
+              <span className={SELECT_LABEL}>{MODE_LABELS[mode]}</span>
+              <div className="space-y-1.5">
+                {orderedLevels.map(level => (
+                  <div key={level.unitName} className="flex items-center gap-2">
+                    <div className="w-20">
+                      <Input
+                        type="number"
+                        value={qtyByLevel[level.unitName] || ''}
+                        onValueChange={v => handleLevelChange(level.unitName, v)}
+                        placeholder="0"
+                        size="sm"
+                        fullWidth
+                        aria-label={pluralizeUnit(level.unitName, 2)}
+                      />
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {pluralizeUnit(level.unitName, qtyByLevel[level.unitName] ?? 0)}
+                    </span>
+                    <span className="text-xs text-muted-foreground/50">
+                      ({level.quantity}{' '}
+                      {pluralizeUnit(
+                        level.parentUnit ?? detail?.item.baseItemName ?? 'item',
+                        level.quantity
+                      )}{' '}
+                      each)
+                    </span>
+                  </div>
+                ))}
+                {showLooseRow && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-20">
+                      <Input
+                        type="number"
+                        value={qtyByLevel['__stock__'] || ''}
+                        onValueChange={v => handleLevelChange('__stock__', v)}
+                        placeholder="0"
+                        size="sm"
+                        fullWidth
+                        aria-label={`Loose ${stockUnitLabel}`}
+                      />
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      loose {pluralizeUnit(stockUnitSingular, qtyByLevel['__stock__'] ?? 0)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {computedTotal !== undefined && computedTotal > 0 && (
+                <div className="border border-line-faint bg-black/20 px-3 py-1.5 text-sm font-medium">
+                  Total: {computedTotal} {pluralizeUnit(stockUnitSingular, computedTotal)}
+                </div>
+              )}
+              <input
+                type="hidden"
+                {...register('quantity', {
+                  setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                })}
+              />
+            </div>
+          ) : (
+            <ValidatedInput
+              label={quantityLabel}
+              labelStyle="compact"
+              type="number"
+              required
+              placeholder={mode === 'count' ? 'Enter actual count...' : 'Enter quantity...'}
+              error={!!errors.quantity}
+              helperText={(errors.quantity?.message as string) ?? undefined}
+              registration={register('quantity', {
+                setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+              })}
+            />
+          )}
+
+          {mode === 'count' && selectedLocationId && actualCount !== undefined && (
+            <div className="space-y-0.5 px-1 text-xs">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Current stock at location:</span>
+                <span className="font-medium">
+                  {currentStockAtLocation}{' '}
+                  {pluralizeUnit(stockUnitSingular, currentStockAtLocation)}
+                </span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span>Adjustment:</span>
+                <span
+                  className={
+                    countDelta !== undefined && countDelta < 0
+                      ? 'text-danger-text'
+                      : countDelta !== undefined && countDelta > 0
+                        ? 'text-success-text'
+                        : ''
+                  }
+                >
+                  {countDelta !== undefined
+                    ? `${countDelta >= 0 ? '+' : ''}${countDelta} ${pluralizeUnit(stockUnitSingular, Math.abs(countDelta))}`
+                    : '—'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <Controller
+            name="locationId"
+            control={control}
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <div>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+                <label id="txn-location-label" className={SELECT_LABEL}>
+                  Location
+                </label>
+                <Select
+                  aria-labelledby="txn-location-label"
+                  options={locationOptions}
+                  value={value ?? ''}
+                  onChange={v => onChange(v)}
+                  state={error ? 'error' : 'default'}
+                  error={error?.message}
+                  fullWidth
+                />
+              </div>
+            )}
+          />
+
+          {mode === 'received' && (
+            <>
+              <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
+                <ValidatedInput
+                  label="Lot #"
+                  labelStyle="compact"
+                  placeholder="Lot number"
+                  registration={register('lotNumber')}
+                />
+                <div>
+                  <span className={SELECT_LABEL}>Expiration Date</span>
+                  <Controller
+                    name="expirationDate"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <DatePicker
+                        value={formatDateForInput(value)}
+                        onChange={onChange}
+                        clearable
+                        fullWidth
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
+                <ValidatedInput
+                  label="PO #"
+                  labelStyle="compact"
+                  placeholder="PO number"
+                  registration={register('poNumber')}
+                />
+                <ValidatedInput
+                  label="Cost ($)"
+                  labelStyle="compact"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 225.00"
+                  registration={register('cost', {
+                    setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                  })}
+                />
+              </div>
+            </>
+          )}
+
+          <ValidatedInput
+            label="Notes"
+            labelStyle="compact"
+            type="textarea"
+            placeholder={mode === 'count' ? 'e.g., Weekly inventory count' : 'Optional notes'}
+            registration={register('notes')}
+          />
+        </form>
+      </ScrollArea>
+
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <div className="flex items-center justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="supply-transaction-form"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
+            loadingText="Recording..."
+          >
+            {mode === 'received'
+              ? 'Receive Stock'
+              : mode === 'issued'
+                ? 'Record Consumption'
+                : mode === 'count'
+                  ? 'Save Count'
+                  : 'Record Disposal'}
+          </Button>
+        </div>
+      </div>
+    </ConsolePanel>
+  );
+}

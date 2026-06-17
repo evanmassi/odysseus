@@ -130,7 +130,7 @@ class SocketQueryBridge {
           ),
         });
         // Used by TubeEditorModal position analysis
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tube_created event', { error });
@@ -169,7 +169,7 @@ class SocketQueryBridge {
           });
         }
 
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tube_updated event', { error });
@@ -190,7 +190,7 @@ class SocketQueryBridge {
             location.boxId
           ),
         });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tube_deleted event', { error });
@@ -201,7 +201,7 @@ class SocketQueryBridge {
       if (!this.labId) return;
       try {
         tubeEventSchemas.tubes_bulk_created.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tubes_bulk_created event', { error });
@@ -212,7 +212,7 @@ class SocketQueryBridge {
       if (!this.labId) return;
       try {
         tubeEventSchemas.tubes_bulk_updated.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tubes_bulk_updated event', { error });
@@ -223,7 +223,7 @@ class SocketQueryBridge {
       if (!this.labId) return;
       try {
         tubeEventSchemas.tubes_bulk_deleted.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tubes_bulk_deleted event', { error });
@@ -234,7 +234,7 @@ class SocketQueryBridge {
       if (!this.labId) return;
       try {
         tubeEventSchemas.tubes_bulk_moved.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll(this.labId) });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       } catch (error) {
         logger.error('Invalid tubes_bulk_moved event', { error });

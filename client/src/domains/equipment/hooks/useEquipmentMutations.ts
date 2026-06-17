@@ -18,6 +18,7 @@ import type {
   UpdateEquipmentItemRequest,
   DecommissionEquipmentItemRequest,
   CreateEquipmentDocumentRequest,
+  UpdateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
   EquipmentStatus,
@@ -125,6 +126,26 @@ export function useAddEquipmentDocumentMutation() {
   return useMutation({
     mutationFn: ({ itemId, data }: { itemId: string; data: CreateEquipmentDocumentRequest }) =>
       EquipmentService.addDocument(itemId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
+    },
+  });
+}
+
+export function useUpdateEquipmentDocumentMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      docId,
+      data,
+    }: {
+      itemId: string;
+      docId: string;
+      data: UpdateEquipmentDocumentRequest;
+    }) => EquipmentService.updateDocument(itemId, docId, data),
     onSuccess: (_, { itemId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
     },

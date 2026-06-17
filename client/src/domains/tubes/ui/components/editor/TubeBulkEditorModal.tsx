@@ -40,6 +40,7 @@ import { formatDateForInput } from '@shared/utils/dateFormatters';
 
 import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
+import { countDirtyFields } from './countDirtyFields';
 import { TubeBulkProgressModal } from './TubeBulkProgressModal';
 import { TubeForm } from './TubeForm';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
@@ -562,6 +563,8 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
     );
   }
 
+  const dirtyFieldCount = countDirtyFields(dirtyFields);
+
   return (
     <>
       <BaseModal
@@ -571,49 +574,67 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         onClose={onClose}
         size="md-lg"
         dataAttribute="data-bulk-edit-modal"
+        chassis="lit"
         contentClassName="p-5"
+        locator={
+          <TubeLocationDisplay
+            variant="strip"
+            tankName={tankName}
+            rackName={rackName}
+            boxName={boxName}
+            positionLabel={positionRanges}
+          />
+        }
         footer={
-          <div className="flex justify-end space-x-4">
-            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              disabled={isSubmitting}
-              leftIcon={<Trash2 className="w-4 h-4" />}
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              Remove {tubes.length} Tubes
-            </Button>
-            <Button
-              type="submit"
-              form="tube-bulk-edit-form"
-              variant="primary"
-              disabled={!canSubmit}
-              isLoading={isSubmitting}
-              loadingText="Updating..."
-              leftIcon={<Save className="w-4 h-4" />}
-            >
-              Update {tubes.length} Tubes
-            </Button>
+          <div className="flex items-center justify-between gap-4">
+            {dirtyFieldCount > 0 ? (
+              <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground whitespace-nowrap">
+                <span
+                  aria-hidden
+                  className="h-2.5 w-0.5 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
+                />
+                <span className="text-secondary-foreground">{dirtyFieldCount}</span>
+                <span>unsaved {dirtyFieldCount === 1 ? 'change' : 'changes'}</span>
+              </div>
+            ) : (
+              <span />
+            )}
+            <div className="flex justify-end space-x-4">
+              <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                disabled={isSubmitting}
+                leftIcon={<Trash2 className="w-4 h-4" />}
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                Remove {tubes.length} Tubes
+              </Button>
+              <Button
+                type="submit"
+                form="tube-bulk-edit-form"
+                variant="primary"
+                disabled={!canSubmit}
+                isLoading={isSubmitting}
+                loadingText="Updating..."
+                leftIcon={<Save className="w-4 h-4" />}
+              >
+                Update {tubes.length} Tubes
+              </Button>
+            </div>
           </div>
         }
       >
         <form id="tube-bulk-edit-form" onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-3">
-            <TubeLocationDisplay
-              tankName={tankName}
-              rackName={rackName}
-              boxName={boxName}
-              positionLabel={positionRanges}
-            />
-            {dataReady && conflicts.length > 0 && (
-              <AlertBanner variant="warning" spacing="none">
-                {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
-                {conflicts.length > 1 ? 'have' : 'has'} been cleared
-              </AlertBanner>
-            )}
-          </div>
+          {dataReady && conflicts.length > 0 && (
+            <AlertBanner variant="warning" spacing="none" animate={false}>
+              <b>
+                {conflicts.length} field{conflicts.length > 1 ? 's' : ''}
+              </b>{' '}
+              with conflicting values {conflicts.length > 1 ? 'have' : 'has'} been cleared
+            </AlertBanner>
+          )}
 
           <TubeForm
             control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}

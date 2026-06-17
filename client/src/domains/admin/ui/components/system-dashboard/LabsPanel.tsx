@@ -8,25 +8,23 @@ import { useMemo, useState } from 'react';
 
 import {
   CircleCheckBig,
-  OctagonX,
   Dna,
+  OctagonX,
   FlaskConical,
   Plus,
-  ShieldUser,
   BeanOff,
+  ShieldUser,
   Sprout,
-  TestTube,
-  UsersRound,
+  TestTubeDiagonal,
   TicketCheck,
   Copy,
-  Power,
   RefreshCw,
+  UsersRound,
 } from 'lucide-react';
 
-import { Button, Chip } from '@shared/ui';
-import { LabBadge } from '@shared/ui/components/badges';
+import { Button, ConsolePanel, IdStamp, PanelHeader, SectionHeader, StatCell } from '@shared/ui';
+import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils';
 
 import {
@@ -36,6 +34,8 @@ import {
   useCreateLabInviteCodeMutation,
 } from '../../../hooks/useLabMutations';
 import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueries';
+
+import { LabPowerToggle } from './LabPowerToggle';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 
@@ -145,186 +145,212 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   const renderLabCard = (lab: (typeof labs)[number]) => {
     const stats = getLabStats(lab.id);
     const codes = labInviteCodes[lab.id] ?? [];
+    const latestCode = codes[codes.length - 1]?.code;
+    // Keep the unique segments unbreakable; only the fixed ODYSS- prefix may wrap.
+    const codeSplitAt = latestCode ? latestCode.indexOf('-') + 1 : 0;
+    const statusVar = lab.isActive ? '--color-success-bg' : '--color-danger-bg';
+    const statusTextClass = lab.isActive ? 'text-success-text' : 'text-danger-text';
+    const identityTextClass = getLabBadgeTextClasses(lab.id, lab.isDemo);
+
+    const statusColor = `hsl(var(${statusVar}))`;
 
     return (
-      <div
-        key={lab.id}
-        className={`rounded-lg cursor-pointer transition-colors outline outline-1 outline-offset-1 p-1 space-y-1 ${
-          lab.isDemo ? 'outline-demo-text/50' : 'outline-secondary-foreground/50'
-        }`}
-        onClick={() => onSelectLab(lab.id)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') onSelectLab(lab.id);
-        }}
-        role="button"
-        tabIndex={0}
-      >
-        <div className={`px-3 py-2.5 rounded-md ${lab.isDemo ? 'bg-demo-light' : 'bg-card'}`}>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
-              <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
-            </div>
-            <div
-              className="flex items-center gap-1.5"
-              role="presentation"
-              onClick={e => e.stopPropagation()}
-              onKeyDown={e => e.stopPropagation()}
-            >
-              {lab.isDemo && (
-                <Chip
-                  color={lab.isSeeded ? 'success' : 'warning'}
-                  size="sm"
-                  leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
-                >
-                  {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
-                </Chip>
-              )}
-              <Chip
-                color={lab.isActive ? 'success' : 'danger'}
-                size="sm"
-                leftIcon={lab.isActive ? <CircleCheckBig /> : <OctagonX />}
-              >
-                {lab.isActive ? 'Active' : 'Deactivated'}
-              </Chip>
-              {lab.isActive ? (
-                <Tooltip content="Deactivate lab">
-                  <Button
-                    variant="ghost-danger"
-                    size="sm"
-                    onClick={() => setDeactivateTarget(lab.id)}
-                  >
-                    <Power size={14} />
-                  </Button>
-                </Tooltip>
-              ) : (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleActivateLab(lab.id)}
-                  isLoading={activateLabMutation.isPending}
-                >
-                  Activate
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+      <div key={lab.id} className="relative pt-7">
         <div
-          className={`px-3 py-1.5 rounded-md flex items-center justify-between gap-2 ${lab.isDemo ? 'bg-demo-light' : 'bg-card'}`}
-        >
-          <div className="flex items-center gap-2">
-            {stats && (
+          aria-hidden
+          className="absolute inset-x-0 top-3 h-px"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusVar})/0.6) 9%, hsl(var(${statusVar})/0.6) 91%, transparent 100%)`,
+            boxShadow: `0 0 8px hsl(var(${statusVar})/0.4)`,
+          }}
+        />
+        <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
+          <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
+            <span className="text-foreground">{lab.name}</span>
+            <span className="text-foreground/35">{'//'}</span>
+            <span className={`flex items-center gap-1.5 ${statusTextClass}`}>
+              {lab.isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
+              {lab.isActive ? 'active' : 'deactivated'}
+            </span>
+            {lab.isDemo && (
               <>
-                {stats.adminCount > 0 && (
-                  <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
-                    {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
-                  </Chip>
-                )}
-                {stats.userCount > 0 && (
-                  <Chip color="info" size="sm" leftIcon={<UsersRound />}>
-                    {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
-                  </Chip>
-                )}
-                {stats.researcherCount > 0 && (
-                  <Chip color="info" size="sm" leftIcon={<Dna />}>
-                    {stats.researcherCount}{' '}
-                    {stats.researcherCount === 1 ? 'researcher' : 'researchers'}
-                  </Chip>
-                )}
-                {stats.tubeCount > 0 && (
-                  <Chip color="info" size="sm" leftIcon={<TestTube />}>
-                    {stats.tubeCount} {stats.tubeCount === 1 ? 'tube' : 'tubes'}
-                  </Chip>
-                )}
+                <span className="text-foreground/35">{'//'}</span>
+                <span
+                  className={`flex items-center gap-1.5 ${lab.isSeeded ? 'text-success-text' : 'text-warning-text'}`}
+                >
+                  {lab.isSeeded ? <Sprout size={11} /> : <BeanOff size={11} />}
+                  {lab.isSeeded ? 'seeded' : 'not seeded'}
+                </span>
               </>
             )}
-          </div>
-          <div
-            className="flex items-center gap-2"
-            role="presentation"
-            onClick={e => e.stopPropagation()}
-            onKeyDown={e => e.stopPropagation()}
-          >
-            <div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleGenerateLabAdminCode(lab.id)}
-                isLoading={generatingCodeForLab === lab.id}
-                leftIcon={<TicketCheck size={14} />}
-                disabled={!lab.isActive}
-              >
-                Lab Admin Code
-              </Button>
-              {codes.length > 0 && (
-                <div className="space-y-1 mt-1.5">
-                  {codes.map(code => (
-                    <div key={code.id} className="flex items-center gap-2 text-xs">
-                      <code className="font-mono font-semibold bg-background px-2 py-0.5 rounded border border-border">
-                        {code.code}
-                      </code>
-                      <Tooltip content="Copy to clipboard">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(code.code);
-                            notifications.success('Copied');
-                          }}
-                        >
-                          <Copy size={12} />
-                        </Button>
-                      </Tooltip>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          </span>
         </div>
+
+        <ConsolePanel
+          className={`flex items-stretch ${identityTextClass}`}
+          statusColor={statusColor}
+          identityColor="currentColor"
+        >
+          <div
+            className={`flex w-14 shrink-0 flex-col items-center border-r border-line-soft pt-5 ${identityTextClass}`}
+          >
+            <LabBadge
+              labId={lab.id}
+              labName={lab.name}
+              size="md"
+              isDemo={lab.isDemo}
+              isActive={lab.isActive}
+            />
+            <span
+              aria-hidden
+              className="mb-4 w-px flex-1"
+              style={{
+                background:
+                  'linear-gradient(180deg, currentColor 0%, currentColor 24%, color-mix(in srgb, currentColor 45%, transparent) 60%, transparent 100%)',
+                filter:
+                  'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))',
+              }}
+            />
+          </div>
+
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex items-stretch">
+              <div className="flex min-w-0 flex-1 flex-col gap-2 px-5 pt-5 pb-4">
+                <h3 className="font-display text-[28px] leading-none font-medium tracking-[-0.01em]">
+                  <button
+                    type="button"
+                    onClick={() => onSelectLab(lab.id)}
+                    className="cursor-pointer text-left text-foreground transition-[text-shadow] duration-200 outline-none hover:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)] focus-visible:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)]"
+                  >
+                    {lab.name}
+                  </button>
+                </h3>
+                {stats && (
+                  <IdStamp
+                    parts={[
+                      `${stats.tankCount} ${stats.tankCount === 1 ? 'tank' : 'tanks'}`,
+                      `${stats.rackCount} ${stats.rackCount === 1 ? 'rack' : 'racks'}`,
+                      `${stats.boxCount} ${stats.boxCount === 1 ? 'box' : 'boxes'}`,
+                    ]}
+                  />
+                )}
+              </div>
+              <div
+                className="flex aspect-square shrink-0 items-center justify-center border-l border-line-soft"
+                style={{ background: 'rgba(0,0,0,0.13)' }}
+              >
+                <LabPowerToggle
+                  isActive={lab.isActive}
+                  isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
+                  onActivate={() => handleActivateLab(lab.id)}
+                  onDeactivate={() => setDeactivateTarget(lab.id)}
+                />
+              </div>
+            </div>
+
+            {stats && (
+              <div className="grid grid-cols-[repeat(4,1fr)_1.6fr] border-t border-line-faint divide-x divide-line-faint [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.10)_10%,hsl(var(--foreground)/0.10)_86%,transparent_100%)_1]">
+                <StatCell label="Admins" value={stats.adminCount} icon={<ShieldUser size={11} />} />
+                <StatCell label="Users" value={stats.userCount} icon={<UsersRound size={11} />} />
+                <StatCell
+                  label="Researchers"
+                  value={stats.researcherCount}
+                  icon={<Dna size={11} />}
+                />
+                <StatCell
+                  label="Tubes"
+                  value={stats.tubeCount}
+                  icon={<TestTubeDiagonal size={11} />}
+                />
+                <div className="flex flex-col gap-1.5 px-4 py-3.5">
+                  <span className="flex items-center gap-2 font-mono text-[9.5px] tracking-[0.20em] text-muted-foreground uppercase">
+                    <TicketCheck size={11} className="shrink-0" />
+                    Lab Admin Code
+                  </span>
+                  <div className="flex items-center border border-line-mid bg-black/25 py-1.5 pl-2.5 shadow-[inset_0_1px_3px_-1px_rgba(0,0,0,0.45)]">
+                    <code
+                      className={`mr-auto pr-2 font-mono text-[15px] font-medium leading-none phosphor-text ${latestCode ? 'text-foreground' : 'text-foreground/25 select-none'}`}
+                    >
+                      {latestCode ? (
+                        <>
+                          {latestCode.slice(0, codeSplitAt)}
+                          <span className="whitespace-nowrap">{latestCode.slice(codeSplitAt)}</span>
+                        </>
+                      ) : (
+                        <>
+                          ODYSS-<span className="whitespace-nowrap">XXXX-XXXX</span>
+                        </>
+                      )}
+                    </code>
+                    <button
+                      type="button"
+                      aria-label="Copy to clipboard"
+                      onClick={async () => {
+                        if (!latestCode) return;
+                        await navigator.clipboard.writeText(latestCode);
+                        notifications.success('Copied');
+                      }}
+                      disabled={!latestCode}
+                      className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2 text-foreground/40 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                      <Copy size={12} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateLabAdminCode(lab.id)}
+                      disabled={!lab.isActive || generatingCodeForLab === lab.id}
+                      className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2.5 font-mono text-[10px] whitespace-nowrap tracking-[0.1em] text-muted-foreground/60 uppercase transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {latestCode ? 'Regenerate' : 'Generate'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </ConsolePanel>
       </div>
     );
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FlaskConical size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Labs</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
-          >
-            Refresh
-          </Button>
-          {!demoLabExists && (
+      <PanelHeader
+        title="Labs"
+        icon={<FlaskConical size={14} />}
+        actions={
+          <>
             <Button
-              variant="secondary"
+              variant="ghost"
               size="sm"
-              onClick={handleCreateDemoLab}
-              isLoading={createLabMutation.isPending}
+              onClick={handleRefresh}
+              disabled={isLoading}
+              leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+            >
+              Refresh
+            </Button>
+            {!demoLabExists && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleCreateDemoLab}
+                isLoading={createLabMutation.isPending}
+                leftIcon={<Plus size={14} />}
+              >
+                Create Demo Lab
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowCreateLab(true)}
               leftIcon={<Plus size={14} />}
             >
-              Create Demo Lab
+              Create Lab
             </Button>
-          )}
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowCreateLab(true)}
-            leftIcon={<Plus size={14} />}
-          >
-            Create Lab
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {showCreateLab && (
         <div className="p-3 bg-muted rounded-lg space-y-3">
@@ -372,17 +398,27 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
       {isLoading && labs.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground text-sm">Loading labs...</div>
       ) : (
-        <div className="space-y-5">
-          {regularLabs.map(lab => renderLabCard(lab))}
-
-          {demoLabs.length > 0 && regularLabs.length > 0 && (
-            <div className="py-3">
-              <div className="h-px bg-muted-foreground/60" />
+        <>
+          {regularLabs.length > 0 && (
+            <div>
+              <SectionHeader
+                title="Registered"
+                meta={`${regularLabs.length} ${regularLabs.length === 1 ? 'record' : 'records'}`}
+              />
+              <div className="space-y-5">{regularLabs.map(lab => renderLabCard(lab))}</div>
             </div>
           )}
 
-          {demoLabs.map(lab => renderLabCard(lab))}
-        </div>
+          {demoLabs.length > 0 && (
+            <div>
+              <SectionHeader
+                title="Demo"
+                meta={`${demoLabs.length} ${demoLabs.length === 1 ? 'record' : 'records'}`}
+              />
+              <div className="space-y-5">{demoLabs.map(lab => renderLabCard(lab))}</div>
+            </div>
+          )}
+        </>
       )}
 
       <ConfirmDialog

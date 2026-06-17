@@ -14,6 +14,13 @@ export default {
         page: 'hsl(var(--page) / <alpha-value>)',
 
         /* Surfaces */
+        surface: {
+          void: 'hsl(var(--bg-void) / <alpha-value>)',
+          base: 'hsl(var(--bg-base) / <alpha-value>)',
+          panel: 'hsl(var(--bg-panel) / <alpha-value>)',
+          'panel-2': 'hsl(var(--bg-panel-2) / <alpha-value>)',
+          elev: 'hsl(var(--bg-elev) / <alpha-value>)',
+        },
         card: {
           DEFAULT: 'hsl(var(--card) / <alpha-value>)',
           foreground: 'hsl(var(--card-foreground) / <alpha-value>)',
@@ -45,6 +52,14 @@ export default {
         border: 'hsl(var(--border) / <alpha-value>)',
         input: 'hsl(var(--input) / <alpha-value>)',
         ring: 'hsl(var(--ring) / <alpha-value>)',
+
+        /* Hairlines */
+        line: {
+          faint: 'hsl(var(--line-faint))',
+          soft: 'hsl(var(--line-soft))',
+          mid: 'hsl(var(--line-mid))',
+          strong: 'hsl(var(--line-strong))',
+        },
 
         /* Application-specific extensions */
 
@@ -146,8 +161,10 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Lato', 'system-ui', 'sans-serif'],
+        sans: ['"Space Grotesk"', '"Helvetica Neue"', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', '"Helvetica Neue"', 'sans-serif'],
         mono: [
+          '"JetBrains Mono"',
           'ui-monospace',
           'SFMono-Regular',
           'Menlo',
@@ -156,6 +173,59 @@ export default {
           '"Liberation Mono"',
           '"Courier New"',
           'monospace',
+        ],
+      },
+      boxShadow: {
+        sheen: 'inset 0 1px 0 0 rgba(255, 255, 255, 0.18)',
+        /* Inset top sheen + single soft halo. Mirrors LabBadge `lit` + Toggle ON vocabulary. */
+        'glow-primary':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--primary) / 0.50)',
+        'glow-danger':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-danger-bg) / 0.50)',
+        'glow-success':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-success-bg) / 0.50)',
+        'glow-warning':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
+        'glow-info':
+          'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
+        'standard-primary':
+          'inset 0 0 12px -2px hsl(var(--primary) / 0.20), 0 0 14px -4px hsl(var(--primary) / 0.40)',
+        'standard-primary-hover':
+          'inset 0 0 16px -2px hsl(var(--primary) / 0.35), 0 0 22px -2px hsl(var(--primary) / 0.55)',
+        'standard-danger':
+          'inset 0 0 12px -2px hsl(var(--color-danger-bg) / 0.20), 0 0 14px -4px hsl(var(--color-danger-bg) / 0.40)',
+        'standard-danger-hover':
+          'inset 0 0 16px -2px hsl(var(--color-danger-bg) / 0.35), 0 0 22px -2px hsl(var(--color-danger-bg) / 0.55)',
+        'standard-success':
+          'inset 0 0 12px -2px hsl(var(--color-success-bg) / 0.20), 0 0 14px -4px hsl(var(--color-success-bg) / 0.40)',
+        'standard-success-hover':
+          'inset 0 0 16px -2px hsl(var(--color-success-bg) / 0.35), 0 0 22px -2px hsl(var(--color-success-bg) / 0.55)',
+        'standard-warning':
+          'inset 0 0 12px -2px hsl(var(--color-warning-bg) / 0.20), 0 0 14px -4px hsl(var(--color-warning-bg) / 0.40)',
+        'standard-warning-hover':
+          'inset 0 0 16px -2px hsl(var(--color-warning-bg) / 0.35), 0 0 22px -2px hsl(var(--color-warning-bg) / 0.55)',
+        'standard-info':
+          'inset 0 0 12px -2px hsl(var(--color-info-bg) / 0.20), 0 0 14px -4px hsl(var(--color-info-bg) / 0.40)',
+        'standard-info-hover':
+          'inset 0 0 16px -2px hsl(var(--color-info-bg) / 0.35), 0 0 22px -2px hsl(var(--color-info-bg) / 0.55)',
+      },
+      backgroundImage: {
+        scanlines:
+          'repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+        /* Stacked, paints front-to-back:
+           1. Primary-tinted 1px hairline at the very top — etched HUD edge
+           2. Off-axis sheen (115°) — implies a light source above-left, not the
+              symmetric top-down sheen used by generic glass UI
+           3. Scanlines — material texture */
+        'lit-fill':
+          'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px)',
+      },
+      dropShadow: {
+        /* SVG-icon parallel to the text-bloom text-shadow — glows in the icon's own color. */
+        'icon-bloom': '0 0 6px color-mix(in srgb, currentColor 55%, transparent)',
+        'icon-bloom-hover': [
+          '0 0 8px color-mix(in srgb, currentColor 70%, transparent)',
+          '0 0 14px color-mix(in srgb, currentColor 35%, transparent)',
         ],
       },
       keyframes: {

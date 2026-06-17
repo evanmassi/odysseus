@@ -7,11 +7,11 @@
  */
 
 import type {
-  TubeQueryFilters,
   ResearcherQueryFilters,
   SearchFilters,
   AdvancedSearchOptions,
   LookupCategory,
+  TubeFilterableField,
 } from '@odysseus/shared-schemas';
 
 export const queryKeys = {
@@ -43,25 +43,21 @@ export const queryKeys = {
   // Tubes (lab-scoped)
   tubes: {
     all: (labId = '') => ['tubes', labId] as const,
-    list: (labId = '', filters?: TubeQueryFilters) =>
-      filters
-        ? ([...queryKeys.tubes.all(labId), 'list', filters] as const)
-        : ([...queryKeys.tubes.all(labId), 'list'] as const),
-    listAll: (labId = '') => [...queryKeys.tubes.all(labId), 'list'] as const,
     detail: (labId = '', id: string) => [...queryKeys.tubes.all(labId), 'detail', id] as const,
     location: (labId = '', tankId: string, rackId: string, boxId: string) =>
       [...queryKeys.tubes.all(labId), 'location', tankId, rackId, boxId] as const,
-    locationStats: (labId = '', tankId: string, rackId: string) =>
-      [...queryKeys.tubes.all(labId), 'locationStats', tankId, rackId] as const,
+    byRack: (labId = '', tankId: string, rackId: string) =>
+      [...queryKeys.tubes.all(labId), 'byRack', tankId, rackId] as const,
+    locationCounts: (labId = '') => [...queryKeys.tubes.all(labId), 'locationCounts'] as const,
     stats: (labId = '') => [...queryKeys.tubes.all(labId), 'stats'] as const,
+    filterOptions: (labId = '', fields: TubeFilterableField[]) =>
+      [...queryKeys.tubes.all(labId), 'filterOptions', [...fields].sort()] as const,
     bulk: (labId = '', tubeIds: string[]) =>
       [
         ...queryKeys.tubes.all(labId),
         'bulk',
         { tubeIds: [...tubeIds].sort(), length: tubeIds.length },
       ] as const,
-    paginated: (labId = '', filters?: TubeQueryFilters) =>
-      [...queryKeys.tubes.all(labId), 'paginated', filters] as const,
   },
 
   // Researchers (lab-scoped)
@@ -87,10 +83,6 @@ export const queryKeys = {
     tubes: (labId = '') => [...queryKeys.search.all(labId), 'tubes'] as const,
     tubesSearch: (labId = '', options: AdvancedSearchOptions) =>
       [...queryKeys.search.tubes(labId), 'search', options] as const,
-    quickSearch: (labId = '', query: string, limit?: number) =>
-      [...queryKeys.search.tubes(labId), 'quick', query, limit] as const,
-    fieldSearch: (labId = '', field: string, value: string, options?: AdvancedSearchOptions) =>
-      [...queryKeys.search.tubes(labId), 'field', field, value, options] as const,
     results: (labId = '', query: string, filters?: SearchFilters) =>
       [...queryKeys.search.all(labId), 'results', query, filters] as const,
   },
@@ -114,6 +106,18 @@ export const queryKeys = {
       [...queryKeys.equipment.all(labId), 'documents', itemId] as const,
     maintenance: (labId = '', itemId: string) =>
       [...queryKeys.equipment.all(labId), 'maintenance', itemId] as const,
+  },
+
+  // Supplies (lab-scoped)
+  supplies: {
+    all: (labId = '') => ['supplies', labId] as const,
+    categories: (labId = '') => [...queryKeys.supplies.all(labId), 'categories'] as const,
+    items: (labId = '') => [...queryKeys.supplies.all(labId), 'items'] as const,
+    detail: (labId = '', id: string) => [...queryKeys.supplies.all(labId), 'detail', id] as const,
+    locations: (labId = '') => [...queryKeys.supplies.all(labId), 'locations'] as const,
+    transactions: (labId = '', itemId: string) =>
+      [...queryKeys.supplies.all(labId), 'transactions', itemId] as const,
+    reorderList: (labId = '') => [...queryKeys.supplies.all(labId), 'reorder-list'] as const,
   },
 
   // Lookups (lab-scoped)

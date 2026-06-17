@@ -10,6 +10,7 @@ import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItem
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import { logger } from '@infrastructure/logging/logger';
@@ -100,6 +101,18 @@ interface EquipmentExportRow {
   updatedAt: string;
 }
 
+interface SupplyReorderExportRow {
+  name: string;
+  manufacturer: string;
+  catalogNumber: string;
+  vendorName: string;
+  vendorCatalogNumber: string;
+  currentStock: number;
+  reorderQuantity: number;
+  reorderUnit: string;
+  unitPrice: number;
+}
+
 interface SystemBackup {
   exportedAt: string;
   version: string;
@@ -117,6 +130,7 @@ export class ExportService {
     private appVersion: string,
     private equipmentItemRepository?: EquipmentItemRepository,
     private equipmentCategoryRepository?: EquipmentCategoryRepository,
+    private supplyItemRepository?: SupplyItemRepository,
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;
@@ -412,6 +426,44 @@ export class ExportService {
       } : null,
       securityConfig: securityConfig ?? null
     };
+  }
+
+  async exportSupplyReorderList(labId: string, format: 'csv'): Promise<string>;
+  async exportSupplyReorderList(labId: string, format: 'json'): Promise<SupplyReorderExportRow[]>;
+  async exportSupplyReorderList(labId: string, format: 'csv' | 'json'): Promise<string | SupplyReorderExportRow[]> {
+    logger.info('[ExportService] Exporting supply reorder list', { labId, format });
+
+    if (!this.supplyItemRepository) {
+      throw new Error('Supply item repository not configured');
+    }
+
+    const itemsWithStock = await this.supplyItemRepository.findItemsAtOrBelowThreshold(labId);
+
+    const rows: SupplyReorderExportRow[] = itemsWithStock.map(({ item, totalStock }) => ({
+      name: item.name,
+      manufacturer: item.manufacturer ?? '',
+      catalogNumber: item.catalogNumber ?? '',
+      vendorName: item.vendorName ?? '',
+      vendorCatalogNumber: item.vendorCatalogNumber ?? '',
+      currentStock: totalStock,
+      reorderQuantity: item.reorderQuantity ?? 0,
+      reorderUnit: item.reorderUnit ?? item.stockUnit ?? '',
+      unitPrice: item.unitPrice ?? 0,
+    }));
+
+    if (format === 'json') return rows;
+
+    return generateCsv(rows, [
+      { key: 'name', header: 'Item Name' },
+      { key: 'manufacturer', header: 'Manufacturer' },
+      { key: 'catalogNumber', header: 'Catalog #' },
+      { key: 'vendorName', header: 'Vendor' },
+      { key: 'vendorCatalogNumber', header: 'Vendor Catalog #' },
+      { key: 'currentStock', header: 'Current Stock' },
+      { key: 'reorderQuantity', header: 'Reorder Qty' },
+      { key: 'reorderUnit', header: 'Reorder Unit' },
+      { key: 'unitPrice', header: 'Unit Price' },
+    ]);
   }
 
   private async buildPersonMap(personIds: string[]): Promise<Map<string, Person>> {

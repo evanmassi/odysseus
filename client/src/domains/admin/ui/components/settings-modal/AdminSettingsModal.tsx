@@ -9,7 +9,6 @@ import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
 import {
   Shield,
   Activity,
-  Info,
   Save,
   ShieldUser,
   Gauge,
@@ -23,12 +22,24 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useStorageData } from '@domains/storage';
 import { logger } from '@infra/logger';
-import { AlertBanner, Button, Tab, LoadingSkeleton, Tabs, Tooltip } from '@shared/ui';
+import {
+  AlertBanner,
+  Button,
+  ConsolePanel,
+  SectionHeader,
+  Tab,
+  LoadingSkeleton,
+  Tabs,
+  Tooltip,
+  UnsavedChangesIndicator,
+} from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
 
+import { useLabStorageAnalyticsQuery } from '../../../hooks/useStorageAnalyticsQueries';
 import { adminService } from '../../../services/AdminService';
 import { adminUserService } from '../../../services/AdminUserService';
+import { UtilizationBar } from '../displays/UtilizationBar';
 
 import type { SecurityConfig, AdminUser, SystemMetrics } from '@odysseus/shared-schemas';
 
@@ -48,6 +59,25 @@ const InviteCodesTab = lazy(() =>
   import('./tabs/InviteCodesTab').then(m => ({ default: m.InviteCodesTab }))
 );
 
+type TabId =
+  | 'security'
+  | 'users'
+  | 'researchers'
+  | 'catalog'
+  | 'system'
+  | 'monitoring'
+  | 'invite-codes';
+
+const TAB_META: Record<TabId, { icon: React.ReactNode; title: string }> = {
+  system: { icon: <Gauge size={18} />, title: 'System' },
+  security: { icon: <Shield size={18} />, title: 'Security' },
+  users: { icon: <UsersRound size={18} />, title: 'Users' },
+  researchers: { icon: <Dna size={18} />, title: 'Researchers' },
+  'invite-codes': { icon: <TicketCheck size={18} />, title: 'Invite Codes' },
+  catalog: { icon: <BookOpen size={18} />, title: 'Catalog' },
+  monitoring: { icon: <Activity size={18} />, title: 'Monitoring' },
+};
+
 interface AdminSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -58,6 +88,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const isSystemAdmin = user?.role === 'system_admin';
   const isDemo = user?.isDemo ?? false;
   const { currentLab } = useStorageData();
+  const { data: utilization } = useLabStorageAnalyticsQuery();
   const demoSeeded =
     isDemo &&
     (currentLab?.equipment.tanks.some(
@@ -66,9 +97,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       false);
   const securityReadOnly = !isSystemAdmin || isDemo;
 
-  const [activeTab, setActiveTab] = useState<
-    'security' | 'users' | 'researchers' | 'catalog' | 'system' | 'monitoring' | 'invite-codes'
-  >('system');
+  const [activeTab, setActiveTab] = useState<TabId>('system');
   const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [isSaving, setSaving] = useState(false);
@@ -158,10 +187,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  const hasChanges = Object.keys(config).some(key => {
-    const configKey = key as keyof SecurityConfig;
-    return config[configKey] !== originalConfig[configKey];
-  });
+  const changedCount = (Object.keys(config) as (keyof SecurityConfig)[]).filter(
+    key => config[key] !== originalConfig[key]
+  ).length;
+  const hasChanges = changedCount > 0;
 
   const handleClose = () => {
     if (hasChanges && activeTab === 'security') {
@@ -177,15 +206,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   };
 
   const handleTabFooter = useCallback((footer: React.ReactNode) => setTabFooter(footer), []);
-
-  type TabId =
-    | 'security'
-    | 'users'
-    | 'researchers'
-    | 'catalog'
-    | 'system'
-    | 'monitoring'
-    | 'invite-codes';
 
   const tabs = (
     <Tabs
@@ -233,10 +253,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     activeTab === 'security' ? (
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-shrink min-w-0">
-          <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
-            <Info size={14} className="flex-shrink-0" />
-            <span className="truncate">Changes apply to all users immediately</span>
-          </div>
+          <UnsavedChangesIndicator count={changedCount} />
           {isDemo && (
             <Tooltip content="Some management features are restricted" side="top">
               <div>
@@ -282,6 +299,50 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       </div>
     );
 
+  const accentBar = (
+    <span
+      aria-hidden
+      className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+    />
+  );
+
+  const locator = (
+    <div className="flex items-center justify-between gap-4 font-mono">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          {accentBar}
+          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            {isSystemAdmin ? 'Scope' : 'Lab'}
+          </span>
+          <span className="text-xs text-secondary-foreground phosphor-text">
+            {isSystemAdmin ? 'System-wide' : (currentLab?.name ?? '—')}
+          </span>
+        </div>
+        <span aria-hidden className="text-muted-foreground/40">
+          ·
+        </span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            Admin
+          </span>
+          <span className="text-xs text-secondary-foreground phosphor-text">
+            {user?.username ?? '—'}
+          </span>
+        </div>
+      </div>
+
+      {utilization && (
+        <div className="flex items-center gap-2.5">
+          {accentBar}
+          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+            Storage
+          </span>
+          <UtilizationBar percent={utilization.utilizationPercent} />
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -294,12 +355,26 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       tabOrientation="vertical"
       footer={footer}
       tabFooter={tabFooter}
+      locator={locator}
       className="h-[85vh]"
       onClose={handleClose}
     >
+      <SectionHeader icon={TAB_META[activeTab].icon} title={TAB_META[activeTab].title} size="lg" />
+
       {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <SecurityTab config={config} onChange={handleConfigChange} readOnly={securityReadOnly} />
+          {securityReadOnly && (
+            <AlertBanner variant="info" spacing="sm">
+              Only system admins can modify security settings.
+            </AlertBanner>
+          )}
+          <ConsolePanel intensity="soft">
+            <SecurityTab
+              config={config}
+              onChange={handleConfigChange}
+              readOnly={securityReadOnly}
+            />
+          </ConsolePanel>
         </Suspense>
       )}
 
@@ -336,12 +411,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'system' && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <SystemTab
-            config={config}
-            stats={systemStats}
-            onChange={handleConfigChange}
-            onTabFooter={handleTabFooter}
-          />
+          <SystemTab config={config} stats={systemStats} onChange={handleConfigChange} />
         </Suspense>
       )}
 

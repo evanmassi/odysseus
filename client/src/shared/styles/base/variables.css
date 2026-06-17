@@ -10,7 +10,7 @@
   }
 
   html {
-    font-family: 'Lato', system-ui, sans-serif;
+    font-family: 'Space Grotesk', 'Helvetica Neue', system-ui, sans-serif;
   }
 
   body {
@@ -31,6 +31,22 @@
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
     --page: 0 0% 100%;
+
+    /* Surfaces */
+    --bg-void: 220 20% 95%;
+    --bg-base: 0 0% 100%;
+    --bg-panel: 0 0% 100%;
+    --bg-panel-2: 210 30% 98%;
+    --bg-elev: 0 0% 100%;
+
+    /* Hairlines */
+    --line-faint: 222 47% 11% / 0.04;
+    --line-soft: 222 47% 11% / 0.08;
+    --line-mid: 222 47% 11% / 0.14;
+    --line-strong: 222 47% 11% / 0.28;
+
+    /* Input well — sunken surface overlay for text inputs/selects/etc. */
+    --input-well: 0 0% 0% / 0.04;
 
     /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;
@@ -65,7 +81,23 @@
     --overlay: 0 0% 0% / 0.6;
     --overlay-emphasis: 0 0% 0% / 0.7;
 
-    --auth-sketch-border: 0 0% 100%;
+    /* Defined only on :root — auth surface intentionally does not follow app theme.
+       Values are plain channels (not Tailwind tokens) so they compose into the
+       multi-alpha box-shadow + gradient stacks in auth-console.css. */
+    --auth-ambient: 91 157 217;
+    --auth-surface: 14 22 34;
+    /* Field behind the console — darker than --auth-surface so the navy chrome floats. */
+    --auth-field-bg: 6 10 18;
+    --auth-edge-lift-top: 255 255 255 / 0.2;
+    --auth-edge-lift-left: 255 255 255 / 0.06;
+    --auth-edge-recess-bottom: 0 0 0 / 0.5;
+    --auth-edge-recess-right: 0 0 0 / 0.22;
+    --auth-rim: 232 227 213 / 0.07;
+    --auth-divider: 232 227 213 / 0.08;
+    --auth-text: 232 227 213;
+    --auth-text-dim: 232 227 213 / 0.62;
+    --auth-text-mute: 232 227 213 / 0.42;
+    --auth-text-faint: 232 227 213 / 0.28;
 
     /* Action Colors */
     --color-action-default: var(--primary);
@@ -174,16 +206,58 @@
     --grid-position-label: 0 0% 100%;
     --grid-position-label-foreground: 215.4 19.3% 34.5%;
     --grid-position-label-border: 220 13% 82.7%;
-    --grid-selection: var(--focus-ring-color);
-    --grid-selection-glow: var(--focus-ring-color) / 0.8;
+    --grid-selection: 200 85% 58%;
+    --grid-selection-glow: 200 85% 58% / 0.8;
     --grid-selection-inner: 0 0% 100% / 0.5;
     --grid-selection-overlay: 0 0% 100% / 0.45;
-    --grid-selection-empty: var(--focus-ring-color) / 0.08;
-    --grid-preview: 215 20.2% 46.9% / 0.5;
-    --grid-preview-overlay: 0 0% 100% / 0.35;
+    --grid-selection-empty: 200 85% 58% / 0.08;
+    --grid-preview: 210 30% 60%;
+    --grid-preview-glow: 210 40% 66% / 0.5;
+    --grid-preview-overlay: 0 0% 100% / 0.32;
+    --grid-preview-empty: 210 35% 60% / 0.12;
     --grid-cut-opacity: 0.65;
     --grid-copied: 215.4 19.3% 34.5%;
     --grid-copied-alt: 0 0% 100%;
+
+    /* Table — alpha scale for row glow, checkbox glow, and surface overlays.
+       Defined theme-agnostic; same values in light and dark. */
+    --alpha-glow-wash-1: 0.21;
+    --alpha-glow-wash-2: 0.13;
+    --alpha-glow-wash-3: 0.06;
+    --alpha-glow-wash-4: 0.02;
+    --alpha-glow-tint: 0.025;
+    --alpha-glow-edge-inner: 0.43;
+    --alpha-glow-edge-rim: 0.16;
+    --alpha-glow-edge-bloom: 0.14;
+    --alpha-glow-outer-near: 0.2;
+    --alpha-glow-outer-far: 0.09;
+    --alpha-glow-bar-strong: 0.5;
+    --alpha-glow-bar-mid: 0.4;
+    --alpha-glow-bar-far: 0.19;
+    --alpha-checkbox-glow-inner: 0.55;
+    --alpha-checkbox-glow-outer: 0.22;
+    --alpha-checkbox-shadow: 0.6;
+    --alpha-zebra: 0.02;
+    --alpha-hover: 0.05;
+    --alpha-cell-rim: 0.12;
+    --alpha-header-rim: 0.09;
+    --alpha-header-rule: 0.18;
+    --alpha-header-emit: 0.18;
+    --alpha-header-bloom: 0.1;
+    --alpha-phosphor-rim: 0.045;
+    --alpha-phosphor-bloom: 0.04;
+    --alpha-hover-stripe: 0.45;
+    --alpha-hover-edge: 0.18;
+    --alpha-hover-bloom: 0.08;
+    --alpha-hover-wash-1: 0.1;
+    --alpha-hover-wash-2: 0.06;
+    --alpha-hover-wash-3: 0.03;
+    --alpha-hover-wash-4: 0.01;
+    --alpha-hover-rim: 0.07;
+    --alpha-hover-bloom-edge: 0.06;
+    --alpha-hover-bloom-far: 0.04;
+    --alpha-stripe-muted: 0.3;
+    --bg-header-band: 0 0% 0% / 0.15;
 
     /* Always-dark components */
 
@@ -213,67 +287,81 @@
   /* Dark Theme */
   [data-theme='dark'] {
     /* Core */
-    --background: 222.2 47.4% 11.2%;
-    --foreground: 210 33% 92%;
-    --page: 222.2 47.4% 11.2%;
+    --background: 220 38% 7%;
+    --foreground: 45 29% 87%;
+    --page: 220 38% 7%;
+
+    /* Surfaces */
+    --bg-void: 220 43% 4%;
+    --bg-base: 220 38% 7%;
+    --bg-panel: 217 32% 9%;
+    --bg-panel-2: 217 26% 11%;
+    --bg-elev: 218 28% 15%;
+
+    /* Hairlines */
+    --line-faint: 45 27% 87% / 0.06;
+    --line-soft: 45 27% 87% / 0.1;
+    --line-mid: 45 27% 87% / 0.18;
+    --line-strong: 45 27% 87% / 0.32;
+
+    /* Input well — dark theme: deeper black wash so fields read as recessed against panels */
+    --input-well: 0 0% 0% / 0.15;
 
     /* Card */
-    --card: 217.2 32.6% 15.5%;
-    --card-foreground: 210 33% 92%;
+    --card: 217 32% 9%;
+    --card-foreground: 45 29% 87%;
 
     /* Popover */
-    --popover: 217.2 32.6% 17.5%;
-    --popover-foreground: 210 33% 92%;
+    --popover: 217 32% 11%;
+    --popover-foreground: 45 29% 87%;
 
     /* Primary */
-    --primary: 213 85% 67.8%;
+    --primary: 210 60% 60%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 215 20.2% 65.1%;
+    --secondary: 217 26% 11%;
+    --secondary-foreground: 44 14% 65%;
 
     /* Muted */
     --muted: 215 24% 19%;
     --muted-hover: 215 24% 23%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 44 14% 65%;
 
     /* Accent */
     --accent: 215.3 25% 26.7%;
-    --accent-foreground: 210 33% 92%;
+    --accent-foreground: 45 29% 87%;
 
     /* Utilities */
     --border: 215.3 25% 26.7%;
     --input: 217.2 25% 26.7%;
 
-    --auth-sketch-border: 215 20.2% 65.1%;
-
     /* Action Colors */
     --color-action-default: var(--primary);
-    --color-action-hover: 217 85% 59.8%;
-    --color-action-focus: 217 85% 59.8%;
-    --color-action-light: 213 45% 12%;
-    --color-action-light-hover: 213 50% 16%;
+    --color-action-hover: 210 65% 52%;
+    --color-action-focus: 210 65% 52%;
+    --color-action-light: 210 45% 12%;
+    --color-action-light-hover: 210 50% 16%;
 
     /* Danger Theme */
-    --color-danger-bg: 1 62% 60%;
-    --color-danger-hover: 1 70% 52%;
-    --color-danger-text: 1 62% 65%;
-    --color-danger-text-hover: 1 70% 58%;
+    --color-danger-bg: 5 50% 60%;
+    --color-danger-hover: 5 58% 52%;
+    --color-danger-text: 5 50% 65%;
+    --color-danger-text-hover: 5 58% 58%;
     --color-danger-btnText: 0 0% 100%;
-    --color-danger-light: 1 35% 12%;
-    --color-danger-light-hover: 1 40% 16%;
-    --color-danger-border: 1 50% 45%;
+    --color-danger-light: 5 30% 12%;
+    --color-danger-light-hover: 5 35% 16%;
+    --color-danger-border: 5 45% 45%;
 
     /* Warning Theme */
-    --color-warning-bg: 44 74% 55%;
-    --color-warning-hover: 44 78% 48%;
-    --color-warning-text: 44 78% 65%;
-    --color-warning-text-hover: 44 80% 58%;
+    --color-warning-bg: 32 67% 62%;
+    --color-warning-hover: 32 72% 54%;
+    --color-warning-text: 32 67% 68%;
+    --color-warning-text-hover: 32 72% 60%;
     --color-warning-btnText: 0 0% 100%;
-    --color-warning-light: 44 40% 10%;
-    --color-warning-light-hover: 44 45% 14%;
-    --color-warning-border: 44 65% 45%;
+    --color-warning-light: 32 40% 10%;
+    --color-warning-light-hover: 32 45% 14%;
+    --color-warning-border: 32 60% 45%;
 
     /* Success Theme */
     --color-success-bg: 152 38% 50%;
@@ -342,13 +430,15 @@
     --grid-position-label-foreground: 220 10.6% 64.9%;
     --grid-position-label-border: 217.2 19.2% 26.7%;
     --grid-empty-foreground: 220 8.9% 46.1%;
-    --grid-selection: var(--focus-ring-color);
-    --grid-selection-glow: var(--focus-ring-color) / 0.7;
+    --grid-selection: 213.1 93.9% 67.8%;
+    --grid-selection-glow: 213.1 93.9% 67.8% / 0.7;
     --grid-selection-inner: 0 0% 100% / 0.5;
     --grid-selection-overlay: 0 0% 100% / 0.35;
-    --grid-selection-empty: var(--focus-ring-color) / 0.15;
-    --grid-preview: 215 20.2% 65.1% / 0.5;
+    --grid-selection-empty: 213.1 93.9% 67.8% / 0.15;
+    --grid-preview: 210 30% 74%;
+    --grid-preview-glow: 210 40% 80% / 0.45;
     --grid-preview-overlay: 0 0% 100% / 0.3;
+    --grid-preview-empty: 210 35% 74% / 0.16;
     --grid-cut-opacity: 0.5;
     --grid-copied: 215 20.2% 65.1%;
     --grid-copied-alt: 217.2 32.6% 17.5%;

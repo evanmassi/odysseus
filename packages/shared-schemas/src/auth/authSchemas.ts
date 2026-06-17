@@ -218,3 +218,13 @@ export const verifyEmailResponseSchema = z.object({
 });
 
 export type VerifyEmailResponse = z.infer<typeof verifyEmailResponseSchema>;
+
+export const sessionInfoResponseSchema = z.object({
+  isAuthenticated: z.boolean(),
+  reason: z.string().optional(),
+  timeUntilIdleTimeoutMs: z.number().optional(),
+  showWarning: z.boolean().optional(),
+  idleWarningMinutes: z.number().optional(),
+});
+
+export type SessionInfoResponse = z.infer<typeof sessionInfoResponseSchema>;

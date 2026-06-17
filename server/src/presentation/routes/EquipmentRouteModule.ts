@@ -19,6 +19,7 @@ import {
   UpdateEquipmentItemHttpSchema,
   DecommissionEquipmentItemHttpSchema,
   CreateEquipmentDocumentHttpSchema,
+  UpdateEquipmentDocumentHttpSchema,
   CreateEquipmentMaintenanceLogHttpSchema,
   UpdateEquipmentMaintenanceLogHttpSchema,
   EquipmentBulkMaintenanceHttpSchema,
@@ -130,6 +131,12 @@ export class EquipmentRouteModule implements RouteModule {
       validateParams(IdParams),
       validateBody(CreateEquipmentDocumentHttpSchema),
       this.equipmentController.addDocument.bind(this.equipmentController)
+    );
+
+    router.put('/:id/documents/:docId',
+      validateParams(EquipmentDocIdParams),
+      validateBody(UpdateEquipmentDocumentHttpSchema),
+      this.equipmentController.updateDocument.bind(this.equipmentController)
     );
 
     router.delete('/:id/documents/:docId',

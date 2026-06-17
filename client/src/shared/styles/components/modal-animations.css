@@ -68,46 +68,33 @@
   }
 }
 
-@keyframes sketch-border-draw {
-  from {
-    stroke-dashoffset: var(--border-length, 1000);
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes sketch-border-undraw {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: var(--border-length, 1000);
-  }
-}
-
-@keyframes sketch-fill-in {
-  from {
+@keyframes auth-power-on {
+  0% {
     opacity: 0;
+    transform: scaleX(0.5) scaleY(0.005);
+    filter: brightness(2.8) saturate(0);
   }
-  to {
+  30% {
     opacity: 1;
+    transform: scaleX(1) scaleY(0.005);
+    filter: brightness(2.5) saturate(0);
   }
-}
-
-@keyframes sketch-fill-out {
-  from {
+  45% {
     opacity: 1;
+    transform: scaleX(1) scaleY(0.04);
+    filter: brightness(2.2) saturate(0);
   }
-  to {
-    opacity: 0;
+  100% {
+    opacity: 1;
+    transform: scaleX(1) scaleY(1);
+    filter: brightness(1) saturate(1);
   }
 }
 
-@keyframes sketch-content-in {
+@keyframes auth-stack-fade {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -115,14 +102,38 @@
   }
 }
 
-@keyframes sketch-content-out {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes auth-stack-exit {
   to {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: scale(0.98);
+  }
+}
+
+@keyframes auth-banner-nudge {
+  0% {
+    transform: translateY(0);
+  }
+  28% {
+    transform: translateY(3px);
+  }
+  60% {
+    transform: translateY(-1px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Quick land for chrome mounts that aren't the first-session power-on.
+   Softens the cross-modal swap so the new chrome doesn't pop in cold. */
+@keyframes auth-chrome-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -158,6 +169,72 @@
   }
 }
 
+@keyframes dropdown-scale-y-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes dropdown-scale-y-out {
+  from {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(0);
+  }
+}
+
+@keyframes dropdown-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dropdown-pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes dropdown-scale-x-in {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes dropdown-scale-x-out {
+  from {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+}
+
 @layer components {
   .animate-modal-backdrop-in {
     animation: modal-backdrop-in 250ms ease-out forwards;
@@ -183,35 +260,6 @@
     animation: modal-blowup-out 200ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
   }
 
-  .animate-sketch-border-in {
-    stroke-dasharray: var(--border-length, 1000);
-    stroke-dashoffset: var(--border-length, 1000);
-    animation: sketch-border-draw 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  .animate-sketch-border-out {
-    stroke-dasharray: var(--border-length, 1000);
-    animation: sketch-border-undraw 250ms cubic-bezier(0.4, 0, 1, 1) forwards;
-  }
-
-  .animate-sketch-fill-in {
-    opacity: 0;
-    animation: sketch-fill-in 350ms ease-out 400ms forwards;
-  }
-
-  .animate-sketch-fill-out {
-    animation: sketch-fill-out 150ms ease-in forwards;
-  }
-
-  .animate-sketch-content-in {
-    opacity: 0;
-    animation: sketch-content-in 350ms ease-out 650ms forwards;
-  }
-
-  .animate-sketch-content-out {
-    animation: sketch-content-out 150ms ease-in forwards;
-  }
-
   /* Dropdown reveal animations */
   .animate-dropdown-reveal-in {
     animation: dropdown-reveal-in 280ms ease-out forwards;
@@ -221,6 +269,86 @@
   .animate-dropdown-reveal-out {
     animation: dropdown-reveal-out 200ms ease-in forwards;
     transform-origin: top center;
+  }
+
+  .animate-dropdown-slide-down-in {
+    animation: dropdown-scale-y-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: top center;
+  }
+  .animate-dropdown-slide-down-out {
+    animation: dropdown-scale-y-out 200ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: top center;
+  }
+
+  .animate-dropdown-slide-up-in {
+    animation: dropdown-scale-y-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: bottom center;
+  }
+  .animate-dropdown-slide-up-out {
+    animation: dropdown-scale-y-out 200ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: bottom center;
+  }
+
+  .animate-dropdown-slide-right-in {
+    animation: dropdown-scale-x-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: left center;
+  }
+  .animate-dropdown-slide-right-out {
+    animation: dropdown-scale-x-out 200ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: left center;
+  }
+
+  .animate-dropdown-slide-left-in {
+    animation: dropdown-scale-x-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: right center;
+  }
+  .animate-dropdown-slide-left-out {
+    animation: dropdown-scale-x-out 200ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: right center;
+  }
+
+  .animate-dropdown-instant-in {
+    animation: dropdown-pop-in 80ms ease-out forwards;
+  }
+  .animate-dropdown-instant-out {
+    animation: dropdown-pop-out 60ms ease-in forwards;
+  }
+
+  .animate-auth-power-on {
+    animation: auth-power-on 620ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    transform-origin: center;
+  }
+
+  .animate-auth-chrome-in {
+    animation: auth-chrome-in 180ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    transform-origin: center;
+  }
+
+  /* :not(.animate-in) yields the stagger to children with their own enter
+     animation (e.g. AlertBanner), which otherwise collide with auth-stack-fade
+     and get stuck at the inherited opacity: 0. */
+  .animate-auth-stack > *:not(.animate-in) {
+    opacity: 0;
+    animation: auth-stack-fade 400ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+  .animate-auth-stack > *:nth-child(1):not(.animate-in) {
+    animation-delay: 60ms;
+  }
+  .animate-auth-stack > *:nth-child(2):not(.animate-in) {
+    animation-delay: 140ms;
+  }
+  .animate-auth-stack > *:nth-child(3):not(.animate-in) {
+    animation-delay: 220ms;
+  }
+  .animate-auth-stack > *:nth-child(4):not(.animate-in) {
+    animation-delay: 300ms;
+  }
+  .animate-auth-stack > *:nth-child(n + 5):not(.animate-in) {
+    animation-delay: 380ms;
+  }
+
+  .animate-auth-stack-exit {
+    animation: auth-stack-exit 200ms cubic-bezier(0.55, 0, 1, 0.45) forwards;
   }
 }
 

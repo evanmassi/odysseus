@@ -23,7 +23,7 @@ const COLUMNS_PER_ROW = 12;
 
 interface AuditArchiveRow {
   id: string;
-  user_id: string;
+  user_id: string | null;
   username: string;
   action: string;
   entity_type: string;
@@ -55,7 +55,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
       );
       params.push(
         entry.id,
-        entry.userId,
+        entry.userId ?? null,
         entry.username,
         entry.action,
         entry.entityType,
@@ -184,7 +184,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     return {
       id: row.id,
       labId: row.lab_id ?? undefined,
-      userId: row.user_id,
+      userId: row.user_id ?? undefined,
       username: row.username,
       action: row.action,
       entityType: row.entity_type,

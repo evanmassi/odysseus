@@ -4,14 +4,14 @@
  * PostgreSQL implementation for equipment items, documents, and maintenance logs.
  */
 
-import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
+import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 import type { EquipmentItemRepository as IEquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
-import type { EquipmentItemRow } from '@infrastructure/database/mappers/EquipmentItemMapper';
-import { EquipmentItemMapper } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import type { EquipmentDocumentRow } from '@infrastructure/database/mappers/EquipmentDocumentMapper';
 import { EquipmentDocumentMapper } from '@infrastructure/database/mappers/EquipmentDocumentMapper';
+import type { EquipmentItemRow } from '@infrastructure/database/mappers/EquipmentItemMapper';
+import { EquipmentItemMapper } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import type { EquipmentMaintenanceLogRow } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import { EquipmentMaintenanceLogMapper } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -109,6 +109,23 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
       INSERT INTO equipment_documents (${DOC_COLUMNS})
       VALUES ($1, $2, $3, $4, $5, $6)
     `, [row.id, row.item_id, row.label, row.url, row.notes, row.created_at]);
+  }
+
+  async updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void> {
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    let idx = 1;
+
+    if (fields.label !== undefined) { sets.push(`label = $${idx++}`); params.push(fields.label); }
+    if (fields.url !== undefined) { sets.push(`url = $${idx++}`); params.push(fields.url); }
+    if (fields.notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(fields.notes); }
+    if (sets.length === 0) return;
+
+    params.push(id);
+    await this.db.execute(
+      `UPDATE equipment_documents SET ${sets.join(', ')} WHERE id = $${idx}`,
+      params
+    );
   }
 
   async deleteDocument(id: string): Promise<boolean> {

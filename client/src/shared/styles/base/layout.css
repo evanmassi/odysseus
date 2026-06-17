@@ -6,7 +6,7 @@
 
 :root {
   /* Layout Heights */
-  --layout-header-height: 56px;
+  --layout-header-height: 52px;
   --layout-top-padding: 8px;
   --panel-title-height: 40px;
 
@@ -19,6 +19,9 @@
   flex-direction: column;
   padding-top: var(--layout-top-padding);
   background-color: hsl(var(--page));
+  background-image:
+    repeating-linear-gradient(0deg, hsl(var(--foreground) / 0.013) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, hsl(var(--foreground) / 0.013) 0 1px, transparent 1px 26px);
 }
 
 .app-header {
@@ -33,7 +36,7 @@
   gap: 20px;
   padding: 8px 16px 16px;
   align-items: flex-start;
-  background-color: hsl(var(--page));
+  background-color: transparent;
 }
 
 /* Storage Navigator Panel */
@@ -52,10 +55,11 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  /* Cap width to available height so side space is even */
+  /* Cap width so the square grid plus the chrome stacked above it (panel title +
+     breadcrumb) never grows taller than the column, which would clip bottom rows. */
   max-width: calc(
     100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--panel-title-height) -
-      32px
+      72px
   );
 }
 
@@ -71,12 +75,15 @@
 /* Grid Container */
 .grid-container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding: 12px;
   min-width: 0;
   min-height: 0;
-  container-type: inline-size; /* Width-only so height doesn't create circular dependency */
+  /* Square chassis: height tracks the width-bound size so the panel hugs the grid
+     instead of stretching past it. aspect-ratio gives a definite height, so cqh is safe. */
+  aspect-ratio: 1;
+  container-type: size;
 }
 
 /* Panel Title */
@@ -90,15 +97,58 @@
 
 /* Tube Grid */
 .tube-grid {
-  width: min(
-    100cqw,
-    calc(
-      100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--panel-title-height) -
-        56px
-    )
-  );
+  /* Largest square that fits the container on either axis, minus the ruler gutters
+     (mirrored on all four sides), so the grid fills the chassis. */
+  width: min(calc(100cqw - 2 * var(--grid-ruler, 0px)), calc(100cqh - 2 * var(--grid-ruler, 0px)));
   aspect-ratio: 1;
-  gap: 4px;
+  gap: 6px;
+}
+
+/* Row/column rulers wrap the cell grid; tracks collapse to 0 when absent */
+.grid-with-rulers {
+  display: grid;
+  grid-template-columns: var(--grid-ruler, 0px) auto;
+  grid-template-rows: var(--grid-ruler, 0px) auto;
+}
+
+/* Mirror the ruler track on the far side so the cell grid (centre cell) is what
+   gets centred, giving equal margins on all four sides. */
+.grid-with-rulers.has-rulers {
+  --grid-ruler: 24px;
+  grid-template-columns: calc(var(--grid-ruler) - 10px) auto calc(var(--grid-ruler) - 10px);
+  grid-template-rows: calc(var(--grid-ruler) - 10px) auto calc(var(--grid-ruler) - 10px);
+  column-gap: 10px;
+  row-gap: 10px;
+}
+
+.grid-with-rulers.has-rulers .grid-ruler-corner {
+  grid-area: 1 / 1;
+}
+
+.grid-with-rulers.has-rulers .grid-ruler-cols {
+  grid-area: 1 / 2;
+}
+
+.grid-with-rulers.has-rulers .grid-ruler-rows {
+  grid-area: 2 / 1;
+}
+
+.grid-with-rulers > .tube-grid {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.grid-ruler {
+  display: grid;
+  gap: 6px;
+}
+
+.grid-ruler-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--foreground) / 0.4);
+  line-height: 1;
 }
 
 /* Lab Management Layout */
@@ -107,7 +157,7 @@
   display: flex;
   gap: 20px;
   padding: 8px 16px 16px;
-  background-color: hsl(var(--page));
+  background-color: transparent;
 }
 
 .lab-management-sidebar {

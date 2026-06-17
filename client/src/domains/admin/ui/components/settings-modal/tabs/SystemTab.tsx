@@ -9,18 +9,16 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { refrigeratorFreezer } from '@lucide/lab';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  Gauge,
-  FlaskConical,
-  FileText,
-  Check,
-  X,
   HardDrive,
-  AlertTriangle,
   Icon,
   Rows3,
   Box as BoxIcon,
   ChevronRight,
   ChevronDown,
+  TestTubes,
+  UsersRound,
+  Dna,
+  DatabaseBackup,
 } from 'lucide-react';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -28,11 +26,22 @@ import { useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
-import { Button, Chip, Input, Toggle } from '@shared/ui';
+import {
+  Button,
+  Chip,
+  ConsolePanel,
+  Input,
+  SettingsRow,
+  StatCell,
+  Subsection,
+  Toggle,
+} from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { useLabStorageAnalyticsQuery } from '../../../../hooks/useStorageAnalyticsQueries';
 import { adminService } from '../../../../services/AdminService';
+import { UtilizationBar } from '../../displays/UtilizationBar';
 import { DataExportForm } from '../DataExportForm';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
@@ -41,10 +50,9 @@ export interface SystemTabProps {
   config: SecurityConfig;
   stats: SystemMetrics | null;
   onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
-  onTabFooter?: (footer: React.ReactNode) => void;
 }
 
-export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabProps) {
+export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   const labId = useAuthStore(s => s.user?.labId);
   const hasLab = !!labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
@@ -79,34 +87,8 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
     void fetchVersionInfo();
   }, []);
 
-  useEffect(() => {
-    onTabFooter?.(
-      <div className="space-y-2">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
-          <span>Total Tubes:</span>
-          <span className="font-semibold text-secondary-foreground">{stats?.totalTubes ?? 0}</span>
-          <span className="text-border">•</span>
-          <span>Total Users:</span>
-          <span className="font-semibold text-secondary-foreground">{stats?.totalUsers ?? 0}</span>
-          <span className="text-border">•</span>
-          <span>Researchers:</span>
-          <span className="font-semibold text-secondary-foreground">
-            {stats?.totalResearchers ?? 0}
-          </span>
-          <span className="text-border">•</span>
-          <span>Last Backup:</span>
-          <span className="font-semibold text-secondary-foreground">
-            {stats?.lastBackup ? stats.lastBackup.toLocaleDateString() : 'Never'}
-          </span>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          Odysseus v{versionInfo?.version ?? '—'} · © 2025 Evan Massi
-        </div>
-      </div>
-    );
-  }, [onTabFooter, stats, versionInfo]);
-
   const handleSaveLabName = useCallback(async () => {
+    if (isSavingLabName) return;
     const trimmedName = labNameInput.trim();
     if (!trimmedName) {
       notifications.error('Lab name cannot be empty');
@@ -135,7 +117,7 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
     } finally {
       setIsSavingLabName(false);
     }
-  }, [labNameInput, currentLab?.name, queryClient, labId]);
+  }, [isSavingLabName, labNameInput, currentLab?.name, queryClient, labId]);
 
   const handleCancelLabNameEdit = useCallback(() => {
     setLabNameInput(currentLab?.name ?? '');
@@ -155,102 +137,103 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
-        <Gauge size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-card-foreground">System</h3>
-      </div>
+      {stats && (
+        <ConsolePanel intensity="soft">
+          <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
+            <StatCell
+              size="sm"
+              label="Total Tubes"
+              value={stats.totalTubes}
+              icon={<TestTubes size={11} />}
+              className="flex-1"
+            />
+            <StatCell
+              size="sm"
+              label="Total Users"
+              value={stats.totalUsers}
+              icon={<UsersRound size={11} />}
+              className="flex-1"
+            />
+            <StatCell
+              size="sm"
+              label="Researchers"
+              value={stats.totalResearchers}
+              icon={<Dna size={11} />}
+              className="flex-1"
+            />
+            <StatCell
+              size="sm"
+              label="Last Backup"
+              value={stats.lastBackup ? formatDateForDisplay(stats.lastBackup) : 'Never'}
+              icon={<DatabaseBackup size={11} />}
+              className="flex-1"
+            />
+          </div>
+        </ConsolePanel>
+      )}
 
-      <div className="grid grid-cols-2 gap-4">
-        {hasLab && (
-          <div>
-            <h4 className="text-base font-semibold text-card-foreground mb-2">Laboratory</h4>
-            <div className="bg-muted p-3 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FlaskConical size={18} className="text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Lab:</span>
-                  {isEditingLabName ? (
-                    <Input
-                      type="text"
-                      value={labNameInput}
-                      onValueChange={setLabNameInput}
-                      onKeyDown={handleLabNameKeyDown}
-                      variant="default"
-                      size="sm"
-                      // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
-                      autoFocus
-                      disabled={isSavingLabName}
-                    />
-                  ) : (
-                    <span className="text-sm font-medium text-card-foreground">
-                      {currentLab?.name ?? ''}
+      <ConsolePanel intensity="soft">
+        <Subsection title="Laboratory" index={1} accent>
+          {hasLab && (
+            <SettingsRow label="Lab Name" hint="Display name shown across the app">
+              <div className="flex w-48 items-center justify-end gap-2">
+                {isEditingLabName ? (
+                  <Input
+                    type="text"
+                    value={labNameInput}
+                    onValueChange={setLabNameInput}
+                    onKeyDown={handleLabNameKeyDown}
+                    onBlur={() => void handleSaveLabName()}
+                    size="sm"
+                    className="w-full"
+                    title="Enter to save · Esc to cancel"
+                    // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
+                    autoFocus
+                  />
+                ) : (
+                  <>
+                    <span
+                      className="truncate font-mono text-xs text-secondary-foreground phosphor-text"
+                      title={currentLab?.name ?? undefined}
+                    >
+                      {currentLab?.name ?? '—'}
                     </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  {isEditingLabName ? (
-                    <>
-                      <Button
-                        variant="success"
-                        size="xs"
-                        iconOnly
-                        onClick={handleSaveLabName}
-                        disabled={isSavingLabName}
-                        aria-label="Save lab name"
-                      >
-                        <Check size={16} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        iconOnly
-                        onClick={handleCancelLabNameEdit}
-                        disabled={isSavingLabName}
-                        aria-label="Cancel editing"
-                      >
-                        <X size={16} />
-                      </Button>
-                    </>
-                  ) : (
                     <Button variant="ghost" size="xs" onClick={() => setIsEditingLabName(true)}>
                       Edit
                     </Button>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
-            </div>
-          </div>
-        )}
+            </SettingsRow>
+          )}
 
-        <div>
-          <h4 className="text-base font-semibold text-card-foreground mb-2">Audit & Monitoring</h4>
-          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-            <div>
-              <h5 className="text-sm font-medium text-card-foreground flex items-center gap-2">
-                <FileText size={18} className="text-muted-foreground" />
-                Detailed System Logging
-              </h5>
-            </div>
+          <SettingsRow
+            label="Detailed System Logging"
+            hint="Verbose audit logging for all operations"
+            className={hasLab ? undefined : 'col-span-2'}
+          >
             <Toggle
               checked={config.enableDetailedLogging}
               onChange={checked => onChange('enableDetailedLogging', checked)}
               aria-label="Enable detailed logging for all system operations"
             />
+          </SettingsRow>
+        </Subsection>
+
+        {hasLab && <StorageUtilizationSection />}
+
+        <Subsection title="Data Export" index={hasLab ? 3 : 2} accent>
+          <div className="col-span-2 py-4">
+            <DataExportForm />
           </div>
+        </Subsection>
+
+        <div className="border-t border-line-soft px-5 py-2.5 text-right font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground/60">
+          Odysseus v{versionInfo?.version ?? '—'} · © 2025 Evan Massi
         </div>
-      </div>
-
-      {hasLab && <StorageUtilizationSection />}
-
-      <DataExportForm />
+      </ConsolePanel>
     </div>
   );
-}
-
-function getUtilizationColor(percent: number): string {
-  if (percent >= 90) return 'bg-danger-bg';
-  if (percent >= 70) return 'bg-warning-bg';
-  return 'bg-success-bg';
 }
 
 function StorageUtilizationSection() {
@@ -266,27 +249,16 @@ function StorageUtilizationSection() {
   if (!data) return null;
 
   return (
-    <div>
-      <h4 className="text-base font-semibold text-card-foreground mb-2">Storage Utilization</h4>
-      <div className="bg-muted p-3 rounded-lg space-y-3">
+    <Subsection title="Storage Utilization" index={2} accent>
+      <div className="col-span-2 space-y-3 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <HardDrive size={18} className="text-muted-foreground" />
-            <span className="text-sm text-card-foreground font-medium">
+            <HardDrive size={16} className="text-muted-foreground" />
+            <span className="font-mono text-[11px] tracking-[0.04em] text-secondary-foreground">
               {data.totalOccupied} / {data.totalPositions} positions used
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-24 h-2 rounded-full bg-background overflow-hidden">
-              <div
-                className={`h-full rounded-full ${getUtilizationColor(data.utilizationPercent)}`}
-                style={{ width: `${Math.min(data.utilizationPercent, 100)}%` }}
-              />
-            </div>
-            <span className="text-xs font-medium text-secondary-foreground">
-              {data.utilizationPercent}%
-            </span>
-          </div>
+          <UtilizationBar percent={data.utilizationPercent} />
         </div>
 
         {data.tanks.length > 0 && (
@@ -317,18 +289,10 @@ function StorageUtilizationSection() {
                       <span className="text-secondary-foreground">{tank.tankName}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">
+                      <span className="font-mono text-[10px] text-muted-foreground">
                         {tank.occupied}/{tank.totalPositions}
                       </span>
-                      <div className="w-16 h-1.5 rounded-full bg-background overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${getUtilizationColor(tank.utilizationPercent)}`}
-                          style={{ width: `${Math.min(tank.utilizationPercent, 100)}%` }}
-                        />
-                      </div>
-                      <span className="text-muted-foreground w-8 text-right">
-                        {tank.utilizationPercent}%
-                      </span>
+                      <UtilizationBar percent={tank.utilizationPercent} width="w-16" />
                     </div>
                   </button>
 
@@ -353,18 +317,10 @@ function StorageUtilizationSection() {
                                 <span className="text-secondary-foreground">{rack.rackName}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground">
+                                <span className="font-mono text-[10px] text-muted-foreground">
                                   {rack.occupied}/{rack.totalPositions}
                                 </span>
-                                <div className="w-12 h-1.5 rounded-full bg-background overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${getUtilizationColor(rack.utilizationPercent)}`}
-                                    style={{ width: `${Math.min(rack.utilizationPercent, 100)}%` }}
-                                  />
-                                </div>
-                                <span className="text-muted-foreground w-8 text-right">
-                                  {rack.utilizationPercent}%
-                                </span>
+                                <UtilizationBar percent={rack.utilizationPercent} width="w-14" />
                               </div>
                             </button>
 
@@ -382,20 +338,13 @@ function StorageUtilizationSection() {
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <span className="text-muted-foreground">
+                                      <span className="font-mono text-[10px] text-muted-foreground">
                                         {box.occupied}/{box.maxPositions}
                                       </span>
-                                      <div className="w-10 h-1 rounded-full bg-background overflow-hidden">
-                                        <div
-                                          className={`h-full rounded-full ${getUtilizationColor(box.utilizationPercent)}`}
-                                          style={{
-                                            width: `${Math.min(box.utilizationPercent, 100)}%`,
-                                          }}
-                                        />
-                                      </div>
-                                      <span className="text-muted-foreground w-8 text-right">
-                                        {box.utilizationPercent}%
-                                      </span>
+                                      <UtilizationBar
+                                        percent={box.utilizationPercent}
+                                        width="w-12"
+                                      />
                                     </div>
                                   </div>
                                 ))}
@@ -419,7 +368,6 @@ function StorageUtilizationSection() {
                 key={`${box.tankName}-${box.rackName}-${box.boxName}`}
                 color="warning"
                 size="xs"
-                leftIcon={<AlertTriangle size={10} />}
               >
                 {box.tankName} · {box.rackName} · {box.boxName}: {box.utilizationPercent}%
               </Chip>
@@ -427,6 +375,6 @@ function StorageUtilizationSection() {
           </div>
         )}
       </div>
-    </div>
+    </Subsection>
   );
 }

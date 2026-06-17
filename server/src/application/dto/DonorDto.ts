@@ -71,7 +71,7 @@ export class DonorDto {
     return {
       id: entry.id,
       donorId: entry.donorId,
-      collectionDate: entry.collectionDate?.toISOString(),
+      collectionDate: entry.collectionDate,
       specimenType: entry.specimenType,
       source: entry.source,
       createdAt: entry.createdAt.toISOString(),

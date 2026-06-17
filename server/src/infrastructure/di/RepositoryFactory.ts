@@ -15,6 +15,9 @@ import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
+import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
@@ -31,6 +34,9 @@ import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/reposi
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
 import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { StorageRepository as StorageRepositoryImpl } from '@infrastructure/repositories/StorageRepository';
+import { SupplyCategoryRepository as SupplyCategoryRepositoryImpl } from '@infrastructure/repositories/SupplyCategoryRepository';
+import { SupplyItemRepository as SupplyItemRepositoryImpl } from '@infrastructure/repositories/SupplyItemRepository';
+import { SupplyLocationRepository as SupplyLocationRepositoryImpl } from '@infrastructure/repositories/SupplyLocationRepository';
 import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
 import { UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
@@ -51,6 +57,9 @@ export class RepositoryFactory {
   private donorRepository?: DonorRepository;
   private equipmentCategoryRepository?: EquipmentCategoryRepository;
   private equipmentItemRepository?: EquipmentItemRepository;
+  private supplyCategoryRepository?: SupplyCategoryRepository;
+  private supplyItemRepository?: SupplyItemRepository;
+  private supplyLocationRepository?: SupplyLocationRepository;
 
   constructor(databaseConfig: DatabaseConnectionConfig) {
     this.postgresContext = new PostgresContext(databaseConfig);
@@ -159,6 +168,27 @@ export class RepositoryFactory {
     return this.equipmentItemRepository;
   }
 
+  getSupplyCategoryRepository(): SupplyCategoryRepository {
+    if (!this.supplyCategoryRepository) {
+      this.supplyCategoryRepository = new SupplyCategoryRepositoryImpl(this.postgresContext);
+    }
+    return this.supplyCategoryRepository;
+  }
+
+  getSupplyItemRepository(): SupplyItemRepository {
+    if (!this.supplyItemRepository) {
+      this.supplyItemRepository = new SupplyItemRepositoryImpl(this.postgresContext);
+    }
+    return this.supplyItemRepository;
+  }
+
+  getSupplyLocationRepository(): SupplyLocationRepository {
+    if (!this.supplyLocationRepository) {
+      this.supplyLocationRepository = new SupplyLocationRepositoryImpl(this.postgresContext);
+    }
+    return this.supplyLocationRepository;
+  }
+
   getRepositories() {
     return {
       tubes: this.getTubeRepository(),
@@ -175,6 +205,9 @@ export class RepositoryFactory {
       donors: this.getDonorRepository(),
       equipmentCategories: this.getEquipmentCategoryRepository(),
       equipmentItems: this.getEquipmentItemRepository(),
+      supplyCategories: this.getSupplyCategoryRepository(),
+      supplyItems: this.getSupplyItemRepository(),
+      supplyLocations: this.getSupplyLocationRepository(),
     };
   }
 

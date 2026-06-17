@@ -287,7 +287,7 @@ CREATE INDEX idx_user_sessions_last_used ON user_sessions(last_used_at DESC);
 
 CREATE TABLE audit_log (
   id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL,
+  user_id TEXT,
   username TEXT NOT NULL,
   action TEXT NOT NULL,
   entity_type TEXT NOT NULL,
@@ -330,7 +330,7 @@ CREATE INDEX idx_lookup_values_lab_id ON lookup_values(lab_id);
 
 CREATE TABLE audit_log_archive (
   id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL,
+  user_id TEXT,
   username TEXT NOT NULL,
   action TEXT NOT NULL,
   entity_type TEXT NOT NULL,

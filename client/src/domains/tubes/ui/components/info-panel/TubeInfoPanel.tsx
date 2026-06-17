@@ -1,10 +1,10 @@
 /**
- * Tube Info Panel
+ * Selected Tube Details
  *
  * Read-only detail panel for one or more selected tubes with conflict indicators.
  */
 
-import { useMemo, useState, useEffect, type ReactNode } from 'react';
+import { useMemo, useState, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import {
   formatConcentrationDisplay,
@@ -13,13 +13,14 @@ import {
 import {
   AlertTriangle,
   Lock,
-  MapPin,
   Notebook,
+  NotepadText,
   SquarePen,
-  TestTube,
+  TestTubeDiagonal,
   UsersRound,
 } from 'lucide-react';
 
+import { useModalStore } from '@app/stores/modalStore';
 import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
 import { useResearchersQuery } from '@domains/researchers';
 import {
@@ -30,15 +31,33 @@ import {
 } from '@domains/storage';
 import { useTubeFieldResolver } from '@domains/tubes/hooks';
 import { useUserSettings } from '@domains/users';
-import { Chip, Tooltip, InfoField as TubeInfoField, InfoGroup as TubeInfoGroup } from '@shared/ui';
+import {
+  Button,
+  Chip,
+  DetailRow,
+  NubDivider,
+  PanelEmptyState,
+  PanelHeader,
+  SectionHeader,
+  Tooltip,
+} from '@shared/ui';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { useTubeStore } from '../../../stores/tubeStore';
 import { parsePositionKey } from '../../../types/gridSelectionTypes';
+import { getTubeColor } from '../../../utils/tubeColorCoding';
 import { TubeLockNoteModal } from '../locking/TubeLockNoteModal';
+
+import { TubeLocationDisplay } from './TubeLocationDisplay';
 
 import type { LockContext } from '../../../types/gridSelectionTypes';
 import type { Researcher, TubeData } from '@odysseus/shared-schemas';
+
+// Cell-type heading auto-fits the swatch-height box: largest size whose wrapped text doesn't clip.
+const CELL_TYPE_MAX_PX = 36;
+const CELL_TYPE_MIN_PX = 12;
 
 const FIELD_PATHS = [
   'sample.cellType',
@@ -75,57 +94,16 @@ const SAMPLE_INFO_PATHS = [
   'researcherId',
 ] as const;
 
-function LocationHeader({
-  tankName,
-  rackName,
-  boxName,
-  positionLabel,
-  formattedPositions,
-  children,
-}: {
-  tankName: string;
-  rackName: string;
-  boxName: string;
-  positionLabel?: string;
-  formattedPositions?: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div className="bg-muted rounded-md px-3 py-2.5">
-      <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
-        <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-        <Tooltip content={tankName} side="bottom">
-          <span className="text-card-foreground font-medium truncate max-w-24">{tankName}</span>
-        </Tooltip>
-        <span className="text-muted-foreground flex-shrink-0">›</span>
-        <Tooltip content={rackName} side="bottom">
-          <span className="text-card-foreground font-medium truncate max-w-24">{rackName}</span>
-        </Tooltip>
-        <span className="text-muted-foreground flex-shrink-0">›</span>
-        <Tooltip content={boxName} side="bottom">
-          <span className="text-card-foreground font-medium truncate max-w-24">{boxName}</span>
-        </Tooltip>
-      </div>
-      {formattedPositions && positionLabel && (
-        <div className="flex items-baseline gap-1.5 mt-1.5">
-          <span className="text-muted-foreground text-xs">{positionLabel}:</span>
-          <span className="text-card-foreground font-medium text-sm">{formattedPositions}</span>
-        </div>
-      )}
-      {children}
-    </div>
-  );
-}
-
 interface TubeInfoPanelProps {
   selectedTubes: TubeData[];
   lockContext?: LockContext;
 }
 
 export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps) {
-  const { getTubeValue, analyzeFieldConflicts, tubes } = useTubeFieldResolver();
+  const { getTubeValue, analyzeFieldConflicts, hasAnyConflicts } = useTubeFieldResolver();
   const { data: researchers = [] } = useResearchersQuery();
   const openDonorRegistry = useDonorRegistryStore(s => s.open);
+  const showTubeEditorModal = useModalStore(s => s.showTubeEditorModal);
   const { settings: userSettings } = useUserSettings();
 
   const researcherMap = useMemo(() => {
@@ -140,6 +118,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const { currentLab } = useStorageData();
 
   const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
+
+  const cellTypeBoxRef = useRef<HTMLDivElement>(null);
+  const cellTypeTextRef = useRef<HTMLDivElement>(null);
 
   const {
     tankName,
@@ -231,6 +212,92 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     }
   }, [showEditLockNoteModal, ownedLockedTubes.length]);
 
+  // Shrink the cell-type heading from its max until the wrapped text fits the fixed-height box.
+  // Box height is stable, so the observer only refires on width changes (no feedback loop).
+  useLayoutEffect(() => {
+    const box = cellTypeBoxRef.current;
+    const text = cellTypeTextRef.current;
+    if (!box || !text) return;
+
+    const fit = () => {
+      let size = CELL_TYPE_MAX_PX;
+      text.style.fontSize = `${size}px`;
+      while (size > CELL_TYPE_MIN_PX && text.scrollHeight > box.clientHeight) {
+        size -= 1;
+        text.style.fontSize = `${size}px`;
+      }
+    };
+
+    fit();
+
+    if (typeof ResizeObserver === 'undefined') return;
+    let lastWidth = box.clientWidth;
+    const observer = new ResizeObserver(entries => {
+      const width = entries[0].contentRect.width;
+      if (Math.abs(width - lastWidth) < 0.5) return;
+      lastWidth = width;
+      fit();
+    });
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [fieldAnalysis]);
+
+  // Lit chassis mirroring the tube editor modal.
+  const renderPanel = (
+    position: { word: string; value: string },
+    body: ReactNode,
+    footer?: ReactNode,
+    scrollable = true
+  ) => (
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex-shrink-0 border-b border-line-faint pr-4">
+        <PanelHeader icon={<NotepadText className="h-4 w-4" />} title="Tube Information" />
+      </div>
+
+      <div className="relative flex-shrink-0 border-b border-line-faint bg-black/35 px-4 py-2.5">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <div className="space-y-2">
+          <TubeLocationDisplay
+            variant="strip"
+            tankName={tankName}
+            rackName={rackName}
+            boxName={boxName}
+            positionLabel=""
+          />
+          {position.value && (
+            <div className="flex items-baseline gap-2">
+              <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+                <span
+                  aria-hidden
+                  className="h-2.5 w-0.5 bg-warning-bg/80 shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
+                />
+                {position.word}
+              </span>
+              {/* Non-breaking hyphen so position ranges (A1-A9) don't wrap mid-range. */}
+              <span className="min-w-0 font-mono text-[11px] tracking-[0.06em] text-foreground">
+                {position.value.replace(/-/g, '‑')}
+              </span>
+            </div>
+          )}
+        </div>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
+      </div>
+
+      {scrollable ? (
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="space-y-4 p-4">{body}</div>
+        </ScrollArea>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col p-4">{body}</div>
+      )}
+
+      {footer}
+    </ConsolePanel>
+  );
+
   if (selectedTubes.length === 0) {
     const positionCount = selectedPositions.size;
 
@@ -261,25 +328,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         ? `No tube${positionCount > 1 ? 's' : ''} at ${positionCount > 1 ? 'these' : 'this'} position${positionCount > 1 ? 's' : ''}`
         : 'Select a tube to view details';
 
-    return (
-      <div style={{ minWidth: '280px' }}>
-        <div className="space-y-3">
-          <LocationHeader
-            tankName={tankName}
-            rackName={rackName}
-            boxName={boxName}
-            positionLabel={positionCount > 1 ? 'Positions' : 'Position'}
-            formattedPositions={formattedPositions || undefined}
-          />
-
-          <div className="text-center py-6">
-            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
-              <TestTube className="w-6 h-6 text-card-foreground/30" />
-            </div>
-            <p className="text-card-foreground/40 text-sm">{positionText}</p>
-          </div>
-        </div>
-      </div>
+    return renderPanel(
+      { word: positionCount > 1 ? 'Positions' : 'Position', value: formattedPositions },
+      <PanelEmptyState icon={TestTubeDiagonal} message={positionText} />,
+      undefined,
+      false
     );
   }
 
@@ -331,7 +384,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   // createdByName is a historical fallback, not a tube field — exclude from conflict detection
   const conflictPaths = FIELD_PATHS.filter(p => p !== 'createdByName');
-  const hasConflicts = tubes.hasAnyConflicts(selectedTubes, [...conflictPaths]);
+  const hasConflicts = hasAnyConflicts(selectedTubes, [...conflictPaths]);
 
   const hasSampleInfo =
     cultureCondition !== undefined ||
@@ -358,260 +411,303 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         }
       : null;
 
-  return (
-    <div style={{ minWidth: '280px' }}>
-      <div className="space-y-3">
-        <LocationHeader
-          tankName={tankName}
-          rackName={rackName}
-          boxName={boxName}
-          positionLabel={positionSummary.positionLabel}
-          formattedPositions={positionSummary.formattedPositions}
-        >
-          {selectedTubes.length > 1 && (
-            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
-              <Chip size="sm" color="info" leftIcon={<TestTube />}>
-                {selectedTubes.length} selected
+  const swatch = getTubeColor(firstTube);
+
+  const speciesTag = species ? (
+    <Chip size="sm" color="info">
+      {species}
+    </Chip>
+  ) : isFieldMixed('sample.species') ? (
+    <span className="flex items-center gap-1 text-sm text-card-foreground/30">
+      —
+      <AlertTriangle className="h-3 w-3 text-warning-text" />
+    </span>
+  ) : null;
+
+  const body = (
+    <>
+      <div className="relative flex items-center gap-3 pb-5">
+        <div className="relative flex-shrink-0">
+          <div
+            className="flex h-11 w-11 items-center justify-center border"
+            style={{
+              backgroundColor: swatch.backgroundColor,
+              backgroundImage:
+                'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,0.14) 100%)',
+              borderColor: swatch.borderColor,
+            }}
+          >
+            <TestTubeDiagonal className="h-5 w-5" style={{ color: swatch.textColor }} />
+          </div>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-full h-2.5 w-[160%] -translate-x-1/2"
+            style={{
+              background: `linear-gradient(180deg, ${swatch.backgroundColor}, transparent)`,
+              clipPath: 'polygon(19% 0, 81% 0, 100% 100%, 0 100%)',
+              opacity: 0.4,
+            }}
+          />
+        </div>
+
+        {cellType ? (
+          <div
+            ref={cellTypeBoxRef}
+            className="flex h-11 min-w-0 flex-1 items-center overflow-hidden"
+          >
+            <div
+              ref={cellTypeTextRef}
+              className="w-full break-words font-semibold leading-none text-foreground"
+            >
+              {cellType}
+            </div>
+          </div>
+        ) : isFieldMixed('sample.cellType') ? (
+          <div className="flex flex-1 items-center gap-1 text-sm text-card-foreground/30">
+            —
+            <AlertTriangle className="h-3 w-3 text-warning-text" />
+          </div>
+        ) : (
+          <div className="flex-1 text-sm text-card-foreground/40">Unknown</div>
+        )}
+
+        {speciesTag && <div className="flex-shrink-0">{speciesTag}</div>}
+
+        <NubDivider tone="neutral" className="absolute inset-x-0 bottom-0" />
+      </div>
+
+      {selectedTubes.length > 1 && (
+        <div className="flex items-center gap-2">
+          <Chip size="sm" color="info" leftIcon={<TestTubeDiagonal />}>
+            {selectedTubes.length} selected
+          </Chip>
+          {hasConflicts && (
+            <Chip size="sm" color="warning">
+              Mixed values
+            </Chip>
+          )}
+        </div>
+      )}
+
+      {lockInfo && (
+        <div className="flex flex-wrap gap-1.5">
+          <Chip
+            size="sm"
+            lit
+            color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'info'}
+            leftIcon={<Lock />}
+          >
+            {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
+          </Chip>
+          {ownedLockedTubes.length > 0 ? (
+            <Tooltip
+              content={
+                lockNoteDisplay?.isMixed
+                  ? 'Edit lock notes'
+                  : lockNoteDisplay?.note
+                    ? 'Edit lock note'
+                    : 'Add lock note'
+              }
+              side="bottom"
+            >
+              <Chip
+                size="sm"
+                lit
+                behavior="action"
+                onClick={() => setShowEditLockNoteModal(true)}
+                onFocus={e => {
+                  if (!e.currentTarget.matches(':focus-visible')) {
+                    e.currentTarget.blur();
+                  }
+                }}
+                lead={
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: false isMixed should fall through to note check
+                  lockNoteDisplay?.isMixed || lockNoteDisplay?.note ? <Notebook /> : <SquarePen />
+                }
+                labelClassName={
+                  lockNoteDisplay?.isMixed
+                    ? 'italic'
+                    : lockNoteDisplay?.note
+                      ? 'normal-case tracking-[0.02em] opacity-100'
+                      : undefined
+                }
+              >
+                {lockNoteDisplay?.isMixed ? (
+                  <>
+                    Mixed notes
+                    <SquarePen className="w-2.5 h-2.5 ml-1.5 opacity-60" />
+                  </>
+                ) : lockNoteDisplay?.note ? (
+                  <>
+                    {lockNoteDisplay.note}
+                    <SquarePen className="w-2.5 h-2.5 ml-1.5 opacity-60" />
+                  </>
+                ) : (
+                  'Add note'
+                )}
               </Chip>
-              {hasConflicts && (
-                <Chip size="sm" color="warning" leftIcon={<AlertTriangle />}>
-                  Mixed values
-                </Chip>
-              )}
+            </Tooltip>
+          ) : (
+            firstTube.lockNote && (
+              <Chip
+                size="sm"
+                color={lockInfo.isLockedOut ? 'danger' : 'info'}
+                leftIcon={<Notebook />}
+              >
+                {firstTube.lockNote}
+              </Chip>
+            )
+          )}
+          {lockInfo.hasSharedUsers && (
+            <Chip size="sm" color="info" leftIcon={<UsersRound />}>
+              {lockInfo.sharedNames.length > 0
+                ? lockInfo.sharedNames.join(', ')
+                : `${firstTube.sharedWithUserIds!.length} user(s)`}
+            </Chip>
+          )}
+        </div>
+      )}
+
+      <div>
+        <SectionHeader title="Donor information" size="sm" />
+        <div>
+          {donorInternalId && !isFieldMixed('sample.donorInternalId') ? (
+            <DetailRow label="Internal ID">
+              <button
+                type="button"
+                onClick={() => openDonorRegistry(donorInternalId as string, 'internal')}
+                className="cursor-pointer break-all text-right text-sm font-medium text-card-foreground hover:text-primary hover:underline"
+              >
+                {donorInternalId}
+              </button>
+            </DetailRow>
+          ) : (
+            <DetailRow
+              label="Internal ID"
+              value={donorInternalId}
+              isMixed={isFieldMixed('sample.donorInternalId')}
+            />
+          )}
+          {donorSourceId && !isFieldMixed('sample.donorSourceId') ? (
+            <DetailRow label="Source ID">
+              <button
+                type="button"
+                onClick={() => openDonorRegistry(donorSourceId as string, 'source')}
+                className="cursor-pointer break-all text-right text-sm font-medium text-card-foreground hover:text-primary hover:underline"
+              >
+                {donorSourceId}
+              </button>
+            </DetailRow>
+          ) : (
+            <DetailRow
+              label="Source ID"
+              value={donorSourceId}
+              isMixed={isFieldMixed('sample.donorSourceId')}
+            />
+          )}
+        </div>
+      </div>
+
+      {hasSampleInfo && (
+        <div>
+          <SectionHeader title="Sample information" size="sm" />
+          <div>
+            <DetailRow
+              label="Concentration"
+              value={formattedConcentration}
+              isMixed={isFieldMixed('sample.concentration')}
+            />
+            <DetailRow
+              label="Condition"
+              value={cultureCondition}
+              isMixed={isFieldMixed('sample.cultureCondition')}
+            />
+            <DetailRow
+              label="Passage #"
+              value={passageNumber}
+              isMixed={isFieldMixed('sample.passageNumber')}
+            />
+            <DetailRow label="Media" value={mediaType} isMixed={isFieldMixed('sample.mediaType')} />
+            <DetailRow
+              label="Supplements"
+              value={mediaSupplements}
+              isMixed={isFieldMixed('sample.mediaSupplements')}
+            />
+            <DetailRow
+              label="Selection"
+              value={mediaSelection}
+              isMixed={isFieldMixed('sample.mediaSelection')}
+            />
+            <DetailRow label="Source" value={source} isMixed={isFieldMixed('sample.source')} />
+            <DetailRow
+              label="Catalog #"
+              value={catalogNumber}
+              isMixed={isFieldMixed('sample.catalogNumber')}
+            />
+            <DetailRow label="Lot #" value={lotNumber} isMixed={isFieldMixed('sample.lotNumber')} />
+            <DetailRow label="Date" value={formattedDate} isMixed={isFieldMixed('sample.date')} />
+            <DetailRow
+              label="Researcher"
+              value={researcherDisplay}
+              isMixed={isFieldMixed('researcherId')}
+            />
+          </div>
+        </div>
+      )}
+
+      {(Boolean(notes) || isFieldMixed('sample.notes')) && (
+        <div>
+          <SectionHeader
+            title="Notes"
+            size="sm"
+            meta={
+              isFieldMixed('sample.notes') ? (
+                <AlertTriangle className="h-3 w-3 text-warning-text" />
+              ) : undefined
+            }
+          />
+          {notes ? (
+            <div className="text-sm leading-relaxed text-card-foreground/85">{notes}</div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3 text-warning-text" />
+              <span className="text-sm text-card-foreground/30">—</span>
             </div>
           )}
-        </LocationHeader>
+        </div>
+      )}
+    </>
+  );
 
-        {lockInfo && (
-          <div className="flex flex-wrap gap-1.5">
-            <Chip
-              size="sm"
-              color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'info'}
-              leftIcon={<Lock />}
-            >
-              {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
-            </Chip>
-            {ownedLockedTubes.length > 0 ? (
-              <Tooltip
-                content={
-                  lockNoteDisplay?.isMixed
-                    ? 'Edit lock notes'
-                    : lockNoteDisplay?.note
-                      ? 'Edit lock note'
-                      : 'Add lock note'
-                }
-                side="bottom"
-              >
-                <button
-                  type="button"
-                  onClick={() => setShowEditLockNoteModal(true)}
-                  onFocus={e => {
-                    if (!e.currentTarget.matches(':focus-visible')) {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-secondary-foreground hover:bg-accent transition-colors cursor-pointer"
-                >
-                  {lockNoteDisplay?.isMixed ? (
-                    <>
-                      <Notebook className="w-2.5 h-2.5" />
-                      <span className="italic">Mixed notes</span>
-                      <SquarePen className="w-2.5 h-2.5 ml-0.5 opacity-60" />
-                    </>
-                  ) : lockNoteDisplay?.note ? (
-                    <>
-                      <Notebook className="w-2.5 h-2.5" />
-                      {lockNoteDisplay.note}
-                      <SquarePen className="w-2.5 h-2.5 ml-0.5 opacity-60" />
-                    </>
-                  ) : (
-                    <>
-                      <SquarePen className="w-2.5 h-2.5" />
-                      Add note
-                    </>
-                  )}
-                </button>
-              </Tooltip>
-            ) : (
-              firstTube.lockNote && (
-                <Chip
-                  size="sm"
-                  color={lockInfo.isLockedOut ? 'danger' : 'info'}
-                  leftIcon={<Notebook />}
-                >
-                  {firstTube.lockNote}
-                </Chip>
-              )
-            )}
-            {lockInfo.hasSharedUsers && (
-              <Chip size="sm" color="info" leftIcon={<UsersRound />}>
-                {lockInfo.sharedNames.length > 0
-                  ? lockInfo.sharedNames.join(', ')
-                  : `${firstTube.sharedWithUserIds!.length} user(s)`}
-              </Chip>
-            )}
-          </div>
-        )}
-
-        <TubeInfoGroup title="Donor Information">
-          <div className="flex items-baseline gap-1.5 -mt-0.5 mb-2">
-            {cellType ? (
-              <span className="text-card-foreground font-semibold text-sm">{cellType}</span>
-            ) : isFieldMixed('sample.cellType') ? (
-              <span className="flex items-center gap-1 text-card-foreground/30 text-sm">
-                —
-                <AlertTriangle className="w-3 h-3 text-warning-text" />
-              </span>
-            ) : null}
-            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: empty string should fall through to mixed check */}
-            {(cellType || isFieldMixed('sample.cellType')) &&
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-              (species || isFieldMixed('sample.species')) && (
-                <span className="text-card-foreground/30">·</span>
-              )}
-            {species ? (
-              <Chip size="sm">{species}</Chip>
-            ) : isFieldMixed('sample.species') ? (
-              <span className="flex items-center gap-1 text-card-foreground/30 text-sm">
-                —
-                <AlertTriangle className="w-3 h-3 text-warning-text" />
-              </span>
-            ) : null}
-          </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-            {donorInternalId && !isFieldMixed('sample.donorInternalId') ? (
-              <div>
-                <div className="text-card-foreground/50 text-xs">Internal ID</div>
-                <button
-                  type="button"
-                  onClick={() => openDonorRegistry(donorInternalId as string, 'internal')}
-                  className="text-card-foreground font-medium text-sm break-all hover:text-primary hover:underline cursor-pointer text-left"
-                >
-                  {donorInternalId}
-                </button>
-              </div>
-            ) : (
-              <TubeInfoField
-                label="Internal ID"
-                value={donorInternalId}
-                inline={false}
-                isMixed={isFieldMixed('sample.donorInternalId')}
-              />
-            )}
-            {donorSourceId && !isFieldMixed('sample.donorSourceId') ? (
-              <div>
-                <div className="text-card-foreground/50 text-xs">Source ID</div>
-                <button
-                  type="button"
-                  onClick={() => openDonorRegistry(donorSourceId as string, 'source')}
-                  className="text-card-foreground font-medium text-sm break-all hover:text-primary hover:underline cursor-pointer text-left"
-                >
-                  {donorSourceId}
-                </button>
-              </div>
-            ) : (
-              <TubeInfoField
-                label="Source ID"
-                value={donorSourceId}
-                inline={false}
-                isMixed={isFieldMixed('sample.donorSourceId')}
-              />
-            )}
-          </div>
-        </TubeInfoGroup>
-
-        {hasSampleInfo && (
-          <TubeInfoGroup title="Sample Information">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-              <TubeInfoField
-                label="Concentration"
-                value={formattedConcentration}
-                inline={false}
-                isMixed={isFieldMixed('sample.concentration')}
-              />
-              <TubeInfoField
-                label="Condition"
-                value={cultureCondition}
-                inline={false}
-                isMixed={isFieldMixed('sample.cultureCondition')}
-              />
-              <TubeInfoField
-                label="Passage #"
-                value={passageNumber}
-                inline={false}
-                isMixed={isFieldMixed('sample.passageNumber')}
-              />
-              <TubeInfoField
-                label="Media"
-                value={mediaType}
-                inline={false}
-                isMixed={isFieldMixed('sample.mediaType')}
-              />
-              <TubeInfoField
-                label="Supplements"
-                value={mediaSupplements}
-                inline={false}
-                isMixed={isFieldMixed('sample.mediaSupplements')}
-              />
-              <TubeInfoField
-                label="Selection"
-                value={mediaSelection}
-                inline={false}
-                isMixed={isFieldMixed('sample.mediaSelection')}
-              />
-              <TubeInfoField
-                label="Source"
-                value={source}
-                inline={false}
-                isMixed={isFieldMixed('sample.source')}
-              />
-              <TubeInfoField
-                label="Catalog #"
-                value={catalogNumber}
-                inline={false}
-                isMixed={isFieldMixed('sample.catalogNumber')}
-              />
-              <TubeInfoField
-                label="Lot #"
-                value={lotNumber}
-                inline={false}
-                isMixed={isFieldMixed('sample.lotNumber')}
-              />
-              <TubeInfoField
-                label="Date"
-                value={formattedDate}
-                inline={false}
-                isMixed={isFieldMixed('sample.date')}
-              />
-              <TubeInfoField
-                label="Researcher"
-                value={researcherDisplay}
-                inline={false}
-                isMixed={isFieldMixed('researcherId')}
-              />
-            </div>
-          </TubeInfoGroup>
-        )}
-
-        {(Boolean(notes) || isFieldMixed('sample.notes')) && (
-          <TubeInfoGroup title="Notes">
-            {notes ? (
-              <div className="-mt-0.5 text-card-foreground/85 text-sm leading-relaxed">{notes}</div>
-            ) : (
-              <div className="-mt-0.5 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-warning-text" />
-                <span className="text-card-foreground/30 text-sm">—</span>
-              </div>
-            )}
-          </TubeInfoGroup>
-        )}
+  const footer =
+    selectedTubes.length === 1 ? (
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
+        <Button
+          variant="primary"
+          size="sm"
+          fullWidth
+          leftIcon={<SquarePen className="h-4 w-4" />}
+          onClick={() => showTubeEditorModal({ mode: 'edit', tubeId: firstTube.id })}
+        >
+          Edit tube
+        </Button>
       </div>
+    ) : undefined;
+
+  return (
+    <>
+      {renderPanel(
+        { word: positionSummary.positionLabel, value: positionSummary.formattedPositions },
+        body,
+        footer
+      )}
 
       <TubeLockNoteModal
         isOpen={showEditLockNoteModal && ownedLockedTubes.length > 0}
         tubes={ownedLockedTubes}
         onClose={() => setShowEditLockNoteModal(false)}
       />
-    </div>
+    </>
   );
 }

@@ -3,15 +3,17 @@
  *
  * Modal for managing user-specific preferences and settings.
  */
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react';
 
-import { Save, Settings, Table2, UserRound, Shield, Info } from 'lucide-react';
+import { Settings, Table2, UserRound, Shield } from 'lucide-react';
 
 import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
+import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useUserSessions } from '@domains/users';
 import { useUserSettings, useUserSettingsActions } from '@domains/users/hooks/useUserSettings';
 import { logger } from '@infra/logger';
-import { Button, Tab, LoadingSkeleton, Tabs } from '@shared/ui';
+import { Button, Tab, LoadingSkeleton, SectionHeader, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
 
@@ -31,20 +33,33 @@ const SecurityTab = lazy(() =>
   import('./tabs/SecurityTab').then(m => ({ default: m.SecurityTab }))
 );
 
+type TabId = 'account' | 'security' | 'display';
+
+const TAB_META: Record<TabId, { icon: ReactNode; title: string }> = {
+  account: { icon: <UserRound size={18} />, title: 'Account' },
+  security: { icon: <Shield size={18} />, title: 'Security' },
+  display: { icon: <Table2 size={18} />, title: 'Display' },
+};
+
+const TAB_ORDER: TabId[] = ['account', 'security', 'display'];
+
 interface UserSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<'account' | 'security' | 'display'>('account');
+  const [activeTab, setActiveTab] = useState<TabId>('account');
   const [localSettings, setLocalSettings] = useState<UserSettings>({});
   const [originalSettings, setOriginalSettings] = useState<UserSettings>({});
+  const [accountDirty, setAccountDirty] = useState(0);
 
   const { settings, isLoading } = useUserSettings();
   const { updateSettings, isSaving } = useUserSettingsActions();
   const modalService = useModalStore();
   const { setPreference } = useTheme();
+  const user = useAuthStore(s => s.user);
+  const { sessions } = useUserSessions();
 
   useEffect(() => {
     if (isOpen && settings) {
@@ -69,24 +84,30 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     setPreference(theme);
   };
 
-  const handleSave = () => {
+  const handleSaveDisplay = () => {
     updateSettings(localSettings, {
       onSuccess: () => {
-        notifications.success('Settings saved successfully');
+        notifications.success('Display settings saved');
         setOriginalSettings(localSettings);
-        onClose();
       },
       onError: (error: Error) => {
-        logger.error('UserSettingsModal save failed', { error });
+        logger.error('UserSettingsModal display save failed', { error });
         notifications.error(`Failed to save settings: ${error.message}`);
       },
     });
   };
 
-  const hasChanges = JSON.stringify(localSettings) !== JSON.stringify(originalSettings);
+  const displayDirtyCount =
+    (localSettings.theme !== originalSettings.theme ? 1 : 0) +
+    (JSON.stringify(localSettings.defaultPositionDisplay ?? null) !==
+    JSON.stringify(originalSettings.defaultPositionDisplay ?? null)
+      ? 1
+      : 0);
+
+  const anyDirty = displayDirtyCount > 0 || accountDirty > 0;
 
   const handleClose = () => {
-    if (hasChanges) {
+    if (anyDirty) {
       modalService.showUnsavedConfirm({
         onConfirm: () => {
           // Revert theme to original if it was changed
@@ -102,45 +123,48 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     }
   };
 
-  const tabItems = [
-    { id: 'account', label: 'Account', icon: UserRound },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'display', label: 'Display', icon: Table2 },
-  ] as const;
-
   const tabs = (
-    <Tabs value={activeTab} onChange={v => setActiveTab(v as 'account' | 'security' | 'display')}>
-      {tabItems.map(tab => {
-        const Icon = tab.icon;
-        return (
-          <Tab key={tab.id} id={tab.id} icon={<Icon size={18} />}>
-            {tab.label}
-          </Tab>
-        );
-      })}
+    <Tabs value={activeTab} onChange={v => setActiveTab(v as TabId)}>
+      {TAB_ORDER.map(id => (
+        <Tab key={id} id={id} icon={TAB_META[id].icon}>
+          {TAB_META[id].title}
+        </Tab>
+      ))}
     </Tabs>
   );
 
   const footer = (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center space-x-1.5 text-xs text-muted-foreground flex-shrink min-w-0">
-        <Info size={14} className="flex-shrink-0" />
-        <span className="truncate">These settings apply only to your account.</span>
+    <div className="flex items-center justify-end gap-4">
+      <Button variant="secondary" onClick={handleClose}>
+        Done
+      </Button>
+    </div>
+  );
+
+  const accentBar = (
+    <span
+      aria-hidden
+      className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+    />
+  );
+
+  const locator = (
+    <div className="flex items-center gap-3 font-mono">
+      <div className="flex items-center gap-2.5">
+        {accentBar}
+        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">User</span>
+        <span className="phosphor-text text-xs text-secondary-foreground">
+          {user?.username ?? '—'}
+        </span>
       </div>
-      <div className="flex space-x-2 flex-shrink-0">
-        <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          onClick={handleSave}
-          disabled={!hasChanges}
-          isLoading={isSaving}
-          loadingText="Saving..."
-          leftIcon={<Save size={14} />}
-        >
-          Save Changes
-        </Button>
+      <span aria-hidden className="text-muted-foreground/40">
+        ·
+      </span>
+      <div className="flex items-center gap-2.5">
+        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          Sessions
+        </span>
+        <span className="phosphor-text text-xs text-secondary-foreground">{sessions.length}</span>
       </div>
     </div>
   );
@@ -156,16 +180,19 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       tabs={tabs}
       tabOrientation="vertical"
       footer={footer}
+      locator={locator}
       className="h-[75vh]"
       onClose={handleClose}
     >
+      <SectionHeader icon={TAB_META[activeTab].icon} title={TAB_META[activeTab].title} size="lg" />
+
       {isLoading ? (
         <LoadingSkeleton />
       ) : (
         <>
           {activeTab === 'account' && (
             <Suspense fallback={<LoadingSkeleton />}>
-              <AccountTab onSaveComplete={onClose} />
+              <AccountTab onDirtyChange={setAccountDirty} />
             </Suspense>
           )}
           {activeTab === 'security' && (
@@ -182,6 +209,9 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
                 theme={localSettings.theme ?? 'auto'}
                 savedTheme={originalSettings.theme ?? 'auto'}
                 onThemeChange={handleThemeChange}
+                onSave={handleSaveDisplay}
+                isSaving={isSaving}
+                dirtyCount={displayDirtyCount}
               />
             </Suspense>
           )}

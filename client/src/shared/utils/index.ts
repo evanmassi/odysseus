@@ -5,6 +5,9 @@
  */
 
 export * from './asyncErrorHandler';
+export * from './downloadBlob';
+export * from './bulkResultNotifications';
+export * from './formatCurrency';
 export * from './concentrationConverter';
 export * from './gridCoordinates';
 export * from './dateFormatters';

@@ -5,16 +5,16 @@
  * Input validation is handled by Zod middleware; this layer enforces business rules only.
  */
 
+
 import type { EventBus } from '@application/contracts/EventBus';
 import { TubeDto } from '@application/dto/TubeDto';
-import type { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchRequest, TubeSearchResponse } from '@application/dto/TubeDto';
+import type { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchResponse } from '@application/dto/TubeDto';
 import type { Storage } from '@domain/entities/Storage';
 import { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
-import { Location } from '@domain/value-objects/Location';
+import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { ConflictError } from '@domain/errors/ConflictError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
   TubeCreatedEvent,
@@ -44,9 +44,10 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { TubePositionService } from '@domain/services/TubePositionService';
 import type { TubeSearchCriteria } from '@domain/types/repository';
+import { Location } from '@domain/value-objects/Location';
 import { logger } from '@infrastructure/logging/logger';
 
-import type {
+import type { TubeFilterableField, TubeFilterOptions, RackTube, TubeLocationCount ,
   LockTubesRequest,
   UnlockTubesRequest,
   ShareTubeAccessRequest,
@@ -57,6 +58,8 @@ import type {
   RevokeAccessResult,
   SkippedTube
 } from '@odysseus/shared-schemas';
+
+
 
 export class TubeApplicationService {
   constructor(
@@ -340,29 +343,15 @@ export class TubeApplicationService {
     return TubeDto.toResponseList(filtered);
   }
 
-  async getAllTubes(authenticatedUser: User, searchRequest?: TubeSearchRequest): Promise<TubeResponse[]> {
+  async getFilterOptions(
+    labId: string,
+    fields: TubeFilterableField[],
+    authenticatedUser: User
+  ): Promise<TubeFilterOptions> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
-
-    let tubes: Tube[];
-
-    if (searchRequest && Object.keys(searchRequest).length > 0) {
-      const requestedTankId = searchRequest.tankId;
-      const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
-        ? [requestedTankId]
-        : allowedTankIds;
-
-      const filteredCriteria: TubeSearchCriteria = {
-        ...searchRequest,
-        tankIds: filteredTankIds
-      };
-      tubes = await this.tubeRepository.search(filteredCriteria, authenticatedUser.labId!);
-    } else {
-      tubes = await this.tubeRepository.findByTankIds(allowedTankIds, authenticatedUser.labId!);
-    }
-
-    return TubeDto.toResponseList(tubes);
+    const allowedTankIds = await this.getAllowedTankIds(labId);
+    return this.tubeRepository.getFilterOptions(labId, fields, allowedTankIds);
   }
 
   async getTubesByLocation(
@@ -383,6 +372,34 @@ export class TubeApplicationService {
     return TubeDto.toResponseList(tubes);
   }
 
+  /** Slim per-tube color feed for one open rack in the navigator field map. */
+  async getTubesByRack(
+    tankId: string,
+    rackId: string,
+    authenticatedUser: User
+  ): Promise<RackTube[]> {
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
+
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
+    if (!allowedTankIds.includes(tankId)) {
+      return [];
+    }
+
+    const tubes = await this.tubeRepository.findByRack(tankId, rackId, authenticatedUser.labId!);
+
+    return TubeDto.toRackTubeList(tubes);
+  }
+
+  /** Per-box occupancy counts for the navigator, scoped to the user's accessible tanks. */
+  async getLocationCounts(authenticatedUser: User): Promise<TubeLocationCount[]> {
+    await this.accessControlService.requireCanViewTubes(authenticatedUser);
+
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
+    const counts = await this.tubeRepository.countGroupedByLocation(authenticatedUser.labId!);
+
+    return counts.filter(c => allowedTankIds.includes(c.tankId));
+  }
+
   /**
    * Get tubes by rack and box (legacy - prefer getTubesByLocation).
    */
@@ -401,51 +418,29 @@ export class TubeApplicationService {
     return TubeDto.toResponseList(filteredTubes);
   }
 
-  async searchTubes(
-    searchRequest: TubeSearchRequest,
-    authenticatedUser: User
-  ): Promise<TubeResponse[]> {
-    await this.accessControlService.requireCanViewTubes(authenticatedUser);
-
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
-    const requestedTankId = searchRequest.tankId;
-    const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
-      ? [requestedTankId]
-      : allowedTankIds;
-
-    const filteredCriteria: TubeSearchCriteria = {
-      ...searchRequest,
-      tankIds: filteredTankIds
-    };
-
-    const tubes = await this.tubeRepository.search(filteredCriteria, authenticatedUser.labId!);
-
-    return TubeDto.toResponseList(tubes);
-  }
-
   async searchTubesWithHighlighting(
-    searchRequest: TubeSearchRequest,
+    criteria: TubeSearchCriteria,
     authenticatedUser: User
   ): Promise<TubeSearchResponse> {
     await this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
-    const requestedTankId = searchRequest.tankId;
-    const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
-      ? [requestedTankId]
-      : allowedTankIds;
-
-    const filteredCriteria: TubeSearchCriteria = {
-      ...searchRequest,
-      tankIds: filteredTankIds
-    };
-
+    const filteredCriteria = await this.restrictCriteriaToAllowedTanks(criteria, authenticatedUser.labId!);
     const result = await this.tubeRepository.searchWithHighlighting(filteredCriteria, authenticatedUser.labId!);
 
     return {
       tubes: TubeDto.toResponseList(result.tubes),
       matchedTerms: result.matchedTerms
     };
+  }
+
+  private async restrictCriteriaToAllowedTanks(criteria: TubeSearchCriteria, labId: string): Promise<TubeSearchCriteria> {
+    const allowedTankIds = await this.getAllowedTankIds(labId);
+    const requested = criteria.tankIds ?? (criteria.tankId ? [criteria.tankId] : undefined);
+    const tankIds = requested
+      ? requested.filter(id => allowedTankIds.includes(id))
+      : allowedTankIds;
+
+    return { ...criteria, tankIds };
   }
 
   async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Storage | null; preloadedTube?: Tube; bulkOperation?: boolean }): Promise<TubeResponse> {

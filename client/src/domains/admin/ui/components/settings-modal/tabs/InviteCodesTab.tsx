@@ -7,20 +7,44 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import { TicketCheck, Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
+import { Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 
 import { logger } from '@infra/logger';
-import { Button, Chip, NumberInput, Toggle } from '@shared/ui';
+import {
+  Button,
+  Chip,
+  ConsolePanel,
+  NubDivider,
+  NumberInput,
+  Select,
+  SettingsRow,
+  Subsection,
+  Table,
+  Toggle,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../../services/AdminService';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
+import type { SelectOption, TableColumn } from '@shared/ui';
 
 interface InviteCodesTabProps {
   readOnly?: boolean;
 }
+
+// Expiry presets in days; 0 means the code never expires.
+const EXPIRY_OPTIONS: SelectOption[] = [
+  { value: 0, label: 'Never' },
+  { value: 7, label: '7 days' },
+  { value: 14, label: '14 days' },
+  { value: 30, label: '30 days' },
+  { value: 90, label: '90 days' },
+];
+
+const DEFAULT_EXPIRY_DAYS = 7;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   const [codes, setCodes] = useState<InviteCodeData[]>([]);
@@ -32,6 +56,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCodeMaxUses, setNewCodeMaxUses] = useState(1);
   const [newCodeCreateResearcher, setNewCodeCreateResearcher] = useState(false);
+  const [newCodeExpiryDays, setNewCodeExpiryDays] = useState(DEFAULT_EXPIRY_DAYS);
   const [showInactive, setShowInactive] = useState(false);
 
   const loadCodes = useCallback(async () => {
@@ -57,11 +82,16 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
       await adminService.createInviteCode({
         createResearcher: newCodeCreateResearcher,
         maxUses: newCodeMaxUses,
+        expiresAt:
+          newCodeExpiryDays > 0
+            ? new Date(Date.now() + newCodeExpiryDays * MS_PER_DAY).toISOString()
+            : undefined,
       });
       notifications.success('Invite code created');
       setShowCreateForm(false);
       setNewCodeMaxUses(1);
       setNewCodeCreateResearcher(false);
+      setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
       await loadCodes();
     } catch (error) {
       logger.error('Failed to create invite code', { error });
@@ -96,45 +126,133 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   const activeCodes = codes.filter(c => c.isActive && !(c.expiresAt && c.expiresAt < now));
   const inactiveCodes = codes.filter(c => !c.isActive || (c.expiresAt && c.expiresAt < now));
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between pb-3 border-b border-border">
-        <div className="flex items-center space-x-2">
-          <TicketCheck size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-card-foreground">Invite Codes</h3>
-        </div>
-        <div className="flex items-center gap-2">
+  const activeColumns: TableColumn<InviteCodeData>[] = [
+    {
+      id: 'code',
+      header: 'Code',
+      render: (_, code) => (
+        <code className="font-mono text-sm font-semibold tracking-wide text-foreground">
+          {code.code}
+        </code>
+      ),
+    },
+    {
+      id: 'type',
+      header: 'Type',
+      render: (_, code) => (
+        <Chip color={code.createResearcher ? 'info' : 'outlined'} size="sm">
+          {code.createResearcher ? 'User + Researcher Profile' : 'User Only'}
+        </Chip>
+      ),
+    },
+    {
+      id: 'uses',
+      header: 'Uses',
+      width: 90,
+      render: (_, code) => (
+        <span className="text-muted-foreground">
+          {code.useCount}
+          {code.maxUses ? `/${code.maxUses}` : ''}
+        </span>
+      ),
+    },
+    {
+      id: 'expires',
+      header: 'Expires',
+      width: 120,
+      render: (_, code) => (
+        <span className="text-muted-foreground">
+          {code.expiresAt ? code.expiresAt.toLocaleDateString() : '—'}
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '',
+      width: 90,
+      render: (_, code) => (
+        <div className="flex items-center justify-end gap-1">
           <Button
             variant="ghost"
-            size="sm"
-            onClick={loadCodes}
-            disabled={isLoading}
-            leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+            size="xs"
+            iconOnly
+            onClick={() => handleCopy(code.code)}
+            aria-label="Copy code"
           >
-            Refresh
+            <Copy size={14} />
           </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowCreateForm(true)}
-            leftIcon={<Plus size={14} />}
-            disabled={readOnly}
-          >
-            New Code
-          </Button>
+          {!readOnly && (
+            <Button
+              variant="ghost-danger"
+              size="xs"
+              iconOnly
+              onClick={() => setDeleteTarget(code.id)}
+              aria-label="Deactivate code"
+            >
+              <Trash2 size={14} />
+            </Button>
+          )}
         </div>
-      </div>
+      ),
+    },
+  ];
 
+  const inactiveColumns: TableColumn<InviteCodeData>[] = [
+    {
+      id: 'code',
+      header: 'Code',
+      render: (_, code) => (
+        <code className="font-mono text-sm text-muted-foreground">{code.code}</code>
+      ),
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      width: 140,
+      render: (_, code) => {
+        const reason =
+          code.deactivationReason ??
+          (code.expiresAt && code.expiresAt < now ? 'expired' : undefined);
+        if (reason === 'used')
+          return (
+            <Chip color="default" size="xs">
+              Used
+            </Chip>
+          );
+        if (reason === 'expired')
+          return (
+            <Chip color="warning" size="xs">
+              Expired
+            </Chip>
+          );
+        if (reason === 'manual')
+          return (
+            <Chip color="default" size="xs">
+              Deactivated
+            </Chip>
+          );
+        return <span className="text-xs text-muted-foreground">{code.useCount} uses</span>;
+      },
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
       {showCreateForm && (
-        <div className="p-3 bg-muted rounded-lg space-y-2">
-          <h4 className="text-sm font-medium text-card-foreground">Create Invite Code</h4>
-
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className="flex items-center justify-between p-2.5 bg-background rounded-lg">
-              <div>
-                <h5 className="text-sm font-medium text-card-foreground">Max Uses</h5>
-                <p className="text-xs text-secondary-foreground">Times code can be used</p>
-              </div>
+        <ConsolePanel intensity="soft">
+          <Subsection title="New Code" index={1}>
+            <SettingsRow
+              label="Researcher Profile"
+              hint="Include researcher access"
+              className="col-span-2"
+            >
+              <Toggle
+                checked={newCodeCreateResearcher}
+                onChange={setNewCodeCreateResearcher}
+                aria-label="Include researcher profile"
+              />
+            </SettingsRow>
+            <SettingsRow label="Max Uses" hint="Times code can be used" className="col-span-2">
               <NumberInput
                 value={newCodeMaxUses}
                 onChange={setNewCodeMaxUses}
@@ -143,22 +261,20 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
                 size="sm"
                 aria-label="Max uses"
               />
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 bg-background rounded-lg">
-              <div>
-                <h5 className="text-sm font-medium text-card-foreground">Researcher Profile</h5>
-                <p className="text-xs text-secondary-foreground">Include researcher access</p>
+            </SettingsRow>
+            <SettingsRow label="Expires" hint="Code is unusable after this" className="col-span-2">
+              <div className="w-36">
+                <Select
+                  options={EXPIRY_OPTIONS}
+                  value={newCodeExpiryDays}
+                  onChange={value => setNewCodeExpiryDays(Number(value))}
+                  size="sm"
+                  aria-label="Code expiry"
+                />
               </div>
-              <Toggle
-                checked={newCodeCreateResearcher}
-                onChange={setNewCodeCreateResearcher}
-                aria-label="Include researcher profile"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-1">
+            </SettingsRow>
+          </Subsection>
+          <div className="flex justify-end gap-2 border-t border-line-soft px-5 py-3">
             <Button
               variant="ghost"
               size="sm"
@@ -166,6 +282,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
                 setShowCreateForm(false);
                 setNewCodeMaxUses(1);
                 setNewCodeCreateResearcher(false);
+                setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
               }}
             >
               Cancel
@@ -174,116 +291,70 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               Create
             </Button>
           </div>
-        </div>
+        </ConsolePanel>
       )}
 
-      {isLoading && codes.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">
-          Loading invite codes...
-        </div>
-      ) : activeCodes.length === 0 && !showCreateForm ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">
-          No active invite codes. Create one to invite new users to your lab.
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {activeCodes.map(code => (
-            <div
-              key={code.id}
-              className="flex items-center justify-between p-3 bg-muted rounded-lg"
-            >
-              <div className="flex items-center gap-3">
-                <code className="text-sm font-mono font-semibold text-foreground bg-background px-2 py-1 rounded border border-border">
-                  {code.code}
-                </code>
-                <div className="flex items-center gap-2">
-                  <Chip color={code.createResearcher ? 'info' : 'outlined'} size="sm">
-                    {code.createResearcher ? 'User + Researcher Profile' : 'User Only'}
-                  </Chip>
-                  <span className="text-xs text-muted-foreground">
-                    {code.useCount}
-                    {code.maxUses ? `/${code.maxUses}` : ''} uses
-                  </span>
-                  {code.expiresAt && (
-                    <span className="text-xs text-muted-foreground">
-                      expires {code.expiresAt.toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleCopy(code.code)}
-                  aria-label="Copy code"
-                >
-                  <Copy size={14} />
-                </Button>
-                {!readOnly && (
-                  <Button
-                    variant="ghost-danger"
-                    size="sm"
-                    onClick={() => setDeleteTarget(code.id)}
-                    aria-label="Deactivate code"
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <Table
+        columns={activeColumns}
+        data={activeCodes}
+        hoverable
+        loading={isLoading && codes.length === 0}
+        emptyMessage="No active invite codes. Create one to invite new users to your lab."
+        loadingMessage="Loading invite codes..."
+        aria-label="Active invite codes"
+        toolbar={{
+          right: (
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={loadCodes}
+                disabled={isLoading}
+                leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+              >
+                Refresh
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowCreateForm(true)}
+                leftIcon={<Plus size={14} />}
+                disabled={readOnly}
+              >
+                New Code
+              </Button>
+            </>
+          ),
+        }}
+      />
 
       {inactiveCodes.length > 0 && (
-        <div className="pt-3 border-t border-border">
+        <div className="relative pt-5">
+          <NubDivider tone="neutral" className="absolute inset-x-0 top-0" />
           <button
             onClick={() => setShowInactive(prev => !prev)}
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="group flex items-center gap-2"
           >
             <ChevronDown
-              size={14}
-              className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
+              size={13}
+              className={`text-foreground/40 transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
             />
-            Inactive Codes ({inactiveCodes.length})
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.26em] text-foreground/70 transition-colors group-hover:text-foreground/90">
+              Inactive Codes
+            </span>
+            <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/35">
+              {inactiveCodes.length}
+            </span>
           </button>
           {showInactive && (
-            <div className="space-y-1 mt-2">
-              {inactiveCodes.map(code => {
-                const reason =
-                  code.deactivationReason ??
-                  (code.expiresAt && code.expiresAt < now ? 'expired' : undefined);
-
-                return (
-                  <div
-                    key={code.id}
-                    className="flex items-center justify-between p-2 bg-muted/50 rounded opacity-60"
-                  >
-                    <div className="flex items-center gap-3">
-                      <code className="text-xs font-mono text-muted-foreground">{code.code}</code>
-                      {reason === 'used' && (
-                        <Chip color="default" size="xs">
-                          Used
-                        </Chip>
-                      )}
-                      {reason === 'expired' && (
-                        <Chip color="warning" size="xs">
-                          Expired
-                        </Chip>
-                      )}
-                      {reason === 'manual' && (
-                        <Chip color="default" size="xs">
-                          Deactivated
-                        </Chip>
-                      )}
-                      {!reason && (
-                        <span className="text-xs text-muted-foreground">{code.useCount} uses</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="mt-3">
+              <Table
+                columns={inactiveColumns}
+                data={inactiveCodes}
+                emptyMessage=""
+                aria-label="Inactive invite codes"
+                className="opacity-60"
+              />
             </div>
           )}
         </div>

@@ -153,6 +153,28 @@ import { createTubeRequestSchema, type TubeData } from '@odysseus/shared-schemas
 
 ---
 
+## Exemplar Reference Files
+
+When writing new code, pattern it after these already-audited files. They define the current baseline for each layer — structure, naming, header, comment density, error handling.
+
+| Layer | Exemplar |
+|-------|----------|
+| Server controller | `server/src/presentation/controllers/UserController.ts` |
+| Server application service | `server/src/application/services/DonorApplicationService.ts` |
+| Server domain entity | `server/src/domain/entities/Researcher.ts` |
+| Server repository interface | `server/src/domain/repositories/ResearcherRepository.ts` |
+| Server repository (Postgres impl) | `server/src/infrastructure/repositories/ResearcherRepository.ts` |
+| Server route module | `server/src/presentation/routes/SearchRouteModule.ts` |
+| Client TanStack Query hook | `client/src/domains/donors/hooks/useDonorsQuery.ts` |
+| Client feature component | `client/src/domains/donors/ui/components/DonorEditForm.tsx` |
+| Client HTTP service | `client/src/domains/researchers/services/ResearcherService.ts` |
+| Client Zustand store | `client/src/app/stores/errorStore.ts` |
+| Shared schema module | `packages/shared-schemas/src/auth/authSchemas.ts` |
+
+The **equipment, supply, supplies, and consumables** domains have NOT been audited — never use them as references.
+
+---
+
 ## Naming Conventions
 
 | Category | Convention | Example |
@@ -167,6 +189,33 @@ import { createTubeRequestSchema, type TubeData } from '@odysseus/shared-schemas
 
 - Named exports only (no default exports)
 - Query keys from `@app/queryKeys`
+
+### Component Naming (Entity-First)
+
+Pattern: **Domain prefix → entity → specifics → suffix**.
+
+Examples: `TubeLockNoteModal`, `AuthPasswordResetPage`, `ResearcherStatsPanel`.
+
+**Established suffixes** (use only these — don't invent new ones):
+`Modal`, `Tab`, `Panel`, `Page`, `Form`, `Row`, `Button`, `Settings`, `Dashboard`, `Indicator`, `Field`.
+
+### `ui/components/` Subdirectories
+
+Feature-named and unprefixed — the domain path already provides context.
+
+- ✅ `domains/tubes/ui/components/gateway/` (feature: the tube gateway)
+- ✅ `domains/tubes/ui/components/editor/` (feature: the tube editor)
+- ❌ `domains/tubes/ui/components/modals/` (UI pattern, not a feature)
+- ❌ `domains/tubes/ui/components/forms/` (UI pattern, not a feature)
+
+Small shared presentational helpers may use a catch-all like `displays/`.
+
+### File Organization Rules
+
+- **Generic filenames are banned**: no `utils.ts`, `helpers.ts`, `misc.ts`, or barrel-only `index.ts` that re-exports nothing meaningful. Name the file after what it contains (`validation.ts`, `dateFormat.ts`).
+- **Loose files**: if every sibling entry in a directory is a subdirectory, don't drop a loose file alongside them — put it in the appropriate subdirectory or create a new one. The only exception is `index.ts` barrels.
+- **Sibling consistency**: follow the casing/naming convention already established by sibling files in the directory.
+- **One file, one concern**: don't mix unrelated exports (e.g. a React component and an API helper in the same file). Split them.
 
 ---
 
@@ -189,6 +238,23 @@ import { createTubeRequestSchema, type TubeData } from '@odysseus/shared-schemas
 4. **Check for foreign keys** - resolve IDs to names in UI, not database
 5. **Use existing patterns** - search codebase before creating new approaches
 6. **Import from shared schemas** - never define types locally
+
+### Write-Time Discipline
+
+Rules that prevent whole classes of bugs at write-time. Apply these while writing, not after.
+
+**1. End-to-end field trace.** When adding a request/criteria/filter/command field, trace it from entry point (HTTP body, function argument) through every layer to its final consumer (SQL clause, external API call, rendered output) in the same change. If no layer reads it at the bottom, don't add it — a field that's declared and spread but never read is a silently-dropped filter, not a feature.
+
+**2. Overwrite vs intersect.** `{ ...userInput, field: systemValue }` silently discards the user's `field`. When merging caller input with server-side constraints (auth scope, permissions, allowed IDs), decide explicitly:
+- **Preserve** the user's value (no merge needed)
+- **Intersect** it with the constraint (e.g. `userInput.ids.filter(id => allowedIds.has(id))`)
+- **Replace** it with the system value — and if so, comment *why*, because replacement without a reason is almost always a bug
+
+**3. One shape per concept.** Never hand-roll an interface that overlaps a shared-schema type for the same concept. Derive from the schema (`z.infer<typeof ...>`) or reuse the existing type. Two shapes for the same thing drift apart and produce contract bugs.
+
+**4. Caller-first: no speculative exports.** Don't export a schema, type, route, handler, query key, or method without a real caller wired up in the same change. This applies to every layer — a Zod schema with no `.parse()` call is dead; a route with no client service calling it is dead; an exported type that's only forwarded through other signatures (never read as a field) is dead.
+
+**5. No unused parameters.** Every declared parameter must be read by at least one caller. A parameter that looks reasonable but nothing passes is worse than no parameter — it implies a capability that doesn't exist.
 
 ### Schema Verification
 
@@ -274,16 +340,20 @@ Always include keyboard support for interactive elements:
 
 ### File Headers
 
+Every source file opens with a JSDoc header as the **very first content in the file — above all imports**, with no code, comments, `"use client"` directives, or blank lines before it.
+
 ```typescript
 /**
  * Audit Log Viewer
  *
  * Displays filterable audit history with export capabilities.
  */
+import { ... } from '...';
 ```
 - Title in plain English (not "AuditLogViewer")
 - One-line description adding context beyond filename
 - No bullet lists or feature enumerations
+- No author tags, date stamps, "Refactored from…", "Phase 2", or ticket numbers in the header
 
 ### DO Comment
 
@@ -400,6 +470,36 @@ constructor(deps: ServiceDeps) {
 constructor(private deps: ServiceDeps) {}
 // Access via this.deps.userRepo
 ```
+
+### DRY — Duplication to Watch For
+
+Before writing something that feels familiar, search for the existing home. Before extracting, confirm there are at least two real callers.
+
+- **Duplicated logic blocks**: two+ places doing the same work with trivial variation → extract to a shared helper, hook, base method, or utility.
+- **Premature abstractions**: a helper with a single caller → inline it. Three similar lines beat a premature abstraction.
+- **Magic numbers/strings**: unnamed literals that recur or carry meaning (`15 * 60 * 1000`, `"admin"`, status codes) → named constants, co-located with related values.
+- **Repeated string literals** across files (route paths, error codes, query keys, event names, toast messages) → centralize in `@app/queryKeys`, a `routes.ts`, or shared-schemas.
+- **Repeated Tailwind class strings** → extract to a shared component, a `cva` variant, or a `clsx` helper.
+- **Near-duplicate components** (two components ~90% identical with a small variant) → collapse into one with props.
+- **Repeated conditional guards** (same auth/permission check pasted at multiple call sites) → extract to a predicate or middleware.
+- **Copy-paste handlers** (same `onChange`/`onSubmit`/validation logic across forms) → extract to a shared hook.
+- **Repeated mapper logic** (same DTO↔entity conversion in multiple repos/services) → single mapper module.
+- **Repeated SQL fragments** (same `WHERE`/`JOIN` snippets across repo methods) → query builder or constant clause.
+- **Parallel type shapes** for the same concept → see *Write-Time Discipline #3*.
+
+When extracting, name the destination explicitly and prefer an existing home over a new file.
+
+### Cross-Layer Imports
+
+Respect layer boundaries. Violations turn into circular dependencies, leak infrastructure into business logic, and break testability.
+
+| Rule | Example of violation |
+|------|---------------------|
+| Domain never imports from infrastructure or presentation | `domain/entities/Tube.ts` importing `PostgresContext` |
+| Client never imports from `server/` | `client/.../useTubes.ts` importing a server service |
+| Presentation never reaches into another domain's internals | `presentation/controllers/TubeController.ts` importing `application/services/researcher/internal/...` — use the sibling domain's public index |
+| Sibling client domains never reach into each other's internals | `domains/tubes/...` importing `domains/researchers/hooks/internal/...` — import from `domains/researchers` public exports only |
+| Barrel files (`index.ts`) only re-export what's actually consumed externally | a barrel re-exporting internal helpers that nothing outside the folder uses |
 
 ---
 

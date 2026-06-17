@@ -1,20 +1,28 @@
 /**
  * Help Modal
  *
- * Read-only reference modal with vertical tab navigation.
- * Admin users see an additional Administration tab.
+ * Read-only reference modal with vertical tab navigation and section search.
+ * Admin users see additional Administration content.
  */
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ComponentType } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { BookUser, CircleHelp, Dna, Keyboard, Rocket, ShieldUser, TestTube } from 'lucide-react';
+import { CircleHelp, Search, X } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Tab, LoadingSkeleton, Tabs } from '@shared/ui';
-import { TankIcon } from '@shared/ui/components/icons/TankIcon';
+import { Button, Tab, LoadingSkeleton, SearchInput, SectionHeader, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
-import type { LucideIcon } from 'lucide-react';
+import { getHelpSection, HELP_TABS, HELP_TAB_META } from '../../../content/helpContent';
+
+import { HelpNavContext } from './HelpNavContext';
+import { HelpSearchResults } from './HelpSearchResults';
+
+import './help-modal.css';
+
+import type { HelpNav } from './HelpNavContext';
+import type { HelpTabId } from '../../../content/helpContent';
 
 const GettingStartedTab = lazy(() =>
   import('./tabs/GettingStartedTab').then(m => ({ default: m.GettingStartedTab }))
@@ -38,52 +46,78 @@ const AdministrationTab = lazy(() =>
   import('./tabs/AdministrationTab').then(m => ({ default: m.AdministrationTab }))
 );
 
+const TAB_COMPONENTS: Record<HelpTabId, ComponentType> = {
+  'getting-started': GettingStartedTab,
+  tubes: TubesTab,
+  storage: StorageTab,
+  donors: DonorsTab,
+  researchers: ResearchersTab,
+  shortcuts: ShortcutsTab,
+  administration: AdministrationTab,
+};
+
 interface HelpModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
-
-type HelpTabId =
-  | 'getting-started'
-  | 'tubes'
-  | 'storage'
-  | 'donors'
-  | 'researchers'
-  | 'shortcuts'
-  | 'administration';
-
-interface HelpTabItem {
-  id: HelpTabId;
-  label: string;
-  icon: IconComponent;
-}
-
-const BASE_TABS: HelpTabItem[] = [
-  { id: 'getting-started', label: 'Getting Started', icon: Rocket },
-  { id: 'tubes', label: 'Tubes', icon: TestTube },
-  { id: 'storage', label: 'Storage', icon: TankIcon },
-  { id: 'donors', label: 'Donors', icon: BookUser },
-  { id: 'researchers', label: 'Researchers', icon: Dna },
-  { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
-];
-
-const ADMIN_TAB: HelpTabItem = {
-  id: 'administration',
-  label: 'Administration',
-  icon: ShieldUser,
-};
-
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
   const [activeTab, setActiveTab] = useState<HelpTabId>('getting-started');
+  const [query, setQuery] = useState('');
+  const pendingSectionRef = useRef<string | null>(null);
 
-  const tabItems = useMemo(() => (isAdmin ? [...BASE_TABS, ADMIN_TAB] : BASE_TABS), [isAdmin]);
+  const tabItems = useMemo(() => HELP_TABS.filter(tab => isAdmin || !tab.adminOnly), [isAdmin]);
+
+  const goToTab = useCallback((tab: HelpTabId) => {
+    pendingSectionRef.current = null;
+    setQuery('');
+    setActiveTab(tab);
+  }, []);
+
+  const goToSection = useCallback((sectionId: string) => {
+    const section = getHelpSection(sectionId);
+    if (!section) return;
+    pendingSectionRef.current = sectionId;
+    setQuery('');
+    setActiveTab(section.tabId);
+  }, []);
+
+  const nav = useMemo<HelpNav>(() => ({ goToTab, goToSection }), [goToTab, goToSection]);
+
+  // Scroll to a pending jump target once its (possibly lazy-loaded) tab has mounted.
+  useEffect(() => {
+    const target = pendingSectionRef.current;
+    if (!target) return;
+    let raf = 0;
+    let attempts = 0;
+    const run = () => {
+      const el = document.getElementById(target);
+      if (el) {
+        pendingSectionRef.current = null;
+        el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        el.classList.add('help-flash');
+        window.setTimeout(() => el.classList.remove('help-flash'), 1200);
+        return;
+      }
+      if (attempts++ < 60) {
+        raf = requestAnimationFrame(run);
+      } else {
+        pendingSectionRef.current = null;
+      }
+    };
+    raf = requestAnimationFrame(run);
+    return () => cancelAnimationFrame(raf);
+  }, [activeTab, query]);
+
+  const isSearching = query.trim().length > 0;
+  const activeMeta = HELP_TAB_META[activeTab];
+  const ActiveIcon = activeMeta.icon;
+  const ActiveTab = TAB_COMPONENTS[activeTab];
 
   const tabs = (
-    <Tabs value={activeTab} onChange={v => setActiveTab(v as HelpTabId)} orientation="vertical">
+    <Tabs value={activeTab} onChange={v => goToTab(v as HelpTabId)} orientation="vertical">
       {tabItems.map(tab => {
         const Icon = tab.icon;
         return (
@@ -95,54 +129,88 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
     </Tabs>
   );
 
+  const locator = (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-2.5 font-mono">
+        <span
+          aria-hidden
+          className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+        />
+        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          Guide
+        </span>
+        <span className="phosphor-text text-xs text-secondary-foreground">
+          {isSearching ? 'Search' : activeMeta.label}
+        </span>
+      </div>
+      <SearchInput
+        value={query}
+        onChange={setQuery}
+        size="sm"
+        placeholder="Search help…"
+        aria-label="Search help"
+        className="w-56"
+        trailingSlot={
+          query ? (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              aria-label="Clear search"
+              className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground hover:text-foreground"
+            >
+              <X size={13} />
+            </button>
+          ) : undefined
+        }
+      />
+    </div>
+  );
+
+  const footer = (
+    <div className="flex justify-end">
+      <Button variant="secondary" onClick={onClose}>
+        Done
+      </Button>
+    </div>
+  );
+
   return (
-    <BaseModal
-      isOpen={isOpen}
-      icon={<CircleHelp size={24} />}
-      title="Help"
-      subtitle="Reference Guide"
-      size="lg"
-      animation="slide"
-      tabs={tabs}
-      tabOrientation="vertical"
-      className="h-[75vh]"
-      onClose={onClose}
-    >
-      {activeTab === 'getting-started' && (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <GettingStartedTab />
-        </Suspense>
-      )}
-      {activeTab === 'tubes' && (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <TubesTab />
-        </Suspense>
-      )}
-      {activeTab === 'storage' && (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <StorageTab />
-        </Suspense>
-      )}
-      {activeTab === 'donors' && (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <DonorsTab />
-        </Suspense>
-      )}
-      {activeTab === 'researchers' && (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <ResearchersTab />
-        </Suspense>
-      )}
-      {activeTab === 'shortcuts' && (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <ShortcutsTab />
-        </Suspense>
-      )}
-      {activeTab === 'administration' && (
-        <Suspense fallback={<LoadingSkeleton />}>
-          <AdministrationTab />
-        </Suspense>
-      )}
-    </BaseModal>
+    <HelpNavContext.Provider value={nav}>
+      <BaseModal
+        isOpen={isOpen}
+        icon={<CircleHelp size={24} />}
+        title="Help"
+        subtitle="Reference Guide"
+        size="lg"
+        animation="slide"
+        tabs={tabs}
+        tabOrientation="vertical"
+        locator={locator}
+        footer={footer}
+        className="h-[75vh]"
+        onClose={onClose}
+      >
+        <div className="space-y-6">
+          {isSearching ? (
+            <>
+              <SectionHeader
+                size="lg"
+                icon={<Search size={18} />}
+                title="Search Results"
+                rightMeta={`“${query.trim()}”`}
+              />
+              <HelpSearchResults query={query} includeAdmin={isAdmin} />
+            </>
+          ) : (
+            <>
+              <SectionHeader size="lg" icon={<ActiveIcon size={18} />} title={activeMeta.label} />
+              <Suspense fallback={<LoadingSkeleton />}>
+                <ActiveTab />
+              </Suspense>
+            </>
+          )}
+        </div>
+      </BaseModal>
+    </HelpNavContext.Provider>
   );
 }

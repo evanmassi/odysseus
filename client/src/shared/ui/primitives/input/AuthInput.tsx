@@ -10,6 +10,8 @@ import { Eye, EyeOff } from 'lucide-react';
 
 export type AuthInputValidationState = 'default' | 'success' | 'warning' | 'error';
 
+export type AuthInputVariant = 'card' | 'console';
+
 export interface AuthInputProps {
   id: string;
   type?: 'text' | 'password' | 'email';
@@ -23,6 +25,8 @@ export interface AuthInputProps {
   icon?: React.ReactNode;
   /** Controls border and label colors */
   state?: AuthInputValidationState;
+  /** Surface treatment: 'card' for light/regular forms (default), 'console' for the auth gateway dark surface. */
+  variant?: AuthInputVariant;
   /** Shows required asterisk after label */
   required?: boolean;
   disabled?: boolean;
@@ -44,6 +48,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       placeholder,
       icon,
       state = 'default',
+      variant = 'card',
       required = false,
       disabled = false,
       maxLength,
@@ -56,6 +61,45 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
 
     const isPasswordType = type === 'password';
     const effectiveType = isPasswordType && showPassword ? 'text' : type;
+
+    if (variant === 'console') {
+      return (
+        <div className={`auth-input-console state-${state} ${className}`}>
+          <label htmlFor={id} className="auth-input-console__label">
+            {label}
+            {required && <span className="auth-input-console__required"> *</span>}
+          </label>
+          <div className="auth-input-console__field">
+            {icon && <span className="auth-input-console__icon">{icon}</span>}
+            <input
+              ref={ref}
+              type={effectiveType}
+              id={id}
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              onBlur={onBlur}
+              disabled={disabled}
+              required={required}
+              maxLength={maxLength}
+              // eslint-disable-next-line jsx-a11y/no-autofocus -- Controlled by parent for intentional UX
+              autoFocus={autoFocus}
+              placeholder={placeholder}
+              className={`auth-input-console__control${icon ? ' auth-input-console__control--has-icon' : ''}${isPasswordType ? ' auth-input-console__control--has-toggle' : ''}`}
+            />
+            {isPasswordType && (
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="auth-input-console__toggle"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
 
     // Border classes based on validation state
     const borderClass = {

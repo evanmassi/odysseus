@@ -3,7 +3,7 @@
  *
  * Right-click menu for grid cell operations with keyboard shortcut hints.
  */
-import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 import {
   Plus,
@@ -17,8 +17,7 @@ import {
   Share2,
 } from 'lucide-react';
 
-import { useMenuKeyboardNavigation } from '@shared/hooks';
-import { MenuItem, MenuDivider } from '@shared/ui';
+import { DropdownMenu, MenuDivider, MenuItem } from '@shared/ui';
 
 interface TubeGridContextMenuProps {
   isVisible: boolean;
@@ -42,8 +41,9 @@ interface TubeGridContextMenuProps {
   isUnlocking?: boolean;
 }
 
-const ANIMATION_DURATION = 50;
 const VIEWPORT_PADDING = 8;
+const ESTIMATED_MENU_WIDTH = 208;
+const ESTIMATED_MENU_HEIGHT = 280;
 
 export function TubeGridContextMenu({
   isVisible,
@@ -66,116 +66,36 @@ export function TubeGridContextMenu({
   onShare,
   isUnlocking = false,
 }: TubeGridContextMenuProps) {
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [isAnimatingIn, setIsAnimatingIn] = useState(false);
-  const [adjustedPosition, setAdjustedPosition] = useState({ x: 0, y: 0 });
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prevPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [adjustedPosition, setAdjustedPosition] = useState({
+    x: position.x,
+    y: position.y,
+  });
 
-  // Adjust position to keep menu in viewport (after measuring actual size)
+  // Clamp cursor position so the menu never opens off-screen. Falls back to
+  // an estimate before the menu mounts, refines once we can measure it.
   useLayoutEffect(() => {
-    if (!isVisible || !menuRef.current) {
-      return;
-    }
+    if (!isVisible) return;
 
-    const menu = menuRef.current;
-    const rect = menu.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    const width = measureRef.current?.offsetWidth ?? ESTIMATED_MENU_WIDTH;
+    const height = measureRef.current?.offsetHeight ?? ESTIMATED_MENU_HEIGHT;
 
     let x = position.x;
     let y = position.y;
 
-    if (x + rect.width > viewportWidth - VIEWPORT_PADDING) {
-      x = Math.max(VIEWPORT_PADDING, x - rect.width);
+    if (x + width > viewportWidth - VIEWPORT_PADDING) {
+      x = Math.max(VIEWPORT_PADDING, x - width);
     }
-
-    if (y + rect.height > viewportHeight - VIEWPORT_PADDING) {
-      y = Math.max(VIEWPORT_PADDING, y - rect.height);
+    if (y + height > viewportHeight - VIEWPORT_PADDING) {
+      y = Math.max(VIEWPORT_PADDING, y - height);
     }
-
     x = Math.max(VIEWPORT_PADDING, x);
     y = Math.max(VIEWPORT_PADDING, y);
 
     setAdjustedPosition({ x, y });
   }, [isVisible, position.x, position.y]);
-
-  useEffect(() => {
-    if (isVisible) {
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current);
-        closeTimeoutRef.current = null;
-      }
-
-      // Small delay to allow position adjustment before animating
-      requestAnimationFrame(() => {
-        setIsAnimatingIn(true);
-      });
-    } else {
-      setIsAnimatingIn(false);
-    }
-  }, [isVisible]);
-
-  // useLayoutEffect prevents visual flicker when cancelling close animation
-  useLayoutEffect(() => {
-    if (!isVisible) {
-      prevPositionRef.current = null;
-      return;
-    }
-
-    const positionChanged =
-      prevPositionRef.current &&
-      (prevPositionRef.current.x !== position.x || prevPositionRef.current.y !== position.y);
-
-    if (positionChanged) {
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current);
-        closeTimeoutRef.current = null;
-      }
-      setIsAnimatingIn(true);
-    }
-
-    prevPositionRef.current = { x: position.x, y: position.y };
-  }, [isVisible, position.x, position.y]);
-
-  useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-    };
-  }, []);
-
-  const closeMenu = useCallback(() => {
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-    onClose();
-  }, [onClose]);
-
-  const { handleKeyDown, handleBlur } = useMenuKeyboardNavigation({
-    menuRef,
-    isOpen: isVisible,
-    onClose: closeMenu,
-  });
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      // Ignore right-clicks - they update position via contextmenu event
-      // This prevents the close animation from starting before position updates
-      if (e.button === 2) return;
-
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        closeMenu();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isVisible, closeMenu]);
-
-  if (!isVisible) return null;
 
   const isEditMode = hasFilledSelection && !isMixedSelection;
   const openLabel = isEditMode ? 'Edit' : 'Add';
@@ -190,132 +110,133 @@ export function TubeGridContextMenu({
   /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
   return (
-    <div
-      ref={menuRef}
-      className="fixed z-50 bg-popover rounded-lg shadow-lg border border-border py-1.5 min-w-52"
-      style={{
-        left: adjustedPosition.x,
-        top: adjustedPosition.y,
-        transform: isAnimatingIn ? 'scale(1)' : 'scale(0.95)',
-        opacity: isAnimatingIn ? 1 : 0,
-        transition: `transform ${ANIMATION_DURATION}ms ease-out, opacity ${ANIMATION_DURATION}ms ease-out`,
-      }}
-      role="menu"
+    <DropdownMenu
+      isOpen={isVisible}
+      onClose={onClose}
+      portal
+      motion="instant"
       aria-label="Context menu"
-      tabIndex={-1}
-      onKeyDown={handleKeyDown}
-      onBlur={handleBlur}
+      className="min-w-52"
+      style={{
+        top: adjustedPosition.y,
+        left: adjustedPosition.x,
+        transformOrigin: 'top left',
+      }}
     >
-      {selectedCount > 0 && (
-        <>
-          <div className="px-1">
-            <MenuItem icon={OpenIcon} label={openLabel} shortcut="Enter" onClick={onOpen} />
-          </div>
-          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-          {(hasClipboardSection || hasLockSection || hasFilledSelection) && <MenuDivider />}
-        </>
-      )}
+      <div ref={measureRef}>
+        {selectedCount > 0 && (
+          <>
+            <div>
+              <MenuItem icon={OpenIcon} label={openLabel} shortcut="Enter" onClick={onOpen} />
+            </div>
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+            {(hasClipboardSection || hasLockSection || hasFilledSelection) && (
+              <MenuDivider subtle />
+            )}
+          </>
+        )}
 
-      {hasClipboardSection && (
-        <>
-          <div className="px-1">
-            {hasFilledSelection && (
-              <>
+        {hasClipboardSection && (
+          <>
+            <div>
+              {hasFilledSelection && (
+                <>
+                  <MenuItem
+                    icon={Copy}
+                    label="Copy"
+                    shortcut="Ctrl+C"
+                    onClick={() => {
+                      onCopy();
+                      onClose();
+                    }}
+                  />
+                  <MenuItem
+                    icon={Scissors}
+                    label="Cut"
+                    shortcut="Ctrl+X"
+                    onClick={() => {
+                      onCut();
+                      onClose();
+                    }}
+                  />
+                </>
+              )}
+              {canPaste && selectedCount > 0 && (
                 <MenuItem
-                  icon={Copy}
-                  label="Copy"
-                  shortcut="Ctrl+C"
+                  icon={ClipboardPaste}
+                  label="Paste"
+                  shortcut="Ctrl+V"
                   onClick={() => {
-                    onCopy();
-                    closeMenu();
+                    onPaste();
+                    onClose();
                   }}
                 />
+              )}
+            </div>
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+            {(hasLockSection || hasFilledSelection) && <MenuDivider subtle />}
+          </>
+        )}
+
+        {hasLockSection && (
+          <>
+            <div>
+              {lockableCount > 0 && onLock && (
                 <MenuItem
-                  icon={Scissors}
-                  label="Cut"
-                  shortcut="Ctrl+X"
+                  icon={Lock}
+                  label="Lock"
+                  shortcut="Shift+L"
                   onClick={() => {
-                    onCut();
-                    closeMenu();
+                    onLock();
+                    onClose();
                   }}
                 />
-              </>
-            )}
-            {canPaste && selectedCount > 0 && (
-              <MenuItem
-                icon={ClipboardPaste}
-                label="Paste"
-                shortcut="Ctrl+V"
-                onClick={() => {
-                  onPaste();
-                  closeMenu();
-                }}
-              />
-            )}
-          </div>
-          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-          {(hasLockSection || hasFilledSelection) && <MenuDivider />}
-        </>
-      )}
+              )}
+              {unlockableCount > 0 && onUnlock && (
+                <MenuItem
+                  icon={Unlock}
+                  label={isUnlocking ? 'Unlocking...' : 'Unlock'}
+                  shortcut="Shift+L"
+                  onClick={() => {
+                    if (!isUnlocking) {
+                      onUnlock();
+                      onClose();
+                    }
+                  }}
+                  disabled={isUnlocking}
+                />
+              )}
+              {sharableCount > 0 && onShare && (
+                <MenuItem
+                  icon={Share2}
+                  label="Share"
+                  shortcut="Shift+S"
+                  onClick={() => {
+                    onShare();
+                    onClose();
+                  }}
+                />
+              )}
+            </div>
+            {hasFilledSelection && <MenuDivider subtle />}
+          </>
+        )}
 
-      {hasLockSection && (
-        <>
-          <div className="px-1">
-            {lockableCount > 0 && onLock && (
-              <MenuItem
-                icon={Lock}
-                label="Lock"
-                shortcut="Shift+L"
-                onClick={() => {
-                  onLock();
-                  closeMenu();
-                }}
-              />
-            )}
-            {unlockableCount > 0 && onUnlock && (
-              <MenuItem
-                icon={Unlock}
-                label={isUnlocking ? 'Unlocking...' : 'Unlock'}
-                shortcut="Shift+L"
-                onClick={() => {
-                  if (!isUnlocking) {
-                    onUnlock();
-                    closeMenu();
-                  }
-                }}
-                disabled={isUnlocking}
-              />
-            )}
-            {sharableCount > 0 && onShare && (
-              <MenuItem
-                icon={Share2}
-                label="Share"
-                shortcut="Shift+S"
-                onClick={() => {
-                  onShare();
-                  closeMenu();
-                }}
-              />
-            )}
+        {hasFilledSelection && (
+          <div>
+            <MenuItem
+              icon={Trash2}
+              label="Remove"
+              shortcut="Del"
+              onClick={() => {
+                onDelete();
+                onClose();
+              }}
+              danger
+            />
           </div>
-          {hasFilledSelection && <MenuDivider />}
-        </>
-      )}
-
-      {hasFilledSelection && (
-        <div className="px-1">
-          <MenuItem
-            icon={Trash2}
-            label="Remove"
-            shortcut="Del"
-            onClick={() => {
-              onDelete();
-              closeMenu();
-            }}
-            danger
-          />
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </DropdownMenu>
   );
 }

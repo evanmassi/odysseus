@@ -1,0 +1,306 @@
+/**
+ * Authentication Console Styles
+ *
+ * Gateway chrome plus a shared input variant. Chrome is gateway-only; the input
+ * variant is theme-aware and reused by app modals. Tokens in variables.css.
+ */
+
+@layer components {
+  .auth-console-chrome {
+    position: relative;
+    background:
+      radial-gradient(ellipse 60% 80% at 18% 10%, rgb(var(--auth-ambient) / 0.1), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 100% 100%, rgba(0, 0, 0, 0.3), transparent 55%),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.055) 0%,
+        rgba(255, 255, 255, 0.01) 12%,
+        transparent 50%,
+        rgba(0, 0, 0, 0.1) 100%
+      ),
+      rgb(var(--auth-surface) / 0.55);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    box-shadow:
+      inset 0 1px 0 rgb(var(--auth-edge-lift-top)),
+      inset 1px 0 0 rgb(var(--auth-edge-lift-left)),
+      inset 0 -1px 0 rgb(var(--auth-edge-recess-bottom)),
+      inset -1px 0 0 rgb(var(--auth-edge-recess-right)),
+      0 0 0 1px rgb(var(--auth-rim)),
+      0 32px 80px -22px rgba(0, 0, 0, 0.8),
+      0 0 140px -20px rgb(var(--auth-ambient) / 0.12);
+    color: rgb(var(--auth-text));
+    /* Smooth resize when the active modal swaps to a different width variant. */
+    transition: max-width 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  /* Lit field shared by the gateway backdrop and the boot splash — navy surface
+     with one anchored ambient pool. Opaque: the gateway sits over nothing pre-auth. */
+  .auth-field {
+    background:
+      radial-gradient(ellipse 55% 45% at 50% 40%, rgb(var(--auth-ambient) / 0.1), transparent 70%),
+      rgb(var(--auth-field-bg));
+  }
+
+  .auth-console-divider {
+    border-right: 1px solid rgb(var(--auth-divider));
+  }
+
+  .auth-console-left {
+    position: relative;
+    background: radial-gradient(
+      circle at 30% 30%,
+      rgb(var(--auth-ambient) / 0.05),
+      transparent 60%
+    );
+  }
+
+  .auth-microheader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgb(var(--auth-text-mute));
+  }
+
+  .auth-microheader-bar {
+    width: 2px;
+    height: 12px;
+    background: rgb(var(--auth-ambient));
+    flex-shrink: 0;
+  }
+
+  .auth-microheader-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgb(var(--auth-divider)), transparent);
+  }
+
+  .auth-tagline {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 9.5px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgb(var(--auth-text-faint));
+  }
+
+  /* drop-shadow tracks the image's alpha — wraps the icon shape, not its bounding box. */
+  .auth-watermark {
+    filter: blur(2px) drop-shadow(0 0 28px rgb(var(--auth-ambient) / 0.45))
+      drop-shadow(0 0 80px rgb(var(--auth-ambient) / 0.18));
+  }
+
+  /* Label background is opaque so the border underneath reads as cut, not crossed.
+
+     Colors flow through --console-input-* tokens so the same structure adapts to
+     any surface. Defaults pull from theme-aware design tokens; the gateway
+     overrides below lock to the always-dark palette regardless of theme. */
+  .auth-input-console {
+    --console-input-surface: hsl(var(--foreground) / 0.045);
+    --console-input-surface-hover: hsl(var(--foreground) / 0.07);
+    --console-input-text: hsl(var(--foreground));
+    --console-input-placeholder: hsl(var(--muted-foreground) / 0.4);
+    --console-input-border: hsl(var(--line-soft));
+    --console-input-border-hover: hsl(var(--line-mid));
+    --console-input-label-bg: hsl(var(--card));
+    --console-input-label-text: hsl(var(--muted-foreground));
+    --console-input-label-text-focus: hsl(var(--foreground));
+    --console-input-icon: hsl(var(--muted-foreground));
+    --console-input-focus: hsl(var(--ring));
+    --console-input-required: hsl(var(--primary));
+
+    position: relative;
+  }
+
+  /* Dark theme: translucent black so the panel surface shows through, matching
+     the gateway's smoked-glass fields. */
+  [data-theme='dark'] .auth-input-console {
+    --console-input-surface: rgba(0, 0, 0, 0.42);
+    --console-input-surface-hover: rgba(0, 0, 0, 0.55);
+  }
+
+  /* Gateway override: locks to the always-dark palette regardless of theme,
+     matching the surrounding chrome. */
+  .auth-console-chrome .auth-input-console {
+    --console-input-surface: rgba(0, 0, 0, 0.42);
+    --console-input-surface-hover: rgba(0, 0, 0, 0.55);
+    --console-input-text: rgb(var(--auth-text));
+    --console-input-placeholder: rgb(var(--auth-text) / 0.18);
+    --console-input-border: rgb(var(--auth-divider));
+    --console-input-border-hover: rgb(var(--auth-text) / 0.18);
+    --console-input-label-bg: rgb(var(--auth-surface));
+    --console-input-label-text: rgb(var(--auth-text-mute));
+    --console-input-label-text-focus: rgb(var(--auth-text));
+    --console-input-icon: rgb(var(--auth-text-mute));
+    --console-input-focus: rgb(var(--auth-ambient));
+    --console-input-required: rgb(var(--auth-ambient));
+  }
+
+  .auth-input-console__label {
+    position: absolute;
+    top: -7px;
+    left: 10px;
+    z-index: 1;
+    padding: 2px 6px;
+    background: var(--console-input-label-bg);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--console-input-label-text);
+    line-height: 1;
+    transition: color 160ms ease;
+  }
+
+  .auth-input-console__required {
+    color: var(--console-input-required);
+  }
+
+  .auth-input-console__field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--console-input-surface);
+    border: 1px solid var(--console-input-border);
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .auth-input-console__field:hover {
+    background: var(--console-input-surface-hover);
+    border-color: var(--console-input-border-hover);
+  }
+
+  .auth-input-console__field:focus-within {
+    border-color: color-mix(in srgb, var(--console-input-focus) 55%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--console-input-focus) 40%, transparent),
+      0 0 18px -4px color-mix(in srgb, var(--console-input-focus) 40%, transparent);
+  }
+
+  .auth-input-console:focus-within .auth-input-console__label {
+    color: var(--console-input-label-text-focus);
+  }
+
+  /* Overlaid on the full-width input (not a flex cell) so the input — and thus the
+     browser autofill highlight — spans the whole field with no separate icon zone. */
+  .auth-input-console__icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px 0 12px;
+    color: var(--console-input-icon);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .auth-input-console__control {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 11px 12px;
+    font-size: 13px;
+    color: var(--console-input-text);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  }
+
+  /* Reserve room for the overlaid icon/toggle without giving them their own cells. */
+  .auth-input-console__control--has-icon {
+    padding-left: 38px;
+  }
+
+  .auth-input-console__control--has-toggle {
+    padding-right: 42px;
+  }
+
+  .auth-input-console__control::placeholder {
+    color: var(--console-input-placeholder);
+  }
+
+  /* Mask dots in password fields hug each other in the monospace cell —
+     letter-spacing pushes them apart so the row reads as discrete glyphs.
+     text-indent compensates for the leftmost dot sitting flush to the content edge.
+     :placeholder-shown scopes the spacing to when content exists, so the placeholder
+     stays consistent with other inputs. */
+  .auth-input-console__control[type='password'] {
+    letter-spacing: 0.2em;
+    text-indent: 3px;
+  }
+  .auth-input-console__control[type='password']:placeholder-shown {
+    letter-spacing: normal;
+    text-indent: 0;
+  }
+
+  /* Keep autofilled cells genuinely translucent: no opaque box-shadow cover (which
+     would hide the watermark/gradient the gutters show). text-fill-color keeps the
+     value legible; the long transition defers WebKit's yellow wash off-frame. Firefox
+     applies its own autofill highlight that CSS can't fully suppress. */
+  .auth-input-console__control:-webkit-autofill,
+  .auth-input-console__control:-webkit-autofill:hover,
+  .auth-input-console__control:-webkit-autofill:focus,
+  .auth-input-console__control:autofill {
+    background-color: transparent !important;
+    -webkit-text-fill-color: var(--console-input-text) !important;
+    caret-color: var(--console-input-text);
+    transition: background-color 9999s ease-out 0s;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+  }
+
+  .auth-input-console__toggle {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    color: var(--console-input-icon);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 1;
+    transition: color 120ms ease;
+  }
+
+  .auth-input-console__toggle:hover {
+    color: var(--console-input-text);
+  }
+
+  .auth-input-console.state-error .auth-input-console__field {
+    border-color: hsl(var(--color-danger-border));
+  }
+  .auth-input-console.state-error .auth-input-console__label {
+    color: hsl(var(--color-danger-text));
+  }
+  .auth-input-console.state-error .auth-input-console__field:focus-within {
+    box-shadow:
+      0 0 0 1px hsl(var(--color-danger-bg) / 0.45),
+      0 0 18px -4px hsl(var(--color-danger-bg) / 0.4);
+  }
+
+  .auth-input-console.state-warning .auth-input-console__field {
+    border-color: hsl(var(--color-warning-border));
+  }
+  .auth-input-console.state-warning .auth-input-console__label {
+    color: hsl(var(--color-warning-text));
+  }
+
+  .auth-input-console.state-success .auth-input-console__field {
+    border-color: hsl(var(--color-success-border));
+  }
+  .auth-input-console.state-success .auth-input-console__label {
+    color: hsl(var(--color-success-text));
+  }
+}

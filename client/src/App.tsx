@@ -4,6 +4,8 @@
  * Top-level component that orchestrates bootstrap, routing, and global overlays.
  */
 
+import { lazy, Suspense } from 'react';
+
 import { Routes, Route } from 'react-router-dom';
 
 import { useAppBootstrap } from '@app/bootstrap';
@@ -11,7 +13,7 @@ import { AppDashboard } from '@app/components/layout/AppDashboard';
 import { AppErrorBoundary } from '@app/components/layout/AppErrorBoundary';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
-import { useAuthSocketSync } from '@app/hooks';
+import { useAuthSocketSync, useSplashFloor } from '@app/hooks';
 import { AppProviders } from '@app/providers/AppProviders';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
@@ -21,10 +23,22 @@ import { AuthPasswordResetPage } from '@domains/authentication/ui/components/pas
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 import { ErrorBanner } from '@shared/ui';
 
+// Minimum time the boot splash stays up so a fast bootstrap doesn't flash by.
+const SPLASH_FLOOR_MS = 1000;
+
+// Dev-only modal preview harness; the dynamic import is dead-code-eliminated from
+// production builds, so neither the route nor its component ships.
+const ModalPreviewPage = import.meta.env.DEV
+  ? lazy(() =>
+      import('@app/dev/ModalPreviewPage').then(module => ({ default: module.ModalPreviewPage }))
+    )
+  : null;
+
 function AppContent() {
   // Only App.tsx calls useAppBootstrap() — other components use BootstrapContext
   const bootstrapState = useAppBootstrap();
   const { isReady, isLoading, isError, retry } = bootstrapState;
+  const revealApp = useSplashFloor(isReady, SPLASH_FLOOR_MS);
 
   const { errors, clearErrors } = useErrorStore();
   const { isAuthenticated } = useAuthStore();
@@ -32,7 +46,7 @@ function AppContent() {
   useAuthSocketSync();
   useUserSettingsQuery({ enabled: isAuthenticated });
 
-  if (isLoading || isError) {
+  if (isLoading || isError || !revealApp) {
     return (
       <AppErrorBoundary onRetry={retry}>
         <AppLoader context={bootstrapState} onRetry={retry} />
@@ -58,6 +72,16 @@ function AppContent() {
         <Routes>
           <Route path="/verify-email" element={<AuthEmailVerificationPage />} />
           <Route path="/reset-password" element={<AuthPasswordResetPage />} />
+          {ModalPreviewPage && (
+            <Route
+              path="/__dev/modals"
+              element={
+                <Suspense fallback={null}>
+                  <ModalPreviewPage />
+                </Suspense>
+              }
+            />
+          )}
           <Route
             path="*"
             element={

@@ -4,10 +4,13 @@
  * Data access contract for tube sample records and location queries.
  */
 
+
 import type { Tube } from '@domain/entities/Tube';
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteriaTypes';
 import type { TubeRepositoryStats } from '@domain/types/repository/statsTypes';
 import type { Location } from '@domain/value-objects/Location';
+
+import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
 
 export interface TubeRepository {
 
@@ -24,6 +27,7 @@ export interface TubeRepository {
 
   findByLocation(location: Location, labId: string): Promise<Tube | null>;
   findByCompleteLocation(tankId: string, rackId: string, boxId: string, labId: string): Promise<Tube[]>;
+  findByRack(tankId: string, rackId: string, labId: string): Promise<Tube[]>;
   findByRackAndBox(rackId: string, boxId: string, labId: string): Promise<Tube[]>;
   findByTank(tankId: string, labId: string): Promise<Tube[]>;
   findByTankIds(tankIds: string[], labId: string): Promise<Tube[]>;
@@ -53,6 +57,7 @@ export interface TubeRepository {
 
   search(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]>;
   searchWithHighlighting(criteria: TubeSearchCriteria, labId: string): Promise<TubeSearchResult>;
+  getFilterOptions(labId: string, fields: TubeFilterableField[], allowedTankIds: string[]): Promise<TubeFilterOptions>;
 
   // BULK OPERATIONS
 

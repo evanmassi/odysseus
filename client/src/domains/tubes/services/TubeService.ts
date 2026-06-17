@@ -8,7 +8,6 @@ import {
   type TubeData,
   type CreateTubeRequest,
   type UpdateTubeRequest,
-  type TubeQueryFilters,
   type LockTubesRequest,
   type UnlockTubesRequest,
   type ShareTubeAccessRequest,
@@ -20,7 +19,14 @@ import {
   type BulkDeleteResponse,
   type PasteTubesResponse,
   type BulkUpdateResponse,
+  type TubeFilterableField,
+  type TubeFilterOptions,
+  type RackTube,
+  type TubeLocationCount,
   tubeDataSchema,
+  rackTubeSchema,
+  tubeLocationCountSchema,
+  tubeFilterOptionsResponseSchema,
   createTubeRequestSchema,
   updateTubeRequestSchema,
   bulkLockResultSchema,
@@ -57,22 +63,12 @@ export class TubeService {
     };
   }
 
-  static async fetchTubes(filters?: TubeQueryFilters): Promise<TubeData[]> {
-    const queryParams = filters
-      ? new URLSearchParams({
-          ...(filters.tankId && { tankId: filters.tankId }),
-          ...(filters.rackId && { rackId: filters.rackId }),
-          ...(filters.boxId && { boxId: filters.boxId }),
-          ...(filters.researcherId && { researcherId: filters.researcherId }),
-          ...(filters.cellType && { cellType: filters.cellType }),
-          ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
-          ...(filters.dateTo && { dateTo: filters.dateTo }),
-        })
-      : null;
-
-    const url = queryParams ? `${this.BASE_PATH}?${queryParams.toString()}` : this.BASE_PATH;
-
-    return await httpClient.getArray(url, tubeDataSchema);
+  static async fetchFilterOptions(fields: TubeFilterableField[]): Promise<TubeFilterOptions> {
+    const query = new URLSearchParams({ fields: fields.join(',') });
+    return await httpClient.getData(
+      `${this.BASE_PATH}/filter-options?${query.toString()}`,
+      tubeFilterOptionsResponseSchema
+    );
   }
 
   static async fetchTubeById(id: string): Promise<TubeData> {
@@ -113,6 +109,18 @@ export class TubeService {
       `${this.BASE_PATH}/location?${queryParams.toString()}`,
       tubeDataSchema
     );
+  }
+
+  static async fetchTubesByRack(tankId: string, rackId: string): Promise<RackTube[]> {
+    const queryParams = new URLSearchParams({ tankId, rackId });
+    return await httpClient.getArray(
+      `${this.BASE_PATH}/by-rack?${queryParams.toString()}`,
+      rackTubeSchema
+    );
+  }
+
+  static async fetchLocationCounts(): Promise<TubeLocationCount[]> {
+    return await httpClient.getArray(`${this.BASE_PATH}/location-counts`, tubeLocationCountSchema);
   }
 
   static async pasteTubes(tubes: CreateTubeRequest[]): Promise<PasteTubesResponse> {

@@ -18,7 +18,6 @@ import {
   Unlink2,
   UserRound,
   UserRoundCheck,
-  UsersRound,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -236,7 +235,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
             <UserBadge type="otherUser" initials={initials} username={user.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-medium text-card-foreground">
+                <span className="font-sans text-sm font-medium text-card-foreground">
                   {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
                   {user.lastName || user.firstName
                     ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
@@ -284,14 +283,16 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         <div className="whitespace-nowrap max-w-[150px]">
           {user.position ? (
             <Tooltip content={user.position} side="bottom">
-              <div className="text-sm text-card-foreground truncate">{user.position}</div>
+              <div className="font-sans text-sm text-card-foreground truncate">{user.position}</div>
             </Tooltip>
           ) : (
             <div className="text-sm text-muted-foreground">—</div>
           )}
           {user.department && (
             <Tooltip content={user.department} side="bottom">
-              <div className="text-xs text-muted-foreground truncate">{user.department}</div>
+              <div className="font-sans text-xs text-muted-foreground truncate">
+                {user.department}
+              </div>
             </Tooltip>
           )}
         </div>
@@ -312,7 +313,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                   size={14}
                   className={`shrink-0 ${isDeactivated ? 'text-muted-foreground' : 'text-success-text'}`}
                 />
-                <span>{user.researcherName ?? 'Linked'}</span>
+                <span className="font-sans">{user.researcherName ?? 'Linked'}</span>
               </div>
               {isDeactivated && (
                 <Chip size="sm" color="default" className="w-fit">
@@ -423,30 +424,31 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
-        <div className="flex items-center space-x-2">
-          <UsersRound size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-card-foreground">Users</h3>
-        </div>
-        {!readOnly && (
-          <Button variant="secondary" onClick={onUserUpdate} leftIcon={<RefreshCw size={14} />}>
-            Refresh
-          </Button>
-        )}
-      </div>
-
       <Table
         columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
         data={activeUsers}
-        size="sm"
-        variant="default"
         hoverable
-        rounded="lg"
         sortable
         sortConfig={sortConfig}
         onSort={setSortConfig}
         emptyMessage="No users found"
         aria-label="Users list"
+        toolbar={
+          readOnly
+            ? undefined
+            : {
+                right: (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={onUserUpdate}
+                    leftIcon={<RefreshCw size={14} />}
+                  >
+                    Refresh
+                  </Button>
+                ),
+              }
+        }
       />
 
       {inactiveUsers.length > 0 && (
@@ -466,9 +468,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
               <Table
                 columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
                 data={inactiveUsers}
-                size="sm"
-                variant="default"
-                rounded="lg"
                 emptyMessage=""
                 aria-label="Inactive users"
                 className="opacity-60"

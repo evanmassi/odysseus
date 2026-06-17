@@ -6,11 +6,20 @@
 
 import { generateId } from '@domain/utils/generateId';
 
+function toDateOnly(value: string | Date | null | undefined): string | undefined {
+  if (!value) return undefined;
+  if (typeof value === 'string') return value.slice(0, 10);
+  const year = value.getUTCFullYear();
+  const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(value.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export class DonorCollectionHistory {
   private constructor(
     private readonly _id: string,
     private readonly _donorId: string,
-    private readonly _collectionDate: Date | undefined,
+    private readonly _collectionDate: string | undefined,
     private readonly _specimenType: string | undefined,
     private readonly _source: string | undefined,
     private readonly _createdAt: Date
@@ -25,9 +34,7 @@ export class DonorCollectionHistory {
     return new DonorCollectionHistory(
       generateId('donorCollection'),
       data.donorId,
-      data.collectionDate
-        ? (typeof data.collectionDate === 'string' ? new Date(data.collectionDate) : data.collectionDate)
-        : undefined,
+      toDateOnly(data.collectionDate),
       data.specimenType,
       data.source,
       new Date()
@@ -45,9 +52,7 @@ export class DonorCollectionHistory {
     return new DonorCollectionHistory(
       data.id,
       data.donorId,
-      data.collectionDate
-        ? (typeof data.collectionDate === 'string' ? new Date(data.collectionDate) : data.collectionDate)
-        : undefined,
+      toDateOnly(data.collectionDate),
       data.specimenType,
       data.source,
       typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt
@@ -62,9 +67,7 @@ export class DonorCollectionHistory {
     return new DonorCollectionHistory(
       this._id,
       this._donorId,
-      data.collectionDate !== undefined
-        ? (data.collectionDate ? (typeof data.collectionDate === 'string' ? new Date(data.collectionDate) : data.collectionDate) : undefined)
-        : this._collectionDate,
+      data.collectionDate !== undefined ? toDateOnly(data.collectionDate) : this._collectionDate,
       data.specimenType !== undefined ? (data.specimenType ?? undefined) : this._specimenType,
       data.source !== undefined ? (data.source ?? undefined) : this._source,
       this._createdAt,
@@ -73,7 +76,7 @@ export class DonorCollectionHistory {
 
   get id(): string { return this._id; }
   get donorId(): string { return this._donorId; }
-  get collectionDate(): Date | undefined { return this._collectionDate ? new Date(this._collectionDate) : undefined; }
+  get collectionDate(): string | undefined { return this._collectionDate; }
   get specimenType(): string | undefined { return this._specimenType; }
   get source(): string | undefined { return this._source; }
   get createdAt(): Date { return new Date(this._createdAt); }

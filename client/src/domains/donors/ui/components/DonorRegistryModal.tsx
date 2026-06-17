@@ -19,6 +19,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { DonorEditForm } from './DonorEditForm';
 import { DonorInfoPanel } from './DonorInfoPanel';
+import { DonorInfoPanelEmpty } from './DonorInfoPanelEmpty';
 import { DonorTable } from './DonorTable';
 
 import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
@@ -130,6 +131,38 @@ export function DonorRegistryModal({
     }
   }, [isOpen]);
 
+  const accentBar = (
+    <span
+      aria-hidden
+      className="h-2.5 w-0.5 bg-primary/80 shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
+    />
+  );
+  const reviewCount = donors.filter(d => !d.isCurated).length;
+  const locator = (
+    <div className="flex items-center gap-3 font-mono">
+      <div className="flex items-center gap-2.5">
+        {accentBar}
+        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          Donors
+        </span>
+        <span className="phosphor-text text-xs text-secondary-foreground">{donors.length}</span>
+      </div>
+      <span aria-hidden className="text-muted-foreground/40">
+        ·
+      </span>
+      <div className="flex items-center gap-2.5">
+        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          Needs Review
+        </span>
+        <span
+          className={`phosphor-text text-xs ${reviewCount > 0 ? 'text-warning-text' : 'text-secondary-foreground'}`}
+        >
+          {reviewCount}
+        </span>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <BaseModal
@@ -137,6 +170,7 @@ export function DonorRegistryModal({
         title="Donor Registry"
         subtitle="Profiles & Collection History"
         icon={<BookUser />}
+        locator={locator}
         onClose={onClose}
         size="xl"
         fixedHeight
@@ -144,7 +178,7 @@ export function DonorRegistryModal({
         contentClassName="p-4 h-full"
       >
         <div className="flex gap-4 h-full min-h-0 overflow-hidden">
-          <div className="w-[60%] min-w-0 flex flex-col overflow-hidden">
+          <div className="w-[60%] min-w-0 min-h-0 flex flex-col overflow-hidden pb-4">
             <DonorTable
               donors={donors}
               selectedDonorId={selectedDonorId}
@@ -157,7 +191,7 @@ export function DonorRegistryModal({
             />
           </div>
 
-          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden pt-[42px]">
+          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden pb-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <LoadingSpinner />
@@ -180,12 +214,7 @@ export function DonorRegistryModal({
                 isAdmin={isAdmin}
               />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full">
-                <div className="w-12 h-12 mb-3 rounded-full bg-muted flex items-center justify-center">
-                  <BookUser className="w-6 h-6 text-card-foreground/30" />
-                </div>
-                <p className="text-card-foreground/40 text-sm">Select a donor to view details</p>
-              </div>
+              <DonorInfoPanelEmpty />
             )}
           </div>
         </div>

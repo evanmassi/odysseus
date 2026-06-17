@@ -15,7 +15,7 @@ import {
   Plus,
   Power,
   RefreshCw,
-  TestTube,
+  TestTubeDiagonal,
   Trash2,
 } from 'lucide-react';
 
@@ -74,13 +74,13 @@ export function ResearchersTab({
           <Chip color="info" size="sm" leftIcon={<Link />}>
             {researchers.filter(r => r.linkedUserId).length} linked to users
           </Chip>
-          <Chip color="info" size="sm" leftIcon={<TestTube />}>
+          <Chip color="info" size="sm" leftIcon={<TestTubeDiagonal />}>
             {researchers.filter(r => r.tubeCount > 0).length}{' '}
             {researchers.filter(r => r.tubeCount > 0).length === 1 ? 'researcher' : 'researchers'}{' '}
             with tubes
           </Chip>
           {tubesWithoutResearcher > 0 && (
-            <Chip color="warning" size="sm" leftIcon={<TestTube />}>
+            <Chip color="warning" size="sm" leftIcon={<TestTubeDiagonal />}>
               {tubesWithoutResearcher} {tubesWithoutResearcher === 1 ? 'tube' : 'tubes'} without
               researcher
             </Chip>
@@ -263,7 +263,7 @@ export function ResearchersTab({
               <Dna size={14} className="text-secondary-foreground" />
             </div>
             <div>
-              <div className="text-sm font-medium text-card-foreground">
+              <div className="font-sans text-sm font-medium text-card-foreground">
                 {researcher.lastName}, {researcher.firstName}
               </div>
               <div className="text-xs text-muted-foreground">{researcher.email}</div>
@@ -282,6 +282,7 @@ export function ResearchersTab({
             size="sm"
             color={researcher.tubeCount > 0 ? 'primary' : 'default'}
             className={researcher.tubeCount > 0 ? 'border border-action' : 'border border-border'}
+            numeric
           >
             {researcher.tubeCount}
           </Chip>
@@ -377,41 +378,10 @@ export function ResearchersTab({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
-        <div className="flex items-center space-x-2">
-          <Dna size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-card-foreground">Researchers</h3>
-        </div>
-        {!readOnly && (
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={loadResearchers}
-              isLoading={loading}
-              leftIcon={<RefreshCw size={14} className={loading ? 'animate-spin' : ''} />}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowAddModal(true)}
-              leftIcon={<Plus size={14} />}
-            >
-              Add Researcher
-            </Button>
-          </div>
-        )}
-      </div>
-
       <Table
         columns={readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns}
         data={activeResearchers}
-        size="sm"
-        variant="default"
         hoverable
-        rounded="lg"
         sortable
         sortConfig={sortConfig}
         onSort={setSortConfig}
@@ -419,6 +389,33 @@ export function ResearchersTab({
         emptyMessage="No researchers found"
         loadingMessage="Loading researchers..."
         aria-label="Researchers list"
+        toolbar={
+          readOnly
+            ? undefined
+            : {
+                right: (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={loadResearchers}
+                      isLoading={loading}
+                      leftIcon={<RefreshCw size={14} className={loading ? 'animate-spin' : ''} />}
+                    >
+                      Refresh
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setShowAddModal(true)}
+                      leftIcon={<Plus size={14} />}
+                    >
+                      Add Researcher
+                    </Button>
+                  </>
+                ),
+              }
+        }
       />
 
       {inactiveResearchers.length > 0 && (
@@ -440,9 +437,6 @@ export function ResearchersTab({
                   readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns
                 }
                 data={inactiveResearchers}
-                size="sm"
-                variant="default"
-                rounded="lg"
                 emptyMessage=""
                 aria-label="Inactive researchers"
                 className="opacity-60"

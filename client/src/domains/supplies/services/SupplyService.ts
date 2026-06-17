@@ -1,0 +1,394 @@
+/**
+ * Supply Data Service
+ *
+ * HTTP operations for supply categories, locations, items, documents,
+ * barcodes, stock transactions, and bulk actions.
+ */
+
+import {
+  type SupplyCategory,
+  type SupplyItemWithStock,
+  type SupplyItemDetail,
+  type SupplyItem,
+  type SupplyLocation,
+  type SupplyDocument,
+  type SupplyBarcode,
+  type SupplyTransaction,
+  type SupplyBulkResponse,
+  type CreateSupplyCategoryRequest,
+  type UpdateSupplyCategoryRequest,
+  type CreateSupplyLocationRequest,
+  type UpdateSupplyLocationRequest,
+  type CreateSupplyItemRequest,
+  type UpdateSupplyItemRequest,
+  type CreateSupplyBarcodeRequest,
+  type UpdateSupplyBarcodeRequest,
+  type CreateSupplyDocumentRequest,
+  type UpdateSupplyDocumentRequest,
+  type RecordSupplyTransactionRequest,
+  type RecordSupplyStockCountRequest,
+  type SupplyBulkReceiveRequest,
+  type SupplyBulkIssueRequest,
+  type VoidSupplyTransactionRequest,
+  type SupplyBulkVoidRequest,
+  type SupplyBulkBarcodesResponse,
+  type SupplyPackagingLevel,
+  type CreateSupplyPackagingLevelRequest,
+  supplyCategoryResponseSchema,
+  supplyCategoryListResponseSchema,
+  supplyLocationResponseSchema,
+  supplyLocationListResponseSchema,
+  supplyItemResponseSchema,
+  supplyItemListResponseSchema,
+  supplyItemDetailResponseSchema,
+  supplyDocumentResponseSchema,
+  supplyBarcodeResponseSchema,
+  supplyTransactionResponseSchema,
+  supplyTransactionListResponseSchema,
+  supplyBulkResponseSchema,
+  supplyBulkBarcodesResponseSchema,
+  supplyVoidTransactionResponseSchema,
+  supplyReorderListResponseSchema,
+  supplyPackagingLevelResponseSchema,
+  messageResponseSchema,
+} from '@odysseus/shared-schemas';
+
+import { httpClient } from '@infra/api';
+
+const BULK_BARCODES_CHUNK_SIZE = 100;
+const BULK_BARCODES_MAX_CONCURRENCY = 5;
+
+export class SupplyService {
+  private static readonly BASE_PATH = '/supplies';
+
+  // Categories
+
+  static async listCategories(): Promise<SupplyCategory[]> {
+    const response = await httpClient.getData(
+      `${this.BASE_PATH}/categories`,
+      supplyCategoryListResponseSchema
+    );
+    return response.categories;
+  }
+
+  static async createCategory(data: CreateSupplyCategoryRequest): Promise<SupplyCategory> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/categories`,
+      data,
+      supplyCategoryResponseSchema
+    );
+    return response.category;
+  }
+
+  static async updateCategory(
+    id: string,
+    data: UpdateSupplyCategoryRequest
+  ): Promise<SupplyCategory> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/categories/${id}`,
+      data,
+      supplyCategoryResponseSchema
+    );
+    return response.category;
+  }
+
+  static async deleteCategory(id: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/categories/${id}`);
+  }
+
+  // Locations
+
+  static async listLocations(): Promise<SupplyLocation[]> {
+    const response = await httpClient.getData(
+      `${this.BASE_PATH}/locations`,
+      supplyLocationListResponseSchema
+    );
+    return response.locations;
+  }
+
+  static async createLocation(data: CreateSupplyLocationRequest): Promise<SupplyLocation> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/locations`,
+      data,
+      supplyLocationResponseSchema
+    );
+    return response.location;
+  }
+
+  static async updateLocation(
+    id: string,
+    data: UpdateSupplyLocationRequest
+  ): Promise<SupplyLocation> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/locations/${id}`,
+      data,
+      supplyLocationResponseSchema
+    );
+    return response.location;
+  }
+
+  static async deleteLocation(id: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/locations/${id}`);
+  }
+
+  // Items
+
+  static async listItems(): Promise<SupplyItemWithStock[]> {
+    const response = await httpClient.getData(this.BASE_PATH, supplyItemListResponseSchema);
+    return response.items;
+  }
+
+  static async getById(id: string): Promise<SupplyItemDetail> {
+    return await httpClient.getData(`${this.BASE_PATH}/${id}`, supplyItemDetailResponseSchema);
+  }
+
+  static async createItem(data: CreateSupplyItemRequest): Promise<SupplyItem> {
+    const response = await httpClient.postData(this.BASE_PATH, data, supplyItemResponseSchema);
+    return response.item;
+  }
+
+  static async updateItem(id: string, data: UpdateSupplyItemRequest): Promise<SupplyItem> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${id}`,
+      data,
+      supplyItemResponseSchema
+    );
+    return response.item;
+  }
+
+  static async archiveItem(id: string): Promise<void> {
+    await httpClient.postData(`${this.BASE_PATH}/${id}/archive`, {}, messageResponseSchema);
+  }
+
+  static async deleteItem(id: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${id}`);
+  }
+
+  // Documents
+
+  static async addDocument(
+    itemId: string,
+    data: CreateSupplyDocumentRequest
+  ): Promise<SupplyDocument> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${itemId}/documents`,
+      data,
+      supplyDocumentResponseSchema
+    );
+    return response.document;
+  }
+
+  static async updateDocument(
+    itemId: string,
+    docId: string,
+    data: UpdateSupplyDocumentRequest
+  ): Promise<SupplyDocument> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/documents/${docId}`,
+      data,
+      supplyDocumentResponseSchema
+    );
+    return response.document;
+  }
+
+  static async removeDocument(itemId: string, docId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/documents/${docId}`);
+  }
+
+  // Barcodes
+
+  static async addBarcode(
+    itemId: string,
+    data: CreateSupplyBarcodeRequest
+  ): Promise<SupplyBarcode> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${itemId}/barcodes`,
+      data,
+      supplyBarcodeResponseSchema
+    );
+    return response.barcode;
+  }
+
+  static async updateBarcode(
+    itemId: string,
+    barcodeId: string,
+    data: UpdateSupplyBarcodeRequest
+  ): Promise<SupplyBarcode> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/barcodes/${barcodeId}`,
+      data,
+      supplyBarcodeResponseSchema
+    );
+    return response.barcode;
+  }
+
+  static async removeBarcode(itemId: string, barcodeId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/barcodes/${barcodeId}`);
+  }
+
+  // Packaging levels
+
+  static async addPackagingLevel(
+    itemId: string,
+    data: CreateSupplyPackagingLevelRequest
+  ): Promise<SupplyPackagingLevel> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${itemId}/packaging-levels`,
+      data,
+      supplyPackagingLevelResponseSchema
+    );
+    return response.packagingLevel;
+  }
+
+  static async updatePackagingLevel(
+    itemId: string,
+    levelId: string,
+    quantity: number
+  ): Promise<void> {
+    await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/packaging-levels/${levelId}`,
+      { quantity },
+      messageResponseSchema
+    );
+  }
+
+  static async regenerateInternalBarcode(itemId: string): Promise<SupplyBarcode> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${itemId}/barcodes/regenerate-internal`,
+      {},
+      supplyBarcodeResponseSchema
+    );
+    return response.barcode;
+  }
+
+  static async removePackagingLevel(itemId: string, levelId: string): Promise<void> {
+    await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/packaging-levels/${levelId}`);
+  }
+
+  /** Skips Zod validation — server may return null item for unresolved barcodes */
+  static async resolveBarcode(value: string): Promise<SupplyItem | null> {
+    const response = await httpClient.get(
+      `${this.BASE_PATH}/barcodes/resolve?value=${encodeURIComponent(value)}`,
+      { 'Cache-Control': 'no-cache' }
+    );
+    const data = response.data as { success: boolean; data: { item: SupplyItem | null } };
+    return data.data.item;
+  }
+
+  // Stock operations
+
+  static async recordTransaction(data: RecordSupplyTransactionRequest): Promise<SupplyTransaction> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/transactions`,
+      data,
+      supplyTransactionResponseSchema
+    );
+    return response.transaction;
+  }
+
+  static async recordStockCount(data: RecordSupplyStockCountRequest): Promise<SupplyTransaction> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/stock-counts`,
+      data,
+      supplyTransactionResponseSchema
+    );
+    return response.transaction;
+  }
+
+  static async getTransactionHistory(itemId: string): Promise<SupplyTransaction[]> {
+    const response = await httpClient.getData(
+      `${this.BASE_PATH}/${itemId}/transactions`,
+      supplyTransactionListResponseSchema
+    );
+    return response.transactions;
+  }
+
+  static async voidTransaction(
+    transactionId: string,
+    data: VoidSupplyTransactionRequest
+  ): Promise<{ original: SupplyTransaction; reversal: SupplyTransaction }> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/transactions/${transactionId}/void`,
+      data,
+      supplyVoidTransactionResponseSchema
+    );
+  }
+
+  // Bulk operations
+
+  static async bulkReceive(data: SupplyBulkReceiveRequest): Promise<SupplyBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/receive`,
+      data,
+      supplyBulkResponseSchema
+    );
+  }
+
+  static async bulkIssue(data: SupplyBulkIssueRequest): Promise<SupplyBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/issue`,
+      data,
+      supplyBulkResponseSchema
+    );
+  }
+
+  static async bulkReassignCategory(
+    itemIds: string[],
+    categoryId: string
+  ): Promise<SupplyBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/reassign-category`,
+      { itemIds, categoryId },
+      supplyBulkResponseSchema
+    );
+  }
+
+  static async bulkArchive(itemIds: string[]): Promise<SupplyBulkResponse> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/bulk/archive`,
+      { itemIds },
+      supplyBulkResponseSchema
+    );
+  }
+
+  static async bulkVoidTransactions(data: SupplyBulkVoidRequest): Promise<SupplyBulkResponse> {
+    return await httpClient.postData(`${this.BASE_PATH}/bulk/void`, data, supplyBulkResponseSchema);
+  }
+
+  static async bulkGetBarcodes(itemIds: string[]): Promise<SupplyBulkBarcodesResponse> {
+    if (itemIds.length === 0) return { barcodes: [] };
+
+    const uniqueIds = Array.from(new Set(itemIds));
+    const chunks: string[][] = [];
+    for (let i = 0; i < uniqueIds.length; i += BULK_BARCODES_CHUNK_SIZE) {
+      chunks.push(uniqueIds.slice(i, i + BULK_BARCODES_CHUNK_SIZE));
+    }
+
+    const barcodes: SupplyBulkBarcodesResponse['barcodes'] = [];
+    for (let i = 0; i < chunks.length; i += BULK_BARCODES_MAX_CONCURRENCY) {
+      const batch = chunks.slice(i, i + BULK_BARCODES_MAX_CONCURRENCY);
+      const responses = await Promise.all(
+        batch.map(chunk =>
+          httpClient.postData(
+            `${this.BASE_PATH}/bulk/barcodes`,
+            { itemIds: chunk },
+            supplyBulkBarcodesResponseSchema
+          )
+        )
+      );
+      for (const r of responses) barcodes.push(...r.barcodes);
+    }
+
+    return { barcodes };
+  }
+
+  // Reorder list
+
+  static async getReorderList(): Promise<SupplyItemWithStock[]> {
+    const response = await httpClient.getData(
+      `${this.BASE_PATH}/reorder-list`,
+      supplyReorderListResponseSchema
+    );
+    return response.items;
+  }
+}

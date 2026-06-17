@@ -15,6 +15,7 @@ import { TankIcon } from '@shared/ui/components/icons';
 import { useStorageManagerContext } from '../../StorageManagerContext';
 
 import { RackRow } from './RackRow';
+import { RowMeta } from './RowMeta';
 
 import type { TankConfiguration } from '@domains/storage';
 
@@ -119,14 +120,15 @@ export function TankRow({
             <div className="storage-nav-button__icon">
               <TankIcon size={18} aria-hidden="true" />
             </div>
-            <span className="storage-nav-button__text">{tank.name}</span>
-            <span className="text-xs text-muted-foreground flex items-center gap-1.5 mr-1">
-              <span>{tank.location}</span>
-              <span>•</span>
-              <span>
-                {tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}
-              </span>
-            </span>
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <span className="min-w-0 truncate">{tank.name}</span>
+              <RowMeta
+                parts={[
+                  tank.location,
+                  `${tank.racks.length} ${tank.racks.length === 1 ? 'rack' : 'racks'}`,
+                ]}
+              />
+            </div>
           </div>
           {locked && (
             <div className="flex items-center px-1.5">

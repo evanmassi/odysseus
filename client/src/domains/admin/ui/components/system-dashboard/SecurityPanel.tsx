@@ -8,23 +8,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   AlertTriangle,
-  BarChart3,
   Clock,
-  Globe,
-  HeartPulse,
-  KeyRound,
+  Fingerprint,
   LogOut,
-  MonitorCheck,
   MonitorX,
   RefreshCw,
-  Search,
-  ShieldAlert,
+  Shield,
   Trash2,
   UsersRound,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { Button, Chip, Table, DatePicker } from '@shared/ui';
+import {
+  Button,
+  Chip,
+  ConsolePanel,
+  PanelHeader,
+  SectionHeader,
+  StatCell,
+  Table,
+  DatePicker,
+  SearchInput,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -54,12 +59,21 @@ import type { SortConfig, TableColumn } from '@shared/ui';
 type IpActivityRow = IpActivityEntry & { id: string };
 type FailedLoginRow = FailedLoginEntry & { id: string };
 
+const STRONG_DENIAL_KEYWORDS = ['suspended', 'deactivated', 'denied', 'rejected'];
+
+function getReasonTone(reason: string): string {
+  const lower = reason.toLowerCase();
+  const isStrong = STRONG_DENIAL_KEYWORDS.some(kw => lower.includes(kw));
+  return isStrong ? 'phosphor-text text-danger-text-hover' : 'phosphor-text text-danger-text';
+}
+
 export function SecurityPanel() {
   const user = useAuthStore(s => s.user);
   const { data: overview, refetch: refetchOverview } = useSecurityOverviewQuery();
   const {
     data: sessionsData,
     isLoading: sessionsLoading,
+    isFetching: sessionsFetching,
     refetch: refetchSessions,
   } = useActiveSessionsQuery();
 
@@ -77,9 +91,12 @@ export function SecurityPanel() {
   const [endDate, setEndDate] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(false);
 
-  const { data: ipData } = useIpActivityQuery(startDate || undefined, endDate || undefined);
-  const { data: failedLoginsData } = useFailedLoginsQuery(50);
-  const { data: activityData } = useSessionActivityQuery(24);
+  const { data: ipData, refetch: refetchIpActivity } = useIpActivityQuery(
+    startDate || undefined,
+    endDate || undefined
+  );
+  const { data: failedLoginsData, refetch: refetchFailedLogins } = useFailedLoginsQuery(50);
+  const { data: activityData, refetch: refetchActivity } = useSessionActivityQuery(24);
 
   const purgeExpiredMutation = usePurgeExpiredSessionsMutation();
   const revokeSessionMutation = useRevokeSessionMutation();
@@ -90,7 +107,10 @@ export function SecurityPanel() {
   const doRefresh = useCallback(() => {
     void refetchOverview();
     void refetchSessions();
-  }, [refetchOverview, refetchSessions]);
+    void refetchIpActivity();
+    void refetchFailedLogins();
+    void refetchActivity();
+  }, [refetchOverview, refetchSessions, refetchIpActivity, refetchFailedLogins, refetchActivity]);
 
   useEffect(() => {
     if (autoRefresh) {
@@ -251,11 +271,15 @@ export function SecurityPanel() {
         const count = sessionCountsByUser.get(row.userId) ?? 1;
         const own = isOwnSession(row);
         return (
-          <div>
-            <div className={`font-medium ${own ? 'text-success-text' : 'text-card-foreground'}`}>
+          <div className="max-w-[260px]">
+            <div
+              className={`font-display font-medium truncate ${own ? 'text-success-text' : 'text-card-foreground'}`}
+            >
               {row.userName}
             </div>
-            <div className={`text-xs ${own ? 'text-success-text/70' : 'text-muted-foreground'}`}>
+            <div
+              className={`text-xs truncate ${own ? 'text-success-text/70' : 'text-muted-foreground'}`}
+            >
               {row.userEmail}
             </div>
             {count > 1 && (
@@ -345,6 +369,8 @@ export function SecurityPanel() {
         <Button
           variant="ghost-danger"
           size="sm"
+          iconOnly
+          aria-label="Revoke session"
           onClick={e => {
             (e as React.MouseEvent).stopPropagation();
             setRevokeTarget(row);
@@ -379,7 +405,7 @@ export function SecurityPanel() {
         <div className="flex items-center gap-2">
           <span>{row.uniqueUserCount}</span>
           {row.uniqueUserCount > 1 && (
-            <Chip color="warning" size="sm" leftIcon={<AlertTriangle size={12} />}>
+            <Chip color="warning" size="sm">
               Multiple users
             </Chip>
           )}
@@ -398,6 +424,8 @@ export function SecurityPanel() {
           <Button
             variant="ghost-danger"
             size="sm"
+            iconOnly
+            aria-label="Revoke all sessions from this IP"
             onClick={e => {
               (e as React.MouseEvent).stopPropagation();
               setBulkRevokeIp(row.ipAddress);
@@ -414,7 +442,7 @@ export function SecurityPanel() {
     {
       id: 'username',
       header: 'Username',
-      accessor: 'username',
+      render: (_val, row) => <span className="font-display">{row.username}</span>,
     },
     {
       id: 'ipAddress',
@@ -424,7 +452,9 @@ export function SecurityPanel() {
     {
       id: 'reason',
       header: 'Reason',
-      render: (_val, row) => <span className="text-xs">{row.reason}</span>,
+      render: (_val, row) => (
+        <span className={`text-xs ${getReasonTone(row.reason)}`}>{row.reason}</span>
+      ),
     },
     {
       id: 'timestamp',
@@ -447,152 +477,187 @@ export function SecurityPanel() {
   const sessionOverview = overview?.sessionOverview;
   const tokenHealth = overview?.tokenHealth;
 
+  const failedLoginsCount = failedLoginsData?.entries?.length ?? 0;
+  const expiredAwaitingCleanup = sessionOverview?.expiredAwaitingCleanup ?? 0;
+
   return (
-    <div className="space-y-4">
-      <SecuritySettings />
+    <div className="space-y-8">
+      <PanelHeader
+        title="Security"
+        icon={<Shield size={14} />}
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={doRefresh}
+            disabled={sessionsLoading}
+            leftIcon={<RefreshCw size={14} className={sessionsFetching ? 'animate-spin' : ''} />}
+          >
+            Refresh
+          </Button>
+        }
+      />
 
-      <div>
-        <div className="h-px bg-muted-foreground/60" />
-      </div>
-
-      {/* Overview */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <HeartPulse size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Session & Token Health</h3>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-3 space-y-2 w-fit">
-          <div className="flex flex-wrap items-center gap-2">
-            <Chip color="info" size="sm" leftIcon={<UsersRound />}>
-              {sessionOverview?.activeSessions ?? 0} active{' '}
-              {(sessionOverview?.activeSessions ?? 0) === 1 ? 'session' : 'sessions'}
-            </Chip>
-            <Chip
-              color={(sessionOverview?.expiredAwaitingCleanup ?? 0) > 0 ? 'warning' : 'success'}
-              size="sm"
-              leftIcon={<Clock />}
-            >
-              {sessionOverview?.expiredAwaitingCleanup ?? 0} expired awaiting cleanup
-            </Chip>
-            <Chip color="info" size="sm" leftIcon={<Clock />}>
-              {sessionOverview?.avgSessionDurationMinutes ?? 0} min avg duration
-            </Chip>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Chip color="info" size="sm" leftIcon={<KeyRound />}>
-              {tokenHealth?.activeTokens ?? 0} active tokens
-            </Chip>
-            <Chip color="default" size="sm" leftIcon={<Clock />}>
-              {tokenHealth?.expiredTokens ?? 0} expired
-            </Chip>
-            <Chip color="default" size="sm" leftIcon={<MonitorX />}>
-              {tokenHealth?.revokedTokens ?? 0} revoked
-            </Chip>
-            <Chip color="info" size="sm" leftIcon={<KeyRound />}>
-              {tokenHealth?.avgLifespanDays ?? 0}d avg lifespan
-            </Chip>
-          </div>
-        </div>
-
-        {(sessionOverview?.expiredAwaitingCleanup ?? 0) > 0 && (
-          <div className="mt-3">
+      <ConsolePanel>
+        {expiredAwaitingCleanup > 0 && (
+          <div
+            className="relative flex items-center gap-3 border-b border-line-soft px-4 py-1.5"
+            style={{
+              background:
+                'radial-gradient(80% 200% at -8% 50%, hsl(var(--color-warning-text) / 0.14) 0%, hsl(var(--color-warning-text) / 0.04) 35%, transparent 70%), hsl(var(--color-warning-text) / 0.05)',
+            }}
+          >
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 bottom-0 w-[2px]"
+              style={{
+                background: 'hsl(var(--color-warning-text))',
+                boxShadow:
+                  '0 0 5px 0 hsl(var(--color-warning-text) / 0.45), 0 0 12px -2px hsl(var(--color-warning-text) / 0.25)',
+              }}
+            />
+            <div className="flex items-center gap-2.5">
+              <span className="flex shrink-0 items-center gap-2 font-mono text-[10px] tracking-[0.24em] text-warning-text uppercase">
+                <AlertTriangle size={12} />
+                Cleanup
+              </span>
+              <span aria-hidden className="h-3.5 w-px bg-warning-text/30" />
+              <span className="font-display text-[12px] text-foreground/75">
+                <span className="phosphor-text font-medium text-warning-text">
+                  {expiredAwaitingCleanup} expired{' '}
+                  {expiredAwaitingCleanup === 1 ? 'session' : 'sessions'}
+                </span>{' '}
+                awaiting cleanup
+              </span>
+            </div>
             <Button
-              variant="ghost-danger"
-              size="sm"
+              variant="danger"
+              size="xs"
               onClick={() => setShowPurgeConfirm(true)}
-              leftIcon={<Trash2 size={14} />}
+              leftIcon={<Trash2 size={12} />}
+              className="ml-auto"
             >
               Purge Expired Sessions
             </Button>
           </div>
         )}
-      </div>
-
-      <div>
-        <div className="h-px bg-muted-foreground/60" />
-      </div>
-
-      {/* Session Activity */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <BarChart3 size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Login Activity (24h)</h3>
+        <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
+          <StatCell
+            size="sm"
+            label="Active Sessions"
+            value={sessionOverview?.activeSessions ?? 0}
+            icon={<UsersRound size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Active Tokens"
+            value={tokenHealth?.activeTokens ?? 0}
+            icon={<Fingerprint size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Cleanup"
+            value={expiredAwaitingCleanup}
+            icon={<Trash2 size={11} />}
+            tone={expiredAwaitingCleanup > 0 ? 'warning' : 'success'}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Revoked Tokens"
+            value={tokenHealth?.revokedTokens ?? 0}
+            icon={<MonitorX size={11} />}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Failed Logins"
+            value={failedLoginsCount}
+            footer="last 7d"
+            icon={<AlertTriangle size={11} />}
+            tone={failedLoginsCount > 0 ? 'warning' : 'success'}
+            className="flex-1"
+          />
+          <StatCell
+            size="sm"
+            label="Avg Session"
+            value={sessionOverview?.avgSessionDurationMinutes ?? 0}
+            unit="min"
+            icon={<Clock size={11} />}
+            className="flex-1"
+          />
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <div className="flex items-end gap-1 h-32">
-            {activityBars.map(bar => (
-              <Tooltip
-                key={bar.hour}
-                content={`${bar.label}: ${bar.count} login${bar.count !== 1 ? 's' : ''}`}
-                side="top"
-              >
-                <div className="flex-1 flex flex-col justify-end h-full">
-                  <div
-                    className="bg-action rounded-t transition-all duration-200 hover:bg-action/80"
-                    style={{
-                      height: `${Math.max((bar.count / maxActivityCount) * 100, 2)}%`,
-                      minHeight: bar.count > 0 ? '4px' : '2px',
-                    }}
-                  />
-                </div>
-              </Tooltip>
-            ))}
-          </div>
-          <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
-            <span>{activityBars[0]?.label}</span>
-            <span>{activityBars[activityBars.length - 1]?.label}</span>
-          </div>
-        </div>
-      </div>
+      </ConsolePanel>
+
+      <SecuritySettings />
 
       <div>
-        <div className="h-px bg-muted-foreground/60" />
-      </div>
+        <SectionHeader title="Login Activity" meta="last 24h" />
+        <div className="relative px-4 py-4">
+          <span className="absolute right-4 top-4 font-mono text-[9px] uppercase tracking-[0.18em] text-foreground/40">
+            peak {maxActivityCount}
+          </span>
 
-      {/* Active Sessions */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <MonitorCheck size={18} className="text-muted-foreground" />
-            <h3 className="text-lg font-semibold text-card-foreground">Active Sessions</h3>
-            <Button
-              variant={autoRefresh ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setAutoRefresh(prev => !prev)}
-            >
-              <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
-            </Button>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Filter by name, email, or IP..."
-              value={filterText}
-              onChange={e => setFilterText(e.target.value)}
-              className="input-search w-64 pl-8"
+          <div className="relative h-24">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-primary/[0.06] to-transparent"
             />
+            <span aria-hidden className="absolute inset-x-0 top-1/4 h-px bg-foreground/[0.05]" />
+            <span aria-hidden className="absolute inset-x-0 top-1/2 h-px bg-foreground/[0.05]" />
+            <span aria-hidden className="absolute inset-x-0 top-3/4 h-px bg-foreground/[0.05]" />
+
+            <div className="relative flex h-full items-end gap-px">
+              {activityBars.map(bar => {
+                const ratio = bar.count / maxActivityCount;
+                const isHigh = ratio >= 0.75;
+                const isPeak = bar.count === maxActivityCount && bar.count > 0;
+                const tooltip = `${bar.label}: ${bar.count} login${bar.count !== 1 ? 's' : ''}`;
+
+                if (bar.count === 0) {
+                  return (
+                    <Tooltip key={bar.hour} content={tooltip} side="top">
+                      <div className="flex h-full flex-1 flex-col justify-end">
+                        <div className="h-px w-full bg-foreground/15" />
+                      </div>
+                    </Tooltip>
+                  );
+                }
+
+                const toneClasses = isHigh
+                  ? `bg-warning-bg ${isPeak ? 'shadow-[0_0_8px_hsl(var(--color-warning-bg)/0.5)] hover:shadow-[0_0_14px_hsl(var(--color-warning-bg)/0.75)]' : 'shadow-[0_0_4px_hsl(var(--color-warning-bg)/0.3)] hover:shadow-[0_0_10px_hsl(var(--color-warning-bg)/0.6)]'}`
+                  : 'bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_10px_hsl(var(--primary)/0.6)]';
+
+                return (
+                  <Tooltip key={bar.hour} content={tooltip} side="top">
+                    <div className="flex h-full flex-1 flex-col justify-end">
+                      <div
+                        className={`bg-scanlines cursor-pointer transition-[filter,box-shadow] duration-150 hover:brightness-125 ${toneClasses}`}
+                        style={{ height: `${ratio * 100}%` }}
+                      />
+                    </div>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-0 h-px bg-foreground/15" />
+
+          <div className="relative mt-1.5 h-3 font-mono text-[9px] uppercase tracking-[0.1em] text-foreground/40">
+            <span className="absolute left-0">{activityBars[0]?.label}</span>
+            <span className="absolute left-1/4 -translate-x-1/2">{activityBars[6]?.label}</span>
+            <span className="absolute left-1/2 -translate-x-1/2">{activityBars[12]?.label}</span>
+            <span className="absolute left-3/4 -translate-x-1/2">{activityBars[18]?.label}</span>
+            <span className="absolute right-0">{activityBars[23]?.label}</span>
           </div>
         </div>
+      </div>
 
-        {selectedSessionIds.length > 0 && (
-          <div className="flex items-center gap-2 mb-2">
-            <Button
-              variant="ghost-danger"
-              size="sm"
-              onClick={() => setShowBulkRevokeConfirm(true)}
-              leftIcon={<LogOut size={14} />}
-            >
-              Revoke Selected ({selectedSessionIds.length})
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedSessionIds([])}>
-              Clear Selection
-            </Button>
-          </div>
-        )}
-
+      <div>
+        <SectionHeader title="Active Sessions" meta={`${sortedSessions.length} active`} />
         <Table<ActiveSessionEntry>
           columns={sessionColumns}
           data={sortedSessions}
@@ -605,87 +670,119 @@ export function SecurityPanel() {
           onSort={setSessionSortConfig}
           loading={sessionsLoading}
           hoverable
-          size="sm"
-          rounded="lg"
           emptyMessage={filterText ? 'No sessions match your filter' : 'No active sessions'}
           aria-label="Active sessions"
-          rowClassName={row =>
-            isOwnSession(row)
-              ? 'bg-success-light text-success-text [&>td:first-child]:border-l-4 [&>td:first-child]:border-l-success-bg'
-              : ''
-          }
+          rowState={row => (isOwnSession(row) ? 'success' : 'default')}
+          selectedRowGlow
+          toolbar={{
+            left: (
+              <>
+                <SearchInput
+                  value={filterText}
+                  onChange={setFilterText}
+                  placeholder="Name, email, or IP…"
+                  size="sm"
+                  className="w-64"
+                  aria-label="Filter sessions"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  iconOnly
+                  onClick={() => setAutoRefresh(prev => !prev)}
+                  aria-label="Toggle auto-refresh"
+                  aria-pressed={autoRefresh}
+                  className={autoRefresh ? 'text-primary' : ''}
+                >
+                  <RefreshCw size={14} className={autoRefresh ? 'animate-spin' : ''} />
+                </Button>
+              </>
+            ),
+            right: (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedSessionIds([])}
+                  disabled={selectedSessionIds.length === 0}
+                >
+                  Clear Selection
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => setShowBulkRevokeConfirm(true)}
+                  leftIcon={<LogOut size={14} />}
+                  disabled={selectedSessionIds.length === 0}
+                >
+                  Revoke Selected
+                  {selectedSessionIds.length > 0 ? ` (${selectedSessionIds.length})` : ''}
+                </Button>
+              </>
+            ),
+          }}
         />
       </div>
 
       <div>
-        <div className="h-px bg-muted-foreground/60" />
-      </div>
-
-      {/* IP Activity */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Globe size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">IP Activity</h3>
-        </div>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">From</span>
-            <DatePicker
-              value={startDate}
-              onChange={v => setStartDate(v)}
-              size="sm"
-              clearable
-              className="w-40"
-              aria-label="Start date"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">To</span>
-            <DatePicker
-              value={endDate}
-              onChange={v => setEndDate(v)}
-              size="sm"
-              clearable
-              className="w-40"
-              aria-label="End date"
-            />
-          </div>
-          {(startDate || endDate) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setStartDate('');
-                setEndDate('');
-              }}
-            >
-              Clear
-            </Button>
-          )}
-        </div>
-
+        <SectionHeader
+          title="IP Activity"
+          meta={`${ipData?.entries?.length ?? 0} unique addresses`}
+        />
         <Table<IpActivityRow>
           columns={ipColumns}
           data={(ipData?.entries ?? []).map(e => ({ ...e, id: e.ipAddress }))}
           hoverable
-          size="sm"
-          rounded="lg"
           emptyMessage="No IP activity data"
           aria-label="IP activity"
+          toolbar={{
+            left: (
+              <>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
+                  From
+                </span>
+                <DatePicker
+                  value={startDate}
+                  onChange={v => setStartDate(v)}
+                  size="sm"
+                  clearable
+                  className="w-40"
+                  aria-label="Start date"
+                />
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
+                  To
+                </span>
+                <DatePicker
+                  value={endDate}
+                  onChange={v => setEndDate(v)}
+                  size="sm"
+                  clearable
+                  className="w-40"
+                  aria-label="End date"
+                />
+                {(startDate || endDate) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setStartDate('');
+                      setEndDate('');
+                    }}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </>
+            ),
+          }}
         />
       </div>
 
       <div>
-        <div className="h-px bg-muted-foreground/60" />
-      </div>
-
-      {/* Failed Login Attempts */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <ShieldAlert size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Failed Login Attempts</h3>
-        </div>
-
+        <SectionHeader
+          title="Failed Login Attempts"
+          meta={`${failedLoginsCount} ${failedLoginsCount === 1 ? 'event' : 'events'} · last 7d`}
+        />
         <Table<FailedLoginRow>
           columns={failedLoginColumns}
           data={(failedLoginsData?.entries ?? []).map((e, i) => ({
@@ -693,8 +790,6 @@ export function SecurityPanel() {
             id: `${e.username}-${e.timestamp}-${i}`,
           }))}
           hoverable
-          size="sm"
-          rounded="lg"
           emptyMessage="No failed login attempts"
           aria-label="Failed login attempts"
         />

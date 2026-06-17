@@ -13,6 +13,7 @@ export function MenuItem({
   label,
   onClick,
   danger = false,
+  warning = false,
   disabled = false,
   shortcut,
   isActive = false,
@@ -42,15 +43,17 @@ export function MenuItem({
       onMouseEnter={handleMouseEnter}
       disabled={disabled}
       className={`
-        w-full flex items-center justify-between py-2 px-3 rounded-md text-sm
+        group relative z-10 w-full flex items-center justify-between py-2 px-3 font-mono text-[12px] tracking-[0.04em]
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
         ${
           isActive
-            ? 'bg-accent text-accent-foreground font-medium'
+            ? 'bg-primary/[0.08] text-foreground font-medium'
             : danger
-              ? 'text-danger-text hover:bg-danger-light'
-              : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'
+              ? 'text-danger-text hover:bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-danger-bg)/0.18),hsl(var(--color-danger-bg)/0.11)_55%,transparent_100%)] hover:shadow-[inset_2px_0_0_hsl(var(--color-danger-bg)/0.65)]'
+              : warning
+                ? 'text-warning-text hover:bg-warning-light'
+                : 'text-foreground hover:bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.12)_0,rgba(0,0,0,0.12)_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)] hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)]'
         }
       `}
     >
@@ -59,13 +62,15 @@ export function MenuItem({
           <span className={isAnimating ? 'animate-icon-pop' : ''}>
             <Icon
               size={16}
-              className={
+              className={`transition-colors ${
                 isActive
-                  ? 'text-accent-foreground'
+                  ? 'text-foreground'
                   : danger
                     ? 'text-danger-text'
-                    : 'text-muted-foreground'
-              }
+                    : warning
+                      ? 'text-warning-text'
+                      : 'text-muted-foreground group-hover:text-foreground'
+              }`}
             />
           </span>
         )}
@@ -73,7 +78,7 @@ export function MenuItem({
       </div>
       {shortcut && (
         <span
-          className={`text-xs font-mono ml-4 ${danger ? 'text-danger-text' : 'text-muted-foreground'}`}
+          className={`ml-4 font-mono text-xs ${danger ? 'text-danger-text/80' : 'text-muted-foreground/70'}`}
         >
           {shortcut}
         </span>

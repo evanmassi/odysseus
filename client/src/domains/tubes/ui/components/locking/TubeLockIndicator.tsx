@@ -1,7 +1,7 @@
 /**
  * Lock Indicator
  *
- * Bottom-left icon for locked tubes with luminance-adaptive coloring.
+ * Luminance-adaptive lock glyph for locked tubes. Positioning is the caller's job.
  */
 
 import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
@@ -40,13 +40,11 @@ export function TubeLockIndicator({
     variant === 'shared' ? ShieldCheck : variant === 'admin-override' ? ShieldUser : Lock;
 
   return (
-    <div className={`absolute bottom-0.5 left-0.5 z-[2] ${className}`}>
-      <IconComponent
-        size={size}
-        style={{ color: iconColor }}
-        className="drop-shadow-sm"
-        strokeWidth={2.5}
-      />
-    </div>
+    <IconComponent
+      size={size}
+      style={{ color: iconColor }}
+      className={`drop-shadow-sm ${className}`}
+      strokeWidth={2.5}
+    />
   );
 }

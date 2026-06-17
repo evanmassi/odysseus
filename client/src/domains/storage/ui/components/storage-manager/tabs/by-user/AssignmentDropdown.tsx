@@ -1,12 +1,14 @@
 /**
  * Assignment Dropdown
  *
- * User selection dropdown for assigning storage resources, with inherited/common state support.
+ * Compact owner field for assigning storage resources — inherit / common / user,
+ * with an ownership badge per option and an ownership-tinted trigger value.
  */
 
 import { useMemo, useCallback } from 'react';
 
 import { Select, type SelectOption } from '@shared/ui';
+import { UserBadge, type UserBadgeType } from '@shared/ui/components/badges';
 
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
@@ -17,7 +19,8 @@ interface AssignmentDropdownProps {
   value: string | null | undefined;
   users: UserDisplayInfo[];
   onChange: (userId: string | null | undefined) => void;
-  size: 'sm' | 'md';
+  /** Current user id — types each option's badge and tints the trigger (you vs other). */
+  currentUserId?: string;
   /** Show "Unassigned/Common" option - only for boxes that can be made common */
   showCommonOption?: boolean;
   /** User ID inherited from parent (e.g., rack owner) - shown in italics when value is undefined */
@@ -25,43 +28,42 @@ interface AssignmentDropdownProps {
 }
 
 interface AssignmentOption extends SelectOption {
-  firstName?: string;
-  lastName?: string;
-  username?: string;
-  isCommon?: boolean;
+  initials?: string;
+  badgeType: UserBadgeType;
 }
 
-const COMMON_OPTION: AssignmentOption = {
-  value: COMMON_VALUE,
-  label: 'Unassigned/Common',
-  isCommon: true,
-};
+function getInitials(user: UserDisplayInfo): string {
+  const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
+  return initials || user.username.slice(0, 2).toUpperCase();
+}
 
 export function AssignmentDropdown({
   value,
   users,
   onChange,
-  size,
+  currentUserId,
   showCommonOption = false,
   parentUserId,
 }: AssignmentDropdownProps) {
   const userOptions = useMemo(
     (): AssignmentOption[] =>
-      users.map(u => {
-        const label = u.firstName && u.lastName ? `${u.lastName}, ${u.firstName}` : u.username;
-        return {
-          value: u.id,
-          label,
-          firstName: u.firstName,
-          lastName: u.lastName,
-          username: u.username,
-        };
-      }),
-    [users]
+      users.map(u => ({
+        value: u.id,
+        label: u.firstName && u.lastName ? `${u.lastName}, ${u.firstName}` : u.username,
+        initials: getInitials(u),
+        badgeType: u.id === currentUserId ? 'currentUser' : 'otherUser',
+      })),
+    [users, currentUserId]
   );
 
   const options = useMemo(
-    (): AssignmentOption[] => (showCommonOption ? [COMMON_OPTION, ...userOptions] : userOptions),
+    (): AssignmentOption[] =>
+      showCommonOption
+        ? [
+            { value: COMMON_VALUE, label: 'Unassigned/Common', badgeType: 'unassigned' },
+            ...userOptions,
+          ]
+        : userOptions,
     [userOptions, showCommonOption]
   );
 
@@ -98,22 +100,18 @@ export function AssignmentDropdown({
 
   const renderOption = useCallback(
     (option: SelectOption) => {
-      const fullOption = optionMap.get(String(option.value));
-      if (!fullOption) return option.label;
-
-      if (fullOption.isCommon) {
-        return <span className="italic text-secondary-foreground">{fullOption.label}</span>;
-      }
-
-      if (fullOption.firstName && fullOption.lastName) {
-        return (
-          <span className="font-semibold">
-            {fullOption.lastName}, {fullOption.firstName}
+      const full = optionMap.get(String(option.value));
+      if (!full) return option.label;
+      return (
+        <span className="flex items-center gap-2">
+          <UserBadge type={full.badgeType} initials={full.initials} size="sm" />
+          <span
+            className={full.badgeType === 'unassigned' ? 'italic text-secondary-foreground' : ''}
+          >
+            {full.label}
           </span>
-        );
-      }
-
-      return <span>{fullOption.username}</span>;
+        </span>
+      );
     },
     [optionMap]
   );
@@ -121,41 +119,32 @@ export function AssignmentDropdown({
   const renderValue = useCallback(
     (selectedOptions: SelectOption[]) => {
       if (selectedOptions.length === 0) return null;
+      const full = optionMap.get(String(selectedOptions[0].value));
+      if (!full) return selectedOptions[0].label;
 
-      const option = selectedOptions[0];
-      const fullOption = optionMap.get(String(option.value));
-      if (!fullOption) return option.label;
-
-      const wrapperClass = isInherited ? 'italic' : '';
-
-      if (fullOption.isCommon) {
-        return <span className="italic text-secondary-foreground">{fullOption.label}</span>;
+      if (full.badgeType === 'unassigned') {
+        return <span className="truncate italic text-secondary-foreground">{full.label}</span>;
       }
-
-      if (fullOption.firstName && fullOption.lastName) {
-        return (
-          <span className={`${wrapperClass} ${isInherited ? '' : 'font-semibold'}`}>
-            {fullOption.lastName}, {fullOption.firstName}
-          </span>
-        );
-      }
-
-      return <span className={wrapperClass}>{fullOption.username}</span>;
+      const ownTint =
+        full.badgeType === 'currentUser' && !isInherited ? 'text-ownership-user-badge' : '';
+      return (
+        <span className={`truncate ${isInherited ? 'italic text-muted-foreground' : ownTint}`}>
+          {full.label}
+        </span>
+      );
     },
     [optionMap, isInherited]
   );
 
-  const widthClass = size === 'sm' ? 'w-36' : 'w-40';
-
   return (
-    <div className={`${widthClass} flex-shrink-0`}>
+    <div className="w-36 flex-shrink-0">
       <Select
         value={selectedValue}
         onChange={handleChange}
         options={options}
         clearable
-        placeholder="Assign..."
-        size={size}
+        placeholder="Assign…"
+        size="xs"
         fullWidth
         renderOption={renderOption}
         renderValue={renderValue}

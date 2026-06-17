@@ -98,16 +98,4 @@
   [data-theme='dark'] .btn-icon-action {
     @apply bg-action/70 hover:bg-action-hover/70;
   }
-
-  [data-theme='dark'] .btn-variant-primary {
-    @apply bg-action/70 border-action/70;
-  }
-
-  [data-theme='dark'] .btn-variant-primary:hover {
-    @apply bg-action-hover/70 border-action-hover/70;
-  }
-
-  [data-theme='dark'] .btn-variant-primary:active {
-    @apply bg-action-hover/70;
-  }
 }

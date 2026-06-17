@@ -9,47 +9,65 @@ import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } fr
 import { cva } from 'class-variance-authority';
 import { createPortal } from 'react-dom';
 
+import { ScrollArea } from '../scroll-area/ScrollArea';
+
 import { defaultSelectProps } from './types';
 
 import type { SelectOption, SelectProps, SelectRef } from './types';
 
+const TRIGGER_FOCUS_SHADOW =
+  'shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+const POPUP_SHADOW =
+  'shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_0_24px_-4px_hsl(var(--primary)/0.30)]';
+
+const ICON_BUTTON =
+  'p-0.5 text-secondary-foreground transition-colors hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)] focus:outline-none focus-visible:text-foreground focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]';
+
 const selectVariants = cva(
   [
-    // Base styles - rounded-lg matches input-field class
     'relative w-full cursor-pointer',
-    'bg-card border rounded-lg',
-    'transition-all duration-200',
+    'bg-[hsl(var(--input-well))] border',
+    'transition-[border-color,background,box-shadow] duration-200',
     'disabled:opacity-50 disabled:cursor-not-allowed',
+    'focus-visible:outline-none',
   ],
   {
     variants: {
-      variant: {
-        default: 'border-border hover:border-muted-foreground',
-        filled: 'bg-muted border-transparent hover:bg-accent',
-        outlined: 'border-2 border-border hover:border-muted-foreground',
-      },
       size: {
-        xs: 'h-7 px-2 text-xs', // 28px
-        sm: 'h-8 px-3 text-sm', // 32px
-        md: 'h-9 px-3 text-sm', // 36px - matches input-field pattern
-        lg: 'h-12 px-4 text-base', // 48px
+        xs: 'h-7 px-2 text-xs',
+        sm: 'h-8 px-3 text-sm',
+        md: 'h-9 px-3 text-sm',
+        lg: 'h-12 px-4 text-base',
       },
       isOpen: {
-        true: 'ring-2 ring-ring border-ring',
+        true: `border-primary/70 bg-primary/[0.04] ${TRIGGER_FOCUS_SHADOW}`,
         false: '',
       },
       state: {
-        default: '',
-        error: 'border-2 border-danger-border',
-        warning: 'border-2 border-warning-border',
-        success: 'border-2 border-success-border',
+        default: 'border-line-faint',
+        error: 'border-danger-border',
+        warning: 'border-warning-border',
+        success: 'border-success-border',
+      },
+      disabled: {
+        true: '',
+        false: '',
       },
     },
+    compoundVariants: [
+      { isOpen: true, state: 'default', class: 'border-primary/70' },
+      {
+        isOpen: false,
+        state: 'default',
+        disabled: false,
+        class: 'hover:border-foreground/30',
+      },
+    ],
     defaultVariants: {
-      variant: 'outlined',
       size: 'md',
       isOpen: false,
       state: 'default',
+      disabled: false,
     },
   }
 );
@@ -57,9 +75,10 @@ const selectVariants = cva(
 const dropdownVariants = cva(
   [
     'fixed z-[9999]',
-    'bg-card border border-border rounded-lg shadow-lg',
-    'max-h-60 overflow-auto',
+    'bg-card border border-line-mid',
+    'overflow-hidden flex flex-col',
     'py-1',
+    POPUP_SHADOW,
   ],
   {
     variants: {
@@ -79,12 +98,12 @@ const optionVariants = cva(
   {
     variants: {
       isSelected: {
-        true: 'bg-accent text-accent-foreground',
+        true: 'bg-primary/15 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.55)]',
         false: 'text-foreground',
       },
       isHighlighted: {
-        true: 'bg-muted',
-        false: 'hover:bg-muted',
+        true: 'bg-foreground/5',
+        false: 'hover:bg-foreground/5',
       },
       isDisabled: {
         true: 'opacity-50 cursor-not-allowed',
@@ -110,7 +129,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       clearable = defaultSelectProps.clearable,
       disabled = defaultSelectProps.disabled,
       isLoading = defaultSelectProps.isLoading,
-      variant = defaultSelectProps.variant,
       size = defaultSelectProps.size,
       state = defaultSelectProps.state,
       placeholder = defaultSelectProps.placeholder,
@@ -168,7 +186,12 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     const typeaheadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Dropdown position state for portal
-    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+    const [dropdownPosition, setDropdownPosition] = useState({
+      top: 0,
+      left: 0,
+      width: 0,
+      openUpward: false,
+    });
 
     // IDs
     const id = useId();
@@ -357,12 +380,16 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     const updateDropdownPosition = useCallback(() => {
       if (!selectRef.current) return;
       const rect = selectRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropdownHeight = maxHeight ?? 240;
+      const openUpward = spaceBelow < dropdownHeight + 8 && rect.top > spaceBelow;
       setDropdownPosition({
-        top: rect.bottom + 4, // 4px gap below trigger
+        top: openUpward ? rect.top - 4 : rect.bottom + 4,
         left: rect.left,
         width: rect.width,
+        openUpward,
       });
-    }, []);
+    }, [maxHeight]);
 
     // Update position when dropdown opens and on scroll/resize
     useEffect(() => {
@@ -409,10 +436,10 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     // Generate classes
     const wrapperClasses = fullWidth ? 'relative w-full' : 'relative';
     const selectClasses = selectVariants({
-      variant,
       size,
       isOpen,
       state: currentState,
+      disabled,
       className,
     });
 
@@ -425,14 +452,14 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       }
 
       if (selectedOptions.length === 0) {
-        return <span className="text-muted-foreground opacity-40">{placeholder}</span>;
+        return <span className="text-foreground/40">{placeholder}</span>;
       }
 
       // Treat empty-value options as placeholders (e.g., { value: '', label: 'Select...' })
       const firstOption = selectedOptions[0];
       const isEmptyValueOption = firstOption.value === '' || firstOption.value === null;
       if (isEmptyValueOption && !multiple) {
-        return <span className="text-muted-foreground opacity-40">{firstOption.label}</span>;
+        return <span className="text-foreground/40">{firstOption.label}</span>;
       }
 
       // Use custom renderValue if provided
@@ -467,7 +494,9 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         {label && (
           <label
             id={labelId}
-            className="block text-sm font-medium text-secondary-foreground mb-1.5"
+            className={`block font-medium text-secondary-foreground ${
+              size === 'xs' ? 'text-xs mb-0.5' : 'text-sm mb-1.5'
+            }`}
           >
             {label}
           </label>
@@ -505,17 +534,17 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="p-1 hover:bg-accent rounded"
+                  className={ICON_BUTTON}
                   aria-label="Clear selection"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z" />
                   </svg>
                 </button>
               )}
 
               <svg
-                className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-secondary-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
@@ -533,105 +562,108 @@ export const Select = forwardRef<SelectRef, SelectProps>(
             role="presentation"
             onMouseDown={e => e.stopPropagation()}
             style={{
-              top: dropdownPosition.top,
-              left: dropdownPosition.left,
+              ...(dropdownPosition.openUpward
+                ? { bottom: window.innerHeight - dropdownPosition.top, left: dropdownPosition.left }
+                : { top: dropdownPosition.top, left: dropdownPosition.left }),
               minWidth: dropdownPosition.width,
               maxHeight,
             }}
           >
             {searchable && isOpen && (
-              <div className="px-3 py-2 border-b border-border">
+              <div className="px-3 py-2 border-b border-line-faint">
                 <input
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search options..."
-                  className="w-full px-2 py-1 text-sm border border-border rounded bg-background text-foreground placeholder:text-muted-foreground placeholder:opacity-40 focus:outline-none focus:ring-1 focus:ring-ring"
+                  className="w-full px-2 py-1 text-sm font-mono tracking-[0.04em] bg-foreground/[0.02] border border-line-faint text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]"
                 />
               </div>
             )}
 
-            <div
-              ref={optionsRef}
-              role="listbox"
-              id={listboxId}
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty label should fallback to 'Select'
-              aria-label={`${label || 'Select'} options`}
-            >
-              {filteredOptions.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-muted-foreground">No options found</div>
-              ) : (
-                filteredOptions.map((option, index) => {
-                  const isSelected = selectedOptions.some(
-                    selected => selected.value === option.value
-                  );
-                  const isHighlighted = index === highlightedIndex;
+            <ScrollArea className="flex-1 min-h-0">
+              <div
+                ref={optionsRef}
+                role="listbox"
+                id={listboxId}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty label should fallback to 'Select'
+                aria-label={`${label || 'Select'} options`}
+              >
+                {filteredOptions.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-foreground/40">No options found</div>
+                ) : (
+                  filteredOptions.map((option, index) => {
+                    const isSelected = selectedOptions.some(
+                      selected => selected.value === option.value
+                    );
+                    const isHighlighted = index === highlightedIndex;
 
-                  return (
-                    <div
-                      key={option.value}
-                      className={optionVariants({
-                        isSelected,
-                        isHighlighted,
-                        isDisabled: option.disabled,
-                      })}
-                      onClick={() => handleOptionSelect(option)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleOptionSelect(option);
-                        }
-                      }}
-                      role="option"
-                      aria-selected={isSelected}
-                      aria-disabled={option.disabled}
-                      tabIndex={isHighlighted ? 0 : -1}
-                    >
-                      {renderOption ? (
-                        // Custom option rendering
-                        renderOption(option, { isSelected, isHighlighted })
-                      ) : (
-                        // Default option rendering
-                        <>
-                          {multiple && (
-                            <div className="flex items-center">
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                readOnly
-                                className="mr-2"
-                              />
-                            </div>
-                          )}
-
-                          {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
-
-                          <div className="flex-1 min-w-0">
-                            <div className="truncate">{option.label}</div>
-                            {option.description && (
-                              <div className="text-xs text-muted-foreground truncate">
-                                {option.description}
+                    return (
+                      <div
+                        key={option.value}
+                        className={optionVariants({
+                          isSelected,
+                          isHighlighted,
+                          isDisabled: option.disabled,
+                        })}
+                        onClick={() => handleOptionSelect(option)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleOptionSelect(option);
+                          }
+                        }}
+                        role="option"
+                        aria-selected={isSelected}
+                        aria-disabled={option.disabled}
+                        tabIndex={isHighlighted ? 0 : -1}
+                      >
+                        {renderOption ? (
+                          // Custom option rendering
+                          renderOption(option, { isSelected, isHighlighted })
+                        ) : (
+                          // Default option rendering
+                          <>
+                            {multiple && (
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  readOnly
+                                  className="mr-2"
+                                />
                               </div>
                             )}
-                          </div>
 
-                          {!multiple && isSelected && (
-                            <svg
-                              className="w-4 h-4 text-action"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                            >
-                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
-                            </svg>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                            {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
+
+                            <div className="flex-1 min-w-0">
+                              <div className="truncate">{option.label}</div>
+                              {option.description && (
+                                <div className="text-xs text-muted-foreground truncate">
+                                  {option.description}
+                                </div>
+                              )}
+                            </div>
+
+                            {!multiple && isSelected && (
+                              <svg
+                                className="w-4 h-4 text-primary"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
+                              </svg>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </ScrollArea>
           </div>,
           document.body
         )}

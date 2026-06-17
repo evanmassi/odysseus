@@ -32,6 +32,8 @@ interface ValidatedInputProps {
   autoFocus?: boolean;
   badge?: React.ReactNode;
   hasConflict?: boolean; // Applies amber highlight for conflicting values in bulk edit
+  /** Label typography. 'default' = title-case sans; 'compact' = uppercase mono micro-label. */
+  labelStyle?: 'default' | 'compact';
   'aria-invalid'?: boolean;
   'data-testid'?: string;
 }
@@ -55,6 +57,7 @@ export function ValidatedInput({
   autoFocus = false,
   badge,
   hasConflict = false,
+  labelStyle = 'default',
   ...ariaProps
 }: ValidatedInputProps) {
   // More reliable than HTML autoFocus attribute which depends on browser timing
@@ -72,12 +75,17 @@ export function ValidatedInput({
   }, []);
 
   const getLabelClasses = () => {
-    const baseClasses = 'block text-sm font-medium mb-1';
+    const baseClasses =
+      labelStyle === 'compact'
+        ? 'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5'
+        : 'block text-sm font-medium mb-1';
 
     if (error) {
       return `${baseClasses} text-danger-text`;
     } else if (warning) {
       return `${baseClasses} text-warning-text`;
+    } else if (labelStyle === 'compact') {
+      return `${baseClasses} text-muted-foreground`;
     } else {
       return `${baseClasses} text-secondary-foreground`;
     }

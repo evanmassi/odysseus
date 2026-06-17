@@ -108,3 +108,6 @@ credentials/
 config.local.js
 config.local.json
 .claude/
+
+# Local-only scratch/reference files (not tracked)
+/refs/

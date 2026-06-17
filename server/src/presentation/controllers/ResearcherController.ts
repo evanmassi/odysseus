@@ -6,7 +6,6 @@
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
-
 import type { CreateResearcherRequest } from '@application/dto/ResearcherDto';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { logger } from '@infrastructure/logging/logger';
@@ -15,6 +14,7 @@ import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
 import type { Request, Response } from 'express';
+
 export interface ResearcherControllerDeps {
   researcherApplicationService: ResearcherApplicationService;
 }
@@ -37,8 +37,8 @@ export class ResearcherController extends BaseController {
       const labId = this.extractLabId(req);
 
       if (includeAdminData) {
-        const userApiKey = this.extractApiKey(req);
-        const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
+        const user = this.getAuthenticatedUser(req);
+        const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, user);
         res.json(ResponseBuilder.success(result));
       } else if (visibleOnly) {
         const researchers = await this.deps.researcherApplicationService.getVisibleResearchers(labId);
@@ -56,9 +56,9 @@ export class ResearcherController extends BaseController {
   async getResearchersWithMetadata(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
+      const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, user);
 
       logger.debug('Retrieved researchers with metadata', {
         count: result.researchers.length,
@@ -76,9 +76,9 @@ export class ResearcherController extends BaseController {
   async getUnlinkedResearchers(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      const result = await this.deps.researcherApplicationService.getUnlinkedResearchers(labId, userApiKey);
+      const result = await this.deps.researcherApplicationService.getUnlinkedResearchers(labId, user);
 
       logger.debug('Retrieved unlinked researchers', {
         count: result.researchers.length,
@@ -96,9 +96,9 @@ export class ResearcherController extends BaseController {
   async getResearcherById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      const researcher = await this.deps.researcherApplicationService.getResearcherById(id, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.getResearcherById(id, user);
 
       res.json(ResponseBuilder.success(researcher));
     } catch (error) {
@@ -111,9 +111,9 @@ export class ResearcherController extends BaseController {
     try {
       const labId = this.extractLabId(req);
       const createRequest: CreateResearcherRequest = req.body;
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      const researcher = await this.deps.researcherApplicationService.createResearcher(labId, createRequest, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.createResearcher(labId, createRequest, user);
 
       logger.debug('Researcher created', {
         researcherId: researcher.id,
@@ -133,9 +133,9 @@ export class ResearcherController extends BaseController {
     try {
       const { id } = req.params;
       const updates = req.body;
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      const researcher = await this.deps.researcherApplicationService.updateResearcher(id, updates, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.updateResearcher(id, updates, user);
 
       logger.debug('Researcher updated', {
         researcherId: researcher.id,
@@ -155,9 +155,9 @@ export class ResearcherController extends BaseController {
   async deleteResearcher(req: Request, res: Response): Promise<void> {
     try {
       const { researcherId } = req.params;
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      await this.deps.researcherApplicationService.deleteResearcher(researcherId, userApiKey);
+      await this.deps.researcherApplicationService.deleteResearcher(researcherId, user);
 
       logger.debug('Researcher deleted', {
         researcherId,
@@ -175,9 +175,9 @@ export class ResearcherController extends BaseController {
   async deactivateResearcher(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      const researcher = await this.deps.researcherApplicationService.deactivateResearcher(id, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.deactivateResearcher(id, user);
 
       logger.debug('Researcher deactivated', {
         researcherId: researcher.id,
@@ -196,9 +196,9 @@ export class ResearcherController extends BaseController {
   async activateResearcher(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      const researcher = await this.deps.researcherApplicationService.activateResearcher(id, userApiKey);
+      const researcher = await this.deps.researcherApplicationService.activateResearcher(id, user);
 
       logger.debug('Researcher activated', {
         researcherId: researcher.id,
@@ -217,10 +217,10 @@ export class ResearcherController extends BaseController {
   async getResearcherStats(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const userApiKey = this.extractApiKey(req);
+      const user = this.getAuthenticatedUser(req);
 
-      const stats = await this.deps.researcherApplicationService.getResearcherStats(labId, userApiKey);
-      
+      const stats = await this.deps.researcherApplicationService.getResearcherStats(labId, user);
+
       res.json(ResponseBuilder.success(stats));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researcher stats', req.requestId);
@@ -258,5 +258,4 @@ export class ResearcherController extends BaseController {
       handleControllerError(error, res, 'Failed to get researcher tube count', req.requestId);
     }
   }
-
 }

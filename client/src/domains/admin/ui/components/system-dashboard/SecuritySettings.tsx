@@ -1,16 +1,15 @@
 /**
  * Security Settings
  *
- * Collapsible security configuration form for the system admin dashboard.
+ * Expandable security configuration block for the system-admin dashboard.
  */
 
 import { useEffect, useState } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
-import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Save, Shield } from 'lucide-react';
+import { ChevronDown, Save } from 'lucide-react';
 
-import { Button } from '@shared/ui';
+import { Button, ConsolePanel, SectionHeader, UnsavedChangesIndicator } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
@@ -23,6 +22,7 @@ export function SecuritySettings() {
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [isSaving, setSaving] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -31,8 +31,7 @@ export function SecuritySettings() {
         const merged = { ...DEFAULT_SECURITY_CONFIG, ...loaded };
         setConfig(merged);
         setOriginalConfig(merged);
-        setIsLoaded(true);
-      } catch {
+      } finally {
         setIsLoaded(true);
       }
     };
@@ -43,19 +42,16 @@ export function SecuritySettings() {
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  const hasChanges = Object.keys(config).some(key => {
-    const configKey = key as keyof SecurityConfig;
-    return config[configKey] !== originalConfig[configKey];
-  });
+  const changedKeys = (Object.keys(config) as (keyof SecurityConfig)[]).filter(
+    key => config[key] !== originalConfig[key]
+  );
+  const hasChanges = changedKeys.length > 0;
 
   const saveConfiguration = async () => {
     const changes: Partial<SecurityConfig> = {};
-    Object.keys(config).forEach(key => {
-      const configKey = key as keyof SecurityConfig;
-      if (config[configKey] !== originalConfig[configKey]) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic property assignment to partial config object
-        (changes as any)[configKey] = config[configKey];
-      }
+    changedKeys.forEach(key => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic property assignment to partial config object
+      (changes as any)[key] = config[key];
     });
 
     setSaving(true);
@@ -71,41 +67,44 @@ export function SecuritySettings() {
   };
 
   return (
-    <Collapsible.Root defaultOpen={false} className="rounded-lg border border-border bg-card">
-      <Collapsible.Trigger className="flex w-full items-center justify-between p-3 cursor-pointer group">
-        <div className="flex items-center gap-2">
-          <ChevronDown
-            size={14}
-            className="text-secondary-foreground transition-transform duration-200 group-data-[state=closed]:-rotate-90"
-          />
-          <Shield size={18} className="text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-card-foreground">Security Settings</h3>
-        </div>
-      </Collapsible.Trigger>
-      <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-        <div className="px-3 pb-3 space-y-3">
-          {isLoaded ? (
-            <>
-              <SecurityTab config={config} onChange={handleConfigChange} hideHeader />
-              {hasChanges && (
-                <div className="flex justify-end pt-1">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={saveConfiguration}
-                    isLoading={isSaving}
-                    leftIcon={<Save size={14} />}
-                  >
-                    Save Changes
-                  </Button>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-4 text-muted-foreground text-sm">Loading...</div>
-          )}
-        </div>
-      </Collapsible.Content>
-    </Collapsible.Root>
+    <div>
+      <SectionHeader
+        title="Security Settings"
+        meta={
+          <button
+            type="button"
+            onClick={() => setIsExpanded(o => !o)}
+            className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
+          >
+            <ChevronDown
+              size={12}
+              className={`transition-transform ${isExpanded ? '' : '-rotate-90'}`}
+            />
+            {isExpanded ? 'Hide' : 'Show'}
+          </button>
+        }
+      />
+      {isExpanded &&
+        (isLoaded ? (
+          <ConsolePanel>
+            <SecurityTab config={config} onChange={handleConfigChange} />
+            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-black/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+              <UnsavedChangesIndicator count={changedKeys.length} />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={saveConfiguration}
+                isLoading={isSaving}
+                disabled={!hasChanges}
+                leftIcon={<Save size={14} />}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </ConsolePanel>
+        ) : (
+          <div className="py-4 text-center text-sm text-muted-foreground">Loading...</div>
+        ))}
+    </div>
   );
 }

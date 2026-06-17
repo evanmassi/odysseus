@@ -7,7 +7,10 @@
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 
-export const LOOKUP_CATEGORIES = ['species', 'source', 'media', 'specimen_type', 'equipment_maintenance_type'] as const;
+export const LOOKUP_CATEGORIES = [
+  'species', 'source', 'media', 'specimen_type', 'equipment_maintenance_type',
+  'supply_item_property', 'supply_stock_unit', 'supply_vendor', 'supply_manufacturer',
+] as const;
 export type LookupCategory = typeof LOOKUP_CATEGORIES[number];
 
 export const lookupValueSchema = z.object({

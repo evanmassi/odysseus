@@ -10,6 +10,11 @@ import type {
   DonorDeletedEvent
 } from './DonorEvents';
 import type {
+  VerificationEmailSentEvent,
+  EmailVerifiedEvent,
+  VerificationEmailResentEvent
+} from './EmailVerificationEvents';
+import type {
   EquipmentItemCreatedEvent,
   EquipmentItemUpdatedEvent,
   EquipmentItemDecommissionedEvent,
@@ -26,11 +31,6 @@ import type {
   EquipmentBulkStatusChangedEvent,
   EquipmentBulkRelocatedEvent,
 } from './EquipmentEvents';
-import type {
-  VerificationEmailSentEvent,
-  EmailVerifiedEvent,
-  VerificationEmailResentEvent
-} from './EmailVerificationEvents';
 import type {
   LabCreatedEvent,
   LabRenamedEvent,
@@ -75,6 +75,27 @@ import type {
   BulkResourcesUnassignedEvent,
   BulkResourcesReassignedEvent
 } from './StorageEvents';
+import type {
+  SupplyItemCreatedEvent,
+  SupplyItemUpdatedEvent,
+  SupplyItemArchivedEvent,
+  SupplyItemDeletedEvent,
+  SupplyCategoryCreatedEvent,
+  SupplyCategoryUpdatedEvent,
+  SupplyCategoryDeletedEvent,
+  SupplyDocumentAddedEvent,
+  SupplyDocumentRemovedEvent,
+  SupplyStockReceivedEvent,
+  SupplyStockIssuedEvent,
+  SupplyStockCountAdjustedEvent,
+  SupplyStockDisposedEvent,
+  SupplyStockVoidedEvent,
+  SupplyBulkReceivedEvent,
+  SupplyBulkIssuedEvent,
+  SupplyBulkCategoryReassignedEvent,
+  SupplyBulkArchivedEvent,
+  SupplyBulkVoidedEvent,
+} from './SupplyEvents';
 import type { TubeCreatedEvent, TubeUpdatedEvent, TubeLocationChangedEvent, TubeDeletedEvent, BulkTubesCreatedEvent, BulkTubesUpdatedEvent, BulkTubesDeletedEvent, BulkTubesMovedEvent } from './TubeEvents';
 import type { TubesLockedEvent, TubesUnlockedEvent, TubeAccessSharedEvent, TubeAccessRevokedEvent } from './TubeLockEvents';
 import type {
@@ -191,6 +212,27 @@ export interface DomainEventMap {
   'EquipmentBulkMaintenanceLogged': EquipmentBulkMaintenanceLoggedEvent;
   'EquipmentBulkStatusChanged': EquipmentBulkStatusChangedEvent;
   'EquipmentBulkRelocated': EquipmentBulkRelocatedEvent;
+
+  // Supply events
+  'SupplyItemCreated': SupplyItemCreatedEvent;
+  'SupplyItemUpdated': SupplyItemUpdatedEvent;
+  'SupplyItemArchived': SupplyItemArchivedEvent;
+  'SupplyItemDeleted': SupplyItemDeletedEvent;
+  'SupplyCategoryCreated': SupplyCategoryCreatedEvent;
+  'SupplyCategoryUpdated': SupplyCategoryUpdatedEvent;
+  'SupplyCategoryDeleted': SupplyCategoryDeletedEvent;
+  'SupplyDocumentAdded': SupplyDocumentAddedEvent;
+  'SupplyDocumentRemoved': SupplyDocumentRemovedEvent;
+  'SupplyStockReceived': SupplyStockReceivedEvent;
+  'SupplyStockIssued': SupplyStockIssuedEvent;
+  'SupplyStockCountAdjusted': SupplyStockCountAdjustedEvent;
+  'SupplyStockDisposed': SupplyStockDisposedEvent;
+  'SupplyStockVoided': SupplyStockVoidedEvent;
+  'SupplyBulkReceived': SupplyBulkReceivedEvent;
+  'SupplyBulkIssued': SupplyBulkIssuedEvent;
+  'SupplyBulkCategoryReassigned': SupplyBulkCategoryReassignedEvent;
+  'SupplyBulkArchived': SupplyBulkArchivedEvent;
+  'SupplyBulkVoided': SupplyBulkVoidedEvent;
 
   // Lab events
   'LabCreated': LabCreatedEvent;

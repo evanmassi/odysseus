@@ -22,7 +22,7 @@ const COLUMNS_PER_ROW = 11;
 
 interface AuditLogRow {
   id: string;
-  user_id: string;
+  user_id: string | null;
   username: string;
   action: string;
   entity_type: string;
@@ -218,7 +218,7 @@ export class AuditRepository implements IAuditRepository {
   private entryToParams(entry: AuditLogEntry): unknown[] {
     return [
       entry.id,
-      entry.userId,
+      entry.userId ?? null,
       entry.username,
       entry.action,
       entry.entityType,
@@ -301,7 +301,7 @@ export class AuditRepository implements IAuditRepository {
     return {
       id: row.id,
       labId: row.lab_id ?? undefined,
-      userId: row.user_id,
+      userId: row.user_id ?? undefined,
       username: row.username,
       action: row.action,
       entityType: row.entity_type,

@@ -6,8 +6,6 @@
 
 import type { ComponentProps, ReactNode } from 'react';
 
-export type InputVariant = 'default' | 'filled' | 'outlined' | 'underlined' | 'ghost';
-
 export type InputSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export type InputState = 'default' | 'error' | 'warning' | 'success';
@@ -35,7 +33,6 @@ export interface ValidationResult {
 export type ValidationFunction = (value: string) => ValidationResult | Promise<ValidationResult>;
 
 export interface BaseInputProps extends Omit<ComponentProps<'input'>, 'size' | 'prefix'> {
-  variant?: InputVariant;
   size?: InputSize;
   state?: InputState;
   label?: string;
@@ -74,7 +71,6 @@ export interface InputProps extends BaseInputProps {
 
 export const defaultInputProps: Partial<InputProps> = {
   type: 'text',
-  variant: 'outlined',
   size: 'md',
   state: 'default',
   validateOn: 'blur',

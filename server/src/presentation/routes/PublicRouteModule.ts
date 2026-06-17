@@ -11,6 +11,8 @@ import {
 } from '@odysseus/shared-schemas';
 
 
+import type { EventBus } from '@application/contracts/EventBus';
+import { UserLoginFailedEvent } from '@domain/events/UserEvents';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { PublicAuthController } from '@presentation/controllers/auth/PublicAuthController';
 import type { InviteCodeController } from '@presentation/controllers/InviteCodeController';
@@ -28,7 +30,9 @@ import {
   SetupSystemAdminBodySchema
 } from '@presentation/validation/httpValidationSchemas';
 
-import type { Router, RequestHandler } from 'express';
+import type { Request, Router, RequestHandler } from 'express';
+
+const LOGIN_PATH = '/auth/login';
 
 export class PublicRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
@@ -39,9 +43,22 @@ export class PublicRouteModule implements RouteModule {
     private readonly inviteCodeController: InviteCodeController,
     storageRepository: StorageRepository,
     private readonly appVersion: string,
-    private readonly environment: string
+    private readonly environment: string,
+    private readonly eventBus: EventBus
   ) {
-    this.rateLimitMiddleware = createRateLimitMiddleware(storageRepository);
+    this.rateLimitMiddleware = createRateLimitMiddleware(
+      storageRepository,
+      req => this.publishLoginLockout(req)
+    );
+  }
+
+  private publishLoginLockout(req: Request): void {
+    if (req.path !== LOGIN_PATH) return;
+    const username = (req.body as { username?: string } | undefined)?.username ?? 'unknown';
+    const ipAddress = req.ip ?? req.socket.remoteAddress;
+    void this.eventBus.publish(
+      new UserLoginFailedEvent(username, ipAddress, 'Rate limit lockout')
+    );
   }
 
   getBasePath(): string {

@@ -30,6 +30,7 @@ import { ResourceRouteModule } from '@presentation/routes/ResourceRouteModule';
 import { RouteRegistry } from '@presentation/routes/RouteRegistry';
 import { SearchRouteModule } from '@presentation/routes/SearchRouteModule';
 import { StorageRouteModule } from '@presentation/routes/StorageRouteModule';
+import { SupplyRouteModule } from '@presentation/routes/SupplyRouteModule';
 import { SystemAdminRouteModule } from '@presentation/routes/SystemAdminRouteModule';
 import { UserRouteModule } from '@presentation/routes/UserRouteModule';
 
@@ -156,6 +157,7 @@ class OdysseusServer {
     const labController = this.serviceContainer.getLabController();
     const inviteCodeController = this.serviceContainer.getInviteCodeController();
     const donorController = this.serviceContainer.getDonorController();
+    const supplyController = this.serviceContainer.getSupplyController();
     const equipmentController = this.serviceContainer.getEquipmentController();
     const securityMonitoringController = this.serviceContainer.getSecurityMonitoringController();
     const storageAnalyticsController = this.serviceContainer.getStorageAnalyticsController();
@@ -167,7 +169,8 @@ class OdysseusServer {
       inviteCodeController,
       storageRepository,
       this.configurationService.get('app').version,
-      this.configurationService.get('server').environment
+      this.configurationService.get('server').environment,
+      this.serviceContainer.getEventBus()
     ));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, storageRepository));
     registry.registerModule(new AdminRouteModule(adminUserController, adminConfigController, researcherController, auditController, exportController, lookupValueController, inviteCodeController, storageAnalyticsController, authMiddleware));
@@ -175,6 +178,7 @@ class OdysseusServer {
     registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, storageRepository));
     registry.registerModule(new StorageRouteModule(storageController, authMiddleware));
     registry.registerModule(new DonorRouteModule(donorController, authMiddleware));
+    registry.registerModule(new SupplyRouteModule(supplyController, authMiddleware));
     registry.registerModule(new EquipmentRouteModule(equipmentController, authMiddleware));
     registry.registerModule(new SearchRouteModule(searchController, authMiddleware, storageRepository));
     registry.registerModule(new UserRouteModule(userController, personController, sessionController, authMiddleware));

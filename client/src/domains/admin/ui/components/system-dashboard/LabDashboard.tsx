@@ -1,21 +1,43 @@
 /**
  * Lab Dashboard
  *
- * Drill-down view for a single lab: users, researchers, storage stats, demo settings, and audit log.
+ * Drill-down view for a single lab: header, stat strip, demo settings, users, researchers, audit log.
  */
 
 import { useState, useMemo } from 'react';
 
-import * as Collapsible from '@radix-ui/react-collapsible';
-import { Activity, ArrowLeft, ChevronDown, RefreshCw } from 'lucide-react';
+import {
+  ArrowLeft,
+  BeanOff,
+  Check,
+  ChevronDown,
+  CircleCheckBig,
+  Dna,
+  OctagonX,
+  RefreshCw,
+  ShieldUser,
+  Sprout,
+  SquarePen,
+  TestTubeDiagonal,
+  UsersRound,
+  X,
+} from 'lucide-react';
 
-import { Button } from '@shared/ui';
+import { Button, ConsolePanel, IdStamp, SectionHeader, StatCell } from '@shared/ui';
+import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import { notifications } from '@shared/utils';
 
+import {
+  useActivateLabMutation,
+  useDeactivateLabMutation,
+  useUpdateLabMutation,
+} from '../../../hooks/useLabMutations';
 import { useLabDetailsQuery } from '../../../hooks/useLabQueries';
 import { AuditLogViewer } from '../settings-modal/AuditLogViewer';
 
 import { LabDemoSettings } from './LabDemoSettings';
-import { LabInfoPanel } from './LabInfoPanel';
+import { LabPowerToggle } from './LabPowerToggle';
 import { LabResearchersPanel } from './LabResearchersPanel';
 import { LabUsersPanel } from './LabUsersPanel';
 
@@ -29,11 +51,18 @@ interface LabDashboardProps {
 
 export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   const { data: details, isLoading, isFetching, refetch } = useLabDetailsQuery(labId);
+  const updateLabMutation = useUpdateLabMutation();
+  const activateLabMutation = useActivateLabMutation();
+  const deactivateLabMutation = useDeactivateLabMutation();
 
   const [userSortConfig, setUserSortConfig] = useState<SortConfig | undefined>(undefined);
   const [researcherSortConfig, setResearcherSortConfig] = useState<SortConfig | undefined>(
     undefined
   );
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showAudit, setShowAudit] = useState(false);
 
   const users = useMemo(() => {
     const source = details?.users ?? [];
@@ -68,7 +97,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
       <div className="h-full overflow-y-auto">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
-            Back
+            Back to Labs
           </Button>
           <div className="text-center py-12 text-muted-foreground text-sm">
             Loading lab details...
@@ -79,17 +108,51 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   }
 
   const { lab, researcherCount, tubeCount, storageSummary } = details;
-
   const adminCount = users.filter(u => u.role === 'lab_admin').length;
   const assignedTubes = details.researchers.reduce((sum, r) => sum + r.tubeCount, 0);
   const tubesWithoutResearcher = tubeCount - assignedTubes;
 
+  const statusVar = lab.isActive ? '--color-success-bg' : '--color-danger-bg';
+  const statusTextClass = lab.isActive ? 'text-success-text' : 'text-danger-text';
+  const statusColor = `hsl(var(${statusVar}))`;
+  const identityTextClass = getLabBadgeTextClasses(labId, lab.isDemo);
+
+  const handleRename = async () => {
+    if (!newName.trim()) return;
+    try {
+      await updateLabMutation.mutateAsync({ id: labId, name: newName.trim() });
+      notifications.success('Lab renamed');
+      setIsRenaming(false);
+    } catch {
+      notifications.error('Failed to rename lab');
+    }
+  };
+
+  const handleActivate = async () => {
+    try {
+      await activateLabMutation.mutateAsync(labId);
+      notifications.success('Lab activated');
+    } catch {
+      notifications.error('Failed to activate lab');
+    }
+  };
+
+  const handleDeactivate = async () => {
+    try {
+      await deactivateLabMutation.mutateAsync(labId);
+      notifications.success('Lab deactivated');
+      setShowDeactivate(false);
+    } catch {
+      notifications.error('Failed to deactivate lab');
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
-        <div className="flex items-center gap-3">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
-            Back
+            Back to Labs
           </Button>
           <Button
             variant="ghost"
@@ -102,23 +165,155 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           </Button>
         </div>
 
-        <LabInfoPanel
-          labId={labId}
-          lab={lab}
-          isSeeded={details.isSeeded}
-          adminCount={adminCount}
-          userCount={users.length}
-          researcherCount={researcherCount}
-          tubeCount={tubeCount}
-          tubesWithoutResearcher={tubesWithoutResearcher}
-          storageSummary={storageSummary}
-        />
+        <div className="relative pt-7">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-3 h-px"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusVar})/0.6) 9%, hsl(var(${statusVar})/0.6) 91%, transparent 100%)`,
+              boxShadow: `0 0 8px hsl(var(${statusVar})/0.4)`,
+            }}
+          />
+          <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
+            <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
+              <span className="text-foreground">{lab.name}</span>
+              <span className="text-foreground/35">{'//'}</span>
+              <span className={`flex items-center gap-1.5 ${statusTextClass}`}>
+                {lab.isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
+                {lab.isActive ? 'active' : 'deactivated'}
+              </span>
+              {lab.isDemo && (
+                <>
+                  <span className="text-foreground/35">{'//'}</span>
+                  <span
+                    className={`flex items-center gap-1.5 ${details.isSeeded ? 'text-success-text' : 'text-warning-text'}`}
+                  >
+                    {details.isSeeded ? <Sprout size={11} /> : <BeanOff size={11} />}
+                    {details.isSeeded ? 'seeded' : 'not seeded'}
+                  </span>
+                </>
+              )}
+            </span>
+          </div>
+
+          <ConsolePanel
+            className={`flex items-stretch ${identityTextClass}`}
+            statusColor={statusColor}
+            identityColor="currentColor"
+          >
+            <div
+              className={`flex w-14 shrink-0 flex-col items-center border-r border-line-soft pt-5 ${identityTextClass}`}
+            >
+              <LabBadge
+                labId={labId}
+                labName={lab.name}
+                size="md"
+                isDemo={lab.isDemo}
+                isActive={lab.isActive}
+              />
+              <span
+                aria-hidden
+                className="mb-4 w-px flex-1"
+                style={{
+                  background:
+                    'linear-gradient(180deg, currentColor 0%, currentColor 24%, color-mix(in srgb, currentColor 45%, transparent) 60%, transparent 100%)',
+                  filter:
+                    'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))',
+                }}
+              />
+            </div>
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-stretch">
+                <div className="flex min-w-0 flex-1 flex-col gap-2 px-5 pt-5 pb-4">
+                  {isRenaming ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={e => setNewName(e.target.value)}
+                        className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] bg-transparent border-b border-transparent [border-image:linear-gradient(90deg,hsl(var(--foreground)/0.25)_0%,hsl(var(--foreground)/0.18)_55%,hsl(var(--foreground)/0.08)_88%,transparent_100%)_1] px-1 focus:outline-none focus:[border-image:linear-gradient(90deg,hsl(var(--primary)/0.7)_0%,hsl(var(--primary)/0.5)_70%,transparent_100%)_1] text-foreground"
+                        onKeyDown={e => e.key === 'Enter' && handleRename()}
+                        ref={(el: HTMLInputElement | null) => el?.focus()}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
+                        onClick={handleRename}
+                        isLoading={updateLabMutation.isPending}
+                        aria-label="Save"
+                      >
+                        <Check size={14} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
+                        onClick={() => setIsRenaming(false)}
+                        aria-label="Cancel"
+                      >
+                        <X size={14} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <h1 className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] text-foreground">
+                        {lab.name}
+                      </h1>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        iconOnly
+                        onClick={() => {
+                          setNewName(lab.name);
+                          setIsRenaming(true);
+                        }}
+                        aria-label="Rename lab"
+                      >
+                        <SquarePen size={12} />
+                      </Button>
+                    </div>
+                  )}
+                  <IdStamp
+                    parts={[
+                      `/${lab.slug}`,
+                      `${storageSummary.tankCount} ${storageSummary.tankCount === 1 ? 'tank' : 'tanks'} · ${storageSummary.rackCount} ${storageSummary.rackCount === 1 ? 'rack' : 'racks'} · ${storageSummary.boxCount} ${storageSummary.boxCount === 1 ? 'box' : 'boxes'}`,
+                    ]}
+                  />
+                </div>
+                <div
+                  className="flex aspect-square shrink-0 items-center justify-center border-l border-line-soft"
+                  style={{ background: 'rgba(0,0,0,0.13)' }}
+                >
+                  <LabPowerToggle
+                    isActive={lab.isActive}
+                    isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
+                    onActivate={handleActivate}
+                    onDeactivate={() => setShowDeactivate(true)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 border-t border-line-faint divide-x divide-line-faint [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.10)_10%,hsl(var(--foreground)/0.10)_86%,transparent_100%)_1]">
+                <StatCell label="Admins" value={adminCount} icon={<ShieldUser size={11} />} />
+                <StatCell label="Users" value={users.length} icon={<UsersRound size={11} />} />
+                <StatCell label="Researchers" value={researcherCount} icon={<Dna size={11} />} />
+                <StatCell
+                  label="Tubes"
+                  value={tubeCount}
+                  footer={
+                    tubesWithoutResearcher > 0 ? `${tubesWithoutResearcher} unassigned` : undefined
+                  }
+                  tone={tubesWithoutResearcher > 0 ? 'warning' : 'default'}
+                  icon={<TestTubeDiagonal size={11} />}
+                />
+              </div>
+            </div>
+          </ConsolePanel>
+        </div>
 
         {lab.isDemo && <LabDemoSettings labId={labId} isSeeded={details.isSeeded} />}
-
-        <div>
-          <div className="h-px bg-muted-foreground/60" />
-        </div>
 
         <LabUsersPanel
           labId={labId}
@@ -126,10 +321,6 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           sortConfig={userSortConfig}
           onSort={setUserSortConfig}
         />
-
-        <div>
-          <div className="h-px bg-muted-foreground/60" />
-        </div>
 
         <LabResearchersPanel
           researchers={sortedResearchers}
@@ -139,26 +330,34 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
         />
 
         <div>
-          <div className="h-px bg-muted-foreground/60" />
+          <SectionHeader
+            title="Audit Log"
+            meta={
+              <button
+                type="button"
+                onClick={() => setShowAudit(o => !o)}
+                className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
+              >
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform ${showAudit ? '' : '-rotate-90'}`}
+                />
+                {showAudit ? 'Hide' : 'Show'}
+              </button>
+            }
+          />
+          {showAudit && <AuditLogViewer labId={labId} readOnly hideHeader />}
         </div>
 
-        <Collapsible.Root defaultOpen={false} className="rounded-lg border border-border bg-card">
-          <Collapsible.Trigger className="flex w-full items-center justify-between p-3 cursor-pointer group">
-            <div className="flex items-center gap-2">
-              <ChevronDown
-                size={14}
-                className="text-secondary-foreground transition-transform duration-200 group-data-[state=closed]:-rotate-90"
-              />
-              <Activity size={18} className="text-muted-foreground" />
-              <h3 className="text-lg font-semibold text-card-foreground">Audit Log</h3>
-            </div>
-          </Collapsible.Trigger>
-          <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-            <div className="px-3 pb-3">
-              <AuditLogViewer labId={labId} readOnly hideHeader />
-            </div>
-          </Collapsible.Content>
-        </Collapsible.Root>
+        <ConfirmDialog
+          isOpen={showDeactivate}
+          title="Deactivate Lab"
+          message="Deactivating a lab prevents all its users from logging in. Lab data is preserved. This can be reversed."
+          confirmText="Deactivate"
+          variant="danger"
+          onConfirm={handleDeactivate}
+          onCancel={() => setShowDeactivate(false)}
+        />
       </div>
     </div>
   );

@@ -7,3 +7,11 @@
 export type { StorageHierarchy, SelectedLocation } from './storageNavigatorTypes';
 
 export { StorageNavigator } from './StorageNavigator';
+export { BoxOccupancyMatrix } from './BoxOccupancyMatrix';
+export { buildStorageHierarchy } from './buildStorageHierarchy';
+export {
+  computeNavigatorOccupancy,
+  boxOccupancyKey,
+  rackOccupancyKey,
+} from './storageNavigatorOccupancy';
+export type { NavigatorOccupancy } from './storageNavigatorOccupancy';

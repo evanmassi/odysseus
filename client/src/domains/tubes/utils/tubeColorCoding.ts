@@ -13,13 +13,23 @@ import {
   labToRGBString,
 } from '@shared/utils/labColorSpace';
 
-import type { ColorSystemTubeData } from '@domains/tubes/types/tubeColorCodingTypes';
 import type { TubeData } from '@odysseus/shared-schemas';
 
 interface ColorResult {
   backgroundColor: string;
   borderColor: string;
   textColor: string;
+}
+
+/** Minimal color inputs shared by full tubes and the navigator's slim rack projection. */
+interface TubeColorFields {
+  cellType?: string;
+  cellLine?: string;
+  donor?: string;
+  donorInternalId?: string;
+  donorSourceId?: string;
+  lotNumber?: string;
+  cultureCondition?: string;
 }
 
 interface LotStyle {
@@ -65,7 +75,7 @@ export const cellLineCategories: CellLineCategory[] = [
   // Lab's commonly used cell lines (muted versions)
   {
     name: 'jurkat',
-    color: '#A85A4A', // Muted terracotta red
+    color: '#B84A5A', // Muted crimson
     patterns: [
       'jurkat',
       'jur-kat',
@@ -177,7 +187,7 @@ export const cellLineCategories: CellLineCategory[] = [
   },
   {
     name: 'k562',
-    color: '#B84A5A', // Muted crimson
+    color: '#A85A4A', // Muted terracotta red
     patterns: ['k562', 'k-562', 'k 562', 'k_562'],
   },
   {
@@ -334,7 +344,7 @@ function getCellLineColor(cellType: string): string | null {
   return null;
 }
 
-function getDonorIdentifier(tubeData: ColorSystemTubeData): string {
+function getDonorIdentifier(tubeData: TubeColorFields): string {
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
   if (tubeData.donorInternalId || tubeData.donorSourceId) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
@@ -352,7 +362,7 @@ function getDonorIdentifier(tubeData: ColorSystemTubeData): string {
   }
 }
 
-function createTubeSignature(tubeData: ColorSystemTubeData): string {
+function createTubeSignature(tubeData: TubeColorFields): string {
   const donorId = getDonorIdentifier(tubeData);
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
   const cellType = tubeData.cellType || tubeData.cellLine || '';
@@ -638,9 +648,8 @@ function adjustColorBrightness(color: string, percent: number): string {
   }
 }
 
-export function getTubeColor(tubeData: TubeData): ColorResult {
-  const adaptedData = adaptTubeDataForColorSystem(tubeData);
-  const signature = createTubeSignature(adaptedData);
+export function getTubeColorFromFields(fields: TubeColorFields): ColorResult {
+  const signature = createTubeSignature(fields);
 
   const cachedColor = colorCache.getTubeColor(signature);
   if (cachedColor) {
@@ -652,13 +661,13 @@ export function getTubeColor(tubeData: TubeData): ColorResult {
   }
 
   let finalColor: string;
-  const cellType = adaptedData.cellType || '';
+  const cellType = fields.cellType ?? '';
 
   const cellLineColor = getCellLineColor(cellType);
   if (cellLineColor) {
     finalColor = cellLineColor;
   } else {
-    const donorId = getDonorIdentifier(adaptedData);
+    const donorId = getDonorIdentifier(fields);
 
     if (donorId !== 'unknown') {
       let baseColor = colorCache.getDonorColor(donorId);
@@ -683,6 +692,10 @@ export function getTubeColor(tubeData: TubeData): ColorResult {
     borderColor: adjustColorBrightness(finalColor, -20),
     textColor: getOptimalTextColor(finalColor),
   };
+}
+
+export function getTubeColor(tubeData: TubeData): ColorResult {
+  return getTubeColorFromFields(adaptTubeDataForColorSystem(tubeData));
 }
 
 export function getLotStyleForBox(lotNumber: string | undefined): LotStyle | null {

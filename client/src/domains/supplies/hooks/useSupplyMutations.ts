@@ -1,0 +1,467 @@
+/**
+ * Supply Mutation Hooks
+ *
+ * Create, update, delete mutations for supply categories, locations, items,
+ * documents, barcodes, stock operations, and bulk actions.
+ */
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
+
+import { SupplyService } from '../services/SupplyService';
+
+import type {
+  CreateSupplyCategoryRequest,
+  UpdateSupplyCategoryRequest,
+  CreateSupplyLocationRequest,
+  UpdateSupplyLocationRequest,
+  CreateSupplyItemRequest,
+  UpdateSupplyItemRequest,
+  CreateSupplyBarcodeRequest,
+  UpdateSupplyBarcodeRequest,
+  CreateSupplyDocumentRequest,
+  UpdateSupplyDocumentRequest,
+  RecordSupplyTransactionRequest,
+  RecordSupplyStockCountRequest,
+  SupplyBulkReceiveRequest,
+  SupplyBulkIssueRequest,
+  VoidSupplyTransactionRequest,
+  SupplyBulkVoidRequest,
+  CreateSupplyPackagingLevelRequest,
+} from '@odysseus/shared-schemas';
+
+// Categories
+
+export function useCreateSupplyCategoryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateSupplyCategoryRequest) => SupplyService.createCategory(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.categories(labId) });
+    },
+  });
+}
+
+export function useUpdateSupplyCategoryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateSupplyCategoryRequest }) =>
+      SupplyService.updateCategory(id, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.categories(labId) });
+    },
+  });
+}
+
+export function useDeleteSupplyCategoryMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => SupplyService.deleteCategory(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.categories(labId) });
+    },
+  });
+}
+
+// Locations
+
+export function useCreateSupplyLocationMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateSupplyLocationRequest) => SupplyService.createLocation(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.locations(labId) });
+    },
+  });
+}
+
+export function useUpdateSupplyLocationMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateSupplyLocationRequest }) =>
+      SupplyService.updateLocation(id, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.locations(labId) });
+    },
+  });
+}
+
+export function useDeleteSupplyLocationMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => SupplyService.deleteLocation(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.locations(labId) });
+    },
+  });
+}
+
+// Items
+
+export function useCreateSupplyItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateSupplyItemRequest) => SupplyService.createItem(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
+    },
+  });
+}
+
+export function useUpdateSupplyItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateSupplyItemRequest }) =>
+      SupplyService.updateItem(id, data),
+    onSuccess: (_, { id }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.detail(labId, id) });
+    },
+  });
+}
+
+export function useArchiveSupplyItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => SupplyService.archiveItem(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
+    },
+  });
+}
+
+export function useDeleteSupplyItemMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => SupplyService.deleteItem(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
+    },
+  });
+}
+
+// Documents
+
+export function useAddSupplyDocumentMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: CreateSupplyDocumentRequest }) =>
+      SupplyService.addDocument(itemId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+export function useUpdateSupplyDocumentMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      docId,
+      data,
+    }: {
+      itemId: string;
+      docId: string;
+      data: UpdateSupplyDocumentRequest;
+    }) => SupplyService.updateDocument(itemId, docId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+export function useRemoveSupplyDocumentMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, docId }: { itemId: string; docId: string }) =>
+      SupplyService.removeDocument(itemId, docId),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+// Barcodes
+
+export function useAddSupplyBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: CreateSupplyBarcodeRequest }) =>
+      SupplyService.addBarcode(itemId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+export function useUpdateSupplyBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      barcodeId,
+      data,
+    }: {
+      itemId: string;
+      barcodeId: string;
+      data: UpdateSupplyBarcodeRequest;
+    }) => SupplyService.updateBarcode(itemId, barcodeId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+export function useRemoveSupplyBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, barcodeId }: { itemId: string; barcodeId: string }) =>
+      SupplyService.removeBarcode(itemId, barcodeId),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+// Barcode regeneration
+
+export function useRegenerateInternalBarcodeMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (itemId: string) => SupplyService.regenerateInternalBarcode(itemId),
+    onSuccess: (_, itemId) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+// Packaging levels
+
+export function useAddSupplyPackagingLevelMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, data }: { itemId: string; data: CreateSupplyPackagingLevelRequest }) =>
+      SupplyService.addPackagingLevel(itemId, data),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+export function useUpdateSupplyPackagingLevelMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      levelId,
+      quantity,
+    }: {
+      itemId: string;
+      levelId: string;
+      quantity: number;
+    }) => SupplyService.updatePackagingLevel(itemId, levelId, quantity),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+export function useRemoveSupplyPackagingLevelMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, levelId }: { itemId: string; levelId: string }) =>
+      SupplyService.removePackagingLevel(itemId, levelId),
+    onSuccess: (_, { itemId }) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, itemId),
+      });
+    },
+  });
+}
+
+// Stock operations
+
+export function useRecordSupplyTransactionMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: RecordSupplyTransactionRequest) => SupplyService.recordTransaction(data),
+    onSuccess: (_, data) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, data.itemId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.reorderList(labId) });
+    },
+  });
+}
+
+export function useRecordSupplyStockCountMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: RecordSupplyStockCountRequest) => SupplyService.recordStockCount(data),
+    onSuccess: (_, data) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, data.itemId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.reorderList(labId) });
+    },
+  });
+}
+
+// Bulk operations
+
+export type SupplyBulkAction =
+  | { type: 'receive'; data: SupplyBulkReceiveRequest }
+  | { type: 'issue'; data: SupplyBulkIssueRequest }
+  | { type: 'reassign-category'; itemIds: string[]; categoryId: string }
+  | { type: 'archive'; itemIds: string[] };
+
+export function useSupplyBulkReceiveMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: SupplyBulkReceiveRequest) => SupplyService.bulkReceive(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.all(labId) });
+    },
+  });
+}
+
+export function useSupplyBulkIssueMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: SupplyBulkIssueRequest) => SupplyService.bulkIssue(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.all(labId) });
+    },
+  });
+}
+
+export function useSupplyBulkUpdateMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (action: SupplyBulkAction) => {
+      switch (action.type) {
+        case 'receive':
+          return SupplyService.bulkReceive(action.data);
+        case 'issue':
+          return SupplyService.bulkIssue(action.data);
+        case 'reassign-category':
+          return SupplyService.bulkReassignCategory(action.itemIds, action.categoryId);
+        case 'archive':
+          return SupplyService.bulkArchive(action.itemIds);
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.all(labId) });
+    },
+  });
+}
+
+export function useVoidSupplyTransactionMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      transactionId,
+      data,
+    }: {
+      transactionId: string;
+      data: VoidSupplyTransactionRequest;
+    }) => SupplyService.voidTransaction(transactionId, data),
+    onSuccess: result => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.detail(labId, result.original.itemId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.reorderList(labId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.transactions(labId, result.original.itemId),
+      });
+    },
+  });
+}
+
+export function useSupplyBulkVoidMutation() {
+  const labId = useLabId();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: SupplyBulkVoidRequest) => SupplyService.bulkVoidTransactions(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.all(labId) });
+    },
+  });
+}

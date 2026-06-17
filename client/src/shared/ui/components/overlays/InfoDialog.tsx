@@ -11,7 +11,7 @@ import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { AnimatedInfoMark } from '@shared/ui/components/icons/AnimatedInfoMark';
 import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 
-import { Button } from '../../primitives';
+import { Button, NubDivider } from '../../primitives';
 
 import { ModalPortal } from './ModalPortal';
 
@@ -24,18 +24,25 @@ export interface InfoDialogProps {
   onClose: () => void;
 }
 
+const CORNER_PINS = [
+  'left-2 top-2',
+  'right-2 top-2',
+  'bottom-2 left-2',
+  'bottom-2 right-2',
+] as const;
+
 function getVariantStyles(variant: 'warning' | 'info') {
   if (variant === 'warning') {
     return {
       iconColor: 'text-warning-text',
-      shadowColor: 'hsl(var(--color-warning-bg))',
+      pin: 'bg-warning-bg shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
       Mark: AnimatedWarningMark,
     };
   }
 
   return {
     iconColor: 'text-info-text',
-    shadowColor: 'hsl(var(--color-info-bg))',
+    pin: 'bg-info-bg shadow-[0_0_6px_1px_hsl(var(--color-info-bg)/0.7)]',
     Mark: AnimatedInfoMark,
   };
 }
@@ -106,32 +113,52 @@ export function InfoDialog({
           aria-modal="true"
           aria-labelledby="info-dialog-title"
           aria-describedby="info-dialog-message"
-          className={`bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-border ${modalAnimationClass} ${closingPointerEvents}`}
-          style={{ '--tw-shadow-color': styles.shadowColor } as React.CSSProperties}
+          className={`relative isolate mx-4 w-full max-w-md px-7 py-6 ${modalAnimationClass} ${closingPointerEvents}`}
         >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <MarkComponent size={24} className={styles.iconColor} />
-              <h2 id="info-dialog-title" className="text-xl font-bold text-card-foreground">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
+          />
+          {CORNER_PINS.map(pos => (
+            <span
+              key={pos}
+              aria-hidden
+              className={`pointer-events-none absolute h-0.5 w-2 ${styles.pin} ${pos}`}
+            />
+          ))}
+
+          {/* Header */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <MarkComponent size={22} className={styles.iconColor} />
+              <h2
+                id="info-dialog-title"
+                className="phosphor-text font-mono text-[15px] font-semibold uppercase tracking-[0.14em] text-tooltip-foreground"
+              >
                 {title}
               </h2>
             </div>
             <button
               onClick={triggerClose}
-              className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-all duration-200"
+              className="text-tooltip-muted transition-colors hover:text-tooltip-foreground"
               aria-label="Close dialog"
               type="button"
             >
-              <X className="w-5 h-5" />
+              <X size={18} />
             </button>
           </div>
 
-          <div className="mb-8">
-            <p id="info-dialog-message" className="text-muted-foreground leading-relaxed">
-              {message}
-            </p>
-          </div>
+          <NubDivider tone="neutral" className="relative my-4" />
 
+          {/* Message */}
+          <p
+            id="info-dialog-message"
+            className="mb-7 text-sm leading-relaxed text-tooltip-foreground/80"
+          >
+            {message}
+          </p>
+
+          {/* Actions */}
           <div className="flex justify-end">
             <Button ref={closeButtonRef} variant="secondary" onClick={triggerClose}>
               {buttonText}

@@ -1,12 +1,20 @@
 /**
- * Tabs Primitive
+ * Tabs
  *
- * Tab navigation with automatic orientation based on tab count.
+ * Recessive tab navigation — mono uppercase chrome, active state lit by a sliding phosphor glow tile.
  */
-import { createContext, useContext, Children, useMemo, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  Children,
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from 'react';
 import type { ReactNode } from 'react';
-
-import './tabs.css';
 
 export type TabOrientation = 'horizontal' | 'vertical';
 
@@ -23,7 +31,6 @@ export interface TabProps {
   id: string;
   icon?: ReactNode;
   children: ReactNode;
-  disabled?: boolean;
 }
 
 interface TabsContextValue {
@@ -42,13 +49,37 @@ function useTabsContext() {
   return context;
 }
 
-export function Tab({ id, icon, children, disabled = false }: TabProps) {
+const BASE =
+  'relative z-10 font-mono uppercase tracking-[0.18em] text-xs font-medium ' +
+  'transition-colors duration-150 focus:outline-none cursor-pointer';
+
+const ACTIVE_STATE = 'text-foreground phosphor-text';
+
+const INACTIVE_STATE =
+  'text-muted-foreground ' +
+  'hover:text-foreground hover:[text-shadow:0_0_8px_rgb(255_255_255/0.7)]';
+
+// Sliding glow tile that fills the active tab — table-row recipe at chrome intensity.
+// Horizontal lights from the bottom edge, vertical from the left edge: same wash + edge
+// stripe + bloom, rotated 90°. Wash stops mirror the table's ROW_GLOW; outer bloom radii
+// are pulled in a notch since a tab is smaller than a selected data row.
+const TILE_HORIZONTAL =
+  'bg-[linear-gradient(0deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
+  'shadow-[inset_0_-2px_0_0_hsl(var(--primary)),inset_0_-14px_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_1px_0_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_-1px_0_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
+
+const TILE_VERTICAL =
+  'bg-[linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
+  'shadow-[inset_2px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
+
+const INDICATOR_TRANSITION =
+  'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
+
+export function Tab({ id, icon, children }: TabProps) {
   const { value, onChange, orientation } = useTabsContext();
   const isActive = value === id;
 
-  // Hover animation state for vertical tabs
+  // Icon-pop is a vertical-only hover micro-affordance.
   const [isAnimating, setIsAnimating] = useState(false);
-
   const handleMouseEnter = useCallback(() => {
     if (orientation === 'vertical') {
       setIsAnimating(true);
@@ -56,11 +87,7 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
     }
   }, [orientation]);
 
-  const handleClick = () => {
-    if (!disabled) {
-      onChange(id);
-    }
-  };
+  const handleClick = () => onChange(id);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -69,43 +96,27 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
     }
   };
 
-  if (orientation === 'vertical') {
-    return (
-      <button
-        type="button"
-        role="tab"
-        aria-selected={isActive}
-        aria-disabled={disabled}
-        tabIndex={disabled ? -1 : 0}
-        data-focus="none"
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        onMouseEnter={handleMouseEnter}
-        disabled={disabled}
-        className="tab-button tab-button--vertical w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {icon && (
-          <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
-        )}
-        <span>{children}</span>
-      </button>
-    );
-  }
+  const orientationClasses =
+    orientation === 'vertical'
+      ? 'w-full flex items-center gap-2 px-4 py-2.5 text-left'
+      : 'flex items-center gap-2 px-4 py-2.5';
+
+  const className = `${BASE} ${orientationClasses} ${isActive ? ACTIVE_STATE : INACTIVE_STATE}`;
 
   return (
     <button
       type="button"
       role="tab"
       aria-selected={isActive}
-      aria-disabled={disabled}
-      tabIndex={disabled ? -1 : 0}
-      data-focus="none"
+      tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      disabled={disabled}
-      className="tab-button tab-button--horizontal flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      onMouseEnter={handleMouseEnter}
+      className={className}
     >
-      {icon && <span className="flex-shrink-0">{icon}</span>}
+      {icon && (
+        <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
+      )}
       <span>{children}</span>
     </button>
   );
@@ -120,15 +131,54 @@ export function Tabs({ value, onChange, children, orientation, className = '' }:
     [value, onChange, resolvedOrientation]
   );
 
+  const listRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
+  const [hasMeasured, setHasMeasured] = useState(false);
+
+  const recomputeIndicator = useCallback(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const active = list.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    if (!active) return;
+    setIndicatorStyle({
+      transform: `translate(${active.offsetLeft}px, ${active.offsetTop}px)`,
+      width: active.offsetWidth,
+      height: active.offsetHeight,
+    });
+    setHasMeasured(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    recomputeIndicator();
+  }, [recomputeIndicator, value]);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const observer = new ResizeObserver(recomputeIndicator);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [recomputeIndicator]);
+
   const containerClass =
     resolvedOrientation === 'vertical'
-      ? `space-y-1 ${className}`
-      : `flex items-center gap-6 px-4 ${className}`;
+      ? 'relative flex flex-col gap-1'
+      : 'relative flex items-center gap-6 px-4';
+
+  const indicatorClass = `pointer-events-none absolute top-0 left-0 before:content-[''] before:absolute before:inset-0 before:bg-scanlines ${
+    resolvedOrientation === 'horizontal' ? TILE_HORIZONTAL : TILE_VERTICAL
+  } ${hasMeasured ? INDICATOR_TRANSITION : ''}`;
 
   return (
     <TabsContext.Provider value={contextValue}>
-      <div role="tablist" aria-orientation={resolvedOrientation} className={containerClass}>
+      <div
+        ref={listRef}
+        role="tablist"
+        aria-orientation={resolvedOrientation}
+        className={`${containerClass} ${className}`}
+      >
         {children}
+        <span aria-hidden className={indicatorClass} style={indicatorStyle} />
       </div>
     </TabsContext.Provider>
   );

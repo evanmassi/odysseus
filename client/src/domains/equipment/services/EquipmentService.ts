@@ -16,6 +16,7 @@ import {
   type UpdateEquipmentItemRequest,
   type DecommissionEquipmentItemRequest,
   type CreateEquipmentDocumentRequest,
+  type UpdateEquipmentDocumentRequest,
   type CreateEquipmentMaintenanceLogRequest,
   type UpdateEquipmentMaintenanceLogRequest,
   type EquipmentBulkResponse,
@@ -129,6 +130,19 @@ export class EquipmentService {
   ): Promise<EquipmentDocument> {
     const response = await httpClient.postData(
       `${this.BASE_PATH}/${itemId}/documents`,
+      data,
+      equipmentDocumentResponseSchema
+    );
+    return response.document;
+  }
+
+  static async updateDocument(
+    itemId: string,
+    docId: string,
+    data: UpdateEquipmentDocumentRequest
+  ): Promise<EquipmentDocument> {
+    const response = await httpClient.putData(
+      `${this.BASE_PATH}/${itemId}/documents/${docId}`,
       data,
       equipmentDocumentResponseSchema
     );

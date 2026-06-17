@@ -7,7 +7,8 @@
 import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
-  type TubeData
+  type TubeData,
+  type RackTube
 } from '@odysseus/shared-schemas';
 
 import type { Tube } from '@domain/entities/Tube';
@@ -21,25 +22,6 @@ export interface BulkUpdateRequest {
     id: string;
     updates: UpdateTubeRequest;
   }>;
-}
-
-export interface TubeSearchRequest {
-  query?: string;
-  tankId?: string;
-  rackId?: string;
-  boxId?: string;
-  cellType?: string;
-  researcherId?: string;
-  donorInternalId?: string;
-  donorSourceId?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  hasConcentration?: boolean;
-  isComplete?: boolean;
-  limit?: number;
-  offset?: number;
-  sortBy?: 'createdAt' | 'updatedAt' | 'position' | 'researcherId' | 'cellType';
-  sortOrder?: 'asc' | 'desc';
 }
 
 /**
@@ -65,6 +47,22 @@ export class TubeDto {
 
   static toResponseList(tubes: Tube[]): TubeResponse[] {
     return tubes.map(tube => this.toResponse(tube));
+  }
+
+  /** Slim projection for the navigator field map: color inputs + box position only. */
+  static toRackTubeList(tubes: Tube[]): RackTube[] {
+    return tubes.map(tube => {
+      const data = tube.toData();
+      return {
+        cellType: data.sample.cellType,
+        donorInternalId: data.sample.donorInternalId,
+        donorSourceId: data.sample.donorSourceId,
+        lotNumber: data.sample.lotNumber,
+        cultureCondition: data.sample.cultureCondition,
+        boxId: data.location.boxId,
+        position: data.location.position,
+      };
+    });
   }
 
   static fromCreateRequest(request: CreateTubeRequest): {

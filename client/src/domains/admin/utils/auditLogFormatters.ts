@@ -778,6 +778,24 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       return plain(name ? name : '-');
     }
 
+    // ── SUPPLY EVENTS ──
+
+    if (entityType === 'supply_item') {
+      if (action === 'supply_stock_voided') {
+        const voidReason = getStringProperty(details, 'voidReason');
+        const username = getStringProperty(details, 'voidedBy');
+        return plain(voidReason ? `${username} — ${voidReason}` : username);
+      }
+
+      if (action === 'supply_bulk_voided') {
+        const count = getNumberProperty(details, 'count');
+        const voidReason = getStringProperty(details, 'voidReason');
+        return plain(
+          `${count} transaction${count !== 1 ? 's' : ''} voided${voidReason ? ` — ${voidReason}` : ''}`
+        );
+      }
+    }
+
     return plain('-');
   } catch {
     return plain('-');

@@ -4,11 +4,14 @@
  * Annotated diagram showing what each element on a tube cell means,
  * plus legends for lock states and color coding.
  */
-import { Lock, LockKeyhole, Notebook, Palette, ScanEye, ShieldCheck } from 'lucide-react';
+import { Lock, Notebook, ShieldCheck } from 'lucide-react';
 
 import { TubePropertyIndicator } from '@domains/tubes/ui/components/grid/TubePropertyIndicator';
 import { cellLineCategories } from '@domains/tubes/utils/tubeColorCoding';
+import { Well } from '@shared/ui';
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
+
+import { HelpSection } from '../HelpSection';
 
 import './tubes-tab.css';
 
@@ -66,242 +69,251 @@ function Callout({ label, x1, y1, x2, y2, labelAnchor, labelOffsetY = -8 }: Call
   );
 }
 
+// Shared T-cell example: the same swatch drives the diagram fill/ink and the brightness legend.
+const T_CELL_EXAMPLE = { name: 'T Cells', color: '#87A494', textColor: '#000000' };
+
 // Example swatches showing how a single donor's base color shifts by cell type
 const DONOR_BRIGHTNESS_SWATCHES = [
   { name: 'PBMC', color: '#5E7A6B', textColor: '#FFFFFF' },
   { name: 'NK Cells', color: '#6E8B7B', textColor: '#FFFFFF' },
-  { name: 'Human T Cells', color: '#87A494', textColor: '#000000' },
+  T_CELL_EXAMPLE,
 ];
 
 export function TubesTab() {
   return (
     <div className="space-y-8">
       {/* Section A: Annotated Tube Diagram */}
-      <section>
-        <div className="flex items-center gap-2 mb-4">
-          <ScanEye size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Tube Cell Anatomy</h3>
-        </div>
-
+      <HelpSection id="tubes-anatomy">
         <div className="flex justify-center">
           <svg
-            viewBox="0 50 620 255"
+            viewBox="80 58 470 200"
             className="w-full"
             role="img"
             aria-label="Annotated tube cell diagram showing all visual elements"
           >
-            {/* Tube cell replica - centered at x=310, size 120x120 */}
+            <defs>
+              {/* Matches the real cell's vertical sheen: highlight on top, shade at the base. */}
+              <linearGradient id="tubeSheen" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0.12} />
+                <stop offset="46%" stopColor="#FFFFFF" stopOpacity={0} />
+                <stop offset="100%" stopColor="#000000" stopOpacity={0.14} />
+              </linearGradient>
+            </defs>
+
+            {/* Tube cell replica — sharp-cornered square, centered at x=310, size 120x120 */}
             <rect
               x={250}
               y={110}
               width={120}
               height={120}
-              rx={8}
-              fill="#A85A4A"
-              stroke="hsl(var(--border))"
+              fill={T_CELL_EXAMPLE.color}
+              stroke="rgba(0,0,0,0.22)"
               strokeWidth={1}
             />
+            <rect x={250} y={110} width={120} height={120} fill="url(#tubeSheen)" />
 
-            {/* Position label (top-right) */}
-            <rect x={337} y={115} width={28} height={16} rx={3} fill="rgba(0,0,0,0.35)" />
-            <text x={351} y={127} textAnchor="middle" fontSize={10} fontWeight={600} fill="#FFFFFF">
+            {/* Lot indicator square (top-left) */}
+            <g transform="translate(256, 116)">
+              <rect
+                width={15}
+                height={15}
+                rx={1}
+                fill="#4CAF50"
+                stroke="rgba(0,0,0,0.5)"
+                strokeWidth={1}
+              />
+              <line x1={7.5} y1={1.5} x2={7.5} y2={13.5} stroke="#FFFFFF" strokeWidth={1.5} />
+            </g>
+
+            {/* Top-right cluster: lock icon then plain position label */}
+            <g transform="translate(339, 118)" opacity={0.82}>
+              <rect
+                x={0}
+                y={5}
+                width={11}
+                height={8}
+                rx={1.5}
+                fill="none"
+                stroke={T_CELL_EXAMPLE.textColor}
+                strokeWidth={1.2}
+              />
+              <path
+                d="M2.5,5 V3.6 A3,3 0 0,1 8.5,3.6 V5"
+                fill="none"
+                stroke={T_CELL_EXAMPLE.textColor}
+                strokeWidth={1.2}
+              />
+            </g>
+            <text
+              x={364}
+              y={128}
+              textAnchor="end"
+              fontSize={11}
+              fontWeight={600}
+              fill={T_CELL_EXAMPLE.textColor}
+              opacity={0.82}
+            >
               A1
             </text>
 
-            {/* Lot indicator square (top-left) */}
-            <g transform="translate(255, 115)">
-              <rect width={14} height={14} rx={1} fill="#4CAF50" stroke="#FFFFFF" strokeWidth={1} />
-              <line x1={7} y1={1} x2={7} y2={13} stroke="#FFFFFF" strokeWidth={1.5} />
-            </g>
-
-            {/* Cell type text (center) */}
-            <text x={310} y={162} textAnchor="middle" fontSize={12} fontWeight={700} fill="#FFFFFF">
-              Human T Cells
-            </text>
-
-            {/* Donor Internal ID */}
+            {/* Bottom-left text block: cell type (bold), then donor IDs, stacked */}
             <text
-              x={310}
-              y={178}
-              textAnchor="middle"
-              fontSize={10}
+              x={256}
+              y={199}
+              fontSize={11}
+              fontWeight={700}
+              fill={T_CELL_EXAMPLE.textColor}
+              opacity={0.95}
+            >
+              T Cells
+            </text>
+            <text
+              x={256}
+              y={212}
+              fontSize={9.5}
               fontWeight={500}
-              fill="#FFFFFF"
-              opacity={0.9}
+              fill={T_CELL_EXAMPLE.textColor}
+              opacity={0.82}
             >
               DON-0042
             </text>
-
-            {/* Donor Source ID */}
             <text
-              x={310}
-              y={191}
-              textAnchor="middle"
-              fontSize={10}
+              x={256}
+              y={223}
+              fontSize={9.5}
               fontWeight={500}
-              fill="#FFFFFF"
-              opacity={0.9}
+              fill={T_CELL_EXAMPLE.textColor}
+              opacity={0.6}
             >
               SRC-1138
             </text>
 
-            {/* Lock icon (bottom-left) */}
-            <g transform="translate(255, 213)">
-              <rect
-                x={0}
-                y={5}
-                width={12}
-                height={9}
-                rx={1.5}
-                fill="none"
-                stroke="#FFFFFF"
-                strokeWidth={1.2}
-              />
-              <path
-                d="M3,5 V3.5 A3,3 0 0,1 9,3.5 V5"
-                fill="none"
-                stroke="#FFFFFF"
-                strokeWidth={1.2}
-              />
-            </g>
+            {/* Culture condition corner triangle (bottom-right corner) */}
+            <polygon
+              points="368,210 368,228 350,228"
+              fill="#FF9800"
+              stroke="rgba(0,0,0,0.5)"
+              strokeWidth={1}
+              strokeLinejoin="round"
+            />
 
-            {/* Culture condition triangle (bottom-right) */}
-            <g transform="translate(351, 212)">
-              <polygon
-                points="7,1 13,13 1,13"
-                fill="#FF9800"
-                stroke="#FFFFFF"
-                strokeWidth={1}
-                strokeLinejoin="round"
-              />
-            </g>
+            {/* --- Callout lines --- anchors (x1,y1) sit AT each visual element --- */}
 
-            {/* --- Callout lines --- */}
-            {/* Anchors (x1,y1) sit AT each visual element, not at tube border */}
-
-            {/* Lot indicator — anchor at the square */}
+            {/* Lot indicator — anchor at the square's outer corner */}
             <Callout
               label="Lot Number"
-              x1={258}
-              y1={120}
-              x2={155}
-              y2={68}
+              x1={256}
+              y1={116}
+              x2={205}
+              y2={86}
               labelAnchor="left"
               labelOffsetY={4}
             />
 
-            {/* Position badge — anchor at right side of badge */}
+            {/* Position label — anchor on the right edge, clear of the "A1" text */}
             <Callout
               label="Position"
-              x1={362}
-              y1={120}
-              x2={460}
-              y2={68}
+              x1={370}
+              y1={123}
+              x2={415}
+              y2={82}
               labelAnchor="right"
               labelOffsetY={4}
             />
 
-            {/* Cell type — anchor at left edge of "Human T Cells" text */}
-            <Callout
-              label="Cell Type"
-              x1={265}
-              y1={158}
-              x2={150}
-              y2={148}
-              labelAnchor="left"
-              labelOffsetY={4}
-            />
-
-            {/* Internal donor ID — anchor at left edge of "DON-0042" */}
-            <Callout
-              label="Internal Donor ID"
-              x1={275}
-              y1={174}
-              x2={140}
-              y2={208}
-              labelAnchor="left"
-              labelOffsetY={4}
-            />
-
-            {/* Source donor ID — anchor at right edge of "SRC-1138" */}
-            <Callout
-              label="Source Donor ID"
-              x1={345}
-              y1={187}
-              x2={470}
-              y2={195}
-              labelAnchor="right"
-              labelOffsetY={4}
-            />
-
-            {/* Lock icon — anchor at the icon */}
+            {/* Lock icon — anchor below the padlock; route below "A1" to avoid clipping it */}
             <Callout
               label="Lock Status"
-              x1={261}
-              y1={222}
-              x2={140}
-              y2={280}
+              x1={349}
+              y1={131}
+              x2={415}
+              y2={150}
+              labelAnchor="right"
+              labelOffsetY={4}
+            />
+
+            {/* Cell type — anchor on the left edge at the cell-type row */}
+            <Callout
+              label="Cell Type"
+              x1={250}
+              y1={196}
+              x2={205}
+              y2={150}
               labelAnchor="left"
               labelOffsetY={4}
             />
 
-            {/* Culture condition — anchor at the triangle */}
+            {/* Internal donor ID — anchor on the left edge at the internal-ID row */}
+            <Callout
+              label="Internal Donor ID"
+              x1={250}
+              y1={209}
+              x2={205}
+              y2={188}
+              labelAnchor="left"
+              labelOffsetY={4}
+            />
+
+            {/* Source donor ID — anchor on the left edge at the source-ID row */}
+            <Callout
+              label="Source Donor ID"
+              x1={250}
+              y1={220}
+              x2={205}
+              y2={226}
+              labelAnchor="left"
+              labelOffsetY={4}
+            />
+
+            {/* Culture condition — anchor on the right edge at the corner triangle */}
             <Callout
               label="Culture Condition"
-              x1={358}
-              y1={222}
-              x2={478}
-              y2={290}
+              x1={368}
+              y1={219}
+              x2={415}
+              y2={232}
               labelAnchor="right"
               labelOffsetY={4}
             />
           </svg>
         </div>
-      </section>
+      </HelpSection>
 
       {/* Section B: Lock States Legend */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <LockKeyhole size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Lock States</h3>
-        </div>
+      <HelpSection id="tubes-lock-states">
         <div className="grid grid-cols-3 gap-4">
-          <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
+          <Well className="flex flex-col items-center gap-2 p-3">
             <Lock size={20} className="text-secondary-foreground" />
             <span className="text-xs font-medium text-card-foreground">Your Lock</span>
             <span className="text-[11px] text-muted-foreground text-center">
               You locked this tube
             </span>
-          </div>
+          </Well>
 
-          <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
+          <Well className="flex flex-col items-center gap-2 p-3">
             <ShieldCheck size={20} className="text-secondary-foreground" />
             <span className="text-xs font-medium text-card-foreground">Shared Access</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Another user shared access with you
             </span>
-          </div>
+          </Well>
 
-          <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
+          <Well className="flex flex-col items-center gap-2 p-3">
             <Lock size={20} className="text-red-500" />
             <span className="text-xs font-medium text-card-foreground">Locked Out</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Locked by another user; cell appears dimmed
             </span>
-          </div>
+          </Well>
         </div>
         <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1.5">
           <Notebook size={14} className="flex-shrink-0 text-secondary-foreground" />
           Lock notes appear when hovering over the tube, or in the Tube Information panel.
         </p>
-      </section>
+      </HelpSection>
 
       {/* Section C: Color Coding */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Palette size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Color Coding</h3>
-        </div>
+      <HelpSection id="tubes-color">
         {/* Cell line swatches */}
         <h4 className="text-xs font-medium text-card-foreground mb-1">Cell Lines</h4>
         <p className="text-xs text-muted-foreground mb-2">
@@ -311,7 +323,7 @@ export function TubesTab() {
           {CELL_LINE_SWATCHES.map(s => (
             <div
               key={s.name}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-none"
               style={{ backgroundColor: s.color }}
             >
               <span className="text-xs font-semibold" style={{ color: s.textColor }}>
@@ -330,7 +342,7 @@ export function TubesTab() {
           {DONOR_BRIGHTNESS_SWATCHES.map(s => (
             <div
               key={s.name}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-none"
               style={{ backgroundColor: s.color }}
             >
               <span className="text-xs font-semibold" style={{ color: s.textColor }}>
@@ -360,7 +372,7 @@ export function TubesTab() {
         </div>
         <div className="flex items-center gap-2 mt-2">
           <TubePropertyIndicator
-            shape="triangle"
+            shape="corner-triangle"
             color="#FF9800"
             pattern="solid"
             size={16}
@@ -370,7 +382,7 @@ export function TubesTab() {
             Culture Condition — bottom-right corner, unique color per condition
           </span>
         </div>
-      </section>
+      </HelpSection>
     </div>
   );
 }

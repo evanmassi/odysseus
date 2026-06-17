@@ -66,11 +66,12 @@ type DisplaySession = ActiveSession & {
 };
 
 export function SessionListPanel() {
-  const { sessions, isLoading, revokeSession, isRevoking, revokeAll, isRevokingAll } =
-    useUserSessions();
+  const { sessions, isLoading, revokeSession, revokeSessionAsync, isRevoking } = useUserSessions();
 
-  const [showRevokeAllConfirm, setShowRevokeAllConfirm] = useState(false);
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
+  const [selectedSessionIds, setSelectedSessionIds] = useState<(string | number)[]>([]);
+  const [showBulkRevokeConfirm, setShowBulkRevokeConfirm] = useState(false);
+  const [isBulkRevoking, setIsBulkRevoking] = useState(false);
 
   const displayedSessions = useMemo(() => {
     const sorted = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
@@ -90,8 +91,6 @@ export function SessionListPanel() {
     });
   }, [sessions]);
 
-  const otherSessionsCount = sessions.filter(s => !s.isCurrentSession).length;
-
   const handleRevokeSession = (sessionId: string) => {
     setRevokingSessionId(sessionId);
     revokeSession(sessionId, {
@@ -106,19 +105,22 @@ export function SessionListPanel() {
     });
   };
 
-  const handleRevokeAll = () => {
-    revokeAll(undefined, {
-      onSuccess: (revokedCount: number) => {
-        notifications.success(
-          `Logged out from ${revokedCount} device${revokedCount !== 1 ? 's' : ''} successfully`
-        );
-        setShowRevokeAllConfirm(false);
-      },
-      onError: (error: Error) => {
-        notifications.error(error.message || 'Failed to logout from other devices');
-        setShowRevokeAllConfirm(false);
-      },
-    });
+  const handleBulkRevoke = async () => {
+    const ids = selectedSessionIds.map(String);
+    if (ids.length === 0) return;
+    setIsBulkRevoking(true);
+    const results = await Promise.allSettled(ids.map(id => revokeSessionAsync(id)));
+    const succeeded = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.length - succeeded;
+    if (succeeded > 0) {
+      notifications.success(`Logged out of ${succeeded} session${succeeded !== 1 ? 's' : ''}`);
+    }
+    if (failed > 0) {
+      notifications.error(`Failed to revoke ${failed} session${failed !== 1 ? 's' : ''}`);
+    }
+    setSelectedSessionIds([]);
+    setShowBulkRevokeConfirm(false);
+    setIsBulkRevoking(false);
   };
 
   const sessionColumns: TableColumn<DisplaySession>[] = [
@@ -204,116 +206,59 @@ export function SessionListPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-secondary-foreground">
-          Showing {displayedSessions.length} of {sessions.length} active session
-          {sessions.length !== 1 ? 's' : ''}
-        </p>
-        {otherSessionsCount > 0 && (
-          <Button
-            variant="danger"
-            size="xs"
-            onClick={() => setShowRevokeAllConfirm(true)}
-            isLoading={isRevokingAll}
-            loadingText="Revoking..."
-            leftIcon={<LogOut size={12} />}
-          >
-            Logout All Other Devices
-          </Button>
-        )}
-      </div>
-
-      {/* Desktop Table View */}
-      <div className="hidden md:block">
-        <Table<DisplaySession>
-          columns={sessionColumns}
-          data={displayedSessions}
-          hoverable
-          size="sm"
-          rounded="lg"
-          emptyMessage="No active sessions"
-          aria-label="Active sessions"
-          rowClassName={row =>
-            row.isCurrentSession
-              ? 'bg-success-light text-success-text [&>td:first-child]:border-l-4 [&>td:first-child]:border-l-success-bg'
-              : ''
-          }
-        />
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-3">
-        {displayedSessions.map(session => (
-          <div
-            key={session.id}
-            className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-success-light border border-border border-l-4 border-l-success-bg text-success-text' : 'border border-border bg-card'}`}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <session.DeviceIcon
-                  size={20}
-                  className={`flex-shrink-0 ${session.isCurrentSession ? 'text-success-text' : 'text-muted-foreground'}`}
-                />
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-sm font-medium truncate ${session.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
-                  >
-                    {session.device}
-                  </p>
-                  {session.isCurrentSession && <CurrentSessionBadge />}
-                </div>
-              </div>
-              {!session.isCurrentSession && (
-                <Tooltip content="Logout from this session" side="bottom">
-                  <Button
-                    variant="danger"
-                    size="xs"
-                    iconOnly
-                    onClick={() => handleRevokeSession(session.id)}
-                    disabled={isRevoking}
-                    isLoading={revokingSessionId === session.id}
-                    aria-label="Logout from this session"
-                    className="flex-shrink-0 ml-2"
-                  >
-                    <LogOut size={12} />
-                  </Button>
-                </Tooltip>
-              )}
-            </div>
-            <div
-              className={`space-y-1 text-xs ${session.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
-            >
-              <p>
-                <span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}
-              </p>
-              <div>
-                <span className="font-medium">Last Active:</span>
-                <p className="ml-0 mt-0.5">{session.timestamp.relative}</p>
-                <p
-                  className={`text-[11px] ml-0 ${session.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
-                >
-                  {session.timestamp.absolute}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <Table<DisplaySession>
+        columns={sessionColumns}
+        data={displayedSessions}
+        hoverable
+        selectable
+        multiSelect
+        selectedRows={selectedSessionIds}
+        onSelectionChange={setSelectedSessionIds}
+        emptyMessage="No active sessions"
+        aria-label="Active sessions"
+        rowState={row => (row.isCurrentSession ? 'success' : 'default')}
+        selectedRowGlow
+        toolbar={{
+          left: (
+            <p className="text-sm text-secondary-foreground">
+              Showing {displayedSessions.length} of {sessions.length} active session
+              {sessions.length !== 1 ? 's' : ''}
+            </p>
+          ),
+          right: (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedSessionIds([])}
+                disabled={selectedSessionIds.length === 0}
+              >
+                Clear Selection
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => setShowBulkRevokeConfirm(true)}
+                leftIcon={<LogOut size={12} />}
+                disabled={selectedSessionIds.length === 0}
+              >
+                Revoke Selected
+                {selectedSessionIds.length > 0 ? ` (${selectedSessionIds.length})` : ''}
+              </Button>
+            </>
+          ),
+        }}
+      />
 
       <ConfirmDialog
-        isOpen={showRevokeAllConfirm}
+        isOpen={showBulkRevokeConfirm}
         variant="danger"
-        title="Logout All Other Devices?"
-        message={
-          <>
-            This will end all other active sessions ({otherSessionsCount} device
-            {otherSessionsCount !== 1 ? 's' : ''}). You will remain logged in on this device.
-          </>
-        }
-        confirmText="Logout All"
-        isLoading={isRevokingAll}
-        onConfirm={handleRevokeAll}
-        onCancel={() => setShowRevokeAllConfirm(false)}
+        title="Revoke Selected Sessions?"
+        message={`Revoke ${selectedSessionIds.length} selected session${selectedSessionIds.length !== 1 ? 's' : ''}? Those devices will be logged out immediately.`}
+        confirmText="Revoke"
+        isLoading={isBulkRevoking}
+        onConfirm={handleBulkRevoke}
+        onCancel={() => setShowBulkRevokeConfirm(false)}
       />
     </div>
   );

@@ -4,53 +4,34 @@
  * Admin-only help content covering the Admin Settings panel.
  * Section order matches the tab order in the Admin Settings modal.
  */
-import {
-  Activity,
-  BookOpen,
-  Dna,
-  Gauge,
-  Settings,
-  Shield,
-  TicketCheck,
-  UsersRound,
-} from 'lucide-react';
+import { Well } from '@shared/ui';
+
+import { HelpSection } from '../HelpSection';
 
 export function AdministrationTab() {
   return (
     <div className="space-y-8">
       {/* Overview */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Settings size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Admin Settings Overview</h3>
-        </div>
+      <HelpSection id="admin-overview">
         <p className="text-xs text-muted-foreground">
           The Admin Settings panel is accessible from the header menu. It is the central hub for
           managing your lab — users, researchers, security, registration, catalog values, and system
           configuration are all controlled from here.
         </p>
-      </section>
+      </HelpSection>
 
       {/* System */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Gauge size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">System</h3>
-        </div>
+      <HelpSection id="admin-system">
         <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
           <li>Edit your lab name</li>
           <li>View storage utilization — capacity usage across tanks, racks, and boxes</li>
           <li>Export system data</li>
           <li>Toggle detailed system logging for troubleshooting</li>
         </ul>
-      </section>
+      </HelpSection>
 
       {/* Security Settings */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Shield size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Security Settings</h3>
-        </div>
+      <HelpSection id="admin-security">
         <p className="text-xs text-muted-foreground mb-2">
           Authentication, login, and timeout settings for your lab. Only the system administrator
           can modify these settings — lab admins can view them but not make changes.
@@ -75,14 +56,10 @@ export function AdministrationTab() {
             </span>
           </div>
         </div>
-      </section>
+      </HelpSection>
 
       {/* User Management */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <UsersRound size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">User Management</h3>
-        </div>
+      <HelpSection id="admin-users">
         <p className="text-xs text-muted-foreground mb-2">
           View and manage all user accounts in your lab.
         </p>
@@ -92,7 +69,7 @@ export function AdministrationTab() {
           <li>Link to researchers — connect a user account to a researcher profile</li>
           <li>Activate or deactivate accounts</li>
         </ul>
-        <div className="rounded-lg border border-border p-3 bg-muted/30 mt-3">
+        <Well className="p-3 mt-3">
           <h4 className="text-xs font-medium text-card-foreground mb-1">
             Researcher Link & Access
           </h4>
@@ -101,15 +78,11 @@ export function AdministrationTab() {
             and manage tubes in their assigned storage. Users without a linked researcher have
             read-only access and can browse the system but cannot modify tube data.
           </p>
-        </div>
-      </section>
+        </Well>
+      </HelpSection>
 
       {/* Researcher Management */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Dna size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Researcher Management</h3>
-        </div>
+      <HelpSection id="admin-researchers">
         <p className="text-xs text-muted-foreground mb-2">
           Manage researcher profiles independently from user accounts.
         </p>
@@ -119,47 +92,35 @@ export function AdministrationTab() {
           <li>Activate or deactivate researchers while preserving their tube associations</li>
           <li>View how many tubes each researcher owns</li>
         </ul>
-      </section>
+      </HelpSection>
 
       {/* Invite Codes */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <TicketCheck size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Invite Codes</h3>
-        </div>
+      <HelpSection id="admin-invites">
         <p className="text-xs text-muted-foreground">
           Generate invite codes to allow new users to register for your lab. Each code can be
           configured with a maximum number of uses and can optionally auto-create a researcher
           profile on registration. Copy the code to share it, and deactivate it when no longer
           needed.
         </p>
-      </section>
+      </HelpSection>
 
       {/* Catalog Management */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <BookOpen size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Catalog Management</h3>
-        </div>
+      <HelpSection id="admin-catalog">
         <p className="text-xs text-muted-foreground">
           Customize the options available when filling out tube and donor forms — species, source
           types, media types, and specimen types. You can add new options, rename existing ones, and
           remove options that are no longer relevant. Before removing an option, the system shows
           how many records currently use it.
         </p>
-      </section>
+      </HelpSection>
 
       {/* Monitoring */}
-      <section>
-        <div className="flex items-center gap-2 mb-3">
-          <Activity size={16} className="text-secondary-foreground" />
-          <h3 className="text-sm font-semibold text-card-foreground">Monitoring</h3>
-        </div>
+      <HelpSection id="admin-monitoring">
         <p className="text-xs text-muted-foreground">
           The audit log tracks user actions across the system. Filter by user, action type, or date
           range to review activity. Useful for troubleshooting or verifying changes.
         </p>
-      </section>
+      </HelpSection>
     </div>
   );
 }

@@ -31,7 +31,6 @@ export function AssignmentBadge({ userId, size, isOwnedByCurrentUser }: Assignme
       initials={userInfo?.initials}
       username={userInfo?.username}
       size={size}
-      variant="default"
     />
   );
 }

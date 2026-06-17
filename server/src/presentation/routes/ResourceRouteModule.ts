@@ -26,6 +26,8 @@ import {
   BulkFetchHttpSchema,
   BulkMoveHttpSchema,
   LocationQuerySchema,
+  RackQuerySchema,
+  TubeFilterOptionsQuerySchema,
   LockTubesHttpSchema,
   UnlockTubesHttpSchema,
   ShareTubeAccessHttpSchema,
@@ -64,21 +66,29 @@ export class ResourceRouteModule implements RouteModule {
     // TUBE ROUTES
 
     // Read operations
-    router.get('/tubes',
-      this.tubeController.getAllTubes.bind(this.tubeController)
-    );
-
     router.get('/tubes/location',
       validateQuery(LocationQuerySchema),
       this.tubeController.getTubesByLocation.bind(this.tubeController)
     );
 
-    router.get('/tubes/search',
-      this.tubeController.searchTubes.bind(this.tubeController)
+    router.get('/tubes/filter-options',
+      validateQuery(TubeFilterOptionsQuerySchema),
+      this.tubeController.getFilterOptions.bind(this.tubeController)
     );
 
     router.get('/tubes/stats',
       this.tubeController.getStats.bind(this.tubeController)
+    );
+
+    // Navigator field map feeds — registered before /tubes/:id so the literal
+    // paths are not shadowed by the id param route.
+    router.get('/tubes/by-rack',
+      validateQuery(RackQuerySchema),
+      this.tubeController.getTubesByRack.bind(this.tubeController)
+    );
+
+    router.get('/tubes/location-counts',
+      this.tubeController.getLocationCounts.bind(this.tubeController)
     );
 
     router.get('/tubes/:id',

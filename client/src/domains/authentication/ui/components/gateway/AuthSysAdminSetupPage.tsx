@@ -10,6 +10,7 @@ import { useState, useRef, useMemo, useEffect } from 'react';
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { UserRound, KeyRound, Mail, ShieldCheck, Building2, BriefcaseBusiness } from 'lucide-react';
 
+import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import {
   authService,
   type PasswordRequirements as PasswordConfig,
@@ -23,8 +24,6 @@ import {
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
-
-import { AuthBaseModal } from './AuthBaseModal';
 
 export function AuthSysAdminSetupPage() {
   const [firstName, setFirstName] = useState('');
@@ -131,19 +130,23 @@ export function AuthSysAdminSetupPage() {
     }
   };
 
+  useShellConfig({
+    contentKey: 'sysadmin-setup',
+    variant: 'console',
+    width: 'wide',
+    showBranding: true,
+    brandGreeting: 'First-time setup',
+    microheader: 'Create administrator',
+    initialFocusRef: firstNameRef,
+  });
+
   return (
-    <AuthBaseModal
-      size="large"
-      subtitle="System Administrator Setup"
-      initialFocusRef={firstNameRef}
-      className="max-h-[95vh] overflow-y-auto"
-    >
+    <div key="sysadmin-setup" className="animate-auth-stack">
       <AlertBanner variant="info" spacing="none" className="text-xs mb-3">
         No system administrator exists yet. Create one to manage labs and global settings.
       </AlertBanner>
 
       <form onSubmit={handleSubmit} className="space-y-3">
-        {/* Name Fields */}
         <div className="grid grid-cols-2 gap-3 items-start">
           <div className="space-y-1.5">
             <AuthInput
@@ -156,20 +159,19 @@ export function AuthSysAdminSetupPage() {
               placeholder="First name"
               icon={<UserRound size={16} />}
               state={getValidationState(firstNameTouched, firstName.trim().length > 0)}
+              variant="console"
               required
               disabled={isLoading}
               maxLength={50}
             />
-            <div className="min-h-[18px] ml-1">
+            <div className="min-h-[18px] ml-1 font-mono text-[10px]">
               {usernamePreview ? (
-                <p className="text-[10px] text-secondary-foreground">
+                <p className="text-[rgb(var(--auth-text-mute))]">
                   Username:{' '}
-                  <span className="font-mono font-semibold text-action [[data-theme=dark]_&]:text-action/70">
-                    {usernamePreview}
-                  </span>
+                  <span className="text-[rgb(var(--auth-ambient))]">{usernamePreview}</span>
                 </p>
               ) : (
-                <p className="text-[10px] text-muted-foreground">Username:</p>
+                <p className="text-[rgb(var(--auth-text-faint))]">Username:</p>
               )}
             </div>
           </div>
@@ -183,13 +185,13 @@ export function AuthSysAdminSetupPage() {
             placeholder="Last name"
             icon={<UserRound size={16} />}
             state={getValidationState(lastNameTouched, lastName.trim().length > 0)}
+            variant="console"
             required
             disabled={isLoading}
             maxLength={50}
           />
         </div>
 
-        {/* Email */}
         <AuthInput
           id="sysadmin-email"
           type="email"
@@ -200,12 +202,12 @@ export function AuthSysAdminSetupPage() {
           placeholder="admin@institution.edu"
           icon={<Mail size={16} />}
           state={getValidationState(emailTouched, emailIsValid)}
+          variant="console"
           required
           disabled={isLoading}
           maxLength={255}
         />
 
-        {/* Department & Position */}
         <div className="grid grid-cols-2 gap-3 items-start">
           <AuthInput
             id="sysadmin-department"
@@ -214,6 +216,7 @@ export function AuthSysAdminSetupPage() {
             label="Department"
             placeholder="Department name"
             icon={<Building2 size={16} />}
+            variant="console"
             disabled={isLoading}
             maxLength={100}
           />
@@ -225,13 +228,13 @@ export function AuthSysAdminSetupPage() {
             label="Position"
             placeholder="Title or role"
             icon={<BriefcaseBusiness size={16} />}
+            variant="console"
             disabled={isLoading}
             maxLength={100}
           />
         </div>
 
-        {/* Password Fields */}
-        <div className="pt-3 border-t border-border space-y-2">
+        <div className="pt-3 border-t border-[rgb(var(--auth-divider))] space-y-2">
           <AuthInput
             id="sysadmin-password"
             type="password"
@@ -242,6 +245,7 @@ export function AuthSysAdminSetupPage() {
             placeholder="At least 8 characters"
             icon={<KeyRound size={16} />}
             state={getValidationState(passwordTouched, passwordIsValid)}
+            variant="console"
             required
             disabled={isLoading}
           />
@@ -255,6 +259,7 @@ export function AuthSysAdminSetupPage() {
             placeholder="Confirm password"
             icon={<KeyRound size={16} />}
             state={getValidationState(!!confirmPassword, password === confirmPassword)}
+            variant="console"
             required
             disabled={isLoading}
           />
@@ -269,6 +274,7 @@ export function AuthSysAdminSetupPage() {
             label="Setup key"
             placeholder="Environment setup key"
             icon={<ShieldCheck size={16} />}
+            variant="console"
             required
             disabled={isLoading}
           />
@@ -277,15 +283,16 @@ export function AuthSysAdminSetupPage() {
         <Button
           type="submit"
           variant="primary"
-          size="xl"
+          tail
+          ceremonial
           fullWidth
           isLoading={isLoading}
           loadingText="Creating system admin..."
-          className="shadow-lg font-bold mt-2"
+          className="mt-2"
         >
           Create System Admin
         </Button>
       </form>
-    </AuthBaseModal>
+    </div>
   );
 }

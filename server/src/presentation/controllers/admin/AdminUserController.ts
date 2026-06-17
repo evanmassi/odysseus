@@ -6,7 +6,6 @@
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
-
 import type { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 import type {
   ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
@@ -15,9 +14,9 @@ import type { GetUserByIdQueryHandler } from '@application/queries/UserQueries';
 import { GetUserByIdQuery } from '@application/queries/UserQueries';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
-import { PermissionError } from '@domain/errors/PermissionError';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
+import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
@@ -32,12 +31,13 @@ export interface AdminUserControllerDeps {
   researcherApplicationService: ResearcherApplicationService;
 }
 
-export class AdminUserController {
-  constructor(private deps: AdminUserControllerDeps) {}
+export class AdminUserController extends BaseController {
+  constructor(private deps: AdminUserControllerDeps) {
+    super();
+  }
 
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
-
       const labId = req.user?.labId;
       if (!labId) {
         res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required'));
@@ -74,11 +74,7 @@ export class AdminUserController {
     try {
       const { id } = req.params;
       const { role } = req.body;
-      const adminUser = req.user;
-
-      if (!adminUser) {
-        handleControllerError(new Error('Admin user not found in request context'), res, 'Failed to update user role'); return;
-      }
+      const adminUser = this.getAuthenticatedUser(req);
 
       const command: ChangeUserRoleCommand = {
         userId: id,
@@ -104,17 +100,13 @@ export class AdminUserController {
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = this.getAuthenticatedUser(req);
 
-      if (!adminApiKey) {
-        throw new PermissionError('Authentication required');
-      }
-
-      await this.deps.userApplicationService.deleteUser(id, adminApiKey);
+      await this.deps.userApplicationService.deleteUser(id, adminUser);
 
       logger.info('User deleted', {
         deletedUserId: id,
-        performedBy: req.user?.username
+        performedBy: adminUser.username
       });
 
       res.status(200).json(ResponseBuilder.success({ message: 'User deleted successfully' }));
@@ -125,15 +117,10 @@ export class AdminUserController {
 
   async deactivateUser(req: Request, res: Response): Promise<void> {
     try {
-
       const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = this.getAuthenticatedUser(req);
 
-      if (!adminApiKey) {
-        throw new PermissionError('Authentication required');
-      }
-
-      await this.deps.userApplicationService.deactivateUser(userId, adminApiKey);
+      await this.deps.userApplicationService.deactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -148,15 +135,10 @@ export class AdminUserController {
 
   async activateUser(req: Request, res: Response): Promise<void> {
     try {
-
       const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = this.getAuthenticatedUser(req);
 
-      if (!adminApiKey) {
-        throw new PermissionError('Authentication required');
-      }
-
-      await this.deps.userApplicationService.reactivateUser(userId, adminApiKey);
+      await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -174,22 +156,17 @@ export class AdminUserController {
    */
   async linkResearcherToUser(req: Request, res: Response): Promise<void> {
     try {
-
       const { userId } = req.params;
       const { researcherId, newResearcher } = req.body;
-      const adminApiKey = req.user?.apiKey;
-
-      if (!adminApiKey) {
-        throw new PermissionError('Authentication required');
-      }
+      const adminUser = this.getAuthenticatedUser(req);
 
       let targetResearcherId = researcherId;
 
       if (newResearcher) {
         const created = await this.deps.researcherApplicationService.createResearcher(
-          req.user!.labId!,
+          adminUser.labId!,
           newResearcher,
-          adminApiKey
+          adminUser
         );
         targetResearcherId = created.id;
 
@@ -197,11 +174,11 @@ export class AdminUserController {
           researcherId: created.id,
           researcherName: `${created.firstName} ${created.lastName}`,
           userId,
-          createdBy: req.user?.username
+          createdBy: adminUser.username
         });
       }
 
-      await this.deps.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminApiKey);
+      await this.deps.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -214,7 +191,7 @@ export class AdminUserController {
       logger.info('Researcher linked to user', {
         userId,
         researcherId: targetResearcherId,
-        linkedBy: req.user?.username
+        linkedBy: adminUser.username
       });
     } catch (error) {
       handleControllerError(error, res, 'Failed to link researcher');
@@ -224,15 +201,10 @@ export class AdminUserController {
   /** Preserves researcher record for tube history while removing user link. */
   async unlinkResearcherFromUser(req: Request, res: Response): Promise<void> {
     try {
-
       const { userId } = req.params;
-      const adminApiKey = req.user?.apiKey;
+      const adminUser = this.getAuthenticatedUser(req);
 
-      if (!adminApiKey) {
-        throw new PermissionError('Authentication required');
-      }
-
-      await this.deps.userApplicationService.unlinkResearcherFromUser(userId, adminApiKey);
+      await this.deps.userApplicationService.unlinkResearcherFromUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
         success: true,
@@ -243,7 +215,7 @@ export class AdminUserController {
 
       logger.info('Researcher unlinked from user', {
         userId,
-        unlinkedBy: req.user?.username
+        unlinkedBy: adminUser.username
       });
     } catch (error) {
       handleControllerError(error, res, 'Failed to unlink researcher');
@@ -256,14 +228,9 @@ export class AdminUserController {
    */
   async adminResetPassword(req: Request, res: Response): Promise<void> {
     try {
-
       const { userId } = req.params;
       const { newPassword, requirePasswordChange = true } = req.body;
-      const adminUser = req.user;
-
-      if (!adminUser) {
-        throw new PermissionError('Authentication required');
-      }
+      const adminUser = this.getAuthenticatedUser(req);
 
       await this.deps.adminResetPasswordHandler.handle({
         adminUserId: adminUser.id,
@@ -293,13 +260,8 @@ export class AdminUserController {
   /** Generates 15-minute one-time reset link for user to set own password. */
   async generatePasswordResetToken(req: Request, res: Response): Promise<void> {
     try {
-
       const { userId } = req.params;
-      const adminUser = req.user;
-
-      if (!adminUser) {
-        throw new PermissionError('Authentication required');
-      }
+      const adminUser = this.getAuthenticatedUser(req);
 
       const result = await this.deps.generatePasswordResetTokenHandler.handle({
         adminUserId: adminUser.id,

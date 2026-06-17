@@ -221,6 +221,11 @@ export class AdminRouteModule implements RouteModule {
       this.exportController.exportEquipment.bind(this.exportController)
     );
 
+    router.get('/export/supply-reorder-list',
+      this.strictLimiter,
+      this.exportController.exportSupplyReorderList.bind(this.exportController)
+    );
+
     router.get('/export/system-backup',
       this.strictLimiter,
       this.exportController.exportSystemBackup.bind(this.exportController)

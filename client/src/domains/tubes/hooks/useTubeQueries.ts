@@ -4,7 +4,10 @@
  * React Query hooks for tube read operations.
  */
 
-import { type TubeData as SchemaTubeData } from '@odysseus/shared-schemas';
+import {
+  type TubeData as SchemaTubeData,
+  type TubeFilterableField,
+} from '@odysseus/shared-schemas';
 import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -26,64 +29,6 @@ function convertSchemaToSharedTubeData(schemaTube: SchemaTubeData): TubeData {
   };
 }
 
-/** Canonical base query — all other tube queries derive from or invalidate against this. */
-export const useTubes = (
-  filters: {
-    tankId?: string;
-    rackId?: string;
-    boxId?: string;
-    searchTerm?: string;
-  } = {},
-  options: Omit<
-    UseQueryOptions<TubeData[], Error, TubeData[]>,
-    'queryKey' | 'queryFn' | 'select'
-  > = {}
-) => {
-  const labId = useLabId();
-
-  return useQuery<TubeData[], Error, TubeData[]>({
-    queryKey: queryKeys.tubes.listAll(labId),
-    queryFn: async (): Promise<TubeData[]> => {
-      const schemaTubes = await TubeService.fetchTubes();
-      return schemaTubes.map(convertSchemaToSharedTubeData);
-    },
-    select: (tubes: TubeData[]): TubeData[] => {
-      let filtered = tubes;
-
-      if (filters.tankId) {
-        filtered = filtered.filter(tube => tube.location.tankId === filters.tankId);
-      }
-
-      if (filters.rackId !== undefined) {
-        filtered = filtered.filter(tube => tube.location.rackId === filters.rackId);
-      }
-
-      if (filters.boxId) {
-        filtered = filtered.filter(tube => tube.location.boxId === filters.boxId);
-      }
-
-      if (filters.searchTerm) {
-        const searchLower = filters.searchTerm.toLowerCase();
-        filtered = filtered.filter(
-          tube =>
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-            tube.sample.cellType?.toLowerCase().includes(searchLower) ||
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-            tube.sample.donorInternalId?.toLowerCase().includes(searchLower) ||
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-            tube.sample.donorSourceId?.toLowerCase().includes(searchLower) ||
-            tube.sample.notes?.toLowerCase().includes(searchLower)
-        );
-      }
-
-      return filtered;
-    },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    ...options,
-  });
-};
-
 export const useTubesByLocation = (
   tankId: string,
   rackId: string,
@@ -102,6 +47,32 @@ export const useTubesByLocation = (
     staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
     gcTime: 10 * 60 * 1000,
     ...options,
+  });
+};
+
+/** Slim per-tube color feed for an open rack's box minimaps; mounts only when the rack is expanded. */
+export const useTubesByRack = (tankId: string, rackId: string) => {
+  const labId = useLabId();
+
+  return useQuery({
+    queryKey: queryKeys.tubes.byRack(labId, tankId, rackId),
+    queryFn: () => TubeService.fetchTubesByRack(tankId, rackId),
+    enabled: !!(labId && tankId && rackId),
+    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
+    gcTime: 10 * 60 * 1000,
+  });
+};
+
+/** Per-box occupancy counts across the lab; loaded once on navigator mount. */
+export const useLocationCounts = () => {
+  const labId = useLabId();
+
+  return useQuery({
+    queryKey: queryKeys.tubes.locationCounts(labId),
+    queryFn: () => TubeService.fetchLocationCounts(),
+    enabled: !!labId,
+    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
+    gcTime: 10 * 60 * 1000,
   });
 };
 
@@ -139,6 +110,18 @@ export const useTube = (
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     ...options,
+  });
+};
+
+export const useTubeFilterOptionsQuery = (fields: TubeFilterableField[]) => {
+  const labId = useLabId();
+
+  return useQuery({
+    queryKey: queryKeys.tubes.filterOptions(labId, fields),
+    queryFn: () => TubeService.fetchFilterOptions(fields),
+    enabled: !!labId && fields.length > 0,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 };
 

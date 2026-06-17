@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-import { Tooltip } from '@shared/ui';
+import { NubDivider, Tooltip } from '@shared/ui';
 
 import { parseDonorInfo } from '../../../utils/tubeColorCoding';
 
@@ -37,6 +37,24 @@ const lockLabels: Record<LockVariant, (name: string) => string> = {
   'admin-override': name => `Locked by ${name} (admin override)`,
   other: name => `Locked by ${name}`,
 };
+
+const CORNER_PINS = [
+  'left-2 top-2',
+  'right-2 top-2',
+  'bottom-2 left-2',
+  'bottom-2 right-2',
+] as const;
+
+function LedgerRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-tooltip-muted">
+        {label}
+      </span>
+      <span className="font-mono text-[11px] text-tooltip-foreground">{value}</span>
+    </div>
+  );
+}
 
 export function TubeGridTooltip({
   tube,
@@ -80,47 +98,59 @@ export function TubeGridTooltip({
   const isLockedOut = lockVariant === 'other';
 
   const tooltipContent = (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-baseline gap-1.5">
-        <span className="font-semibold text-white">{cellType}</span>
+    <div className="relative isolate min-w-[172px] max-w-[260px] px-4 py-3.5">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -inset-2 -z-10 bg-black/[0.93] blur-md"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-full h-1.5 w-1.5 -translate-x-1/2 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)]"
+      />
+      {CORNER_PINS.map(pos => (
+        <span
+          key={pos}
+          aria-hidden
+          className={`pointer-events-none absolute h-0.5 w-1.5 bg-foreground shadow-[0_0_5px_hsl(var(--foreground)/0.8)] ${pos}`}
+        />
+      ))}
+
+      <div className="mb-2 flex items-baseline gap-1.5">
+        <span className="text-[15px] font-semibold leading-tight text-tooltip-foreground">
+          {cellType}
+        </span>
         {tube.sample?.species && (
           <>
-            <span className="text-white/30">·</span>
-            <span className="text-tooltip-muted">{tube.sample.species}</span>
+            <span className="text-tooltip-foreground/30">·</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-tooltip-muted">
+              {tube.sample.species}
+            </span>
           </>
         )}
       </div>
-      {donorInfo.internal && (
-        <div className="text-white">
-          <span className="text-tooltip-muted">Int. ID:</span> {donorInfo.internal}
-        </div>
-      )}
-      {donorInfo.source && (
-        <div className="text-white">
-          <span className="text-tooltip-muted">Src. ID:</span> {sourceId}
-        </div>
-      )}
-      {tube.sample?.lotNumber && (
-        <div className="text-white">
-          <span className="text-tooltip-muted">Lot #:</span> {tube.sample.lotNumber}
-        </div>
-      )}
-      {tube.sample?.cultureCondition && (
-        <div className="text-white">
-          <span className="text-tooltip-muted">Cond.:</span> {tube.sample.cultureCondition}
-        </div>
-      )}
+
+      <div className="flex flex-col gap-1">
+        {donorInfo.internal && <LedgerRow label="Int ID" value={donorInfo.internal} />}
+        {donorInfo.source && <LedgerRow label="Src ID" value={sourceId} />}
+        {tube.sample?.lotNumber && <LedgerRow label="Lot" value={tube.sample.lotNumber} />}
+        {tube.sample?.cultureCondition && (
+          <LedgerRow label="Cond" value={tube.sample.cultureCondition} />
+        )}
+      </div>
+
       {LockIcon && lockLabel && (
         <>
-          <div className="border-t border-white/20 my-0.5" />
+          <NubDivider tone="neutral" className="relative my-2" />
           <div
-            className={`flex items-center gap-1.5 ${isLockedOut ? 'text-red-300' : 'text-white'}`}
+            className={`flex items-center gap-1.5 ${isLockedOut ? 'text-danger-text' : 'text-tooltip-foreground'}`}
           >
             <LockIcon size={11} strokeWidth={2.5} />
-            <span>{lockLabel}</span>
+            <span className="font-mono text-[10.5px]">{lockLabel}</span>
           </div>
           {tube.lockNote && (
-            <div className="text-tooltip-muted italic">&ldquo;{tube.lockNote}&rdquo;</div>
+            <div className="mt-1 font-mono text-[10px] italic text-tooltip-muted">
+              &ldquo;{tube.lockNote}&rdquo;
+            </div>
           )}
         </>
       )}
@@ -144,6 +174,7 @@ export function TubeGridTooltip({
         onOpenChange={setIsOpen}
         delayDuration={0}
         side="top"
+        bare
       >
         {/* Explicit pixel dimensions - percentages don't work with display:contents wrapper */}
         <div style={{ width: anchorRect.width, height: anchorRect.height }} />

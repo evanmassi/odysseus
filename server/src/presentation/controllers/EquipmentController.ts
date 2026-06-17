@@ -154,6 +154,19 @@ export class EquipmentController extends BaseController {
     }
   }
 
+  async updateDocument(req: Request, res: Response): Promise<void> {
+    try {
+      const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
+      const document = await this.deps.equipmentApplicationService.updateDocument(
+        labId, req.params.id, req.params.docId, req.body, user
+      );
+      res.json(ResponseBuilder.success({ document }));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to update equipment document', req.requestId);
+    }
+  }
+
   async removeDocument(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);

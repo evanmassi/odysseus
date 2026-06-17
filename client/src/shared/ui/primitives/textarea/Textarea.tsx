@@ -62,21 +62,19 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     },
     ref
   ) => {
-    // Size classes
     const sizeClasses = {
-      sm: 'px-2 py-1.5 text-xs rounded-sm',
-      md: 'px-3 py-2 text-sm rounded-md',
-      lg: 'px-4 py-3 text-base rounded-lg',
+      sm: 'px-2 py-1.5 text-xs',
+      md: 'px-3 py-2 text-sm',
+      lg: 'px-4 py-3 text-base',
     };
 
     const stateClasses = {
-      default: 'border-border hover:border-muted-foreground',
-      error: 'border-2 border-danger-border',
-      warning: 'border-2 border-warning-border',
-      success: 'border-2 border-success-border',
+      default: 'border-line-faint hover:border-foreground/30',
+      error: 'border-danger-border',
+      warning: 'border-warning-border',
+      success: 'border-success-border',
     };
 
-    // Resize classes
     const resizeClasses = {
       none: 'resize-none',
       vertical: 'resize-y',
@@ -109,12 +107,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         aria-invalid={ariaInvalid ?? state === 'error'}
         className={`
           ${fullWidth ? 'w-full' : 'w-auto'}
-          bg-card border
-          text-card-foreground
-          placeholder:text-muted-foreground placeholder:opacity-40
-          transition-colors duration-200
-          disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted
-          read-only:cursor-default read-only:bg-muted
+          bg-[hsl(var(--input-well))] border
+          text-foreground
+          placeholder:text-foreground/40
+          transition-[border-color,background,box-shadow] duration-200
+          focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]
+          focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]
+          disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line-faint
+          read-only:cursor-default
           ${sizeClasses[size]}
           ${stateClasses[state]}
           ${resizeClasses[resize]}

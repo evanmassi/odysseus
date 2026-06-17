@@ -1,114 +1,156 @@
 /**
- * Chip Component
+ * Chip
  *
- * Compact element for filters, tags, and status indicators with selectable and removable variants.
+ * Stencil-plate tag: two cells (lead · label), 6px chamfered top-right.
+ * Tone drives the colour palette; success/warning/danger fill the lead
+ * with an auto-glyph when no explicit `lead` is provided.
  */
 
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 
-import { cva } from 'class-variance-authority';
-import { X } from 'lucide-react';
+import { CircleCheckBig, OctagonX, TriangleAlert, X } from 'lucide-react';
 
 import { defaultChipProps } from './types';
 
-import type { ChipProps, ChipRef } from './types';
+import type { ChipColor, ChipProps, ChipRef, ChipSize } from './types';
 
-const chipVariants = cva(
-  [
-    'inline-flex items-center gap-1.5',
-    'font-medium whitespace-nowrap',
-    'transition-colors duration-150',
-  ],
-  {
-    variants: {
-      color: {
-        default: 'bg-muted text-secondary-foreground',
-        outlined: 'bg-transparent border border-border text-secondary-foreground',
-        primary: 'bg-action-light text-action',
-        active: 'bg-chip-active text-chip-active-foreground hover:bg-chip-active-hover',
-        inverted: 'bg-muted-foreground text-background',
-        success: 'bg-success-light text-success-text',
-        warning: 'bg-warning-light text-warning-text',
-        danger: 'bg-danger-light text-danger-text',
-        info: 'bg-info-light text-info-text',
-      },
-      size: {
-        xs: 'h-5 px-1.5 text-[10px]',
-        sm: 'h-6 px-2 text-xs',
-        md: 'h-7 px-2.5 text-sm',
-      },
-      shape: {
-        rounded: 'rounded-md',
-        pill: 'rounded-full',
-      },
-      behavior: {
-        static: '',
-        selectable:
-          'cursor-pointer hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1',
-        removable: 'pr-1',
-      },
-      selected: {
-        true: '',
-        false: '',
-      },
-      disabled: {
-        true: 'opacity-50 cursor-not-allowed',
-        false: '',
-      },
-    },
-    compoundVariants: [
-      // Selected state overrides color
-      {
-        behavior: 'selectable',
-        selected: true,
-        className: 'bg-action text-white',
-      },
-      // Unselected selectable chips use default styling with border
-      {
-        behavior: 'selectable',
-        selected: false,
-        className: 'border border-border',
-      },
-    ],
-    defaultVariants: {
-      color: 'default',
-      size: 'sm',
-      shape: 'rounded',
-      behavior: 'static',
-      selected: false,
-      disabled: false,
-    },
-  }
-);
+const AUTO_GLYPHS: Partial<Record<ChipColor, React.ReactNode>> = {
+  success: <CircleCheckBig />,
+  warning: <TriangleAlert />,
+  danger: <OctagonX />,
+};
+
+/** Tones with a meaningful semantic color get the banner-matching left-edge wash. */
+const LIT_CLASSES: Partial<Record<ChipColor, string>> = {
+  success: 'chip-lit chip-lit--success',
+  warning: 'chip-lit chip-lit--warning',
+  danger: 'chip-lit chip-lit--danger',
+  info: 'chip-lit chip-lit--info',
+  primary: 'chip-lit chip-lit--primary',
+};
+
+interface ToneClasses {
+  text: string;
+  border: string;
+  labelBg: string;
+  leadBg: string;
+}
+
+const TONE_CLASSES: Record<ChipColor, ToneClasses> = {
+  success: {
+    text: 'text-success-text',
+    border: 'border-success-border',
+    labelBg: 'bg-success-bg/[0.08]',
+    leadBg: 'bg-success-bg/[0.14]',
+  },
+  warning: {
+    text: 'text-warning-text',
+    border: 'border-warning-border',
+    labelBg: 'bg-warning-bg/[0.08]',
+    leadBg: 'bg-warning-bg/[0.14]',
+  },
+  danger: {
+    text: 'text-danger-text',
+    border: 'border-danger-border',
+    labelBg: 'bg-danger-bg/[0.08]',
+    leadBg: 'bg-danger-bg/[0.14]',
+  },
+  info: {
+    text: 'text-info-text',
+    border: 'border-info-border',
+    labelBg: 'bg-info-bg/[0.08]',
+    leadBg: 'bg-info-bg/[0.14]',
+  },
+  primary: {
+    text: 'text-action',
+    border: 'border-action',
+    labelBg: 'bg-primary/[0.08]',
+    leadBg: 'bg-primary/[0.14]',
+  },
+  default: {
+    text: 'text-secondary-foreground',
+    border: 'border-border',
+    labelBg: 'bg-foreground/[0.03]',
+    leadBg: 'bg-foreground/[0.06]',
+  },
+  outlined: {
+    text: 'text-secondary-foreground',
+    border: 'border-border',
+    labelBg: 'bg-transparent',
+    leadBg: 'bg-foreground/[0.03]',
+  },
+  active: {
+    text: 'text-chip-active-foreground',
+    border: 'border-chip-active',
+    labelBg: 'bg-chip-active',
+    leadBg: 'bg-chip-active-hover',
+  },
+};
+
+// Selected selectable chips light up with the primary treatment. clip-path crops
+// outer box-shadows, so the glow must stay inset.
+const SELECTED_BORDER = 'border-primary/55';
+const SELECTED_GLOW = 'shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/0.40)]';
+const SELECTED_LABEL = 'opacity-100 [text-shadow:0_0_6px_hsl(var(--primary)/0.45)]';
+
+interface SizeConfig {
+  height: string;
+  chamfer: number;
+  leadText: string;
+  lblText: string;
+  /** Label size when `numeric` — larger than lblText so counts stay legible. */
+  numText: string;
+  leadPx: string;
+  lblPx: string;
+  removeIcon: number;
+}
+
+const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
+  sm: {
+    height: 'h-5',
+    chamfer: 6,
+    leadText: 'text-[11px]',
+    lblText: 'text-[9.5px]',
+    numText: 'text-[12.5px]',
+    leadPx: 'px-[7px]',
+    lblPx: 'pl-2 pr-2.5',
+    removeIcon: 10,
+  },
+  xs: {
+    height: 'h-[18px]',
+    chamfer: 5,
+    leadText: 'text-[10px]',
+    lblText: 'text-[9px]',
+    numText: 'text-[11px]',
+    leadPx: 'px-1.5',
+    lblPx: 'pl-1.5 pr-2',
+    removeIcon: 9,
+  },
+};
+
+function chamferStyle(chamfer: number): React.CSSProperties {
+  return {
+    clipPath: `polygon(0 0, calc(100% - ${chamfer}px) 0, 100% ${chamfer}px, 100% 100%, 0 100%)`,
+  };
+}
 
 interface RemoveButtonProps {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
-  size: 'xs' | 'sm' | 'md';
+  size: ChipSize;
 }
 
-const iconSizeClasses: Record<'xs' | 'sm' | 'md', string> = {
-  xs: '[&>svg]:w-2.5 [&>svg]:h-2.5',
-  sm: '[&>svg]:w-3 [&>svg]:h-3',
-  md: '[&>svg]:w-3.5 [&>svg]:h-3.5',
-};
-
 function RemoveButton({ onClick, disabled, size }: RemoveButtonProps) {
-  const iconSizes = {
-    xs: 10,
-    sm: 12,
-    md: 14,
-  };
-
+  const sizeCfg = SIZE_CONFIG[size];
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="ml-0.5 rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-ring"
+      className="flex items-center justify-center pl-1.5 pr-2 opacity-60 transition-opacity duration-150 hover:opacity-100 focus:outline-none disabled:cursor-not-allowed"
       aria-label="Remove"
     >
-      <X size={iconSizes[size]} />
+      <X size={sizeCfg.removeIcon} />
     </button>
   );
 }
@@ -117,43 +159,76 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
   (
     {
       children,
+      lead,
+      leftIcon,
       color = defaultChipProps.color,
       size = defaultChipProps.size,
-      shape = defaultChipProps.shape,
       behavior = defaultChipProps.behavior,
       selected = defaultChipProps.selected,
       onSelect,
       onRemove,
-      leftIcon,
+      onClick,
+      labelClassName,
+      numeric = false,
+      lit = defaultChipProps.lit,
       disabled = defaultChipProps.disabled,
-      count,
       'aria-label': ariaLabel,
       className,
       ...rest
     },
     ref
   ) => {
-    const isInteractive = behavior === 'selectable';
+    const isSelectable = behavior === 'selectable';
+    const isAction = behavior === 'action';
+    const isInteractive = isSelectable || isAction;
+    const tone = TONE_CLASSES[color!];
+    const sizeCfg = SIZE_CONFIG[size!];
 
-    const chipClasses = [
-      chipVariants({
-        color,
-        size: size!,
-        shape,
-        behavior,
-        selected,
-        disabled,
-      }),
-      className,
+    // Lead resolution: explicit prop > deprecated leftIcon > tone auto-glyph > non-specific square.
+    const leadFromProps = lead ?? leftIcon;
+    const autoGlyph = AUTO_GLYPHS[color!];
+    const displayLead: React.ReactNode = leadFromProps ?? autoGlyph ?? (
+      <span
+        aria-hidden="true"
+        className="block h-[3px] w-[3px] bg-current shadow-[0_0_6px_1px_color-mix(in_srgb,currentColor_70%,transparent)]"
+      />
+    );
+    const leadIsAutoFilled = leadFromProps == null;
+
+    const isLit = isSelectable && selected;
+    const borderClass = isLit ? SELECTED_BORDER : tone.border;
+    const textClass = isLit ? 'text-foreground' : tone.text;
+    const leadBgClass = isLit ? 'bg-primary/25' : tone.leadBg;
+    const labelBgClass = isLit ? 'bg-primary/[0.10]' : tone.labelBg;
+
+    const wrapperClasses = [
+      'inline-flex items-stretch border whitespace-nowrap leading-none',
+      'font-mono',
+      'transition-[filter,background-color,text-shadow,box-shadow,border-color] duration-150',
+      sizeCfg.height,
+      borderClass,
+      labelBgClass,
+      isLit ? SELECTED_GLOW : '',
+      LIT_CLASSES[color!] ?? (lit ? 'chip-lit chip-lit--neutral' : ''),
+      disabled ? 'opacity-50 cursor-not-allowed' : '',
+      isInteractive && !disabled
+        ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
+        : '',
+      isSelectable && !disabled ? 'hover:brightness-110' : '',
+      isAction && !disabled
+        ? 'hover:bg-foreground/[0.06] hover:brightness-110 hover:[text-shadow:0_0_1px_currentColor,0_0_6px_color-mix(in_srgb,currentColor_40%,transparent)]'
+        : '',
+      className ?? '',
     ]
       .filter(Boolean)
       .join(' ');
 
+    const style = chamferStyle(sizeCfg.chamfer);
+
     const handleClick = () => {
       if (disabled) return;
-      if (behavior === 'selectable' && onSelect) {
-        onSelect();
-      }
+      if (isSelectable && onSelect) onSelect();
+      if (isAction && onClick) onClick();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -165,20 +240,27 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
 
     const handleRemove = (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (!disabled && onRemove) {
-        onRemove();
-      }
+      if (!disabled && onRemove) onRemove();
     };
+
+    const labelTypography = numeric
+      ? `${sizeCfg.numText} font-semibold tabular-nums tracking-[0.02em]`
+      : `${sizeCfg.lblText} uppercase tracking-[0.24em]`;
+    const labelState = isLit ? SELECTED_LABEL : numeric ? '' : 'opacity-[0.82]';
 
     const content = (
       <>
-        {leftIcon && <span className={`flex-shrink-0 ${iconSizeClasses[size!]}`}>{leftIcon}</span>}
-        <span>{children}</span>
-        {count !== undefined && (
-          <span className="ml-1 rounded bg-black/10 dark:bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none">
-            {count}
-          </span>
-        )}
+        <span
+          aria-hidden={leadIsAutoFilled}
+          className={`flex items-center justify-center border-r ${borderClass} ${leadBgClass} ${textClass} ${sizeCfg.leadPx} ${sizeCfg.leadText} font-medium tracking-[0.04em]`}
+        >
+          {displayLead}
+        </span>
+        <span
+          className={`flex items-center ${textClass} ${sizeCfg.lblPx} ${labelTypography} ${labelState} ${labelClassName ?? ''}`}
+        >
+          {children}
+        </span>
         {behavior === 'removable' && onRemove && (
           <RemoveButton onClick={handleRemove} disabled={disabled} size={size!} />
         )}
@@ -190,12 +272,13 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
         <button
           ref={ref as React.Ref<HTMLButtonElement>}
           type="button"
-          className={chipClasses}
+          className={wrapperClasses}
+          style={style}
           onClick={handleClick}
           onKeyDown={handleKeyDown}
           disabled={disabled}
           aria-label={ariaLabel}
-          aria-pressed={behavior === 'selectable' ? selected : undefined}
+          aria-pressed={isSelectable ? selected : undefined}
           {...rest}
         >
           {content}
@@ -206,7 +289,8 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     return (
       <span
         ref={ref as React.Ref<HTMLSpanElement>}
-        className={chipClasses}
+        className={wrapperClasses}
+        style={style}
         aria-label={ariaLabel}
         {...rest}
       >

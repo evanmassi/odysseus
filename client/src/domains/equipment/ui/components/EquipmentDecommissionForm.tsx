@@ -6,12 +6,13 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { decommissionEquipmentItemRequestSchema } from '@odysseus/shared-schemas';
-import { Power, X } from 'lucide-react';
+import { Power } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import { useDecommissionEquipmentItemMutation } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, DatePicker } from '@shared/ui';
+import { Button, DatePicker, NubDivider } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { formatDateForInput } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
@@ -24,6 +25,9 @@ interface EquipmentDecommissionFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
+
+const SELECT_LABEL =
+  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
 
 export function EquipmentDecommissionForm({
   itemId,
@@ -61,72 +65,81 @@ export function EquipmentDecommissionForm({
   };
 
   return (
-    <ScrollArea className="h-full">
-      <form onSubmit={handleSubmit(onFormSubmit)} className="p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-secondary-foreground">Decommission Equipment</h3>
+    <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-3 border-b border-line-faint px-4 py-3">
+        <span className="p-1.5 text-warning-text">
+          <Power size={20} />
+        </span>
+        <h2 className="text-lg font-medium text-foreground">Decommission Equipment</h2>
+      </div>
 
-        <p className="text-xs text-muted-foreground">
-          Decommissioning <span className="font-medium text-foreground">{itemName}</span> will mark
-          it as permanently retired. It will be hidden from the main list but can still be viewed
-          using the &quot;Show Decommissioned&quot; toggle.
-        </p>
+      <ScrollArea className="min-h-0 flex-1">
+        <form
+          id="decommission-form"
+          onSubmit={handleSubmit(onFormSubmit)}
+          className="space-y-4 p-4"
+        >
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Decommissioning <span className="font-medium text-foreground">{itemName}</span> will
+            mark it as permanently retired. It will be hidden from the main list but can still be
+            viewed using the &quot;Show Decommissioned&quot; toggle.
+          </p>
 
-        <div className="space-y-3">
-          <Controller
-            name="decommissionDate"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                <span className="block text-sm font-medium text-secondary-foreground mb-1">
-                  Decommission Date
-                </span>
-                <DatePicker
-                  value={(value as string) ?? ''}
-                  onChange={onChange}
-                  state={error ? 'error' : 'default'}
-                  fullWidth
-                />
-                {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
-              </div>
-            )}
-          />
+          <div className="space-y-3">
+            <Controller
+              name="decommissionDate"
+              control={control}
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <div>
+                  <span className={SELECT_LABEL}>Decommission Date</span>
+                  <DatePicker
+                    value={(value as string) ?? ''}
+                    onChange={onChange}
+                    state={error ? 'error' : 'default'}
+                    fullWidth
+                  />
+                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                </div>
+              )}
+            />
 
-          <ValidatedInput
-            label="Reason"
-            error={!!errors.decommissionReason}
-            helperText={errors.decommissionReason?.message}
-            registration={register('decommissionReason')}
-          />
+            <ValidatedInput
+              label="Reason"
+              labelStyle="compact"
+              error={!!errors.decommissionReason}
+              helperText={errors.decommissionReason?.message}
+              registration={register('decommissionReason')}
+            />
 
-          <ValidatedInput
-            label="Disposal Method"
-            error={!!errors.disposalMethod}
-            helperText={errors.disposalMethod?.message}
-            registration={register('disposalMethod')}
-          />
-        </div>
+            <ValidatedInput
+              label="Disposal Method"
+              labelStyle="compact"
+              error={!!errors.disposalMethod}
+              helperText={errors.disposalMethod?.message}
+              registration={register('disposalMethod')}
+            />
+          </div>
+        </form>
+      </ScrollArea>
 
-        <div className="flex items-center gap-2 pt-2">
+      <div className="relative flex-shrink-0 border-t border-line-faint bg-black/15 px-4 py-3">
+        <NubDivider tone="warning" className="absolute inset-x-0 -top-px" />
+        <div className="flex items-center justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
           <Button
             type="submit"
+            form="decommission-form"
+            variant="warning"
             size="sm"
-            variant="danger"
             disabled={isSubmitting}
-            leftIcon={<Power className="w-3.5 h-3.5" />}
+            leftIcon={<Power className="h-3.5 w-3.5" />}
           >
             Decommission
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={onCancel}
-            leftIcon={<X className="w-3.5 h-3.5" />}
-          >
-            Cancel
-          </Button>
         </div>
-      </form>
-    </ScrollArea>
+      </div>
+    </ConsolePanel>
   );
 }

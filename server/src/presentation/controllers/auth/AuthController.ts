@@ -151,10 +151,7 @@ export class AuthController {
         sessionId: req.sessionId
       });
 
-      const response = ResponseBuilder.success({
-        success: true,
-        message: 'Session extended'
-      });
+      const response = ResponseBuilder.success({ message: 'Session extended' });
       res.status(200).json(response);
     } catch (error) {
       handleControllerError(error, res, 'Failed to process heartbeat');

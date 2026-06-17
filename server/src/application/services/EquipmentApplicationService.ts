@@ -15,8 +15,8 @@ import type {
   EquipmentMaintenanceLogResponse,
 } from '@application/dto/EquipmentDto';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
-import { EquipmentItem } from '@domain/entities/EquipmentItem';
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
+import { EquipmentItem } from '@domain/entities/EquipmentItem';
 import { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -50,6 +50,7 @@ import type {
   UpdateEquipmentItemRequest,
   DecommissionEquipmentItemRequest,
   CreateEquipmentDocumentRequest,
+  UpdateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
   EquipmentStatus,
@@ -211,19 +212,19 @@ export class EquipmentApplicationService {
       labId,
       categoryId: data.categoryId,
       name: data.name,
-      serialNumber: data.serialNumber || undefined,
-      manufacturer: data.manufacturer || undefined,
-      model: data.model || undefined,
-      description: data.description || undefined,
-      location: data.location || undefined,
+      serialNumber: data.serialNumber,
+      manufacturer: data.manufacturer,
+      model: data.model,
+      description: data.description,
+      location: data.location,
       status: data.status,
-      conditionNotes: data.conditionNotes || undefined,
-      purchaseDate: data.purchaseDate || undefined,
-      warrantyExpiration: data.warrantyExpiration || undefined,
+      conditionNotes: data.conditionNotes,
+      purchaseDate: data.purchaseDate,
+      warrantyExpiration: data.warrantyExpiration,
       purchaseCost: data.purchaseCost,
-      assetTag: data.assetTag || undefined,
-      nextMaintenanceDate: data.nextMaintenanceDate || undefined,
-      notes: data.notes || undefined,
+      assetTag: data.assetTag,
+      nextMaintenanceDate: data.nextMaintenanceDate,
+      notes: data.notes,
     });
 
     await this.itemRepository.save(item);
@@ -265,17 +266,11 @@ export class EquipmentApplicationService {
       location: data.location,
       status: data.status,
       conditionNotes: data.conditionNotes,
-      purchaseDate: data.purchaseDate !== undefined
-        ? (data.purchaseDate || null)
-        : undefined,
-      warrantyExpiration: data.warrantyExpiration !== undefined
-        ? (data.warrantyExpiration || null)
-        : undefined,
+      purchaseDate: data.purchaseDate,
+      warrantyExpiration: data.warrantyExpiration,
       purchaseCost: data.purchaseCost,
       assetTag: data.assetTag,
-      nextMaintenanceDate: data.nextMaintenanceDate !== undefined
-        ? (data.nextMaintenanceDate || null)
-        : undefined,
+      nextMaintenanceDate: data.nextMaintenanceDate,
       notes: data.notes,
     });
 
@@ -363,6 +358,26 @@ export class EquipmentApplicationService {
     return EquipmentDto.documentToResponse(document);
   }
 
+  async updateDocument(
+    labId: string,
+    itemId: string,
+    docId: string,
+    data: UpdateEquipmentDocumentRequest,
+    user: User
+  ): Promise<EquipmentDocumentResponse> {
+    await this.accessControlService.requireAdminAccess(user);
+    await this.getItemOrThrow(itemId, labId);
+    await this.itemRepository.updateDocument(docId, {
+      label: data.label,
+      url: data.url,
+      notes: data.notes,
+    });
+    const docs = await this.itemRepository.findDocumentsByItemId(itemId);
+    const updated = docs.find(d => d.id === docId);
+    if (!updated) throw new NotFoundError(`Document ${docId} not found`);
+    return EquipmentDto.documentToResponse(updated);
+  }
+
   async removeDocument(labId: string, itemId: string, docId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
@@ -401,7 +416,7 @@ export class EquipmentApplicationService {
       performedBy: data.performedBy,
       technician: data.technician,
       description: data.description,
-      nextScheduledDate: data.nextScheduledDate || undefined,
+      nextScheduledDate: data.nextScheduledDate,
       cost: data.cost,
       notes: data.notes,
     });
@@ -438,16 +453,12 @@ export class EquipmentApplicationService {
     }
 
     entry.update({
-      datePerformed: data.datePerformed !== undefined
-        ? (data.datePerformed || null)
-        : undefined,
+      datePerformed: data.datePerformed,
       maintenanceType: data.maintenanceType,
       performedBy: data.performedBy,
       technician: data.technician,
       description: data.description,
-      nextScheduledDate: data.nextScheduledDate !== undefined
-        ? (data.nextScheduledDate || null)
-        : undefined,
+      nextScheduledDate: data.nextScheduledDate,
       cost: data.cost,
       notes: data.notes,
     });
@@ -455,7 +466,7 @@ export class EquipmentApplicationService {
     await this.itemRepository.updateMaintenanceEntry(entry);
 
     if (data.nextScheduledDate !== undefined) {
-      const nextDate = data.nextScheduledDate || undefined;
+      const nextDate = data.nextScheduledDate ?? undefined;
       item.updateNextMaintenanceDate(nextDate);
       await this.itemRepository.save(item);
     }
@@ -638,7 +649,7 @@ export class EquipmentApplicationService {
       const newValue = data[key];
       if (newValue !== undefined) {
         const oldValue = getter();
-        const normalizedNew = newValue === null ? undefined : newValue;
+        const normalizedNew = newValue ?? undefined;
         if (oldValue !== normalizedNew) {
           changes.push({ field: key, oldValue, newValue: normalizedNew });
         }

@@ -1,16 +1,20 @@
 /**
- * App Loader Component
+ * App Loader
  *
- * Loading screen with detailed progress feedback and error recovery options.
+ * Branded boot splash shown while the app bootstraps. Calm in the happy path —
+ * a breathing mark on the always-dark auth field, so it flows straight into the
+ * gateway's CRT power-on. Diagnostics surface only when boot is slow or fails.
  */
 
-import { AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
 
+import { AlertCircle, RefreshCw } from 'lucide-react';
+
+import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { env } from '@shared/config';
-import { AlertBanner, Button, LoadingSpinner } from '@shared/ui';
+import { Button } from '@shared/ui';
 
-import { LOADING_MESSAGES } from '../../bootstrap/constants';
 import { OfflineInitializationPage } from '../../bootstrap/OfflineInitializationPage';
 
 import type { UseAppBootstrapResult } from '../../bootstrap/types';
@@ -21,147 +25,118 @@ interface AppLoaderProps {
   onCancel?: () => void;
 }
 
-export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
-  const { state, progress, currentStep, error, canRetry, completedSteps } = context;
+// Defer the "taking longer" hint until boot is genuinely dragging; a fast boot
+// never shows it.
+const SLOW_BOOT_MS = 4000;
 
-  // Show dedicated offline page for network errors during initialization
-  const isOfflineError = error === 'OFFLINE_DURING_INIT';
-  if (isOfflineError && onRetry) {
+const HERO_BLOOM =
+  'drop-shadow(0 0 26px rgb(var(--auth-ambient) / 0.35)) drop-shadow(0 0 60px rgb(var(--auth-ambient) / 0.15))';
+
+export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
+  const { state, error, canRetry } = context;
+
+  const [isSlow, setIsSlow] = useState(false);
+  useEffect(() => {
+    if (state === 'error' || state === 'complete') return;
+    const timer = setTimeout(() => setIsSlow(true), SLOW_BOOT_MS);
+    return () => clearTimeout(timer);
+  }, [state]);
+
+  // Dedicated offline page owns its own auto-retry flow for network failures.
+  if (error === 'OFFLINE_DURING_INIT' && onRetry) {
     return <OfflineInitializationPage onRetry={onRetry} />;
   }
 
-  return (
-    <div className="fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center z-50">
-      <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
-        <div className="text-center mb-8">
-          <div className="mb-4 flex justify-center">
-            {state === 'error' ? (
-              <AlertCircle className="w-14 h-14 text-danger-bg" />
-            ) : (
-              <LoadingSpinner size="xl" />
+  if (state === 'error') {
+    return (
+      <BootSplashField>
+        <div className="flex max-w-xs flex-col items-center gap-5 px-8 text-center">
+          <AlertCircle className="h-12 w-12 text-[hsl(var(--color-danger-bg))]" />
+          <div className="flex flex-col items-center gap-2">
+            <OdysseusLogo
+              className="h-7 w-auto text-[rgb(var(--auth-text-dim))] drop-shadow-icon-bloom"
+              aria-label="Odysseus"
+            />
+            <ConsoleStatus label="Initialization failed" />
+          </div>
+          {error && <p className="text-sm text-[rgb(var(--auth-text-dim))]">{error}</p>}
+          {env.isDev() && error && (
+            <details className="w-full text-left">
+              <summary className="cursor-pointer text-xs text-[rgb(var(--auth-text-mute))] hover:text-[rgb(var(--auth-text-dim))]">
+                Debug information
+              </summary>
+              <pre className="mt-2 overflow-auto rounded bg-black/30 p-2 text-xs text-[rgb(var(--auth-text-mute))]">
+                {error}
+              </pre>
+            </details>
+          )}
+          <div className="flex gap-3">
+            {canRetry && onRetry && (
+              <Button
+                variant="primary"
+                onClick={onRetry}
+                leftIcon={<RefreshCw className="h-4 w-4" />}
+              >
+                Try Again
+              </Button>
+            )}
+            {onCancel && (
+              <Button variant="cancel" onClick={onCancel}>
+                Cancel
+              </Button>
             )}
           </div>
+        </div>
+      </BootSplashField>
+    );
+  }
 
+  return (
+    <BootSplashField>
+      <div className="flex animate-in flex-col items-center gap-6 px-8 fade-in-0 duration-500">
+        <img
+          src={odysseusIcon}
+          alt=""
+          aria-hidden
+          className="phosphor-breathe h-24 w-24 object-contain"
+          style={{ filter: HERO_BLOOM }}
+        />
+        <div className="flex flex-col items-center gap-3">
           <OdysseusLogo
-            className="h-10 w-auto mx-auto mb-2 text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground"
+            className="h-7 w-auto text-[rgb(var(--auth-text-dim))] drop-shadow-icon-bloom"
             aria-label="Odysseus"
           />
-
-          <p className="text-muted-foreground">
-            {state === 'error' ? 'Initialization Failed' : 'Starting Application...'}
-          </p>
+          <ConsoleStatus label="Initializing" />
         </div>
-
-        {state !== 'error' && (
-          <div className="mb-6">
-            <div className="bg-border rounded-full h-2 mb-4 overflow-hidden">
-              <div
-                className="bg-muted-foreground h-full rounded-full transition-all duration-300 ease-out progress-bar-shimmer"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
-            <div className="flex justify-between items-center text-sm text-muted-foreground mb-4">
-              <span>{progress}% Complete</span>
-              <span>{completedSteps.length} steps done</span>
-            </div>
-
-            {currentStep && (
-              <div className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
-                <div className="flex-shrink-0">
-                  <LoadingSpinner size="sm" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-card-foreground truncate">
-                    {LOADING_MESSAGES[currentStep as keyof typeof LOADING_MESSAGES] ??
-                      'Processing...'}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {completedSteps.length > 0 && state !== 'error' && (
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">Completed:</h3>
-            <div className="space-y-2">
-              {completedSteps.slice(-3).map(step => (
-                <div key={step} className="flex items-center space-x-2 text-sm text-success-text">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="capitalize">{step} loaded successfully</span>
-                </div>
-              ))}
-              {completedSteps.length > 3 && (
-                <div className="text-xs text-muted-foreground pl-6">
-                  ... and {completedSteps.length - 3} more
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {state === 'error' && error && (
-          <div className="mb-6">
-            <div className="bg-muted border border-danger-border rounded-lg p-4 mb-4">
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-danger-text mb-1">{error}</h4>
-                </div>
-              </div>
-            </div>
-
-            {env.isDev() && (
-              <details className="mb-4">
-                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-accent-foreground">
-                  Debug Information
-                </summary>
-                <pre className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded overflow-auto">
-                  {error}
-                </pre>
-              </details>
-            )}
-          </div>
-        )}
-
-        <div className="flex space-x-3">
-          {state === 'error' && canRetry && onRetry && (
-            <Button
-              variant="primary"
-              onClick={onRetry}
-              leftIcon={<RefreshCw className="w-4 h-4" />}
-              className="flex-1"
-            >
-              Try Again
-            </Button>
-          )}
-
-          {onCancel && (
-            <Button variant="cancel" onClick={onCancel}>
-              Cancel
-            </Button>
-          )}
-        </div>
-
-        {state === 'initializing' && progress === 0 && (
-          <AlertBanner variant="warning" icon={Clock} spacing="none" className="mt-6">
-            Taking longer than expected? Check your internet connection.
-          </AlertBanner>
-        )}
+        <p
+          className={`text-sm text-[rgb(var(--auth-text-mute))] transition-opacity duration-500 ${
+            isSlow ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          Taking longer than expected — check your connection.
+        </p>
       </div>
+    </BootSplashField>
+  );
+}
+
+function BootSplashField({ children }: { children: ReactNode }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="auth-field fixed inset-0 z-50 flex items-center justify-center text-[rgb(var(--auth-text))]"
+    >
+      <span className="sr-only">Starting Odysseus</span>
+      {children}
     </div>
   );
 }
 
-/** Simplified loading spinner for quick transitions */
-export function AppLoadingLoadingSpinner({ message = 'Loading...' }: { message?: string }) {
+function ConsoleStatus({ label }: { label: string }) {
   return (
-    <div className="flex items-center justify-center p-8">
-      <div className="flex items-center space-x-3">
-        <LoadingSpinner size="md" />
-        <span className="text-muted-foreground">{message}</span>
-      </div>
-    </div>
+    <span className="phosphor-text font-mono text-[10px] uppercase tracking-[0.28em] text-[rgb(var(--auth-text-mute))]">
+      [ {label} ]
+    </span>
   );
 }

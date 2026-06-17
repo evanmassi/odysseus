@@ -82,6 +82,32 @@ const ACTION_SECTIONS: ActionSection[] = [
     ],
   },
   {
+    key: 'supply',
+    label: 'Supply',
+    prefixes: ['supply_'],
+    actions: [
+      { value: 'supply_item_created', label: 'Item Created' },
+      { value: 'supply_item_updated', label: 'Item Updated' },
+      { value: 'supply_item_archived', label: 'Item Archived' },
+      { value: 'supply_item_deleted', label: 'Item Removed' },
+      { value: 'supply_stock_received', label: 'Stock Received' },
+      { value: 'supply_stock_issued', label: 'Stock Issued' },
+      { value: 'supply_stock_count_adjusted', label: 'Count Adjusted' },
+      { value: 'supply_stock_disposed', label: 'Stock Disposed' },
+      { value: 'supply_stock_voided', label: 'Stock Voided' },
+      { value: 'supply_category_created', label: 'Category Created' },
+      { value: 'supply_category_updated', label: 'Category Updated' },
+      { value: 'supply_category_deleted', label: 'Category Removed' },
+      { value: 'supply_document_added', label: 'Document Added' },
+      { value: 'supply_document_removed', label: 'Document Removed' },
+      { value: 'supply_bulk_received', label: 'Bulk Received' },
+      { value: 'supply_bulk_issued', label: 'Bulk Issued' },
+      { value: 'supply_bulk_category_reassigned', label: 'Bulk Reassigned' },
+      { value: 'supply_bulk_archived', label: 'Bulk Archived' },
+      { value: 'supply_bulk_voided', label: 'Bulk Voided' },
+    ],
+  },
+  {
     key: 'donor',
     label: 'Donor',
     prefixes: ['donor_'],
@@ -125,6 +151,7 @@ const ENTITY_TYPES = [
   { value: 'tube', label: 'Tube' },
   { value: 'storage', label: 'Storage' },
   { value: 'equipment_item', label: 'Equipment' },
+  { value: 'supply_item', label: 'Supply' },
   { value: 'donor', label: 'Donor' },
   { value: 'user', label: 'User' },
   { value: 'researcher', label: 'Researcher' },
@@ -518,13 +545,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                 side="bottom"
                 key={`${filter.label}-${idx}`}
               >
-                <Chip
-                  behavior="removable"
-                  size="sm"
-                  color="active"
-                  shape="rounded"
-                  onRemove={filter.onRemove}
-                >
+                <Chip behavior="removable" size="sm" color="active" onRemove={filter.onRemove}>
                   {filter.label}
                 </Chip>
               </Tooltip>

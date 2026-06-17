@@ -1,7 +1,8 @@
 /**
  * Box Row
  *
- * Leaf node in the By Location tab with grid display and assignment controls.
+ * Leaf node in the By Location tab — an occupancy minimap with assignment and
+ * edit controls.
  */
 
 import { useMemo } from 'react';
@@ -10,27 +11,32 @@ import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas'
 import { Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
 
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
-import { BoxIcon } from '@shared/ui/components/icons';
 
+import { BoxOccupancyMatrix, boxOccupancyKey } from '../../../storage-navigator';
+import { TreeNub } from '../../../storage-navigator/TreeNub';
 import { useStorageManagerContext } from '../../StorageManagerContext';
 import { AssignmentBadge } from '../by-user/AssignmentBadge';
 import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 
 import { CustomLabelButton } from './CustomLabelButton';
+import { RowMeta } from './RowMeta';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
+import type { RackTube } from '@odysseus/shared-schemas';
 
 interface BoxRowProps {
   box: BoxConfiguration;
   rack: RackConfiguration;
   tankId: string;
   rackId: string;
+  tubes: RackTube[];
 }
 
-export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
+export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
   const {
     users,
     currentUser,
+    occupancy,
     isOwnedByCurrentUser,
     canEditResource,
     canManageStorage,
@@ -46,6 +52,11 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
     box.assignedUserId === null ? undefined : (box.assignedUserId ?? rack.assignedUserId);
   const isBoxOwnedByUser = isOwnedByCurrentUser(box, rack);
   const locked = isResourceLocked(box);
+
+  const boxOcc = occupancy.byBox.get(boxOccupancyKey(tankId, rackId, box.id));
+  const filled = boxOcc?.filled ?? 0;
+  const capacity = boxOcc?.capacity ?? 0;
+  const isFull = capacity > 0 && filled >= capacity;
 
   // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(box, rack);
@@ -97,77 +108,77 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
 
   const dividerBefore = canDeleteBox ? ['Delete Box'] : [];
 
+  const isAdmin = isAdminRole(currentUser?.role);
+
   return (
     <div data-level="box" data-id={box.id}>
       <div className="storage-nav-item--modal storage-nav-item--box">
-        <div
-          className="storage-nav-button storage-nav-button--box"
-          role="button"
-          tabIndex={0}
-          aria-label={`Box ${box.name}`}
-        >
-          {canManageStorage && !locked && overflowMenuItems.length > 0 && (
-            <div
-              role="presentation"
-              onClick={e => e.stopPropagation()}
-              onKeyDown={e => e.stopPropagation()}
-              className="flex-shrink-0"
-            >
-              <OverflowMenu
-                items={overflowMenuItems}
-                dividerBefore={dividerBefore}
+        <div className="storage-nav-button storage-nav-button--box">
+          <TreeNub full={isFull} />
+          <BoxOccupancyMatrix gridConfig={box.gridConfig} tubes={tubes} size={46} />
+          <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
+            <div className="flex items-center gap-2">
+              <AssignmentBadge
+                userId={effectiveOwnerId}
                 size="sm"
-                aria-label={`Actions for box ${box.name}`}
+                isOwnedByCurrentUser={isBoxOwnedByUser}
               />
+              <span className="min-w-0 truncate">
+                {formatStorageDisplayName(box.name, box.customLabel)}
+              </span>
+              <RowMeta parts={[`${box.gridConfig.rows}×${box.gridConfig.cols}`]} />
+              <span className="flex-1" />
+              {locked ? (
+                <Tooltip content="Protected — part of demo setup" side="left">
+                  <Lock size={12} className="text-muted-foreground" />
+                </Tooltip>
+              ) : (
+                <>
+                  {canManageStorage && isAdmin && (
+                    <AssignmentDropdown
+                      value={box.assignedUserId}
+                      users={users}
+                      onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
+                      currentUserId={currentUser?.id}
+                      showCommonOption
+                      parentUserId={rack.assignedUserId}
+                    />
+                  )}
+                  {canManageStorage && overflowMenuItems.length > 0 && (
+                    <OverflowMenu
+                      items={overflowMenuItems}
+                      dividerBefore={dividerBefore}
+                      size="sm"
+                      aria-label={`Actions for box ${box.name}`}
+                    />
+                  )}
+                  {showInlineCustomLabel && (
+                    <CustomLabelButton
+                      onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
+                      size={12}
+                      className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded"
+                    />
+                  )}
+                </>
+              )}
             </div>
-          )}
-          <AssignmentBadge
-            userId={effectiveOwnerId}
-            size="sm"
-            isOwnedByCurrentUser={isBoxOwnedByUser}
-          />
-          <div className="storage-nav-button__icon">
-            <BoxIcon size={14} aria-hidden="true" />
+            <div className="flex items-center gap-1.5">
+              <span className="relative h-0.5 flex-1 bg-foreground/[0.07]">
+                <span
+                  className={`absolute inset-y-0 left-0 ${isFull ? 'bg-warning-bg' : 'bg-primary/80'}`}
+                  style={{ width: `${capacity > 0 ? (filled / capacity) * 100 : 0}%` }}
+                />
+              </span>
+              <span
+                className={`flex-none font-mono text-[8.5px] tracking-[0.08em] ${
+                  isFull ? 'text-warning-text' : 'text-foreground/40'
+                }`}
+              >
+                {isFull ? 'FULL' : `${filled}/${capacity}`}
+              </span>
+            </div>
           </div>
-          <span className="storage-nav-button__text">
-            {formatStorageDisplayName(box.name, box.customLabel)}
-          </span>
-          <span className="storage-nav-pill storage-nav-pill--muted">
-            {box.gridConfig.rows}×{box.gridConfig.cols}
-          </span>
         </div>
-
-        {canManageStorage && !locked && isAdminRole(currentUser?.role) && (
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <AssignmentDropdown
-              value={box.assignedUserId}
-              users={users}
-              onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
-              size="sm"
-              showCommonOption
-              parentUserId={rack.assignedUserId}
-            />
-          </div>
-        )}
-        {locked && (
-          <div className="flex items-center px-1.5">
-            <Tooltip content="Protected — part of demo setup" side="left">
-              <Lock size={12} className="text-muted-foreground" />
-            </Tooltip>
-          </div>
-        )}
-
-        {!canManageStorage && (
-          <div className="w-7 flex-shrink-0 flex justify-center">
-            {showInlineCustomLabel && (
-              <CustomLabelButton
-                onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
-                size={12}
-                className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded"
-              />
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

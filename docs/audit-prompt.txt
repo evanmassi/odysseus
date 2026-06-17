@@ -1,0 +1,170 @@
+You are auditing a codebase file-by-file. I will provide you with one or more files to examine. Your job is to analyze
+each file and report findings — DO NOT make any changes.
+
+## Rules
+
+- **Read-only.** Report findings only. Do not edit, refactor, or rewrite anything.
+- **No assumptions.** If something looks like it might be dead code or duplicated, but you aren't sure without seeing
+  other files, flag it as "needs verification" and tell me what file/context you'd need to confirm.
+- **Stay scoped.** Only analyze the file(s) I give you. Do not go searching through the codebase on your own. If you
+  need to see another file to make a judgment, ask me.
+- **Be specific.** Reference exact line numbers and code. No vague observations.
+
+## What to look for
+
+### 1. Comments & JSDoc
+
+The project philosophy: comments explain **why** (business rationale, non-obvious decisions), not **what** (the code
+already shows what it does). The best comment is a well-named function.
+
+**File headers** — every file needs one BEFORE imports:
+```typescript
+/**
+ * Plain English Title (not the class/component name)
+ *
+ * One-line description adding context beyond the filename.
+ */
+```
+- Title should be plain English (e.g., "Audit Log Viewer"), NOT the component/class name (e.g., not "AuditLogViewer")
+- No bullet lists or feature enumerations in the header
+- Flag missing file headers
+
+Comments that SHOULD exist — flag if missing:
+- Business rationale (e.g., why a timeout is 15min, why a specific algorithm was chosen)
+- Non-obvious edge cases that would confuse a future reader
+- Workarounds with ticket references (e.g., // Temporary: string union until shared-schemas v2.0 - ticket #456)
+- TODOs with dates and ticket numbers (e.g., // TODO(2025-01-15): Migrate to domain events - ticket #234)
+
+Comments that should NOT exist — flag for removal:
+- Comments that restate what the code does (e.g., // Increment counter above counter++)
+- Restatement inline comments on config/options objects (e.g., // Disable window focus refetch next to
+  refetchOnWindowFocus: false). The property name IS the documentation.
+- Parenthetical restatements on section divider comments (e.g., // Admin (admin-only operations) — the parenthetical
+  restates the label). Keep dividers bare.
+- Self-promotional language: "INDUSTRY STANDARD", "BEST PRACTICE", "Enterprise-grade", "A++++ QUALITY", "Type-safe"
+- Redundant markers: checkmarks (✅), "NEW:", "FIXED:", "ARCHITECTURAL FIX:"
+- Process references: "Phase 2", "Refactored from", "Added in January 2025", "migrated from", "expanded from"
+- Decorative dividers: //=====, // ***, decorative headers
+- Commented-out code with no explanation of why it's kept
+
+JSDoc rules:
+- USE JSDoc for: Public API functions, complex return types, @throws declarations
+- SKIP JSDoc for: Private helpers, simple getters, obvious handlers, functions where the TypeScript types already tell
+  the full story
+- BAD JSDoc restates the signature: /** @param data - The tube data @returns The tube */
+- GOOD JSDoc adds behavioral context: /** Creates tube with position conflict validation. Emits 'tube_created' socket
+  event. */
+- Flag any JSDoc that just repeats parameter names/types without adding meaning
+
+Self-documenting code check:
+- If a comment exists only to compensate for a poor function/variable name, flag the naming as the real issue, not the
+  missing comment
+
+### 2. File Naming & Organization
+
+Naming conventions:
+
+┌─────────────┬───────────────────────────────┬─────────────────────────────────────────┐
+│    Type     │          Convention           │                 Example                 │
+├─────────────┼───────────────────────────────┼─────────────────────────────────────────┤
+│ Components  │ PascalCase with domain prefix │ TubeEditorModal.tsx, AuthLoginModal.tsx │
+├─────────────┼───────────────────────────────┼─────────────────────────────────────────┤
+│ Hooks       │ camelCase with use prefix     │ useTubesQuery.ts                        │
+├─────────────┼───────────────────────────────┼─────────────────────────────────────────┤
+│ Services    │ PascalCase + Service          │ TubeService.ts                          │
+├─────────────┼───────────────────────────────┼─────────────────────────────────────────┤
+│ Stores      │ camelCase + Store             │ modalStore.ts                           │
+├─────────────┼───────────────────────────────┼─────────────────────────────────────────┤
+│ Type files  │ camelCase + Types             │ bulkUpdateTypes.ts                      │
+├─────────────┼───────────────────────────────┼─────────────────────────────────────────┤
+│ Directories │ kebab-case                    │ ui/components/                          │
+├─────────────┼───────────────────────────────┼─────────────────────────────────────────┤
+│ Constants   │ UPPER_CASE                    │ BOOTSTRAP_TIMEOUT                       │
+└─────────────┴───────────────────────────────┴─────────────────────────────────────────┘
+
+Component naming (entity-first): Domain prefix → entity → specifics → suffix.
+Example: TubeLockNoteModal, AuthPasswordResetPage.
+Established suffixes: Modal, Tab, Panel, Page, Form, Row, Button, Settings, Dashboard, Indicator, Field.
+
+ui/components/ subdirectories: Feature-named, unprefixed (domain path provides context). Use feature names not UI
+patterns — gateway/ not modals/, editor/ not forms/. Small shared presentational helpers can use a catch-all like
+displays/.
+
+Flag these issues:
+- File name doesn't match what the file actually exports or does (e.g., a file named helpers.ts that only contains
+  validation logic — should be validation.ts)
+- File name uses the wrong casing convention for its type (e.g., a hook file in PascalCase, a component file in
+  camelCase)
+- Generic or vague file names that don't describe the contents (e.g., utils.ts, helpers.ts, misc.ts, index.ts that
+  re-exports nothing meaningful)
+- File appears to be in the wrong directory given what it does (e.g., a UI component sitting in a utils/ folder, a
+  hook living in components/)
+- File contains multiple unrelated concerns that should be split (e.g., a single file exporting both a React component
+  and an API call helper)
+- Inconsistency with sibling files in the same directory (e.g., all other files in the folder are PascalCase but one
+  is camelCase)
+- Directories named after UI patterns instead of features
+
+Loose files:
+- Flag files sitting directly in a directory when all sibling entries are subdirectories (except index.ts barrel files).
+  Loose files should be moved into the most appropriate existing subdirectory or a new one if none fits.
+- When recommending a move, check what already imports the file — the import path change is part of the finding.
+
+### 3. Duplication
+
+- Logic duplicated WITHIN the file (similar blocks, repeated patterns that could be consolidated)
+- Logic that looks like it MIGHT be duplicated elsewhere — flag these as "needs verification" with your reasoning
+
+### 4. Technical Debt
+
+- Overly complex logic that could be simplified
+- Inconsistent patterns (e.g., mixing async styles, inconsistent error handling)
+- Magic numbers/strings without explanation
+- Poor naming that obscures intent
+- Awkward/redundant naming where the method name restates its parent (e.g., storage.storage(), tubes.lists() that
+  returns the same key as tubes.list()). Flag with a suggested rename.
+- Props passed through components when the child could call the hook directly (unnecessary prop drilling of hooks)
+- Missing error handling at system boundaries
+- Tight coupling that makes the code fragile
+
+### 5. Dead/Zombie Code
+
+- Exported functions/variables that appear unused within the file (flag as "needs verification" — they may be imported
+  elsewhere)
+- Unreachable code paths, including branches hidden by earlier, broader checks (e.g., a 401/403 check after a general
+  4xx check that already covers it)
+- Variables assigned but never read
+- Imports that aren't used in the file
+- Feature flags or conditional branches that appear permanently stale
+- Completely unused or dead files
+
+## Output Format
+
+For each file, respond with:
+
+File: <path>
+
+Then list findings grouped by category. For each finding:
+- Line(s): exact line number(s)
+- Finding: what you observed
+- Confidence: high / medium / needs verification
+- Context needed (if any): what you'd need to see to confirm
+
+If a file looks clean, say so — don't manufacture findings.
+
+## After Changes
+
+Provide a commit message in this exact format: audit: <directory scope> — <specific changes, comma-separated>
+ONLY PROVIDE A COMMIT MESSAGE AFTER THE CHANGES HAVE BEEN CONFIRMED AND MADE AND NOT BEFORE.
+
+Examples:
+- audit: hooks directory — move field resolver hooks to @domains/tubes/hooks, move useAuthSocketSync into lifecycle
+  subdirectory
+- audit: contexts directory — remove dead useResolvedTheme/useIsDarkMode exports, restatement JSDoc/comments, simplify
+  BootstrapContextValue to type alias
+- audit: bootstrap directory — consolidate step labels, fix dead types, extract offline handler
+
+The directory scope stays consistent across related commits. Each commit message describes the specific changes made
+in that pass.
+
+Do NOT commit or push. I handle all git operations.

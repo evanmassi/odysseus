@@ -4,20 +4,6 @@
  * Selection glow, drag preview, clipboard marching ants, and position cell layout.
  */
 
-.tube-content {
-  position: relative;
-  width: 94%;
-  height: 88%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  overflow: hidden;
-  box-sizing: border-box;
-  z-index: 2;
-}
-
 .tube-position {
   position: relative;
 }
@@ -25,7 +11,7 @@
 .donor-internal,
 .donor-source {
   font-weight: 500;
-  opacity: 0.9;
+  opacity: 0.82;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -33,23 +19,25 @@
   max-width: 100%;
 }
 
-.cell-line {
-  font-weight: 700;
-  overflow-wrap: break-word;
-  line-height: 1.15;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-clamp: 2;
-  max-width: 100%;
-  text-align: center;
+.donor-source {
+  opacity: 0.6;
 }
 
-.empty-label {
-  color: hsl(var(--grid-empty-foreground));
-  font-style: italic;
-  opacity: 0.8;
+.cell-line {
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.empty-coord {
+  color: hsl(var(--foreground) / 0.22);
+  letter-spacing: 0.04em;
+  transition:
+    color 180ms ease,
+    text-shadow 180ms ease;
 }
 
 @keyframes tube-select-once {
@@ -104,26 +92,57 @@
 }
 
 .tube-position {
-  border: 1px solid hsl(var(--grid-border));
+  border: 1px solid var(--border-color, hsl(var(--grid-border)));
   /* contain: paint would clip marching ants animation, so only layout+style */
   contain: layout style;
   backface-visibility: hidden;
 }
 
+/* Recessed empty well. Extra specificity + !important so it survives the
+   focus-ring suppression below; selected/drag-preview draw their own states. */
+.tube-position.empty:not(.selected):not(.drag-preview) {
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px hsl(var(--foreground) / 0.05) !important;
+}
+
 .tube-position:not(.selected) {
-  transition: transform 200ms ease;
+  transition:
+    transform 200ms ease,
+    filter 200ms ease;
 }
 
 .tube-position:not(.selected):hover {
   transform: scale3d(1.05, 1.05, 1);
+  filter: brightness(1.1);
+}
+
+/* Dim unselected filled tubes only while a selection is active, for contrast. */
+.tube-grid:has(.tube-position.selected)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
+  filter: brightness(0.72);
+}
+
+.tube-grid:has(.tube-position.selected)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube):hover {
+  filter: none;
+}
+
+/* Mid-drag, dim the untouched filled tubes harder than the settled state, so the
+   grid lightens slightly when the drag is released. Placed after the settled rule
+   so it wins while dragging to extend an existing selection. */
+.tube-grid:has(.tube-position.drag-preview)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
+  filter: brightness(0.55);
 }
 
 .tube-position.selected {
   border: 1px solid transparent !important;
   box-shadow:
     inset 0 0 0 1.5px hsl(var(--grid-selection-inner)),
+    inset 0 0 9px -1px hsl(var(--grid-selection) / 0.75),
     0 0 0 2px hsl(var(--grid-selection)),
-    0 0 8px 3px hsl(var(--grid-selection-glow));
+    0 0 12px 2px hsl(var(--grid-selection-glow));
   position: relative;
   z-index: 1;
   transform: translate3d(0, 0, 0);
@@ -139,7 +158,7 @@
   position: absolute;
   inset: -2px;
   border-radius: inherit;
-  box-shadow: 0 0 14px 5px hsl(var(--grid-selection-glow));
+  box-shadow: 0 0 18px 6px hsl(var(--grid-selection-glow));
   opacity: var(--glow-intensity, 0.6);
   pointer-events: none;
   z-index: -1;
@@ -161,11 +180,23 @@
   background: hsl(var(--grid-selection-empty));
 }
 
+.tube-position.selected.empty .empty-coord {
+  color: hsl(0 0% 100%);
+  text-shadow: 0 0 6px hsl(var(--grid-selection-glow));
+}
+
+/* Top-down glass sheen, not a flat film: highlight fades out by the lower
+   third so the tube's data color stays visible. */
 .tube-position.selected.occupied::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: hsl(var(--grid-selection-overlay));
+  background: linear-gradient(
+    180deg,
+    hsl(var(--grid-selection-overlay)) 0%,
+    rgba(255, 255, 255, 0.14) 42%,
+    rgba(255, 255, 255, 0) 82%
+  );
   pointer-events: none;
   border-radius: inherit;
   z-index: 1;
@@ -211,7 +242,7 @@
   border: none !important;
 }
 
-/* Drag preview uses faded selection styling to differentiate from actual selection */
+/* Drag preview mirrors selection styling in the cooler preview hue, minus the pulse. */
 .tube-position.drag-preview {
   border: 1px solid transparent !important;
 }
@@ -226,20 +257,37 @@
   inset: -2px;
   border-radius: inherit;
   border: 2px dashed hsl(var(--grid-preview));
-  background: hsl(var(--grid-preview-overlay));
+  background: hsl(var(--grid-preview-empty));
+  box-shadow:
+    0 0 8px 0 hsl(var(--grid-preview-glow)),
+    inset 0 0 8px -2px hsl(var(--grid-preview-glow));
   pointer-events: none;
   z-index: 1;
 }
 
+.tube-position.drag-preview.empty .empty-coord {
+  color: hsl(0 0% 100%);
+  text-shadow: 0 0 6px hsl(var(--grid-preview-glow));
+}
+
 .tube-position.drag-preview.occupied {
-  box-shadow: 0 0 0 2px hsl(var(--grid-preview)) !important;
+  box-shadow:
+    inset 0 0 0 1.5px hsl(var(--grid-selection-inner)),
+    inset 0 0 9px -1px hsl(var(--grid-preview) / 0.7),
+    0 0 0 2px hsl(var(--grid-preview)),
+    0 0 10px 1px hsl(var(--grid-preview-glow)) !important;
 }
 
 .tube-position.drag-preview.occupied::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: hsl(var(--grid-preview-overlay));
+  background: linear-gradient(
+    180deg,
+    hsl(var(--grid-preview-overlay)) 0%,
+    rgba(255, 255, 255, 0.12) 42%,
+    rgba(255, 255, 255, 0) 82%
+  );
   pointer-events: none;
   border-radius: inherit;
   z-index: 1;

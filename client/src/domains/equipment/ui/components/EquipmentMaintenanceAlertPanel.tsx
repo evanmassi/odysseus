@@ -6,9 +6,9 @@
 
 import { useState, useMemo, useEffect } from 'react';
 
-import { AlertTriangle, ChevronDown, ChevronRight, Wrench } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
-import { Table } from '@shared/ui';
+import { NubDivider, Table } from '@shared/ui';
 import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
 
 import type { EquipmentItem } from '@odysseus/shared-schemas';
@@ -102,13 +102,17 @@ export function EquipmentMaintenanceAlertPanel({
         id: 'name',
         header: 'Name',
         sortable: true,
-        render: (_value, row) => <span className="font-medium">{row.name}</span>,
+        render: (_value, row) => <span className="font-display font-medium">{row.name}</span>,
       },
       {
         id: 'categoryName',
         header: 'Category',
         sortable: true,
-        render: (_value, row) => <span className="text-muted-foreground">{row.categoryName}</span>,
+        render: (_value, row) => (
+          <span className="font-mono tracking-[0.02em] text-muted-foreground">
+            {row.categoryName}
+          </span>
+        ),
       },
       {
         id: 'dueDate',
@@ -116,7 +120,7 @@ export function EquipmentMaintenanceAlertPanel({
         sortable: true,
         render: (_value, row) => (
           <span
-            className={`font-medium ${row.daysUntil < 0 ? 'text-danger-text' : 'text-warning-text'}`}
+            className={`font-mono tracking-[0.04em] ${row.daysUntil < 0 ? 'text-danger-text' : 'text-warning-text'}`}
           >
             {formatDateForDisplay(row.dueDate)}
           </span>
@@ -127,19 +131,18 @@ export function EquipmentMaintenanceAlertPanel({
         header: 'Status',
         sortable: true,
         render: (_value, row) => {
-          if (row.daysUntil < 0) {
-            return (
-              <span className="inline-flex items-center gap-1 text-danger-text font-medium">
-                <AlertTriangle size={12} />
-                {Math.abs(row.daysUntil)} day{Math.abs(row.daysUntil) === 1 ? '' : 's'} overdue
-              </span>
-            );
-          }
-          return (
-            <span className="text-warning-text font-medium">
-              {row.daysUntil === 0
+          const days = Math.abs(row.daysUntil);
+          const label =
+            row.daysUntil < 0
+              ? `${days} day${days === 1 ? '' : 's'} overdue`
+              : row.daysUntil === 0
                 ? 'Due today'
-                : `${row.daysUntil} day${row.daysUntil === 1 ? '' : 's'}`}
+                : `${row.daysUntil} day${row.daysUntil === 1 ? '' : 's'}`;
+          return (
+            <span
+              className={`font-mono tracking-[0.04em] ${row.daysUntil < 0 ? 'text-danger-text' : 'text-warning-text'}`}
+            >
+              {label}
             </span>
           );
         },
@@ -156,10 +159,17 @@ export function EquipmentMaintenanceAlertPanel({
     setManuallyCollapsed(!next);
   };
 
+  const dueSoonCount = totalAlerts - overdueCount;
+  const hasOverdue = overdueCount > 0;
+  const stripeClass = hasOverdue
+    ? 'bg-danger-bg shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.6)]'
+    : 'bg-warning-bg shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.6)]';
+  const labelClass = hasOverdue ? 'text-danger-text' : 'text-warning-text';
+
   return (
-    <div className="rounded-lg border border-border mb-2 flex-shrink-0 overflow-hidden">
+    <div className="mb-2 flex-shrink-0 overflow-hidden border border-line-faint">
       <div
-        className="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-accent/30 transition-colors"
+        className="relative flex items-center gap-2 bg-black/35 px-3 py-2 cursor-pointer transition-colors hover:bg-black/45"
         onClick={toggleExpanded}
         onKeyDown={e => {
           if (e.key === 'Enter') toggleExpanded();
@@ -167,31 +177,45 @@ export function EquipmentMaintenanceAlertPanel({
         role="button"
         tabIndex={0}
       >
-        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        <Wrench size={14} className="text-warning-text" />
-        <span className="text-xs font-semibold text-warning-text">
-          Maintenance Alerts ({totalAlerts})
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <ChevronRight
+          size={11}
+          className={`flex-shrink-0 text-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+        />
+        <span aria-hidden className={`h-[11px] w-0.5 flex-shrink-0 ${stripeClass}`} />
+        <span className={`font-mono text-[10px] uppercase tracking-[0.22em] ${labelClass}`}>
+          Maintenance Alerts
         </span>
-        {!isExpanded && overdueCount > 0 && (
-          <span className="text-xs text-danger-text font-medium ml-auto">
-            {overdueCount} overdue
-          </span>
-        )}
+        <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/55">
+          {totalAlerts}
+        </span>
+        <span className="ml-auto flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
+          {overdueCount > 0 && <span className="text-danger-text">{overdueCount} overdue</span>}
+          {overdueCount > 0 && dueSoonCount > 0 && <span className="text-foreground/25">·</span>}
+          {dueSoonCount > 0 && <span className="text-warning-text">{dueSoonCount} due soon</span>}
+        </span>
+        <NubDivider
+          tone={hasOverdue ? 'danger' : 'warning'}
+          className="absolute inset-x-0 -bottom-px"
+        />
       </div>
 
       {isExpanded && (
         <Table
+          chassis={false}
           columns={columns}
           data={sortedRows}
-          size="sm"
           hoverable
           sortable
           sortConfig={sortConfig}
           onSort={setSortConfig}
           onRowClick={row => onSelectItem(row.id)}
           selectedRows={selectedItemId ? [selectedItemId] : []}
-          rowClassName={row => (row.id === selectedItemId ? '!bg-accent' : '')}
-          variant="borderless"
+          selectedRowGlow
+          rowState={row => (row.daysUntil < 0 ? 'danger' : 'warning')}
           density="compact"
           className="text-xs"
           aria-label="Maintenance alerts"

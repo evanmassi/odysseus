@@ -6,11 +6,22 @@
 
 import { useState, useMemo, useCallback } from 'react';
 
-import { ChevronDown, ChevronRight, Plus, SquarePen, Trash2 } from 'lucide-react';
+import {
+  ChevronRight,
+  CornerDownRight,
+  Folder,
+  FolderOpen,
+  Plus,
+  SquarePen,
+  Trash2,
+} from 'lucide-react';
 
 import { Button, OverflowMenu } from '@shared/ui';
+import { NavTreeLines } from '@shared/ui/components/tree-lines';
 
 import { EquipmentItemRow } from './EquipmentItemRow';
+
+import '@shared/ui/components/nav-tree/nav-tree.css';
 
 import type { EquipmentCategory, EquipmentItem } from '@odysseus/shared-schemas';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
@@ -162,15 +173,31 @@ export function EquipmentCategoryPanel({
     });
   };
 
-  const getCategoryItemCount = (categoryId: string): number => {
-    const directCount = itemsByCategoryId.get(categoryId)?.length ?? 0;
-    const subs = subcategoriesByParent.get(categoryId) ?? [];
-    const subCount = subs.reduce(
-      (sum, sub) => sum + (itemsByCategoryId.get(sub.id)?.length ?? 0),
-      0
-    );
-    return directCount + subCount;
-  };
+  const getCategoryItemCount = useCallback(
+    (categoryId: string): number => {
+      const directCount = itemsByCategoryId.get(categoryId)?.length ?? 0;
+      const subs = subcategoriesByParent.get(categoryId) ?? [];
+      const subCount = subs.reduce(
+        (sum, sub) => sum + (itemsByCategoryId.get(sub.id)?.length ?? 0),
+        0
+      );
+      return directCount + subCount;
+    },
+    [itemsByCategoryId, subcategoriesByParent]
+  );
+
+  // Categories the tree currently shows expanded — search force-opens any with
+  // matches; otherwise honor the manual toggle. Drives the SVG tree-line redraw.
+  const expandedCategoryIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const category of topLevelCategories) {
+      const expanded = isSearching
+        ? getCategoryItemCount(category.id) > 0
+        : expandedCategories.has(category.id);
+      if (expanded) ids.add(category.id);
+    }
+    return ids;
+  }, [topLevelCategories, isSearching, getCategoryItemCount, expandedCategories]);
 
   const getCategoryMenuItems = (cat: EquipmentCategory, itemCount: number): OverflowMenuItem[] => [
     {
@@ -207,9 +234,9 @@ export function EquipmentCategoryPanel({
   }
 
   return (
-    <div className="space-y-2 pt-1">
+    <div className="pt-1">
       {isAdmin && (
-        <div className="flex justify-end px-1">
+        <div className="mb-2 flex justify-end px-1">
           <Button
             variant="secondary"
             size="sm"
@@ -227,30 +254,35 @@ export function EquipmentCategoryPanel({
         </p>
       )}
 
-      {topLevelCategories.map(category => {
-        const subs = subcategoriesByParent.get(category.id) ?? [];
-        const totalCount = getCategoryItemCount(category.id);
-        const directItems = itemsByCategoryId.get(category.id) ?? [];
-        const isExpanded = isSearching ? totalCount > 0 : expandedCategories.has(category.id);
+      <div data-tree-id="equipment" className="nav-tree relative flex flex-col gap-1">
+        <NavTreeLines treeId="equipment" expandedCategoryIds={expandedCategoryIds} />
+        {topLevelCategories.map(category => {
+          const subs = subcategoriesByParent.get(category.id) ?? [];
+          const totalCount = getCategoryItemCount(category.id);
+          const directItems = itemsByCategoryId.get(category.id) ?? [];
+          const isExpanded = isSearching ? totalCount > 0 : expandedCategories.has(category.id);
 
-        if (isSearching && totalCount === 0) return null;
+          if (isSearching && totalCount === 0) return null;
 
-        return (
-          <div key={category.id} className="rounded-lg border border-border overflow-hidden">
-            {/* Category header */}
-            <div
-              className="w-full flex items-center justify-between px-3 py-2 bg-muted hover:bg-accent/50 transition-colors text-left cursor-pointer"
-              onClick={() => toggleCategory(category.id)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') toggleCategory(category.id);
-              }}
-              role="button"
-              tabIndex={0}
-            >
-              <div className="flex items-center gap-1.5">
-                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          return (
+            <div key={category.id} data-level="l1" data-id={category.id}>
+              <div
+                className={`nav-tree-row nav-tree-row--category ${isExpanded ? 'is-open' : ''}`}
+                onClick={() => toggleCategory(category.id)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') toggleCategory(category.id);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+              >
+                <ChevronRight
+                  size={11}
+                  className={`nav-tree-row__chevron ${isExpanded ? 'rotate-90' : ''}`}
+                />
                 {isAdmin && (
                   <div
+                    className="flex flex-shrink-0 items-center"
                     role="presentation"
                     onClick={e => e.stopPropagation()}
                     onKeyDown={e => e.stopPropagation()}
@@ -263,76 +295,95 @@ export function EquipmentCategoryPanel({
                     />
                   </div>
                 )}
-                <span className="text-sm font-semibold text-secondary-foreground">
+                {isExpanded ? (
+                  <FolderOpen size={14} className="flex-shrink-0 text-primary" />
+                ) : (
+                  <Folder size={14} className="flex-shrink-0 text-muted-foreground" />
+                )}
+                <span
+                  className={`nav-tree-row__label font-display text-sm ${
+                    isExpanded ? 'text-foreground' : 'text-secondary-foreground'
+                  }`}
+                >
                   {category.name}
                 </span>
-                <span className="text-xs text-muted-foreground">({totalCount})</span>
-              </div>
-              {isAdmin && (
-                <div
-                  role="presentation"
-                  onClick={e => e.stopPropagation()}
-                  onKeyDown={e => e.stopPropagation()}
+                <span
+                  aria-hidden
+                  className="flex-shrink-0 font-mono text-[10px] text-foreground/30"
                 >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onAddSubcategory(category.id)}
-                    className="h-6 text-xs"
-                    leftIcon={<Plus className="w-3 h-3" />}
+                  {'//'}
+                </span>
+                <span className="nav-tree-row__count font-mono text-[10px] tracking-[0.04em]">
+                  {totalCount}{' '}
+                  <span className="text-foreground/25">{totalCount === 1 ? 'unit' : 'units'}</span>
+                </span>
+                <span className="flex-1" />
+                {isAdmin && (
+                  <div
+                    className="flex flex-shrink-0 items-center"
+                    role="presentation"
+                    onClick={e => e.stopPropagation()}
+                    onKeyDown={e => e.stopPropagation()}
                   >
-                    Subcategory
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onAddSubcategory(category.id)}
+                      className="h-6 text-xs"
+                      leftIcon={<Plus className="w-3 h-3" />}
+                    >
+                      Subcategory
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {isExpanded && (
+                <div className="nav-tree-children">
+                  {subs.map(sub => {
+                    const subItems = itemsByCategoryId.get(sub.id) ?? [];
+                    if (isSearching && subItems.length === 0) return null;
+                    return (
+                      <SubcategorySection
+                        key={sub.id}
+                        subcategory={sub}
+                        items={subItems}
+                        selectedItemId={selectedItemId}
+                        onSelectItem={onSelectItem}
+                        isAdmin={isAdmin}
+                        onRename={onRenameCategory}
+                        onDelete={onDeleteCategory}
+                        forceExpanded={isSearching ? true : undefined}
+                      />
+                    );
+                  })}
+
+                  {/* Direct items (categories without subcategories) sit at the mid tier */}
+                  {subs.length === 0 && directItems.length > 0 && (
+                    <div className="nav-tree-well">
+                      {directItems.map(item => (
+                        <div key={item.id} data-level="l2" data-id={item.id}>
+                          <EquipmentItemRow
+                            item={item}
+                            isSelected={item.id === selectedItemId}
+                            onSelect={onSelectItem}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {totalCount === 0 && (
+                    <p className="text-xs text-card-foreground/30 italic text-center py-3">
+                      No equipment
+                    </p>
+                  )}
                 </div>
               )}
             </div>
-
-            {/* Expanded content */}
-            {isExpanded && (
-              <div className="px-2 py-2 space-y-2">
-                {/* Subcategories */}
-                {subs.map(sub => {
-                  const subItems = itemsByCategoryId.get(sub.id) ?? [];
-                  if (isSearching && subItems.length === 0) return null;
-                  return (
-                    <SubcategorySection
-                      key={sub.id}
-                      subcategory={sub}
-                      items={subItems}
-                      selectedItemId={selectedItemId}
-                      onSelectItem={onSelectItem}
-                      isAdmin={isAdmin}
-                      onRename={onRenameCategory}
-                      onDelete={onDeleteCategory}
-                      forceExpanded={isSearching ? true : undefined}
-                    />
-                  );
-                })}
-
-                {/* Direct items (categories without subcategories) */}
-                {subs.length === 0 && directItems.length > 0 && (
-                  <div className="space-y-1.5">
-                    {directItems.map(item => (
-                      <EquipmentItemRow
-                        key={item.id}
-                        item={item}
-                        isSelected={item.id === selectedItemId}
-                        onSelect={onSelectItem}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {totalCount === 0 && (
-                  <p className="text-xs text-card-foreground/30 italic text-center py-3">
-                    No equipment
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -373,19 +424,24 @@ function SubcategorySection({
   ];
 
   return (
-    <div>
+    <div data-level="l2" data-id={subcategory.id}>
       <div
-        className="w-full flex items-center gap-1.5 px-2 py-1 text-left hover:bg-accent/30 rounded transition-colors cursor-pointer"
+        className={`nav-tree-row nav-tree-row--subcategory ${effectiveExpanded ? 'is-open' : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={e => {
           if (e.key === 'Enter') setIsExpanded(!isExpanded);
         }}
         role="button"
         tabIndex={0}
+        aria-expanded={effectiveExpanded}
       >
-        {effectiveExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        <ChevronRight
+          size={11}
+          className={`nav-tree-row__chevron ${effectiveExpanded ? 'rotate-90' : ''}`}
+        />
         {isAdmin && (
           <div
+            className="flex flex-shrink-0 items-center"
             role="presentation"
             onClick={e => e.stopPropagation()}
             onKeyDown={e => e.stopPropagation()}
@@ -398,20 +454,33 @@ function SubcategorySection({
             />
           </div>
         )}
-        <span className="text-xs font-medium text-secondary-foreground">{subcategory.name}</span>
-        <span className="text-xs text-muted-foreground">({items.length})</span>
+        <CornerDownRight
+          size={12}
+          className={`flex-shrink-0 ${effectiveExpanded ? 'text-primary' : 'text-muted-foreground'}`}
+        />
+        <span className="nav-tree-row__label font-display text-xs">{subcategory.name}</span>
+        <span aria-hidden className="flex-shrink-0 font-mono text-[10px] text-foreground/30">
+          {'//'}
+        </span>
+        <span className="nav-tree-row__count font-mono text-[10px] tracking-[0.04em]">
+          {items.length}{' '}
+          <span className="text-foreground/25">{items.length === 1 ? 'unit' : 'units'}</span>
+        </span>
       </div>
 
       {effectiveExpanded && items.length > 0 && (
-        <div className="ml-2 mt-1 space-y-1.5">
-          {items.map(item => (
-            <EquipmentItemRow
-              key={item.id}
-              item={item}
-              isSelected={item.id === selectedItemId}
-              onSelect={onSelectItem}
-            />
-          ))}
+        <div className="nav-tree-children">
+          <div className="nav-tree-well">
+            {items.map(item => (
+              <div key={item.id} data-level="l3" data-id={item.id}>
+                <EquipmentItemRow
+                  item={item}
+                  isSelected={item.id === selectedItemId}
+                  onSelect={onSelectItem}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

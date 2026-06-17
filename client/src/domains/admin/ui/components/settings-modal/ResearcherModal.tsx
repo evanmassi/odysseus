@@ -12,10 +12,11 @@ import {
   type AdminResearcher,
 } from '@odysseus/shared-schemas';
 import { Plus, User, Mail, Building2, Briefcase, Dna } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
+import { AuthInput } from '@shared/ui/primitives';
 import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 
 export interface ResearcherModalProps {
@@ -43,8 +44,8 @@ export function ResearcherModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
-    register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
   } = useForm<CreateResearcherProfile>({
@@ -117,147 +118,57 @@ export function ResearcherModal({
         </div>
       )}
 
-      {/* Create Form - Label-in-Border Theme */}
       {(mode === 'create-only' || actionMode === 'create') && (
         <form onSubmit={handleSubmit(handleCreate)} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            {/* First Name */}
-            <div>
-              <div
-                className={`auth-input-container ${errors.firstName ? 'border-2 border-danger-border' : 'border-border'}`}
-              >
-                <label
-                  htmlFor="firstName"
-                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.firstName ? 'text-danger-text' : 'text-secondary-foreground'}`}
-                >
-                  First Name <span className="text-danger-bg">*</span>
-                </label>
-                <div className="relative px-3 py-2">
-                  <User
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                    size={16}
-                  />
-                  <input
-                    {...register('firstName')}
-                    id="firstName"
-                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                    placeholder="First name"
-                  />
-                </div>
-              </div>
-              {errors.firstName && (
-                <p className="text-xs text-danger-text mt-1 ml-1">{errors.firstName.message}</p>
-              )}
-            </div>
-
-            {/* Last Name */}
-            <div>
-              <div
-                className={`auth-input-container ${errors.lastName ? 'border-2 border-danger-border' : 'border-border'}`}
-              >
-                <label
-                  htmlFor="lastName"
-                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.lastName ? 'text-danger-text' : 'text-secondary-foreground'}`}
-                >
-                  Last Name <span className="text-danger-bg">*</span>
-                </label>
-                <div className="relative px-3 py-2">
-                  <User
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                    size={16}
-                  />
-                  <input
-                    {...register('lastName')}
-                    id="lastName"
-                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                    placeholder="Last name"
-                  />
-                </div>
-              </div>
-              {errors.lastName && (
-                <p className="text-xs text-danger-text mt-1 ml-1">{errors.lastName.message}</p>
-              )}
-            </div>
+            <FormField
+              name="firstName"
+              label="First Name"
+              icon={<User size={16} />}
+              placeholder="First name"
+              required
+              control={control}
+              errorMessage={errors.firstName?.message}
+            />
+            <FormField
+              name="lastName"
+              label="Last Name"
+              icon={<User size={16} />}
+              placeholder="Last name"
+              required
+              control={control}
+              errorMessage={errors.lastName?.message}
+            />
           </div>
 
-          {/* Email */}
-          <div>
-            <div
-              className={`auth-input-container ${errors.email ? 'border-2 border-danger-border' : 'border-border'}`}
-            >
-              <label
-                htmlFor="email"
-                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.email ? 'text-danger-text' : 'text-secondary-foreground'}`}
-              >
-                Email <span className="text-danger-bg">*</span>
-              </label>
-              <div className="relative px-3 py-2">
-                <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  {...register('email')}
-                  id="email"
-                  type="email"
-                  className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                  placeholder="name@institution.edu"
-                />
-              </div>
-            </div>
-            {errors.email && (
-              <p className="text-xs text-danger-text mt-1 ml-1">{errors.email.message}</p>
-            )}
-          </div>
+          <FormField
+            name="email"
+            label="Email"
+            type="email"
+            icon={<Mail size={16} />}
+            placeholder="name@institution.edu"
+            required
+            control={control}
+            errorMessage={errors.email?.message}
+          />
 
           <div className="grid grid-cols-2 gap-3">
-            {/* Department */}
-            <div>
-              <div className="auth-input-container border-border">
-                <label
-                  htmlFor="department"
-                  className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
-                >
-                  Department
-                </label>
-                <div className="relative px-3 py-2">
-                  <Building2
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                    size={16}
-                  />
-                  <input
-                    {...register('department')}
-                    id="department"
-                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                    placeholder="Department name"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Position */}
-            <div>
-              <div className="auth-input-container border-border">
-                <label
-                  htmlFor="position"
-                  className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
-                >
-                  Position
-                </label>
-                <div className="relative px-3 py-2">
-                  <Briefcase
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                    size={16}
-                  />
-                  <input
-                    {...register('position')}
-                    id="position"
-                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                    placeholder="Title or role"
-                  />
-                </div>
-              </div>
-            </div>
+            <FormField
+              name="department"
+              label="Department"
+              icon={<Building2 size={16} />}
+              placeholder="Department name"
+              control={control}
+              errorMessage={errors.department?.message}
+            />
+            <FormField
+              name="position"
+              label="Position"
+              icon={<Briefcase size={16} />}
+              placeholder="Title or role"
+              control={control}
+              errorMessage={errors.position?.message}
+            />
           </div>
 
           <div className="pt-2 flex justify-end gap-3">
@@ -276,7 +187,6 @@ export function ResearcherModal({
         </form>
       )}
 
-      {/* Select List */}
       {mode === 'select-or-create' && actionMode === 'select' && (
         <div className="space-y-2">
           {unlinkedResearchers.length > 0 ? (
@@ -314,5 +224,52 @@ export function ResearcherModal({
         </div>
       )}
     </BaseModal>
+  );
+}
+
+interface FormFieldProps {
+  name: keyof CreateResearcherProfile;
+  label: string;
+  icon: React.ReactNode;
+  placeholder: string;
+  type?: 'text' | 'email';
+  required?: boolean;
+  control: ReturnType<typeof useForm<CreateResearcherProfile>>['control'];
+  errorMessage?: string;
+}
+
+function FormField({
+  name,
+  label,
+  icon,
+  placeholder,
+  type = 'text',
+  required,
+  control,
+  errorMessage,
+}: FormFieldProps) {
+  return (
+    <div>
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => (
+          <AuthInput
+            id={name}
+            label={label}
+            type={type}
+            icon={icon}
+            placeholder={placeholder}
+            required={required}
+            value={field.value ?? ''}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            state={errorMessage ? 'error' : 'default'}
+            variant="console"
+          />
+        )}
+      />
+      {errorMessage && <p className="text-xs text-danger-text mt-1 ml-1">{errorMessage}</p>}
+    </div>
   );
 }

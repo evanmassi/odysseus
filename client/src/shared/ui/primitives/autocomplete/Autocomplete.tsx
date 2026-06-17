@@ -12,6 +12,11 @@ import { ScrollArea } from '../scroll-area/ScrollArea';
 
 import type { AutocompleteProps, AutocompleteRef, AutocompleteOption } from './types';
 
+const FOCUS_SHADOW =
+  'focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+const POPUP_SHADOW =
+  'shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_0_24px_-4px_hsl(var(--primary)/0.30)]';
+
 export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
   (
     {
@@ -26,6 +31,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       minChars = 2,
       'aria-label': ariaLabel,
       className = '',
+      inputClassName,
       renderOption,
     },
     ref
@@ -160,17 +166,17 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       setTimeout(() => setIsOpen(false), 150);
     }, []);
 
-    const stateClasses =
+    const stateBorder =
       state === 'error'
-        ? 'border-2 border-danger-border'
+        ? 'border-danger-border'
         : state === 'warning'
-          ? 'border-2 border-warning-border'
-          : 'border border-border hover:border-muted-foreground';
+          ? 'border-warning-border'
+          : 'border-line-faint hover:border-foreground/30';
 
     const dropdown = shouldShow
       ? createPortal(
           <div style={dropdownStyle} role="listbox" id={listboxId}>
-            <ScrollArea className="bg-card border border-border rounded-lg shadow-lg max-h-48">
+            <ScrollArea className={`bg-card border border-line-mid max-h-48 ${POPUP_SHADOW}`}>
               <div className="py-1">
                 {options.map((option, index) => {
                   const isHighlighted = index === highlightedIndex;
@@ -185,7 +191,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                       tabIndex={-1}
                       aria-selected={isHighlighted}
                       className={`px-3 py-1.5 cursor-pointer text-sm transition-colors duration-150 ${
-                        isHighlighted ? 'bg-muted' : 'hover:bg-muted'
+                        isHighlighted ? 'bg-foreground/5' : 'hover:bg-foreground/5'
                       }`}
                       onMouseDown={e => {
                         e.preventDefault();
@@ -199,7 +205,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                         <>
                           <span className="font-medium">{option.label}</span>
                           {option.secondary && (
-                            <span className="text-muted-foreground ml-2 text-xs">
+                            <span className="text-foreground/50 ml-2 text-xs">
                               ({option.secondary})
                             </span>
                           )}
@@ -238,7 +244,10 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
           onBlur={handleBlur}
           placeholder={placeholder}
           disabled={disabled}
-          className={`w-full h-9 px-3 text-sm rounded-lg bg-card text-foreground placeholder:text-muted-foreground placeholder:opacity-40 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed ${stateClasses}`}
+          className={
+            inputClassName ??
+            `w-full h-9 px-3 text-sm bg-[hsl(var(--input-well))] border ${stateBorder} text-foreground placeholder:text-foreground/40 transition-[border-color,background,box-shadow] duration-200 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] ${FOCUS_SHADOW} disabled:opacity-50 disabled:cursor-not-allowed`
+          }
         />
         {dropdown}
       </div>
