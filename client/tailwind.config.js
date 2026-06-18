@@ -194,26 +194,29 @@ export default {
           'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-warning-bg) / 0.50)',
         'glow-info':
           'inset 0 1px 0 0 hsl(var(--sheen) / 0.18), 0 0 18px -2px hsl(var(--color-info-bg) / 0.50)',
+        /* Standard-weight button surface. Light (1 - --lit): paper-sheen highlight +
+           faint contact shadow — the part sits ON the page, no emission. Dark (--lit):
+           the inset + outer tonal glow. Both baked in; the gate swaps them per theme. */
         'standard-primary':
-          'inset 0 0 12px -2px hsl(var(--primary) / 0.20), 0 0 14px -4px hsl(var(--primary) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--primary) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--primary) / calc(0.40 * var(--lit)))',
         'standard-primary-hover':
-          'inset 0 0 16px -2px hsl(var(--primary) / 0.35), 0 0 22px -2px hsl(var(--primary) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--primary) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--primary) / calc(0.55 * var(--lit)))',
         'standard-danger':
-          'inset 0 0 12px -2px hsl(var(--color-danger-bg) / 0.20), 0 0 14px -4px hsl(var(--color-danger-bg) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--color-danger-bg) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--color-danger-bg) / calc(0.40 * var(--lit)))',
         'standard-danger-hover':
-          'inset 0 0 16px -2px hsl(var(--color-danger-bg) / 0.35), 0 0 22px -2px hsl(var(--color-danger-bg) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--color-danger-bg) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--color-danger-bg) / calc(0.55 * var(--lit)))',
         'standard-success':
-          'inset 0 0 12px -2px hsl(var(--color-success-bg) / 0.20), 0 0 14px -4px hsl(var(--color-success-bg) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--color-success-bg) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--color-success-bg) / calc(0.40 * var(--lit)))',
         'standard-success-hover':
-          'inset 0 0 16px -2px hsl(var(--color-success-bg) / 0.35), 0 0 22px -2px hsl(var(--color-success-bg) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--color-success-bg) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--color-success-bg) / calc(0.55 * var(--lit)))',
         'standard-warning':
-          'inset 0 0 12px -2px hsl(var(--color-warning-bg) / 0.20), 0 0 14px -4px hsl(var(--color-warning-bg) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--color-warning-bg) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--color-warning-bg) / calc(0.40 * var(--lit)))',
         'standard-warning-hover':
-          'inset 0 0 16px -2px hsl(var(--color-warning-bg) / 0.35), 0 0 22px -2px hsl(var(--color-warning-bg) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--color-warning-bg) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--color-warning-bg) / calc(0.55 * var(--lit)))',
         'standard-info':
-          'inset 0 0 12px -2px hsl(var(--color-info-bg) / 0.20), 0 0 14px -4px hsl(var(--color-info-bg) / 0.40)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 1px hsl(var(--recess) / calc(0.04 * (1 - var(--lit)))), inset 0 0 12px -2px hsl(var(--color-info-bg) / calc(0.20 * var(--lit))), 0 0 14px -4px hsl(var(--color-info-bg) / calc(0.40 * var(--lit)))',
         'standard-info-hover':
-          'inset 0 0 16px -2px hsl(var(--color-info-bg) / 0.35), 0 0 22px -2px hsl(var(--color-info-bg) / 0.55)',
+          'inset 0 1px 0 hsl(var(--sheen) / calc(0.55 * (1 - var(--lit)))), 0 1px 2px hsl(var(--recess) / calc(0.07 * (1 - var(--lit)))), inset 0 0 16px -2px hsl(var(--color-info-bg) / calc(0.35 * var(--lit))), 0 0 22px -2px hsl(var(--color-info-bg) / calc(0.55 * var(--lit)))',
       },
       backgroundImage: {
         scanlines:
