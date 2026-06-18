@@ -316,7 +316,7 @@ export function SuppliesTab() {
 
         {/* Right Panel: Detail / Edit / Transaction */}
         <div
-          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden"
+          className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
           {!rightPanel && <SupplyInfoPanelEmpty />}

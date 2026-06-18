@@ -304,7 +304,7 @@ export function EquipmentTab() {
 
         {/* Right Panel: Detail / Edit / Maintenance */}
         <div
-          className="flex-shrink-0 flex flex-col min-h-0 overflow-hidden"
+          className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
           {!rightPanel && <EquipmentInfoPanelEmpty />}

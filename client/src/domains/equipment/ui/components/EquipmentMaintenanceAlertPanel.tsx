@@ -169,7 +169,7 @@ export function EquipmentMaintenanceAlertPanel({
   return (
     <div className="mb-2 flex-shrink-0 overflow-hidden border border-line-faint">
       <div
-        className="relative flex items-center gap-2 bg-surface-strip dark:bg-shade/35 px-3 py-2 cursor-pointer transition-[background-color,filter] hover:brightness-[0.97] dark:hover:brightness-100 dark:hover:bg-shade/45"
+        className="relative flex items-center gap-2 bg-[hsl(var(--primary)/0.07)] dark:bg-shade/35 px-3 py-2 cursor-pointer transition-[background-color,filter] hover:brightness-[0.97] dark:hover:brightness-100 dark:hover:bg-shade/45"
         onClick={toggleExpanded}
         onKeyDown={e => {
           if (e.key === 'Enter') toggleExpanded();

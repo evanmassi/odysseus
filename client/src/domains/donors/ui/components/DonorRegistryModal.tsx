@@ -177,8 +177,8 @@ export function DonorRegistryModal({
         animation="slide"
         contentClassName="p-4 h-full"
       >
-        <div className="flex gap-4 h-full min-h-0 overflow-hidden">
-          <div className="w-[60%] min-w-0 min-h-0 flex flex-col overflow-hidden pb-4">
+        <div className="flex gap-4 h-full min-h-0">
+          <div className="w-[60%] min-w-0 min-h-0 flex flex-col pb-4">
             <DonorTable
               donors={donors}
               selectedDonorId={selectedDonorId}
@@ -191,7 +191,7 @@ export function DonorRegistryModal({
             />
           </div>
 
-          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 overflow-hidden pb-4">
+          <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 pb-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <LoadingSpinner />
