@@ -57,19 +57,22 @@ const ACTIVE_STATE = 'text-foreground phosphor-text';
 
 const INACTIVE_STATE =
   'text-muted-foreground ' +
-  'hover:text-foreground hover:[text-shadow:0_0_8px_hsl(var(--sheen)/0.7)]';
+  'hover:text-foreground dark:hover:[text-shadow:0_0_8px_hsl(var(--sheen)/0.7)]';
 
-// Sliding glow tile that fills the active tab — table-row recipe at chrome intensity.
-// Horizontal lights from the bottom edge, vertical from the left edge: same wash + edge
-// stripe + bloom, rotated 90°. Wash stops mirror the table's ROW_GLOW; outer bloom radii
-// are pulled in a notch since a tab is smaller than a selected data row.
+// Sliding tile that fills the active tab. Light is a flat primary tint + a single
+// leading stripe (bottom edge horizontal, left edge vertical). Dark restores the lit
+// table-row recipe — directional wash + edge stripe + bloom, rotated per orientation.
 const TILE_HORIZONTAL =
-  'bg-[linear-gradient(0deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
-  'shadow-[inset_0_-2px_0_0_hsl(var(--primary)),inset_0_-14px_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_1px_0_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_-1px_0_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
+  'bg-[linear-gradient(0deg,hsl(var(--primary)/0.1),hsl(var(--primary)/0.1))] ' +
+  'shadow-[inset_0_-2px_0_0_hsl(var(--primary))] ' +
+  'dark:bg-[linear-gradient(0deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
+  'dark:shadow-[inset_0_-2px_0_0_hsl(var(--primary)),inset_0_-14px_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_1px_0_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_-1px_0_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
 
 const TILE_VERTICAL =
-  'bg-[linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
-  'shadow-[inset_2px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
+  'bg-[linear-gradient(0deg,hsl(var(--primary)/0.1),hsl(var(--primary)/0.1))] ' +
+  'shadow-[inset_2px_0_0_0_hsl(var(--primary))] ' +
+  'dark:bg-[linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)] ' +
+  'dark:shadow-[inset_2px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),0_0_20px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_48px_2px_hsl(var(--primary)/var(--alpha-glow-outer-far))]';
 
 const INDICATOR_TRANSITION =
   'transition-[transform,width,height] duration-[280ms] ease-[cubic-bezier(0.32,0.72,0,1)]';
@@ -165,7 +168,7 @@ export function Tabs({ value, onChange, children, orientation, className = '' }:
       ? 'relative flex flex-col gap-1'
       : 'relative flex items-center gap-6 px-4';
 
-  const indicatorClass = `pointer-events-none absolute top-0 left-0 before:content-[''] before:absolute before:inset-0 before:bg-scanlines ${
+  const indicatorClass = `pointer-events-none absolute top-0 left-0 before:content-[''] before:absolute before:inset-0 dark:before:bg-scanlines ${
     resolvedOrientation === 'horizontal' ? TILE_HORIZONTAL : TILE_VERTICAL
   } ${hasMeasured ? INDICATOR_TRANSITION : ''}`;
 
