@@ -34,6 +34,10 @@ import { useStorageData } from '@domains/storage';
 import { useTubeFilterOptionsQuery } from '@domains/tubes/hooks';
 import { Chip, DatePicker, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
+import {
+  headerSurface,
+  HEADER_TOP_EDGE,
+} from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 
@@ -130,31 +134,29 @@ function CollapsibleSection({
   children,
 }: CollapsibleSectionProps) {
   return (
-    <div className="border-b border-border last:border-b-0">
-      <div className="p-1">
-        <button
-          onClick={onToggle}
-          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors"
-        >
-          <div className="flex items-center space-x-2">
-            {isOpen ? (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            )}
-            <div className="flex items-center space-x-2 text-muted-foreground">
-              {icon}
-              <span className="text-sm font-medium text-secondary-foreground">{title}</span>
-            </div>
-          </div>
-          {count > 0 && (
-            <span className="px-2 py-0.5 bg-secondary text-secondary-foreground rounded-md text-xs font-medium">
-              {count}
-            </span>
+    <div className="border-b border-line-soft last:border-b-0">
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center justify-between px-4 py-2.5 transition-colors hover:bg-foreground/[0.03]"
+      >
+        <div className="flex items-center gap-2.5">
+          {isOpen ? (
+            <ChevronDown className="h-3.5 w-3.5 text-foreground/40" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 text-foreground/40" />
           )}
-        </button>
-      </div>
-      {isOpen && <div className="px-4 pb-3">{children}</div>}
+          <span className="flex items-center text-foreground/55">{icon}</span>
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-foreground/80">
+            {title}
+          </span>
+        </div>
+        {count > 0 && (
+          <span className="font-mono text-[11px] tabular-nums text-primary/90 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.5)]">
+            {count}
+          </span>
+        )}
+      </button>
+      {isOpen && <div className="px-4 pb-3 pt-0.5">{children}</div>}
     </div>
   );
 }
@@ -366,13 +368,24 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
   return (
     <div className="flex flex-col h-full">
       {/* Header with Clear All and Close buttons - Fixed */}
-      <div className="flex items-center justify-between h-9 px-4 border-b border-border bg-muted flex-shrink-0">
-        <span className="text-xs font-medium text-secondary-foreground">Filters</span>
-        <div className="flex items-center space-x-2">
+      <div
+        className="relative flex h-9 flex-shrink-0 items-center justify-between border-b border-line-soft px-4"
+        style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span
+            aria-hidden
+            className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
+          />
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.26em] text-foreground/70">
+            Filters
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
           <Tooltip content="Clear all filters" side="bottom">
             <button
               onClick={clearFilters}
-              className="px-2 py-1 text-xs text-secondary-foreground hover:text-accent-foreground hover:bg-accent rounded transition-colors"
+              className="px-2 py-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-foreground/55 transition-colors hover:text-primary"
             >
               Clear All
             </button>
@@ -381,9 +394,9 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
             <Tooltip content="Close filters" side="bottom">
               <button
                 onClick={onClose}
-                className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors"
+                className="p-1 text-foreground/55 transition-colors hover:text-primary"
               >
-                <X className="w-4 h-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </Tooltip>
           )}
@@ -395,7 +408,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
         {/* LOCATION SECTION */}
         <CollapsibleSection
           title="Location"
-          icon={<MapPin className="w-4 h-4" />}
+          icon={<MapPin className="w-3.5 h-3.5" />}
           count={getSectionCount('location')}
           isOpen={openSections.location}
           onToggle={() => toggleSection('location')}
@@ -404,9 +417,11 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
             {/* Tanks */}
             {filterOptions.tankIds.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                  <TankIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-secondary-foreground">Tanks</div>
+                <div className="mb-2 flex items-center gap-2 text-foreground/45">
+                  <TankIcon className="h-3 w-3" aria-hidden="true" />
+                  <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+                    Tanks
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Tank filters">
                   {filterOptions.tankIds.map(tankId => (
@@ -427,9 +442,11 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
             {/* Racks */}
             {filterOptions.rackIds.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                  <RackIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-secondary-foreground">Racks</div>
+                <div className="mb-2 flex items-center gap-2 text-foreground/45">
+                  <RackIcon className="h-3 w-3" aria-hidden="true" />
+                  <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+                    Racks
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Rack filters">
                   {filterOptions.rackIds.map(rackId => (
@@ -450,9 +467,11 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
             {/* Boxes */}
             {filterOptions.boxIds.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                  <BoxIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-secondary-foreground">Boxes</div>
+                <div className="mb-2 flex items-center gap-2 text-foreground/45">
+                  <BoxIcon className="h-3 w-3" aria-hidden="true" />
+                  <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+                    Boxes
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Box filters">
                   {filterOptions.boxIds.map(boxId => (
@@ -475,7 +494,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
         {/* SAMPLE SECTION */}
         <CollapsibleSection
           title="Sample"
-          icon={<TestTubeDiagonal className="w-4 h-4" />}
+          icon={<TestTubeDiagonal className="w-3.5 h-3.5" />}
           count={getSectionCount('sample')}
           isOpen={openSections.sample}
           onToggle={() => toggleSection('sample')}
@@ -485,9 +504,11 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
               ({ filterKey, label, icon: Icon, ariaLabel, options }) =>
                 options.length > 0 && (
                   <div key={filterKey}>
-                    <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                      <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-                      <div className="text-xs font-medium text-secondary-foreground">{label}</div>
+                    <div className="mb-2 flex items-center gap-2 text-foreground/45">
+                      <Icon className="h-3 w-3" aria-hidden="true" />
+                      <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+                        {label}
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2" role="group" aria-label={ariaLabel}>
                       {options.map(value => (
@@ -512,7 +533,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
         {filterOptions.researchers.length > 0 && (
           <CollapsibleSection
             title="Researcher"
-            icon={<UsersRound className="w-4 h-4" />}
+            icon={<UsersRound className="w-3.5 h-3.5" />}
             count={getSectionCount('researcher')}
             isOpen={openSections.researcher}
             onToggle={() => toggleSection('researcher')}
@@ -536,15 +557,15 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
         {/* DATE RANGE SECTION */}
         <CollapsibleSection
           title="Date Range"
-          icon={<Calendar className="w-4 h-4" />}
+          icon={<Calendar className="w-3.5 h-3.5" />}
           count={getSectionCount('date')}
           isOpen={openSections.date}
           onToggle={() => toggleSection('date')}
         >
           <div className="space-y-3">
             <div>
-              <span className="text-xs font-medium text-secondary-foreground mb-1 block">
-                From:
+              <span className="mb-1 block font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+                From
               </span>
               <DatePicker
                 value={filters.dateFrom ?? ''}
@@ -556,7 +577,9 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
               />
             </div>
             <div>
-              <span className="text-xs font-medium text-secondary-foreground mb-1 block">To:</span>
+              <span className="mb-1 block font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+                To
+              </span>
               <DatePicker
                 value={filters.dateTo ?? ''}
                 onChange={val => updateDateFilter('dateTo', val)}
@@ -572,7 +595,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
 
       {/* Active Filters Summary - Pinned Footer */}
       {hasActiveFilters && (
-        <div className="px-3 py-2 bg-muted border-t border-border flex-shrink-0">
+        <div className="flex-shrink-0 border-t border-line-soft bg-foreground/[0.02] px-3 py-2">
           <div className="flex flex-wrap gap-1 items-center">
             {visibleFilters.map((filter, idx) => (
               <Tooltip
@@ -588,7 +611,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
             {hiddenCount > 0 && (
               <button
                 onClick={() => setShowAllFilters(!showAllFilters)}
-                className="px-2 py-0.5 rounded text-xs bg-secondary text-secondary-foreground hover:bg-accent transition-all"
+                className="px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-foreground/60 transition-colors hover:text-primary"
               >
                 {showAllFilters ? 'Show less' : `+${hiddenCount} more`}
               </button>

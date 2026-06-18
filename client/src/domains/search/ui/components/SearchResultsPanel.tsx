@@ -126,7 +126,7 @@ export function SearchResultsPanel({
     return (
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="flex items-center">
-          <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full" />
+          <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
           <span className="ml-2 text-sm text-secondary-foreground">Searching...</span>
         </div>
       </div>
@@ -460,9 +460,11 @@ export function SearchResultsPanel({
       {/* Loading overlay when refetching */}
       {isSearching && (
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
-          <div className="flex items-center bg-card px-3 py-1 rounded-full shadow-sm border border-border">
-            <div className="animate-spin w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full" />
-            <span className="ml-2 text-xs text-secondary-foreground">Updating...</span>
+          <div className="flex items-center border border-line-soft bg-card px-3 py-1 shadow-[0_8px_20px_-12px_hsl(var(--recess)/0.7)]">
+            <div className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full" />
+            <span className="ml-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/60">
+              Updating
+            </span>
           </div>
         </div>
       )}
@@ -473,9 +475,10 @@ export function SearchResultsPanel({
       {/* Scrollable Results Container */}
       <ScrollArea className="flex-1 p-4 space-y-3">
         {/* Results Header */}
-        <div className="flex items-center justify-between border-b pb-2">
-          <div className="text-sm text-secondary-foreground font-medium">
-            {totalCount} tube{totalCount !== 1 ? 's' : ''} found
+        <div className="flex items-center justify-between border-b border-line-soft pb-2">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/60">
+            <span className="tabular-nums text-foreground/85">{totalCount}</span> tube
+            {totalCount !== 1 ? 's' : ''} found
           </div>
 
           {tubes.length > 0 && (
@@ -517,7 +520,7 @@ export function SearchResultsPanel({
                   type="button"
                   key={index}
                   onClick={() => handleGroupClick(group)}
-                  className="w-full text-left p-2.5 bg-muted rounded-md hover:bg-accent cursor-pointer transition-all"
+                  className="w-full cursor-pointer border border-line-soft bg-card p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/0.5)]"
                   aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
                 >
                   {/* Line 1: Cell Type with tube count badge */}
@@ -547,7 +550,7 @@ export function SearchResultsPanel({
 
                   {/* Lines 2-4: Compact details with vertical indicator */}
                   <div className="flex mt-1">
-                    <div className="ml-[11px] mr-2 border-l-2 border-border"></div>
+                    <div className="ml-[11px] mr-2 border-l-2 border-line-soft"></div>
                     <div className="flex-1 space-y-0.5 text-xs text-secondary-foreground">
                       {/* Line 2: Donor Internal ID · Donor Source ID */}
                       {(donorInternal || donorSource) && (

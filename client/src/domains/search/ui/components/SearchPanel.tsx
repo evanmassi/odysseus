@@ -10,6 +10,7 @@ import { SlidersHorizontal, X } from 'lucide-react';
 
 import { useSearch, useSearchStore } from '@domains/search';
 import { logger } from '@infra/logger';
+import { useResolvedTheme } from '@shared/hooks';
 import { SearchInput, Tooltip } from '@shared/ui';
 
 import { SearchFilterPanel } from './SearchFilterPanel';
@@ -17,6 +18,7 @@ import { SearchResultsPanel } from './SearchResultsPanel';
 
 export function SearchPanel() {
   const { query, filters, results, isSearching, search, clear, refetch } = useSearch();
+  const resolvedTheme = useResolvedTheme();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -179,7 +181,8 @@ export function SearchPanel() {
       {(showDropdown || isClosingDropdown) && (
         <div
           ref={dropdownRef}
-          className={`absolute top-full right-0 mt-2 z-40 bg-popover border border-border rounded-lg shadow-lg overflow-hidden ${
+          data-theme={resolvedTheme}
+          className={`absolute top-full right-0 mt-2 z-40 overflow-hidden border border-line-soft bg-card shadow-[0_24px_50px_-24px_hsl(var(--recess)/0.7)] ${
             isClosingDropdown ? 'animate-dropdown-reveal-out' : 'animate-dropdown-reveal-in'
           }`}
         >
@@ -189,7 +192,7 @@ export function SearchPanel() {
                 showFilters ? 'w-80' : 'w-0'
               }`}
             >
-              <div className="w-80 h-[500px] flex flex-col border-r border-border">
+              <div className="w-80 h-[500px] flex flex-col border-r border-line-soft">
                 <SearchFilterPanel onClose={() => setShowFilters(false)} />
               </div>
             </div>
