@@ -15,14 +15,7 @@
     gap: 12px;
     padding: 9px 16px 9px 20px;
     width: 100%;
-    background:
-      radial-gradient(
-        80% 180% at -8% 50%,
-        hsl(var(--c) / 0.14) 0%,
-        hsl(var(--c) / 0.04) 35%,
-        transparent 70%
-      ),
-      hsl(var(--c) / 0.06);
+    background: hsl(var(--c) / 0.06);
     border: 1px solid hsl(var(--c) / 0.28);
     color: hsl(var(--foreground));
     overflow: hidden;
@@ -35,9 +28,6 @@
     bottom: -1px;
     width: 3px;
     background: hsl(var(--c));
-    box-shadow:
-      0 0 10px 0 hsl(var(--c) / 0.55),
-      0 0 22px -2px hsl(var(--c) / 0.35);
   }
   .alert-banner__icon {
     color: hsl(var(--c));
@@ -88,9 +78,6 @@
   .alert-banner__message strong {
     color: hsl(var(--c));
     font-weight: 500;
-    text-shadow:
-      0 0 1px currentColor,
-      0 0 6px color-mix(in srgb, currentColor 40%, transparent);
   }
   .alert-banner__actions {
     flex-shrink: 0;
@@ -115,6 +102,30 @@
   }
   .alert-banner.alert-banner--demo {
     --c: var(--color-demo-text);
+  }
+
+  /* Dark: restore the lit recipe — radial wash off the edge, edge-bar halo, and
+     phosphor emphasis. Light stays flat (tone tint + solid edge bar). */
+  [data-theme='dark'] .alert-banner {
+    background:
+      radial-gradient(
+        80% 180% at -8% 50%,
+        hsl(var(--c) / 0.14) 0%,
+        hsl(var(--c) / 0.04) 35%,
+        transparent 70%
+      ),
+      hsl(var(--c) / 0.06);
+  }
+  [data-theme='dark'] .alert-banner::before {
+    box-shadow:
+      0 0 10px 0 hsl(var(--c) / 0.55),
+      0 0 22px -2px hsl(var(--c) / 0.35);
+  }
+  [data-theme='dark'] .alert-banner__message b,
+  [data-theme='dark'] .alert-banner__message strong {
+    text-shadow:
+      0 0 1px currentColor,
+      0 0 6px color-mix(in srgb, currentColor 40%, transparent);
   }
 }
 

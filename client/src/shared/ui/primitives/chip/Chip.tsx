@@ -90,8 +90,8 @@ const TONE_CLASSES: Record<ChipColor, ToneClasses> = {
 // Selected selectable chips light up with the primary treatment. clip-path crops
 // outer box-shadows, so the glow must stay inset.
 const SELECTED_BORDER = 'border-primary/55';
-const SELECTED_GLOW = 'shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/0.40)]';
-const SELECTED_LABEL = 'opacity-100 [text-shadow:0_0_6px_hsl(var(--primary)/0.45)]';
+const SELECTED_GLOW = 'dark:shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/0.40)]';
+const SELECTED_LABEL = 'opacity-100 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.45)]';
 
 interface SizeConfig {
   height: string;
@@ -216,7 +216,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
         : '',
       isSelectable && !disabled ? 'hover:brightness-110' : '',
       isAction && !disabled
-        ? 'hover:bg-foreground/[0.06] hover:brightness-110 hover:[text-shadow:0_0_1px_currentColor,0_0_6px_color-mix(in_srgb,currentColor_40%,transparent)]'
+        ? 'hover:bg-foreground/[0.06] hover:brightness-110 dark:hover:[text-shadow:0_0_1px_currentColor,0_0_6px_color-mix(in_srgb,currentColor_40%,transparent)]'
         : '',
       className ?? '',
     ]

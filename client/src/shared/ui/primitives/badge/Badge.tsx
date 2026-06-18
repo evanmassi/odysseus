@@ -21,11 +21,9 @@ const sizeClasses: Record<NonNullable<BadgeProps['size']>, string> = {
   lg: 'w-[52px] h-[52px] text-[15px]',
 };
 
-// Inline because color-mix() in a Tailwind arbitrary class needs heavy underscore escaping.
-const LIT_STYLE = {
-  boxShadow:
-    '0 0 0 1px color-mix(in srgb, currentColor 30%, transparent), 0 0 18px -2px color-mix(in srgb, currentColor 45%, transparent)',
-};
+// `lit` is a flat 1px contact ring in light; dark adds the outer halo on top.
+const LIT_CLASSES =
+  'shadow-[0_0_0_1px_color-mix(in_srgb,currentColor_30%,transparent)] dark:shadow-[0_0_0_1px_color-mix(in_srgb,currentColor_30%,transparent),0_0_18px_-2px_color-mix(in_srgb,currentColor_45%,transparent)]';
 
 export const Badge = forwardRef<HTMLDivElement, BadgeProps>(function Badge(
   { children, size = 'sm', lit = false, className = '', ...rest },
@@ -35,8 +33,7 @@ export const Badge = forwardRef<HTMLDivElement, BadgeProps>(function Badge(
     <div
       {...rest}
       ref={ref}
-      className={`inline-flex items-center justify-center flex-shrink-0 border border-current font-mono font-medium ${sizeClasses[size]} ${className}`}
-      style={lit ? LIT_STYLE : undefined}
+      className={`inline-flex items-center justify-center flex-shrink-0 border border-current font-mono font-medium ${sizeClasses[size]} ${lit ? LIT_CLASSES : ''} ${className}`}
     >
       {children}
     </div>
