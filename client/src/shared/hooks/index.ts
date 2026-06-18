@@ -10,4 +10,5 @@ export { useEditModalForm } from './useEditModalForm';
 export { useFocusTrap } from './useFocusTrap';
 export { useMenuKeyboardNavigation } from './useMenuKeyboardNavigation';
 export { useModalKeyboardNavigation } from './useModalKeyboardNavigation';
+export { useResolvedTheme } from './useResolvedTheme';
 export { useTextTruncation } from './useTextTruncation';

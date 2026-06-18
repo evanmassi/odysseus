@@ -6,6 +6,8 @@
 
 import { useState, useCallback } from 'react';
 
+import { useResolvedTheme } from '@shared/hooks';
+
 import type { MenuItemProps } from './types';
 
 export function MenuItem({
@@ -19,6 +21,7 @@ export function MenuItem({
   isActive = false,
   children,
 }: MenuItemProps) {
+  const isDark = useResolvedTheme() === 'dark';
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleMouseEnter = useCallback(() => {
@@ -33,6 +36,25 @@ export function MenuItem({
     }
   };
 
+  // Hover: light is a flat tone tint; dark restores the scanline + directional wash.
+  // Keyed off the global theme (not Tailwind `dark:`) so it stays correct when the menu
+  // renders inside the forced-dark header island.
+  const stateClass = isActive
+    ? 'bg-primary/[0.08] text-foreground font-medium'
+    : danger
+      ? `text-danger-text hover:shadow-[inset_2px_0_0_hsl(var(--color-danger-bg)/0.65)] ${
+          isDark
+            ? 'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-danger-bg)/0.18),hsl(var(--color-danger-bg)/0.11)_55%,transparent_100%)]'
+            : 'hover:bg-[linear-gradient(0deg,hsl(var(--color-danger-bg)/0.1),hsl(var(--color-danger-bg)/0.1))]'
+        }`
+      : warning
+        ? 'text-warning-text hover:bg-warning-light'
+        : `text-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] ${
+            isDark
+              ? 'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)]'
+              : 'hover:bg-[linear-gradient(0deg,hsl(var(--primary)/0.08),hsl(var(--primary)/0.08))]'
+          }`;
+
   return (
     <button
       type="button"
@@ -46,15 +68,7 @@ export function MenuItem({
         group relative z-10 w-full flex items-center justify-between py-2 px-3 font-mono text-[12px] tracking-[0.04em]
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
-        ${
-          isActive
-            ? 'bg-primary/[0.08] text-foreground font-medium'
-            : danger
-              ? 'text-danger-text hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-danger-bg)/0.18),hsl(var(--color-danger-bg)/0.11)_55%,transparent_100%)] hover:shadow-[inset_2px_0_0_hsl(var(--color-danger-bg)/0.65)]'
-              : warning
-                ? 'text-warning-text hover:bg-warning-light'
-                : 'text-foreground hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)] hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)]'
-        }
+        ${stateClass}
       `}
     >
       <div className="flex items-center gap-3">

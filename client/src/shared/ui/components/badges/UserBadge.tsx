@@ -43,6 +43,8 @@ interface UserBadgeProps {
   initials?: string;
   username?: string;
   size?: 'xs' | 'sm' | 'md';
+  /** Suppress the ownership tooltip — e.g. when the badge is reused as a menu trigger. */
+  showTooltip?: boolean;
 }
 
 // Icon size scales with badge size so the unassigned glyph fits visually.
@@ -57,7 +59,13 @@ function getAssignmentTitle(type: UserBadgeType, username?: string): string {
   return username ? `Assigned to ${username}` : 'Assigned to another user';
 }
 
-export function UserBadge({ type, initials, username, size = 'sm' }: UserBadgeProps) {
+export function UserBadge({
+  type,
+  initials,
+  username,
+  size = 'sm',
+  showTooltip = true,
+}: UserBadgeProps) {
   const ownershipStyles = getUserBadgeStyles(type);
   const iconSize = iconSizeMap[size];
 
@@ -65,7 +73,7 @@ export function UserBadge({ type, initials, username, size = 'sm' }: UserBadgePr
 
   if (type === 'unassigned') {
     return (
-      <Tooltip content="Unassigned/Common" side="bottom">
+      <Tooltip content="Unassigned/Common" side="bottom" disabled={!showTooltip}>
         <Badge size={size} lit={ownershipStyles.lit} className={colorClass}>
           <UsersRound size={iconSize} className="text-foreground" />
         </Badge>
@@ -74,7 +82,7 @@ export function UserBadge({ type, initials, username, size = 'sm' }: UserBadgePr
   }
 
   return (
-    <Tooltip content={getAssignmentTitle(type, username)} side="bottom">
+    <Tooltip content={getAssignmentTitle(type, username)} side="bottom" disabled={!showTooltip}>
       <Badge size={size} lit={ownershipStyles.lit} className={colorClass}>
         <span className="text-foreground">{initials}</span>
       </Badge>

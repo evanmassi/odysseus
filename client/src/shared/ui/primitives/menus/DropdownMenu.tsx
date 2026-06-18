@@ -9,7 +9,7 @@ import { useState, useRef, useEffect, useLayoutEffect, type RefObject } from 're
 
 import { createPortal } from 'react-dom';
 
-import { useMenuKeyboardNavigation } from '@shared/hooks';
+import { useMenuKeyboardNavigation, useResolvedTheme } from '@shared/hooks';
 
 export type DropdownMotion =
   | 'reveal'
@@ -46,6 +46,7 @@ export function DropdownMenu({
   children,
   'aria-label': ariaLabel,
 }: DropdownMenuProps) {
+  const theme = useResolvedTheme();
   const menuRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -119,12 +120,13 @@ export function DropdownMenu({
     <div
       ref={menuRef}
       role="menu"
+      data-theme={theme}
       aria-label={ariaLabel}
       aria-hidden={!isOpen}
       tabIndex={-1}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
-      className={`${positionClass} isolate bg-popover shadow-lg border border-border py-1.5 after:absolute after:inset-0 after:bg-scanlines after:pointer-events-none after:opacity-40 after:mix-blend-multiply ${alignClass} ${animationClass} ${className}`}
+      className={`${positionClass} isolate bg-popover shadow-lg border border-border py-1.5 ${theme === 'dark' ? 'after:absolute after:inset-0 after:bg-scanlines after:pointer-events-none after:opacity-40 after:mix-blend-multiply' : ''} ${alignClass} ${animationClass} ${className}`}
       style={style}
     >
       {children}

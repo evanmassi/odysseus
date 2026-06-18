@@ -40,6 +40,7 @@ import { useStorageData } from '@domains/storage';
 import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
 import { useUserProfile } from '@domains/users/hooks/useUserProfile';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
+import { useResolvedTheme } from '@shared/hooks';
 import {
   Button,
   Chip,
@@ -122,6 +123,7 @@ interface HamburgerMenuItemProps {
 }
 
 function HamburgerMenuItem({ icon: Icon, label, onClick, triggerProps }: HamburgerMenuItemProps) {
+  const isDark = useResolvedTheme() === 'dark';
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleMouseEnter = useCallback(() => {
@@ -135,7 +137,11 @@ function HamburgerMenuItem({ icon: Icon, label, onClick, triggerProps }: Hamburg
       role="menuitem"
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
-      className="group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-[12px] tracking-[0.04em] text-secondary-foreground hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)] hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors"
+      className={`group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-[12px] tracking-[0.04em] text-secondary-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors ${
+        isDark
+          ? 'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)]'
+          : 'hover:bg-[linear-gradient(0deg,hsl(var(--primary)/0.08),hsl(var(--primary)/0.08))]'
+      }`}
     >
       <span className={isAnimating ? 'animate-icon-pop' : ''}>
         <Icon
@@ -181,6 +187,7 @@ export function AppHeader({
   gridController,
   isViewOnlySpace = false,
 }: HeaderProps) {
+  const isDark = useResolvedTheme() === 'dark';
   const { user, logout } = useAuthStore();
   const { profile } = useUserProfile();
   const hasLab = !!user?.labId;
@@ -546,7 +553,13 @@ export function AppHeader({
             )}
           </div>
           <span className="inline-flex text-ownership-user-badge transition duration-200 group-hover:drop-shadow-icon-bloom-hover">
-            <UserBadge type="currentUser" initials={initials} username={user?.username} size="md" />
+            <UserBadge
+              type="currentUser"
+              initials={initials}
+              username={user?.username}
+              size="md"
+              showTooltip={false}
+            />
           </span>
         </button>
 
@@ -564,7 +577,9 @@ export function AppHeader({
               <div>
                 <div className="relative z-10 flex items-center gap-3 px-3 py-2">
                   <FlaskConical size={16} className="text-primary/70" />
-                  <span className="phosphor-text font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-foreground">
+                  <span
+                    className={`font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-foreground ${isDark ? 'phosphor-text' : ''}`}
+                  >
                     {currentLab.name}
                   </span>
                 </div>
