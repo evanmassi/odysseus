@@ -78,17 +78,18 @@
     --popover-foreground: 222.2 47.4% 11.2%;
 
     /* Primary — light mode: deep-navy "steel anchor" accent (#234a82). */
-    --primary: 215 58% 32%;
+    --primary: 213 60% 40%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
     --secondary: 214.3 31.8% 91.4%;
-    --secondary-foreground: 215.4 19.3% 34.5%;
+    /* Neutral — warmed to the study's warm ink grey (was cool blue-grey). */
+    --secondary-foreground: 38 11% 35%;
 
     /* Muted */
     --muted: 210 40% 96.1%;
     --muted-hover: 210 35% 93%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 40 10% 46%;
 
     /* Accent */
     --accent: 210 40% 98%;
@@ -122,20 +123,20 @@
 
     /* Action Colors */
     --color-action-default: var(--primary);
-    --color-action-hover: 215 55% 27%;
-    --color-action-focus: 215 55% 27%;
-    --color-action-light: 210 50% 97%;
-    --color-action-light-hover: 210 50% 94%;
+    --color-action-hover: 213 60% 32%;
+    --color-action-focus: 213 60% 32%;
+    --color-action-light: 213 50% 97%;
+    --color-action-light-hover: 213 50% 94%;
 
-    /* Danger Theme */
-    --color-danger-bg: 1 62% 44%;
-    --color-danger-hover: 1 70% 36%;
-    --color-danger-text: 1 62% 44%;
-    --color-danger-text-hover: 1 70% 36%;
+    /* Danger Theme — study brick/clay ink (≈ rgb(178,66,52)). */
+    --color-danger-bg: 7 55% 45%;
+    --color-danger-hover: 7 60% 38%;
+    --color-danger-text: 7 55% 45%;
+    --color-danger-text-hover: 7 60% 38%;
     --color-danger-btnText: 0 0% 100%;
-    --color-danger-light: 1 55% 97%;
-    --color-danger-light-hover: 1 60% 94%;
-    --color-danger-border: 1 55% 55%;
+    --color-danger-light: 7 55% 97%;
+    --color-danger-light-hover: 7 58% 94%;
+    --color-danger-border: 7 50% 55%;
 
     /* Clear Theme */
     --color-clear-bg: 220 13% 91%;
@@ -153,15 +154,15 @@
     --color-warning-light-hover: 40 72% 91%;
     --color-warning-border: 38 58% 50%;
 
-    /* Success Theme */
-    --color-success-bg: 152 38% 42%;
-    --color-success-hover: 152 45% 34%;
-    --color-success-text: 152 38% 42%;
-    --color-success-text-hover: 152 45% 34%;
+    /* Success Theme — study pine ink (≈ rgb(46,116,78)). */
+    --color-success-bg: 147 43% 32%;
+    --color-success-hover: 147 48% 26%;
+    --color-success-text: 147 43% 32%;
+    --color-success-text-hover: 147 48% 26%;
     --color-success-btnText: 0 0% 100%;
-    --color-success-light: 152 40% 97%;
-    --color-success-light-hover: 152 45% 94%;
-    --color-success-border: 152 35% 50%;
+    --color-success-light: 147 40% 96%;
+    --color-success-light-hover: 147 43% 92%;
+    --color-success-border: 147 38% 42%;
 
     /* Info Theme */
     --color-info-bg: 210 70% 55%;
