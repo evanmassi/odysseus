@@ -228,7 +228,10 @@ export function AppHeader({
     : location.pathname.split('/').filter(Boolean).slice(0, 2);
 
   return (
-    <header className="relative flex h-full items-stretch bg-background after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.20)_10%,hsl(var(--primary)/0.20)_90%,transparent_100%)] after:[box-shadow:0_0_8px_hsl(var(--primary)/0.14),0_0_18px_hsl(var(--primary)/0.06)]">
+    <header
+      data-theme="dark"
+      className="app-header-bar relative flex h-full items-stretch bg-background after:absolute after:inset-x-0 after:bottom-0 after:h-px after:content-[''] after:[background:linear-gradient(90deg,transparent_0%,hsl(var(--primary)/0.20)_10%,hsl(var(--primary)/0.20)_90%,transparent_100%)] after:[box-shadow:0_0_8px_hsl(var(--primary)/0.14),0_0_18px_hsl(var(--primary)/0.06)]"
+    >
       <div className="relative flex items-center px-4">
         <button
           ref={suiteButtonRef}

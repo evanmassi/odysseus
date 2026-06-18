@@ -7,7 +7,7 @@
 :root {
   /* Layout Heights */
   --layout-header-height: 52px;
-  --layout-top-padding: 8px;
+  --layout-top-padding: 0px;
   --panel-title-height: 40px;
 
   --space-sm: 8px;
@@ -27,6 +27,13 @@
 .app-header {
   height: var(--layout-header-height);
   flex-shrink: 0;
+}
+
+/* Light mode: the header is the deep steel-navy anchor (#16263c), darker than the
+   #234a82 primary accent so accents read against it. Scoped to the light root so the
+   dark-island header keeps its own --background in dark. */
+[data-theme='light'] .app-header-bar {
+  --background: 213 45% 16%;
 }
 
 .main-layout {

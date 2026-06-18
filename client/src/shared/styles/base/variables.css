@@ -30,7 +30,7 @@
     /* Core */
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
-    --page: 0 0% 100%;
+    --page: 214 22% 93%;
 
     /* Surfaces */
     --bg-void: 214 24% 94%;
@@ -63,6 +63,8 @@
     /* Lit switch: 0 = unlit (light), 1 = lit (dark). Multiplies the glow/sheen/bloom
        alphas across chassis, tree nubs, and connector lines; elevation ignores it. */
     --lit: 0;
+    /* Table-header surface: % of card kept before mixing toward black (lighter in light). */
+    --header-mix: 96%;
 
     /* Card - hierarchy via shadows/borders rather than background color */
     --card: 0 0% 100%;
@@ -328,6 +330,7 @@
     --recess: 0 0% 0%;
     --sheen: 0 0% 100%;
     --lit: 1;
+    --header-mix: 85%;
 
     /* Card */
     --card: 217 32% 9%;

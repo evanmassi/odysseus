@@ -74,12 +74,13 @@ const HEADER_NUB =
 // Warm, opaque header surface ported from the settings subsection header. `lit` adds the
 // top-left → bottom-right directional glow; only the topmost bar gets it (the toolbar when
 // present, else the column-header row) so the light reads once across the top, not twice.
-const HEADER_SHEEN = 'linear-gradient(180deg, hsl(var(--foreground) / 0.025) 0%, transparent 35%)';
+const HEADER_SHEEN =
+  'linear-gradient(180deg, hsl(var(--foreground) / calc(0.025 * var(--lit))) 0%, transparent 35%)';
 const HEADER_GLOW = [
-  'radial-gradient(ellipse 65% 120% at 0% 0%, hsl(var(--foreground) / 0.05), transparent 60%)',
-  'radial-gradient(ellipse 60% 120% at 100% 100%, hsl(var(--foreground) / 0.035), transparent 70%)',
+  'radial-gradient(ellipse 65% 120% at 0% 0%, hsl(var(--foreground) / calc(0.05 * var(--lit))), transparent 60%)',
+  'radial-gradient(ellipse 60% 120% at 100% 100%, hsl(var(--foreground) / calc(0.035 * var(--lit))), transparent 70%)',
 ];
-const HEADER_BASE = 'color-mix(in srgb, hsl(var(--card)) 85%, black)';
+const HEADER_BASE = 'color-mix(in srgb, hsl(var(--card)) var(--header-mix), black)';
 const HEADER_TOP_EDGE = 'inset 0 1px 0 hsl(var(--foreground) / var(--alpha-header-rim))';
 const headerSurface = (lit: boolean): string =>
   [HEADER_SHEEN, ...(lit ? HEADER_GLOW : []), HEADER_BASE].join(', ');
