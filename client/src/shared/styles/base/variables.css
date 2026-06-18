@@ -23,9 +23,12 @@
     color: hsl(var(--foreground));
   }
 
-  :root {
+  :root,
+  [data-theme='light'] {
     /* Color system: --{name} for backgrounds, --{name}-foreground for text */
     /* HSL format enables Tailwind opacity modifiers (e.g., text-foreground/50) */
+    /* [data-theme='light'] lets a subtree re-assert light tokens inside a forced-dark
+       island (e.g. a menu opened from the dark header). */
 
     /* Core */
     --background: 0 0% 100%;
@@ -139,15 +142,16 @@
     --color-clear-hover: 220 13% 82.7%;
     --color-clear-text: 220 8.9% 46.1%;
 
-    /* Warning Theme */
-    --color-warning-bg: 44 74% 52%;
-    --color-warning-hover: 44 80% 44%;
-    --color-warning-text: 44 74% 45%;
-    --color-warning-text-hover: 44 80% 38%;
+    /* Warning Theme — deepened to ochre ink (≈ ref rgb(158,110,30)) so amber reads
+       on warm paper rather than washing out at high lightness. */
+    --color-warning-bg: 38 68% 42%;
+    --color-warning-hover: 38 72% 35%;
+    --color-warning-text: 38 68% 37%;
+    --color-warning-text-hover: 38 72% 31%;
     --color-warning-btnText: 0 0% 100%;
-    --color-warning-light: 44 75% 97%;
-    --color-warning-light-hover: 44 78% 94%;
-    --color-warning-border: 44 70% 55%;
+    --color-warning-light: 40 70% 95%;
+    --color-warning-light-hover: 40 72% 91%;
+    --color-warning-border: 38 58% 50%;
 
     /* Success Theme */
     --color-success-bg: 152 38% 42%;
