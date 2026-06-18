@@ -67,6 +67,7 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
 
   return (
     <div
+      data-theme="dark"
       role={config.ariaLive === 'assertive' ? 'alert' : 'status'}
       aria-live={config.ariaLive}
       aria-atomic="true"
