@@ -81,9 +81,13 @@ const HEADER_GLOW = [
   'radial-gradient(ellipse 60% 120% at 100% 100%, hsl(var(--foreground) / calc(0.035 * var(--lit))), transparent 70%)',
 ];
 const HEADER_BASE = 'color-mix(in srgb, hsl(var(--card)) var(--header-mix), black)';
+// Light-only faint navy wash over the base (matches the open category fill); the
+// (1 - --lit) gate zeroes it in dark so the chrome there is unchanged.
+const HEADER_TINT =
+  'linear-gradient(0deg, hsl(var(--primary) / calc(0.07 * (1 - var(--lit)))), hsl(var(--primary) / calc(0.07 * (1 - var(--lit)))))';
 const HEADER_TOP_EDGE = 'inset 0 1px 0 hsl(var(--foreground) / var(--alpha-header-rim))';
 const headerSurface = (lit: boolean): string =>
-  [HEADER_SHEEN, ...(lit ? HEADER_GLOW : []), HEADER_BASE].join(', ');
+  [HEADER_SHEEN, ...(lit ? HEADER_GLOW : []), HEADER_TINT, HEADER_BASE].join(', ');
 
 const TableContext = createContext<TableContextValue | null>(null);
 
@@ -98,13 +102,13 @@ const useTableContext = () => {
 const headerVariants = cva(
   [
     'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
-    'text-left text-foreground/60',
+    'text-left text-primary/80 dark:text-foreground/60',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
   {
     variants: {
       sortable: {
-        true: 'cursor-pointer hover:text-foreground select-none',
+        true: 'cursor-pointer hover:text-primary dark:hover:text-foreground select-none',
         false: '',
       },
       sticky: {
