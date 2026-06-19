@@ -144,7 +144,7 @@ export function DonorInfoPanel({
       </ScrollArea>
 
       {isAdmin && (
-        <div className="relative flex-shrink-0 border-t border-line-faint bg-shade/15 px-4 py-3">
+        <div className="relative flex-shrink-0 border-t border-line-faint bg-card px-4 py-3 dark:bg-shade/15">
           <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
           <div className="flex gap-2">
             <Button

@@ -129,10 +129,10 @@ export function BaseModal({
   const chassisIntensity = size === 'lg' || size === 'xl' || size === 'full' ? 'medium' : 'lit';
 
   const borderClass = isLit ? 'border-line-faint' : 'border-border';
-  // Lit chrome (footer/tabs/sidebar) gets a dark wash so it sits on top of the
-  // chassis lighting. The header stays transparent so it reads body-tone — the
-  // light is concentrated inside the form, framed by the dark locator + footer.
-  const surfaceClass = isLit ? 'bg-shade/15' : 'bg-card';
+  // Lit chrome (footer/tab-footer) gets a dark wash in dark so it sits on top of the
+  // chassis lighting. In light --shade is navy, which read wrong as a footer wash, so
+  // light uses the plain card surface. The header stays transparent so it reads body-tone.
+  const surfaceClass = isLit ? 'bg-card dark:bg-shade/15' : 'bg-card';
   const headerSurface = isLit ? '' : 'bg-card';
 
   const headerBlock = (

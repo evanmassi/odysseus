@@ -88,7 +88,7 @@ export function SecuritySettings() {
         (isLoaded ? (
           <ConsolePanel>
             <SecurityTab config={config} onChange={handleConfigChange} />
-            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-shade/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+            <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
               <UnsavedChangesIndicator count={changedKeys.length} />
               <Button
                 variant="primary"
