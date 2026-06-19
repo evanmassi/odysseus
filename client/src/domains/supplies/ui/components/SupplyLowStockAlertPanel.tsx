@@ -162,10 +162,10 @@ export function SupplyLowStockAlertPanel({
           <span className={`font-mono text-[10px] uppercase tracking-[0.22em] ${labelClass}`}>
             Low Stock Alerts
           </span>
-          <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/55">
-            {totalAlerts}
+          <span aria-hidden className="font-mono text-[9.5px] text-foreground/30">
+            {'//'}
           </span>
-          <span className="ml-auto flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
+          <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
             {outOfStockCount > 0 && (
               <span className="text-danger-text">{outOfStockCount} out of stock</span>
             )}

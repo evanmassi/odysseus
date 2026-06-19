@@ -189,10 +189,10 @@ export function EquipmentMaintenanceAlertPanel({
         <span className={`font-mono text-[10px] uppercase tracking-[0.22em] ${labelClass}`}>
           Maintenance Alerts
         </span>
-        <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/55">
-          {totalAlerts}
+        <span aria-hidden className="font-mono text-[9.5px] text-foreground/30">
+          {'//'}
         </span>
-        <span className="ml-auto flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
+        <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
           {overdueCount > 0 && <span className="text-danger-text">{overdueCount} overdue</span>}
           {overdueCount > 0 && dueSoonCount > 0 && <span className="text-foreground/25">·</span>}
           {dueSoonCount > 0 && <span className="text-warning-text">{dueSoonCount} due soon</span>}

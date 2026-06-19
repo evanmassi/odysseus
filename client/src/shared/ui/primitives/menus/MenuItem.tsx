@@ -48,7 +48,11 @@ export function MenuItem({
             : 'hover:bg-[linear-gradient(0deg,hsl(var(--color-danger-bg)/0.1),hsl(var(--color-danger-bg)/0.1))]'
         }`
       : warning
-        ? 'text-warning-text hover:bg-warning-light'
+        ? `text-warning-text hover:shadow-[inset_2px_0_0_hsl(var(--color-warning-bg)/0.65)] ${
+            isDark
+              ? 'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-warning-bg)/0.18),hsl(var(--color-warning-bg)/0.11)_55%,transparent_100%)]'
+              : 'hover:bg-[linear-gradient(0deg,hsl(var(--color-warning-bg)/0.1),hsl(var(--color-warning-bg)/0.1))]'
+          }`
         : `text-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] ${
             isDark
               ? 'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)]'
