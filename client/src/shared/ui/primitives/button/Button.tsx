@@ -52,15 +52,15 @@ const buttonVariants = cva(
 
         info: 'bg-info-bg/10 border-info-bg/45 text-foreground shadow-standard-info hover:bg-info-bg/20 hover:border-info-bg hover:shadow-standard-info-hover active:bg-info-bg/[0.28]',
 
-        // Ghost weight: light hover soaks ink in — faint tint wash + label deepens toward
-        // pigment. Dark keeps the phosphor lift (lighten toward white + text-glow).
-        ghost: `bg-transparent border-transparent text-muted-foreground hover:bg-[hsl(var(--muted-foreground)/0.09)] hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_75%,black)] active:bg-[hsl(var(--muted-foreground)/0.15)] dark:hover:bg-transparent dark:hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_70%,white)] ${GHOST_HOVER_SHADOW}`,
+        // Ghost weight: no fill. Hover boldens the label and deepens it — to ink in light,
+        // to cream + phosphor glow in dark (text-foreground flips with the theme). No square.
+        ghost: `bg-transparent border-transparent text-muted-foreground hover:font-medium hover:text-foreground ${GHOST_HOVER_SHADOW}`,
 
-        'ghost-danger': `bg-transparent border-transparent text-danger-text hover:bg-[hsl(var(--color-danger-text)/0.09)] hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_75%,black)] active:bg-[hsl(var(--color-danger-text)/0.15)] dark:hover:bg-transparent dark:hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_70%,white)] ${GHOST_HOVER_SHADOW}`,
+        'ghost-danger': `bg-transparent border-transparent text-danger-text hover:font-medium hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_75%,black)] dark:hover:text-[color-mix(in_srgb,hsl(var(--color-danger-text))_70%,white)] ${GHOST_HOVER_SHADOW}`,
 
-        secondary: `bg-transparent border-transparent text-muted-foreground hover:bg-[hsl(var(--muted-foreground)/0.09)] hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_75%,black)] active:bg-[hsl(var(--muted-foreground)/0.15)] dark:hover:bg-transparent dark:hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_70%,white)] ${GHOST_HOVER_SHADOW}`,
+        secondary: `bg-transparent border-transparent text-muted-foreground hover:font-medium hover:text-foreground ${GHOST_HOVER_SHADOW}`,
 
-        cancel: `bg-transparent border-transparent text-muted-foreground hover:bg-[hsl(var(--muted-foreground)/0.09)] hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_75%,black)] active:bg-[hsl(var(--muted-foreground)/0.15)] dark:hover:bg-transparent dark:hover:text-[color-mix(in_srgb,hsl(var(--muted-foreground))_70%,white)] ${GHOST_HOVER_SHADOW}`,
+        cancel: `bg-transparent border-transparent text-muted-foreground hover:font-medium hover:text-foreground ${GHOST_HOVER_SHADOW}`,
       },
 
       size: {
@@ -137,13 +137,13 @@ const MARKER_HOVER_CLASSES: Partial<Record<ButtonVariant, string>> = {
   solid:
     'group-hover:bg-sheen dark:group-hover:shadow-[0_0_12px_0_hsl(var(--sheen)/0.85),inset_0_0_2px_hsl(var(--primary)/0.6)]',
   ghost:
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_75%,black)] dark:group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+    'group-hover:bg-foreground dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
   'ghost-danger':
     'group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_75%,black)] dark:group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--color-danger-text)/0.7),0_0_14px_2px_hsl(var(--color-danger-text)/0.35)]',
   secondary:
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_75%,black)] dark:group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+    'group-hover:bg-foreground dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
   cancel:
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_75%,black)] dark:group-hover:bg-[color-mix(in_srgb,hsl(var(--muted-foreground))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+    'group-hover:bg-foreground dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
 };
 
 // Standard variants set the icon color explicitly; ghost variants inherit it from text-*.
