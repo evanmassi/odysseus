@@ -7,13 +7,21 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronDown, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
+import { Check, ChevronRight, SquarePen, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
 import { logger } from '@infra/logger';
-import { AlertBanner, Button, Chip, SubsectionHeader, Table, Tooltip } from '@shared/ui';
+import {
+  AlertBanner,
+  Button,
+  Chip,
+  NubDivider,
+  SubsectionHeader,
+  Table,
+  Tooltip,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
@@ -268,7 +276,7 @@ function CategorySection({
           <SubsectionHeader
             index={index}
             title={title}
-            meta={String(values.length)}
+            meta={`// ${values.length} ${values.length === 1 ? 'entry' : 'entries'}`}
             accent
             className="phosphor-text"
           />
@@ -320,70 +328,39 @@ interface CatalogGroupProps {
   children: React.ReactNode;
 }
 
-function GroupReticle({ active }: { active: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={`relative flex h-3 w-3 shrink-0 rotate-45 items-center justify-center border transition ${
-        active
-          ? 'border-primary/80 dark:shadow-[0_0_6px_1px_hsl(var(--primary)/0.65)]'
-          : 'border-foreground/35'
-      }`}
-    >
-      <span
-        className={`h-1 w-1 bg-primary transition-shadow ${
-          active
-            ? 'dark:shadow-[0_0_7px_1px_hsl(var(--primary)/0.85)]'
-            : 'dark:shadow-[0_0_5px_0_hsl(var(--primary)/0.5)]'
-        }`}
-      />
-    </span>
-  );
-}
-
 function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGroupProps) {
   return (
-    <div>
+    <div className="overflow-hidden border border-line-faint">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="group flex w-full items-center gap-2.5"
+        className="relative flex w-full items-center gap-2 bg-[hsl(var(--primary)/0.07)] px-3 py-2 text-left transition-[background-color,filter] hover:brightness-[0.97] dark:bg-shade/35 dark:hover:bg-shade/45 dark:hover:brightness-100"
       >
-        <span className="flex items-center gap-2.5">
-          <ChevronDown
-            size={13}
-            className={`text-foreground/40 transition-transform ${expanded ? 'rotate-0' : '-rotate-90'}`}
-          />
-          <GroupReticle active={expanded} />
-        </span>
         <span
-          className={`font-mono text-[12.5px] uppercase tracking-[0.26em] transition-colors ${
-            expanded
-              ? 'phosphor-text font-medium text-foreground'
-              : 'text-foreground/80 group-hover:text-foreground/95'
-          }`}
-        >
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/[0.05]"
+        />
+        <ChevronRight
+          size={11}
+          className={`flex-shrink-0 text-foreground/40 transition-transform ${expanded ? 'rotate-90' : ''}`}
+        />
+        <span
+          aria-hidden
+          className="h-[11px] w-0.5 flex-shrink-0 bg-primary dark:shadow-[0_0_6px_-1px_hsl(var(--primary)/0.6)]"
+        />
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground">
           {title}
         </span>
         <span aria-hidden className="font-mono text-[9.5px] text-foreground/30">
           {'//'}
         </span>
-        <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/35">
+        <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/55">
           {count} {count === 1 ? 'entry' : 'entries'}
         </span>
-        <span className="relative flex flex-1 items-center">
-          <span
-            aria-hidden
-            className="h-px flex-1 [background:linear-gradient(90deg,hsl(var(--foreground)/0.22)_0%,hsl(var(--foreground)/0.12)_60%,transparent_100%)]"
-          />
-          <span
-            aria-hidden
-            className="absolute right-0 top-1/2 h-0.5 w-0.5 -translate-y-1/2 bg-foreground dark:shadow-[0_0_6px_1px_hsl(var(--foreground)/0.7)]"
-          />
-        </span>
+        <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
       </button>
-      {expanded && <div className="mt-3 space-y-3">{children}</div>}
+      {expanded && <div className="space-y-3 p-3">{children}</div>}
     </div>
   );
 }
@@ -580,7 +557,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
         </Button>
       </div>
 
-      <div className="space-y-7">
+      <div className="space-y-3">
         <CatalogGroup
           title="Biobank"
           count={biobankCount}
