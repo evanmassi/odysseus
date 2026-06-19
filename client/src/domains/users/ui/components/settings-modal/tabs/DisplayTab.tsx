@@ -17,12 +17,12 @@ const CARD_BASE =
   'focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-primary/40';
 const CARD_SELECTED =
   'border-primary/60 bg-[hsl(var(--primary)/0.10)] text-foreground ' +
-  'shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
+  'dark:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
 const CARD_UNSELECTED =
   'border-line-mid text-secondary-foreground ' +
-  'shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
-  'hover:border-primary/40 hover:text-foreground ' +
-  'hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
+  'hover:border-primary/40 hover:text-foreground hover:bg-[hsl(var(--primary)/0.04)] ' +
+  'dark:shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
+  'dark:hover:bg-transparent dark:hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
 
 function SavedMarker() {
   return (
@@ -142,7 +142,7 @@ export function DisplayTab({
                     size={20}
                     className={`mb-2 ${
                       isSelected
-                        ? 'text-primary [filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.6))]'
+                        ? 'text-primary dark:[filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.6))]'
                         : 'text-muted-foreground'
                     }`}
                   />
@@ -193,7 +193,7 @@ export function DisplayTab({
         </div>
       </Subsection>
 
-      <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-shade/25 [background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
+      <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
         <UnsavedChangesIndicator count={dirtyCount} />
         <Button
           variant="primary"
