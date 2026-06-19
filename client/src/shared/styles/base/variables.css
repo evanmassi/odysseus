@@ -165,15 +165,16 @@
     --color-success-light-hover: 147 43% 92%;
     --color-success-border: 147 38% 42%;
 
-    /* Info Theme */
-    --color-info-bg: 210 70% 55%;
-    --color-info-hover: 210 75% 47%;
-    --color-info-text: 210 70% 50%;
-    --color-info-text-hover: 210 75% 42%;
+    /* Info Theme — deepened to a deep azure so it sits with the study palette
+       (was a light sky blue that read lighter than the navy primary). */
+    --color-info-bg: 206 62% 42%;
+    --color-info-hover: 206 66% 35%;
+    --color-info-text: 206 62% 41%;
+    --color-info-text-hover: 206 66% 34%;
     --color-info-btnText: 0 0% 100%;
-    --color-info-light: 210 50% 97%;
-    --color-info-light-hover: 210 55% 94%;
-    --color-info-border: 210 60% 65%;
+    --color-info-light: 206 55% 96%;
+    --color-info-light-hover: 206 58% 92%;
+    --color-info-border: 206 50% 52%;
 
     --color-demo-bg: 280 40% 50%;
     --color-demo-text: 280 38% 42%;
