@@ -20,9 +20,9 @@ export interface SectionHeaderProps {
 }
 
 const TITLE_SIZE: Record<SectionHeaderSize, string> = {
-  sm: 'text-[10px]',
-  md: 'text-[12px]',
-  lg: 'text-[14px]',
+  sm: 'text-label-2xs',
+  md: 'text-label-sm',
+  lg: 'text-label-md',
 };
 
 // Beacon glyph geometry per title size — lit box + two radiating chevrons.
@@ -72,16 +72,16 @@ export function SectionHeader({
         </span>
       )}
       <span
-        className={`phosphor-text font-mono ${TITLE_SIZE[size]} font-semibold uppercase tracking-[0.22em] text-foreground`}
+        className={`phosphor-text type-label ${TITLE_SIZE[size]} font-semibold tracking-label-wide text-foreground`}
       >
         {title}
       </span>
       {meta && (
         <>
-          <span aria-hidden className="font-mono text-[12px] text-foreground/35">
+          <span aria-hidden className="font-mono text-label-sm text-foreground/35">
             ·
           </span>
-          <span className="inline-flex items-center font-mono text-[10.5px] uppercase tracking-[0.20em] text-muted-foreground">
+          <span className="inline-flex items-center type-label text-label-xs tracking-label-wide text-muted-foreground">
             {meta}
           </span>
         </>
@@ -97,7 +97,7 @@ export function SectionHeader({
         />
       </div>
       {rightMeta && (
-        <span className="pl-4 font-mono text-[9.5px] uppercase tracking-[0.22em] text-foreground/40">
+        <span className="pl-4 type-label text-label-2xs tracking-label-wide text-foreground/40">
           {rightMeta}
         </span>
       )}

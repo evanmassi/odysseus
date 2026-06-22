@@ -116,7 +116,7 @@ const sizeStyles = {
     button: 'w-5',
     inputWidth: 'w-8',
     cellH: 16,
-    font: 'text-[12px]',
+    font: 'text-data-sm',
     icon: 12,
   },
   sm: {
@@ -124,7 +124,7 @@ const sizeStyles = {
     button: 'w-7',
     inputWidth: 'w-12',
     cellH: 18,
-    font: 'text-[13px]',
+    font: 'text-data-sm',
     icon: 14,
   },
   md: {
@@ -132,7 +132,7 @@ const sizeStyles = {
     button: 'w-8',
     inputWidth: 'w-14',
     cellH: 20,
-    font: 'text-[14px]',
+    font: 'text-data',
     icon: 16,
   },
   lg: {
@@ -140,7 +140,7 @@ const sizeStyles = {
     button: 'w-9',
     inputWidth: 'w-16',
     cellH: 26,
-    font: 'text-[16px]',
+    font: 'text-data-lg',
     icon: 18,
   },
 } as const;
@@ -364,7 +364,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           {ramp.activeDir !== 0 && ramp.multiplier > 1 && (
             <span
               aria-hidden
-              className="pointer-events-none absolute right-0.5 top-0.5 font-mono text-[8px] font-medium uppercase tracking-[0.12em] text-primary"
+              className="type-label tracking-meta pointer-events-none absolute right-0.5 top-0.5 text-label-2xs font-medium text-primary"
             >
               ×{ramp.multiplier}
             </span>

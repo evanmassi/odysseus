@@ -20,7 +20,7 @@ export function KeyCombo({ keys, className = '' }: KeyComboProps) {
     <span className={`inline-flex items-center gap-1 ${className}`.trim()}>
       {parts.map((part, i) => (
         <Fragment key={part}>
-          {i > 0 && <span className="text-[10px] text-muted-foreground/50">+</span>}
+          {i > 0 && <span className="text-label-2xs text-muted-foreground/50">+</span>}
           <Kbd>{part}</Kbd>
         </Fragment>
       ))}

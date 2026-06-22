@@ -100,10 +100,10 @@ const triggerVariants = cva(
   {
     variants: {
       size: {
-        xs: 'h-7 px-2 text-xs',
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-9 px-3 text-sm',
-        lg: 'h-12 px-4 text-base',
+        xs: 'h-7 px-2 text-data-sm',
+        sm: 'h-8 px-3 text-data',
+        md: 'h-9 px-3 text-data',
+        lg: 'h-12 px-4 text-data-lg',
       },
       focused: {
         true: `bg-primary/[0.04] ${TRIGGER_FOCUS_SHADOW}`,
@@ -544,19 +544,19 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               months: 'flex',
               month: 'space-y-3',
               month_caption: 'flex justify-center items-center h-8',
-              caption_label: 'font-mono text-[11px] uppercase tracking-[0.18em] text-foreground/85',
+              caption_label: 'type-label text-label-xs text-foreground/85',
               nav: 'flex items-center justify-between absolute inset-x-0 top-0 px-1 h-8',
               button_previous: NAV_BUTTON,
               button_next: NAV_BUTTON,
               month_grid: 'border-collapse',
               weekdays: '',
               weekday:
-                'font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 w-8 h-8 pb-1 border-b border-line-faint',
+                'type-label text-label-2xs text-muted-foreground/70 w-8 h-8 pb-1 border-b border-line-faint',
               weeks: '',
               week: '',
               day: 'text-center p-0',
               day_button:
-                'w-8 h-8 text-sm font-mono text-foreground transition-colors hover:bg-foreground/5 hover:[text-shadow:0_0_6px_color-mix(in_srgb,currentColor_60%,transparent)] focus:outline-none focus-visible:[box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.5)]',
+                'w-8 h-8 text-data font-mono text-foreground transition-colors hover:bg-foreground/5 hover:[text-shadow:0_0_6px_color-mix(in_srgb,currentColor_60%,transparent)] focus:outline-none focus-visible:[box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.5)]',
               selected:
                 'bg-primary/20 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.7)] hover:bg-primary/25',
               today:

@@ -90,7 +90,7 @@ const useTableContext = () => {
 
 const headerVariants = cva(
   [
-    'font-mono uppercase tracking-[0.22em] text-[9.5px] font-normal',
+    'type-label text-label-2xs tracking-label-wide font-normal',
     'text-left text-primary/80 dark:text-foreground/60',
     'py-3.5 pr-[18px] pl-0 first:pl-[14px]',
   ],
@@ -125,7 +125,7 @@ const headerVariants = cva(
 
 const cellVariants = cva(
   [
-    'pr-[18px] pl-0 text-sm font-mono text-foreground align-middle',
+    'pr-[18px] pl-0 text-data font-mono text-foreground align-middle',
     'first:pl-[14px]',
     'group-hover:bg-[hsl(var(--foreground)/var(--alpha-hover))]',
     'dark:group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]',

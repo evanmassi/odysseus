@@ -40,17 +40,17 @@ const sizeStyles: Record<
 > = {
   md: {
     container: 'gap-1 px-4 py-3.5',
-    value: 'text-[26px]',
+    value: 'text-stat',
     valueGlow: 'phosphor-text',
-    unit: 'ml-1.5 text-[11px]',
-    footer: 'mt-0.5 text-[10px]',
+    unit: 'ml-1.5 text-label-2xs',
+    footer: 'mt-0.5 text-label-2xs',
   },
   sm: {
     container: 'gap-0.5 px-3 py-2.5',
-    value: 'text-[17px]',
+    value: 'text-data-lg',
     valueGlow: '[text-shadow:0_0_4px_color-mix(in_srgb,currentColor_25%,transparent)]',
-    unit: 'ml-1 text-[10px]',
-    footer: 'mt-0.5 text-[9.5px]',
+    unit: 'ml-1 text-label-2xs',
+    footer: 'mt-0.5 text-label-2xs',
   },
 };
 
@@ -67,7 +67,7 @@ export function StatCell({
   const s = sizeStyles[size];
   return (
     <div className={`flex flex-col ${s.container} ${className ?? ''}`}>
-      <span className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.20em] text-muted-foreground">
+      <span className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground">
         {icon ? (
           <span className="inline-flex shrink-0 items-center">{icon}</span>
         ) : (
@@ -80,13 +80,11 @@ export function StatCell({
       >
         <span className={s.valueGlow}>{value}</span>
         {unit && (
-          <span className={`font-mono tracking-[0.1em] text-muted-foreground ${s.unit}`}>
-            {unit}
-          </span>
+          <span className={`font-mono tracking-meta text-muted-foreground ${s.unit}`}>{unit}</span>
         )}
       </div>
       {footer && (
-        <div className={`font-mono tracking-[0.1em] text-muted-foreground/60 ${s.footer}`}>
+        <div className={`font-mono tracking-meta text-muted-foreground/60 ${s.footer}`}>
           {footer}
         </div>
       )}

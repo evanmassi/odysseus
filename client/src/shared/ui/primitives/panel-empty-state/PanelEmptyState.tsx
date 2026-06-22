@@ -33,7 +33,7 @@ export function PanelEmptyState({ icon: Icon, message, className }: PanelEmptySt
         className="phosphor-glow phosphor-breathe mx-auto mb-4 h-10 w-10 text-card-foreground/30"
         strokeWidth={1.25}
       />
-      <p className="text-sm text-card-foreground/40">{message}</p>
+      <p className="text-body-sm text-card-foreground/40">{message}</p>
     </div>
   );
 }

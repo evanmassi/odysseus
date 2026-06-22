@@ -64,10 +64,10 @@ const buttonVariants = cva(
       },
 
       size: {
-        xs: 'h-6 px-2.5 text-xs gap-1.5 min-w-6',
-        sm: 'h-8 px-3 text-sm gap-2 min-w-8',
-        md: 'h-10 px-4 text-sm gap-2 min-w-10',
-        xl: 'h-14 px-8 text-base gap-3 min-w-14',
+        xs: 'h-6 px-2.5 text-label-sm gap-1.5 min-w-6',
+        sm: 'h-8 px-3 text-label-md gap-2 min-w-8',
+        md: 'h-10 px-4 text-label-md gap-2 min-w-10',
+        xl: 'h-14 px-8 text-label-lg gap-3 min-w-14',
       },
 
       fullWidth: {
@@ -81,7 +81,7 @@ const buttonVariants = cva(
       },
 
       ceremonial: {
-        true: 'uppercase tracking-[0.32em] text-[10.5px]',
+        true: 'type-label text-label-xs tracking-ceremonial',
         false: '',
       },
     },
@@ -105,7 +105,7 @@ const buttonVariants = cva(
       },
       { variant: 'cancel', iconOnly: true, className: 'dark:hover:drop-shadow-icon-bloom-hover' },
       // Ceremonial register replaces size dims entirely.
-      { ceremonial: true, className: '!h-11 !px-4 !text-[10.5px] !gap-3.5' },
+      { ceremonial: true, className: '!h-11 !px-4 !text-label-xs !gap-3.5' },
     ],
 
     defaultVariants: {

@@ -42,14 +42,14 @@ export function ErrorBanner({ errors, onClear }: ErrorBannerProps) {
           <div className="flex items-start space-x-3">
             <CircleX className="text-danger-text mt-0.5" size={20} />
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-danger-text mb-2">
+              <h3 className="text-body-sm font-medium text-danger-text mb-2">
                 Connection Errors ({errors.length})
               </h3>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {errors.slice(-3).map((error, index) => (
                   <div
                     key={index}
-                    className="text-xs text-danger-text font-mono bg-danger-light/50 p-2 rounded"
+                    className="text-caption text-danger-text font-mono bg-danger-light/50 p-2 rounded"
                   >
                     {error}
                   </div>
@@ -58,14 +58,14 @@ export function ErrorBanner({ errors, onClear }: ErrorBannerProps) {
               <div className="flex space-x-2 mt-3">
                 <button
                   onClick={copyErrors}
-                  className="flex items-center space-x-1 text-xs text-danger-text hover:text-danger-hover"
+                  className="flex items-center space-x-1 text-caption text-danger-text hover:text-danger-hover"
                 >
                   <Copy size={12} />
                   <span>Copy All Errors</span>
                 </button>
                 <button
                   onClick={onClear}
-                  className="text-xs text-danger-text hover:text-danger-hover"
+                  className="text-caption text-danger-text hover:text-danger-hover"
                 >
                   Clear
                 </button>

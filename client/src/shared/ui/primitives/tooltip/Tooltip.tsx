@@ -47,7 +47,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
   const contentClassName = bare
     ? `relative z-50 ${ANIMATION} ${className}`
-    : `relative isolate z-50 px-3 py-1.5 font-mono text-xs text-tooltip-foreground ${ANIMATION} ${className}`;
+    : `relative isolate z-50 px-3 py-1.5 font-mono text-data-sm text-tooltip-foreground ${ANIMATION} ${className}`;
 
   // Always render the Radix tree to keep children's DOM nodes stable.
   // Prevents ref detachment when disabled toggles (e.g., truncation detection).

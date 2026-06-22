@@ -21,7 +21,7 @@ const SIZES = {
     track: 'w-[48px] h-[22px]',
     knob: 'h-[16px] w-[16px]',
     knobOnX: 'translate-x-[26px]',
-    label: 'text-[8px]',
+    label: 'text-label-2xs',
     onLabelInset: 'left-1.5',
     offLabelInset: 'right-1.5',
   },
@@ -29,7 +29,7 @@ const SIZES = {
     track: 'w-[64px] h-[28px]',
     knob: 'h-[22px] w-[22px]',
     knobOnX: 'translate-x-[36px]',
-    label: 'text-[9px]',
+    label: 'text-label-2xs',
     onLabelInset: 'left-2',
     offLabelInset: 'right-2',
   },
@@ -81,13 +81,13 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
         >
           <span
             aria-hidden
-            className={`absolute bottom-0 top-0 flex items-center font-medium uppercase tracking-[0.18em] text-muted-foreground transition-opacity duration-200 ${s.label} ${s.offLabelInset} ${checked ? 'opacity-0' : 'opacity-100'}`}
+            className={`absolute bottom-0 top-0 flex items-center type-label font-medium text-muted-foreground transition-opacity duration-200 ${s.label} ${s.offLabelInset} ${checked ? 'opacity-0' : 'opacity-100'}`}
           >
             OFF
           </span>
           <span
             aria-hidden
-            className={`absolute bottom-0 top-0 flex items-center font-medium uppercase tracking-[0.18em] text-primary transition-opacity duration-200 ${s.label} ${s.onLabelInset} ${checked ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute bottom-0 top-0 flex items-center type-label font-medium text-primary transition-opacity duration-200 ${s.label} ${s.onLabelInset} ${checked ? 'opacity-100' : 'opacity-0'}`}
           >
             ON
           </span>

@@ -31,15 +31,11 @@ export function PanelHeader({ title, meta, icon, actions, className }: PanelHead
             {icon}
           </span>
         )}
-        <span className="phosphor-text inline-flex items-center gap-2 whitespace-nowrap font-mono text-[14px] font-medium uppercase tracking-[0.16em] text-foreground">
+        <span className="phosphor-text inline-flex items-center gap-2 whitespace-nowrap type-label text-label-md font-medium text-foreground">
           {title}
         </span>
       </span>
-      {meta && (
-        <span className="ml-3 font-mono text-[10.5px] uppercase tracking-[0.18em] text-foreground/40">
-          {meta}
-        </span>
-      )}
+      {meta && <span className="ml-3 type-label text-label-xs text-foreground/40">{meta}</span>}
       <div
         aria-hidden
         className="relative h-px flex-1 self-center [background:linear-gradient(to_right,hsl(var(--foreground)/0.18),hsl(var(--foreground)/0.1)_55%,transparent)]"

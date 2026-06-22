@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 
 import { AlertTriangle } from 'lucide-react';
 
-const FIELD_LABEL = 'font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground';
+const FIELD_LABEL = 'type-label text-label-2xs tracking-label-wide text-muted-foreground';
 
 // Row hover mirrors the data Table's row hover: light is a flat primary tint + soft leading
 // stripe; the lit recipe (scanline + directional wash + bloom) is restored under `dark:`.
@@ -41,11 +41,11 @@ export function DetailRow({ label, value, isMixed = false, children }: DetailRow
         {isMixed && <AlertTriangle className="h-3 w-3 text-warning-text" />}
       </span>
       {isMixed ? (
-        <span className="text-sm text-card-foreground/30">—</span>
+        <span className="text-body-sm text-card-foreground/30">—</span>
       ) : children ? (
-        <span className="min-w-0 text-right text-sm">{children}</span>
+        <span className="min-w-0 text-right text-body-sm">{children}</span>
       ) : (
-        <span className="min-w-0 break-words text-right text-sm font-medium text-card-foreground transition-[text-shadow] duration-150 dark:group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]">
+        <span className="min-w-0 break-words text-right text-body-sm font-medium text-card-foreground transition-[text-shadow] duration-150 dark:group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]">
           {value}
         </span>
       )}

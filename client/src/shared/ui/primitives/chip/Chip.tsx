@@ -109,9 +109,9 @@ const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
   sm: {
     height: 'h-5',
     chamfer: 6,
-    leadText: 'text-[11px]',
-    lblText: 'text-[9.5px]',
-    numText: 'text-[12.5px]',
+    leadText: 'text-label-xs',
+    lblText: 'text-label-2xs',
+    numText: 'text-data-sm',
     leadPx: 'px-[7px]',
     lblPx: 'pl-2 pr-2.5',
     removeIcon: 10,
@@ -119,9 +119,9 @@ const SIZE_CONFIG: Record<ChipSize, SizeConfig> = {
   xs: {
     height: 'h-[18px]',
     chamfer: 5,
-    leadText: 'text-[10px]',
-    lblText: 'text-[9px]',
-    numText: 'text-[11px]',
+    leadText: 'text-label-2xs',
+    lblText: 'text-label-2xs',
+    numText: 'text-data-sm',
     leadPx: 'px-1.5',
     lblPx: 'pl-1.5 pr-2',
     removeIcon: 9,
@@ -244,8 +244,8 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     };
 
     const labelTypography = numeric
-      ? `${sizeCfg.numText} font-semibold tabular-nums tracking-[0.02em]`
-      : `${sizeCfg.lblText} uppercase tracking-[0.24em]`;
+      ? `${sizeCfg.numText} font-semibold tabular-nums tracking-data`
+      : `${sizeCfg.lblText} type-label tracking-label-wide`;
     const labelState = isLit ? SELECTED_LABEL : '';
 
     const content = (

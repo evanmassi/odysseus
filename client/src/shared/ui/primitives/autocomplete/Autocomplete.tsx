@@ -190,7 +190,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                       role="option"
                       tabIndex={-1}
                       aria-selected={isHighlighted}
-                      className={`px-3 py-1.5 cursor-pointer text-sm transition-colors duration-150 ${
+                      className={`px-3 py-1.5 cursor-pointer text-body transition-colors duration-150 ${
                         isHighlighted ? 'bg-foreground/5' : 'hover:bg-foreground/5'
                       }`}
                       onMouseDown={e => {
@@ -205,7 +205,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                         <>
                           <span className="font-medium">{option.label}</span>
                           {option.secondary && (
-                            <span className="text-foreground/50 ml-2 text-xs">
+                            <span className="text-foreground/50 ml-2 text-caption">
                               ({option.secondary})
                             </span>
                           )}
@@ -246,7 +246,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
           disabled={disabled}
           className={
             inputClassName ??
-            `w-full h-9 px-3 text-sm bg-[hsl(var(--input-well))] border ${stateBorder} text-foreground placeholder:text-foreground/40 transition-[border-color,background,box-shadow] duration-200 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] ${FOCUS_SHADOW} disabled:opacity-50 disabled:cursor-not-allowed`
+            `w-full h-9 px-3 text-body bg-[hsl(var(--input-well))] border ${stateBorder} text-foreground placeholder:text-foreground/40 transition-[border-color,background,box-shadow] duration-200 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] ${FOCUS_SHADOW} disabled:opacity-50 disabled:cursor-not-allowed`
           }
         />
         {dropdown}

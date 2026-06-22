@@ -33,7 +33,7 @@ const FOCUS_SHADOW =
 const SIZE = {
   xs: {
     container: 'h-6',
-    text: 'text-xs',
+    text: 'text-body-sm',
     paddingX: 'pl-6 pr-2',
     paddingXWithTrailing: 'pl-6 pr-10',
     iconWrap: 'left-1.5',
@@ -41,7 +41,7 @@ const SIZE = {
   },
   sm: {
     container: 'h-8',
-    text: 'text-sm',
+    text: 'text-body',
     paddingX: 'pl-8 pr-3',
     paddingXWithTrailing: 'pl-8 pr-12',
     iconWrap: 'left-2.5',
@@ -49,7 +49,7 @@ const SIZE = {
   },
   md: {
     container: 'h-9',
-    text: 'text-sm',
+    text: 'text-body',
     paddingX: 'pl-9 pr-3',
     paddingXWithTrailing: 'pl-9 pr-12',
     iconWrap: 'left-3',
@@ -57,7 +57,7 @@ const SIZE = {
   },
   lg: {
     container: 'h-12',
-    text: 'text-base',
+    text: 'text-body-lg',
     paddingX: 'pl-11 pr-4',
     paddingXWithTrailing: 'pl-11 pr-14',
     iconWrap: 'left-4',

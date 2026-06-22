@@ -69,7 +69,7 @@ export function MenuItem({
       onMouseEnter={handleMouseEnter}
       disabled={disabled}
       className={`
-        group relative z-10 w-full flex items-center justify-between py-2 px-3 font-mono text-[12px] tracking-[0.04em]
+        group relative z-10 w-full flex items-center justify-between py-2 px-3 font-mono text-label-sm tracking-data
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
         ${stateClass}
@@ -96,7 +96,7 @@ export function MenuItem({
       </div>
       {shortcut && (
         <span
-          className={`ml-4 font-mono text-xs ${danger ? 'text-danger-text/80' : 'text-muted-foreground/70'}`}
+          className={`ml-4 font-mono text-caption ${danger ? 'text-danger-text/80' : 'text-muted-foreground/70'}`}
         >
           {shortcut}
         </span>

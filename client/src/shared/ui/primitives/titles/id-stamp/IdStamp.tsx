@@ -14,7 +14,7 @@ export interface IdStampProps {
 export function IdStamp({ parts, className }: IdStampProps) {
   return (
     <span
-      className={`font-mono text-[10.5px] tracking-[0.10em] text-muted-foreground ${className ?? ''}`}
+      className={`font-mono text-data-sm tracking-meta text-muted-foreground ${className ?? ''}`}
     >
       {parts.map((part, i) => (
         <React.Fragment key={i}>

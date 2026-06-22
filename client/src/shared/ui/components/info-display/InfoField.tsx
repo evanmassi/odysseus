@@ -34,16 +34,18 @@ export const InfoField: FC<InfoFieldProps> = ({
   if (inline) {
     return (
       <div className={className}>
-        <span className="text-card-foreground/50 text-xs">{label}:</span>{' '}
+        <span className="text-card-foreground/50 text-caption">{label}:</span>{' '}
         {isMixed ? (
           <>
             <AlertTriangle className="inline w-3 h-3 text-warning-text mr-0.5" />
-            <span className="text-card-foreground/30 text-sm">—</span>
+            <span className="text-card-foreground/30 text-body-sm">—</span>
           </>
         ) : isEmpty ? (
-          <span className="text-card-foreground/30 text-sm italic">{displayValue}</span>
+          <span className="text-card-foreground/30 text-body-sm italic">{displayValue}</span>
         ) : (
-          <span className="text-card-foreground font-medium text-sm break-all">{displayValue}</span>
+          <span className="text-card-foreground font-medium text-body-sm break-all">
+            {displayValue}
+          </span>
         )}
       </div>
     );
@@ -51,11 +53,11 @@ export const InfoField: FC<InfoFieldProps> = ({
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-1 text-card-foreground/50 text-xs">
+      <div className="flex items-center gap-1 text-card-foreground/50 text-caption">
         {label}
         {isMixed && <AlertTriangle className="w-3 h-3 text-warning-text" />}
       </div>
-      <div className="text-card-foreground font-medium text-sm break-all">
+      <div className="text-card-foreground font-medium text-body-sm break-all">
         {isMixed ? (
           <span className="text-card-foreground/30 font-normal">—</span>
         ) : isEmpty ? (

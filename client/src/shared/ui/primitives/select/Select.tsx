@@ -34,10 +34,10 @@ const selectVariants = cva(
   {
     variants: {
       size: {
-        xs: 'h-7 px-2 text-xs',
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-9 px-3 text-sm',
-        lg: 'h-12 px-4 text-base',
+        xs: 'h-7 px-2 text-body-sm',
+        sm: 'h-8 px-3 text-body',
+        md: 'h-9 px-3 text-body',
+        lg: 'h-12 px-4 text-body-lg',
       },
       isOpen: {
         true: `border-primary/70 bg-primary/[0.04] ${TRIGGER_FOCUS_SHADOW}`,
@@ -94,7 +94,11 @@ const dropdownVariants = cva(
 );
 
 const optionVariants = cva(
-  ['px-3 py-2 cursor-pointer text-sm', 'flex items-center gap-2', 'transition-colors duration-150'],
+  [
+    'px-3 py-2 cursor-pointer text-body',
+    'flex items-center gap-2',
+    'transition-colors duration-150',
+  ],
   {
     variants: {
       isSelected: {
@@ -495,7 +499,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           <label
             id={labelId}
             className={`block font-medium text-secondary-foreground ${
-              size === 'xs' ? 'text-xs mb-0.5' : 'text-sm mb-1.5'
+              size === 'xs' ? 'text-body-sm mb-0.5' : 'text-body-sm mb-1.5'
             }`}
           >
             {label}
@@ -577,7 +581,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search options..."
-                  className="w-full px-2 py-1 text-sm font-mono tracking-[0.04em] bg-foreground/[0.02] border border-line-faint text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]"
+                  className="w-full px-2 py-1 text-body font-mono tracking-[0.04em] bg-foreground/[0.02] border border-line-faint text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]"
                 />
               </div>
             )}
@@ -591,7 +595,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                 aria-label={`${label || 'Select'} options`}
               >
                 {filteredOptions.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-foreground/40">No options found</div>
+                  <div className="px-3 py-2 text-body-sm text-foreground/40">No options found</div>
                 ) : (
                   filteredOptions.map((option, index) => {
                     const isSelected = selectedOptions.some(
@@ -641,7 +645,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                             <div className="flex-1 min-w-0">
                               <div className="truncate">{option.label}</div>
                               {option.description && (
-                                <div className="text-xs text-muted-foreground truncate">
+                                <div className="text-caption text-muted-foreground truncate">
                                   {option.description}
                                 </div>
                               )}
@@ -669,7 +673,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         )}
 
         {description && (
-          <p id={descriptionId} className="text-xs text-muted-foreground mt-1">
+          <p id={descriptionId} className="text-caption text-muted-foreground mt-1">
             {description}
           </p>
         )}
@@ -677,7 +681,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         {currentMessage && (
           <p
             id={errorId}
-            className={`text-xs mt-1 ${
+            className={`text-caption mt-1 ${
               currentMessage.type === 'error'
                 ? 'text-danger-text'
                 : currentMessage.type === 'warning'

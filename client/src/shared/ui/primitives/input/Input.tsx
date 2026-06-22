@@ -31,11 +31,11 @@ const inputVariants = cva(
   {
     variants: {
       size: {
-        xs: 'h-7 px-2 text-xs',
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-9 px-3 text-sm',
-        lg: 'h-12 px-4 text-base',
-        xl: 'h-14 px-5 text-base',
+        xs: 'h-7 px-2 text-body-sm',
+        sm: 'h-8 px-3 text-body',
+        md: 'h-9 px-3 text-body',
+        lg: 'h-12 px-4 text-body-lg',
+        xl: 'h-14 px-5 text-body-lg',
       },
 
       state: {
@@ -166,7 +166,7 @@ const InputLabel: React.FC<InputLabelProps> = ({
 }) => (
   <label
     htmlFor={htmlFor}
-    className={`block text-sm font-medium text-secondary-foreground mb-1.5 ${className}`}
+    className={`block text-body-sm font-medium text-secondary-foreground mb-1.5 ${className}`}
   >
     {children}
     {isRequired && (
@@ -184,7 +184,7 @@ interface InputDescriptionProps {
 }
 
 const InputDescription: React.FC<InputDescriptionProps> = ({ id, children, className = '' }) => (
-  <p id={id} className={`text-xs text-muted-foreground mt-1 ${className}`}>
+  <p id={id} className={`text-caption text-muted-foreground mt-1 ${className}`}>
     {children}
   </p>
 );
@@ -209,7 +209,7 @@ const InputError: React.FC<InputErrorProps> = ({
   };
 
   return (
-    <p id={id} className={`text-xs ${colors[type]} mt-1 ${className}`} role="alert">
+    <p id={id} className={`text-caption ${colors[type]} mt-1 ${className}`} role="alert">
       {children}
     </p>
   );

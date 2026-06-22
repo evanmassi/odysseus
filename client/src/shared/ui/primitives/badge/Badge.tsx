@@ -15,10 +15,10 @@ export interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const sizeClasses: Record<NonNullable<BadgeProps['size']>, string> = {
-  xs: 'w-5 h-5 text-[10px]',
-  sm: 'w-5 h-5 text-[9px]',
-  md: 'w-[34px] h-[34px] text-[12px]',
-  lg: 'w-[52px] h-[52px] text-[15px]',
+  xs: 'w-5 h-5 text-label-2xs',
+  sm: 'w-5 h-5 text-label-2xs',
+  md: 'w-[34px] h-[34px] text-label-sm',
+  lg: 'w-[52px] h-[52px] text-label-lg',
 };
 
 // `lit` is a flat 1px contact ring in light; dark adds the outer halo on top.

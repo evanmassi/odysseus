@@ -20,11 +20,9 @@ export function SettingsRow({ label, hint, children, className }: SettingsRowPro
   return (
     <div className={`flex items-center justify-between gap-4 py-3 ${className ?? ''}`}>
       <div className="min-w-0">
-        <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-foreground/85">
-          {label}
-        </div>
+        <div className="type-label text-label-xs text-foreground/85">{label}</div>
         {hint && (
-          <div className="mt-0.5 font-display text-[11.5px] leading-snug text-muted-foreground/70">
+          <div className="mt-0.5 font-display text-caption leading-snug text-muted-foreground/70">
             {hint}
           </div>
         )}

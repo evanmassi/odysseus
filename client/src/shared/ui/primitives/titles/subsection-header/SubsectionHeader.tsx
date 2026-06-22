@@ -26,16 +26,16 @@ export function SubsectionHeader({
   const content = (
     <>
       {index !== undefined && (
-        <span aria-hidden className="font-mono text-[10.5px] tracking-[0.1em] text-foreground/40">
+        <span aria-hidden className="font-mono text-label-xs tracking-meta text-foreground/40">
           {String(index).padStart(2, '0')}
           <span className="pl-2.5 text-foreground/30">/</span>
         </span>
       )}
-      <span className="font-mono text-[10.5px] uppercase leading-none tracking-[0.26em] text-foreground/70">
+      <span className="type-label text-label-xs leading-none tracking-label-wide text-foreground/70">
         {title}
       </span>
       {meta && (
-        <span className="ml-1 font-mono text-[9.5px] uppercase leading-none tracking-[0.18em] text-foreground/35">
+        <span className="ml-1 type-label text-label-2xs leading-none text-foreground/35">
           {meta}
         </span>
       )}
