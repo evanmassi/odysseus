@@ -133,7 +133,7 @@ export function TubeShareAccessModal({
       <div className="space-y-4">
         {currentlySharedUserIds.length > 0 && (
           <div>
-            <h4 className="block text-sm font-medium text-secondary-foreground mb-2">
+            <h4 className="block text-body-sm font-medium text-secondary-foreground mb-2">
               <UsersRound className="inline-block w-4 h-4 mr-1" />
               Currently Shared With
             </h4>
@@ -143,7 +143,9 @@ export function TubeShareAccessModal({
                   key={userId}
                   className="flex items-center justify-between px-3 py-2 bg-action/10 border border-action rounded-lg"
                 >
-                  <span className="text-sm text-action font-medium">{getUserName(userId)}</span>
+                  <span className="text-body-sm text-action font-medium">
+                    {getUserName(userId)}
+                  </span>
                   <button
                     type="button"
                     onClick={() => handleRevoke(userId)}
@@ -160,7 +162,7 @@ export function TubeShareAccessModal({
         )}
 
         <div>
-          <h4 className="block text-sm font-medium text-secondary-foreground mb-2">
+          <h4 className="block text-body-sm font-medium text-secondary-foreground mb-2">
             <UserRoundPlus className="inline-block w-4 h-4 mr-1" />
             Share With Users
           </h4>
@@ -168,10 +170,10 @@ export function TubeShareAccessModal({
           {isLoadingUsers ? (
             <div className="flex items-center justify-center py-4">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-action"></div>
-              <span className="ml-2 text-sm text-muted-foreground">Loading users...</span>
+              <span className="ml-2 text-body-sm text-muted-foreground">Loading users...</span>
             </div>
           ) : availableUsers.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">No other users available</p>
+            <p className="text-body-sm text-muted-foreground py-2">No other users available</p>
           ) : (
             <ScrollArea className="max-h-48 border border-border rounded-lg divide-y divide-muted">
               {availableUsers
@@ -189,7 +191,7 @@ export function TubeShareAccessModal({
                         checked={isSelected}
                         onChange={() => toggleUserSelection(user.id)}
                       />
-                      <span className="ml-3 text-sm text-secondary-foreground">
+                      <span className="ml-3 text-body-sm text-secondary-foreground">
                         {getUserName(user.id)}
                       </span>
                     </label>
@@ -199,7 +201,7 @@ export function TubeShareAccessModal({
           )}
         </div>
 
-        <AlertBanner variant="info" spacing="none" className="text-xs">
+        <AlertBanner variant="info" spacing="none" className="text-caption">
           Shared users can edit tubes. Only you can unlock or revoke access.
         </AlertBanner>
 

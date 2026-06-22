@@ -158,7 +158,7 @@ export function TankRow({
             {canManageStorage && (
               <div className="storage-nav-add-controls storage-nav-item--rack">
                 {demoLimitsActive && (
-                  <span className="text-xs text-muted-foreground mr-1">
+                  <span className="text-caption text-muted-foreground mr-1">
                     {extraRackCount}/{demoLimits.maxRacksPerTank}
                   </span>
                 )}

@@ -266,7 +266,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           />
           {position.value && (
             <div className="flex items-baseline gap-2">
-              <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+              <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
                 <span
                   aria-hidden
                   className="h-2.5 w-0.5 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
@@ -274,7 +274,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 {position.word}
               </span>
               {/* Non-breaking hyphen so position ranges (A1-A9) don't wrap mid-range. */}
-              <span className="min-w-0 font-mono text-[11px] tracking-[0.06em] text-foreground">
+              <span className="min-w-0 font-mono text-data-sm tracking-[0.06em] text-foreground">
                 {position.value.replace(/-/g, '‑')}
               </span>
             </div>
@@ -414,7 +414,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       {species}
     </Chip>
   ) : isFieldMixed('sample.species') ? (
-    <span className="flex items-center gap-1 text-sm text-card-foreground/30">
+    <span className="flex items-center gap-1 text-body-sm text-card-foreground/30">
       —
       <AlertTriangle className="h-3 w-3 text-warning-text" />
     </span>
@@ -459,12 +459,12 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             </div>
           </div>
         ) : isFieldMixed('sample.cellType') ? (
-          <div className="flex flex-1 items-center gap-1 text-sm text-card-foreground/30">
+          <div className="flex flex-1 items-center gap-1 text-body-sm text-card-foreground/30">
             —
             <AlertTriangle className="h-3 w-3 text-warning-text" />
           </div>
         ) : (
-          <div className="flex-1 text-sm text-card-foreground/40">Unknown</div>
+          <div className="flex-1 text-body-sm text-card-foreground/40">Unknown</div>
         )}
 
         {speciesTag && <div className="flex-shrink-0">{speciesTag}</div>}
@@ -572,7 +572,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <button
                 type="button"
                 onClick={() => openDonorRegistry(donorInternalId as string, 'internal')}
-                className="cursor-pointer break-all text-right text-sm font-medium text-card-foreground hover:text-primary hover:underline"
+                className="cursor-pointer break-all text-right text-body-sm font-medium text-card-foreground hover:text-primary hover:underline"
               >
                 {donorInternalId}
               </button>
@@ -589,7 +589,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <button
                 type="button"
                 onClick={() => openDonorRegistry(donorSourceId as string, 'source')}
-                className="cursor-pointer break-all text-right text-sm font-medium text-card-foreground hover:text-primary hover:underline"
+                className="cursor-pointer break-all text-right text-body-sm font-medium text-card-foreground hover:text-primary hover:underline"
               >
                 {donorSourceId}
               </button>
@@ -663,11 +663,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             }
           />
           {notes ? (
-            <div className="text-sm leading-relaxed text-card-foreground/85">{notes}</div>
+            <div className="text-body leading-relaxed text-card-foreground/85">{notes}</div>
           ) : (
             <div className="flex items-center gap-1">
               <AlertTriangle className="h-3 w-3 text-warning-text" />
-              <span className="text-sm text-card-foreground/30">—</span>
+              <span className="text-body-sm text-card-foreground/30">—</span>
             </div>
           )}
         </div>

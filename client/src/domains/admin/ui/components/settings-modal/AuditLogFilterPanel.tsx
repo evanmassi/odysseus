@@ -206,12 +206,12 @@ function CollapsibleSection({
             <ChevronRight className="h-3.5 w-3.5 text-foreground/40" />
           )}
           <span className="flex items-center text-foreground/55">{icon}</span>
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-foreground/80">
+          <span className="type-label text-label-xs tracking-label-wide text-foreground/80">
             {title}
           </span>
         </div>
         {count > 0 && (
-          <span className="font-mono text-[11px] tabular-nums text-primary/90 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.5)]">
+          <span className="font-mono text-data-sm tabular-nums text-primary/90 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.5)]">
             {count}
           </span>
         )}
@@ -243,11 +243,11 @@ function ActionSubsection({
         className="mb-2 flex items-center gap-1.5 text-foreground/55 transition-colors hover:text-primary"
       >
         {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-        <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+        <span className="type-label text-label-2xs tracking-label-wide text-foreground/55">
           {section.label}
         </span>
         {count > 0 && (
-          <span className="font-mono text-[10px] tabular-nums text-primary/90">{count}</span>
+          <span className="font-mono text-data-sm tabular-nums text-primary/90">{count}</span>
         )}
       </button>
       {isOpen && (
@@ -405,14 +405,14 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
             aria-hidden
             className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
           />
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.26em] text-foreground/70">
+          <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
             Filters
           </span>
         </div>
         <Tooltip content="Clear all filters" side="bottom">
           <button
             onClick={onClear}
-            className="px-2 py-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-foreground/55 transition-colors hover:text-primary"
+            className="px-2 py-1 type-label text-label-2xs text-foreground/55 transition-colors hover:text-primary"
           >
             Clear All
           </button>
@@ -493,7 +493,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
             >
               <div className="space-y-3">
                 <div>
-                  <div className="mb-2 font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+                  <div className="mb-2 type-label text-label-2xs tracking-label-wide text-foreground/55">
                     Quick Ranges
                   </div>
                   <div
@@ -516,7 +516,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                 </div>
 
                 <fieldset className="border-0 p-0 m-0">
-                  <legend className="mb-1 font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
+                  <legend className="mb-1 type-label text-label-2xs tracking-label-wide text-foreground/55">
                     Custom Range
                   </legend>
                   <div className="space-y-2">
@@ -569,7 +569,7 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
             {hiddenCount > 0 && (
               <button
                 onClick={() => setShowAllFilters(!showAllFilters)}
-                className="px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-foreground/60 transition-colors hover:text-primary"
+                className="px-2 py-0.5 type-label text-label-2xs text-foreground/60 transition-colors hover:text-primary"
               >
                 {showAllFilters ? 'Show less' : `+${hiddenCount} more`}
               </button>

@@ -191,7 +191,7 @@ export function AuthPasswordCreateForm({
 
       {onCancel && (
         <div className="mt-4 text-center">
-          <p className="text-xs font-mono text-[rgb(var(--auth-text-mute))]">
+          <p className="text-data-sm font-mono text-[rgb(var(--auth-text-mute))]">
             Return to{' '}
             <button
               type="button"

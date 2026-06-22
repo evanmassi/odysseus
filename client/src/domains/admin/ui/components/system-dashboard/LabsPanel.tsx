@@ -176,7 +176,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
           }}
         />
         <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
-          <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
+          <span className="flex items-center gap-2.5 type-label text-label-xs tracking-label-wide whitespace-nowrap">
             <span className="text-foreground">{lab.name}</span>
             <span className="text-foreground/35">{'//'}</span>
             <span className={`flex items-center gap-1.5 ${statusTextClass}`}>
@@ -272,13 +272,13 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   icon={<TestTubeDiagonal size={11} />}
                 />
                 <div className="flex flex-col gap-1.5 px-4 py-3.5">
-                  <span className="flex items-center gap-2 font-mono text-[9.5px] tracking-[0.20em] text-muted-foreground uppercase">
+                  <span className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground">
                     <TicketCheck size={11} className="shrink-0" />
                     Lab Admin Code
                   </span>
                   <div className="flex items-center border border-line-mid bg-shade/25 py-1.5 pl-2.5 shadow-[inset_0_1px_3px_-1px_hsl(var(--shade)/0.45)]">
                     <code
-                      className={`mr-auto pr-2 font-mono text-[15px] font-medium leading-none phosphor-text ${latestCode ? 'text-foreground' : 'text-foreground/25 select-none'}`}
+                      className={`mr-auto pr-2 font-mono text-data-lg font-medium leading-none phosphor-text ${latestCode ? 'text-foreground' : 'text-foreground/25 select-none'}`}
                     >
                       {latestCode ? (
                         <>
@@ -308,7 +308,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                       type="button"
                       onClick={() => handleGenerateLabAdminCode(lab.id)}
                       disabled={!lab.isActive || generatingCodeForLab === lab.id}
-                      className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2.5 font-mono text-[10px] whitespace-nowrap tracking-[0.1em] text-muted-foreground/60 uppercase transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2.5 type-label text-label-2xs whitespace-nowrap tracking-meta text-muted-foreground/60 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {latestCode ? 'Regenerate' : 'Generate'}
                     </button>
@@ -363,10 +363,13 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
 
       {showCreateLab && (
         <div className="p-3 bg-muted rounded-lg space-y-3">
-          <h4 className="text-sm font-medium text-card-foreground">New Lab</h4>
+          <h4 className="text-body font-medium text-card-foreground">New Lab</h4>
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label htmlFor="new-lab-name" className="text-xs text-muted-foreground block mb-1">
+              <label
+                htmlFor="new-lab-name"
+                className="text-body-sm text-muted-foreground block mb-1"
+              >
                 Lab name
               </label>
               <input
@@ -375,7 +378,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                 value={newLabName}
                 onChange={e => setNewLabName(e.target.value)}
                 placeholder="e.g., Smith Lab"
-                className="w-full px-2 py-1.5 text-sm border border-border rounded bg-background text-foreground"
+                className="w-full px-2 py-1.5 text-body border border-border rounded bg-background text-foreground"
                 maxLength={200}
                 onKeyDown={e => e.key === 'Enter' && handleCreateLab()}
               />
@@ -405,7 +408,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
       )}
 
       {isLoading && labs.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">Loading labs...</div>
+        <div className="text-center py-8 text-muted-foreground text-body-sm">Loading labs...</div>
       ) : (
         <>
           {regularLabs.length > 0 && (

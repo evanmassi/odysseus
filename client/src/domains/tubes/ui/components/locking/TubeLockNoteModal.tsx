@@ -110,7 +110,7 @@ export function TubeLockNoteModal({
         <div>
           <label
             htmlFor="lockNote"
-            className="flex items-center gap-1.5 text-sm font-medium text-secondary-foreground mb-1"
+            className="flex items-center gap-1.5 text-body-sm font-medium text-secondary-foreground mb-1"
           >
             <Notebook className="w-4 h-4" />
             Lock Note (optional)
@@ -129,11 +129,11 @@ export function TubeLockNoteModal({
               fullWidth
               inputClassName="pr-12"
             />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 pointer-events-none">
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-caption text-muted-foreground/50 pointer-events-none">
               {lockNote.length}/100
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">Provides context for the lock.</p>
+          <p className="text-caption text-muted-foreground mt-1">Provides context for the lock.</p>
         </div>
 
         <div className="flex justify-end space-x-3 pt-2">

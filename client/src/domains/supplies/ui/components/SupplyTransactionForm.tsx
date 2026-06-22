@@ -37,7 +37,7 @@ const MODE_LABELS: Record<TransactionMode, string> = {
 
 // Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
 const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 export interface TransactionPrefill {
   locationId?: string;
@@ -270,9 +270,9 @@ export function SupplyTransactionForm({
             aria-hidden
             className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
           />
-          <span className="truncate font-display text-sm text-foreground">{itemName}</span>
+          <span className="truncate font-display text-body-sm text-foreground">{itemName}</span>
           {identityParts.length > 0 && (
-            <span className="truncate font-mono text-[11px] tracking-[0.04em] text-muted-foreground">
+            <span className="truncate font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
               {identityParts.map((part, i) => (
                 <span key={i}>
                   {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}
@@ -332,10 +332,10 @@ export function SupplyTransactionForm({
                         aria-label={pluralizeUnit(level.unitName, 2)}
                       />
                     </div>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-body-sm text-muted-foreground">
                       {pluralizeUnit(level.unitName, qtyByLevel[level.unitName] ?? 0)}
                     </span>
-                    <span className="text-xs text-muted-foreground/50">
+                    <span className="text-caption text-muted-foreground/50">
                       ({level.quantity}{' '}
                       {pluralizeUnit(
                         level.parentUnit ?? detail?.item.baseItemName ?? 'item',
@@ -358,14 +358,14 @@ export function SupplyTransactionForm({
                         aria-label={`Loose ${stockUnitLabel}`}
                       />
                     </div>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-body-sm text-muted-foreground">
                       loose {pluralizeUnit(stockUnitSingular, qtyByLevel['__stock__'] ?? 0)}
                     </span>
                   </div>
                 )}
               </div>
               {computedTotal !== undefined && computedTotal > 0 && (
-                <div className="border border-line-faint bg-shade/20 px-3 py-1.5 text-sm font-medium">
+                <div className="border border-line-faint bg-shade/20 px-3 py-1.5 text-body-sm font-medium">
                   Total: {computedTotal} {pluralizeUnit(stockUnitSingular, computedTotal)}
                 </div>
               )}
@@ -392,7 +392,7 @@ export function SupplyTransactionForm({
           )}
 
           {mode === 'count' && selectedLocationId && actualCount !== undefined && (
-            <div className="space-y-0.5 px-1 text-xs">
+            <div className="space-y-0.5 px-1 text-caption">
               <div className="flex justify-between text-muted-foreground">
                 <span>Current stock at location:</span>
                 <span className="font-medium">

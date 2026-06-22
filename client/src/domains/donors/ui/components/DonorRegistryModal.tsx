@@ -142,20 +142,22 @@ export function DonorRegistryModal({
     <div className="flex items-center gap-3 font-mono">
       <div className="flex items-center gap-2.5">
         {accentBar}
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Donors
         </span>
-        <span className="phosphor-text text-xs text-secondary-foreground">{donors.length}</span>
+        <span className="phosphor-text text-data-sm text-secondary-foreground">
+          {donors.length}
+        </span>
       </div>
       <span aria-hidden className="text-muted-foreground/40">
         ·
       </span>
       <div className="flex items-center gap-2.5">
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Needs Review
         </span>
         <span
-          className={`phosphor-text text-xs ${reviewCount > 0 ? 'text-warning-text' : 'text-secondary-foreground'}`}
+          className={`phosphor-text text-data-sm ${reviewCount > 0 ? 'text-warning-text' : 'text-secondary-foreground'}`}
         >
           {reviewCount}
         </span>

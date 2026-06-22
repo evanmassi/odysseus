@@ -249,7 +249,7 @@ export function StorageNavigator({
               aria-hidden
               className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
             />
-            <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+            <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
               {data.tanks.length} {data.tanks.length === 1 ? 'tank' : 'tanks'}
             </span>
           </span>
@@ -263,7 +263,7 @@ export function StorageNavigator({
                 }}
               />
             </span>
-            <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/60">
+            <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/60">
               {occupancy.facility.filled}
               <span className="text-foreground/35">/{occupancy.facility.capacity}</span>
             </span>

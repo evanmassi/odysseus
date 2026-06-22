@@ -82,7 +82,7 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
             <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.14)_42%,hsl(var(--foreground)/0.06)_82%,transparent_100%)]">
               <button
                 onClick={() => setShowInactive(prev => !prev)}
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 <ChevronDown
                   size={14}
@@ -197,7 +197,7 @@ function getUserColumns({
             <UserBadge type="otherUser" initials={initials} username={row.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-sans text-[13px] font-medium text-foreground">
+                <span className="font-sans text-body-sm font-medium text-foreground">
                   {displayName}
                 </span>
                 {row.status === 'deactivated' && (
@@ -211,11 +211,11 @@ function getUserColumns({
                   </Tooltip>
                 )}
               </div>
-              <div className="mt-0.5 font-mono text-[10.5px] tracking-[0.04em] text-foreground/55">
+              <div className="mt-0.5 font-mono text-data-sm tracking-[0.04em] text-foreground/55">
                 {row.username}
               </div>
               {row.email && (
-                <div className="font-mono text-[10.5px] tracking-[0.04em] text-foreground/40">
+                <div className="font-mono text-data-sm tracking-[0.04em] text-foreground/40">
                   {row.email}
                 </div>
               )}
@@ -231,14 +231,14 @@ function getUserColumns({
         <div className="max-w-[150px] whitespace-nowrap">
           {row.position ? (
             <Tooltip content={row.position} side="bottom">
-              <div className="font-sans truncate text-[13px] text-foreground">{row.position}</div>
+              <div className="font-sans truncate text-body-sm text-foreground">{row.position}</div>
             </Tooltip>
           ) : (
-            <div className="font-mono text-[10.5px] text-foreground/30">—</div>
+            <div className="font-mono text-data-sm text-foreground/30">—</div>
           )}
           {row.department && (
             <Tooltip content={row.department} side="bottom">
-              <div className="truncate font-mono text-[10.5px] tracking-[0.04em] text-foreground/55">
+              <div className="truncate font-mono text-data-sm tracking-[0.04em] text-foreground/55">
                 {row.department}
               </div>
             </Tooltip>
@@ -265,7 +265,7 @@ function getUserColumns({
           return (
             <div className="flex flex-col gap-0.5">
               <div
-                className={`flex items-center gap-1.5 whitespace-nowrap text-[13px] ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
+                className={`flex items-center gap-1.5 whitespace-nowrap text-body-sm ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
               >
                 <Link2
                   size={14}
@@ -293,7 +293,7 @@ function getUserColumns({
       header: 'Last Active',
       sortable: true,
       render: (_value, row) => (
-        <span className="whitespace-nowrap font-mono text-[12px] tracking-[0.04em] text-foreground/70">
+        <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-foreground/70">
           {formatRelativeTime(row.lastActivity)}
         </span>
       ),

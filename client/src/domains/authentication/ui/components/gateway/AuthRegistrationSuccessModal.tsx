@@ -56,7 +56,7 @@ export function AuthRegistrationSuccessModal({
           <span className="auth-input-console__label">Your username</span>
           <div className="auth-input-console__field">
             <span
-              className="flex-1 px-3 py-2.5 font-mono text-sm text-[rgb(var(--auth-text))] truncate"
+              className="flex-1 px-3 py-2.5 font-mono text-data text-[rgb(var(--auth-text))] truncate"
               role="status"
               aria-label={`Your username is ${username}`}
             >
@@ -64,7 +64,7 @@ export function AuthRegistrationSuccessModal({
             </span>
             <button
               onClick={handleCopyUsername}
-              className="flex items-center gap-1.5 px-3 h-full text-[rgb(var(--auth-text-mute))] hover:text-[rgb(var(--auth-text))] transition-colors font-mono text-xs border-l border-[rgb(var(--auth-divider))]"
+              className="flex items-center gap-1.5 px-3 h-full text-[rgb(var(--auth-text-mute))] hover:text-[rgb(var(--auth-text))] transition-colors font-mono text-data-sm border-l border-[rgb(var(--auth-divider))]"
               type="button"
               aria-label={`Copy username ${username}`}
             >

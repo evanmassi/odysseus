@@ -277,7 +277,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
               maxLength={20}
             />
             {inviteCodeError && (
-              <p className="text-[11px] text-danger-text ml-1 -mt-1">{inviteCodeError}</p>
+              <p className="text-caption text-danger-text ml-1 -mt-1">{inviteCodeError}</p>
             )}
             <Button
               type="button"
@@ -296,11 +296,11 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
           <div className="flex items-center gap-2">
             <div className="inline-flex items-center gap-2 px-2.5 h-7 bg-[rgb(var(--auth-ambient)/0.07)] border border-[rgb(var(--auth-ambient)/0.25)] min-w-0">
               <TicketCheck size={11} className="text-[rgb(var(--auth-ambient))] shrink-0" />
-              <code className="font-mono text-xs text-[rgb(var(--auth-text))] truncate">
+              <code className="font-mono text-data-sm text-[rgb(var(--auth-text))] truncate">
                 {inviteCode}
               </code>
-              <span className="font-mono text-[10px] text-[rgb(var(--auth-text-faint))]">·</span>
-              <span className="font-mono text-[10px] text-[rgb(var(--auth-ambient))] truncate">
+              <span className="font-mono text-data-sm text-[rgb(var(--auth-text-faint))]">·</span>
+              <span className="font-mono text-data-sm text-[rgb(var(--auth-ambient))] truncate">
                 {inviteCodeLabName}
               </span>
             </div>
@@ -340,7 +340,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   disabled={isLoading}
                   maxLength={50}
                 />
-                <div className="min-h-[18px] ml-1 font-mono text-[10px]">
+                <div className="min-h-[18px] ml-1 font-mono text-data-sm">
                   {usernamePreview ? (
                     <p className="text-[rgb(var(--auth-text-mute))]">
                       Username:{' '}
@@ -391,7 +391,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
                   disabled={isLoading}
                   maxLength={255}
                 />
-                {emailError && <p className="text-[11px] text-danger-text ml-1">{emailError}</p>}
+                {emailError && <p className="text-caption text-danger-text ml-1">{emailError}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3 items-start">
@@ -422,7 +422,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
               <div className="flex items-center gap-1.5 ml-1">
                 <Info size={14} className="text-[rgb(var(--auth-text-mute))] shrink-0" />
-                <p className="text-xs text-[rgb(var(--auth-text-dim))]">
+                <p className="text-body-sm text-[rgb(var(--auth-text-dim))]">
                   {codeRole === 'lab_admin'
                     ? "You'll have lab administrator privileges and researcher access."
                     : codeCreateResearcher
@@ -493,7 +493,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
       {onSwitchToLogin && (
         <div className="mt-5 text-center">
-          <p className="font-mono text-xs text-[rgb(var(--auth-text-mute))]">
+          <p className="font-mono text-data-sm text-[rgb(var(--auth-text-mute))]">
             Already have an account?{' '}
             <button
               type="button"

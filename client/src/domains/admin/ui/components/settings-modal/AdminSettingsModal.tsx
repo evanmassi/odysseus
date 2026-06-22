@@ -311,10 +311,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2.5">
           {accentBar}
-          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             {isSystemAdmin ? 'Scope' : 'Lab'}
           </span>
-          <span className="text-xs text-secondary-foreground phosphor-text">
+          <span className="text-data-sm text-secondary-foreground phosphor-text">
             {isSystemAdmin ? 'System-wide' : (currentLab?.name ?? '—')}
           </span>
         </div>
@@ -322,10 +322,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
           ·
         </span>
         <div className="flex items-center gap-2.5">
-          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             Admin
           </span>
-          <span className="text-xs text-secondary-foreground phosphor-text">
+          <span className="text-data-sm text-secondary-foreground phosphor-text">
             {user?.username ?? '—'}
           </span>
         </div>
@@ -334,7 +334,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       {utilization && (
         <div className="flex items-center gap-2.5">
           {accentBar}
-          <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             Storage
           </span>
           <UtilizationBar percent={utilization.utilizationPercent} />

@@ -49,14 +49,14 @@ function LocationBreadcrumb({
   if (variant === 'strip') {
     return (
       <div className={`flex items-center gap-3 ${className}`}>
-        <span className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground">
           <span
             aria-hidden
             className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
           />
           Location
         </span>
-        <div className="flex flex-1 items-center gap-2 font-mono text-[11px] tracking-[0.06em] text-secondary-foreground">
+        <div className="flex flex-1 items-center gap-2 font-mono text-data-sm tracking-[0.06em] text-secondary-foreground">
           <span className="text-foreground">{tankName}</span>
           <span className="text-foreground/40">›</span>
           <span className="text-foreground">{rackName}</span>
@@ -74,7 +74,7 @@ function LocationBreadcrumb({
   }
 
   return (
-    <div className={`flex items-center gap-1.5 text-sm text-muted-foreground ${className}`}>
+    <div className={`flex items-center gap-1.5 text-body-sm text-muted-foreground ${className}`}>
       <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
       <span>{tankName}</span>
       <span>›</span>

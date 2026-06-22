@@ -369,7 +369,7 @@ function LabDrillDown({
           }}
         />
         <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
-          <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
+          <span className="flex items-center gap-2.5 type-label text-label-xs tracking-label-wide whitespace-nowrap">
             <span className="text-foreground">{labName}</span>
             <span className="text-foreground/35">{'//'}</span>
             <span className={`flex items-center gap-1.5 ${statusTextClass}`}>

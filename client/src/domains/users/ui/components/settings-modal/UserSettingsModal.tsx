@@ -152,8 +152,10 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     <div className="flex items-center gap-3 font-mono">
       <div className="flex items-center gap-2.5">
         {accentBar}
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">User</span>
-        <span className="phosphor-text text-xs text-secondary-foreground">
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
+          User
+        </span>
+        <span className="phosphor-text text-data-sm text-secondary-foreground">
           {user?.username ?? '—'}
         </span>
       </div>
@@ -161,10 +163,12 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         ·
       </span>
       <div className="flex items-center gap-2.5">
-        <span className="text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Sessions
         </span>
-        <span className="phosphor-text text-xs text-secondary-foreground">{sessions.length}</span>
+        <span className="phosphor-text text-data-sm text-secondary-foreground">
+          {sessions.length}
+        </span>
       </div>
     </div>
   );

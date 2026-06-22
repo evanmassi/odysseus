@@ -131,7 +131,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
       id: 'code',
       header: 'Code',
       render: (_, code) => (
-        <code className="font-mono text-sm font-semibold tracking-wide text-foreground">
+        <code className="font-mono text-data font-semibold tracking-wide text-foreground">
           {code.code}
         </code>
       ),
@@ -202,7 +202,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
       id: 'code',
       header: 'Code',
       render: (_, code) => (
-        <code className="font-mono text-sm text-muted-foreground">{code.code}</code>
+        <code className="font-mono text-data text-muted-foreground">{code.code}</code>
       ),
     },
     {
@@ -231,7 +231,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               Deactivated
             </Chip>
           );
-        return <span className="text-xs text-muted-foreground">{code.useCount} uses</span>;
+        return <span className="text-caption text-muted-foreground">{code.useCount} uses</span>;
       },
     },
   ];
@@ -339,10 +339,10 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               size={13}
               className={`text-foreground/40 transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
             />
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.26em] text-foreground/70 transition-colors group-hover:text-foreground/90">
+            <span className="type-label text-label-xs tracking-label-wide text-foreground/70 transition-colors group-hover:text-foreground/90">
               Inactive Codes
             </span>
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/35">
+            <span className="type-label text-label-2xs text-foreground/35">
               {inactiveCodes.length}
             </span>
           </button>

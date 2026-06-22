@@ -120,7 +120,7 @@ export function SupplyBarcodeScanInput({
         className="max-w-md"
       >
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             Barcode{' '}
             <span className="font-mono font-semibold text-card-foreground">
               {unresolvedBarcode}

@@ -186,13 +186,13 @@ export function EquipmentMaintenanceAlertPanel({
           className={`flex-shrink-0 text-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
         />
         <span aria-hidden className={`h-[11px] w-0.5 flex-shrink-0 ${stripeClass}`} />
-        <span className={`font-mono text-[10px] uppercase tracking-[0.22em] ${labelClass}`}>
+        <span className={`type-label text-label-2xs tracking-label-wide ${labelClass}`}>
           Maintenance Alerts
         </span>
-        <span aria-hidden className="font-mono text-[9.5px] text-foreground/30">
+        <span aria-hidden className="font-mono text-data-sm text-foreground/30">
           {'//'}
         </span>
-        <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
+        <span className="flex items-center gap-2 font-mono text-data-sm tracking-[0.04em]">
           {overdueCount > 0 && <span className="text-danger-text">{overdueCount} overdue</span>}
           {overdueCount > 0 && dueSoonCount > 0 && <span className="text-foreground/25">·</span>}
           {dueSoonCount > 0 && <span className="text-warning-text">{dueSoonCount} due soon</span>}
@@ -217,7 +217,7 @@ export function EquipmentMaintenanceAlertPanel({
           selectedRowGlow
           rowState={row => (row.daysUntil < 0 ? 'danger' : 'warning')}
           density="compact"
-          className="text-xs"
+          className="text-data"
           aria-label="Maintenance alerts"
         />
       )}

@@ -308,7 +308,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         Print barcodes for {selectedCount} selected item{selectedCount === 1 ? '' : 's'} onto a
         standard label sheet.
       </p>
@@ -335,7 +335,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
                       : 'text-muted-foreground'
                   }
                 />
-                <span className={`text-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
+                <span className={`text-body-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
                   {label}
                 </span>
               </button>
@@ -357,9 +357,9 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
           fullWidth
           renderOption={option => (
             <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium text-card-foreground">{option.label}</span>
+              <span className="text-body-sm font-medium text-card-foreground">{option.label}</span>
               {option.description && (
-                <span className="text-xs text-muted-foreground">({option.description})</span>
+                <span className="text-caption text-muted-foreground">({option.description})</span>
               )}
             </div>
           )}
@@ -447,7 +447,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
               step={0.0625}
             />
           </div>
-          {customError && <p className="text-xs text-destructive">{customError}</p>}
+          {customError && <p className="text-body-sm text-destructive">{customError}</p>}
         </div>
       )}
 
@@ -461,7 +461,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
             max={slotsPerSheet}
             aria-label="Starting slot on first sheet"
           />
-          <span className="text-xs text-muted-foreground">
+          <span className="text-caption text-muted-foreground">
             of {slotsPerSheet} slots ({currentTemplate.columns} × {currentTemplate.rows})
           </span>
         </div>

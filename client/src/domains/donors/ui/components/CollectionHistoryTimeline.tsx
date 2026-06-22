@@ -162,7 +162,7 @@ export function CollectionHistoryTimeline({
       )}
 
       {history.length === 0 && !isAdding ? (
-        <p className="text-card-foreground/30 text-sm italic">No collection history</p>
+        <p className="text-card-foreground/30 text-body-sm italic">No collection history</p>
       ) : (
         <div className="space-y-1.5">
           {history.map(entry =>
@@ -182,7 +182,10 @@ export function CollectionHistoryTimeline({
                 isPending={updateMutation.isPending}
               />
             ) : (
-              <div key={entry.id} className="group flex items-center gap-2 text-sm font-medium">
+              <div
+                key={entry.id}
+                className="group flex items-center gap-2 text-body-sm font-medium"
+              >
                 {entry.collectionDate && (
                   <span className="text-card-foreground/60 whitespace-nowrap">
                     {formatDateForDisplay(entry.collectionDate)}

@@ -48,10 +48,8 @@ const CORNER_PINS = [
 function LedgerRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-tooltip-muted">
-        {label}
-      </span>
-      <span className="font-mono text-[11px] text-tooltip-foreground">{value}</span>
+      <span className="type-label text-label-2xs text-tooltip-muted">{label}</span>
+      <span className="font-mono text-data-sm text-tooltip-foreground">{value}</span>
     </div>
   );
 }
@@ -113,13 +111,13 @@ export function TubeGridTooltip({
       ))}
 
       <div className="mb-2 flex items-baseline gap-1.5">
-        <span className="text-[15px] font-semibold leading-tight text-tooltip-foreground">
+        <span className="text-body font-semibold leading-tight text-tooltip-foreground">
           {cellType}
         </span>
         {tube.sample?.species && (
           <>
             <span className="text-tooltip-foreground/30">·</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-tooltip-muted">
+            <span className="type-label text-label-2xs tracking-meta text-tooltip-muted">
               {tube.sample.species}
             </span>
           </>
@@ -142,10 +140,10 @@ export function TubeGridTooltip({
             className={`flex items-center gap-1.5 ${isLockedOut ? 'text-danger-text' : 'text-tooltip-foreground'}`}
           >
             <LockIcon size={11} strokeWidth={2.5} />
-            <span className="font-mono text-[10.5px]">{lockLabel}</span>
+            <span className="font-mono text-data-sm">{lockLabel}</span>
           </div>
           {tube.lockNote && (
-            <div className="mt-1 font-mono text-[10px] italic text-tooltip-muted">
+            <div className="mt-1 font-mono text-data-sm italic text-tooltip-muted">
               &ldquo;{tube.lockNote}&rdquo;
             </div>
           )}

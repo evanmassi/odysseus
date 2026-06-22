@@ -102,7 +102,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
             Back to Labs
           </Button>
-          <div className="text-center py-12 text-muted-foreground text-sm">
+          <div className="text-center py-12 text-muted-foreground text-body-sm">
             Loading lab details...
           </div>
         </div>
@@ -178,7 +178,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
             }}
           />
           <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
-            <span className="flex items-center gap-2.5 font-mono text-[11px] tracking-[0.22em] whitespace-nowrap uppercase">
+            <span className="flex items-center gap-2.5 type-label text-label-xs tracking-label-wide whitespace-nowrap">
               <span className="text-foreground">{lab.name}</span>
               <span className="text-foreground/35">{'//'}</span>
               <span className={`flex items-center gap-1.5 ${statusTextClass}`}>

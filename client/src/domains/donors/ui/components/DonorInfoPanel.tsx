@@ -57,14 +57,14 @@ export function DonorInfoPanel({
 
       <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-baseline gap-2">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
             <span
               aria-hidden
               className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
             />
             Collections
           </span>
-          <span className="min-w-0 truncate font-mono text-[11px] tracking-[0.06em] text-foreground">
+          <span className="min-w-0 truncate font-mono text-data-sm tracking-[0.06em] text-foreground">
             {collectionCount === 0 ? (
               <span className="text-muted-foreground">None yet</span>
             ) : (
@@ -134,9 +134,11 @@ export function DonorInfoPanel({
             <div>
               <SectionHeader title="Notes" size="sm" />
               {donor.notes ? (
-                <div className="text-sm leading-relaxed text-card-foreground/85">{donor.notes}</div>
+                <div className="text-body leading-relaxed text-card-foreground/85">
+                  {donor.notes}
+                </div>
               ) : (
-                <div className="text-sm italic text-card-foreground/30">Unknown</div>
+                <div className="text-body-sm italic text-card-foreground/30">Unknown</div>
               )}
             </div>
           )}

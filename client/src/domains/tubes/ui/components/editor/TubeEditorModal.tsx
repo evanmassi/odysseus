@@ -314,7 +314,7 @@ function EditModeForm({
       footer={
         <div className="flex items-center justify-between gap-4">
           {dirtyFieldCount > 0 ? (
-            <div className="flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground whitespace-nowrap">
+            <div className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground whitespace-nowrap">
               <span
                 aria-hidden
                 className="h-2.5 w-0.5 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
@@ -370,20 +370,20 @@ function EditModeForm({
             variant="warning"
             title="This tube was modified by another user"
             spacing="none"
-            className="text-xs"
+            className="text-caption"
             actions={
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleRefresh}
-                  className="text-xs font-medium px-2 py-1 rounded bg-warning-bg text-warning-btnText hover:bg-warning-hover transition-colors"
+                  className="text-body-sm font-medium px-2 py-1 rounded bg-warning-bg text-warning-btnText hover:bg-warning-hover transition-colors"
                 >
                   Refresh
                 </button>
                 <button
                   type="button"
                   onClick={() => setStaleWarningDismissed(true)}
-                  className="text-xs font-medium px-2 py-1 rounded bg-warning-light-hover text-warning-text hover:bg-warning-border transition-colors"
+                  className="text-body-sm font-medium px-2 py-1 rounded bg-warning-light-hover text-warning-text hover:bg-warning-border transition-colors"
                 >
                   Continue Editing
                 </button>

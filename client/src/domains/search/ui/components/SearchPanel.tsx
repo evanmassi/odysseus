@@ -153,7 +153,7 @@ export function SearchPanel() {
             trailingSlot={
               <>
                 {!query && (
-                  <span className="font-mono text-xs text-muted-foreground/40">Ctrl+F</span>
+                  <span className="font-mono text-data-sm text-muted-foreground/40">Ctrl+F</span>
                 )}
 
                 <Tooltip content="Filters" side="bottom">

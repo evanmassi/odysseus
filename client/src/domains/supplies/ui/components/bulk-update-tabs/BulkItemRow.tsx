@@ -123,7 +123,7 @@ export function BulkItemRow({
   return (
     <div className="border border-border rounded-lg p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-card-foreground">{itemName}</span>
+        <span className="text-body-sm font-semibold text-card-foreground">{itemName}</span>
         <button
           type="button"
           onClick={onRemove}
@@ -148,7 +148,7 @@ export function BulkItemRow({
                   fullWidth
                 />
               </div>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-caption text-muted-foreground">
                 {pluralizeUnit(level.unitName, qtyByLevel[level.unitName] ?? 0)}
               </span>
             </div>
@@ -165,13 +165,13 @@ export function BulkItemRow({
                   fullWidth
                 />
               </div>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-caption text-muted-foreground">
                 loose {pluralizeUnit(stockUnitSingular, qtyByLevel['__stock__'] ?? 0)}
               </span>
             </div>
           )}
           {computedTotal > 0 && (
-            <p className="text-xs font-medium text-muted-foreground px-1">
+            <p className="text-caption font-medium text-muted-foreground px-1">
               = {computedTotal} {pluralizeUnit(stockUnitSingular, computedTotal)}
             </p>
           )}
@@ -189,7 +189,7 @@ export function BulkItemRow({
             />
           </div>
           {stockUnit && (
-            <span className="text-xs text-muted-foreground mt-4">
+            <span className="text-caption text-muted-foreground mt-4">
               {pluralizeUnit(stockUnitSingular, simpleQty)}
             </span>
           )}

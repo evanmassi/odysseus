@@ -164,7 +164,7 @@ export const TubeForm = ({
             return (
               <div>
                 <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                  className={`block type-label text-label-2xs tracking-label-wide mb-1.5 ${
                     error ? 'text-danger-text' : 'text-muted-foreground'
                   }`}
                 >
@@ -183,7 +183,7 @@ export const TubeForm = ({
                   placeholder="Select species..."
                 />
                 {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                  <div className="flex items-center mt-1 text-body-sm text-danger-text">
                     <span>{error}</span>
                   </div>
                 )}
@@ -319,7 +319,7 @@ export const TubeForm = ({
             return (
               <div>
                 <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                  className={`block type-label text-label-2xs tracking-label-wide mb-1.5 ${
                     error ? 'text-danger-text' : 'text-muted-foreground'
                   }`}
                 >
@@ -338,7 +338,7 @@ export const TubeForm = ({
                   placeholder="Select media..."
                 />
                 {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                  <div className="flex items-center mt-1 text-body-sm text-danger-text">
                     <span>{error}</span>
                   </div>
                 )}
@@ -383,7 +383,7 @@ export const TubeForm = ({
             return (
               <div>
                 <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                  className={`block type-label text-label-2xs tracking-label-wide mb-1.5 ${
                     error ? 'text-danger-text' : 'text-muted-foreground'
                   }`}
                 >
@@ -402,7 +402,7 @@ export const TubeForm = ({
                   placeholder="Select source..."
                 />
                 {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                  <div className="flex items-center mt-1 text-body-sm text-danger-text">
                     <span>{error}</span>
                   </div>
                 )}
@@ -447,7 +447,7 @@ export const TubeForm = ({
             return (
               <div>
                 <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                  className={`block type-label text-label-2xs tracking-label-wide mb-1.5 ${
                     error ? 'text-danger-text' : 'text-muted-foreground'
                   }`}
                 >
@@ -465,7 +465,7 @@ export const TubeForm = ({
                   clearable
                 />
                 {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                  <div className="flex items-center mt-1 text-body-sm text-danger-text">
                     <span>{error}</span>
                   </div>
                 )}
@@ -482,7 +482,7 @@ export const TubeForm = ({
             return (
               <div>
                 <label
-                  className={`block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 ${
+                  className={`block type-label text-label-2xs tracking-label-wide mb-1.5 ${
                     error ? 'text-danger-text' : 'text-muted-foreground'
                   }`}
                 >
@@ -507,7 +507,7 @@ export const TubeForm = ({
                   placeholder="Select researcher..."
                 />
                 {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                  <div className="flex items-center mt-1 text-body-sm text-danger-text">
                     <span>{error}</span>
                   </div>
                 )}
@@ -538,7 +538,7 @@ export const TubeForm = ({
           disabled={isLoading}
           hasConflict={hasConflict('sample.notes')}
         />
-        <span className="pointer-events-none absolute -top-2 right-3 z-10 border border-line-faint bg-card px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.22em] text-foreground/40">
+        <span className="pointer-events-none absolute -top-2 right-3 z-10 border border-line-faint bg-card px-2 py-0.5 type-label text-label-2xs tracking-label-wide text-foreground/40">
           {`${(notesValue ?? '').length}/500`}
         </span>
       </div>

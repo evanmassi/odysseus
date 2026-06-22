@@ -146,12 +146,12 @@ function CollapsibleSection({
             <ChevronRight className="h-3.5 w-3.5 text-foreground/40" />
           )}
           <span className="flex items-center text-foreground/55">{icon}</span>
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-foreground/80">
+          <span className="type-label text-label-xs tracking-label-wide text-foreground/80">
             {title}
           </span>
         </div>
         {count > 0 && (
-          <span className="font-mono text-[11px] tabular-nums text-primary/90 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.5)]">
+          <span className="font-mono text-data-sm tabular-nums text-primary/90 dark:[text-shadow:0_0_6px_hsl(var(--primary)/0.5)]">
             {count}
           </span>
         )}
@@ -377,7 +377,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
             aria-hidden
             className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
           />
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.26em] text-foreground/70">
+          <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
             Filters
           </span>
         </div>
@@ -385,7 +385,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
           <Tooltip content="Clear all filters" side="bottom">
             <button
               onClick={clearFilters}
-              className="px-2 py-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-foreground/55 transition-colors hover:text-primary"
+              className="px-2 py-1 type-label text-label-2xs text-foreground/55 transition-colors hover:text-primary"
             >
               Clear All
             </button>
@@ -419,9 +419,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
               <div>
                 <div className="mb-2 flex items-center gap-2 text-foreground/45">
                   <TankIcon className="h-3 w-3" aria-hidden="true" />
-                  <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
-                    Tanks
-                  </div>
+                  <div className="type-label text-label-2xs text-foreground/55">Tanks</div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Tank filters">
                   {filterOptions.tankIds.map(tankId => (
@@ -444,9 +442,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
               <div>
                 <div className="mb-2 flex items-center gap-2 text-foreground/45">
                   <RackIcon className="h-3 w-3" aria-hidden="true" />
-                  <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
-                    Racks
-                  </div>
+                  <div className="type-label text-label-2xs text-foreground/55">Racks</div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Rack filters">
                   {filterOptions.rackIds.map(rackId => (
@@ -469,9 +465,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
               <div>
                 <div className="mb-2 flex items-center gap-2 text-foreground/45">
                   <BoxIcon className="h-3 w-3" aria-hidden="true" />
-                  <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
-                    Boxes
-                  </div>
+                  <div className="type-label text-label-2xs text-foreground/55">Boxes</div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Box filters">
                   {filterOptions.boxIds.map(boxId => (
@@ -506,9 +500,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
                   <div key={filterKey}>
                     <div className="mb-2 flex items-center gap-2 text-foreground/45">
                       <Icon className="h-3 w-3" aria-hidden="true" />
-                      <div className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
-                        {label}
-                      </div>
+                      <div className="type-label text-label-2xs text-foreground/55">{label}</div>
                     </div>
                     <div className="flex flex-wrap gap-2" role="group" aria-label={ariaLabel}>
                       {options.map(value => (
@@ -564,9 +556,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
         >
           <div className="space-y-3">
             <div>
-              <span className="mb-1 block font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
-                From
-              </span>
+              <span className="mb-1 block type-label text-label-2xs text-foreground/55">From</span>
               <DatePicker
                 value={filters.dateFrom ?? ''}
                 onChange={val => updateDateFilter('dateFrom', val)}
@@ -577,9 +567,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
               />
             </div>
             <div>
-              <span className="mb-1 block font-mono text-[9.5px] uppercase tracking-[0.2em] text-foreground/55">
-                To
-              </span>
+              <span className="mb-1 block type-label text-label-2xs text-foreground/55">To</span>
               <DatePicker
                 value={filters.dateTo ?? ''}
                 onChange={val => updateDateFilter('dateTo', val)}
@@ -611,7 +599,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
             {hiddenCount > 0 && (
               <button
                 onClick={() => setShowAllFilters(!showAllFilters)}
-                className="px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.14em] text-foreground/60 transition-colors hover:text-primary"
+                className="px-2 py-0.5 type-label text-label-2xs text-foreground/60 transition-colors hover:text-primary"
               >
                 {showAllFilters ? 'Show less' : `+${hiddenCount} more`}
               </button>

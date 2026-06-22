@@ -17,11 +17,11 @@ export function DonorInfoPanelEmpty() {
 
       <HeaderStrip className="px-4 py-2.5" tone="neutral">
         <div className="flex items-baseline gap-2">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
             <span aria-hidden className="h-2.5 w-0.5 bg-muted-foreground/40" />
             Collections
           </span>
-          <span className="min-w-0 truncate font-mono text-[11px] tracking-[0.06em] text-muted-foreground">
+          <span className="min-w-0 truncate font-mono text-data-sm tracking-[0.06em] text-muted-foreground">
             —
           </span>
         </div>

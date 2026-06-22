@@ -30,10 +30,10 @@ interface EquipmentMaintenanceTimelineProps {
 function MaintenanceDetail({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <span className="whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+      <span className="whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
         {label}
       </span>
-      <span className="min-w-0 break-words text-right text-sm text-card-foreground/85">
+      <span className="min-w-0 break-words text-right text-body-sm text-card-foreground/85">
         {value}
       </span>
     </div>
@@ -70,7 +70,7 @@ export function EquipmentMaintenanceTimeline({
   return (
     <div className={`space-y-0.5 ${className ?? ''}`}>
       {maintenanceLog.length === 0 ? (
-        <p className="text-sm italic text-card-foreground/30">No maintenance entries</p>
+        <p className="text-body-sm italic text-card-foreground/30">No maintenance entries</p>
       ) : (
         maintenanceLog.map(entry => {
           const isExpanded = expandedId === entry.id;
@@ -88,7 +88,7 @@ export function EquipmentMaintenanceTimeline({
           return (
             <div key={entry.id}>
               <div
-                className="group flex cursor-pointer items-center gap-2 py-1 text-sm"
+                className="group flex cursor-pointer items-center gap-2 py-1 text-body-sm"
                 onClick={() => hasDetails && toggleExpand(entry.id)}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && hasDetails) toggleExpand(entry.id);
@@ -100,7 +100,7 @@ export function EquipmentMaintenanceTimeline({
                   size={12}
                   className={`flex-shrink-0 text-card-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''} ${!hasDetails ? 'invisible' : ''}`}
                 />
-                <span className="whitespace-nowrap font-mono text-[11px] tracking-[0.04em] text-card-foreground/70">
+                <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-card-foreground/70">
                   {formatDateForDisplay(entry.datePerformed)}
                 </span>
                 <span className="text-card-foreground/25">·</span>

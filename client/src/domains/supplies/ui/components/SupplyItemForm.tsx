@@ -59,7 +59,7 @@ interface LocalPackagingLevel {
 
 // Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
 const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 const TRACKED_FIELDS = [
   'name',
@@ -397,14 +397,14 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
 
       <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
             <span
               aria-hidden
               className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
             />
             Completeness
           </span>
-          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
+          <span className="font-mono text-data-sm tracking-[0.06em] text-foreground">
             {filledCount}/{TRACKED_FIELDS.length}
           </span>
           <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
@@ -448,9 +448,9 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   renderOption={option => (
                     <div className="w-full">
                       {option.description ? (
-                        <span className="pl-4 text-sm">{option.label}</span>
+                        <span className="pl-4 text-body">{option.label}</span>
                       ) : (
-                        <span className="text-sm font-semibold">{option.label}</span>
+                        <span className="text-body font-semibold">{option.label}</span>
                       )}
                     </div>
                   )}
@@ -497,7 +497,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   />
                 </div>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-caption text-muted-foreground">
                 Optional — scan the barcode on the physical box to link it automatically
               </p>
             </div>
@@ -602,7 +602,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   return (
                     <div
                       key={levelId ?? `local-${index}`}
-                      className="flex items-center justify-between border border-line-faint bg-shade/20 px-2.5 py-1.5 text-sm"
+                      className="flex items-center justify-between border border-line-faint bg-shade/20 px-2.5 py-1.5 text-body-sm"
                     >
                       <span>{formatLevelDisplay(levelData)}</span>
                       <button
@@ -641,7 +641,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   aria-label="Contents"
                 />
               </div>
-              <span className="pb-1.5 text-xs text-muted-foreground">per</span>
+              <span className="pb-1.5 text-caption text-muted-foreground">per</span>
               <div className="flex-1">
                 <Select
                   options={availableUnitOptions}
@@ -693,7 +693,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                       {itemProperties.map((pp: { id: string; value: string }) => (
                         <label
                           key={pp.id}
-                          className="flex cursor-pointer items-center gap-1.5 text-sm"
+                          className="flex cursor-pointer items-center gap-1.5 text-body-sm"
                         >
                           <Checkbox
                             checked={(value as string[]).includes(pp.value)}
@@ -770,7 +770,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               {thresholdUnit &&
                 thresholdInputQty &&
                 computeThresholdMultiplier(thresholdUnit, currentStockUnit) > 1 && (
-                  <span className="whitespace-nowrap text-xs text-muted-foreground">
+                  <span className="whitespace-nowrap text-caption text-muted-foreground">
                     ={' '}
                     {Number(thresholdInputQty) *
                       computeThresholdMultiplier(thresholdUnit, currentStockUnit)}{' '}

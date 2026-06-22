@@ -81,7 +81,7 @@ function formatDate(date: Date | string | undefined): string | undefined {
 
 function StripLabel({ children }: { children: string }) {
   return (
-    <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+    <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
       <span
         aria-hidden
         className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
@@ -126,7 +126,7 @@ export function EquipmentItemInfoPanel({
         intensity="soft"
         className="flex h-full min-h-0 flex-col items-center justify-center"
       >
-        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-xs tracking-label-wide text-muted-foreground">
           Loading…
         </span>
       </ConsolePanel>
@@ -224,9 +224,9 @@ export function EquipmentItemInfoPanel({
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-base font-semibold text-card-foreground">{item.name}</h3>
+            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
             {item.description && (
-              <p className="mt-1 text-sm leading-relaxed text-card-foreground/70">
+              <p className="mt-1 text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}
@@ -277,7 +277,7 @@ export function EquipmentItemInfoPanel({
           <div>
             <SectionHeader title="Documents" size="sm" />
             {documents.length === 0 ? (
-              <p className="text-sm italic text-card-foreground/30">No documents attached</p>
+              <p className="text-body-sm italic text-card-foreground/30">No documents attached</p>
             ) : (
               <div>
                 {documents.map(doc => (
@@ -290,7 +290,7 @@ export function EquipmentItemInfoPanel({
                         href={doc.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex min-w-0 items-center gap-1.5 text-sm text-primary hover:underline"
+                        className="flex min-w-0 items-center gap-1.5 text-body-sm text-primary hover:underline"
                       >
                         <ExternalLink size={12} className="flex-shrink-0" />
                         <span className="truncate">{doc.label}</span>
@@ -319,7 +319,7 @@ export function EquipmentItemInfoPanel({
                       )}
                     </div>
                     {doc.notes && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
+                      <p className="mt-0.5 text-caption text-muted-foreground">{doc.notes}</p>
                     )}
                   </div>
                 ))}
@@ -341,7 +341,7 @@ export function EquipmentItemInfoPanel({
           {item.notes && (
             <div>
               <SectionHeader title="Notes" size="sm" />
-              <div className="whitespace-pre-wrap text-sm leading-relaxed text-card-foreground/85">
+              <div className="whitespace-pre-wrap text-body leading-relaxed text-card-foreground/85">
                 {item.notes}
               </div>
             </div>

@@ -44,7 +44,7 @@ interface EquipmentEditFormProps {
 }
 
 const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
@@ -184,14 +184,14 @@ export function EquipmentEditForm({
 
       <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
             <span
               aria-hidden
               className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
             />
             Completeness
           </span>
-          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
+          <span className="font-mono text-data-sm tracking-[0.06em] text-foreground">
             {filledCount}/{TRACKED_FIELDS.length}
           </span>
           <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
@@ -238,9 +238,9 @@ export function EquipmentEditForm({
                       return (
                         <div className="w-full">
                           {isSub ? (
-                            <span className="pl-4 text-sm">{option.label}</span>
+                            <span className="pl-4 text-body">{option.label}</span>
                           ) : (
-                            <span className="text-sm font-semibold">{option.label}</span>
+                            <span className="text-body font-semibold">{option.label}</span>
                           )}
                         </div>
                       );
@@ -256,14 +256,14 @@ export function EquipmentEditForm({
                       const parentName = parentNameMap.get(opt.value as string);
                       if (parentName) {
                         return (
-                          <span className="text-sm text-foreground">
+                          <span className="text-body text-foreground">
                             <span className="text-muted-foreground">{parentName}</span>
                             <span className="mx-1 text-muted-foreground">›</span>
                             {opt.label}
                           </span>
                         );
                       }
-                      return <span className="text-sm text-foreground">{opt.label}</span>;
+                      return <span className="text-body text-foreground">{opt.label}</span>;
                     }}
                   />
                 </div>
@@ -362,7 +362,7 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
@@ -390,7 +390,7 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />
@@ -413,7 +413,7 @@ export function EquipmentEditForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />

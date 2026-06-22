@@ -91,7 +91,7 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
         <div>
           <label
             htmlFor="locationName"
-            className="text-sm font-medium text-secondary-foreground mb-1 block"
+            className="text-body-sm font-medium text-secondary-foreground mb-1 block"
           >
             Location Name
           </label>
@@ -110,7 +110,7 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
         <div>
           <label
             htmlFor="locationDescription"
-            className="text-sm font-medium text-secondary-foreground mb-1 block"
+            className="text-body-sm font-medium text-secondary-foreground mb-1 block"
           >
             Description
           </label>

@@ -180,7 +180,7 @@ function CategorySection({
             />
           );
         }
-        return <span className="font-display text-sm text-card-foreground">{item.value}</span>;
+        return <span className="font-display text-body-sm text-card-foreground">{item.value}</span>;
       },
     },
     {
@@ -194,7 +194,7 @@ function CategorySection({
             {item.usageCount}
           </Chip>
         ) : (
-          <span className="font-mono text-sm text-muted-foreground/40">—</span>
+          <span className="font-mono text-data text-muted-foreground/40">—</span>
         ),
     },
     {
@@ -349,13 +349,13 @@ function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGro
           aria-hidden
           className="h-[11px] w-0.5 flex-shrink-0 bg-primary dark:shadow-[0_0_6px_-1px_hsl(var(--primary)/0.6)]"
         />
-        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-foreground">
+        <span className="type-label text-label-2xs tracking-label-wide text-foreground">
           {title}
         </span>
-        <span aria-hidden className="font-mono text-[9.5px] text-foreground/30">
+        <span aria-hidden className="font-mono text-label-2xs text-foreground/30">
           {'//'}
         </span>
-        <span className="font-mono text-[10px] tracking-[0.04em] text-foreground/55">
+        <span className="font-mono text-data-sm tracking-data text-foreground/55">
           {count} {count === 1 ? 'entry' : 'entries'}
         </span>
         <NubDivider tone="primary" className="absolute inset-x-0 -bottom-px" />
@@ -468,7 +468,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
 
   useEffect(() => {
     onTabFooter?.(
-      <AlertBanner variant="info" spacing="none" className="text-xs">
+      <AlertBanner variant="info" spacing="none" className="text-body-sm">
         Entries in use cannot be deleted. Renaming an entry updates every record that references it.
       </AlertBanner>
     );

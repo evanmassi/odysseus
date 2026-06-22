@@ -142,7 +142,7 @@ export function AuthSysAdminSetupPage() {
 
   return (
     <div key="sysadmin-setup" className="animate-auth-stack">
-      <AlertBanner variant="info" spacing="none" className="text-xs mb-3">
+      <AlertBanner variant="info" spacing="none" className="text-caption mb-3">
         No system administrator exists yet. Create one to manage labs and global settings.
       </AlertBanner>
 
@@ -164,7 +164,7 @@ export function AuthSysAdminSetupPage() {
               disabled={isLoading}
               maxLength={50}
             />
-            <div className="min-h-[18px] ml-1 font-mono text-[10px]">
+            <div className="min-h-[18px] ml-1 font-mono text-data-sm">
               {usernamePreview ? (
                 <p className="text-[rgb(var(--auth-text-mute))]">
                   Username:{' '}

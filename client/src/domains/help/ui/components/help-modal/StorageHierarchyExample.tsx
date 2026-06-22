@@ -32,7 +32,7 @@ function mockTubes(boxId: string, count: number): RackTube[] {
 
 function Callout({ n }: { n: number }) {
   return (
-    <span className="inline-flex h-4 w-4 flex-none items-center justify-center border border-primary/40 bg-primary/10 font-mono text-[9px] text-primary">
+    <span className="inline-flex h-4 w-4 flex-none items-center justify-center border border-primary/40 bg-primary/10 font-mono text-data-sm text-primary">
       {n}
     </span>
   );
@@ -45,7 +45,7 @@ function OccupancyBar({ filled, capacity }: { filled: number; capacity: number }
       <span className="relative h-0.5 w-10 bg-foreground/[0.07]">
         <span className="absolute inset-y-0 left-0 bg-primary/80" style={{ width: `${ratio}%` }} />
       </span>
-      <span className="font-mono text-[9px] tracking-[0.04em] text-foreground/45">
+      <span className="font-mono text-data-sm tracking-data text-foreground/45">
         {filled}
         <span className="text-foreground/25">/{capacity}</span>
       </span>
@@ -65,7 +65,7 @@ function LevelDef({
   return (
     <div className="flex items-start gap-2">
       <span className="mt-0.5 flex-none text-secondary-foreground">{icon}</span>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-body-sm text-muted-foreground">
         <span className="font-medium text-card-foreground">{label}</span> — {children}
       </p>
     </div>
@@ -76,7 +76,7 @@ function LegendRow({ n, children }: { n: number; children: ReactNode }) {
   return (
     <div className="flex items-start gap-2">
       <Callout n={n} />
-      <p className="text-xs text-muted-foreground">{children}</p>
+      <p className="text-body-sm text-muted-foreground">{children}</p>
     </div>
   );
 }
@@ -84,7 +84,7 @@ function LegendRow({ n, children }: { n: number; children: ReactNode }) {
 export function StorageHierarchyExample() {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-body-sm text-muted-foreground">
         Everything in storage nests. Tanks hold racks, racks hold boxes. Here&apos;s a tank opened
         up in the Navigator:
       </p>
@@ -94,9 +94,7 @@ export function StorageHierarchyExample() {
         <div className="flex items-center gap-2">
           <ChevronRight size={11} className="rotate-90 text-muted-foreground" />
           <Icon iconNode={refrigeratorFreezer} size={18} className="text-secondary-foreground" />
-          <span className="font-mono text-[13px] tracking-[0.02em] text-card-foreground">
-            Tank A
-          </span>
+          <span className="font-mono text-data-sm tracking-data text-card-foreground">Tank A</span>
           <span className="flex-1" />
           <OccupancyBar filled={31} capacity={50} />
           <Callout n={2} />
@@ -105,9 +103,7 @@ export function StorageHierarchyExample() {
         <div className="ml-4 flex items-center gap-2">
           <ChevronRight size={11} className="rotate-90 text-muted-foreground" />
           <Rows3 size={16} className="text-secondary-foreground" />
-          <span className="font-mono text-[13px] tracking-[0.02em] text-card-foreground">
-            Rack 1
-          </span>
+          <span className="font-mono text-data-sm tracking-data text-card-foreground">Rack 1</span>
           <span className="flex-1" />
           <UserBadge type="currentUser" initials="ME" size="sm" />
           <Callout n={3} />
@@ -122,7 +118,7 @@ export function StorageHierarchyExample() {
               size={40}
             />
             <span className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="font-mono text-[13px] tracking-[0.04em] text-card-foreground">
+              <span className="font-mono text-data-sm tracking-data text-card-foreground">
                 Box A
               </span>
               <OccupancyBar filled={13} capacity={EXAMPLE_CAPACITY} />
@@ -136,7 +132,7 @@ export function StorageHierarchyExample() {
               size={40}
             />
             <span className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="font-mono text-[13px] tracking-[0.04em] text-card-foreground">
+              <span className="font-mono text-data-sm tracking-data text-card-foreground">
                 Box B
               </span>
               <span className="flex items-center gap-1.5">
@@ -146,7 +142,7 @@ export function StorageHierarchyExample() {
                     style={{ width: '100%' }}
                   />
                 </span>
-                <span className="font-mono text-[9px] tracking-[0.08em] text-warning-text">
+                <span className="type-label text-label-2xs tracking-meta text-warning-text">
                   FULL
                 </span>
               </span>

@@ -163,7 +163,7 @@ export function SecurityTab() {
               disabled={isChanging || isDemo}
             />
             {currentPasswordError && (
-              <p className="text-[10px] text-danger-text ml-1">{currentPasswordError}</p>
+              <p className="text-caption text-danger-text ml-1">{currentPasswordError}</p>
             )}
           </div>
 
@@ -196,7 +196,7 @@ export function SecurityTab() {
               />
             )}
             {!newPasswordIsDifferent && newPasswordTouched && (
-              <p className="text-[10px] text-danger-text ml-1">
+              <p className="text-caption text-danger-text ml-1">
                 New password must be different from current password
               </p>
             )}
@@ -221,7 +221,7 @@ export function SecurityTab() {
               disabled={isChanging || isDemo}
             />
             {confirmPasswordTouched && !passwordsMatch && confirmPassword.length > 0 && !isDemo && (
-              <p className="text-[10px] text-danger-text ml-1">Passwords do not match</p>
+              <p className="text-caption text-danger-text ml-1">Passwords do not match</p>
             )}
           </div>
         </div>
@@ -249,7 +249,7 @@ export function SecurityTab() {
 
       <Subsection title="Active Sessions" index={2} accent>
         <div className="col-span-2 space-y-3 py-4">
-          <p className="text-xs text-secondary-foreground">
+          <p className="text-body-sm text-secondary-foreground">
             Manage your active sessions across all devices. You can revoke access from any device.
           </p>
           <SessionListPanel />

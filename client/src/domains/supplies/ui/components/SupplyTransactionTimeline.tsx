@@ -52,10 +52,10 @@ interface SupplyTransactionTimelineProps {
 function TxnDetail({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <span className="whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+      <span className="whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
         {label}
       </span>
-      <span className="min-w-0 break-words text-right text-sm text-card-foreground/85">
+      <span className="min-w-0 break-words text-right text-body-sm text-card-foreground/85">
         {value}
       </span>
     </div>
@@ -74,7 +74,7 @@ export function SupplyTransactionTimeline({
   const [voidingTransaction, setVoidingTransaction] = useState<SupplyTransaction | null>(null);
 
   if (transactions.length === 0) {
-    return <p className="text-sm italic text-card-foreground/30">No transactions recorded</p>;
+    return <p className="text-body-sm italic text-card-foreground/30">No transactions recorded</p>;
   }
 
   return (
@@ -142,7 +142,7 @@ function TransactionEntry({
   return (
     <div className={isVoided ? 'opacity-60' : ''}>
       <div
-        className="group flex cursor-pointer items-center gap-2 py-1 text-sm"
+        className="group flex cursor-pointer items-center gap-2 py-1 text-body-sm"
         onClick={() => hasDetails && setIsExpanded(!isExpanded)}
         onKeyDown={e => {
           if (e.key === 'Enter' && hasDetails) setIsExpanded(!isExpanded);
@@ -155,7 +155,7 @@ function TransactionEntry({
           className={`flex-shrink-0 text-card-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''} ${!hasDetails ? 'invisible' : ''}`}
         />
         <Icon size={14} className={`flex-shrink-0 ${config.color}`} />
-        <span className="whitespace-nowrap font-mono text-[11px] tracking-[0.04em] text-foreground">
+        <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-foreground">
           {formatDateForDisplay(transaction.createdAt)}
         </span>
         {isVoided && (
@@ -167,14 +167,14 @@ function TransactionEntry({
           {'//'}
         </span>
         <span
-          className={`whitespace-nowrap text-xs font-semibold ${config.color} ${isVoided ? 'line-through' : ''}`}
+          className={`whitespace-nowrap text-body-sm font-semibold ${config.color} ${isVoided ? 'line-through' : ''}`}
         >
           {quantityDisplay} {unit}
         </span>
         <span aria-hidden className="text-foreground/30">
           {'//'}
         </span>
-        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate text-caption text-muted-foreground">
           {locationName}
         </span>
         {canVoid && (

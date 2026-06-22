@@ -76,7 +76,7 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
       <div>
         <label
           htmlFor="bc-value"
-          className="text-xs font-medium text-secondary-foreground block mb-0.5"
+          className="text-body-sm font-medium text-secondary-foreground block mb-0.5"
         >
           Barcode Value *
         </label>
@@ -102,7 +102,7 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
         <div>
           <label
             htmlFor="bc-label"
-            className="text-xs font-medium text-secondary-foreground block mb-0.5"
+            className="text-body-sm font-medium text-secondary-foreground block mb-0.5"
           >
             Label
           </label>
@@ -118,7 +118,7 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
         </div>
       </div>
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Checkbox is the control */}
-      <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+      <label className="flex items-center gap-1.5 text-body-sm cursor-pointer">
         <Checkbox checked={isPrimary} onChange={setIsPrimary} />
         Set as primary barcode
       </label>

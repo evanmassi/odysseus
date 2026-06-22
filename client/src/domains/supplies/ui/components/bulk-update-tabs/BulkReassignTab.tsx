@@ -50,7 +50,7 @@ export function BulkReassignTab({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-body text-muted-foreground">
         Move {selectedCount} selected item{selectedCount !== 1 ? 's' : ''} to a different category.
       </p>
       <div>
@@ -66,9 +66,9 @@ export function BulkReassignTab({
           fullWidth
           renderOption={option =>
             option.description ? (
-              <span className="pl-4 text-sm">{option.label}</span>
+              <span className="pl-4 text-body-sm">{option.label}</span>
             ) : (
-              <span className="text-sm font-semibold">{option.label}</span>
+              <span className="text-body-sm font-semibold">{option.label}</span>
             )
           }
         />

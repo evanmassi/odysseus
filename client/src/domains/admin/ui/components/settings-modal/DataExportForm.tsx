@@ -177,7 +177,7 @@ export function DataExportForm() {
         </Button>
       </div>
 
-      <p className="text-xs text-muted-foreground pl-[30px]">{currentOption?.description}</p>
+      <p className="text-body-sm text-muted-foreground pl-[30px]">{currentOption?.description}</p>
     </div>
   );
 }

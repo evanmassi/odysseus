@@ -73,7 +73,7 @@ export function TubeConcentrationField({
   };
 
   const getLabelClasses = () => {
-    const baseClasses = 'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5';
+    const baseClasses = 'block type-label text-label-2xs tracking-label-wide mb-1.5';
 
     if (validation?.error) {
       return `${baseClasses} text-danger-text`;
@@ -172,7 +172,7 @@ export function TubeConcentrationField({
       {validation?.helperText && (
         <div
           className={`
-          flex items-center mt-1 text-xs
+          flex items-center mt-1 text-body-sm
           ${
             validation.error
               ? 'text-danger-text'

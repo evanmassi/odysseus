@@ -48,7 +48,7 @@ export function PasswordRequirements({
       {requirements.map((requirement: PasswordRequirement) => (
         <li
           key={requirement.id}
-          className={`text-[10px] flex items-start ${getRequirementColor(requirement.isMet)}`}
+          className={`text-caption flex items-start ${getRequirementColor(requirement.isMet)}`}
         >
           <span className="mr-1">{requirement.isMet ? '✓' : showError ? '✗' : '•'}</span>
           <span>{requirement.label}</span>

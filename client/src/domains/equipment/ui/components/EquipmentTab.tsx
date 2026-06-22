@@ -190,13 +190,13 @@ export function EquipmentTab() {
                 aria-hidden
                 className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
               />
-              <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+              <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
                 {unitCount}{' '}
                 <span className="text-foreground/45">{unitCount === 1 ? 'unit' : 'units'}</span>
               </span>
             </span>
             <span className="flex-1" />
-            <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+            <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
               {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
             </span>
           </HeaderStrip>
@@ -211,7 +211,7 @@ export function EquipmentTab() {
               className="w-64"
               aria-label="Search equipment"
             />
-            <span className="flex-shrink-0 text-xs font-medium text-secondary-foreground">
+            <span className="flex-shrink-0 text-body-sm font-medium text-secondary-foreground">
               Sort
             </span>
             <Select
@@ -239,7 +239,7 @@ export function EquipmentTab() {
               variant="ghost"
               size="sm"
               onClick={() => setShowDecommissioned(!showDecommissioned)}
-              className="h-8 text-xs"
+              className="h-8 text-label-sm"
               leftIcon={
                 showDecommissioned ? (
                   <EyeOff className="h-3.5 w-3.5" />

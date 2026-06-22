@@ -76,10 +76,10 @@ export function TubeBulkProgressModal({
             </h3>
 
             {!isIndeterminate && (
-              <div className="text-sm text-muted-foreground">
+              <div className="text-body-sm text-muted-foreground">
                 {progress.current} of {progress.total} tubes
                 {progress.currentTubeId && (
-                  <div className="text-xs mt-1 text-muted-foreground">
+                  <div className="text-caption mt-1 text-muted-foreground">
                     Processing: {progress.currentTubeId}
                   </div>
                 )}
@@ -95,7 +95,7 @@ export function TubeBulkProgressModal({
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
-              <div className="text-center text-sm text-muted-foreground">
+              <div className="text-center text-body-sm text-muted-foreground">
                 {Math.round(progressPercentage)}% complete
               </div>
             </div>
@@ -106,11 +106,11 @@ export function TubeBulkProgressModal({
             <div className="mb-4 p-3 bg-muted border border-danger-border rounded-lg">
               <div className="flex items-center space-x-2 text-danger-text mb-2">
                 <AlertCircle size={16} />
-                <span className="font-medium text-sm">
+                <span className="font-medium text-body-sm">
                   {progress.errors.length} issue{progress.errors.length > 1 ? 's' : ''} encountered
                 </span>
               </div>
-              <div className="max-h-20 overflow-y-auto text-xs text-danger-text space-y-1">
+              <div className="max-h-20 overflow-y-auto text-caption text-danger-text space-y-1">
                 {progress.errors.slice(0, 3).map((error, index) => (
                   <div key={index} className="flex items-start space-x-1">
                     <XCircle size={12} className="mt-0.5 flex-shrink-0" />

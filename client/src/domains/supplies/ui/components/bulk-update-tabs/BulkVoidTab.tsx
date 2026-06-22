@@ -142,7 +142,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
           </div>
         </div>
         {selectedItem && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-caption text-muted-foreground">
             {eligibleTransactions.length} voidable transaction
             {eligibleTransactions.length !== 1 ? 's' : ''} for{' '}
             <span className="font-medium text-card-foreground">{selectedItem.name}</span>
@@ -172,13 +172,13 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
                   onChange={() => toggleTransaction(txn.id)}
                 />
                 <Icon size={14} className="flex-shrink-0 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground flex-shrink-0">
+                <span className="text-caption text-muted-foreground flex-shrink-0">
                   {formatDateForDisplay(txn.createdAt)}
                 </span>
-                <span className="text-xs font-medium flex-shrink-0">
+                <span className="text-caption font-medium flex-shrink-0">
                   {qty} {unit}
                 </span>
-                <span className="text-xs text-muted-foreground truncate">
+                <span className="text-caption text-muted-foreground truncate">
                   {TYPE_LABELS[txn.type] ?? txn.type} ·{' '}
                   {locationNameMap.get(txn.locationId) ?? txn.locationId}
                 </span>
@@ -186,7 +186,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
             );
           })}
           {selectedItemId && eligibleTransactions.length === 0 && (
-            <p className="text-xs text-muted-foreground italic text-center py-4">
+            <p className="text-caption text-muted-foreground italic text-center py-4">
               No voidable transactions
             </p>
           )}
@@ -210,7 +210,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
           />
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">{selectedTxnIds.size} selected</span>
+          <span className="text-caption text-muted-foreground">{selectedTxnIds.size} selected</span>
           <div className="flex gap-2">
             <Button variant="secondary" onClick={onComplete}>
               Cancel

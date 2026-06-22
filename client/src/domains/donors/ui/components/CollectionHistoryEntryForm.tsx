@@ -10,7 +10,7 @@ import { Button, DatePicker, Select } from '@shared/ui';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 const FIELD_LABEL =
-  'mb-1.5 block font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground';
+  'mb-1.5 block type-label text-label-2xs tracking-label-wide text-muted-foreground';
 
 interface CollectionHistoryEntryFormProps {
   date: string;

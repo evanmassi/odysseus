@@ -86,7 +86,7 @@ export function ResearchersTab({
             </Chip>
           )}
         </div>
-        <AlertBanner variant="info" spacing="none" className="text-xs">
+        <AlertBanner variant="info" spacing="none" className="text-body-sm">
           Researchers can only be deleted with zero tubes and no linked user.
         </AlertBanner>
       </div>
@@ -263,10 +263,10 @@ export function ResearchersTab({
               <Dna size={14} className="text-secondary-foreground" />
             </div>
             <div>
-              <div className="font-sans text-sm font-medium text-card-foreground">
+              <div className="font-sans text-body-sm font-medium text-card-foreground">
                 {researcher.lastName}, {researcher.firstName}
               </div>
-              <div className="text-xs text-muted-foreground">{researcher.email}</div>
+              <div className="text-caption text-muted-foreground">{researcher.email}</div>
             </div>
           </div>
         );
@@ -300,7 +300,7 @@ export function ResearchersTab({
           return (
             <div className="flex flex-col gap-0.5">
               <div
-                className={`flex items-center gap-1.5 text-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
+                className={`flex items-center gap-1.5 text-body-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
               >
                 <Link2
                   size={14}
@@ -329,7 +329,7 @@ export function ResearchersTab({
       render: (_, researcher) => {
         const isSelfResearcher = researcher.linkedUserId === currentUserId;
         return (
-          <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
+          <div className="flex items-center gap-1 whitespace-nowrap text-body-sm font-medium">
             <Tooltip
               content={
                 isSelfResearcher
@@ -422,7 +422,7 @@ export function ResearchersTab({
         <div className="pt-3 border-t border-border">
           <button
             onClick={() => setShowInactive(prev => !prev)}
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronDown
               size={14}

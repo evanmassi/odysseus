@@ -100,7 +100,7 @@ export function ResearcherModal({
               onChange={() => setActionMode('create')}
               className="w-4 h-4"
             />
-            <span className="text-sm font-medium text-secondary-foreground">
+            <span className="text-body-sm font-medium text-secondary-foreground">
               Add New Researcher
             </span>
           </label>
@@ -111,7 +111,7 @@ export function ResearcherModal({
               onChange={() => setActionMode('select')}
               className="w-4 h-4"
             />
-            <span className="text-sm font-medium text-secondary-foreground">
+            <span className="text-body-sm font-medium text-secondary-foreground">
               Link Existing Researcher
             </span>
           </label>
@@ -196,14 +196,14 @@ export function ResearcherModal({
                 className="border border-border rounded p-3 flex items-center justify-between hover:bg-accent transition-colors"
               >
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-card-foreground">
+                  <div className="text-body-sm font-medium text-card-foreground">
                     {researcher.firstName} {researcher.lastName}
                   </div>
                   {researcher.email && (
-                    <div className="text-xs text-muted-foreground">{researcher.email}</div>
+                    <div className="text-caption text-muted-foreground">{researcher.email}</div>
                   )}
                   {researcher.position && (
-                    <div className="text-xs text-muted-foreground">{researcher.position}</div>
+                    <div className="text-caption text-muted-foreground">{researcher.position}</div>
                   )}
                 </div>
                 <Button
@@ -218,7 +218,9 @@ export function ResearcherModal({
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground">No unlinked researchers available</p>
+              <p className="text-body-sm text-muted-foreground">
+                No unlinked researchers available
+              </p>
             </div>
           )}
         </div>
@@ -269,7 +271,7 @@ function FormField({
           />
         )}
       />
-      {errorMessage && <p className="text-xs text-danger-text mt-1 ml-1">{errorMessage}</p>}
+      {errorMessage && <p className="text-body-sm text-danger-text mt-1 ml-1">{errorMessage}</p>}
     </div>
   );
 }

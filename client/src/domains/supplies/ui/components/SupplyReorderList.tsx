@@ -100,7 +100,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
           <div className="flex flex-col leading-tight">
             <span className="text-muted-foreground">{row.manufacturer}</span>
             {row.catalogNumber !== '—' && (
-              <span className="font-mono text-[11px] tracking-[0.02em] text-foreground/45">
+              <span className="font-mono text-data-sm tracking-[0.02em] text-foreground/45">
                 {row.catalogNumber}
               </span>
             )}
@@ -115,7 +115,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
           <div className="flex flex-col leading-tight">
             <span className="text-muted-foreground">{row.vendorName}</span>
             {row.vendorCatalogNumber !== '—' && (
-              <span className="font-mono text-[11px] tracking-[0.02em] text-foreground/45">
+              <span className="font-mono text-data-sm tracking-[0.02em] text-foreground/45">
                 {row.vendorCatalogNumber}
               </span>
             )}
@@ -174,7 +174,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
             aria-hidden
             className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
           />
-          <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+          <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
             {items.length} <span className="text-foreground/45">below reorder</span>
           </span>
         </div>
@@ -188,7 +188,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
         sortConfig={sortConfig}
         onSort={setSortConfig}
         density="compact"
-        className="text-xs"
+        className="text-data"
         toolbar={{
           right: (
             <Button

@@ -271,7 +271,7 @@ export function AuditLogViewer({
       width: '8rem',
       render: (_, entry) => {
         return (
-          <span className="whitespace-nowrap text-muted-foreground text-[11px]">
+          <span className="whitespace-nowrap text-muted-foreground text-data-sm">
             {formatTimestamp(entry.timestamp)}
           </span>
         );
@@ -307,7 +307,7 @@ export function AuditLogViewer({
       width: '7rem',
       render: (_, entry) => {
         if (!entry.entityType) {
-          return <span className="text-muted-foreground text-xs">-</span>;
+          return <span className="text-muted-foreground text-data">-</span>;
         }
         const icon = getEntityIcon(entry.entityType);
         return (
@@ -350,9 +350,9 @@ export function AuditLogViewer({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {!hideHeader && (
-            <h4 className="text-base font-semibold text-card-foreground">Audit Log</h4>
+            <h4 className="text-body font-semibold text-card-foreground">Audit Log</h4>
           )}
-          <span className="text-xs text-muted-foreground">
+          <span className="text-caption text-muted-foreground">
             ({(pagination?.total || 0).toLocaleString()} total entries)
           </span>
         </div>
@@ -420,12 +420,14 @@ export function AuditLogViewer({
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-8 text-sm text-muted-foreground">Loading audit log...</div>
+        <div className="text-center py-8 text-body-sm text-muted-foreground">
+          Loading audit log...
+        </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-muted border border-danger-border text-danger-text px-3 py-2 rounded text-sm">
+        <div className="bg-muted border border-danger-border text-danger-text px-3 py-2 rounded text-body-sm">
           {error}
         </div>
       )}
@@ -436,21 +438,21 @@ export function AuditLogViewer({
           columns={auditLogColumns}
           data={entries}
           hoverable
-          className="text-xs table-fixed"
+          className="text-data table-fixed"
           aria-label="Audit log entries"
         />
       )}
 
       {/* Empty State */}
       {!loading && !error && (!entries || entries.length === 0) && (
-        <div className="text-center py-8 text-sm text-muted-foreground">
+        <div className="text-center py-8 text-body-sm text-muted-foreground">
           No audit log entries found.
         </div>
       )}
 
       {/* Pagination */}
       {!loading && entries && entries.length > 0 && (
-        <div className="flex items-center justify-between text-xs text-secondary-foreground">
+        <div className="flex items-center justify-between text-caption text-secondary-foreground">
           <div>
             Showing {(filters.offset ?? 0) + 1} -{' '}
             {Math.min((filters.offset ?? 0) + (entries?.length ?? 0), pagination?.total ?? 0)} of{' '}

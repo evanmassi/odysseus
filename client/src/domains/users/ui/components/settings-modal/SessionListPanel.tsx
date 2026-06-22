@@ -53,7 +53,7 @@ function getDeviceIcon(isCurrentSession: boolean, deviceType: string) {
 
 function CurrentSessionBadge() {
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-caption font-medium bg-success-light text-success-text mt-1">
       Current Session
     </span>
   );
@@ -135,7 +135,7 @@ export function SessionListPanel() {
           />
           <div>
             <p
-              className={`text-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+              className={`text-body-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
             >
               {row.device}
             </p>
@@ -149,7 +149,7 @@ export function SessionListPanel() {
       header: 'Location',
       render: (_val, row) => (
         <p
-          className={`text-sm ${row.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
+          className={`text-body-sm ${row.isCurrentSession ? 'text-success-text' : 'text-secondary-foreground'}`}
         >
           {row.ipAddress ?? 'Unknown'}
         </p>
@@ -161,12 +161,12 @@ export function SessionListPanel() {
       render: (_val, row) => (
         <div>
           <p
-            className={`text-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
+            className={`text-body-sm font-medium ${row.isCurrentSession ? 'text-success-text' : 'text-card-foreground'}`}
           >
             {row.timestamp.relative}
           </p>
           <p
-            className={`text-xs ${row.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
+            className={`text-caption ${row.isCurrentSession ? 'text-success-text/70' : 'text-muted-foreground'}`}
           >
             {row.timestamp.absolute}
           </p>
@@ -199,7 +199,7 @@ export function SessionListPanel() {
     return (
       <div className="flex items-center justify-center py-8">
         <RefreshCw className="animate-spin text-muted-foreground" size={24} />
-        <span className="ml-2 text-sm text-secondary-foreground">Loading sessions...</span>
+        <span className="ml-2 text-body-sm text-secondary-foreground">Loading sessions...</span>
       </div>
     );
   }
@@ -220,7 +220,7 @@ export function SessionListPanel() {
         selectedRowGlow
         toolbar={{
           left: (
-            <p className="text-sm text-secondary-foreground">
+            <p className="text-body-sm text-secondary-foreground">
               Showing {displayedSessions.length} of {sessions.length} active session
               {sessions.length !== 1 ? 's' : ''}
             </p>

@@ -27,7 +27,7 @@ interface EquipmentDecommissionFormProps {
 }
 
 const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 export function EquipmentDecommissionForm({
   itemId,
@@ -79,7 +79,7 @@ export function EquipmentDecommissionForm({
           onSubmit={handleSubmit(onFormSubmit)}
           className="space-y-4 p-4"
         >
-          <p className="text-xs leading-relaxed text-muted-foreground">
+          <p className="text-body-sm leading-relaxed text-muted-foreground">
             Decommissioning <span className="font-medium text-foreground">{itemName}</span> will
             mark it as permanently retired. It will be hidden from the main list but can still be
             viewed using the &quot;Show Decommissioned&quot; toggle.
@@ -98,7 +98,7 @@ export function EquipmentDecommissionForm({
                     state={error ? 'error' : 'default'}
                     fullWidth
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />

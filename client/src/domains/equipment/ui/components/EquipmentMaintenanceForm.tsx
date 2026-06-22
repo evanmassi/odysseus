@@ -39,7 +39,7 @@ interface EquipmentMaintenanceFormProps {
 }
 
 const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 export function EquipmentMaintenanceForm({
   itemId,
@@ -131,7 +131,7 @@ export function EquipmentMaintenanceForm({
                   state={error ? 'error' : 'default'}
                   fullWidth
                 />
-                {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
               </div>
             )}
           />
@@ -199,7 +199,7 @@ export function EquipmentMaintenanceForm({
                     fullWidth
                     clearable
                   />
-                  {error && <p className="mt-1 text-xs text-danger-text">{error.message}</p>}
+                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
                 </div>
               )}
             />

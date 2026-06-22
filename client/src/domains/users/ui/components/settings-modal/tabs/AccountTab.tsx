@@ -231,7 +231,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
       {hasChanges && (
         <Subsection title="Confirm Changes" index={2} accent>
           <div className="col-span-2 space-y-3 py-4">
-            <p className="text-xs text-secondary-foreground">
+            <p className="text-body-sm text-secondary-foreground">
               Enter your current password to save changes
             </p>
 

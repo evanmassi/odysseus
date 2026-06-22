@@ -79,7 +79,7 @@ export function LabResearchersPanel({
             <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.20)_0%,hsl(var(--foreground)/0.12)_55%,hsl(var(--foreground)/0.04)_88%,transparent_100%)]">
               <button
                 onClick={() => setShowInactive(prev => !prev)}
-                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 <ChevronDown
                   size={14}
@@ -137,11 +137,11 @@ function getResearcherColumns(
               size="md"
             />
             <div>
-              <div className="font-sans text-[13px] font-medium text-foreground">
+              <div className="font-sans text-body-sm font-medium text-foreground">
                 {row.lastName}, {row.firstName}
               </div>
               {row.email && (
-                <div className="mt-0.5 font-mono text-[10.5px] tracking-[0.04em] text-foreground/40">
+                <div className="mt-0.5 font-mono text-data-sm tracking-[0.04em] text-foreground/40">
                   {row.email}
                 </div>
               )}
@@ -175,7 +175,7 @@ function getResearcherColumns(
           return (
             <div className="flex flex-col gap-0.5">
               <div
-                className={`flex items-center gap-1.5 whitespace-nowrap text-[13px] ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
+                className={`flex items-center gap-1.5 whitespace-nowrap text-body-sm ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
               >
                 <Link2
                   size={14}

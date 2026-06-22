@@ -99,7 +99,7 @@ export function SupplyVoidTransactionModal({
     >
       {transaction && (
         <div className="space-y-4">
-          <div className="bg-muted rounded-md p-3 space-y-1 text-sm">
+          <div className="bg-muted rounded-md p-3 space-y-1 text-body-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Type</span>
               <span className="font-medium">
@@ -127,7 +127,7 @@ export function SupplyVoidTransactionModal({
           <div>
             <label
               htmlFor="void-reason"
-              className="text-sm font-medium text-secondary-foreground block mb-1"
+              className="text-body-sm font-medium text-secondary-foreground block mb-1"
             >
               Reason for voiding *
             </label>

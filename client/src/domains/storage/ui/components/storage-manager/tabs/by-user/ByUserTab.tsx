@@ -96,7 +96,7 @@ export function ByUserTab({
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
         <UsersRound size={48} className="mb-4 opacity-50" />
-        <p className="text-sm">No resource assignments found</p>
+        <p className="text-body-sm">No resource assignments found</p>
       </div>
     );
   }
@@ -245,7 +245,7 @@ export function ByUserTab({
                                     rackGroup.rackCustomLabel
                                   )}
                                   {!rackGroup.ownsRack && (
-                                    <span className="ml-1.5 text-xs text-muted-foreground italic font-normal">
+                                    <span className="ml-1.5 text-caption text-muted-foreground italic font-normal">
                                       (boxes only)
                                     </span>
                                   )}

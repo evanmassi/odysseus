@@ -159,13 +159,13 @@ export function SupplyLowStockAlertPanel({
             className={`flex-shrink-0 text-foreground/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
           />
           <span aria-hidden className={`h-[11px] w-0.5 flex-shrink-0 ${stripeClass}`} />
-          <span className={`font-mono text-[10px] uppercase tracking-[0.22em] ${labelClass}`}>
+          <span className={`type-label text-label-2xs tracking-label-wide ${labelClass}`}>
             Low Stock Alerts
           </span>
-          <span aria-hidden className="font-mono text-[9.5px] text-foreground/30">
+          <span aria-hidden className="font-mono text-data-sm text-foreground/30">
             {'//'}
           </span>
-          <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.04em]">
+          <span className="flex items-center gap-2 font-mono text-data-sm tracking-[0.04em]">
             {outOfStockCount > 0 && (
               <span className="text-danger-text">{outOfStockCount} out of stock</span>
             )}
@@ -193,7 +193,7 @@ export function SupplyLowStockAlertPanel({
               selectedRowGlow
               rowState={row => (row.totalStock <= 0 ? 'danger' : 'warning')}
               density="compact"
-              className="text-xs"
+              className="text-data"
               aria-label="Low stock alerts"
             />
             <div className="flex justify-center px-3 py-3">

@@ -96,7 +96,7 @@ interface SupplyItemInfoPanelProps {
 
 function StripLabel({ children }: { children: string }) {
   return (
-    <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+    <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
       <span
         aria-hidden
         className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
@@ -150,7 +150,7 @@ export function SupplyItemInfoPanel({
         intensity="soft"
         className="flex h-full min-h-0 flex-col items-center justify-center"
       >
-        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+        <span className="type-label text-label-xs tracking-label-wide text-muted-foreground">
           Loading…
         </span>
       </ConsolePanel>
@@ -187,7 +187,7 @@ export function SupplyItemInfoPanel({
           return `${inputQty} ${pluralizeUnit(item.reorderThresholdUnit, inputQty)}`;
         })()}
         {item.reorderThresholdUnit && item.reorderThresholdUnit !== item.stockUnit && (
-          <span className="ml-1 text-xs text-muted-foreground">
+          <span className="ml-1 text-caption text-muted-foreground">
             ({item.reorderThreshold}{' '}
             {pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)})
           </span>
@@ -314,9 +314,9 @@ export function SupplyItemInfoPanel({
       <ScrollArea ref={scrollRef} className="min-h-0 flex-1">
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-base font-semibold text-card-foreground">{item.name}</h3>
+            <h3 className="text-body font-semibold text-card-foreground">{item.name}</h3>
             {item.description && (
-              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-card-foreground/70">
+              <p className="mt-1 whitespace-pre-wrap text-body leading-relaxed text-card-foreground/70">
                 {item.description}
               </p>
             )}
@@ -398,20 +398,20 @@ export function SupplyItemInfoPanel({
                                 toned ? 'bg-primary' : 'bg-muted-foreground/30'
                               }`}
                             />
-                            <span className="font-display text-sm capitalize text-card-foreground">
+                            <span className="font-display text-body-sm capitalize text-card-foreground">
                               {row.name}
                             </span>
                           </div>
-                          <span className="font-mono text-[11px] tracking-[0.04em] text-muted-foreground">
+                          <span className="font-mono text-data-sm tracking-[0.04em] text-muted-foreground">
                             contains {row.contains}
                           </span>
                           <span
-                            className={`text-right font-mono text-xs tracking-[0.04em] ${
+                            className={`text-right font-mono text-data-sm tracking-[0.04em] ${
                               toned ? 'text-primary' : 'text-foreground/70'
                             }`}
                           >
                             {row.roll.toLocaleString()}
-                            <span className="ml-1 text-[9.5px] text-foreground/40">
+                            <span className="ml-1 text-label-2xs text-foreground/40">
                               {pluralizeUnit(baseName, row.roll)}
                             </span>
                           </span>
@@ -429,7 +429,7 @@ export function SupplyItemInfoPanel({
             {stock.length > 0 ? (
               <div className="space-y-1">
                 {stock.map(s => (
-                  <div key={s.id} className="flex justify-between text-sm">
+                  <div key={s.id} className="flex justify-between text-body-sm">
                     <span className="text-muted-foreground">
                       {locationNameMap.get(s.locationId) ?? s.locationId}
                     </span>
@@ -438,7 +438,7 @@ export function SupplyItemInfoPanel({
                     </span>
                   </div>
                 ))}
-                <div className="flex justify-between border-t border-border pt-1 text-sm font-semibold">
+                <div className="flex justify-between border-t border-border pt-1 text-body-sm font-semibold">
                   <span>Total</span>
                   <span>
                     {totalStock} {pluralizeUnit(item.stockUnit ?? 'unit', totalStock)}
@@ -446,7 +446,7 @@ export function SupplyItemInfoPanel({
                 </div>
               </div>
             ) : (
-              <p className="text-xs italic text-muted-foreground">No stock entries</p>
+              <p className="text-caption italic text-muted-foreground">No stock entries</p>
             )}
           </div>
 
@@ -488,13 +488,13 @@ export function SupplyItemInfoPanel({
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between text-body-sm">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-caption text-muted-foreground">
                             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string should fallback to type label */}
                             {bc.label || (BARCODE_TYPE_LABELS[bc.barcodeType] ?? bc.barcodeType)}:
                           </span>
-                          <span className="font-mono text-xs text-card-foreground">
+                          <span className="font-mono text-data-sm text-card-foreground">
                             {bc.barcodeValue}
                           </span>
                           {bc.isPrimary && (
@@ -559,7 +559,7 @@ export function SupplyItemInfoPanel({
                 ))}
               </div>
             ) : (
-              <p className="text-xs italic text-muted-foreground">No barcodes</p>
+              <p className="text-caption italic text-muted-foreground">No barcodes</p>
             )}
             {isAdmin && (
               <div className="mt-2">
@@ -574,7 +574,7 @@ export function SupplyItemInfoPanel({
               <div className="space-y-1.5">
                 {documents.map(doc => (
                   <div key={doc.id}>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-body-sm">
                       <a
                         href={doc.url}
                         target="_blank"
@@ -610,13 +610,13 @@ export function SupplyItemInfoPanel({
                       )}
                     </div>
                     {doc.notes && (
-                      <p className="mt-0.5 text-xs text-muted-foreground">{doc.notes}</p>
+                      <p className="mt-0.5 text-caption text-muted-foreground">{doc.notes}</p>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs italic text-muted-foreground">No documents</p>
+              <p className="text-caption italic text-muted-foreground">No documents</p>
             )}
             {isAdmin && (
               <Button
@@ -634,7 +634,7 @@ export function SupplyItemInfoPanel({
           {item.notes && (
             <div>
               <SectionHeader title="Notes" size="sm" />
-              <p className="whitespace-pre-wrap text-sm text-card-foreground">{item.notes}</p>
+              <p className="whitespace-pre-wrap text-body text-card-foreground">{item.notes}</p>
             </div>
           )}
 

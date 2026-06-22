@@ -34,9 +34,7 @@ export function SearchSortControls() {
       className="relative flex h-9 items-center gap-2.5 border-b border-line-soft px-4"
       style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
     >
-      <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-foreground/55">
-        Sort
-      </span>
+      <span className="type-label text-label-2xs tracking-label-wide text-foreground/55">Sort</span>
 
       <Select
         options={SORT_OPTIONS}

@@ -80,14 +80,14 @@ export function SupplyBulkUpdateModal({
           aria-hidden
           className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
         />
-        <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+        <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
           {selectableCount} <span className="text-foreground/45">items</span>
         </span>
       </span>
       {showSelector && (
         <>
           <span className="flex-1" />
-          <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+          <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
             {selectedIds.size} selected
           </span>
         </>
@@ -419,7 +419,7 @@ function ItemSelector({
         placeholder="Filter items…"
         size="sm"
         className="mb-2 flex-shrink-0"
-        inputClassName="text-xs"
+        inputClassName="text-body-sm"
         aria-label="Filter items"
       />
       <div className="mb-3 flex-shrink-0">
@@ -430,8 +430,8 @@ function ItemSelector({
             onChange={toggleAll}
             aria-label="Select all items"
           />
-          <span className="text-sm font-medium text-card-foreground flex-1">All Items</span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-body-sm font-medium text-card-foreground flex-1">All Items</span>
+          <span className="text-caption text-muted-foreground">
             {selectedCount}/{allSelectableIds.length} items
           </span>
         </div>
@@ -441,7 +441,7 @@ function ItemSelector({
         <div data-tree-id="bulk-select" className="nav-tree-select relative space-y-2 pr-2">
           <BulkSelectTreeLines />
           {groups.length === 0 && searchQuery && (
-            <p className="text-sm text-muted-foreground text-center py-4">
+            <p className="text-body-sm text-muted-foreground text-center py-4">
               No items matching &ldquo;{searchQuery}&rdquo;
             </p>
           )}
@@ -462,8 +462,10 @@ function ItemSelector({
                     aria-label={`Select all in ${group.category.name}`}
                   />
                   <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
-                  <span className="text-sm text-secondary-foreground">{group.category.name}</span>
-                  <span className="text-xs text-muted-foreground ml-auto">
+                  <span className="text-body-sm text-secondary-foreground">
+                    {group.category.name}
+                  </span>
+                  <span className="text-caption text-muted-foreground ml-auto">
                     {groupIds.length} {groupIds.length === 1 ? 'item' : 'items'}
                   </span>
                 </div>
@@ -499,10 +501,10 @@ function ItemSelector({
                               size={13}
                               className="flex-shrink-0 text-muted-foreground"
                             />
-                            <span className="text-sm text-secondary-foreground">
+                            <span className="text-body-sm text-secondary-foreground">
                               {sub.category.name}
                             </span>
-                            <span className="text-xs text-muted-foreground ml-auto">
+                            <span className="text-caption text-muted-foreground ml-auto">
                               {subIds.length} {subIds.length === 1 ? 'item' : 'items'}
                             </span>
                           </div>
@@ -550,11 +552,11 @@ function BulkSelectItem({
       <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
         <Checkbox checked={selected} onChange={onToggle} aria-label={`Select ${item.name}`} />
         <div className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-card-foreground">
+          <span className="block truncate text-body-sm font-medium text-card-foreground">
             {item.name}
           </span>
           {identity.length > 0 && (
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block truncate text-caption text-muted-foreground">
               {identity.map((part, i) => (
                 <span key={i}>
                   {i > 0 && <span className="mx-1 text-foreground/30">{'//'}</span>}

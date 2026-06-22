@@ -176,7 +176,7 @@ export function SupplyBarcodeSheetModal({
     >
       <div className="flex flex-col gap-3 h-full min-h-0">
         <div className="flex items-center justify-between flex-shrink-0">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body-sm text-muted-foreground">
             {labels.length} label{labels.length === 1 ? '' : 's'} · {totalPages} sheet
             {totalPages === 1 ? '' : 's'} · {template.name}
           </p>
@@ -193,7 +193,7 @@ export function SupplyBarcodeSheetModal({
               >
                 <ChevronLeft size={16} />
               </Button>
-              <span className="text-sm text-card-foreground">
+              <span className="text-body-sm text-card-foreground">
                 Sheet {safeCurrentPage} of {totalPages}
               </span>
               <Button

@@ -84,7 +84,7 @@ function VerifyContent() {
       <div key="verify-verifying" className={`animate-auth-stack ${exitClass}`}>
         <div className="flex flex-col items-center gap-4 py-2">
           <LoadingSpinner size="lg" />
-          <p className="text-sm text-[rgb(var(--auth-text-dim))]">Verifying your email…</p>
+          <p className="text-body-sm text-[rgb(var(--auth-text-dim))]">Verifying your email…</p>
         </div>
       </div>
     );
@@ -116,7 +116,7 @@ function VerifyContent() {
         {error}
       </AlertBanner>
 
-      <p className="mb-6 font-mono text-xs text-[rgb(var(--auth-text-mute))]">
+      <p className="mb-6 font-mono text-data-sm text-[rgb(var(--auth-text-mute))]">
         Links expire after 48 hours and can only be used once.
       </p>
 

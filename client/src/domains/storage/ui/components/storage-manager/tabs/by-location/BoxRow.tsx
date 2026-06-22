@@ -170,7 +170,7 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
                 />
               </span>
               <span
-                className={`flex-none font-mono text-[8.5px] tracking-[0.08em] ${
+                className={`flex-none font-mono text-data-sm tracking-[0.08em] ${
                   isFull ? 'text-warning-text' : 'text-foreground/40'
                 }`}
               >

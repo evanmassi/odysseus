@@ -127,7 +127,7 @@ export function SearchResultsPanel({
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="flex items-center">
           <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
-          <span className="ml-2 text-sm text-secondary-foreground">Searching...</span>
+          <span className="ml-2 text-body-sm text-secondary-foreground">Searching...</span>
         </div>
       </div>
     );
@@ -138,8 +138,8 @@ export function SearchResultsPanel({
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="text-center text-muted-foreground">
           <TubeIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
-          <p className="text-sm">Search inventory</p>
-          <p className="text-xs mt-1">Browse with filters</p>
+          <p className="text-body-sm">Search inventory</p>
+          <p className="text-caption mt-1">Browse with filters</p>
         </div>
       </div>
     );
@@ -462,9 +462,7 @@ export function SearchResultsPanel({
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
           <div className="flex items-center border border-line-soft bg-card px-3 py-1 shadow-[0_8px_20px_-12px_hsl(var(--recess)/0.7)]">
             <div className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full" />
-            <span className="ml-2 font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/60">
-              Updating
-            </span>
+            <span className="ml-2 type-label text-label-2xs text-foreground/60">Updating</span>
           </div>
         </div>
       )}
@@ -476,7 +474,7 @@ export function SearchResultsPanel({
       <ScrollArea className="flex-1 p-4 space-y-3">
         {/* Results Header */}
         <div className="flex items-center justify-between border-b border-line-soft pb-2">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/60">
+          <div className="type-label text-label-2xs text-foreground/60">
             <span className="tabular-nums text-foreground/85">{totalCount}</span> tube
             {totalCount !== 1 ? 's' : ''} found
           </div>
@@ -531,13 +529,13 @@ export function SearchResultsPanel({
                         size={14}
                         aria-hidden="true"
                       />
-                      <span className="text-xs font-semibold text-card-foreground">
+                      <span className="text-body-sm font-semibold text-card-foreground">
                         {highlightText(cellType, query)}
                       </span>
                       {species && (
                         <>
                           <span className="text-muted-foreground">·</span>
-                          <span className="text-xs text-secondary-foreground">
+                          <span className="text-body-sm text-secondary-foreground">
                             {highlightText(species, query)}
                           </span>
                         </>
@@ -551,7 +549,7 @@ export function SearchResultsPanel({
                   {/* Lines 2-4: Compact details with vertical indicator */}
                   <div className="flex mt-1">
                     <div className="ml-[11px] mr-2 border-l-2 border-line-soft"></div>
-                    <div className="flex-1 space-y-0.5 text-xs text-secondary-foreground">
+                    <div className="flex-1 space-y-0.5 text-caption text-secondary-foreground">
                       {/* Line 2: Donor Internal ID · Donor Source ID */}
                       {(donorInternal || donorSource) && (
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -594,7 +592,7 @@ export function SearchResultsPanel({
                   </div>
 
                   {/* Line 5: Location */}
-                  <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                  <div className="inline-flex items-center gap-1.5 text-caption text-muted-foreground mt-1">
                     <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
                     <span>{location}</span>
                     <span className="text-muted-foreground">·</span>
@@ -607,8 +605,8 @@ export function SearchResultsPanel({
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             <TubeIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No results found</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-body-sm">No results found</p>
+            <p className="text-caption text-muted-foreground mt-1">
               Try adjusting your search or filters
             </p>
           </div>

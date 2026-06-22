@@ -66,7 +66,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 // Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
 const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 // Selection
 
@@ -131,11 +131,11 @@ function BulkSelectItem({
       <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
         <Checkbox checked={selected} onChange={onToggle} aria-label={`Select ${item.name}`} />
         <div className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-card-foreground">
+          <span className="block truncate text-body-sm font-medium text-card-foreground">
             {item.name}
           </span>
           {identity.length > 0 && (
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block truncate text-caption text-muted-foreground">
               {identity.map((part, i) => (
                 <span key={i}>
                   {i > 0 && <span className="mx-1 text-foreground/30">{'//'}</span>}
@@ -241,7 +241,7 @@ function ItemSelector({
         placeholder="Filter equipment…"
         size="sm"
         className="mb-2 flex-shrink-0"
-        inputClassName="text-xs"
+        inputClassName="text-body-sm"
         aria-label="Filter equipment"
       />
       <div className="mb-3 flex-shrink-0">
@@ -252,8 +252,10 @@ function ItemSelector({
             onChange={toggleAll}
             aria-label="Select all equipment"
           />
-          <span className="text-sm font-medium text-card-foreground flex-1">All Equipment</span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-body-sm font-medium text-card-foreground flex-1">
+            All Equipment
+          </span>
+          <span className="text-caption text-muted-foreground">
             {selectedCount}/{allSelectableIds.length} units
           </span>
         </div>
@@ -263,7 +265,7 @@ function ItemSelector({
         <div data-tree-id="bulk-select" className="nav-tree-select relative space-y-2 pr-2">
           <BulkSelectTreeLines />
           {groups.length === 0 && searchQuery && (
-            <p className="text-sm text-muted-foreground text-center py-4">
+            <p className="text-body-sm text-muted-foreground text-center py-4">
               No equipment matching &ldquo;{searchQuery}&rdquo;
             </p>
           )}
@@ -284,8 +286,10 @@ function ItemSelector({
                     aria-label={`Select all in ${group.category.name}`}
                   />
                   <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
-                  <span className="text-sm text-secondary-foreground">{group.category.name}</span>
-                  <span className="text-xs text-muted-foreground ml-auto">
+                  <span className="text-body-sm text-secondary-foreground">
+                    {group.category.name}
+                  </span>
+                  <span className="text-caption text-muted-foreground ml-auto">
                     {groupIds.length} {groupIds.length === 1 ? 'unit' : 'units'}
                   </span>
                 </div>
@@ -321,10 +325,10 @@ function ItemSelector({
                               size={13}
                               className="flex-shrink-0 text-muted-foreground"
                             />
-                            <span className="text-sm text-secondary-foreground">
+                            <span className="text-body-sm text-secondary-foreground">
                               {sub.category.name}
                             </span>
-                            <span className="text-xs text-muted-foreground ml-auto">
+                            <span className="text-caption text-muted-foreground ml-auto">
                               {subIds.length} {subIds.length === 1 ? 'unit' : 'units'}
                             </span>
                           </div>
@@ -403,7 +407,7 @@ function MaintenanceForm({
               state={error ? 'error' : 'default'}
               fullWidth
             />
-            {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+            {error && <p className="text-caption text-danger-text mt-1">{error.message}</p>}
           </div>
         )}
       />
@@ -469,7 +473,7 @@ function MaintenanceForm({
               fullWidth
               clearable
             />
-            {error && <p className="text-xs text-danger-text mt-1">{error.message}</p>}
+            {error && <p className="text-caption text-danger-text mt-1">{error.message}</p>}
           </div>
         )}
       />
@@ -645,9 +649,9 @@ function RelocateForm({
                 return (
                   <div className="w-full">
                     {isSub ? (
-                      <span className="pl-4 text-sm">{option.label}</span>
+                      <span className="pl-4 text-body">{option.label}</span>
                     ) : (
-                      <span className="text-sm font-semibold">{option.label}</span>
+                      <span className="text-body font-semibold">{option.label}</span>
                     )}
                   </div>
                 );
@@ -661,14 +665,14 @@ function RelocateForm({
                 const parentName = parentNameMap.get(opt.value as string);
                 if (parentName) {
                   return (
-                    <span className="text-foreground text-sm">
+                    <span className="text-foreground text-body">
                       <span className="text-muted-foreground">{parentName}</span>
                       <span className="text-muted-foreground mx-1">›</span>
                       {opt.label}
                     </span>
                   );
                 }
-                return <span className="text-foreground text-sm">{opt.label}</span>;
+                return <span className="text-foreground text-body">{opt.label}</span>;
               }}
             />
           </div>
@@ -757,12 +761,12 @@ export function EquipmentBulkUpdateModal({
           aria-hidden
           className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
         />
-        <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+        <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
           {selectedIds.size} <span className="text-foreground/45">selected</span>
         </span>
       </span>
       <span className="flex-1" />
-      <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+      <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
         {selectableCount} total
       </span>
     </div>

@@ -26,7 +26,7 @@ const CARD_UNSELECTED =
 
 function SavedMarker() {
   return (
-    <span className="absolute right-2 top-2 flex items-center gap-1 font-mono text-[8px] uppercase tracking-[0.16em] text-primary">
+    <span className="absolute right-2 top-2 flex items-center gap-1 type-label text-label-2xs text-primary">
       <span
         aria-hidden
         className="h-1 w-1 rounded-full bg-primary dark:shadow-[0_0_5px_hsl(var(--primary)/0.85)]"
@@ -146,10 +146,10 @@ export function DisplayTab({
                         : 'text-muted-foreground'
                     }`}
                   />
-                  <h5 className={`text-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
+                  <h5 className={`text-body font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
                     {label}
                   </h5>
-                  <p className="text-xs text-secondary-foreground">{description}</p>
+                  <p className="text-caption text-secondary-foreground">{description}</p>
                 </button>
               );
             })}
@@ -159,7 +159,7 @@ export function DisplayTab({
 
       <Subsection title="Position Format" index={2} accent>
         <div className="col-span-2 py-4">
-          <p className="mb-3 text-xs text-secondary-foreground">
+          <p className="mb-3 text-body-sm text-secondary-foreground">
             Choose how position labels are displayed throughout the application.
           </p>
 
@@ -176,11 +176,13 @@ export function DisplayTab({
                   className={`${CARD_BASE} ${isSelected ? CARD_SELECTED : CARD_UNSELECTED}`}
                 >
                   {isSaved && <SavedMarker />}
-                  <h5 className={`mb-1 text-sm font-semibold ${isSelected ? 'phosphor-text' : ''}`}>
+                  <h5
+                    className={`mb-1 text-body font-semibold ${isSelected ? 'phosphor-text' : ''}`}
+                  >
                     {label}
                   </h5>
-                  <p className="mb-2 text-xs text-secondary-foreground">{description}</p>
-                  <div className="flex items-center space-x-1 text-xs">
+                  <p className="mb-2 text-caption text-secondary-foreground">{description}</p>
+                  <div className="flex items-center space-x-1 text-data-sm">
                     <SampleChip isSelected={isSelected}>{samples[0]}</SampleChip>
                     <SampleChip isSelected={isSelected}>{samples[1]}</SampleChip>
                     <span className="text-muted-foreground">...</span>

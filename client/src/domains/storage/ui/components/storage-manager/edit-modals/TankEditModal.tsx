@@ -74,7 +74,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
         <div>
           <label
             htmlFor="tank-name"
-            className="block text-sm font-medium mb-1 text-secondary-foreground"
+            className="block text-body-sm font-medium mb-1 text-secondary-foreground"
           >
             Tank Name
           </label>
@@ -90,7 +90,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
             aria-invalid={!editedTank.name.trim()}
           />
           {!editedTank.name.trim() && (
-            <p id="tank-name-error" className="text-danger-text text-xs mt-1" role="alert">
+            <p id="tank-name-error" className="text-danger-text text-body-sm mt-1" role="alert">
               Tank name is required
             </p>
           )}
@@ -99,7 +99,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
         <div>
           <label
             htmlFor="tank-location"
-            className="block text-sm font-medium mb-1 text-secondary-foreground"
+            className="block text-body-sm font-medium mb-1 text-secondary-foreground"
           >
             Physical Location
           </label>
@@ -114,7 +114,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
         </div>
 
         <div className="bg-muted border-l-4 border-l-muted-foreground px-3 py-2 rounded-lg">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
             <span>Racks:</span>
             <span className="font-semibold text-secondary-foreground">
               {editedTank.racks.length}
@@ -148,7 +148,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
             checked={editedTank.isActive}
             onChange={checked => setEditedTank({ ...editedTank, isActive: checked })}
           />
-          <label htmlFor="tankActive" className="text-sm">
+          <label htmlFor="tankActive" className="text-body-sm">
             Active (available for storage)
           </label>
         </div>

@@ -68,7 +68,7 @@ export function StorageBoxMinimap({
             <Tooltip content={box.name} disabled={!isTruncated} side="top" delayDuration={400}>
               <span
                 ref={nameRef}
-                className={`min-w-0 truncate font-mono text-[13px] tracking-[0.04em] ${
+                className={`min-w-0 truncate font-mono text-data-sm tracking-[0.04em] ${
                   isSelected ? 'font-medium' : ''
                 }`}
               >
@@ -87,7 +87,7 @@ export function StorageBoxMinimap({
               />
             </span>
             <span
-              className={`flex-none font-mono text-[8.5px] tracking-[0.08em] ${
+              className={`flex-none font-mono text-data-sm tracking-[0.08em] ${
                 isFull ? 'text-warning-text' : isSelected ? 'text-primary' : 'text-foreground/40'
               }`}
             >

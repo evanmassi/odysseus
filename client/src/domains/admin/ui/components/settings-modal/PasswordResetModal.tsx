@@ -200,10 +200,10 @@ export function PasswordResetModal({
             aria-hidden
             className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
           />
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             User
           </span>
-          <span className="font-mono text-xs text-secondary-foreground phosphor-text">
+          <span className="font-mono text-data-sm text-secondary-foreground phosphor-text">
             {username}
           </span>
         </div>
@@ -240,7 +240,7 @@ export function PasswordResetModal({
                   ))}
                 </div>
                 <span
-                  className={`text-xs ${newPassword ? strengthText : 'text-muted-foreground/50'}`}
+                  className={`text-caption ${newPassword ? strengthText : 'text-muted-foreground/50'}`}
                 >
                   {strengthLabel || '—'}
                 </span>
@@ -249,7 +249,7 @@ export function PasswordResetModal({
 
             {/* Require Password Change Toggle */}
             <div className="flex items-center justify-end gap-2.5">
-              <span className="text-sm text-secondary-foreground">
+              <span className="text-body-sm text-secondary-foreground">
                 Require password change on next login
               </span>
               <Toggle
@@ -263,7 +263,7 @@ export function PasswordResetModal({
           </div>
         ) : !resetUrl ? (
           <div>
-            <p className="text-sm text-secondary-foreground">
+            <p className="text-body text-secondary-foreground">
               Creates a secure, one-time reset link.
             </p>
             <div className="mt-3 space-y-2 pl-5">
@@ -278,10 +278,10 @@ export function PasswordResetModal({
               ].map(({ icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3">
                   <span className="text-primary phosphor-glow">{icon}</span>
-                  <span className="w-14 font-mono text-[9.5px] uppercase tracking-[0.18em] text-primary phosphor-text">
+                  <span className="w-14 type-label text-label-2xs text-primary phosphor-text">
                     {label}
                   </span>
-                  <span className="text-sm text-secondary-foreground">{value}</span>
+                  <span className="text-body-sm text-secondary-foreground">{value}</span>
                 </div>
               ))}
             </div>
@@ -292,7 +292,7 @@ export function PasswordResetModal({
               <span className="auth-input-console__label">Reset link</span>
               <div className="auth-input-console__field">
                 <span
-                  className="flex-1 px-3 py-2.5 font-mono text-sm text-foreground truncate"
+                  className="flex-1 px-3 py-2.5 font-mono text-data text-foreground truncate"
                   role="status"
                   aria-label="Generated reset link"
                 >
@@ -301,7 +301,7 @@ export function PasswordResetModal({
                 <button
                   type="button"
                   onClick={handleCopyUrl}
-                  className="flex items-center gap-1.5 px-3 h-full text-muted-foreground hover:text-foreground transition-colors font-mono text-xs border-l border-line-soft"
+                  className="flex items-center gap-1.5 px-3 h-full text-muted-foreground hover:text-foreground transition-colors font-mono text-data-sm border-l border-line-soft"
                   aria-label="Copy reset link"
                 >
                   {copied ? (
@@ -319,7 +319,7 @@ export function PasswordResetModal({
               </div>
             </div>
             {expiresAt && (
-              <p className="text-xs text-secondary-foreground mt-2">
+              <p className="text-caption text-secondary-foreground mt-2">
                 Expires {new Date(expiresAt).toLocaleString()}
               </p>
             )}

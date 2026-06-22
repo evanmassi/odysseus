@@ -75,12 +75,12 @@ export function LabManagementPage() {
                   aria-hidden
                   className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
                 />
-                <span className="font-mono text-[11px] tracking-[0.04em] text-foreground">
+                <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
                   {TABS.length} <span className="text-foreground/45">suites</span>
                 </span>
               </span>
               <span className="flex-1" />
-              <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/45">
+              <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
                 {onlineCount} online
               </span>
             </HeaderStrip>
@@ -94,11 +94,11 @@ export function LabManagementPage() {
                     return (
                       <div
                         key={tab.id}
-                        className="relative z-10 flex w-full cursor-not-allowed items-center gap-2 px-4 py-2.5 text-left font-mono text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground/40"
+                        className="relative z-10 flex w-full cursor-not-allowed items-center gap-2 px-4 py-2.5 text-left type-label text-label-lg font-medium text-muted-foreground/40"
                       >
                         <Icon size={18} />
                         <span>{tab.label}</span>
-                        <span className="ml-auto text-[9px] tracking-[0.16em]">soon</span>
+                        <span className="ml-auto text-label-2xs tracking-label">soon</span>
                       </div>
                     );
                   }

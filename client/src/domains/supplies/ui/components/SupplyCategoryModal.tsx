@@ -88,7 +88,7 @@ export function SupplyCategoryModal({
     >
       <div className="space-y-4">
         {isSubcategory && parentName && !isEditing && (
-          <p className="text-xs">
+          <p className="text-caption">
             <span className="text-muted-foreground/50">Category:</span>{' '}
             <span className="font-semibold text-secondary-foreground">{parentName}</span>
           </p>
@@ -97,7 +97,7 @@ export function SupplyCategoryModal({
         <div>
           <label
             htmlFor="categoryName"
-            className="text-sm font-medium text-secondary-foreground mb-1 block"
+            className="text-body-sm font-medium text-secondary-foreground mb-1 block"
           >
             {isSubcategory && !isEditing ? 'Subcategory Name' : 'Category Name'}
           </label>

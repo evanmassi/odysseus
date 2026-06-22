@@ -211,7 +211,7 @@ export function RackRow({
             {canManageStorage && !locked && (
               <div className="storage-nav-add-controls storage-nav-item--box">
                 {demoLimitsActive && (
-                  <span className="text-xs text-muted-foreground mr-1">
+                  <span className="text-caption text-muted-foreground mr-1">
                     {extraBoxCount}/{demoLimits.maxBoxesPerRack}
                   </span>
                 )}

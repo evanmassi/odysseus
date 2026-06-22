@@ -193,7 +193,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                 ) : (
                   <>
                     <span
-                      className="truncate font-mono text-xs text-secondary-foreground phosphor-text"
+                      className="truncate font-mono text-data-sm text-secondary-foreground phosphor-text"
                       title={currentLab?.name ?? undefined}
                     >
                       {currentLab?.name ?? '—'}
@@ -228,7 +228,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
           </div>
         </Subsection>
 
-        <div className="border-t border-line-soft px-5 py-2.5 text-right font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground/60">
+        <div className="border-t border-line-soft px-5 py-2.5 text-right type-label text-label-2xs text-muted-foreground/60">
           Odysseus v{versionInfo?.version ?? '—'} · © 2025 Evan Massi
         </div>
       </ConsolePanel>
@@ -254,7 +254,7 @@ function StorageUtilizationSection() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <HardDrive size={16} className="text-muted-foreground" />
-            <span className="font-mono text-[11px] tracking-[0.04em] text-secondary-foreground">
+            <span className="font-mono text-data-sm tracking-data text-secondary-foreground">
               {data.totalOccupied} / {data.totalPositions} positions used
             </span>
           </div>
@@ -269,7 +269,7 @@ function StorageUtilizationSection() {
                 <div key={tank.tankId}>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between text-xs py-1 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-between text-caption py-1 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
                     onClick={() => {
                       setExpandedTankId(isExpanded ? null : tank.tankId);
                       setExpandedRackId(null);
@@ -289,7 +289,7 @@ function StorageUtilizationSection() {
                       <span className="text-secondary-foreground">{tank.tankName}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] text-muted-foreground">
+                      <span className="font-mono text-data-sm text-muted-foreground">
                         {tank.occupied}/{tank.totalPositions}
                       </span>
                       <UtilizationBar percent={tank.utilizationPercent} width="w-16" />
@@ -304,7 +304,7 @@ function StorageUtilizationSection() {
                           <div key={rack.rackId}>
                             <button
                               type="button"
-                              className="w-full flex items-center justify-between text-xs py-0.5 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
+                              className="w-full flex items-center justify-between text-caption py-0.5 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
                               onClick={() => setExpandedRackId(isRackExpanded ? null : rack.rackId)}
                             >
                               <div className="flex items-center gap-1.5">
@@ -317,7 +317,7 @@ function StorageUtilizationSection() {
                                 <span className="text-secondary-foreground">{rack.rackName}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="font-mono text-[10px] text-muted-foreground">
+                                <span className="font-mono text-data-sm text-muted-foreground">
                                   {rack.occupied}/{rack.totalPositions}
                                 </span>
                                 <UtilizationBar percent={rack.utilizationPercent} width="w-14" />
@@ -329,7 +329,7 @@ function StorageUtilizationSection() {
                                 {rack.boxes.map(box => (
                                   <div
                                     key={box.boxName}
-                                    className="flex items-center justify-between text-xs py-0.5"
+                                    className="flex items-center justify-between text-caption py-0.5"
                                   >
                                     <div className="flex items-center gap-1.5">
                                       <BoxIcon size={9} className="text-muted-foreground" />
@@ -338,7 +338,7 @@ function StorageUtilizationSection() {
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <span className="font-mono text-[10px] text-muted-foreground">
+                                      <span className="font-mono text-data-sm text-muted-foreground">
                                         {box.occupied}/{box.maxPositions}
                                       </span>
                                       <UtilizationBar

@@ -202,7 +202,7 @@ export function TubeGrid({
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <span className="text-lg font-medium text-secondary-foreground">Loading tubes...</span>
         </div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-body-sm text-muted-foreground">
           {boxId ? `${tankId} › Rack ${rackId} › Box ${boxId}` : `${tankId} › Rack ${rackId}`}
         </div>
       </div>
@@ -213,7 +213,7 @@ export function TubeGrid({
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
         <div className="text-danger-text mb-4">Failed to load tubes</div>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-body-sm text-muted-foreground">
           {boxId ? `${tankId} › Rack ${rackId} › Box ${boxId}` : `${tankId} › Rack ${rackId}`}
         </div>
       </div>

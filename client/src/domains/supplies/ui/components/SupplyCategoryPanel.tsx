@@ -215,7 +215,7 @@ export function SupplyCategoryPanel({
   if (topLevelCategories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
-        <p className="text-sm">No supply categories yet.</p>
+        <p className="text-body-sm">No supply categories yet.</p>
         {isAdmin && (
           <Button
             variant="secondary"
@@ -247,7 +247,7 @@ export function SupplyCategoryPanel({
       )}
 
       {filteredItems.length === 0 && isSearching && (
-        <p className="text-sm text-muted-foreground text-center py-6">
+        <p className="text-body-sm text-muted-foreground text-center py-6">
           No items matching &ldquo;{searchQuery}&rdquo;
         </p>
       )}
@@ -299,7 +299,7 @@ export function SupplyCategoryPanel({
                   <Folder size={14} className="flex-shrink-0 text-muted-foreground" />
                 )}
                 <span
-                  className={`nav-tree-row__label font-display text-sm ${
+                  className={`nav-tree-row__label font-display text-body-sm ${
                     isExpanded ? 'text-foreground' : 'text-secondary-foreground'
                   }`}
                 >
@@ -307,11 +307,11 @@ export function SupplyCategoryPanel({
                 </span>
                 <span
                   aria-hidden
-                  className="flex-shrink-0 font-mono text-[10px] text-foreground/30"
+                  className="flex-shrink-0 font-mono text-data-sm text-foreground/30"
                 >
                   {'//'}
                 </span>
-                <span className="nav-tree-row__count font-mono text-[10px] tracking-[0.04em]">
+                <span className="nav-tree-row__count font-mono text-data-sm tracking-[0.04em]">
                   {totalCount}{' '}
                   <span className="text-foreground/25">{totalCount === 1 ? 'item' : 'items'}</span>
                 </span>
@@ -327,7 +327,7 @@ export function SupplyCategoryPanel({
                       variant="ghost"
                       size="sm"
                       onClick={() => onAddSubcategory(category.id)}
-                      className="h-6 text-xs"
+                      className="h-6 text-label-sm"
                       leftIcon={<Plus className="w-3 h-3" />}
                     >
                       Subcategory
@@ -372,7 +372,7 @@ export function SupplyCategoryPanel({
                   )}
 
                   {totalCount === 0 && (
-                    <p className="text-xs text-card-foreground/30 italic text-center py-3">
+                    <p className="text-caption text-card-foreground/30 italic text-center py-3">
                       No items
                     </p>
                   )}
@@ -456,11 +456,11 @@ function SubcategorySection({
           size={12}
           className={`flex-shrink-0 ${effectiveExpanded ? 'text-primary' : 'text-muted-foreground'}`}
         />
-        <span className="nav-tree-row__label font-display text-xs">{subcategory.name}</span>
-        <span aria-hidden className="flex-shrink-0 font-mono text-[10px] text-foreground/30">
+        <span className="nav-tree-row__label font-display text-caption">{subcategory.name}</span>
+        <span aria-hidden className="flex-shrink-0 font-mono text-data-sm text-foreground/30">
           {'//'}
         </span>
-        <span className="nav-tree-row__count font-mono text-[10px] tracking-[0.04em]">
+        <span className="nav-tree-row__count font-mono text-data-sm tracking-[0.04em]">
           {items.length}{' '}
           <span className="text-foreground/25">{items.length === 1 ? 'item' : 'items'}</span>
         </span>
@@ -483,7 +483,7 @@ function SubcategorySection({
       )}
 
       {isExpanded && items.length === 0 && (
-        <p className="text-xs text-card-foreground/30 italic py-2 text-center">No items</p>
+        <p className="text-caption text-card-foreground/30 italic py-2 text-center">No items</p>
       )}
     </div>
   );

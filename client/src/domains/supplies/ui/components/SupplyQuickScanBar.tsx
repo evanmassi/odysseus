@@ -158,9 +158,11 @@ export function SupplyQuickScanBar({
           {resolvedItem && (
             <div className="py-1">
               <div className="px-3 py-2 border-b border-border">
-                <p className="text-sm font-semibold text-card-foreground">{resolvedItem.name}</p>
+                <p className="text-body-sm font-semibold text-card-foreground">
+                  {resolvedItem.name}
+                </p>
                 {stockInfo && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-caption text-muted-foreground">
                     {stockInfo.totalStock}{' '}
                     {pluralizeUnit(stockInfo.stockUnit ?? 'unit', stockInfo.totalStock)} in stock
                   </p>
@@ -192,7 +194,7 @@ export function SupplyQuickScanBar({
         className="max-w-md"
       >
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body text-muted-foreground">
             Barcode{' '}
             <span className="font-mono font-semibold text-card-foreground">
               {unresolvedBarcode}

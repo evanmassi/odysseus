@@ -279,7 +279,7 @@ export function SecurityPanel() {
               {row.userName}
             </div>
             <div
-              className={`text-xs truncate ${own ? 'text-success-text/70' : 'text-muted-foreground'}`}
+              className={`text-caption truncate ${own ? 'text-success-text/70' : 'text-muted-foreground'}`}
             >
               {row.userEmail}
             </div>
@@ -305,7 +305,7 @@ export function SecurityPanel() {
       header: 'IP Address',
       sortable: true,
       render: (_val, row) => (
-        <span className={`font-mono text-xs ${isOwnSession(row) ? 'text-success-text' : ''}`}>
+        <span className={`font-mono text-data-sm ${isOwnSession(row) ? 'text-success-text' : ''}`}>
           {row.ipAddress ?? '\u2014'}
         </span>
       ),
@@ -318,11 +318,11 @@ export function SecurityPanel() {
         const { date, time } = formatDateStacked(row.loginTime);
         const own = isOwnSession(row);
         return (
-          <div className="text-xs">
+          <div className="text-caption">
             <div className={own ? 'text-success-text' : 'text-secondary-foreground'}>{date}</div>
             <div className={own ? 'text-success-text/70' : 'text-muted-foreground'}>{time}</div>
             <div
-              className={`text-[10px] ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}
+              className={`text-caption ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}
             >
               {formatRelativeTime(row.loginTime)}
             </div>
@@ -338,11 +338,11 @@ export function SecurityPanel() {
         const { date, time } = formatDateStacked(row.lastActivity);
         const own = isOwnSession(row);
         return (
-          <div className="text-xs">
+          <div className="text-caption">
             <div className={own ? 'text-success-text' : 'text-secondary-foreground'}>{date}</div>
             <div className={own ? 'text-success-text/70' : 'text-muted-foreground'}>{time}</div>
             <div
-              className={`text-[10px] ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}
+              className={`text-caption ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}
             >
               {formatRelativeTime(row.lastActivity)}
             </div>
@@ -355,7 +355,7 @@ export function SecurityPanel() {
       header: 'Device',
       render: (_val, row) => (
         <span
-          className={`text-xs max-w-[200px] truncate block ${isOwnSession(row) ? 'text-success-text' : ''}`}
+          className={`text-body-sm max-w-[200px] truncate block ${isOwnSession(row) ? 'text-success-text' : ''}`}
         >
           {row.deviceInfo ?? row.userAgent ?? '\u2014'}
         </span>
@@ -387,7 +387,7 @@ export function SecurityPanel() {
     {
       id: 'ipAddress',
       header: 'IP Address',
-      render: (_val, row) => <span className="font-mono text-xs">{row.ipAddress}</span>,
+      render: (_val, row) => <span className="font-mono text-data-sm">{row.ipAddress}</span>,
     },
     {
       id: 'sessionCount',
@@ -448,13 +448,15 @@ export function SecurityPanel() {
     {
       id: 'ipAddress',
       header: 'IP Address',
-      render: (_val, row) => <span className="font-mono text-xs">{row.ipAddress ?? '\u2014'}</span>,
+      render: (_val, row) => (
+        <span className="font-mono text-data-sm">{row.ipAddress ?? '\u2014'}</span>
+      ),
     },
     {
       id: 'reason',
       header: 'Reason',
       render: (_val, row) => (
-        <span className={`text-xs ${getReasonTone(row.reason)}`}>{row.reason}</span>
+        <span className={`text-body-sm ${getReasonTone(row.reason)}`}>{row.reason}</span>
       ),
     },
     {
@@ -463,10 +465,10 @@ export function SecurityPanel() {
       render: (_val, row) => {
         const { date, time } = formatDateStacked(row.timestamp);
         return (
-          <div className="text-xs">
+          <div className="text-caption">
             <div className="text-secondary-foreground">{date}</div>
             <div className="text-muted-foreground">{time}</div>
-            <div className="text-muted-foreground text-[10px]">
+            <div className="text-muted-foreground text-caption">
               {formatRelativeTime(row.timestamp)}
             </div>
           </div>
@@ -521,12 +523,12 @@ export function SecurityPanel() {
                 }}
               />
               <div className="flex items-center gap-2.5">
-                <span className="flex shrink-0 items-center gap-2 font-mono text-[10px] tracking-[0.24em] text-warning-text uppercase">
+                <span className="flex shrink-0 items-center gap-2 type-label text-label-2xs tracking-label-wide text-warning-text">
                   <AlertTriangle size={12} />
                   Cleanup
                 </span>
                 <span aria-hidden className="h-3.5 w-px bg-warning-text/30" />
-                <span className="font-display text-[12px] text-foreground/75">
+                <span className="font-display text-body-sm text-foreground/75">
                   <span className="phosphor-text font-medium text-warning-text">
                     {expiredAwaitingCleanup} expired{' '}
                     {expiredAwaitingCleanup === 1 ? 'session' : 'sessions'}
@@ -602,7 +604,7 @@ export function SecurityPanel() {
         <div className="p-4">
           <SectionHeader title="Login Activity" meta="last 24h" />
           <div className="relative px-4 py-4">
-            <span className="absolute right-4 top-4 font-mono text-[9px] uppercase tracking-[0.18em] text-foreground/40">
+            <span className="absolute right-4 top-4 type-label text-label-2xs text-foreground/40">
               peak {maxActivityCount}
             </span>
 
@@ -652,7 +654,7 @@ export function SecurityPanel() {
 
             <div className="mt-0 h-px bg-foreground/15" />
 
-            <div className="relative mt-1.5 h-3 font-mono text-[9px] uppercase tracking-[0.1em] text-foreground/40">
+            <div className="relative mt-1.5 h-3 type-label text-label-2xs tracking-meta text-foreground/40">
               <span className="absolute left-0">{activityBars[0]?.label}</span>
               <span className="absolute left-1/4 -translate-x-1/2">{activityBars[6]?.label}</span>
               <span className="absolute left-1/2 -translate-x-1/2">{activityBars[12]?.label}</span>
@@ -748,9 +750,7 @@ export function SecurityPanel() {
             toolbar={{
               left: (
                 <>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
-                    From
-                  </span>
+                  <span className="type-label text-label-2xs text-foreground/55">From</span>
                   <DatePicker
                     value={startDate}
                     onChange={v => setStartDate(v)}
@@ -759,9 +759,7 @@ export function SecurityPanel() {
                     className="w-40"
                     aria-label="Start date"
                   />
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/55">
-                    To
-                  </span>
+                  <span className="type-label text-label-2xs text-foreground/55">To</span>
                   <DatePicker
                     value={endDate}
                     onChange={v => setEndDate(v)}

@@ -28,7 +28,7 @@ interface DonorEditFormProps {
 }
 
 const SELECT_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 const SEX_OPTIONS = [
   { value: '', label: 'Select sex...' },
@@ -135,14 +135,14 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
 
       <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
             <span
               aria-hidden
               className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
             />
             Completeness
           </span>
-          <span className="font-mono text-[11px] tracking-[0.06em] text-foreground">
+          <span className="font-mono text-data-sm tracking-[0.06em] text-foreground">
             {filledCount}/{trackedFields.length}
           </span>
           <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
@@ -156,7 +156,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="donor-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-2 p-4">
-          {rootError && <p className="text-xs text-danger-text">{rootError}</p>}
+          {rootError && <p className="text-caption text-danger-text">{rootError}</p>}
 
           <SectionHeader title="Identifiers" size="sm" />
           <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">

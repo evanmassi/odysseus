@@ -234,7 +234,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         aria-hidden
         className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
       />
-      <span className="flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.04em] text-foreground/75">
+      <span className="flex items-center gap-1.5 font-mono text-data-sm tracking-[0.04em] text-foreground/75">
         <span className="text-foreground">{scope.tanks}</span> tanks
         <span className="text-foreground/25">·</span>
         <span className="text-foreground">{scope.racks}</span> racks
@@ -251,7 +251,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
             }}
           />
         </span>
-        <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/60">
+        <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/60">
           {occupancy.facility.filled}
           <span className="text-foreground/35">/{occupancy.facility.capacity}</span>
         </span>
@@ -259,7 +259,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       {canManageStorage && viewMode === 'tree' && (
         <div className="flex items-center gap-2">
           {demoLimitsActive && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-caption text-muted-foreground">
               {nonSeededTankCount}/{demoLimits.maxTanks} tanks
             </span>
           )}
@@ -281,7 +281,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-shrink min-w-0">
+      <div className="flex items-center gap-4 text-caption text-muted-foreground flex-shrink min-w-0">
         {OWNERSHIP_LEGEND.map(({ label, token }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span

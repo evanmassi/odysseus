@@ -148,7 +148,7 @@ export function AssignmentDropdown({
         fullWidth
         renderOption={renderOption}
         renderValue={renderValue}
-        className="text-xs"
+        className="text-body-sm"
       />
     </div>
   );

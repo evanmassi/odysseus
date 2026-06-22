@@ -139,7 +139,7 @@ export function AuditRetentionSettings({
   if (loading) {
     return (
       <ConsolePanel intensity="soft">
-        <div className="px-4 py-3 text-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted-foreground">
+        <div className="px-4 py-3 text-center type-label text-label-xs text-muted-foreground">
           Loading retention…
         </div>
       </ConsolePanel>
@@ -165,10 +165,10 @@ export function AuditRetentionSettings({
               className={`h-4 w-4 shrink-0 ${currentStatus.textClass}`}
               aria-hidden="true"
             />
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-foreground/80">
+            <span className="type-label text-label-xs tracking-label-wide text-foreground/80">
               Audit Retention
             </span>
-            <span className="truncate font-mono text-[10px] tracking-[0.02em] text-muted-foreground">
+            <span className="truncate font-mono text-data-sm tracking-data text-muted-foreground">
               {metrics ? formatNumber(metrics.activeTable.count) : '—'} active
               <span className="px-1.5 text-foreground/30">·</span>
               {metrics ? formatNumber(metrics.archiveTable.count) : '—'} archived
@@ -178,7 +178,7 @@ export function AuditRetentionSettings({
           </div>
           <div className="flex shrink-0 items-center gap-2.5">
             {metrics?.nextArchivalDate && (
-              <span className="hidden font-mono text-[9.5px] uppercase tracking-[0.16em] text-muted-foreground/70 sm:inline">
+              <span className="hidden type-label text-label-2xs text-muted-foreground/70 sm:inline">
                 Next · {formatDate(metrics.nextArchivalDate)}
               </span>
             )}
@@ -207,7 +207,7 @@ export function AuditRetentionSettings({
             className="h-3 w-0.5 shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
           />
           <FileClock className="h-3.5 w-3.5 text-foreground/55" />
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.26em] text-foreground/70">
+          <span className="type-label text-label-xs tracking-label-wide text-foreground/70">
             Audit Log Retention
           </span>
         </button>
@@ -382,7 +382,7 @@ export function AuditRetentionSettings({
                 Export Archive
               </Button>
             </div>
-            <p className="font-mono text-[10px] leading-relaxed tracking-[0.02em] text-muted-foreground">
+            <p className="font-mono text-data-sm leading-relaxed tracking-data text-muted-foreground">
               Manual archival moves logs older than {policy?.activeRetentionDays} days to the
               archive table and deletes logs older than {policy?.totalRetentionDays} days.
             </p>

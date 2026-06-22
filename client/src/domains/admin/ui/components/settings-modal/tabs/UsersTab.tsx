@@ -235,19 +235,19 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
             <UserBadge type="otherUser" initials={initials} username={user.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-sans text-sm font-medium text-card-foreground">
+                <span className="font-sans text-body-sm font-medium text-card-foreground">
                   {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
                   {user.lastName || user.firstName
                     ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
                     : user.username}
                 </span>
                 {user.role === 'system_admin' && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-action/10 text-action">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-label-2xs font-medium bg-action/10 text-action">
                     System Admin
                   </span>
                 )}
                 {user.role === 'lab_admin' && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-secondary-foreground">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-label-2xs font-medium bg-muted text-secondary-foreground">
                     Lab Admin
                   </span>
                 )}
@@ -263,13 +263,15 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                 )}
                 {user.requirePasswordChange && (
                   <Tooltip content="Password change required on next login" side="bottom">
-                    <span className="text-warning-text text-xs flex items-center gap-0.5">⚠️</span>
+                    <span className="text-warning-text text-caption flex items-center gap-0.5">
+                      ⚠️
+                    </span>
                   </Tooltip>
                 )}
               </div>
-              <div className="text-xs text-muted-foreground">{user.username}</div>
+              <div className="text-caption text-muted-foreground">{user.username}</div>
               {user.email && (
-                <div className="text-[11px] text-muted-foreground/70">{user.email}</div>
+                <div className="text-caption text-muted-foreground/70">{user.email}</div>
               )}
             </div>
           </div>
@@ -283,14 +285,16 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         <div className="whitespace-nowrap max-w-[150px]">
           {user.position ? (
             <Tooltip content={user.position} side="bottom">
-              <div className="font-sans text-sm text-card-foreground truncate">{user.position}</div>
+              <div className="font-sans text-body-sm text-card-foreground truncate">
+                {user.position}
+              </div>
             </Tooltip>
           ) : (
-            <div className="text-sm text-muted-foreground">—</div>
+            <div className="text-body-sm text-muted-foreground">—</div>
           )}
           {user.department && (
             <Tooltip content={user.department} side="bottom">
-              <div className="font-sans text-xs text-muted-foreground truncate">
+              <div className="font-sans text-caption text-muted-foreground truncate">
                 {user.department}
               </div>
             </Tooltip>
@@ -307,7 +311,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
           return (
             <div className="flex flex-col gap-0.5">
               <div
-                className={`flex items-center gap-1.5 text-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
+                className={`flex items-center gap-1.5 text-body-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
               >
                 <Link2
                   size={14}
@@ -335,7 +339,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       header: 'Last Active',
       sortable: true,
       render: (_, user) => (
-        <span className="text-sm text-muted-foreground whitespace-nowrap">
+        <span className="text-body-sm text-muted-foreground whitespace-nowrap">
           {user.lastActivity ? formatRelativeTime(user.lastActivity) : 'Never'}
         </span>
       ),
@@ -455,7 +459,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         <div className="pt-3 border-t border-border">
           <button
             onClick={() => setShowInactive(prev => !prev)}
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronDown
               size={14}

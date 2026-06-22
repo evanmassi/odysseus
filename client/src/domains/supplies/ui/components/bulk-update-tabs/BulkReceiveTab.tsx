@@ -167,7 +167,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
       <ScrollArea className="flex-1 min-h-0">
         <div className="px-4 space-y-2">
           {rows.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">
+            <p className="text-body-sm text-muted-foreground text-center py-8">
               Search for items above to add them to this receive order.
             </p>
           )}
@@ -222,7 +222,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
 
       <div className="relative flex items-center justify-between px-4 py-3 border-t border-line-faint flex-shrink-0">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
-        <span className="text-xs text-muted-foreground">
+        <span className="text-caption text-muted-foreground">
           {validRowCount} item{validRowCount !== 1 ? 's' : ''} to receive
         </span>
         <div className="flex gap-2">

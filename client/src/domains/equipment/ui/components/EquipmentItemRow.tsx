@@ -116,7 +116,7 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate font-display text-base font-medium leading-tight text-card-foreground">
+          <span className="truncate font-display text-body font-medium leading-tight text-card-foreground">
             {item.name}
           </span>
           {isDecommissioned && (
@@ -126,7 +126,7 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
           )}
         </div>
         {identityParts.length > 0 && (
-          <span className="truncate font-mono text-[10px] tracking-[0.02em] text-muted-foreground">
+          <span className="truncate font-mono text-data-sm tracking-[0.02em] text-muted-foreground">
             {identityParts.map((part, i) => (
               <span key={i}>
                 {i > 0 && <span className="mx-1.5 text-foreground/30">{'//'}</span>}

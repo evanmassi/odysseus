@@ -81,7 +81,7 @@ export function RackEditModal({
         <div>
           <label
             htmlFor="rack-name"
-            className="block text-sm font-medium mb-1 text-secondary-foreground"
+            className="block text-body-sm font-medium mb-1 text-secondary-foreground"
           >
             System Name
           </label>
@@ -94,7 +94,7 @@ export function RackEditModal({
             fullWidth
             aria-required
           />
-          <AlertBanner variant="info" spacing="none" className="mt-2 text-xs">
+          <AlertBanner variant="info" spacing="none" className="mt-2 text-body-sm">
             Custom labels display alongside this name.
           </AlertBanner>
         </div>
@@ -105,7 +105,7 @@ export function RackEditModal({
             checked={editedRack.isActive}
             onChange={checked => setEditedRack({ ...editedRack, isActive: checked })}
           />
-          <label htmlFor="rackActive" className="text-sm font-medium">
+          <label htmlFor="rackActive" className="text-body-sm font-medium">
             Active (visible in rack selector)
           </label>
         </div>

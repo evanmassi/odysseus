@@ -104,7 +104,7 @@ export function SecuritySettings() {
             </div>
           </>
         ) : (
-          <div className="px-4 pb-4 text-center text-sm text-muted-foreground">Loading...</div>
+          <div className="px-4 pb-4 text-center text-body-sm text-muted-foreground">Loading...</div>
         ))}
     </ConsolePanel>
   );
