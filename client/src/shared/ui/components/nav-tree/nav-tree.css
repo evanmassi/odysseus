@@ -97,6 +97,12 @@
   gap: 0.5rem;
 }
 
+/* Read-only leaf rows (e.g. utilization readouts): keep the row frame, drop the
+   click affordance. Hover stays as a row-tracking aid. */
+.nav-tree .nav-tree-row--static {
+  cursor: default;
+}
+
 /* The leaf is the one real object in the tree: a taller, elevated two-line card
    that sits inside the recessed well, distinct from the quiet container rows. */
 .nav-tree .nav-tree-row--item {

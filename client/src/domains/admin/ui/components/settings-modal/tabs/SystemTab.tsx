@@ -4,7 +4,7 @@
  * Admin interface for lab settings, audit configuration, data export, and system statistics.
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import { useQueryClient } from '@tanstack/react-query';
@@ -14,7 +14,6 @@ import {
   Rows3,
   Box as BoxIcon,
   ChevronRight,
-  ChevronDown,
   TestTubes,
   UsersRound,
   Dna,
@@ -36,6 +35,7 @@ import {
   Subsection,
   Toggle,
 } from '@shared/ui';
+import { NavTreeLines } from '@shared/ui/components/tree-lines';
 import { notifications } from '@shared/utils';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
@@ -43,6 +43,8 @@ import { useLabStorageAnalyticsQuery } from '../../../../hooks/useStorageAnalyti
 import { adminService } from '../../../../services/AdminService';
 import { UtilizationBar } from '../../displays/UtilizationBar';
 import { DataExportForm } from '../DataExportForm';
+
+import '@shared/ui/components/nav-tree/nav-tree.css';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
@@ -238,13 +240,32 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
 function StorageUtilizationSection() {
   const { data } = useLabStorageAnalyticsQuery();
-  const [expandedTankId, setExpandedTankId] = useState<string | null>(null);
-  const [expandedRackId, setExpandedRackId] = useState<string | null>(null);
+  const [expandedTanks, setExpandedTanks] = useState<Set<string>>(new Set());
+  const [expandedRacks, setExpandedRacks] = useState<Set<string>>(new Set());
 
-  const expandedTank = useMemo(
-    () => data?.tanks.find(t => t.tankId === expandedTankId),
-    [data, expandedTankId]
-  );
+  const toggleTank = (id: string) => {
+    setExpandedTanks(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleRack = (id: string) => {
+    setExpandedRacks(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   if (!data) return null;
 
@@ -262,88 +283,89 @@ function StorageUtilizationSection() {
         </div>
 
         {data.tanks.length > 0 && (
-          <div className="space-y-1">
+          <div data-tree-id="storage-utilization" className="nav-tree relative flex flex-col gap-1">
+            <NavTreeLines treeId="storage-utilization" expandedCategoryIds={expandedTanks} />
             {data.tanks.map(tank => {
-              const isExpanded = tank.tankId === expandedTankId;
+              const isTankOpen = expandedTanks.has(tank.tankId);
               return (
-                <div key={tank.tankId}>
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between text-caption py-1 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      setExpandedTankId(isExpanded ? null : tank.tankId);
-                      setExpandedRackId(null);
+                <div key={tank.tankId} data-level="l1" data-id={tank.tankId}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isTankOpen}
+                    className={`nav-tree-row nav-tree-row--category ${isTankOpen ? 'is-open' : ''}`}
+                    onClick={() => toggleTank(tank.tankId)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') toggleTank(tank.tankId);
                     }}
                   >
-                    <div className="flex items-center gap-1.5">
-                      {isExpanded ? (
-                        <ChevronDown size={10} className="text-muted-foreground" />
-                      ) : (
-                        <ChevronRight size={10} className="text-muted-foreground" />
-                      )}
-                      <Icon
-                        iconNode={refrigeratorFreezer}
-                        size={12}
-                        className="text-muted-foreground"
-                      />
-                      <span className="text-secondary-foreground">{tank.tankName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-data-sm text-muted-foreground">
-                        {tank.occupied}/{tank.totalPositions}
-                      </span>
-                      <UtilizationBar percent={tank.utilizationPercent} width="w-16" />
-                    </div>
-                  </button>
+                    <ChevronRight
+                      size={11}
+                      className={`nav-tree-row__chevron ${isTankOpen ? 'rotate-90' : ''}`}
+                    />
+                    <Icon
+                      iconNode={refrigeratorFreezer}
+                      size={14}
+                      className="flex-shrink-0 text-muted-foreground"
+                    />
+                    <span className="nav-tree-row__label flex-1 font-display text-body-sm text-secondary-foreground">
+                      {tank.tankName}
+                    </span>
+                    <StorageRowMeter
+                      occupied={tank.occupied}
+                      total={tank.totalPositions}
+                      percent={tank.utilizationPercent}
+                    />
+                  </div>
 
-                  {isExpanded && expandedTank && (
-                    <div className="ml-6 mt-1 mb-2 space-y-0.5 border-l-2 border-border pl-3">
-                      {expandedTank.racks.map(rack => {
-                        const isRackExpanded = rack.rackId === expandedRackId;
+                  {isTankOpen && (
+                    <div className="nav-tree-children">
+                      {tank.racks.map(rack => {
+                        const isRackOpen = expandedRacks.has(rack.rackId);
                         return (
-                          <div key={rack.rackId}>
-                            <button
-                              type="button"
-                              className="w-full flex items-center justify-between text-caption py-0.5 px-1 rounded hover:bg-background/50 transition-colors cursor-pointer"
-                              onClick={() => setExpandedRackId(isRackExpanded ? null : rack.rackId)}
+                          <div key={rack.rackId} data-level="l2" data-id={rack.rackId}>
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              aria-expanded={isRackOpen}
+                              className={`nav-tree-row nav-tree-row--subcategory ${isRackOpen ? 'is-open' : ''}`}
+                              onClick={() => toggleRack(rack.rackId)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') toggleRack(rack.rackId);
+                              }}
                             >
-                              <div className="flex items-center gap-1.5">
-                                {isRackExpanded ? (
-                                  <ChevronDown size={8} className="text-muted-foreground" />
-                                ) : (
-                                  <ChevronRight size={8} className="text-muted-foreground" />
-                                )}
-                                <Rows3 size={10} className="text-muted-foreground" />
-                                <span className="text-secondary-foreground">{rack.rackName}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-data-sm text-muted-foreground">
-                                  {rack.occupied}/{rack.totalPositions}
-                                </span>
-                                <UtilizationBar percent={rack.utilizationPercent} width="w-14" />
-                              </div>
-                            </button>
+                              <ChevronRight
+                                size={11}
+                                className={`nav-tree-row__chevron ${isRackOpen ? 'rotate-90' : ''}`}
+                              />
+                              <Rows3 size={13} className="flex-shrink-0 text-muted-foreground" />
+                              <span className="nav-tree-row__label flex-1 text-caption text-secondary-foreground">
+                                {rack.rackName}
+                              </span>
+                              <StorageRowMeter
+                                occupied={rack.occupied}
+                                total={rack.totalPositions}
+                                percent={rack.utilizationPercent}
+                              />
+                            </div>
 
-                            {isRackExpanded && (
-                              <div className="ml-5 mt-0.5 mb-1 space-y-0.5 border-l-2 border-border/50 pl-2.5">
+                            {isRackOpen && rack.boxes.length > 0 && (
+                              <div className="nav-tree-children">
                                 {rack.boxes.map(box => (
-                                  <div
-                                    key={box.boxName}
-                                    className="flex items-center justify-between text-caption py-0.5"
-                                  >
-                                    <div className="flex items-center gap-1.5">
-                                      <BoxIcon size={9} className="text-muted-foreground" />
-                                      <span className="text-secondary-foreground">
+                                  <div key={box.boxName} data-level="l3" data-id={box.boxName}>
+                                    <div className="nav-tree-row nav-tree-row--subcategory nav-tree-row--static">
+                                      <span className="nav-tree-row__chevron" aria-hidden />
+                                      <BoxIcon
+                                        size={12}
+                                        className="flex-shrink-0 text-muted-foreground"
+                                      />
+                                      <span className="nav-tree-row__label flex-1 text-caption text-secondary-foreground">
                                         {box.boxName}
                                       </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-mono text-data-sm text-muted-foreground">
-                                        {box.occupied}/{box.maxPositions}
-                                      </span>
-                                      <UtilizationBar
+                                      <StorageRowMeter
+                                        occupied={box.occupied}
+                                        total={box.maxPositions}
                                         percent={box.utilizationPercent}
-                                        width="w-12"
                                       />
                                     </div>
                                   </div>
@@ -376,5 +398,23 @@ function StorageUtilizationSection() {
         )}
       </div>
     </Subsection>
+  );
+}
+
+interface StorageRowMeterProps {
+  occupied: number;
+  total: number;
+  percent: number;
+}
+
+/** Fixed-width count + bar pinned to the row's right edge so meters align across tree depths. */
+function StorageRowMeter({ occupied, total, percent }: StorageRowMeterProps) {
+  return (
+    <div className="flex flex-shrink-0 items-center gap-2.5">
+      <span className="w-20 text-right font-mono text-data-sm tabular-nums text-muted-foreground">
+        {occupied}/{total}
+      </span>
+      <UtilizationBar percent={percent} width="w-20" />
+    </div>
   );
 }
