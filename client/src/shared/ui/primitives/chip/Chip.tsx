@@ -246,7 +246,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const labelTypography = numeric
       ? `${sizeCfg.numText} font-semibold tabular-nums tracking-[0.02em]`
       : `${sizeCfg.lblText} uppercase tracking-[0.24em]`;
-    const labelState = isLit ? SELECTED_LABEL : numeric ? '' : 'opacity-[0.82]';
+    const labelState = isLit ? SELECTED_LABEL : '';
 
     const content = (
       <>
