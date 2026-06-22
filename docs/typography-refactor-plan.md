@@ -1,10 +1,16 @@
 # Typography System Refactor — Plan
 
-Status: **in progress** — Phases 1–3 + H complete (tokens + tabs · shared primitives · feature
-sweep · sans headings). Remaining: Phase 4 (CSS outliers in `alerts.css`/`auth-console.css`, the
-AuthInput notch label, the barcode-config panel chrome, and the lint guard).
+Status: **complete** — Phases 1–4 + H done (tokens + tabs · shared primitives · feature sweep ·
+sans headings · CSS outliers + lint guard). Remaining: optional design refinements during review
+(see Phase 2/3 deferred notes; e.g. Kbd→11, info-panel values, navigator minimap micro-meta).
 Owner: design/UI
 Scope: `client/` typography across the app
+
+> **Phase 4 note — done.** CSS outliers in `alerts.css`/`auth-console.css` converted to rem on the
+> token scale (sub-10px raised to the 10px floor); AuthInput notch label → `text-label-2xs`;
+> barcode-config panel chrome tokenized (printed-output px left physical). Added an ESLint guard
+> (`no-restricted-syntax`) that forbids arbitrary `text-[Npx]` in `.tsx` (string + template
+> classNames), with an override for the physical barcode/print render components.
 
 > **Phase H note — formalize existing sans headings only (decision).** Modal titles → `text-title`
 > (20, was 18); the 5 dashboard/page display headings → `text-display` (30, were 28–32, weight +

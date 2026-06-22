@@ -113,7 +113,7 @@ export function SupplyBarcodePrint({
     >
       <div className="space-y-4">
         <div>
-          <h4 className="text-sm font-semibold text-card-foreground mb-2">Format</h4>
+          <h4 className="text-body-sm font-semibold text-card-foreground mb-2">Format</h4>
           <div className="grid grid-cols-2 gap-2">
             {FORMAT_OPTIONS.map(({ value, label, Icon }) => {
               const isSelected = format === value;
@@ -130,7 +130,7 @@ export function SupplyBarcodePrint({
                     size={18}
                     className={isSelected ? 'text-white' : 'text-secondary-foreground'}
                   />
-                  <span className="text-sm font-semibold">{label}</span>
+                  <span className="text-body-sm font-semibold">{label}</span>
                 </button>
               );
             })}
@@ -138,7 +138,7 @@ export function SupplyBarcodePrint({
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-card-foreground mb-2">Label Size</h4>
+          <h4 className="text-body-sm font-semibold text-card-foreground mb-2">Label Size</h4>
           <div className="grid grid-cols-5 gap-2">
             {LABEL_SIZES.map(size => {
               const isSelected = labelSize.name === size.name;
@@ -151,7 +151,7 @@ export function SupplyBarcodePrint({
                     isSelected ? SELECTED_CLASS : UNSELECTED_CLASS
                   }`}
                 >
-                  <div className="text-xs font-semibold">{size.name}</div>
+                  <div className="text-caption font-semibold">{size.name}</div>
                 </button>
               );
             })}
@@ -159,7 +159,7 @@ export function SupplyBarcodePrint({
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-card-foreground mb-2">Preview</h4>
+          <h4 className="text-body-sm font-semibold text-card-foreground mb-2">Preview</h4>
           <div
             className="flex justify-center items-center p-4 bg-muted/30 rounded-lg border border-border"
             style={{ minHeight: `${PREVIEW_MIN_HEIGHT_PX}px` }}

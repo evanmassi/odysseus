@@ -137,7 +137,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       <div className={`auth-input-container ${borderClass} ${className}`}>
         <label
           htmlFor={id}
-          className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${labelColorClass}`}
+          className={`absolute -top-2 left-3 bg-card px-1 text-label-2xs font-medium transition-colors ${labelColorClass}`}
         >
           {label}
           {required && <span className="text-danger-text"> *</span>}
