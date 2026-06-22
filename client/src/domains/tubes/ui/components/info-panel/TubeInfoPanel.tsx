@@ -572,7 +572,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <button
                 type="button"
                 onClick={() => openDonorRegistry(donorInternalId as string, 'internal')}
-                className="cursor-pointer break-all text-right text-body-sm font-medium text-card-foreground hover:text-primary hover:underline"
+                className="cursor-pointer break-all text-right text-body font-medium text-card-foreground hover:text-primary hover:underline"
               >
                 {donorInternalId}
               </button>
@@ -589,7 +589,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <button
                 type="button"
                 onClick={() => openDonorRegistry(donorSourceId as string, 'source')}
-                className="cursor-pointer break-all text-right text-body-sm font-medium text-card-foreground hover:text-primary hover:underline"
+                className="cursor-pointer break-all text-right text-body font-medium text-card-foreground hover:text-primary hover:underline"
               >
                 {donorSourceId}
               </button>

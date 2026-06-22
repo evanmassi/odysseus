@@ -26,10 +26,23 @@
 .cell-line {
   font-weight: 600;
   line-height: 1.1;
-  white-space: nowrap;
+  /* Wrap to two lines instead of shrinking to fit, so cell type stays a consistent,
+     readable size above the donor IDs (ellipsis kicks in past two lines). */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  /* Wrap multi-word names; let a single long word truncate, not break mid-word. */
+  overflow-wrap: normal;
   max-width: 100%;
+}
+
+/* Unbreakable single-word names: one line with a clean ellipsis instead of a hard clip. */
+.cell-line--nowrap {
+  display: block;
+  -webkit-line-clamp: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .empty-coord {

@@ -51,8 +51,8 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-width: 220px;
-  max-width: 280px;
+  min-width: 240px;
+  max-width: 320px;
 }
 
 /* Grid Section */
@@ -168,7 +168,7 @@
 }
 
 .lab-management-sidebar {
-  width: 200px;
+  width: 240px;
   flex-shrink: 0;
 }
 
@@ -182,14 +182,14 @@
 @media (max-width: 1400px) {
   .storage-navigator-panel {
     min-width: 200px;
-    max-width: 260px;
+    max-width: 290px;
   }
 }
 
 @media (max-width: 1200px) {
   .storage-navigator-panel {
     min-width: 180px;
-    max-width: 240px;
+    max-width: 270px;
   }
 
   .main-layout {

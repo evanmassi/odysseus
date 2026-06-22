@@ -41,11 +41,11 @@ export function DetailRow({ label, value, isMixed = false, children }: DetailRow
         {isMixed && <AlertTriangle className="h-3 w-3 text-warning-text" />}
       </span>
       {isMixed ? (
-        <span className="text-body-sm text-card-foreground/30">—</span>
+        <span className="text-body text-card-foreground/30">—</span>
       ) : children ? (
-        <span className="min-w-0 text-right text-body-sm">{children}</span>
+        <span className="min-w-0 text-right text-body">{children}</span>
       ) : (
-        <span className="min-w-0 break-words text-right text-body-sm font-medium text-card-foreground transition-[text-shadow] duration-150 dark:group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]">
+        <span className="min-w-0 break-words text-right text-body font-medium text-card-foreground transition-[text-shadow] duration-150 dark:group-hover:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_30%,transparent)]">
           {value}
         </span>
       )}

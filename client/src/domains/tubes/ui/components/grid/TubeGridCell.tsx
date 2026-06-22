@@ -24,13 +24,16 @@ import type { LockVariant, TubeData } from '@domains/tubes/types';
 
 import './tube-grid.css';
 
-/** Avoids mid-word breaks and truncation by scaling font to fit longer cell type names. */
+/**
+ * Cell type wraps to two lines (see .cell-line), so it holds a consistent size slightly
+ * above the base font for a clear type→donor hierarchy — only very long names step back
+ * toward the base rather than shrinking aggressively to fit a single line.
+ */
 function getCellTypeFontSize(baseFont: number, text: string): number {
   const len = text.length;
-  if (len <= 6) return baseFont;
-  if (len <= 10) return baseFont * 0.85;
-  if (len <= 16) return baseFont * 0.72;
-  return baseFont * 0.62;
+  if (len <= 20) return Math.min(baseFont * 1.06, 18);
+  if (len <= 32) return baseFont;
+  return baseFont * 0.9;
 }
 
 interface TubeGridCellProps {
@@ -100,6 +103,10 @@ export const TubeGridCell = memo<TubeGridCellProps>(
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show fallback
     const cellTypeText = tube?.sample?.cellType || 'Unknown';
+    // A name with no break opportunity (no space/hyphen) can't wrap, so truncate it on one
+    // line with an ellipsis — the two-line clamp only ellipsizes multi-line overflow, which
+    // leaves a lone long word (e.g. "Macrophages") hard-clipped with no "…".
+    const cellTypeSingleWord = !/[\s-]/.test(cellTypeText);
     const cellTypeFontSize = useMemo(
       () => getCellTypeFontSize(fontSize.cellFont, cellTypeText),
       [fontSize.cellFont, cellTypeText]
@@ -251,7 +258,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
               style={{ left: 3, right: triLeg + 3, bottom: 2, color: ink }}
             >
               <div
-                className="cell-line font-semibold"
+                className={`cell-line font-semibold ${cellTypeSingleWord ? 'cell-line--nowrap' : ''}`}
                 style={{ fontSize: `${cellTypeFontSize}px` }}
               >
                 {cellTypeText}

@@ -75,12 +75,12 @@ export function LabManagementPage() {
                   aria-hidden
                   className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
                 />
-                <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
+                <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-foreground">
                   {TABS.length} <span className="text-foreground/45">suites</span>
                 </span>
               </span>
               <span className="flex-1" />
-              <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/45">
+              <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.06em] text-foreground/45">
                 {onlineCount} online
               </span>
             </HeaderStrip>

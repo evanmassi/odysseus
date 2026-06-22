@@ -349,10 +349,10 @@ function CatalogGroup({ title, count, expanded, onToggle, children }: CatalogGro
           aria-hidden
           className="h-[11px] w-0.5 flex-shrink-0 bg-primary dark:shadow-[0_0_6px_-1px_hsl(var(--primary)/0.6)]"
         />
-        <span className="type-label text-label-2xs tracking-label-wide text-foreground">
+        <span className="type-label text-label-md tracking-label-wide text-foreground">
           {title}
         </span>
-        <span aria-hidden className="font-mono text-label-2xs text-foreground/30">
+        <span aria-hidden className="font-mono text-data-sm text-foreground/30">
           {'//'}
         </span>
         <span className="font-mono text-data-sm tracking-data text-foreground/55">
