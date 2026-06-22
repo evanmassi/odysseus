@@ -50,7 +50,7 @@ function useTabsContext() {
 }
 
 const BASE =
-  'relative z-10 font-mono uppercase tracking-[0.18em] text-xs font-medium ' +
+  'type-label text-label-lg font-medium relative z-10 ' +
   'transition-colors duration-150 focus:outline-none cursor-pointer';
 
 const ACTIVE_STATE = 'text-foreground phosphor-text';
@@ -101,8 +101,8 @@ export function Tab({ id, icon, children }: TabProps) {
 
   const orientationClasses =
     orientation === 'vertical'
-      ? 'w-full flex items-center gap-2 px-4 py-2.5 text-left'
-      : 'flex items-center gap-2 px-4 py-2.5';
+      ? 'w-full flex items-center gap-2 px-4 py-2.5 text-left min-w-0'
+      : 'flex items-center gap-2 px-4 py-2.5 min-w-0';
 
   const className = `${BASE} ${orientationClasses} ${isActive ? ACTIVE_STATE : INACTIVE_STATE}`;
 
@@ -120,7 +120,7 @@ export function Tab({ id, icon, children }: TabProps) {
       {icon && (
         <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
       )}
-      <span>{children}</span>
+      <span className="min-w-0 break-words">{children}</span>
     </button>
   );
 }

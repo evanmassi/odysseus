@@ -172,7 +172,7 @@ export function BaseModal({
     <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>
       {hasVerticalTabs && (
         <div
-          className={`w-48 ${surfaceClass} border-r ${borderClass} py-4 flex-shrink-0 flex flex-col`}
+          className={`w-56 ${surfaceClass} border-r ${borderClass} py-4 flex-shrink-0 flex flex-col`}
         >
           <div className="flex-1">{tabs}</div>
           {tabSidebarFooter && <div className="px-3 pb-2">{tabSidebarFooter}</div>}

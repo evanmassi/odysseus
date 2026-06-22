@@ -68,7 +68,7 @@ export const HELP_TABS: HelpTabMeta[] = [
   { id: 'donors', label: 'Donors', icon: BookUser },
   { id: 'researchers', label: 'Researchers', icon: Dna },
   { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
-  { id: 'administration', label: 'Administration', icon: ShieldUser, adminOnly: true },
+  { id: 'administration', label: 'Admin', icon: ShieldUser, adminOnly: true },
 ];
 
 export const HELP_TAB_META: Record<HelpTabId, HelpTabMeta> = HELP_TABS.reduce(
