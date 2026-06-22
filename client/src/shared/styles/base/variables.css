@@ -231,15 +231,19 @@
     --grid-position-label: 0 0% 100%;
     --grid-position-label-foreground: 215.4 19.3% 34.5%;
     --grid-position-label-border: 220 13% 82.7%;
-    --grid-selection: 200 85% 58%;
-    --grid-selection-glow: 200 85% 58% / 0.8;
+    /* Light: navy selection (Steel Anchor family), self-sufficient — bold ring +
+       navy fill tint (overlay) + elevation, no glow bloom, no dimming of the rest. */
+    --grid-selection: 213 70% 38%;
+    --grid-selection-glow: 213 68% 44% / 0.45;
     --grid-selection-inner: 0 0% 100% / 0.5;
-    --grid-selection-overlay: 0 0% 100% / 0.45;
-    --grid-selection-empty: 200 85% 58% / 0.08;
-    --grid-preview: 210 30% 60%;
-    --grid-preview-glow: 210 40% 66% / 0.5;
-    --grid-preview-overlay: 0 0% 100% / 0.32;
-    --grid-preview-empty: 210 35% 60% / 0.12;
+    --grid-selection-overlay: 213 68% 44% / 0.04;
+    --grid-selection-empty: 213 68% 44% / 0.1;
+    --grid-selection-coord: 213 60% 24%;
+    --grid-preview: 213 45% 62%;
+    --grid-preview-glow: 213 50% 60% / 0.35;
+    --grid-preview-overlay: 213 45% 62% / 0.13;
+    --grid-preview-empty: 213 45% 62% / 0.12;
+    --grid-preview-coord: 213 50% 34%;
     --grid-cut-opacity: 0.65;
     --grid-copied: 215.4 19.3% 34.5%;
     --grid-copied-alt: 0 0% 100%;
@@ -467,10 +471,12 @@
     --grid-selection-inner: 0 0% 100% / 0.5;
     --grid-selection-overlay: 0 0% 100% / 0.35;
     --grid-selection-empty: 213.1 93.9% 67.8% / 0.15;
+    --grid-selection-coord: 0 0% 100%;
     --grid-preview: 210 30% 74%;
     --grid-preview-glow: 210 40% 80% / 0.45;
     --grid-preview-overlay: 0 0% 100% / 0.3;
     --grid-preview-empty: 210 35% 74% / 0.16;
+    --grid-preview-coord: 0 0% 100%;
     --grid-cut-opacity: 0.5;
     --grid-copied: 215 20.2% 65.1%;
     --grid-copied-alt: 217.2 32.6% 17.5%;

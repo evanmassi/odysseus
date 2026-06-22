@@ -130,23 +130,51 @@
   filter: brightness(1.1);
 }
 
-/* Dim unselected filled tubes only while a selection is active, for contrast. */
-.tube-grid:has(.tube-position.selected)
+/* Dark theme spotlight: dim unselected filled tubes against the void while a
+   selection is active. Light mode instead makes the selection self-sufficient
+   (bold ring + fill tint + elevation, see the light block below) and leaves
+   unselected cells fully legible. */
+[data-theme='dark']
+  .tube-grid:has(.tube-position.selected)
   .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
   filter: brightness(0.72);
 }
 
-.tube-grid:has(.tube-position.selected)
+[data-theme='dark']
+  .tube-grid:has(.tube-position.selected)
   .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube):hover {
   filter: none;
 }
 
-/* Mid-drag, dim the untouched filled tubes harder than the settled state, so the
+/* Mid-drag, dim the untouched tubes harder than the settled state, so the
    grid lightens slightly when the drag is released. Placed after the settled rule
    so it wins while dragging to extend an existing selection. */
-.tube-grid:has(.tube-position.drag-preview)
+[data-theme='dark']
+  .tube-grid:has(.tube-position.drag-preview)
   .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
   filter: brightness(0.55);
+}
+
+/* Light theme spotlight: desaturate (not darken) unselected filled tubes so the
+   fully-saturated selection is the only vivid cell. Keeps the color-coded grid
+   legible; empty wells are near-gray already, so they're untouched. Hover restores
+   full saturation for inspection without selecting. */
+[data-theme='light']
+  .tube-grid:has(.tube-position.selected)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
+  filter: saturate(0.38);
+}
+
+[data-theme='light']
+  .tube-grid:has(.tube-position.selected)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube):hover {
+  filter: none;
+}
+
+[data-theme='light']
+  .tube-grid:has(.tube-position.drag-preview)
+  .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
+  filter: saturate(0.3);
 }
 
 .tube-position.selected {
@@ -194,7 +222,7 @@
 }
 
 .tube-position.selected.empty .empty-coord {
-  color: hsl(0 0% 100%);
+  color: hsl(var(--grid-selection-coord));
   text-shadow: 0 0 6px hsl(var(--grid-selection-glow));
 }
 
@@ -279,7 +307,7 @@
 }
 
 .tube-position.drag-preview.empty .empty-coord {
-  color: hsl(0 0% 100%);
+  color: hsl(var(--grid-preview-coord));
   text-shadow: 0 0 6px hsl(var(--grid-preview-glow));
 }
 
@@ -355,4 +383,35 @@
   pointer-events: none;
   border-radius: inherit;
   z-index: 100;
+}
+
+/* Light theme: the selection stands on its own (bold navy ring + fill tint +
+   elevation) rather than dimming the rest. No glow bloom, no pulsing halo. */
+[data-theme='light'] .tube-position.selected::after {
+  box-shadow: none;
+}
+
+/* Double-stroke: light inner hairline + bold navy ring + neutral elevation lift.
+   The white inner edge keeps the frame visible against dark, saturated cells; the
+   navy outer edge reads against the page and pale cells. Inner (not outer) white
+   avoids striping in the gaps between adjacent selected cells. */
+[data-theme='light'] .tube-position.selected.occupied {
+  box-shadow:
+    inset 0 0 0 1px hsl(0 0% 100% / 0.6),
+    0 0 0 2.5px hsl(var(--grid-selection)),
+    0 2px 5px -1px hsl(var(--recess) / 0.28);
+}
+
+/* Flat navy fill so the selection reads as a block, not just an outline. */
+[data-theme='light'] .tube-position.selected.occupied::before {
+  background: hsl(var(--grid-selection-overlay));
+}
+
+[data-theme='light'] .tube-position.drag-preview.occupied::before {
+  background: hsl(var(--grid-preview-overlay));
+}
+
+[data-theme='light'] .tube-position.selected.empty .empty-coord,
+[data-theme='light'] .tube-position.drag-preview.empty .empty-coord {
+  text-shadow: none;
 }
