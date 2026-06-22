@@ -23,7 +23,9 @@ export function UtilizationBar({ percent, width = 'w-20' }: UtilizationBarProps)
       <div className={`relative h-1.5 ${width} border border-foreground/15 bg-foreground/[0.03]`}>
         <div className={`h-full bg-scanlines ${tone}`} style={{ width: `${clamped}%` }} />
       </div>
-      <span className="font-mono text-data-sm tracking-data text-foreground/70">{percent}%</span>
+      <span className="inline-block w-10 text-right font-mono text-data-sm tabular-nums tracking-data text-foreground/70">
+        {percent}%
+      </span>
     </div>
   );
 }

@@ -87,7 +87,7 @@ export function StorageBoxMinimap({
               />
             </span>
             <span
-              className={`flex-none font-mono text-data-sm tracking-[0.08em] ${
+              className={`w-20 flex-none text-right font-mono text-data-sm tabular-nums tracking-[0.08em] ${
                 isFull ? 'text-warning-text' : isSelected ? 'text-primary' : 'text-foreground/40'
               }`}
             >

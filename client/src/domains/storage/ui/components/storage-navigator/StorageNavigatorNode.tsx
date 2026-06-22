@@ -94,7 +94,7 @@ export function StorageNavigatorNode({
                   style={{ width: `${fillRatio}%` }}
                 />
               </span>
-              <span className="font-mono text-data-sm tracking-[0.04em] text-foreground/45">
+              <span className="font-mono text-data-sm tabular-nums tracking-[0.04em] text-foreground/45">
                 {occupancyFilled ?? 0}
                 <span className="text-foreground/25">/{occupancyCapacity}</span>
               </span>
