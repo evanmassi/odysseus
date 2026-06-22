@@ -7,6 +7,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { useLabId } from '@domains/authentication';
 
 import { storageAnalyticsService } from '../services/StorageAnalyticsService';
 
@@ -16,9 +17,12 @@ import type {
 } from '@odysseus/shared-schemas';
 
 export function useLabStorageAnalyticsQuery() {
+  const labId = useLabId();
+
   return useQuery<LabStorageAnalyticsResponse>({
     queryKey: queryKeys.storageAnalytics.lab('self'),
     queryFn: () => storageAnalyticsService.getLabAnalytics(),
+    enabled: !!labId,
     staleTime: 60_000,
   });
 }
