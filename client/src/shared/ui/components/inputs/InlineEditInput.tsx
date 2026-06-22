@@ -68,7 +68,7 @@ export function InlineEditInput({
         onBlur={handleBlur}
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty placeholder is meaningless, generate helpful text
         placeholder={placeholder || `Edit ${fieldName}`}
-        className="flex-1 text-xs bg-transparent border-none px-1"
+        className="flex-1 text-body-sm bg-transparent border-none px-1"
       />
       <div className="flex space-x-1 ml-1">
         <Tooltip content="Save (Enter)" side="bottom">

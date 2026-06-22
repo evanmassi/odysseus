@@ -95,12 +95,12 @@ export const ConnectionStatusIndicator: React.FC = () => {
             {status.icon === 'wifi-off' ? (
               <WifiOff className="w-4 h-4 text-[hsl(var(--color-danger-bg))]" />
             ) : (
-              <span style={{ color: status.color }} className="text-sm">
+              <span style={{ color: status.color }} className="text-body-sm">
                 {status.icon === 'reconnecting' ? '◐' : '●'}
               </span>
             )}
             <span
-              className={`text-sm font-medium ${isOffline ? 'text-[hsl(var(--color-danger-bg))]' : 'text-card-foreground'}`}
+              className={`text-body-sm font-medium ${isOffline ? 'text-[hsl(var(--color-danger-bg))]' : 'text-card-foreground'}`}
             >
               {status.text}
             </span>
@@ -109,7 +109,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
           {!isOffline && (
             <button
               onClick={() => setShowDetails(false)}
-              className="text-muted-foreground hover:text-secondary-foreground text-xs"
+              className="text-muted-foreground hover:text-secondary-foreground text-caption"
               aria-label="Hide connection details"
             >
               ✕
@@ -118,7 +118,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
         </div>
 
         <p
-          className={`text-xs mt-1 ${isOffline ? 'text-status-offline-foreground' : 'text-secondary-foreground'}`}
+          className={`text-caption mt-1 ${isOffline ? 'text-status-offline-foreground' : 'text-secondary-foreground'}`}
         >
           {status.description}
         </p>
@@ -128,14 +128,14 @@ export const ConnectionStatusIndicator: React.FC = () => {
             className={`mt-2 pt-2 border-t ${isOffline ? 'border-status-offline-border' : 'border-border'}`}
           >
             {!isOffline && (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-caption text-muted-foreground">
                 Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
               </div>
             )}
 
             {isOffline && (
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
+                <span className="text-caption text-muted-foreground">
                   Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
                 </span>
                 <button
@@ -191,7 +191,7 @@ export const RealtimeSyncIndicator: React.FC<RealtimeSyncIndicatorProps> = ({
   if (!isVisible || !isAnimating) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-40 flex items-center space-x-2 bg-info-bg text-white px-3 py-1 rounded-full shadow-lg text-sm">
+    <div className="fixed top-4 right-4 z-40 flex items-center space-x-2 bg-info-bg text-white px-3 py-1 rounded-full shadow-lg text-body-sm">
       <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
       <span>Syncing...</span>
     </div>

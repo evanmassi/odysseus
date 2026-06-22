@@ -92,7 +92,7 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
         strokeWidth={2.25}
         aria-hidden="true"
       />
-      <span className="text-sm text-toast-foreground leading-snug">{message}</span>
+      <span className="text-body-sm text-toast-foreground leading-snug">{message}</span>
     </div>
   );
 }

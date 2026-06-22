@@ -59,13 +59,13 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
             />
             <ConsoleStatus label="Initialization failed" />
           </div>
-          {error && <p className="text-sm text-[rgb(var(--auth-text-dim))]">{error}</p>}
+          {error && <p className="text-body-sm text-[rgb(var(--auth-text-dim))]">{error}</p>}
           {env.isDev() && error && (
             <details className="w-full text-left">
-              <summary className="cursor-pointer text-xs text-[rgb(var(--auth-text-mute))] hover:text-[rgb(var(--auth-text-dim))]">
+              <summary className="cursor-pointer text-caption text-[rgb(var(--auth-text-mute))] hover:text-[rgb(var(--auth-text-dim))]">
                 Debug information
               </summary>
-              <pre className="mt-2 overflow-auto rounded bg-scrim/30 p-2 text-xs text-[rgb(var(--auth-text-mute))]">
+              <pre className="mt-2 overflow-auto rounded bg-scrim/30 p-2 text-data-sm text-[rgb(var(--auth-text-mute))]">
                 {error}
               </pre>
             </details>
@@ -109,7 +109,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           <ConsoleStatus label="Initializing" />
         </div>
         <p
-          className={`text-sm text-[rgb(var(--auth-text-mute))] transition-opacity duration-500 ${
+          className={`text-body-sm text-[rgb(var(--auth-text-mute))] transition-opacity duration-500 ${
             isSlow ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -135,7 +135,7 @@ function BootSplashField({ children }: { children: ReactNode }) {
 
 function ConsoleStatus({ label }: { label: string }) {
   return (
-    <span className="phosphor-text font-mono text-[10px] uppercase tracking-[0.28em] text-[rgb(var(--auth-text-mute))]">
+    <span className="phosphor-text type-label text-label-2xs tracking-ceremonial text-[rgb(var(--auth-text-mute))]">
       [ {label} ]
     </span>
   );

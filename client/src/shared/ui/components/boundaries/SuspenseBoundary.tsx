@@ -42,7 +42,7 @@ const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({
   >
     <div className="flex items-center space-x-3">
       <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
-      <span className="text-muted-foreground text-sm">
+      <span className="text-muted-foreground text-body-sm">
         {name ? `Loading ${name}...` : 'Loading...'}
       </span>
     </div>

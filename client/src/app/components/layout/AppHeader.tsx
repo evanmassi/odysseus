@@ -137,7 +137,7 @@ function HamburgerMenuItem({ icon: Icon, label, onClick, triggerProps }: Hamburg
       role="menuitem"
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
-      className={`group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-[12px] tracking-[0.04em] text-secondary-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors ${
+      className={`group relative z-10 w-full flex items-center gap-3 py-2 px-3 font-mono text-data-sm tracking-[0.04em] text-secondary-foreground hover:shadow-[inset_2px_0_0_hsl(var(--primary)/0.55)] hover:text-foreground transition-colors ${
         isDark
           ? 'hover:bg-[repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/0.12),hsl(var(--primary)/0.07)_55%,transparent_100%)]'
           : 'hover:bg-[linear-gradient(0deg,hsl(var(--primary)/0.08),hsl(var(--primary)/0.08))]'
@@ -259,13 +259,13 @@ export function AppHeader({
                 <span
                   key={`sep-${i}`}
                   aria-hidden
-                  className="font-mono text-[12px] text-foreground/40 transition-colors duration-200 group-hover:text-foreground/70"
+                  className="font-mono text-data-sm text-foreground/40 transition-colors duration-200 group-hover:text-foreground/70"
                 >
                   {'//'}
                 </span>,
                 <span
                   key={`crumb-${i}`}
-                  className="font-mono text-[10.5px] font-medium uppercase tracking-[0.22em] text-primary transition duration-200 group-hover:drop-shadow-icon-bloom-hover"
+                  className="type-label text-label-xs font-medium tracking-label-wide text-primary transition duration-200 group-hover:drop-shadow-icon-bloom-hover"
                 >
                   {crumb}
                 </span>,
@@ -543,11 +543,11 @@ export function AppHeader({
           className="group flex items-center gap-3"
         >
           <div className="text-right leading-tight">
-            <div className="max-w-[150px] truncate font-display text-[14px] font-medium tracking-[0.04em] text-foreground transition duration-200 group-hover:drop-shadow-icon-bloom-hover">
+            <div className="max-w-[150px] truncate font-display text-body-sm font-medium tracking-[0.04em] text-foreground transition duration-200 group-hover:drop-shadow-icon-bloom-hover">
               {displayName}
             </div>
             {user?.role && (
-              <div className="font-mono text-[9.5px] font-medium uppercase tracking-[0.20em] text-foreground/70 transition duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover">
+              <div className="type-label text-label-2xs font-medium tracking-label-wide text-foreground/70 transition duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover">
                 {ROLE_LABELS[user.role] ?? user.role}
               </div>
             )}
@@ -578,7 +578,7 @@ export function AppHeader({
                 <div className="relative z-10 flex items-center gap-3 px-3 py-2">
                   <FlaskConical size={16} className="text-primary/70" />
                   <span
-                    className={`font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-foreground ${isDark ? 'phosphor-text' : ''}`}
+                    className={`type-label text-label-xs font-medium text-foreground ${isDark ? 'phosphor-text' : ''}`}
                   >
                     {currentLab.name}
                   </span>

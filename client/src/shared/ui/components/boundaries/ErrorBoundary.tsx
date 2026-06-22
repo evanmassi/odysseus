@@ -85,7 +85,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
           <summary className="cursor-pointer text-danger-text font-medium mb-2">
             Error Details
           </summary>
-          <div className="bg-muted p-4 rounded border border-danger-border text-sm font-mono text-card-foreground overflow-auto max-h-40">
+          <div className="bg-muted p-4 rounded border border-danger-border text-data font-mono text-card-foreground overflow-auto max-h-40">
             <div className="mb-2">
               <strong>Error ID:</strong> {errorId}
             </div>
@@ -132,7 +132,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
       {level === 'page' && (
         <button
           onClick={() => window.location.reload()}
-          className="mt-3 text-danger-text hover:text-danger-bg underline text-sm"
+          className="mt-3 text-danger-text hover:text-danger-bg underline text-body-sm"
         >
           Reload Page
         </button>

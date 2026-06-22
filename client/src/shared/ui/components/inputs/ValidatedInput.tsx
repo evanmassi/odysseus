@@ -77,8 +77,8 @@ export function ValidatedInput({
   const getLabelClasses = () => {
     const baseClasses =
       labelStyle === 'compact'
-        ? 'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5'
-        : 'block text-sm font-medium mb-1';
+        ? 'block type-label text-label-2xs tracking-label-wide mb-1.5'
+        : 'block text-body-sm font-medium mb-1';
 
     if (error) {
       return `${baseClasses} text-danger-text`;
@@ -92,7 +92,7 @@ export function ValidatedInput({
   };
 
   const getHelperTextClasses = () => {
-    const baseClasses = 'flex items-center mt-1 text-xs';
+    const baseClasses = 'flex items-center mt-1 text-caption';
 
     if (error) {
       return `${baseClasses} text-danger-text`;

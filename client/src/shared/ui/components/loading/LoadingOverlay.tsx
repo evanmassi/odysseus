@@ -21,7 +21,7 @@ export function LoadingOverlay({ message = 'Loading...', submessage }: LoadingOv
 
           <h1 className="text-xl font-bold text-card-foreground mb-2">{message}</h1>
 
-          {submessage && <p className="text-sm text-muted-foreground">{submessage}</p>}
+          {submessage && <p className="text-body-sm text-muted-foreground">{submessage}</p>}
         </div>
       </div>
     </div>

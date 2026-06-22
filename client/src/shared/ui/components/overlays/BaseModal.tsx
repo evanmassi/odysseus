@@ -151,7 +151,7 @@ export function BaseModal({
             >
               {title}
             </h2>
-            {subtitle && <p className="text-muted-foreground text-xs">{subtitle}</p>}
+            {subtitle && <p className="text-muted-foreground text-body-sm">{subtitle}</p>}
           </div>
         </div>
         <button

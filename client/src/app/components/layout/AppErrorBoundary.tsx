@@ -153,11 +153,13 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
               <div className="flex items-start space-x-3">
                 <Bug className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-danger-text mb-1">Error Details</h4>
-                  <p className="text-sm text-danger-text break-words">
+                  <h4 className="text-body-sm font-medium text-danger-text mb-1">Error Details</h4>
+                  <p className="text-body text-danger-text break-words">
                     {this.state.error?.message ?? 'Unknown error occurred'}
                   </p>
-                  <p className="text-xs text-danger-text mt-2">Error ID: {this.state.errorId}</p>
+                  <p className="text-caption text-danger-text mt-2">
+                    Error ID: {this.state.errorId}
+                  </p>
                 </div>
               </div>
             </div>
@@ -165,18 +167,18 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             {/* Debug Information (Development Only) */}
             {env.isDev() && this.state.error?.stack && (
               <details className="mb-6">
-                <summary className="text-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mb-2">
+                <summary className="text-body-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mb-2">
                   🔧 Stack Trace (Development)
                 </summary>
-                <pre className="text-xs text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
+                <pre className="text-data-sm text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
                   {this.state.error.stack}
                 </pre>
                 {this.state.errorInfo?.componentStack && (
                   <>
-                    <summary className="text-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mt-3 mb-2">
+                    <summary className="text-body-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mt-3 mb-2">
                       🧩 Component Stack
                     </summary>
-                    <pre className="text-xs text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
+                    <pre className="text-data-sm text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
                       {this.state.errorInfo.componentStack}
                     </pre>
                   </>
@@ -220,18 +222,18 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
             {/* Support Actions */}
             <div className="border-t border-border pt-6">
-              <h3 className="text-sm font-medium text-card-foreground mb-3">Need Help?</h3>
+              <h3 className="text-body-sm font-medium text-card-foreground mb-3">Need Help?</h3>
 
               <div className="space-y-2">
                 <button
                   onClick={this.copyErrorDetails}
-                  className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-accent rounded-lg transition-colors flex items-center space-x-2"
+                  className="w-full text-left px-3 py-2 text-body-sm text-muted-foreground hover:bg-accent rounded-lg transition-colors flex items-center space-x-2"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <span>Copy error details for support</span>
                 </button>
 
-                <p className="text-xs text-muted-foreground">
+                <p className="text-caption text-muted-foreground">
                   If this error persists, please contact your system administrator with the error ID
                   above.
                 </p>
@@ -240,7 +242,9 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
             {/* Footer */}
             <div className="mt-6 text-center border-t border-border pt-4">
-              <p className="text-xs text-muted-foreground">Odysseus Laboratory Management System</p>
+              <p className="text-caption text-muted-foreground">
+                Odysseus Laboratory Management System
+              </p>
             </div>
           </div>
         </div>

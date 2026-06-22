@@ -29,7 +29,7 @@ export interface DocumentLinkModalProps {
 }
 
 const FIELD_LABEL =
-  'block font-mono text-[10px] uppercase tracking-[0.22em] mb-1.5 text-muted-foreground';
+  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 export function DocumentLinkModal({
   isOpen,

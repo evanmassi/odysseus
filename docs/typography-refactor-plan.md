@@ -1,8 +1,17 @@
 # Typography System Refactor — Plan
 
-Status: **approved** (system finalized; ready to start Phase 1)
+Status: **in progress** — Phases 1–3 complete (tokens + tabs · shared primitives · feature sweep).
+Remaining: Phase H (sans `text-title*` headings — 5 deferred display headings in admin), Phase 4
+(CSS outliers in `alerts.css`/`auth-console.css`, the AuthInput notch label, the barcode-config
+panel chrome, and the lint guard).
 Owner: design/UI
 Scope: `client/` typography across the app
+
+> **Phase 3 note — micro mono-meta left at the 13px data floor (decision).** Tiny mono,
+> non-uppercase numbers/meta (≤11px) that snapped up to `data-sm` (13) during the sweep are kept
+> as-is; we did NOT add compact `data-xs`/`data-2xs` tokens. Accepted that dense readouts
+> (navigator box minimaps, table sub-lines, `//` separators) now read larger — revisit per-spot
+> if any look too big in review.
 
 ---
 

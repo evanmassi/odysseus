@@ -256,20 +256,18 @@ export function ModalPreviewPage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-2xl px-8 py-12">
         <header className="mb-8">
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
+          <span className="type-label text-label-2xs tracking-label-wide text-primary">
             Dev · /__dev/modals
           </span>
           <h1 className="mt-1 text-xl font-semibold">Modal Preview</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-body-sm text-muted-foreground">
             Render modals in isolation with mock data. Close a modal to pick another.
           </p>
         </header>
 
         {groups.map(group => (
           <section key={group} className="mb-8">
-            <h2 className="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              {group}
-            </h2>
+            <h2 className="mb-3 type-label text-label-xs text-muted-foreground">{group}</h2>
             <div className="space-y-2">
               {SPECS.filter(spec => spec.group === group).map(spec => (
                 <button
@@ -278,9 +276,9 @@ export function ModalPreviewPage() {
                   onClick={() => setActiveId(spec.id)}
                   className="flex w-full flex-col items-start rounded-md border border-line-soft bg-card px-4 py-3 text-left transition-colors hover:border-primary/60"
                 >
-                  <span className="text-sm font-medium">{spec.label}</span>
+                  <span className="text-body font-medium">{spec.label}</span>
                   {spec.note && (
-                    <span className="mt-0.5 text-xs text-muted-foreground">{spec.note}</span>
+                    <span className="mt-0.5 text-caption text-muted-foreground">{spec.note}</span>
                   )}
                 </button>
               ))}
@@ -293,7 +291,7 @@ export function ModalPreviewPage() {
         <button
           type="button"
           onClick={close}
-          className="fixed right-4 top-4 z-[60] rounded-md border border-line-soft bg-card px-3 py-1.5 font-mono text-xs text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground"
+          className="fixed right-4 top-4 z-[60] rounded-md border border-line-soft bg-card px-3 py-1.5 font-mono text-data-sm text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground"
         >
           Close preview · Esc
         </button>

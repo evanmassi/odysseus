@@ -405,7 +405,7 @@ function BiobankWorkspace() {
 
             <HeaderStrip className="px-4 py-2.5">
               <div className="flex items-center gap-3">
-                <span className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] tracking-[0.04em]">
+                <span className="flex min-w-0 items-center gap-1.5 font-mono text-data-sm tracking-[0.04em]">
                   <span
                     aria-hidden
                     className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
@@ -426,7 +426,7 @@ function BiobankWorkspace() {
                       }}
                     />
                   </span>
-                  <span className="font-mono text-[10px] tracking-[0.06em] text-foreground/60">
+                  <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/60">
                     {tubes.length}
                     <span className="text-foreground/35">/{gridCapacity}</span>
                   </span>

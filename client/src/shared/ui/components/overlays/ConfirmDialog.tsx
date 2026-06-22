@@ -170,7 +170,7 @@ export function ConfirmDialog({
               <MarkComponent size={22} className={styles.iconColor} />
               <h2
                 id="confirm-dialog-title"
-                className="phosphor-text font-mono text-[15px] font-semibold uppercase tracking-[0.14em] text-tooltip-foreground"
+                className="phosphor-text type-label text-label-lg font-semibold text-tooltip-foreground"
               >
                 {title}
               </h2>
@@ -191,7 +191,7 @@ export function ConfirmDialog({
           {/* Message */}
           <p
             id="confirm-dialog-message"
-            className="mb-7 text-sm leading-relaxed text-tooltip-foreground/80"
+            className="mb-7 text-body leading-relaxed text-tooltip-foreground/80"
           >
             {message}
           </p>

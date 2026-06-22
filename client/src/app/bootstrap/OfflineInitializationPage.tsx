@@ -76,7 +76,7 @@ export function OfflineInitializationPage({ onRetry }: OfflineInitializationPage
             {isRetrying ? 'Connecting...' : "You're Offline"}
           </h1>
 
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body-sm text-muted-foreground">
             {isRetrying ? 'Attempting to reach the server' : 'Connect to the internet to continue'}
           </p>
         </div>
@@ -84,7 +84,7 @@ export function OfflineInitializationPage({ onRetry }: OfflineInitializationPage
         <div className="space-y-4">
           {!isRetrying && (
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-body-sm text-muted-foreground">
                 Retrying in <span className="font-semibold text-card-foreground">{countdown}s</span>
               </p>
             </div>
