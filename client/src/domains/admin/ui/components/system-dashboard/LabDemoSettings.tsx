@@ -105,8 +105,9 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
 
   return (
     <>
-      <div>
+      <ConsolePanel intensity="soft">
         <SectionHeader
+          className="px-4 pt-4"
           title="Demo Settings"
           meta={
             <button
@@ -123,7 +124,7 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
           }
         />
         {isExpanded && (
-          <ConsolePanel>
+          <>
             <Subsection title="Resource Limits" index={1}>
               <SettingsRow label="Additional Tanks" hint="Max tanks beyond seeded baseline">
                 <NumberInput
@@ -206,9 +207,9 @@ export function LabDemoSettings({ labId, isSeeded }: LabDemoSettingsProps) {
                 </Button>
               </div>
             </div>
-          </ConsolePanel>
+          </>
         )}
-      </div>
+      </ConsolePanel>
 
       <ConfirmDialog
         isOpen={resetDemoConfirm}

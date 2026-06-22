@@ -23,7 +23,8 @@ import {
   X,
 } from 'lucide-react';
 
-import { Button, ConsolePanel, IdStamp, SectionHeader, StatCell } from '@shared/ui';
+import { useResolvedTheme } from '@shared/hooks';
+import { Button, ConsolePanel, IdStamp, SectionHeader, StatCell, Well } from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -91,6 +92,8 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
       return direction === 'asc' ? cmp : -cmp;
     });
   }, [details?.researchers, researcherSortConfig]);
+
+  const isDark = useResolvedTheme() === 'dark';
 
   if (isLoading || !details) {
     return (
@@ -171,7 +174,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
             className="absolute inset-x-0 top-3 h-px"
             style={{
               background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusVar})/0.6) 9%, hsl(var(${statusVar})/0.6) 91%, transparent 100%)`,
-              boxShadow: `0 0 8px hsl(var(${statusVar})/0.4)`,
+              boxShadow: isDark ? `0 0 8px hsl(var(${statusVar})/0.4)` : undefined,
             }}
           />
           <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
@@ -217,8 +220,9 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                 style={{
                   background:
                     'linear-gradient(180deg, currentColor 0%, currentColor 24%, color-mix(in srgb, currentColor 45%, transparent) 60%, transparent 100%)',
-                  filter:
-                    'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))',
+                  filter: isDark
+                    ? 'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))'
+                    : undefined,
                 }}
               />
             </div>
@@ -282,17 +286,14 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                     ]}
                   />
                 </div>
-                <div
-                  className="flex aspect-square shrink-0 items-center justify-center border-l border-line-soft"
-                  style={{ background: 'hsl(var(--shade) / 0.13)' }}
-                >
+                <Well className="flex aspect-square shrink-0 items-center justify-center">
                   <LabPowerToggle
                     isActive={lab.isActive}
                     isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
                     onActivate={handleActivate}
                     onDeactivate={() => setShowDeactivate(true)}
                   />
-                </div>
+                </Well>
               </div>
 
               <div className="grid grid-cols-4 border-t border-line-faint divide-x divide-line-faint [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.10)_10%,hsl(var(--foreground)/0.10)_86%,transparent_100%)_1]">
@@ -329,25 +330,27 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
           onResearcherDeleted={() => void refetch()}
         />
 
-        <div>
-          <SectionHeader
-            title="Audit Log"
-            meta={
-              <button
-                type="button"
-                onClick={() => setShowAudit(o => !o)}
-                className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
-              >
-                <ChevronDown
-                  size={12}
-                  className={`transition-transform ${showAudit ? '' : '-rotate-90'}`}
-                />
-                {showAudit ? 'Hide' : 'Show'}
-              </button>
-            }
-          />
-          {showAudit && <AuditLogViewer labId={labId} readOnly hideHeader />}
-        </div>
+        <ConsolePanel intensity="soft">
+          <div className="p-4">
+            <SectionHeader
+              title="Audit Log"
+              meta={
+                <button
+                  type="button"
+                  onClick={() => setShowAudit(o => !o)}
+                  className="inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground/70"
+                >
+                  <ChevronDown
+                    size={12}
+                    className={`transition-transform ${showAudit ? '' : '-rotate-90'}`}
+                  />
+                  {showAudit ? 'Hide' : 'Show'}
+                </button>
+              }
+            />
+            {showAudit && <AuditLogViewer labId={labId} readOnly hideHeader />}
+          </div>
+        </ConsolePanel>
 
         <ConfirmDialog
           isOpen={showDeactivate}

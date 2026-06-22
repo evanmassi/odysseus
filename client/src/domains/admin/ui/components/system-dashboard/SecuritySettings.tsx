@@ -67,8 +67,9 @@ export function SecuritySettings() {
   };
 
   return (
-    <div>
+    <ConsolePanel intensity="soft">
       <SectionHeader
+        className="px-4 pt-4"
         title="Security Settings"
         meta={
           <button
@@ -86,7 +87,7 @@ export function SecuritySettings() {
       />
       {isExpanded &&
         (isLoaded ? (
-          <ConsolePanel>
+          <>
             <SecurityTab config={config} onChange={handleConfigChange} />
             <div className="flex items-center justify-between gap-4 border-t border-line-soft bg-card dark:bg-shade/25 dark:[background-image:linear-gradient(0deg,hsl(var(--foreground)/0.035)_0%,transparent_70%)] px-5 py-3">
               <UnsavedChangesIndicator count={changedKeys.length} />
@@ -101,10 +102,10 @@ export function SecuritySettings() {
                 Save Changes
               </Button>
             </div>
-          </ConsolePanel>
+          </>
         ) : (
-          <div className="py-4 text-center text-sm text-muted-foreground">Loading...</div>
+          <div className="px-4 pb-4 text-center text-sm text-muted-foreground">Loading...</div>
         ))}
-    </div>
+    </ConsolePanel>
   );
 }

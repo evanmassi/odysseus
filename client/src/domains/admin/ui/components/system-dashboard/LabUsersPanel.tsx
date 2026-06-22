@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Link2, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Chip, OverflowMenu, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Chip, ConsolePanel, OverflowMenu, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -61,52 +61,54 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
 
   return (
     <>
-      <div>
-        <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
-        <Table
-          columns={getUserColumns({
-            onUserAction: setUserAction,
-            onActivate: handleActivate,
-            currentUserId,
-          })}
-          data={activeUsers}
-          sortable
-          sortConfig={sortConfig}
-          onSort={onSort}
-          emptyMessage="No users in this lab"
-          aria-label="Lab users"
-        />
+      <ConsolePanel intensity="soft">
+        <div className="p-4">
+          <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
+          <Table
+            columns={getUserColumns({
+              onUserAction: setUserAction,
+              onActivate: handleActivate,
+              currentUserId,
+            })}
+            data={activeUsers}
+            sortable
+            sortConfig={sortConfig}
+            onSort={onSort}
+            emptyMessage="No users in this lab"
+            aria-label="Lab users"
+          />
 
-        {inactiveUsers.length > 0 && (
-          <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.14)_42%,hsl(var(--foreground)/0.06)_82%,transparent_100%)]">
-            <button
-              onClick={() => setShowInactive(prev => !prev)}
-              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
-              />
-              Inactive Users ({inactiveUsers.length})
-            </button>
-            {showInactive && (
-              <div className="mt-2">
-                <Table
-                  columns={getUserColumns({
-                    onUserAction: setUserAction,
-                    onActivate: handleActivate,
-                    currentUserId,
-                  })}
-                  data={inactiveUsers}
-                  emptyMessage=""
-                  aria-label="Inactive lab users"
-                  rowState={row => (row.status === 'suspended' ? 'danger' : 'muted')}
+          {inactiveUsers.length > 0 && (
+            <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.14)_42%,hsl(var(--foreground)/0.06)_82%,transparent_100%)]">
+              <button
+                onClick={() => setShowInactive(prev => !prev)}
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
                 />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                Inactive Users ({inactiveUsers.length})
+              </button>
+              {showInactive && (
+                <div className="mt-2">
+                  <Table
+                    columns={getUserColumns({
+                      onUserAction: setUserAction,
+                      onActivate: handleActivate,
+                      currentUserId,
+                    })}
+                    data={inactiveUsers}
+                    emptyMessage=""
+                    aria-label="Inactive lab users"
+                    rowState={row => (row.status === 'suspended' ? 'danger' : 'muted')}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </ConsolePanel>
 
       <ConfirmDialog
         isOpen={userAction !== null}

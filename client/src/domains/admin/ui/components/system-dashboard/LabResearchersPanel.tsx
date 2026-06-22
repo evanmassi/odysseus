@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react';
 
 import { ChevronDown, Link2, Trash2 } from 'lucide-react';
 
-import { Button, Chip, SectionHeader, Table, Tooltip } from '@shared/ui';
+import { Button, Chip, ConsolePanel, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -62,44 +62,46 @@ export function LabResearchersPanel({
 
   return (
     <>
-      <div>
-        <SectionHeader title="Researchers" meta={`${activeResearchers.length} records`} />
-        <Table
-          columns={columns}
-          data={activeResearchers}
-          sortable
-          sortConfig={sortConfig}
-          onSort={onSort}
-          emptyMessage="No researchers in this lab"
-          aria-label="Lab researchers"
-        />
+      <ConsolePanel intensity="soft">
+        <div className="p-4">
+          <SectionHeader title="Researchers" meta={`${activeResearchers.length} records`} />
+          <Table
+            columns={columns}
+            data={activeResearchers}
+            sortable
+            sortConfig={sortConfig}
+            onSort={onSort}
+            emptyMessage="No researchers in this lab"
+            aria-label="Lab researchers"
+          />
 
-        {inactiveResearchers.length > 0 && (
-          <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.20)_0%,hsl(var(--foreground)/0.12)_55%,hsl(var(--foreground)/0.04)_88%,transparent_100%)]">
-            <button
-              onClick={() => setShowInactive(prev => !prev)}
-              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
-              />
-              Inactive Researchers ({inactiveResearchers.length})
-            </button>
-            {showInactive && (
-              <div className="mt-2">
-                <Table
-                  columns={columns}
-                  data={inactiveResearchers}
-                  emptyMessage=""
-                  aria-label="Inactive lab researchers"
-                  rowState={() => 'muted'}
+          {inactiveResearchers.length > 0 && (
+            <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.20)_0%,hsl(var(--foreground)/0.12)_55%,hsl(var(--foreground)/0.04)_88%,transparent_100%)]">
+              <button
+                onClick={() => setShowInactive(prev => !prev)}
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
                 />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                Inactive Researchers ({inactiveResearchers.length})
+              </button>
+              {showInactive && (
+                <div className="mt-2">
+                  <Table
+                    columns={columns}
+                    data={inactiveResearchers}
+                    emptyMessage=""
+                    aria-label="Inactive lab researchers"
+                    rowState={() => 'muted'}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </ConsolePanel>
 
       <ConfirmDialog
         isOpen={deleteTarget !== null}

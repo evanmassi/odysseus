@@ -22,7 +22,16 @@ import {
   UsersRound,
 } from 'lucide-react';
 
-import { Button, ConsolePanel, IdStamp, PanelHeader, SectionHeader, StatCell } from '@shared/ui';
+import { useResolvedTheme } from '@shared/hooks';
+import {
+  Button,
+  ConsolePanel,
+  IdStamp,
+  PanelHeader,
+  SectionHeader,
+  StatCell,
+  Well,
+} from '@shared/ui';
 import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -138,6 +147,8 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
     }
   };
 
+  const isDark = useResolvedTheme() === 'dark';
+
   const getLabStats = (labId: string) => {
     return overview?.labStats.find(s => s.labId === labId);
   };
@@ -161,7 +172,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
           className="absolute inset-x-0 top-3 h-px"
           style={{
             background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusVar})/0.6) 9%, hsl(var(${statusVar})/0.6) 91%, transparent 100%)`,
-            boxShadow: `0 0 8px hsl(var(${statusVar})/0.4)`,
+            boxShadow: isDark ? `0 0 8px hsl(var(${statusVar})/0.4)` : undefined,
           }}
         />
         <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
@@ -207,8 +218,9 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
               style={{
                 background:
                   'linear-gradient(180deg, currentColor 0%, currentColor 24%, color-mix(in srgb, currentColor 45%, transparent) 60%, transparent 100%)',
-                filter:
-                  'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))',
+                filter: isDark
+                  ? 'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))'
+                  : undefined,
               }}
             />
           </div>
@@ -235,17 +247,14 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   />
                 )}
               </div>
-              <div
-                className="flex aspect-square shrink-0 items-center justify-center border-l border-line-soft"
-                style={{ background: 'hsl(var(--shade) / 0.13)' }}
-              >
+              <Well className="flex aspect-square shrink-0 items-center justify-center">
                 <LabPowerToggle
                   isActive={lab.isActive}
                   isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
                   onActivate={() => handleActivateLab(lab.id)}
                   onDeactivate={() => setDeactivateTarget(lab.id)}
                 />
-              </div>
+              </Well>
             </div>
 
             {stats && (
@@ -315,42 +324,42 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
 
   return (
     <div className="space-y-4">
-      <PanelHeader
-        title="Labs"
-        icon={<FlaskConical size={14} />}
-        actions={
-          <>
+      <ConsolePanel intensity="soft">
+        <div className="flex-shrink-0 border-b border-line-faint pr-4">
+          <PanelHeader title="Labs" icon={<FlaskConical size={14} />} />
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-3 py-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+          >
+            Refresh
+          </Button>
+          {!demoLabExists && (
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
-              onClick={handleRefresh}
-              disabled={isLoading}
-              leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
-            >
-              Refresh
-            </Button>
-            {!demoLabExists && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleCreateDemoLab}
-                isLoading={createLabMutation.isPending}
-                leftIcon={<Plus size={14} />}
-              >
-                Create Demo Lab
-              </Button>
-            )}
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowCreateLab(true)}
+              onClick={handleCreateDemoLab}
+              isLoading={createLabMutation.isPending}
               leftIcon={<Plus size={14} />}
             >
-              Create Lab
+              Create Demo Lab
             </Button>
-          </>
-        }
-      />
+          )}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => setShowCreateLab(true)}
+            leftIcon={<Plus size={14} />}
+          >
+            Create Lab
+          </Button>
+        </div>
+      </ConsolePanel>
 
       {showCreateLab && (
         <div className="p-3 bg-muted rounded-lg space-y-3">
@@ -400,23 +409,27 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
       ) : (
         <>
           {regularLabs.length > 0 && (
-            <div>
-              <SectionHeader
-                title="Registered"
-                meta={`${regularLabs.length} ${regularLabs.length === 1 ? 'record' : 'records'}`}
-              />
-              <div className="space-y-5">{regularLabs.map(lab => renderLabCard(lab))}</div>
-            </div>
+            <ConsolePanel intensity="soft">
+              <div className="p-4">
+                <SectionHeader
+                  title="Registered"
+                  meta={`${regularLabs.length} ${regularLabs.length === 1 ? 'record' : 'records'}`}
+                />
+                <div className="space-y-5">{regularLabs.map(lab => renderLabCard(lab))}</div>
+              </div>
+            </ConsolePanel>
           )}
 
           {demoLabs.length > 0 && (
-            <div>
-              <SectionHeader
-                title="Demo"
-                meta={`${demoLabs.length} ${demoLabs.length === 1 ? 'record' : 'records'}`}
-              />
-              <div className="space-y-5">{demoLabs.map(lab => renderLabCard(lab))}</div>
-            </div>
+            <ConsolePanel intensity="soft">
+              <div className="p-4">
+                <SectionHeader
+                  title="Demo"
+                  meta={`${demoLabs.length} ${demoLabs.length === 1 ? 'record' : 'records'}`}
+                />
+                <div className="space-y-5">{demoLabs.map(lab => renderLabCard(lab))}</div>
+              </div>
+            </ConsolePanel>
           )}
         </>
       )}
