@@ -13,7 +13,7 @@ const CONTAINER_FOCUS_SHADOW =
 
 // Resting inner glow — Toggle's inset primary pool, dialed below the focus state so
 // the well reads lit/dimensional without looking focused.
-const WELL_GLOW = 'shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
+const WELL_GLOW = 'dark:shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.14)]';
 
 const DIVIDER =
   '[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.28)_18%,hsl(var(--foreground)/0.28)_82%,transparent_100%)_1]';
@@ -311,7 +311,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             ${styles.button} h-full
             flex items-center justify-center
             text-secondary-foreground
-            hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]
+            hover:text-foreground dark:hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]
             focus-visible:text-foreground
             disabled:opacity-40 disabled:cursor-not-allowed
             transition-[color,text-shadow,box-shadow] duration-150

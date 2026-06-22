@@ -33,11 +33,11 @@ const FORMAT_CARD_BASE =
   'focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-primary/40';
 const FORMAT_CARD_SELECTED =
   'border-primary/60 bg-[hsl(var(--primary)/0.10)] text-foreground ' +
-  'shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
+  'dark:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.30),0_0_18px_-4px_hsl(var(--primary)/0.50)]';
 const FORMAT_CARD_UNSELECTED =
-  'border-line-mid text-secondary-foreground shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
+  'border-line-mid text-secondary-foreground dark:shadow-[inset_0_0_12px_-3px_hsl(var(--primary)/0.10)] ' +
   'hover:border-primary/40 hover:text-foreground ' +
-  'hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
+  'dark:hover:shadow-[inset_0_0_12px_-2px_hsl(var(--primary)/0.22),0_0_14px_-6px_hsl(var(--primary)/0.42)]';
 
 const PAPER_ORDER: Record<SheetTemplate['paperSize'], number> = { letter: 0, a4: 1 };
 
@@ -331,7 +331,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
                   size={18}
                   className={
                     isSelected
-                      ? 'text-primary [filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.6))]'
+                      ? 'text-primary dark:[filter:drop-shadow(0_0_6px_hsl(var(--primary)/0.6))]'
                       : 'text-muted-foreground'
                   }
                 />

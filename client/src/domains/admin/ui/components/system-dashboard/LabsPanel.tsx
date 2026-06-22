@@ -232,7 +232,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                   <button
                     type="button"
                     onClick={() => onSelectLab(lab.id)}
-                    className="cursor-pointer text-left text-foreground transition-[text-shadow] duration-200 outline-none hover:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)] focus-visible:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)]"
+                    className="cursor-pointer text-left text-foreground transition-[text-shadow] duration-200 outline-none dark:hover:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)] dark:focus-visible:[text-shadow:0_0_2px_currentColor,0_0_14px_color-mix(in_srgb,currentColor_70%,transparent)]"
                   >
                     {lab.name}
                   </button>

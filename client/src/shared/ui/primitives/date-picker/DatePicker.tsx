@@ -40,10 +40,10 @@ const POPUP_SHADOW =
   'shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_0_24px_-4px_hsl(var(--primary)/0.30)]';
 
 const ICON_BUTTON =
-  'p-0.5 text-secondary-foreground transition-colors hover:text-foreground hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)] focus:outline-none focus-visible:text-foreground focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]';
+  'p-0.5 text-secondary-foreground transition-colors hover:text-foreground dark:hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)] focus:outline-none focus-visible:text-foreground dark:focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]';
 
 const NAV_BUTTON =
-  'p-1 text-primary/80 transition-colors hover:text-primary hover:[filter:drop-shadow(0_0_4px_hsl(var(--primary)/0.55))] focus:outline-none focus-visible:text-primary focus-visible:[filter:drop-shadow(0_0_4px_hsl(var(--primary)/0.55))]';
+  'p-1 text-primary/80 transition-colors hover:text-primary dark:hover:[filter:drop-shadow(0_0_4px_hsl(var(--primary)/0.55))] focus:outline-none focus-visible:text-primary dark:focus-visible:[filter:drop-shadow(0_0_4px_hsl(var(--primary)/0.55))]';
 
 function formatForDisplay(dateStr: string): string {
   if (!dateStr) return '';
@@ -556,7 +556,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               week: '',
               day: 'text-center p-0',
               day_button:
-                'w-8 h-8 text-data font-mono text-foreground transition-colors hover:bg-foreground/5 hover:[text-shadow:0_0_6px_color-mix(in_srgb,currentColor_60%,transparent)] focus:outline-none focus-visible:[box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.5)]',
+                'w-8 h-8 text-data font-mono text-foreground transition-colors hover:bg-foreground/5 dark:hover:[text-shadow:0_0_6px_color-mix(in_srgb,currentColor_60%,transparent)] focus:outline-none focus-visible:[box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.5)]',
               selected:
                 'bg-primary/20 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.7)] hover:bg-primary/25',
               today:
