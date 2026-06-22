@@ -228,7 +228,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="flex items-stretch">
               <div className="flex min-w-0 flex-1 flex-col gap-2 px-5 pt-5 pb-4">
-                <h3 className="font-display text-[28px] leading-none font-medium tracking-[-0.01em]">
+                <h3 className="font-display text-display leading-none font-medium tracking-[-0.01em]">
                   <button
                     type="button"
                     onClick={() => onSelectLab(lab.id)}

@@ -37,7 +37,7 @@ export function SystemAdminDashboard() {
     <div className="h-full overflow-y-auto">
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         <div>
-          <h1 className="flex items-center gap-3 font-display text-[32px] font-normal tracking-[-0.015em] leading-none">
+          <h1 className="flex items-center gap-3 font-display text-display font-normal tracking-[-0.015em] leading-none">
             <LayoutDashboard size={28} className="text-foreground/60" />
             System Overview
           </h1>

@@ -236,7 +236,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                         type="text"
                         value={newName}
                         onChange={e => setNewName(e.target.value)}
-                        className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] bg-transparent border-b border-transparent [border-image:linear-gradient(90deg,hsl(var(--foreground)/0.25)_0%,hsl(var(--foreground)/0.18)_55%,hsl(var(--foreground)/0.08)_88%,transparent_100%)_1] px-1 focus:outline-none focus:[border-image:linear-gradient(90deg,hsl(var(--primary)/0.7)_0%,hsl(var(--primary)/0.5)_70%,transparent_100%)_1] text-foreground"
+                        className="font-display text-display font-normal leading-none tracking-[-0.015em] bg-transparent border-b border-transparent [border-image:linear-gradient(90deg,hsl(var(--foreground)/0.25)_0%,hsl(var(--foreground)/0.18)_55%,hsl(var(--foreground)/0.08)_88%,transparent_100%)_1] px-1 focus:outline-none focus:[border-image:linear-gradient(90deg,hsl(var(--primary)/0.7)_0%,hsl(var(--primary)/0.5)_70%,transparent_100%)_1] text-foreground"
                         onKeyDown={e => e.key === 'Enter' && handleRename()}
                         ref={(el: HTMLInputElement | null) => el?.focus()}
                       />
@@ -262,7 +262,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
                     </div>
                   ) : (
                     <div className="flex items-center gap-3">
-                      <h1 className="font-display text-[32px] font-normal leading-none tracking-[-0.015em] text-foreground">
+                      <h1 className="font-display text-display font-normal leading-none tracking-[-0.015em] text-foreground">
                         {lab.name}
                       </h1>
                       <Button

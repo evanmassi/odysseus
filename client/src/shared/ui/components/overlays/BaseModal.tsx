@@ -145,8 +145,8 @@ export function BaseModal({
               id="modal-title"
               className={
                 isLit
-                  ? 'text-lg font-medium text-foreground'
-                  : 'text-lg font-bold text-card-foreground'
+                  ? 'text-title font-medium text-foreground'
+                  : 'text-title font-bold text-card-foreground'
               }
             >
               {title}

@@ -409,7 +409,7 @@ function LabDrillDown({
 
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="flex min-w-0 flex-col gap-2 px-5 pt-5 pb-4">
-              <h1 className="font-display text-[32px] leading-none font-normal tracking-[-0.015em] text-foreground">
+              <h1 className="font-display text-display leading-none font-normal tracking-[-0.015em] text-foreground">
                 {labName}
               </h1>
               <IdStamp parts={[`/${labSlug}`]} />
