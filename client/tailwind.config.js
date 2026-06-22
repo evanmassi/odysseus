@@ -166,6 +166,46 @@ export default {
           'unassigned-badge': 'hsl(var(--ownership-unassigned-badge) / <alpha-value>)',
         },
       },
+      fontSize: {
+        // Semantic type tokens — see docs/typography-refactor-plan.md.
+        // The numeric ladder (text-xs…text-4xl) stays at Tailwind defaults
+        // (12/14/16/18/20/24/30/36) and is the escape hatch; reach for the
+        // semantic tokens below first. Format: [size, { lineHeight }]; px @16px root.
+
+        // Prose (sans, sentence case)
+        caption: ['0.8125rem', { lineHeight: '1.4' }], // 13px
+        'body-sm': ['0.875rem', { lineHeight: '1.45' }], // 14px (was "secondary"; renamed — color collision)
+        body: ['1rem', { lineHeight: '1.5' }], // 16px — workhorse
+        'body-lg': ['1.125rem', { lineHeight: '1.5' }], // 18px
+
+        // Heading (sans, weighted)
+        'title-sm': ['1.125rem', { lineHeight: '1.3', fontWeight: '600' }], // 18px
+        title: ['1.25rem', { lineHeight: '1.25', fontWeight: '600' }], // 20px
+        'title-lg': ['1.5rem', { lineHeight: '1.2', fontWeight: '700' }], // 24px
+        display: ['1.875rem', { lineHeight: '1.15', fontWeight: '700' }], // 30px
+
+        // Label / chrome (mono · uppercase · tracked — pair with .type-label)
+        'label-2xs': ['0.625rem', { lineHeight: '1' }], // 10px (floor)
+        'label-xs': ['0.6875rem', { lineHeight: '1' }], // 11px
+        'label-sm': ['0.75rem', { lineHeight: '1.1' }], // 12px
+        'label-md': ['0.875rem', { lineHeight: '1.1' }], // 14px
+        'label-lg': ['1rem', { lineHeight: '1.1' }], // 16px — tabs
+
+        // Data / numeric (mono · tabular)
+        'data-sm': ['0.8125rem', { lineHeight: '1.2' }], // 13px
+        data: ['0.875rem', { lineHeight: '1.3' }], // 14px
+        'data-lg': ['1rem', { lineHeight: '1.3' }], // 16px
+        stat: ['1.875rem', { lineHeight: '1.05' }], // 30px — hero numbers
+      },
+      letterSpacing: {
+        // Tracking tokens for the label/data voices — see plan §4.3.
+        // Adds to Tailwind defaults (tight/normal/wide/…); no key overlap.
+        data: '0.02em', // tabular numerals, data cells
+        meta: '0.10em', // mono meta — IdStamp, Kbd, menu items
+        label: '0.18em', // standard uppercase chrome (default in .type-label)
+        'label-wide': '0.24em', // emphasized labels — subsection, table headers
+        ceremonial: '0.32em', // auth register, loaders
+      },
       fontFamily: {
         sans: ['"Hanken Grotesk"', '"Helvetica Neue"', 'system-ui', 'sans-serif'],
         display: ['"Hanken Grotesk"', '"Helvetica Neue"', 'sans-serif'],
