@@ -60,14 +60,14 @@
   }
   .alert-banner__title {
     margin: 0;
-    font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+    font-family: 'Hanken Grotesk', 'Helvetica Neue', sans-serif;
     font-size: 13px;
     font-weight: 500;
     color: hsl(var(--c));
     line-height: 1.4;
   }
   .alert-banner__message {
-    font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+    font-family: 'Hanken Grotesk', 'Helvetica Neue', sans-serif;
     font-size: 13px;
     color: hsl(var(--foreground));
     line-height: 1.45;
