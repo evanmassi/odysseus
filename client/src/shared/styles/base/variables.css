@@ -234,10 +234,12 @@
     --grid-position-label: 0 0% 100%;
     --grid-position-label-foreground: 215.4 19.3% 34.5%;
     --grid-position-label-border: 220 13% 82.7%;
-    /* Light: navy selection (Steel Anchor family), self-sufficient — bold ring +
-       navy fill tint (overlay) + elevation, no glow bloom, no dimming of the rest. */
-    --grid-selection: 213 70% 38%;
-    --grid-selection-glow: 213 68% 44% / 0.45;
+    /* Light: vivid-blue selection (Steel Anchor family), self-sufficient — bold ring +
+       fill tint (overlay) + elevation, no glow bloom, no dimming of the rest. Ring is
+       pushed brighter/more saturated than the navy primary so it stays apparent against
+       both pale and dark saturated cells. */
+    --grid-selection: 213 82% 47%;
+    --grid-selection-glow: 213 82% 50% / 0.45;
     --grid-selection-inner: 0 0% 100% / 0.5;
     --grid-selection-overlay: 213 68% 44% / 0.04;
     --grid-selection-empty: 213 68% 44% / 0.1;

@@ -155,14 +155,14 @@
   filter: brightness(0.55);
 }
 
-/* Light theme spotlight: desaturate (not darken) unselected filled tubes so the
-   fully-saturated selection is the only vivid cell. Keeps the color-coded grid
-   legible; empty wells are near-gray already, so they're untouched. Hover restores
-   full saturation for inspection without selecting. */
+/* Light theme spotlight: desaturate unselected filled tubes plus a whisper of dimming
+   (brightness < 1) so the fully-saturated selection reads as foreground against a
+   receded background. Stays legible; empty wells are near-gray already, so they're
+   untouched. Hover restores full saturation + brightness for inspection. */
 [data-theme='light']
   .tube-grid:has(.tube-position.selected)
   .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
-  filter: saturate(0.38);
+  filter: saturate(0.25) brightness(0.97);
 }
 
 [data-theme='light']
@@ -174,7 +174,7 @@
 [data-theme='light']
   .tube-grid:has(.tube-position.drag-preview)
   .tube-position.occupied:not(.selected):not(.drag-preview):not(.cut-tube) {
-  filter: saturate(0.3);
+  filter: saturate(0.22) brightness(0.95);
 }
 
 .tube-position.selected {
