@@ -12,9 +12,10 @@ import { defaultButtonProps } from './types';
 
 import type { ButtonProps, ButtonRef, ButtonSize, ButtonVariant } from './types';
 
-// Phosphor text-glow on ghost hover — dark only. Light deepens the label toward ink instead.
+// Phosphor text-glow on ghost hover — scales with --lit, so it glows when lit (dark) and is
+// purely a bolden+deepen when unlit (light, incl. the forced-dark light header).
 const GHOST_HOVER_SHADOW =
-  'dark:hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_55%,transparent),0_0_14px_color-mix(in_srgb,currentColor_35%,transparent)]';
+  'hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_calc(55%_*_var(--lit)),transparent),0_0_14px_color-mix(in_srgb,currentColor_calc(35%_*_var(--lit)),transparent)]';
 
 const buttonVariants = cva(
   [
@@ -126,8 +127,10 @@ const MARKER_CLASSES: Record<ButtonVariant, string> = {
   success: 'bg-success-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.55)]',
   warning: 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.55)]',
   info: 'bg-info-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-info-bg)/0.55)]',
-  ghost: 'bg-muted-foreground dark:shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
-  'ghost-danger': 'bg-danger-text dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-text)/0.55)]',
+  ghost:
+    'bg-muted-foreground shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/calc(0.55_*_var(--lit)))]',
+  'ghost-danger':
+    'bg-danger-text shadow-[0_0_6px_-1px_hsl(var(--color-danger-text)/calc(0.55_*_var(--lit)))]',
   secondary: 'bg-muted-foreground dark:shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
   cancel: 'bg-muted-foreground dark:shadow-[0_0_6px_-1px_hsl(var(--muted-foreground)/0.55)]',
 };
@@ -137,9 +140,9 @@ const MARKER_HOVER_CLASSES: Partial<Record<ButtonVariant, string>> = {
   solid:
     'group-hover:bg-sheen dark:group-hover:shadow-[0_0_12px_0_hsl(var(--sheen)/0.85),inset_0_0_2px_hsl(var(--primary)/0.6)]',
   ghost:
-    'group-hover:bg-foreground dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
+    'group-hover:bg-foreground group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/calc(0.7_*_var(--lit))),0_0_14px_2px_hsl(var(--muted-foreground)/calc(0.35_*_var(--lit)))]',
   'ghost-danger':
-    'group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_75%,black)] dark:group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_60%,white)] dark:group-hover:shadow-[0_0_8px_0_hsl(var(--color-danger-text)/0.7),0_0_14px_2px_hsl(var(--color-danger-text)/0.35)]',
+    'group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_75%,black)] dark:group-hover:bg-[color-mix(in_srgb,hsl(var(--color-danger-text))_60%,white)] group-hover:shadow-[0_0_8px_0_hsl(var(--color-danger-text)/calc(0.7_*_var(--lit))),0_0_14px_2px_hsl(var(--color-danger-text)/calc(0.35_*_var(--lit)))]',
   secondary:
     'group-hover:bg-foreground dark:group-hover:shadow-[0_0_8px_0_hsl(var(--muted-foreground)/0.7),0_0_14px_2px_hsl(var(--muted-foreground)/0.35)]',
   cancel:

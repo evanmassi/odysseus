@@ -21,9 +21,10 @@ const sizeClasses: Record<NonNullable<BadgeProps['size']>, string> = {
   lg: 'w-[52px] h-[52px] text-label-lg',
 };
 
-// `lit` is a flat 1px contact ring in light; dark adds the outer halo on top.
+// `lit` is a flat 1px contact ring always; the outer halo scales with --lit, so it glows
+// when lit (dark) and stays a flat ring when unlit (light, incl. the forced-dark header).
 const LIT_CLASSES =
-  'shadow-[0_0_0_1px_color-mix(in_srgb,currentColor_30%,transparent)] dark:shadow-[0_0_0_1px_color-mix(in_srgb,currentColor_30%,transparent),0_0_18px_-2px_color-mix(in_srgb,currentColor_45%,transparent)]';
+  'shadow-[0_0_0_1px_color-mix(in_srgb,currentColor_30%,transparent),0_0_18px_-2px_color-mix(in_srgb,currentColor_calc(45%_*_var(--lit)),transparent)]';
 
 export const Badge = forwardRef<HTMLDivElement, BadgeProps>(function Badge(
   { children, size = 'sm', lit = false, className = '', ...rest },
