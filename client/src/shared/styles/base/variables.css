@@ -104,23 +104,26 @@
     --overlay: 0 0% 0% / 0.6;
     --overlay-emphasis: 0 0% 0% / 0.7;
 
-    /* Defined only on :root — auth surface intentionally does not follow app theme.
-       Values are plain channels (not Tailwind tokens) so they compose into the
-       multi-alpha box-shadow + gradient stacks in auth-console.css. */
-    --auth-ambient: 91 157 217;
-    --auth-surface: 14 22 34;
-    /* Field behind the console — darker than --auth-surface so the navy chrome floats. */
-    --auth-field-bg: 6 10 18;
-    --auth-edge-lift-top: 255 255 255 / 0.2;
-    --auth-edge-lift-left: 255 255 255 / 0.06;
-    --auth-edge-recess-bottom: 0 0 0 / 0.5;
-    --auth-edge-recess-right: 0 0 0 / 0.22;
-    --auth-rim: 232 227 213 / 0.07;
-    --auth-divider: 232 227 213 / 0.08;
-    --auth-text: 232 227 213;
-    --auth-text-dim: 232 227 213 / 0.62;
-    --auth-text-mute: 232 227 213 / 0.42;
-    --auth-text-faint: 232 227 213 / 0.28;
+    /* Auth surface tokens — Steel Anchor light: a white console on a cool canvas
+       with a deep-navy accent. Dark theme overrides these below. Plain channels
+       (not Tailwind tokens) so they compose into the gradient/shadow stacks in
+       auth-console.css. */
+    --auth-ambient: 35 74 130;
+    --auth-surface: 255 255 255;
+    /* Field behind the console — cool canvas so the white chrome floats. */
+    --auth-field-bg: 236 239 243;
+    /* Inset edge tokens are off in light; the rim hairline + soft shadow carry the
+       console (the light chrome rule rewrites the shadow, these stay neutral). */
+    --auth-edge-lift-top: 255 255 255 / 0;
+    --auth-edge-lift-left: 255 255 255 / 0;
+    --auth-edge-recess-bottom: 28 39 51 / 0;
+    --auth-edge-recess-right: 28 39 51 / 0;
+    --auth-rim: 221 227 236 / 1;
+    --auth-divider: 28 39 51 / 0.1;
+    --auth-text: 28 39 51;
+    --auth-text-dim: 28 39 51 / 0.75;
+    --auth-text-mute: 28 39 51 / 0.55;
+    --auth-text-faint: 28 39 51 / 0.38;
 
     /* Action Colors */
     --color-action-default: var(--primary);
@@ -371,6 +374,22 @@
     /* Utilities */
     --border: 215.3 25% 26.7%;
     --input: 217.2 25% 26.7%;
+
+    /* Auth surface tokens — always-dark navy console (CRT power-on). Overrides the
+       light values defined in the base block above. */
+    --auth-ambient: 91 157 217;
+    --auth-surface: 14 22 34;
+    --auth-field-bg: 6 10 18;
+    --auth-edge-lift-top: 255 255 255 / 0.2;
+    --auth-edge-lift-left: 255 255 255 / 0.06;
+    --auth-edge-recess-bottom: 0 0 0 / 0.5;
+    --auth-edge-recess-right: 0 0 0 / 0.22;
+    --auth-rim: 232 227 213 / 0.07;
+    --auth-divider: 232 227 213 / 0.08;
+    --auth-text: 232 227 213;
+    --auth-text-dim: 232 227 213 / 0.62;
+    --auth-text-mute: 232 227 213 / 0.42;
+    --auth-text-faint: 232 227 213 / 0.28;
 
     /* Action Colors */
     --color-action-default: var(--primary);

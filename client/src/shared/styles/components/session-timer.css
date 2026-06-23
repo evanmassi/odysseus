@@ -130,6 +130,27 @@
     filter: drop-shadow(0 0 1px var(--tint)) drop-shadow(0 0 6px var(--tint-soft));
   }
 
+  /* Light: the console is a flat white panel, so drop the phosphor optics — keep the
+     amber → crimson tint, lose the bloom, status halo, scanline, and pulse. */
+  [data-theme='light'] .session-timeout-modal::after {
+    box-shadow: none;
+  }
+  [data-theme='light'] .session-timeout-modal .st-time {
+    text-shadow: none;
+    animation: none;
+  }
+  [data-theme='light'] .session-timeout-modal[data-state='warn'] .st-time,
+  [data-theme='light'] .session-timeout-modal[data-state='crit'] .st-time {
+    animation: none;
+  }
+  [data-theme='light'] .session-timeout-modal .st-time::after {
+    display: none;
+  }
+  [data-theme='light'] .session-timeout-modal .st-diamond,
+  [data-theme='light'] .session-timeout-modal .st-slot.is-lead .st-diamond {
+    filter: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .session-timeout-modal .st-time {
       animation: none !important;

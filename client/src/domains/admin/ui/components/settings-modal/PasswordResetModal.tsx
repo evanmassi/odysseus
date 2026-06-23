@@ -226,7 +226,6 @@ export function PasswordResetModal({
                 icon={<KeyRound size={16} />}
                 state={newPassword.length >= 4 ? 'success' : 'default'}
                 variant="console"
-                className="![--console-input-surface:rgba(0,0,0,0.42)] ![--console-input-surface-hover:rgba(0,0,0,0.55)]"
               />
               <div className="mt-2 ml-1 flex items-center gap-2.5">
                 <div className="flex gap-1">
@@ -288,7 +287,7 @@ export function PasswordResetModal({
           </div>
         ) : (
           <div>
-            <div className="auth-input-console state-default ![--console-input-surface:rgba(0,0,0,0.42)] ![--console-input-surface-hover:rgba(0,0,0,0.55)]">
+            <div className="auth-input-console state-default">
               <span className="auth-input-console__label">Reset link</span>
               <div className="auth-input-console__field">
                 <span

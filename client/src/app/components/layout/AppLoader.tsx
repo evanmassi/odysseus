@@ -29,8 +29,9 @@ interface AppLoaderProps {
 // never shows it.
 const SLOW_BOOT_MS = 4000;
 
+// Bloom alphas scale by --lit (1 dark, 0 light), so the glow drops to zero in light.
 const HERO_BLOOM =
-  'drop-shadow(0 0 26px rgb(var(--auth-ambient) / 0.35)) drop-shadow(0 0 60px rgb(var(--auth-ambient) / 0.15))';
+  'drop-shadow(0 0 26px rgb(var(--auth-ambient) / calc(0.35 * var(--lit)))) drop-shadow(0 0 60px rgb(var(--auth-ambient) / calc(0.15 * var(--lit))))';
 
 export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
   const { state, error, canRetry } = context;

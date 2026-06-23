@@ -270,11 +270,13 @@ export default {
           'linear-gradient(180deg, hsl(var(--primary) / 0.28) 0%, hsl(var(--primary) / 0.28) 1px, transparent 1px), linear-gradient(115deg, hsl(var(--sheen) / 0.08) 0%, hsl(var(--sheen) / 0.02) 28%, transparent 58%), repeating-linear-gradient(to bottom, hsl(var(--scanline)) 0, hsl(var(--scanline)) 1px, transparent 1px, transparent 3px)',
       },
       dropShadow: {
-        /* SVG-icon parallel to the text-bloom text-shadow — glows in the icon's own color. */
-        'icon-bloom': '0 0 6px color-mix(in srgb, currentColor 55%, transparent)',
+        /* SVG-icon parallel to the text-bloom text-shadow — glows in the icon's own
+           color. Bloom strength scales by --lit, so the glow drops to zero in light. */
+        'icon-bloom':
+          '0 0 6px color-mix(in srgb, currentColor calc(55% * var(--lit)), transparent)',
         'icon-bloom-hover': [
-          '0 0 8px color-mix(in srgb, currentColor 70%, transparent)',
-          '0 0 14px color-mix(in srgb, currentColor 35%, transparent)',
+          '0 0 8px color-mix(in srgb, currentColor calc(70% * var(--lit)), transparent)',
+          '0 0 14px color-mix(in srgb, currentColor calc(35% * var(--lit)), transparent)',
         ],
       },
       keyframes: {

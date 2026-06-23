@@ -5,21 +5,28 @@
  * be tuned without driving the real flows. Mounted only at /__dev/modals in dev builds.
  */
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 
+import { AppLoader } from '@app/components/layout/AppLoader';
 import { modalStore } from '@app/stores/modalStore';
 import { adminUserService } from '@domains/admin/services/AdminUserService';
 import { PasswordResetModal } from '@domains/admin/ui/components/settings-modal/PasswordResetModal';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { AuthEmailVerificationPage } from '@domains/authentication/ui/components/gateway/AuthEmailVerificationPage';
 import { AuthGatewayPanel } from '@domains/authentication/ui/components/gateway/AuthGatewayPanel';
 import { AuthLoginModal } from '@domains/authentication/ui/components/gateway/AuthLoginModal';
 import { AuthRegistrationSuccessModal } from '@domains/authentication/ui/components/gateway/AuthRegistrationSuccessModal';
 import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/gateway/AuthSessionTimeoutModal';
+import { AuthSysAdminSetupPage } from '@domains/authentication/ui/components/gateway/AuthSysAdminSetupPage';
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
+
+import type { UseAppBootstrapResult } from '@app/bootstrap/types';
+import type { ResolvedTheme } from '@app/contexts/ThemeContext';
 
 // Mirrors the chrome the registration flow declares for its success state, so the
 // modal renders inside AuthGatewayPanel exactly as it does in production.
@@ -162,6 +169,63 @@ function ForcedLoginPreview({ mode }: { mode: 'change-required' | 'change-succes
   );
 }
 
+// Default sign-in console. The register link is wired to a no-op — registration
+// has its own flow; this preview exists to tune the resting login chrome.
+function LoginPreview() {
+  return (
+    <AuthGatewayPanel>
+      <AuthLoginModal onSwitchToRegister={() => undefined} />
+    </AuthGatewayPanel>
+  );
+}
+
+// Stub the password-policy fetch so the first-run wizard renders its validator
+// without a server.
+function SysAdminSetupPreview() {
+  useEffect(() => {
+    const original = authService.getPasswordRequirements;
+    authService.getPasswordRequirements = async () => MOCK_PASSWORD_REQUIREMENTS;
+    return () => {
+      authService.getPasswordRequirements = original;
+    };
+  }, []);
+
+  return (
+    <AuthGatewayPanel>
+      <AuthSysAdminSetupPage />
+    </AuthGatewayPanel>
+  );
+}
+
+// Minimal bootstrap result so the boot splash renders its loading/error chrome
+// without driving the real initialization sequence. AppLoader reads only state,
+// error, and canRetry; the rest satisfies the type.
+function mockBootstrapContext(
+  state: UseAppBootstrapResult['state'],
+  error: string | null = null
+): UseAppBootstrapResult {
+  return {
+    isReady: state === 'complete',
+    isLoading: state === 'loading' || state === 'initializing',
+    isError: state === 'error',
+    error,
+    currentStep: state === 'error' ? 'error' : 'data-loading',
+    context: 'preview',
+    state,
+    progress: state === 'error' ? 0 : 50,
+    canRetry: state === 'error',
+    completedSteps: [],
+    initializationResult: {
+      completedSteps: [],
+      errors: [],
+      isComplete: false,
+      timestamp: new Date(),
+    },
+    retry: () => undefined,
+    flags: { firstTimeSetupRequired: false, needsSystemAdmin: false },
+  };
+}
+
 interface ModalSpec {
   id: string;
   group: string;
@@ -171,6 +235,13 @@ interface ModalSpec {
 }
 
 const SPECS: ModalSpec[] = [
+  {
+    id: 'login',
+    group: 'Auth gateway',
+    label: 'Sign In',
+    note: 'Default login console — chrome, inputs, branding, microheader',
+    render: () => <LoginPreview />,
+  },
   {
     id: 'registration-success',
     group: 'Auth gateway',
@@ -198,6 +269,20 @@ const SPECS: ModalSpec[] = [
     label: 'Session Timeout — 0:12 (critical)',
     note: 'Bright crimson, faster beat',
     render: close => <SessionTimeoutPreview timeRemainingMs={12 * 1000} onClose={close} />,
+  },
+  {
+    id: 'sysadmin-setup',
+    group: 'Auth gateway',
+    label: 'System Admin Setup',
+    note: 'First-run wizard — dense input grid, divider, username preview',
+    render: () => <SysAdminSetupPreview />,
+  },
+  {
+    id: 'verify-email',
+    group: 'Auth gateway',
+    label: 'Email Verification — failed',
+    note: 'AuthEmailVerificationPage error state (no token, no redirect)',
+    render: () => <AuthEmailVerificationPage />,
   },
   {
     id: 'password-reset',
@@ -234,13 +319,98 @@ const SPECS: ModalSpec[] = [
     note: 'AuthLoginModal change-success state',
     render: () => <ForcedLoginPreview mode="change-success" />,
   },
+  {
+    id: 'boot-loading',
+    group: 'Boot splash',
+    label: 'Initializing',
+    note: 'Branded boot splash — breathing mark on the auth field',
+    render: () => <AppLoader context={mockBootstrapContext('loading')} />,
+  },
+  {
+    id: 'boot-error',
+    group: 'Boot splash',
+    label: 'Initialization failed',
+    note: 'Error splash with retry + cancel',
+    render: close => (
+      <AppLoader
+        context={mockBootstrapContext(
+          'error',
+          'Could not reach the server. Check your connection and try again.'
+        )}
+        onRetry={close}
+        onCancel={close}
+      />
+    ),
+  },
 ];
+
+// Portaled to <body> so the cluster stays interactive while a gateway preview
+// marks #root inert; the theme switch flips data-theme on <html>, which every
+// auth surface reads.
+function PreviewControls({
+  theme,
+  onThemeChange,
+  onClose,
+}: {
+  theme: ResolvedTheme;
+  onThemeChange: (theme: ResolvedTheme) => void;
+  onClose?: () => void;
+}): ReactNode {
+  return createPortal(
+    <div className="fixed right-4 top-4 z-[70] flex items-center gap-2">
+      <div className="inline-flex overflow-hidden rounded-md border border-line-soft">
+        {(['light', 'dark'] as const).map(option => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onThemeChange(option)}
+            className={`px-3 py-1.5 font-mono text-data-sm capitalize transition-colors ${
+              theme === option
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md border border-line-soft bg-card px-3 py-1.5 font-mono text-data-sm text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground"
+        >
+          Close · Esc
+        </button>
+      )}
+    </div>,
+    document.body
+  );
+}
 
 export function ModalPreviewPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const close = useCallback(() => setActiveId(null), []);
   const active = SPECS.find(spec => spec.id === activeId);
   const groups = Array.from(new Set(SPECS.map(spec => spec.group)));
+
+  const [previewTheme, setPreviewTheme] = useState<ResolvedTheme>(() =>
+    document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'
+  );
+
+  // Drive previews from a local switch, restoring the user's real theme on exit.
+  const originalThemeRef = useRef<string | null>(null);
+  useEffect(() => {
+    originalThemeRef.current = document.documentElement.getAttribute('data-theme');
+    return () => {
+      if (originalThemeRef.current) {
+        document.documentElement.setAttribute('data-theme', originalThemeRef.current);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', previewTheme);
+  }, [previewTheme]);
 
   // Page/login previews are full-screen and have no built-in close button.
   useEffect(() => {
@@ -287,15 +457,11 @@ export function ModalPreviewPage() {
         ))}
       </div>
 
-      {active && (
-        <button
-          type="button"
-          onClick={close}
-          className="fixed right-4 top-4 z-[60] rounded-md border border-line-soft bg-card px-3 py-1.5 font-mono text-data-sm text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground"
-        >
-          Close preview · Esc
-        </button>
-      )}
+      <PreviewControls
+        theme={previewTheme}
+        onThemeChange={setPreviewTheme}
+        onClose={active ? close : undefined}
+      />
       {active?.render(close)}
     </div>
   );

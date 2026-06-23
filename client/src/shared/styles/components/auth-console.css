@@ -34,6 +34,18 @@
     transition: max-width 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
+  /* Light (Steel Anchor): an opaque white console on the cool field — a flat panel
+     with a hairline rim and soft neutral elevation, no smoked glass or ambient halo. */
+  [data-theme='light'] .auth-console-chrome {
+    background: rgb(var(--auth-surface));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow:
+      0 0 0 1px rgb(var(--auth-rim)),
+      0 1px 2px hsl(var(--recess) / 0.05),
+      0 16px 32px -18px hsl(var(--recess) / 0.26);
+  }
+
   /* Lit field shared by the gateway backdrop and the boot splash — navy surface
      with one anchored ambient pool. Opaque: the gateway sits over nothing pre-auth. */
   .auth-field {
@@ -87,17 +99,19 @@
     color: rgb(var(--auth-text-faint));
   }
 
-  /* drop-shadow tracks the image's alpha — wraps the icon shape, not its bounding box. */
+  /* drop-shadow tracks the image's alpha — wraps the icon shape, not its bounding box.
+     The bloom alphas scale by --lit, so the glow drops to zero in light mode. */
   .auth-watermark {
-    filter: blur(2px) drop-shadow(0 0 28px rgb(var(--auth-ambient) / 0.45))
-      drop-shadow(0 0 80px rgb(var(--auth-ambient) / 0.18));
+    filter: blur(2px) drop-shadow(0 0 28px rgb(var(--auth-ambient) / calc(0.45 * var(--lit))))
+      drop-shadow(0 0 80px rgb(var(--auth-ambient) / calc(0.18 * var(--lit))));
   }
 
   /* Label background is opaque so the border underneath reads as cut, not crossed.
 
      Colors flow through --console-input-* tokens so the same structure adapts to
      any surface. Defaults pull from theme-aware design tokens; the gateway
-     overrides below lock to the always-dark palette regardless of theme. */
+     overrides below re-point them at the (theme-aware) --auth-* tokens so fields
+     match the console surface in both light and dark. */
   .auth-input-console {
     --console-input-surface: hsl(var(--foreground) / 0.045);
     --console-input-surface-hover: hsl(var(--foreground) / 0.07);
@@ -122,11 +136,12 @@
     --console-input-surface-hover: rgba(0, 0, 0, 0.55);
   }
 
-  /* Gateway override: locks to the always-dark palette regardless of theme,
-     matching the surrounding chrome. */
+  /* Gateway inputs follow the --auth-* tokens so they track the console surface in
+     both themes. Only the well fill differs by theme (see the dark override below);
+     everything else flows through the theme-aware tokens. */
   .auth-console-chrome .auth-input-console {
-    --console-input-surface: rgba(0, 0, 0, 0.42);
-    --console-input-surface-hover: rgba(0, 0, 0, 0.55);
+    --console-input-surface: rgb(var(--auth-text) / 0.035);
+    --console-input-surface-hover: rgb(var(--auth-text) / 0.06);
     --console-input-text: rgb(var(--auth-text));
     --console-input-placeholder: rgb(var(--auth-text) / 0.18);
     --console-input-border: rgb(var(--auth-divider));
@@ -137,6 +152,12 @@
     --console-input-icon: rgb(var(--auth-text-mute));
     --console-input-focus: rgb(var(--auth-ambient));
     --console-input-required: rgb(var(--auth-ambient));
+  }
+
+  /* Dark gateway: smoked-black wells so fields read recessed in the navy console. */
+  [data-theme='dark'] .auth-console-chrome .auth-input-console {
+    --console-input-surface: rgba(0, 0, 0, 0.42);
+    --console-input-surface-hover: rgba(0, 0, 0, 0.55);
   }
 
   .auth-input-console__label {
