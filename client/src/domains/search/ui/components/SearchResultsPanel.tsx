@@ -11,7 +11,7 @@ import {
   formatResearcherDropdownDisplay,
   formatStorageDisplayName,
 } from '@odysseus/shared-schemas';
-import { Download, MapPin } from 'lucide-react';
+import { Download, MapPin, TestTubeDiagonal } from 'lucide-react';
 
 import { useResearchersQuery } from '@domains/researchers';
 import { useSearch, useSearchStore } from '@domains/search';
@@ -19,7 +19,7 @@ import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettings, useUserLookupQuery } from '@domains/users';
-import { Button, Chip, Tooltip } from '@shared/ui';
+import { Button, Chip, PanelEmptyState, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
@@ -135,12 +135,13 @@ export function SearchResultsPanel({
 
   if (!results) {
     return (
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="text-center text-muted-foreground">
-          <TubeIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
-          <p className="text-body-sm">Search inventory</p>
-          <p className="text-caption mt-1">Browse with filters</p>
-        </div>
+      <div className="flex-1 flex p-4">
+        <PanelEmptyState
+          icon={TestTubeDiagonal}
+          message="Search inventory"
+          description="Browse with filters"
+          className="flex-1"
+        />
       </div>
     );
   }
@@ -471,146 +472,129 @@ export function SearchResultsPanel({
       <SearchSortControls />
 
       {/* Scrollable Results Container */}
-      <ScrollArea className="flex-1 p-4 space-y-3">
-        {/* Results Header */}
-        <div className="flex items-center justify-between border-b border-line-soft pb-2">
-          <div className="type-label text-label-2xs text-foreground/60">
-            <span className="tabular-nums text-foreground/85">{totalCount}</span> tube
-            {totalCount !== 1 ? 's' : ''} found
+      <ScrollArea className="flex-1 p-4">
+        <div className="flex min-h-full flex-col space-y-3">
+          {/* Results Header */}
+          <div className="flex items-center justify-between border-b border-line-soft pb-2">
+            <div className="type-label text-label-2xs text-foreground/60">
+              <span className="tabular-nums text-foreground/85">{totalCount}</span> tube
+              {totalCount !== 1 ? 's' : ''} found
+            </div>
+
+            {tubes.length > 0 && (
+              <Tooltip content="Export search results" side="bottom">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  leftIcon={<Download className="w-3 h-3" />}
+                  onClick={handleExportResults}
+                >
+                  Export
+                </Button>
+              </Tooltip>
+            )}
           </div>
 
-          {tubes.length > 0 && (
-            <Tooltip content="Export search results" side="bottom">
-              <Button
-                variant="ghost"
-                size="xs"
-                leftIcon={<Download className="w-3 h-3" />}
-                onClick={handleExportResults}
-              >
-                Export
-              </Button>
-            </Tooltip>
+          {/* Grouped Results - New 4-line format */}
+          {sortedGroups.length > 0 ? (
+            <div className="space-y-2">
+              {sortedGroups.map((group, index) => {
+                const firstTube = group.tubes[0];
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- cellType is required; empty string indicates missing data, display as 'Unknown'
+                const cellType = firstTube.sample?.cellType || 'Unknown';
+                const species = firstTube.sample?.species ?? '';
+                const donorInternal = firstTube.sample?.donorInternalId ?? '';
+                const donorSource = firstTube.sample?.donorSourceId ?? '';
+                const lotNumber = firstTube.sample?.lotNumber ?? '';
+                const date = formatDate(firstTube.sample?.date);
+                const researcherName = getResearcherName(firstTube.researcherId);
+                const location = getDisplayLocation(group.primaryLocation);
+
+                return (
+                  <button
+                    type="button"
+                    key={index}
+                    onClick={() => handleGroupClick(group)}
+                    className="w-full cursor-pointer border border-line-soft bg-card p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/0.5)]"
+                    aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
+                  >
+                    {/* Line 1: Cell Type with tube count badge */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <TubeIcon
+                          className="text-secondary-foreground flex-shrink-0"
+                          size={14}
+                          aria-hidden="true"
+                        />
+                        <span className="text-body-sm font-semibold text-card-foreground">
+                          {highlightText(cellType, query)}
+                        </span>
+                        {species && (
+                          <>
+                            <span className="text-muted-foreground">·</span>
+                            <span className="text-body-sm text-secondary-foreground">
+                              {highlightText(species, query)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <Chip size="sm" color="default" className="flex-shrink-0">
+                        {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
+                      </Chip>
+                    </div>
+
+                    {/* Detail lines with vertical indicator */}
+                    <div className="flex mt-1">
+                      <div className="ml-[11px] mr-2 border-l-2 border-line-soft"></div>
+                      <div className="flex-1 space-y-0.5 text-caption text-secondary-foreground">
+                        {/* Donor Internal ID · Donor Source ID */}
+                        {(donorInternal || donorSource) && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {donorInternal && <span>{highlightText(donorInternal, query)}</span>}
+                            {donorInternal && donorSource && (
+                              <span className="text-muted-foreground">·</span>
+                            )}
+                            {donorSource && <span>{highlightText(donorSource, query)}</span>}
+                          </div>
+                        )}
+
+                        {/* Lot Number · Date · Researcher */}
+                        {(lotNumber || date || researcherName) && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {lotNumber && <span>{highlightText(lotNumber, query)}</span>}
+                            {lotNumber && (date || researcherName) && (
+                              <span className="text-muted-foreground">·</span>
+                            )}
+                            {date && <span>{date}</span>}
+                            {date && researcherName && (
+                              <span className="text-muted-foreground">·</span>
+                            )}
+                            {researcherName && <span>{highlightText(researcherName, query)}</span>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Line 5: Location */}
+                    <div className="inline-flex items-center gap-1.5 text-caption text-muted-foreground mt-1">
+                      <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+                      <span>{location}</span>
+                      <span className="text-muted-foreground">·</span>
+                      <span>{formatPositions(group.tubes)}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <PanelEmptyState
+              icon={TestTubeDiagonal}
+              message="No results found"
+              description="Try adjusting your search or filters"
+              className="flex-1"
+            />
           )}
         </div>
-
-        {/* Grouped Results - New 4-line format */}
-        {sortedGroups.length > 0 ? (
-          <div className="space-y-2">
-            {sortedGroups.map((group, index) => {
-              const firstTube = group.tubes[0];
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- cellType is required; empty string indicates missing data, display as 'Unknown'
-              const cellType = firstTube.sample?.cellType || 'Unknown';
-              const species = firstTube.sample?.species ?? '';
-              const donorInternal = firstTube.sample?.donorInternalId ?? '';
-              const donorSource = firstTube.sample?.donorSourceId ?? '';
-              const cultureCondition = firstTube.sample?.cultureCondition ?? '';
-              const lotNumber = firstTube.sample?.lotNumber ?? '';
-              const concentration = formatConcentrationDisplay(
-                firstTube.sample?.concentration,
-                firstTube.sample?.concentrationUnit
-              );
-              const date = formatDate(firstTube.sample?.date);
-              const researcherName = getResearcherName(firstTube.researcherId);
-              const location = getDisplayLocation(group.primaryLocation);
-
-              return (
-                <button
-                  type="button"
-                  key={index}
-                  onClick={() => handleGroupClick(group)}
-                  className="w-full cursor-pointer border border-line-soft bg-card p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/0.5)]"
-                  aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
-                >
-                  {/* Line 1: Cell Type with tube count badge */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <TubeIcon
-                        className="text-secondary-foreground flex-shrink-0"
-                        size={14}
-                        aria-hidden="true"
-                      />
-                      <span className="text-body-sm font-semibold text-card-foreground">
-                        {highlightText(cellType, query)}
-                      </span>
-                      {species && (
-                        <>
-                          <span className="text-muted-foreground">·</span>
-                          <span className="text-body-sm text-secondary-foreground">
-                            {highlightText(species, query)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <Chip size="sm" color="default" className="flex-shrink-0">
-                      {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
-                    </Chip>
-                  </div>
-
-                  {/* Lines 2-4: Compact details with vertical indicator */}
-                  <div className="flex mt-1">
-                    <div className="ml-[11px] mr-2 border-l-2 border-line-soft"></div>
-                    <div className="flex-1 space-y-0.5 text-caption text-secondary-foreground">
-                      {/* Line 2: Donor Internal ID · Donor Source ID */}
-                      {(donorInternal || donorSource) && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {donorInternal && <span>{highlightText(donorInternal, query)}</span>}
-                          {donorInternal && donorSource && (
-                            <span className="text-muted-foreground">·</span>
-                          )}
-                          {donorSource && <span>{highlightText(donorSource, query)}</span>}
-                        </div>
-                      )}
-
-                      {/* Line 3: Culture Condition · Lot Number · Concentration */}
-                      {(cultureCondition || lotNumber || concentration) && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {cultureCondition && (
-                            <span>{highlightText(cultureCondition, query)}</span>
-                          )}
-                          {cultureCondition && lotNumber && (
-                            <span className="text-muted-foreground">·</span>
-                          )}
-                          {lotNumber && <span>{highlightText(lotNumber, query)}</span>}
-                          {(cultureCondition || lotNumber) && concentration && (
-                            <span className="text-muted-foreground">·</span>
-                          )}
-                          {concentration && <span>{concentration}</span>}
-                        </div>
-                      )}
-
-                      {/* Line 4: Date · Researcher */}
-                      {(date || researcherName) && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {date && <span>{date}</span>}
-                          {date && researcherName && (
-                            <span className="text-muted-foreground">·</span>
-                          )}
-                          {researcherName && <span>{highlightText(researcherName, query)}</span>}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Line 5: Location */}
-                  <div className="inline-flex items-center gap-1.5 text-caption text-muted-foreground mt-1">
-                    <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
-                    <span>{location}</span>
-                    <span className="text-muted-foreground">·</span>
-                    <span>{formatPositions(group.tubes)}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <TubeIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-body-sm">No results found</p>
-            <p className="text-caption text-muted-foreground mt-1">
-              Try adjusting your search or filters
-            </p>
-          </div>
-        )}
       </ScrollArea>
     </div>
   );
