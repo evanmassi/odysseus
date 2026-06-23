@@ -194,7 +194,7 @@ export function SearchPanel() {
                 aria-pressed={hasActiveFilters || showFilters}
                 className={`${ICON_BTN_BASE} ${
                   hasActiveFilters || showFilters
-                    ? 'border-primary/55 bg-primary/[0.10] text-primary dark:shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/0.40)]'
+                    ? 'border-primary/55 bg-primary/[0.10] text-primary shadow-[inset_0_0_11px_-2px_hsl(var(--primary)/calc(0.40_*_var(--lit)))]'
                     : 'border-line-soft text-foreground/55 hover:border-primary/40 hover:text-primary'
                 }`}
               >

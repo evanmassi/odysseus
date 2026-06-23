@@ -34,6 +34,18 @@
    dark-island header keeps its own --background in dark. */
 [data-theme='light'] .app-header-bar {
   --background: 213 45% 16%;
+
+  /* Powered-off anchor: the bar keeps the dark surface but reads as unlit chrome in
+     light mode — white ink (not the dark scope's warm cream) to pop against the navy
+     and tie to the white body, no emissive glow (--lit 0), and a lighter search well
+     (white wash, not the dark black wash) so the field stays visible on the bar.
+     Accents (breadcrumb --primary) are left bright. Dropdowns re-assert their own
+     data-theme, so these overrides never reach the menus. */
+  --lit: 0;
+  --foreground: 0 0% 100%;
+  --secondary-foreground: 210 17% 82%;
+  --muted-foreground: 212 16% 75%;
+  --input-well: 0 0% 100% / 0.13;
 }
 
 .main-layout {

@@ -250,7 +250,7 @@ export function AppHeader({
           aria-label="Switch management suite"
         >
           <OdysseusLogo
-            className="h-7 w-auto text-secondary-foreground dark:drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_30%,transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover [[data-theme=dark]_&]:text-muted-foreground"
+            className="h-7 w-auto text-secondary-foreground drop-shadow-[0_0_4px_color-mix(in_srgb,currentColor_calc(30%_*_var(--lit)),transparent)] transition-[color,filter] duration-200 group-hover:text-foreground group-hover:drop-shadow-icon-bloom-hover [[data-theme=dark]_&]:text-muted-foreground"
             aria-label="Odysseus"
           />
           {hasLab && (
@@ -265,7 +265,7 @@ export function AppHeader({
                 </span>,
                 <span
                   key={`crumb-${i}`}
-                  className="type-label text-label-xs font-medium tracking-label-wide text-primary transition duration-200 group-hover:drop-shadow-icon-bloom-hover"
+                  className="type-label text-label-xs font-medium tracking-label-wide text-primary transition duration-200 group-hover:font-bold group-hover:brightness-125 group-hover:drop-shadow-icon-bloom-hover"
                 >
                   {crumb}
                 </span>,
@@ -543,7 +543,7 @@ export function AppHeader({
           className="group flex items-center gap-3"
         >
           <div className="text-right leading-tight">
-            <div className="max-w-[150px] truncate font-display text-body-sm font-medium tracking-[0.04em] text-foreground transition duration-200 group-hover:drop-shadow-icon-bloom-hover">
+            <div className="max-w-[150px] truncate font-display text-body-sm font-medium tracking-[0.04em] text-foreground transition duration-200 group-hover:font-semibold group-hover:drop-shadow-icon-bloom-hover">
               {displayName}
             </div>
             {user?.role && (
@@ -552,7 +552,7 @@ export function AppHeader({
               </div>
             )}
           </div>
-          <span className="inline-flex text-ownership-user-badge transition duration-200 group-hover:drop-shadow-icon-bloom-hover">
+          <span className="inline-flex text-ownership-user-badge transition duration-200 group-hover:scale-110 group-hover:brightness-110 group-hover:drop-shadow-icon-bloom-hover">
             <UserBadge
               type="currentUser"
               initials={initials}
