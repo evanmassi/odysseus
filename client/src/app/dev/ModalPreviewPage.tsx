@@ -25,6 +25,8 @@ import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/g
 import { AuthSysAdminSetupPage } from '@domains/authentication/ui/components/gateway/AuthSysAdminSetupPage';
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
 
+import { OdysseusSpinnerPlayground } from './OdysseusSpinnerPlayground';
+
 import type { UseAppBootstrapResult } from '@app/bootstrap/types';
 import type { ResolvedTheme } from '@app/contexts/ThemeContext';
 
@@ -323,7 +325,7 @@ const SPECS: ModalSpec[] = [
     id: 'boot-loading',
     group: 'Boot splash',
     label: 'Initializing',
-    note: 'Branded boot splash — breathing mark on the auth field',
+    note: 'Branded boot splash — counter-rotating mark on the auth field',
     render: () => <AppLoader context={mockBootstrapContext('loading')} />,
   },
   {
@@ -341,6 +343,13 @@ const SPECS: ModalSpec[] = [
         onCancel={close}
       />
     ),
+  },
+  {
+    id: 'odysseus-spinner',
+    group: 'Boot splash',
+    label: 'Odysseus spinner (playground)',
+    note: 'Counter-rotating mark — tune ring/snowflake speed, size, breathe; boot-splash mock',
+    render: () => <OdysseusSpinnerPlayground />,
   },
 ];
 
