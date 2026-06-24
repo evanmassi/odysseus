@@ -9,126 +9,63 @@
     @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border;
   }
 
-  /* Audit Log Badge Base */
+  /* Audit Log Badge Base — flat mono stencil tag, chamfered top-right to match the Chip primitive.
+     Tone is supplied per-category via the --audit-tone custom property (light/dark aware tokens). */
   .badge-audit {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium;
-    @apply bg-muted border-l-2 border-y border-r border-y-border border-r-border;
+    @apply inline-flex items-center gap-1 whitespace-nowrap px-1.5;
+    @apply font-mono uppercase text-label-2xs tracking-label-wide;
+    height: 18px;
+    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 0 100%);
+    color: hsl(var(--audit-tone));
+    border: 1px solid hsl(var(--audit-tone) / 0.45);
+    background-color: hsl(var(--audit-tone) / 0.1);
   }
 
   /* Audit Log Entity Badges */
   .badge-audit-entity-tube {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-tube));
-    color: hsl(var(--color-audit-entity-tube));
+    --audit-tone: var(--color-audit-entity-tube);
   }
-
-  .badge-audit-entity-user {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-person));
-    color: hsl(var(--color-audit-entity-person));
-  }
-
+  .badge-audit-entity-user,
   .badge-audit-entity-researcher {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-person));
-    color: hsl(var(--color-audit-entity-person));
+    --audit-tone: var(--color-audit-entity-person);
   }
-
-  .badge-audit-entity-tank {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-storage));
-    color: hsl(var(--color-audit-entity-storage));
-  }
-
-  .badge-audit-entity-rack {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-storage));
-    color: hsl(var(--color-audit-entity-storage));
-  }
-
-  .badge-audit-entity-box {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-storage));
-    color: hsl(var(--color-audit-entity-storage));
-  }
-
-  .badge-audit-entity-lab {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-system));
-    color: hsl(var(--color-audit-entity-system));
-  }
-
-  .badge-audit-entity-configuration {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-system));
-    color: hsl(var(--color-audit-entity-system));
-  }
-
+  .badge-audit-entity-tank,
+  .badge-audit-entity-rack,
+  .badge-audit-entity-box,
   .badge-audit-entity-equipment {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-storage));
-    color: hsl(var(--color-audit-entity-storage));
+    --audit-tone: var(--color-audit-entity-storage);
   }
-
+  .badge-audit-entity-lab,
+  .badge-audit-entity-configuration,
   .badge-audit-entity-default {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-system));
-    color: hsl(var(--color-audit-entity-system));
+    --audit-tone: var(--color-audit-entity-system);
   }
 
   /* Audit Log Action Badges */
   .badge-audit-action-created {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-action-create));
-    color: hsl(var(--color-audit-action-create));
+    --audit-tone: var(--color-audit-action-create);
   }
-
   .badge-audit-action-updated {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-action-update));
-    color: hsl(var(--color-audit-action-update));
+    --audit-tone: var(--color-audit-action-update);
   }
-
   .badge-audit-action-moved {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-action-move));
-    color: hsl(var(--color-audit-action-move));
+    --audit-tone: var(--color-audit-action-move);
   }
-
-  .badge-audit-action-deleted {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-action-delete));
-    color: hsl(var(--color-audit-action-delete));
-  }
-
-  .badge-audit-action-login {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-action-create));
-    color: hsl(var(--color-audit-action-create));
-  }
-
-  .badge-audit-action-logout {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-action-auth));
-    color: hsl(var(--color-audit-action-auth));
-  }
-
-  .badge-audit-action-linked {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-action-link));
-    color: hsl(var(--color-audit-action-link));
-  }
-
+  .badge-audit-action-deleted,
   .badge-audit-action-unlinked {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-action-delete));
-    color: hsl(var(--color-audit-action-delete));
+    --audit-tone: var(--color-audit-action-delete);
   }
-
+  .badge-audit-action-login {
+    --audit-tone: var(--color-audit-action-create);
+  }
+  .badge-audit-action-logout {
+    --audit-tone: var(--color-audit-action-auth);
+  }
+  .badge-audit-action-linked {
+    --audit-tone: var(--color-audit-action-link);
+  }
   .badge-audit-action-default {
-    @apply badge-audit;
-    border-left-color: hsl(var(--color-audit-entity-system));
-    color: hsl(var(--color-audit-entity-system));
+    --audit-tone: var(--color-audit-entity-system);
   }
 
   /* Status Badges */

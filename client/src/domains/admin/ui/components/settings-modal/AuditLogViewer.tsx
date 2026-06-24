@@ -186,15 +186,18 @@ export function AuditLogViewer({
     }
   };
 
-  const formatTimestamp = (timestamp: Date) => {
-    return timestamp.toLocaleString('en-US', {
-      year: 'numeric',
+  const formatAuditDate = (timestamp: Date) =>
+    timestamp.toLocaleDateString('en-GB', {
+      day: '2-digit',
       month: 'short',
-      day: 'numeric',
+      year: 'numeric',
+    });
+
+  const formatAuditTime = (timestamp: Date) =>
+    timestamp.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
     });
-  };
 
   const formatAction = (action: string) => {
     const override = ACTION_LABEL_OVERRIDES[action];
@@ -271,9 +274,14 @@ export function AuditLogViewer({
       width: '8rem',
       render: (_, entry) => {
         return (
-          <span className="whitespace-nowrap text-muted-foreground text-data-sm">
-            {formatTimestamp(entry.timestamp)}
-          </span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-data-sm text-secondary-foreground whitespace-nowrap">
+              {formatAuditDate(entry.timestamp)}
+            </span>
+            <span className="text-label-xs text-muted-foreground whitespace-nowrap">
+              {formatAuditTime(entry.timestamp)}
+            </span>
+          </div>
         );
       },
     },
@@ -295,7 +303,7 @@ export function AuditLogViewer({
       width: '6rem',
       render: (_, entry) => {
         return (
-          <span className={`whitespace-nowrap ${getActionBadgeClass(entry.action)}`}>
+          <span className={`badge-audit ${getActionBadgeClass(entry.action)}`}>
             {formatAction(entry.action)}
           </span>
         );
@@ -311,7 +319,7 @@ export function AuditLogViewer({
         }
         const icon = getEntityIcon(entry.entityType);
         return (
-          <span className={`whitespace-nowrap ${getEntityBadgeClass(entry.entityType)} gap-1`}>
+          <span className={`badge-audit ${getEntityBadgeClass(entry.entityType)}`}>
             {icon === 'researcher' ? (
               <Dna size={12} />
             ) : icon === 'tank' ? (
@@ -327,14 +335,13 @@ export function AuditLogViewer({
     {
       id: 'details',
       header: 'Details',
+      width: '100%',
       render: (_, entry) => {
         const { text, fullText } = formatAuditDetails(entry);
         const tooltipContent = fullText ?? text;
         return (
           <Tooltip content={tooltipContent} side="bottom" align="start" disabled={text === '-'}>
-            <div className="overflow-hidden max-w-[40vw]">
-              <span className="text-secondary-foreground truncate block">{text}</span>
-            </div>
+            <div className="w-full truncate text-secondary-foreground">{text}</div>
           </Tooltip>
         );
       },
