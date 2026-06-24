@@ -7,6 +7,7 @@
 import { errorEnvelopeSchema, ApiError } from '@odysseus/shared-schemas';
 
 import { isOffline } from '@infra/connection';
+import { env } from '@shared/config';
 
 export class OfflineWriteError extends ApiError {
   constructor() {
@@ -181,8 +182,7 @@ export class HttpTransport {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
-const API_BASE_URL = import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api';
+const API_BASE_URL = env.apiBaseUrl();
 
 export const baseTransport = new HttpTransport({
   baseURL: API_BASE_URL,

@@ -6,14 +6,15 @@
 
 import { ApiError } from '@odysseus/shared-schemas';
 
+import { env } from '@shared/config';
+
 export class SessionHttpClient {
   private readonly baseURL: string;
   private readonly timeout: number;
 
   constructor(
     config: { baseURL: string; timeout?: number } = {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
-      baseURL: import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api',
+      baseURL: env.apiBaseUrl(),
     }
   ) {
     this.baseURL = config.baseURL;

@@ -13,6 +13,8 @@ import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 import { notifications } from '@shared/utils/notifications';
 
+import { CONFIG_VERSION_KEY, QUERY_CACHE_KEY } from './cacheStorageKeys';
+
 import type { DefaultOptions } from '@tanstack/react-query';
 
 // React Query v5 types errors as `unknown`.
@@ -44,7 +46,6 @@ function hasCode(error: unknown): error is { code: string } {
   );
 }
 
-/** Matches the AppError shape */
 function hasDetails(error: unknown): error is { details: Record<string, unknown> } {
   return (
     typeof error === 'object' &&
@@ -221,44 +222,6 @@ const defaultOptions: DefaultOptions = {
   },
 };
 
-export const cacheMetrics = {
-  hits: 0,
-  misses: 0,
-  invalidations: 0,
-
-  recordHit(): void {
-    this.hits++;
-  },
-
-  recordMiss(): void {
-    this.misses++;
-  },
-
-  recordInvalidation(): void {
-    this.invalidations++;
-  },
-
-  getHitRate(): number {
-    const total = this.hits + this.misses;
-    return total === 0 ? 0 : this.hits / total;
-  },
-
-  reset(): void {
-    this.hits = 0;
-    this.misses = 0;
-    this.invalidations = 0;
-  },
-
-  getStats(): { hits: number; misses: number; hitRate: string; invalidations: number } {
-    return {
-      hits: this.hits,
-      misses: this.misses,
-      hitRate: `${(this.getHitRate() * 100).toFixed(1)}%`,
-      invalidations: this.invalidations,
-    };
-  },
-};
-
 export const queryClient = new QueryClient({
   defaultOptions,
   queryCache: new QueryCache({
@@ -330,7 +293,7 @@ function reviveDates(_key: string, value: unknown): unknown {
 export function setupQueryPersistence(): void {
   const persister = createSyncStoragePersister({
     storage: window.localStorage,
-    key: 'odysseus-query-cache',
+    key: QUERY_CACHE_KEY,
     serialize: data => JSON.stringify(data),
     deserialize: str => JSON.parse(str, reviveDates),
   });
@@ -351,6 +314,6 @@ export function setupQueryPersistence(): void {
 /** Ensures the next user gets fresh data filtered for their demo status. */
 export function clearAllCaches(): void {
   queryClient.clear();
-  localStorage.removeItem('odysseus-query-cache');
-  localStorage.removeItem('odysseus-configuration-version');
+  localStorage.removeItem(QUERY_CACHE_KEY);
+  localStorage.removeItem(CONFIG_VERSION_KEY);
 }

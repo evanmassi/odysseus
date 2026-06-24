@@ -8,6 +8,7 @@ import { io } from 'socket.io-client';
 
 import { sessionManager, useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@infra/logger';
+import { env } from '@shared/config';
 
 import { getSocketBridge, cleanupSocketBridge } from './SocketQueryBridge';
 
@@ -15,8 +16,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
 
 const SOCKET_CONFIG = {
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
-  url: import.meta.env['VITE_SOCKET_URL'] || 'http://localhost:3001',
+  url: env.socketUrl(),
   options: {
     reconnection: true,
     reconnectionAttempts: 5,

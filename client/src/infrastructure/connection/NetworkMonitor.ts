@@ -5,6 +5,7 @@
  */
 
 import { logger } from '@infra/logger';
+import { env } from '@shared/config';
 import { notifications } from '@shared/utils/notifications';
 
 import { setOffline } from './networkState';
@@ -189,8 +190,7 @@ export class NetworkMonitor {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      const healthUrl = `${import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api'}/public/health`;
+      const healthUrl = `${env.apiBaseUrl()}/public/health`;
       const response = await fetch(healthUrl, {
         method: 'GET',
         cache: 'no-cache',

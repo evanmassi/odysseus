@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { SYSTEM_DEFAULTS } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { CONFIG_VERSION_KEY } from '@app/cache/cacheStorageKeys';
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
@@ -78,16 +79,16 @@ export function useStorageSync() {
   // These may persist from a previous user's session via localStorage cache
   useEffect(() => {
     if (!hasLab) {
-      queryClient.removeQueries({ queryKey: ['storage'] });
-      queryClient.removeQueries({ queryKey: ['tubes'] });
-      queryClient.removeQueries({ queryKey: ['researchers'] });
+      queryClient.removeQueries({ queryKey: queryKeys.storage.root });
+      queryClient.removeQueries({ queryKey: queryKeys.tubes.root });
+      queryClient.removeQueries({ queryKey: queryKeys.researchers.root });
     }
   }, [hasLab, queryClient]);
 
   // Multi-tab synchronization via storage events
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'odysseus-configuration-version' && user?.labId) {
+      if (e.key === CONFIG_VERSION_KEY && user?.labId) {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.storage.data(user.labId),
         });
@@ -105,10 +106,7 @@ export function useStorageSync() {
   // Broadcast version changes to other tabs when data updates
   useEffect(() => {
     if (isSuccess && data?.configuration.systemConfig.version) {
-      localStorage.setItem(
-        'odysseus-configuration-version',
-        String(data.configuration.systemConfig.version)
-      );
+      localStorage.setItem(CONFIG_VERSION_KEY, String(data.configuration.systemConfig.version));
     }
   }, [isSuccess, data?.configuration.systemConfig.version]);
 

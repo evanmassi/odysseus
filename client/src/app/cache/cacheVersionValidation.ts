@@ -5,14 +5,13 @@
  * Clears stale cache when version mismatch is detected (e.g., after database reset).
  */
 import { logger } from '@infra/logger';
+import { env } from '@shared/config';
 
+import { CONFIG_VERSION_KEY, QUERY_CACHE_KEY } from './cacheStorageKeys';
 import { queryClient } from './queryClient';
 import { queryKeys } from './queryKeys';
 
-import type { QueryClient } from '@tanstack/react-query';
-
-const QUERY_CACHE_KEY = 'odysseus-query-cache';
-const CONFIG_VERSION_KEY = 'odysseus-configuration-version';
+const VERSION_FETCH_TIMEOUT_MS = 5000;
 
 interface VersionCheckResult {
   isValid: boolean;
@@ -21,9 +20,9 @@ interface VersionCheckResult {
   reason: 'match' | 'mismatch' | 'no-cache' | 'no-session' | 'error';
 }
 
-function getCachedConfigVersion(qc: QueryClient, labId?: string): number | null {
+function getCachedConfigVersion(labId?: string): number | null {
   if (!labId) return null;
-  const cachedData = qc.getQueryData(queryKeys.storage.data(labId));
+  const cachedData = queryClient.getQueryData(queryKeys.storage.data(labId));
 
   if (!cachedData || typeof cachedData !== 'object') {
     return null;
@@ -43,8 +42,7 @@ function getCachedConfigVersion(qc: QueryClient, labId?: string): number | null 
 
 async function fetchServerVersion(accessToken: string): Promise<number | null> {
   try {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
-    const apiBaseUrl = import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api';
+    const apiBaseUrl = env.apiBaseUrl();
 
     const response = await fetch(`${apiBaseUrl}/storage/version`, {
       method: 'GET',
@@ -52,7 +50,7 @@ async function fetchServerVersion(accessToken: string): Promise<number | null> {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(VERSION_FETCH_TIMEOUT_MS),
     });
 
     if (!response.ok) {
@@ -78,18 +76,12 @@ async function fetchServerVersion(accessToken: string): Promise<number | null> {
   }
 }
 
-function clearStaleCaches(qc: QueryClient, labId?: string): void {
+function clearStaleCaches(labId?: string): void {
   logger.info('Clearing stale caches due to version mismatch');
 
-  if (labId) {
-    qc.removeQueries({ queryKey: queryKeys.storage.all(labId) });
-    qc.removeQueries({ queryKey: queryKeys.tubes.all(labId) });
-    qc.removeQueries({ queryKey: queryKeys.researchers.all(labId) });
-  } else {
-    qc.removeQueries({ queryKey: ['storage'] });
-    qc.removeQueries({ queryKey: ['tubes'] });
-    qc.removeQueries({ queryKey: ['researchers'] });
-  }
+  queryClient.removeQueries({ queryKey: queryKeys.storage.all(labId) });
+  queryClient.removeQueries({ queryKey: queryKeys.tubes.all(labId) });
+  queryClient.removeQueries({ queryKey: queryKeys.researchers.all(labId) });
 
   try {
     localStorage.removeItem(QUERY_CACHE_KEY);
@@ -108,9 +100,9 @@ export async function validateCacheVersion(
 ): Promise<VersionCheckResult> {
   if (!accessToken) {
     // No session but cached data exists → stale from previous DB/session — clear it
-    const cachedVersion = getCachedConfigVersion(queryClient, labId);
+    const cachedVersion = getCachedConfigVersion(labId);
     if (cachedVersion !== null) {
-      clearStaleCaches(queryClient, labId);
+      clearStaleCaches(labId);
     }
 
     return {
@@ -121,7 +113,7 @@ export async function validateCacheVersion(
     };
   }
 
-  const cachedVersion = getCachedConfigVersion(queryClient, labId);
+  const cachedVersion = getCachedConfigVersion(labId);
   if (cachedVersion === null) {
     return {
       isValid: true,
@@ -149,7 +141,7 @@ export async function validateCacheVersion(
       cachedVersion,
       isReset: serverVersion < cachedVersion,
     });
-    clearStaleCaches(queryClient, labId);
+    clearStaleCaches(labId);
 
     return {
       isValid: false,

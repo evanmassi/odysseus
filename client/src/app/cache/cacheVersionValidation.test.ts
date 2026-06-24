@@ -22,21 +22,6 @@ vi.mock('./queryClient', () => ({
   },
 }));
 
-vi.mock('./queryKeys', () => ({
-  queryKeys: {
-    storage: {
-      all: (labId: string) => ['storage', labId],
-      data: (labId: string) => ['storage', labId, 'data'],
-    },
-    tubes: {
-      all: (labId: string) => ['tubes', labId],
-    },
-    researchers: {
-      all: (labId: string) => ['researchers', labId],
-    },
-  },
-}));
-
 import { logger } from '@infra/logger';
 
 import { validateCacheVersion } from './cacheVersionValidation';

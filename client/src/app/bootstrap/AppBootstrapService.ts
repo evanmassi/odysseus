@@ -18,8 +18,9 @@ import {
 import { logger } from '@infra/logger';
 import { initializeSocket, cleanupSocket } from '@infra/socket';
 
-import { validateCacheVersion } from '../cache';
+import { validateCacheVersion } from '../cache/cacheVersionValidation';
 import { queryClient } from '../cache/queryClient';
+import { queryKeys } from '../cache/queryKeys';
 
 import { clearChunkReloadFlag } from './chunkErrorRecovery';
 import { BOOTSTRAP_STEPS } from './constants';
@@ -109,7 +110,7 @@ class AppBootstrapService {
         useSearchStore.getState().clearSearch();
 
         // Clear all user queries (presence, list) to ensure fresh state on next login
-        queryClient.removeQueries({ queryKey: ['users'] });
+        queryClient.removeQueries({ queryKey: queryKeys.users.all });
 
         // Disconnect socket to trigger user_offline event on server
         // This notifies other clients that this user is no longer online
