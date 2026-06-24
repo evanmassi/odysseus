@@ -11,6 +11,7 @@ import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 
 import { Button } from '../../primitives';
+import { OdysseusSpinner } from '../loading';
 
 import { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 
@@ -41,7 +42,7 @@ const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({
     aria-label={ariaLabel ?? `Loading ${name ?? 'component'}...`}
   >
     <div className="flex items-center space-x-3">
-      <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+      <OdysseusSpinner size="md" className="text-primary" />
       <span className="text-muted-foreground text-body-sm">
         {name ? `Loading ${name}...` : 'Loading...'}
       </span>
