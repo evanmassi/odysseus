@@ -25,9 +25,17 @@ import { clearChunkReloadFlag } from './chunkErrorRecovery';
 import { BOOTSTRAP_STEPS } from './constants';
 
 import type { AppBootstrapState, BootstrapStep } from './types';
-import type { QueryClient } from '@tanstack/react-query';
 
-export class AppBootstrapService {
+/** Delay before heavy init so the loading screen can paint first. */
+const LOADING_SCREEN_RENDER_DELAY_MS = 500;
+
+/**
+ * Socket.IO reports transport failures as free-text; match the known offline-ish
+ * ones so we show the offline screen instead of a hard error.
+ */
+const OFFLINE_ERROR_FRAGMENTS = ['xhr poll error', 'timeout', 'network'];
+
+class AppBootstrapService {
   private state: AppBootstrapState = {
     isLoading: true,
     currentStep: 'initialization',
@@ -90,11 +98,7 @@ export class AppBootstrapService {
     this.notify();
   }
 
-  /**
-   * Session Cleanup Subscription
-   *
-   * Resets domain UI stores on logout. Socket reconnection on login handled by useAuthSocketSync.
-   */
+  // Resets domain UI stores on logout; login reconnection is handled by useAuthSocketSync.
   private setupAuthSubscription(): () => void {
     let wasAuthenticated = useAuthStore.getState().isAuthenticated;
     return useAuthStore.subscribe(state => {
@@ -116,8 +120,8 @@ export class AppBootstrapService {
     });
   }
 
-  async bootstrap(queryClient: QueryClient): Promise<void> {
-    // GUARD: Prevent duplicate bootstrap in React StrictMode
+  async bootstrap(): Promise<void> {
+    // Prevent duplicate bootstrap in React StrictMode
     if (this.isInitialized) {
       logger.warn('Bootstrap already initialized, skipping duplicate');
       return;
@@ -129,11 +133,10 @@ export class AppBootstrapService {
       this.notify();
 
       this.updateStep('initialization', false);
-      // Brief delay to let the loading screen render before heavier initialization work begins.
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, LOADING_SCREEN_RENDER_DELAY_MS));
       this.updateStep('initialization', true);
 
-      // Check auth - detect first-time setup and system admin status
+      // Detect first-time setup and system admin status
       this.updateStep('auth-check', false);
       try {
         const firstTimeResult = await authService.checkFirstTime();
@@ -148,7 +151,6 @@ export class AppBootstrapService {
         throw error;
       }
 
-      // Restore session from SessionService
       // SessionService already loaded tokens in constructor, now sync with auth store
       this.updateStep('session-restore', false);
       try {
@@ -210,13 +212,10 @@ export class AppBootstrapService {
 
         this.updateStep('socket-connection', true);
       } catch (socketError) {
-        // Check if this is an offline-related error
         const errorMessage =
           socketError instanceof Error ? socketError.message : String(socketError);
         const isOfflineError =
-          errorMessage.includes('xhr poll error') ||
-          errorMessage.includes('timeout') ||
-          errorMessage.includes('network') ||
+          OFFLINE_ERROR_FRAGMENTS.some(fragment => errorMessage.includes(fragment)) ||
           !navigator.onLine;
 
         if (isOfflineError) {
@@ -245,10 +244,14 @@ export class AppBootstrapService {
 
       this.notify();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Bootstrap failed';
-      this.updateStep('error', false, errorMessage);
+      // Step handlers set a descriptive error before throwing; fall back to the raw message.
+      if (!this.state.error) {
+        this.state.error = error instanceof Error ? error.message : 'Bootstrap failed';
+      }
+      this.state.currentStep = 'error';
       this.state.isLoading = false;
-      this.isInitialized = false; // Allow retry after error
+      this.isInitialized = false;
+      this.notify();
     }
   }
 
@@ -260,7 +263,7 @@ export class AppBootstrapService {
     this.isInitialized = false;
   }
 
-  retry(queryClient: QueryClient): void {
+  retry(): void {
     this.state.steps = this.state.steps.map(step => ({
       ...step,
       completed: false,
@@ -272,7 +275,7 @@ export class AppBootstrapService {
     cleanupNetworkMonitor();
 
     this.isInitialized = false;
-    void this.bootstrap(queryClient);
+    void this.bootstrap();
   }
 }
 

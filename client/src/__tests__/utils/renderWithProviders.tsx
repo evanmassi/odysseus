@@ -6,7 +6,7 @@ import { vi } from 'vitest';
 
 import { BootstrapProvider } from '../../app/contexts/BootstrapContext';
 
-import type { UseAppBootstrapResult } from '../../app/bootstrap/types';
+import type { UseAppBootstrapResult } from '@app/bootstrap';
 
 // Test-specific QueryClient with disabled retries and silent logging
 const createTestQueryClient = () =>
@@ -31,18 +31,8 @@ const createMockBootstrapState = (
   isLoading: false,
   isError: false,
   error: null,
-  currentStep: 'complete',
-  context: 'Ready!',
   state: 'complete',
-  progress: 100,
   canRetry: false,
-  completedSteps: ['initialization', 'auth-check', 'socket-connection', 'data-loading'],
-  initializationResult: {
-    completedSteps: ['initialization', 'auth-check', 'socket-connection', 'data-loading'],
-    errors: [],
-    isComplete: true,
-    timestamp: new Date(),
-  },
   retry: vi.fn(),
   flags: {
     firstTimeSetupRequired: false,

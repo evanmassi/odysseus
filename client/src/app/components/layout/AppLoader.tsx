@@ -15,9 +15,9 @@ import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { env } from '@shared/config';
 import { Button, OdysseusSpinner } from '@shared/ui';
 
-import { OfflineInitializationPage } from '../../bootstrap/OfflineInitializationPage';
+import { OfflineInitializationPage } from './OfflineInitializationPage';
 
-import type { UseAppBootstrapResult } from '../../bootstrap/types';
+import type { UseAppBootstrapResult } from '@app/bootstrap';
 
 interface AppLoaderProps {
   context: UseAppBootstrapResult;

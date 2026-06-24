@@ -3,9 +3,9 @@
  *
  * Ordered initialization sequence with display labels used across the loading UI.
  */
-import type { BootstrapStep, BootstrapStepInfo } from './types';
+import type { BootstrapStepInfo } from './types';
 
-export const BOOTSTRAP_STEPS: BootstrapStepInfo[] = [
+export const BOOTSTRAP_STEPS: readonly BootstrapStepInfo[] = [
   {
     step: 'initialization',
     label: 'Initializing Application',
@@ -42,7 +42,3 @@ export const BOOTSTRAP_STEPS: BootstrapStepInfo[] = [
     completed: false,
   },
 ];
-
-export const LOADING_MESSAGES: Partial<Record<BootstrapStep, string>> = Object.fromEntries(
-  BOOTSTRAP_STEPS.map(s => [s.step, s.label])
-);

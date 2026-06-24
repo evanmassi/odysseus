@@ -27,7 +27,7 @@ import { AuthPasswordResetPage } from '@domains/authentication/ui/components/pas
 
 import { OdysseusSpinnerPlayground } from './OdysseusSpinnerPlayground';
 
-import type { UseAppBootstrapResult } from '@app/bootstrap/types';
+import type { UseAppBootstrapResult } from '@app/bootstrap';
 import type { ResolvedTheme } from '@app/contexts/ThemeContext';
 
 // Mirrors the chrome the registration flow declares for its success state, so the
@@ -211,18 +211,8 @@ function mockBootstrapContext(
     isLoading: state === 'loading' || state === 'initializing',
     isError: state === 'error',
     error,
-    currentStep: state === 'error' ? 'error' : 'data-loading',
-    context: 'preview',
     state,
-    progress: state === 'error' ? 0 : 50,
     canRetry: state === 'error',
-    completedSteps: [],
-    initializationResult: {
-      completedSteps: [],
-      errors: [],
-      isComplete: false,
-      timestamp: new Date(),
-    },
     retry: () => undefined,
     flags: { firstTimeSetupRequired: false, needsSystemAdmin: false },
   };
