@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { WifiOff, RefreshCw } from 'lucide-react';
 
-import { Button, LoadingSpinner } from '@shared/ui';
+import { Button, OdysseusSpinner } from '@shared/ui';
 
 interface OfflineInitializationPageProps {
   onRetry: () => void;
@@ -64,7 +64,7 @@ export function OfflineInitializationPage({ onRetry }: OfflineInitializationPage
         <div className="text-center mb-6">
           <div className="mb-4 flex justify-center">
             {isRetrying ? (
-              <LoadingSpinner size="xl" />
+              <OdysseusSpinner size="xl" className="text-primary" />
             ) : (
               <WifiOff className="w-14 h-14 text-danger-bg" />
             )}

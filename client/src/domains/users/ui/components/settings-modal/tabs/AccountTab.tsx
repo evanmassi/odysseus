@@ -5,20 +5,19 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 
-import {
-  UserRound,
-  Mail,
-  Building2,
-  BriefcaseBusiness,
-  KeyRound,
-  Save,
-  RefreshCw,
-} from 'lucide-react';
+import { UserRound, Mail, Building2, BriefcaseBusiness, KeyRound, Save } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
 import { logger } from '@infra/logger';
-import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';
+import {
+  AlertBanner,
+  AuthInput,
+  Button,
+  ConsolePanel,
+  OdysseusSpinner,
+  Subsection,
+} from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
@@ -134,7 +133,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="w-6 h-6 animate-spin text-action" />
+        <OdysseusSpinner size="md" className="text-primary" />
       </div>
     );
   }

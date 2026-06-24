@@ -19,7 +19,7 @@ import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettings, useUserLookupQuery } from '@domains/users';
-import { Button, Chip, PanelEmptyState, Tooltip } from '@shared/ui';
+import { Button, Chip, OdysseusSpinner, PanelEmptyState, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
@@ -126,7 +126,7 @@ export function SearchResultsPanel({
     return (
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="flex items-center">
-          <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" />
+          <OdysseusSpinner size="md" className="text-primary" />
           <span className="ml-2 text-body-sm text-secondary-foreground">Searching...</span>
         </div>
       </div>

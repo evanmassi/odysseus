@@ -2,18 +2,18 @@
  * App Loader
  *
  * Branded boot splash shown while the app bootstraps. Calm in the happy path —
- * a breathing mark on the always-dark auth field, so it flows straight into the
- * gateway's CRT power-on. Diagnostics surface only when boot is slow or fails.
+ * the counter-rotating Odysseus mark on the always-dark auth field, so it flows
+ * straight into the gateway's CRT power-on. Diagnostics surface only when boot is
+ * slow or fails.
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
-import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { env } from '@shared/config';
-import { Button } from '@shared/ui';
+import { Button, OdysseusSpinner } from '@shared/ui';
 
 import { OfflineInitializationPage } from '../../bootstrap/OfflineInitializationPage';
 
@@ -95,13 +95,9 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
   return (
     <BootSplashField>
       <div className="flex animate-in flex-col items-center gap-6 px-8 fade-in-0 duration-500">
-        <img
-          src={odysseusIcon}
-          alt=""
-          aria-hidden
-          className="phosphor-breathe h-24 w-24 object-contain"
-          style={{ filter: HERO_BLOOM }}
-        />
+        <div aria-hidden style={{ filter: HERO_BLOOM }}>
+          <OdysseusSpinner size={96} className="text-[rgb(var(--auth-text))]" />
+        </div>
         <div className="flex flex-col items-center gap-3">
           <OdysseusLogo
             className="h-7 w-auto text-[rgb(var(--auth-text-dim))] drop-shadow-icon-bloom"

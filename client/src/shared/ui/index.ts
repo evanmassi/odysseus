@@ -25,6 +25,6 @@ export type { InfoGroupProps } from './components/info-display';
 export {
   LoadingOverlay,
   LoadingSkeleton,
-  LoadingSpinner,
   ModalSkeleton,
+  OdysseusSpinner,
 } from './components/loading';

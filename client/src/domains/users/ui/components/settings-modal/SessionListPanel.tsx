@@ -7,11 +7,11 @@
 import { useState, useMemo } from 'react';
 
 import { formatDistanceToNow, format } from 'date-fns';
-import { Monitor, TabletSmartphone, MonitorCheck, LogOut, RefreshCw } from 'lucide-react';
+import { Monitor, TabletSmartphone, MonitorCheck, LogOut } from 'lucide-react';
 import { UAParser } from 'ua-parser-js';
 
 import { useUserSessions } from '@domains/users';
-import { Button, Table, Tooltip } from '@shared/ui';
+import { Button, OdysseusSpinner, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -198,7 +198,7 @@ export function SessionListPanel() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <RefreshCw className="animate-spin text-muted-foreground" size={24} />
+        <OdysseusSpinner size="md" className="text-primary" />
         <span className="ml-2 text-body-sm text-secondary-foreground">Loading sessions...</span>
       </div>
     );

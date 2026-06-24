@@ -3,7 +3,7 @@
  *
  * Full-page loading state matching offline initialization page styling
  */
-import { Loader2 } from 'lucide-react';
+import { OdysseusSpinner } from './OdysseusSpinner';
 
 interface LoadingOverlayProps {
   message?: string;
@@ -16,7 +16,7 @@ export function LoadingOverlay({ message = 'Loading...', submessage }: LoadingOv
       <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
         <div className="text-center">
           <div className="mb-4">
-            <Loader2 className="w-14 h-14 text-primary animate-spin mx-auto" />
+            <OdysseusSpinner size="xl" className="text-primary" />
           </div>
 
           <h1 className="text-xl font-bold text-card-foreground mb-2">{message}</h1>
