@@ -119,6 +119,7 @@ import type {
 } from '@domain/events/UserEvents';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { Storage } from '@domain/entities/Storage';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
@@ -331,24 +332,33 @@ export class AuditEventHandler {
 
   private async getDisplayLocation(location: Location, labId: string): Promise<string> {
     try {
-      const config = await this.storageRepository.getForLab(labId);
-      if (!config) return location.toString();
-
-      const tank = config.equipment.tanks.find(t => t.id === location.tankId);
-      if (!tank) return location.toString();
-
-      const rack = tank.racks.find(r => r.id === location.rackId);
-      if (!rack) return location.toString();
-
-      const box = rack.boxes.find(b => b.name.toUpperCase() === location.boxId.toUpperCase());
-      if (!box) return location.toString();
-
-      const positionDisplay = box.formatPosition(location.position);
-      return `${tank.name} · ${rack.name} · ${box.name} · ${positionDisplay}`;
+      const storage = await this.storageRepository.getForLab(labId);
+      return this.resolveDisplayLocation(storage, location, location.toString());
     } catch (error) {
       logger.warn('Failed to get display location, using fallback', { error });
       return location.toString();
     }
+  }
+
+  /** Resolves a location to human-readable tank/rack/box/position names from a preloaded
+      storage config. Returns `fallback` (the raw path) when the config or any container is missing. */
+  private resolveDisplayLocation(
+    storage: Storage | null,
+    location: { tankId: string; rackId: string; boxId: string; position: number },
+    fallback: string
+  ): string {
+    if (!storage) return fallback;
+
+    const tank = storage.equipment.tanks.find(t => t.id === location.tankId);
+    if (!tank) return fallback;
+
+    const rack = tank.racks.find(r => r.id === location.rackId);
+    if (!rack) return fallback;
+
+    const box = rack.boxes.find(b => b.name.toUpperCase() === location.boxId.toUpperCase());
+    if (!box) return fallback;
+
+    return `${tank.name} · ${rack.name} · ${box.name} · ${box.formatPosition(location.position)}`;
   }
 
   private async handleTubeCreated(event: TubeCreatedEvent): Promise<void> {
@@ -484,32 +494,41 @@ export class AuditEventHandler {
       const { username, isDemo } = await this.resolveUser(event.createdBy);
       if (isDemo) return;
 
+      const storage = await this.storageRepository.getForLab(event.labId!);
       const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => ({
-        userId: event.createdBy,
-        username,
-        action: 'tube_created',
-        entityType: 'tube',
-        entityId: item.tubeId,
-        labId: event.labId,
-        details: {
-          location: `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`,
-          cellType: item.sampleData.cellType ?? '',
-          donorInternalId: item.sampleData.donorInternalId ?? '',
-          donorSourceId: item.sampleData.donorSourceId ?? '',
-          createdBy: username,
-          timestamp,
-        },
-      }));
-
-      entries.push({
-        userId: event.createdBy,
-        username,
-        action: 'tube_bulk_created',
-        entityType: 'tube',
-        labId: event.labId,
-        details: { count: event.tubeIds.length, createdBy: username, timestamp },
+      const entries: LogActionParams[] = event.perItemData.map(item => {
+        const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+        return {
+          userId: event.createdBy,
+          username,
+          action: 'tube_created',
+          entityType: 'tube',
+          entityId: item.tubeId,
+          labId: event.labId,
+          details: {
+            location: rawLocation,
+            displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
+            cellType: item.sampleData.cellType ?? '',
+            donorInternalId: item.sampleData.donorInternalId ?? '',
+            donorSourceId: item.sampleData.donorSourceId ?? '',
+            createdBy: username,
+            timestamp,
+          },
+        };
       });
+
+      // A single create (e.g. copy/pasting one tube) needs no roll-up — the per-item entry
+      // already says it all. Only add the summary when it aggregates multiple tubes.
+      if (event.tubeIds.length > 1) {
+        entries.push({
+          userId: event.createdBy,
+          username,
+          action: 'tube_bulk_created',
+          entityType: 'tube',
+          labId: event.labId,
+          details: { count: event.tubeIds.length, createdBy: username, timestamp },
+        });
+      }
 
       await this.auditService.logActions(entries);
     });
@@ -520,30 +539,37 @@ export class AuditEventHandler {
       const { username, isDemo } = await this.resolveUser(event.updatedBy);
       if (isDemo) return;
 
+      const storage = await this.storageRepository.getForLab(event.labId!);
       const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => ({
-        userId: event.updatedBy,
-        username,
-        action: 'tube_updated',
-        entityType: 'tube',
-        entityId: item.tubeId,
-        labId: event.labId,
-        details: {
-          changes: item.changes,
-          location: `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`,
-          updatedBy: username,
-          timestamp,
-        },
-      }));
-
-      entries.push({
-        userId: event.updatedBy,
-        username,
-        action: 'tube_bulk_updated',
-        entityType: 'tube',
-        labId: event.labId,
-        details: { count: event.tubeIds.length, changesSummary: event.changesSummary, updatedBy: username, timestamp },
+      const entries: LogActionParams[] = event.perItemData.map(item => {
+        const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+        return {
+          userId: event.updatedBy,
+          username,
+          action: 'tube_updated',
+          entityType: 'tube',
+          entityId: item.tubeId,
+          labId: event.labId,
+          details: {
+            changes: item.changes,
+            location: rawLocation,
+            displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
+            updatedBy: username,
+            timestamp,
+          },
+        };
       });
+
+      if (event.tubeIds.length > 1) {
+        entries.push({
+          userId: event.updatedBy,
+          username,
+          action: 'tube_bulk_updated',
+          entityType: 'tube',
+          labId: event.labId,
+          details: { count: event.tubeIds.length, changesSummary: event.changesSummary, updatedBy: username, timestamp },
+        });
+      }
 
       await this.auditService.logActions(entries);
     });
@@ -554,32 +580,39 @@ export class AuditEventHandler {
       const { username, isDemo } = await this.resolveUser(event.deletedBy);
       if (isDemo) return;
 
+      const storage = await this.storageRepository.getForLab(event.labId!);
       const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => ({
-        userId: event.deletedBy,
-        username,
-        action: 'tube_deleted',
-        entityType: 'tube',
-        entityId: item.tubeId,
-        labId: event.labId,
-        details: {
-          location: `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`,
-          cellType: item.sampleData.cellType ?? '',
-          donorInternalId: item.sampleData.donorInternalId ?? '',
-          donorSourceId: item.sampleData.donorSourceId ?? '',
-          deletedBy: username,
-          timestamp,
-        },
-      }));
-
-      entries.push({
-        userId: event.deletedBy,
-        username,
-        action: 'tube_bulk_deleted',
-        entityType: 'tube',
-        labId: event.labId,
-        details: { count: event.tubeIds.length, deletedBy: username, timestamp },
+      const entries: LogActionParams[] = event.perItemData.map(item => {
+        const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+        return {
+          userId: event.deletedBy,
+          username,
+          action: 'tube_deleted',
+          entityType: 'tube',
+          entityId: item.tubeId,
+          labId: event.labId,
+          details: {
+            location: rawLocation,
+            displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
+            cellType: item.sampleData.cellType ?? '',
+            donorInternalId: item.sampleData.donorInternalId ?? '',
+            donorSourceId: item.sampleData.donorSourceId ?? '',
+            deletedBy: username,
+            timestamp,
+          },
+        };
       });
+
+      if (event.tubeIds.length > 1) {
+        entries.push({
+          userId: event.deletedBy,
+          username,
+          action: 'tube_bulk_deleted',
+          entityType: 'tube',
+          labId: event.labId,
+          details: { count: event.tubeIds.length, deletedBy: username, timestamp },
+        });
+      }
 
       await this.auditService.logActions(entries);
     });
@@ -590,30 +623,39 @@ export class AuditEventHandler {
       const { username, isDemo } = await this.resolveUser(event.movedBy);
       if (isDemo) return;
 
+      const storage = await this.storageRepository.getForLab(event.labId!);
       const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => ({
-        userId: event.movedBy,
-        username,
-        action: 'tube_moved',
-        entityType: 'tube',
-        entityId: item.tubeId,
-        labId: event.labId,
-        details: {
-          oldLocation: `${item.oldLocation.tankId}/${item.oldLocation.rackId}/${item.oldLocation.boxId}/${item.oldLocation.position}`,
-          newLocation: `${item.newLocation.tankId}/${item.newLocation.rackId}/${item.newLocation.boxId}/${item.newLocation.position}`,
-          movedBy: username,
-          timestamp,
-        },
-      }));
-
-      entries.push({
-        userId: event.movedBy,
-        username,
-        action: 'tube_bulk_moved',
-        entityType: 'tube',
-        labId: event.labId,
-        details: { count: event.tubeIds.length, movedBy: username, timestamp },
+      const entries: LogActionParams[] = event.perItemData.map(item => {
+        const rawOldLocation = `${item.oldLocation.tankId}/${item.oldLocation.rackId}/${item.oldLocation.boxId}/${item.oldLocation.position}`;
+        const rawNewLocation = `${item.newLocation.tankId}/${item.newLocation.rackId}/${item.newLocation.boxId}/${item.newLocation.position}`;
+        return {
+          userId: event.movedBy,
+          username,
+          action: 'tube_moved',
+          entityType: 'tube',
+          entityId: item.tubeId,
+          labId: event.labId,
+          details: {
+            oldLocation: rawOldLocation,
+            newLocation: rawNewLocation,
+            oldDisplayLocation: this.resolveDisplayLocation(storage, item.oldLocation, rawOldLocation),
+            displayLocation: this.resolveDisplayLocation(storage, item.newLocation, rawNewLocation),
+            movedBy: username,
+            timestamp,
+          },
+        };
       });
+
+      if (event.tubeIds.length > 1) {
+        entries.push({
+          userId: event.movedBy,
+          username,
+          action: 'tube_bulk_moved',
+          entityType: 'tube',
+          labId: event.labId,
+          details: { count: event.tubeIds.length, movedBy: username, timestamp },
+        });
+      }
 
       await this.auditService.logActions(entries);
     });
