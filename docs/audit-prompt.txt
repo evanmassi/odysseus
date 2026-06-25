@@ -1,14 +1,27 @@
-You are auditing a codebase file-by-file. I will provide you with one or more files to examine. Your job is to analyze
-each file and report findings — DO NOT make any changes.
+You are auditing a codebase file-by-file toward an immaculate result. I will provide you with one or more files to
+examine. Report findings first; after I approve them, apply the fixes, verify, and commit. This is an audit-AND-fix
+pass — not read-only.
 
-## Rules
+## Workflow
 
-- **Read-only.** Report findings only. Do not edit, refactor, or rewrite anything.
-- **No assumptions.** If something looks like it might be dead code or duplicated, but you aren't sure without seeing
-  other files, flag it as "needs verification" and tell me what file/context you'd need to confirm.
-- **Stay scoped.** Only analyze the file(s) I give you. Do not go searching through the codebase on your own. If you
-  need to see another file to make a judgment, ask me.
-- **Be specific.** Reference exact line numbers and code. No vague observations.
+- **Findings first, then fix.** Report findings before touching anything; make NO edits until I approve specific
+  findings. After approval: apply, verify, and commit when I say.
+- **Verify, don't guess.** Search the codebase as needed to confirm cross-file claims — consumers, dead code,
+  duplication, import conventions — BEFORE finalizing a finding or making a change. Resolve "needs verification" by
+  checking; only ask when the code genuinely can't answer it.
+- **Fix as found; don't defer.** When a fix crosscuts other files — not-yet-audited, already-audited, or shared —
+  make it now. Don't park work in TODOs/memos. The goal is that a later file is already clean when we reach it.
+- **Verify before deleting.** For dead code TypeScript won't flag (object/map members, query keys, string-keyed
+  config, barrel re-exports), grep all usages first; zero consumers = dead (caller-first). When deleting a file or
+  barrel, grep EVERY import form — relative (`./x`, `../x`), aliased (`@app/x`), AND `export *` re-export chains; a
+  partial-path grep misses re-exporters (e.g. an aggregate barrel that re-exports the one you're deleting).
+- **A "DRY" swap can change behavior.** Replacing inline logic with a shared util/type may differ on edge cases —
+  diff the two implementations and flag the behavior change; don't present it as behavior-neutral.
+- **Decide by convention, with data.** When choosing to keep/remove/standardize a pattern (barrels, accessors,
+  naming), measure the dominant convention with grep counts instead of assuming. Keep what's the real import
+  surface; remove what's vestigial.
+- **Be specific.** Exact line numbers and code, with confidence levels (high / medium / needs-verification).
+- **Gate on green.** After changes, run typecheck + lint + tests and report results; don't claim done without them.
 
 ## What to look for
 
@@ -113,13 +126,21 @@ Loose files:
 ### 3. Duplication
 
 - Logic duplicated WITHIN the file (similar blocks, repeated patterns that could be consolidated)
-- Logic that looks like it MIGHT be duplicated elsewhere — flag these as "needs verification" with your reasoning
+- Logic duplicated ELSEWHERE — verify by searching, then consolidate to a shared home
+- Magic strings/keys duplicated across files (localStorage keys, base URLs, query-key roots, event names) →
+  centralize to a single owner
 
 ### 4. Technical Debt
 
 - Overly complex logic that could be simplified
 - Inconsistent patterns (e.g., mixing async styles, inconsistent error handling)
 - Magic numbers/strings without explanation
+- Redundant parameters that are always passed the same module singleton (e.g. a queryClient param that's always the
+  imported instance) → drop the param, use the import
+- Thin handler wrappers that only forward to a store action or prop (`const handleX = () => clearX()`) → pass the
+  action directly
+- Single-use components/helpers extracted only to shrink a file — premature abstraction; extract on genuine reuse or
+  to isolate a cohesive, separable concern (e.g. a modal stack), not the interdependent core of a large component
 - Poor naming that obscures intent
 - Awkward/redundant naming where the method name restates its parent (e.g., storage.storage(), tubes.lists() that
   returns the same key as tubes.list()). Flag with a suggested rename.
@@ -129,10 +150,14 @@ Loose files:
 
 ### 5. Dead/Zombie Code
 
-- Exported functions/variables that appear unused within the file (flag as "needs verification" — they may be imported
-  elsewhere)
-- Unreachable code paths, including branches hidden by earlier, broader checks (e.g., a 401/403 check after a general
-  4xx check that already covers it)
+- Exported functions/variables unused codebase-wide (verify by grepping all consumers, not just this file)
+- Speculative exports/keys/fields/props with zero PRODUCTION consumers — a prop/export used only by a dev preview,
+  mock, or test harness still counts as speculative (dead query keys, unused result fields, "for later" methods)
+- Vestigial barrels: an index.ts re-exporting things every consumer imports directly (don't keep a barrel that
+  isn't the real import surface)
+- Unreachable or constant-by-guard code paths: branches hidden by earlier, broader checks (e.g., a 401/403 check
+  after a general 4xx check that already covers it); a condition made always-true/false by an enclosing guard (e.g.
+  `{(a || b) && …}` inside a branch already gated on `a || b`); an `else` unreachable because an upstream check returned
 - Variables assigned but never read
 - Imports that aren't used in the file
 - Feature flags or conditional branches that appear permanently stale
@@ -154,8 +179,12 @@ If a file looks clean, say so — don't manufacture findings.
 
 ## After Changes
 
-Provide a commit message in this exact format: audit: <directory scope> — <specific changes, comma-separated>
-ONLY PROVIDE A COMMIT MESSAGE AFTER THE CHANGES HAVE BEEN CONFIRMED AND MADE AND NOT BEFORE.
+Commit only when I say. Commits are batched by top-level directory, in this exact format:
+audit: <directory scope> — <specific changes, comma-separated>
+
+Collateral cross-cutting changes from a dir's audit ride along in that dir's commit — don't split them out. No
+co-author footer. Before committing: gate on green (typecheck + lint + tests), then stage precisely — exclude
+unrelated work-in-progress from other sessions.
 
 Examples:
 - audit: hooks directory — move field resolver hooks to @domains/tubes/hooks, move useAuthSocketSync into lifecycle
@@ -166,5 +195,3 @@ Examples:
 
 The directory scope stays consistent across related commits. Each commit message describes the specific changes made
 in that pass.
-
-Do NOT commit or push. I handle all git operations.
