@@ -98,7 +98,6 @@ export class SessionService implements TokenProvider {
     const existingTokens = this.storage.getTokens();
     if (existingTokens) {
       this.scheduleTokenRefresh(existingTokens.accessTokenExpiry);
-      // Start server-side session monitoring and activity tracking
       this.startSessionInfoPolling();
       this.startActivityTracking();
     }
@@ -116,12 +115,10 @@ export class SessionService implements TokenProvider {
 
     const validation = this.validateTokens(tokens);
 
-    // Return valid token immediately
     if (validation.isValid) {
       return tokens.accessToken;
     }
 
-    // Auto-refresh expired tokens
     const refreshSuccess = await this.refreshTokens();
 
     if (refreshSuccess) {
@@ -185,7 +182,6 @@ export class SessionService implements TokenProvider {
       return false;
     }
 
-    // Check if refresh token is still valid
     if (tokens.refreshTokenExpiry <= new Date()) {
       logger.error('Refresh token expired');
       const reason = this.hasConfirmedAuth ? 'token_expired' : 'manual_logout';
@@ -245,7 +241,6 @@ export class SessionService implements TokenProvider {
   setTokens(tokens: TokenPair): void {
     this.storage.setTokens(tokens);
     this.scheduleTokenRefresh(tokens.accessTokenExpiry);
-    // Start server-side session monitoring and activity tracking
     this.startSessionInfoPolling();
     this.startActivityTracking();
   }
@@ -268,7 +263,7 @@ export class SessionService implements TokenProvider {
     // Dynamic buffer: use configured buffer OR 20% of token lifetime, whichever is smaller
     // This prevents refresh loops when sessionTimeoutMinutes <= refreshBufferMinutes
     const configuredBufferMs = this.config.refreshBufferMinutes * 60 * 1000;
-    const dynamicBufferMs = Math.floor(tokenLifetimeMs * 0.2); // 20% of token lifetime
+    const dynamicBufferMs = Math.floor(tokenLifetimeMs * 0.2);
     const bufferMs = Math.min(configuredBufferMs, dynamicBufferMs);
 
     const refreshTime = accessTokenExpiry.getTime() - bufferMs;
@@ -291,13 +286,10 @@ export class SessionService implements TokenProvider {
    * Clear session and logout
    *
    * Clears only tokens. User data is cleared by auth store's clearAuth().
-   *
-   * @param reason - Why the session is being cleared (for UX messaging)
    */
   clearSession(reason: 'idle_timeout' | 'token_expired' | 'manual_logout' = 'manual_logout'): void {
     this.stopTimersAndTracking();
 
-    // Token storage only - user data cleared by Zustand auth store
     this.storage.clearTokens();
 
     this.state = {
@@ -418,7 +410,6 @@ export class SessionService implements TokenProvider {
         return;
       }
 
-      // Mark that we've confirmed authentication in this app instance
       this.hasConfirmedAuth = true;
 
       if (data.showWarning && data.timeUntilIdleTimeoutMs !== undefined) {
@@ -503,7 +494,6 @@ export class SessionService implements TokenProvider {
     // Create bound handler for cleanup
     this.boundActivityHandler = this.handleUserActivity.bind(this);
 
-    // Add listeners for all activity events
     // Use capture phase so stopPropagation() in component handlers doesn't block us
     ACTIVITY_EVENTS.forEach(event => {
       window.addEventListener(event, this.boundActivityHandler!, { capture: true, passive: true });
