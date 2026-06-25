@@ -13,14 +13,13 @@ import { AppDashboard } from '@app/components/layout/AppDashboard';
 import { AppErrorBoundary } from '@app/components/layout/AppErrorBoundary';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
-import { useAuthSocketSync, useSplashFloor } from '@app/hooks';
+import { useAuthSocketSync, useServerThemeSync, useSplashFloor } from '@app/hooks';
 import { AppProviders } from '@app/providers/AppProviders';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
 import { AuthEmailVerificationPage } from '@domains/authentication/ui/components/gateway/AuthEmailVerificationPage';
 import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/gateway/AuthSessionTimeoutModal';
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
-import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 import { ErrorBanner } from '@shared/ui';
 
 // Minimum time the boot splash stays up so a fast bootstrap doesn't flash by.
@@ -44,7 +43,7 @@ function AppContent() {
   const { isAuthenticated } = useAuthStore();
 
   useAuthSocketSync();
-  useUserSettingsQuery({ enabled: isAuthenticated });
+  useServerThemeSync();
 
   if (isLoading || isError || !revealApp) {
     return (

@@ -14,6 +14,7 @@ export {
   type UpdateUserSettingsRequest,
   type UserSettingsData,
   type ThemePreference,
+  type ResolvedTheme,
 } from './userSettingsSchemas';
 
 export {

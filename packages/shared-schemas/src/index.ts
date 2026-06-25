@@ -401,6 +401,7 @@ export {
   type UpdateUserSettingsRequest,
   type UserSettingsData,
   type ThemePreference,
+  type ResolvedTheme,
   userLookupRequestSchema,
   userDisplayInfoSchema,
   usersLookupListSchema,

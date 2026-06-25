@@ -28,7 +28,7 @@ import { AuthPasswordResetPage } from '@domains/authentication/ui/components/pas
 import { OdysseusSpinnerPlayground } from './OdysseusSpinnerPlayground';
 
 import type { UseAppBootstrapResult } from '@app/bootstrap';
-import type { ResolvedTheme } from '@app/contexts/ThemeContext';
+import type { ResolvedTheme } from '@odysseus/shared-schemas';
 
 // Mirrors the chrome the registration flow declares for its success state, so the
 // modal renders inside AuthGatewayPanel exactly as it does in production.

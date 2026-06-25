@@ -10,6 +10,9 @@ import { positionDisplayPreferenceSchema } from '../storage/positionSchemas';
 export const themePreferenceSchema = z.enum(['light', 'dark', 'auto']);
 export type ThemePreference = z.infer<typeof themePreferenceSchema>;
 
+/** The displayed theme after resolving 'auto' against the system preference. */
+export type ResolvedTheme = Exclude<ThemePreference, 'auto'>;
+
 /**
  * Note: User preferences store format-only (numeric/alphanumeric).
  * Full configs with grid-specific alphanumericConfig are generated when applied to boxes.

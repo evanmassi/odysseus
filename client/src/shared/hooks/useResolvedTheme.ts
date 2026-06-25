@@ -8,7 +8,7 @@
 
 import { useSyncExternalStore } from 'react';
 
-type ResolvedTheme = 'light' | 'dark';
+import type { ResolvedTheme } from '@odysseus/shared-schemas';
 
 function getSnapshot(): ResolvedTheme {
   return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
