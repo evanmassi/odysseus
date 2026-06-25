@@ -1,9 +1,9 @@
 /**
  * Application Providers
  *
- * Wraps app with React Query, theming, tooltips, and toast notifications
+ * Top-level provider composition and last-resort error boundary.
  */
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -25,10 +25,10 @@ if (env.isDev()) {
 }
 
 interface ProvidersProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-export function Providers({ children }: ProvidersProps) {
+function Providers({ children }: ProvidersProps) {
   const persistenceInitialized = useRef(false);
 
   useEffect(() => {
