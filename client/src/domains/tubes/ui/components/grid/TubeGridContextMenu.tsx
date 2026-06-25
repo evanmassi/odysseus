@@ -127,7 +127,15 @@ export function TubeGridContextMenu({
         {selectedCount > 0 && (
           <>
             <div>
-              <MenuItem icon={OpenIcon} label={openLabel} shortcut="Enter" onClick={onOpen} />
+              <MenuItem
+                icon={OpenIcon}
+                label={openLabel}
+                shortcut="Enter"
+                onClick={() => {
+                  onOpen();
+                  onClose();
+                }}
+              />
             </div>
             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
             {(hasClipboardSection || hasLockSection || hasFilledSelection) && (

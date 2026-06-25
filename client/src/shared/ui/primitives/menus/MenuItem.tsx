@@ -65,6 +65,10 @@ export function MenuItem({
       role="menuitem"
       tabIndex={0}
       onClick={onClick}
+      // Keep focus on the menu so its blur-to-close doesn't fire before onClick.
+      // Firefox/Safari don't focus a button on mousedown, so without this the menu's
+      // focusout lands outside the menu and closes it before the click registers.
+      onMouseDown={e => e.preventDefault()}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
       disabled={disabled}

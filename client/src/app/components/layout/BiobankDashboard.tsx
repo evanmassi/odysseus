@@ -125,10 +125,10 @@ function BiobankWorkspace() {
       const modalRoot = document.getElementById('modal-root');
       if (modalRoot?.contains(target)) return;
 
-      const isInModal = (target as Element).closest?.(
-        '[role="dialog"], [role="alertdialog"], [data-radix-dialog-content], .modal'
+      const isInOverlay = (target as Element).closest?.(
+        '[role="dialog"], [role="alertdialog"], [role="menu"], [data-radix-dialog-content], .modal'
       );
-      if (isInModal) return;
+      if (isInOverlay) return;
 
       const isInHeader = (target as Element).closest?.('.app-header');
       if (isInHeader) return;
