@@ -10,6 +10,7 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey, parsePositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConfirmation';
 import {
   canModifyTube,
   canModifyAllTubes,
@@ -279,9 +280,7 @@ export const useGridController = ({
     if (tubeIds.length === 0) return;
 
     modalService.showDeleteConfirm({
-      title: `Remove ${tubeIds.length} Tube${tubeIds.length > 1 ? 's' : ''}`,
-      message: `Are you sure you want to remove ${tubeIds.length} tube${tubeIds.length > 1 ? 's' : ''}? This action cannot be undone.`,
-      confirmText: 'Remove',
+      ...buildRemoveTubeConfirmation(tubeIds.length),
       onConfirm: async () => {
         if (onDeleteTubes) {
           await onDeleteTubes(tubeIds);
@@ -391,7 +390,8 @@ export const useGridController = ({
   }, []);
 
   const hideContextMenu = useCallback(() => {
-    setContextMenu({ isOpen: false, x: 0, y: 0 });
+    // Keep x/y stable so the exit animation plays in place instead of jumping to the corner
+    setContextMenu(prev => ({ ...prev, isOpen: false }));
   }, []);
 
   const actions = useMemo(

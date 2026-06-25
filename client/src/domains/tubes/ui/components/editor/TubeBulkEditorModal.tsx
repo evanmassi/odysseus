@@ -28,11 +28,12 @@ import {
   useBulkDeleteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
+import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConfirmation';
 import { useUserSettings } from '@domains/users';
 import { logger } from '@infra/logger';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { AlertBanner, Button } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/overlays';
+import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
@@ -150,6 +151,8 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const { data: tubes = [], isLoading: isTubesLoading } = useBulkTubes(tubeIds);
 
   useTubeModalFocusReturn();
+
+  const modalRef = useRef<BaseModalHandle>(null);
 
   const conflictAnalysis = useMemo(() => {
     const analysis = {
@@ -358,7 +361,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       if (bulkResult.success) {
         notifications.success(`Updated ${tubeIds.length} tubes successfully`);
         setShowProgress(false);
-        onClose();
+        modalRef.current?.requestClose();
       } else {
         notifications.error('Some tubes failed to update');
       }
@@ -416,7 +419,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       if (retryResult.success) {
         notifications.success(`Retry successful: Updated ${retryResult.successCount} tubes`);
         setShowProgress(false);
-        onClose();
+        modalRef.current?.requestClose();
       } else {
         notifications.warning(
           `Retry completed: ${retryResult.successCount}/${retryResult.totalProcessed} successful`
@@ -564,10 +567,12 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   }
 
   const dirtyFieldCount = countDirtyFields(dirtyFields);
+  const removeConfirm = buildRemoveTubeConfirmation(tubes.length);
 
   return (
     <>
       <BaseModal
+        ref={modalRef}
         isOpen={isOpen}
         title={`Edit ${tubes.length} Tubes`}
         icon={<Edit className="w-5 h-5" />}
@@ -600,7 +605,11 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
               <span />
             )}
             <div className="flex justify-end space-x-4">
-              <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+              <Button
+                variant="secondary"
+                onClick={() => modalRef.current?.requestClose()}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
               <Button
@@ -717,9 +726,9 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         variant="danger"
-        title="Remove All Tubes"
-        message={`Are you sure you want to remove all ${tubes.length} tubes? This action cannot be undone and will permanently remove all selected tubes from your inventory.`}
-        confirmText={`Remove All ${tubes.length}`}
+        title={removeConfirm.title}
+        message={removeConfirm.message}
+        confirmText={removeConfirm.confirmText}
         onConfirm={handleBulkDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         isLoading={isSubmitting}

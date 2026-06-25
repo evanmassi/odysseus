@@ -5,7 +5,7 @@
  */
 
 export { BaseModal } from './BaseModal';
-export type { BaseModalProps } from './BaseModal';
+export type { BaseModalProps, BaseModalHandle } from './BaseModal';
 export { ConfirmDialog } from './ConfirmDialog';
 export type { ConfirmDialogProps } from './ConfirmDialog';
 export { DocumentLinkModal } from './DocumentLinkModal';

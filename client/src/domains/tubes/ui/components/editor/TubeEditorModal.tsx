@@ -4,7 +4,7 @@
  * Modal for creating and editing tubes with create, edit, and mixed modes.
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 
 import {
   type CreateTubeFormInput,
@@ -31,12 +31,13 @@ import {
   usePasteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { parsePositionKey, type PositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConfirmation';
 import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { AlertBanner, Button, Checkbox } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/overlays';
+import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateFormatters';
@@ -172,6 +173,7 @@ function EditModeForm({
   onClose,
 }: EditModeFormProps) {
   const modalService = useModalStore();
+  const modalRef = useRef<BaseModalHandle>(null);
   // Uses FORM INPUT type (pre-transformation): concentration as string, date as string
   const initialData: Partial<UpdateTubeFormInput> = useMemo(
     () => ({
@@ -258,7 +260,7 @@ function EditModeForm({
 
       if (result.success) {
         notifications.success('Tube updated successfully');
-        onClose();
+        modalRef.current?.requestClose();
       } else {
         setIsSavingLocal(false);
         notifications.error(result.error ?? 'Failed to update tube');
@@ -274,6 +276,7 @@ function EditModeForm({
   };
 
   const handleDelete = async () => {
+    modalService.hideDeleteConfirm();
     try {
       await deleteMutation.mutateAsync(tubeId);
       notifications.success('Tube removed successfully');
@@ -293,6 +296,7 @@ function EditModeForm({
 
   return (
     <BaseModal
+      ref={modalRef}
       isOpen={isOpen}
       title="Edit Tube"
       icon={<Edit className="w-5 h-5" />}
@@ -326,7 +330,11 @@ function EditModeForm({
             <span />
           )}
           <div className="flex justify-end space-x-4">
-            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+            <Button
+              variant="secondary"
+              onClick={() => modalRef.current?.requestClose()}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button
@@ -335,9 +343,7 @@ function EditModeForm({
               leftIcon={<Trash2 className="w-4 h-4" />}
               onClick={() => {
                 modalService.showDeleteConfirm({
-                  title: 'Remove Tube',
-                  message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
-                  confirmText: 'Remove',
+                  ...buildRemoveTubeConfirmation(1),
                   onConfirm: handleDelete,
                 });
               }}
@@ -454,6 +460,8 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
 
   const [allowOverwrite, setAllowOverwrite] = useState(false);
 
+  const modalRef = useRef<BaseModalHandle>(null);
+
   useTubeModalFocusReturn();
 
   const parsedPositions = useMemo(() => {
@@ -564,7 +572,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     onSuccess: isSingleTube
       ? data => {
           notifications.success(`Successfully created tube at position ${data.location.position}`);
-          onClose();
+          modalRef.current?.requestClose();
         }
       : undefined, // Bulk mode: notification handled after all tubes are created
     onError: isSingleTube
@@ -598,7 +606,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         const result = await submitTube(formData, parsedPositions[0].location);
 
         if (result.success) {
-          onClose();
+          modalRef.current?.requestClose();
         }
         return;
       }
@@ -686,7 +694,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
               : `Successfully updated tube at position ${positionRange}`;
           notifications.success(message);
         }
-        onClose();
+        modalRef.current?.requestClose();
       } else if (successCount > 0) {
         notifications.warning(
           `Processed ${successCount} of ${parsedPositions.length} positions. ${errorCount} failed.`
@@ -735,6 +743,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
 
   return (
     <BaseModal
+      ref={modalRef}
       isOpen={isOpen}
       title={`Add ${parsedPositions.length > 1 ? parsedPositions.length : ''} Tube${parsedPositions.length > 1 ? 's' : ''}`}
       icon={<Plus className="w-5 h-5" />}

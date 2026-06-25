@@ -3,7 +3,7 @@
  *
  * Reusable modal with animation, focus trap, and nested Escape support
  */
-import React from 'react';
+import React, { forwardRef, useImperativeHandle } from 'react';
 
 import { X } from 'lucide-react';
 
@@ -48,6 +48,11 @@ export interface BaseModalProps {
   mode?: string;
 }
 
+export interface BaseModalHandle {
+  /** Plays the exit animation, then invokes onClose. For consumer-driven closes (Cancel, save success). */
+  requestClose: () => void;
+}
+
 const SIZE_CLASSES: Record<ModalSize, string> = {
   sm: 'max-w-md',
   md: 'max-w-lg',
@@ -64,33 +69,38 @@ const ANIMATION_CLASSES: Record<ModalAnimation, { enter: string; exit: string }>
 
 const EXIT_DURATION_MS = 300;
 
-export function BaseModal({
-  isOpen,
-  title,
-  icon,
-  onClose,
-  children,
-  subtitle,
-  size = 'lg',
-  fixedHeight = false,
-  animation = 'zoom',
-  tabs,
-  tabOrientation = 'horizontal',
-  footer,
-  tabFooter,
-  tabSidebarFooter,
-  chassis = 'lit',
-  locator,
-  contentClassName = 'p-6',
-  dataAttribute,
-  className = '',
-  mode,
-}: BaseModalProps) {
+export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function BaseModal(
+  {
+    isOpen,
+    title,
+    icon,
+    onClose,
+    children,
+    subtitle,
+    size = 'lg',
+    fixedHeight = false,
+    animation = 'zoom',
+    tabs,
+    tabOrientation = 'horizontal',
+    footer,
+    tabFooter,
+    tabSidebarFooter,
+    chassis = 'lit',
+    locator,
+    contentClassName = 'p-6',
+    dataAttribute,
+    className = '',
+    mode,
+  },
+  ref
+) {
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
     onClose,
     exitDuration: EXIT_DURATION_MS,
   });
+
+  useImperativeHandle(ref, () => ({ requestClose: triggerClose }), [triggerClose]);
 
   // Focus trap must exist before keyboard hook so we can pass containerRef
   const trapRef = useFocusTrap({
@@ -256,4 +266,6 @@ export function BaseModal({
       </div>
     </ModalPortal>
   );
-}
+});
+
+BaseModal.displayName = 'BaseModal';
