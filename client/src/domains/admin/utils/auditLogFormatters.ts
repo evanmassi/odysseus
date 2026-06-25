@@ -66,6 +66,11 @@ function getNumberProperty(details: Record<string, unknown>, key: string): numbe
   return typeof value === 'number' ? value : 0;
 }
 
+function getStringArray(details: Record<string, unknown>, key: string): string[] {
+  const value = details[key];
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+}
+
 function findChangeByField(
   details: Record<string, unknown>,
   fieldName: string
@@ -197,6 +202,28 @@ export interface AuditDetailFormatted {
   fullText?: string;
 }
 
+const BULK_POSITION_PREVIEW = 6;
+
+/** Appends a bulk operation's location scope and cell coordinates to its summary line,
+    previewing the first few positions inline with the full list in the tooltip. */
+function formatBulkScope(
+  summary: string,
+  scope: string,
+  positions: string[]
+): AuditDetailFormatted {
+  if (!scope) return { text: summary };
+  if (positions.length === 0) return { text: `${summary} — ${scope}` };
+
+  const full = `${summary} — ${scope} · ${positions.join(', ')}`;
+  if (positions.length <= BULK_POSITION_PREVIEW) return { text: full };
+
+  const preview = positions.slice(0, BULK_POSITION_PREVIEW).join(', ');
+  return {
+    text: `${summary} — ${scope} · ${preview} +${positions.length - BULK_POSITION_PREVIEW}`,
+    fullText: full,
+  };
+}
+
 export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
   const plain = (text: string): AuditDetailFormatted => ({ text });
 
@@ -210,26 +237,45 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     if (entityType === 'tube') {
       if (action === 'tube_bulk_created') {
         const count = getNumberProperty(details, 'count');
-        return plain(`${count} tube${count !== 1 ? 's' : ''} created`);
+        const summary = `${count} tube${count !== 1 ? 's' : ''} created`;
+        return formatBulkScope(
+          summary,
+          getStringProperty(details, 'displayLocation'),
+          getStringArray(details, 'positions')
+        );
       }
 
       if (action === 'tube_bulk_deleted') {
         const count = getNumberProperty(details, 'count');
-        return plain(`${count} tube${count !== 1 ? 's' : ''} removed`);
+        const summary = `${count} tube${count !== 1 ? 's' : ''} removed`;
+        return formatBulkScope(
+          summary,
+          getStringProperty(details, 'displayLocation'),
+          getStringArray(details, 'positions')
+        );
       }
 
       if (action === 'tube_bulk_updated') {
         const count = getNumberProperty(details, 'count');
-        const summary = getStringProperty(details, 'changesSummary');
         if (count > 0) {
-          return plain(summary || `${count} tube${count !== 1 ? 's' : ''} updated`);
+          const changeSummary = getStringProperty(details, 'changesSummary');
+          const summary = changeSummary || `${count} tube${count !== 1 ? 's' : ''} updated`;
+          return formatBulkScope(
+            summary,
+            getStringProperty(details, 'displayLocation'),
+            getStringArray(details, 'positions')
+          );
         }
       }
 
       if (action === 'tube_bulk_moved') {
         const count = getNumberProperty(details, 'count');
         if (count > 0) {
-          return plain(`${count} tube${count !== 1 ? 's' : ''} moved`);
+          const from = getStringProperty(details, 'oldDisplayLocation');
+          const to = getStringProperty(details, 'displayLocation');
+          const route = from && to ? `${from} → ${to}` : to;
+          const summary = `${count} tube${count !== 1 ? 's' : ''} moved`;
+          return formatBulkScope(summary, route, getStringArray(details, 'positions'));
         }
       }
 

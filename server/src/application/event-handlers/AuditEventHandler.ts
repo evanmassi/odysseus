@@ -126,6 +126,10 @@ import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import type { Location } from '@domain/value-objects/Location';
 import { logger } from '@infrastructure/logging/logger';
 
+/** Above this batch size, bulk operations record only the summary row — per-item entries
+    would flood the audit log without adding much signal. */
+const BULK_AUDIT_PER_ITEM_LIMIT = 10;
+
 export class AuditEventHandler {
   constructor(
     private auditService: AuditService,
@@ -361,6 +365,37 @@ export class AuditEventHandler {
     return `${tank.name} · ${rack.name} · ${box.name} · ${box.formatPosition(location.position)}`;
   }
 
+  /** Resolves a batch to its deepest shared tank/rack/box path plus, when every tube sits in a
+      single box, the formatted cell coordinates (capacity-bounded). `scope` is '' when the batch
+      spans multiple tanks or the config is missing. */
+  private resolveBatchLocation(
+    storage: Storage | null,
+    locations: Array<{ tankId: string; rackId: string; boxId: string; position: number }>
+  ): { scope: string; positions: string[] } {
+    const first = locations[0];
+    if (!first || !storage) return { scope: '', positions: [] };
+    if (!locations.every(l => l.tankId === first.tankId)) return { scope: '', positions: [] };
+
+    const tank = storage.equipment.tanks.find(t => t.id === first.tankId);
+    if (!tank) return { scope: '', positions: [] };
+    if (!locations.every(l => l.rackId === first.rackId)) return { scope: tank.name, positions: [] };
+
+    const rack = tank.racks.find(r => r.id === first.rackId);
+    if (!rack) return { scope: tank.name, positions: [] };
+    if (!locations.every(l => l.boxId.toUpperCase() === first.boxId.toUpperCase())) {
+      return { scope: `${tank.name} · ${rack.name}`, positions: [] };
+    }
+
+    const box = rack.boxes.find(b => b.name.toUpperCase() === first.boxId.toUpperCase());
+    if (!box) return { scope: `${tank.name} · ${rack.name}`, positions: [] };
+
+    const positions = locations
+      .map(l => l.position)
+      .sort((a, b) => a - b)
+      .map(p => box.formatPosition(p));
+    return { scope: `${tank.name} · ${rack.name} · ${box.name}`, positions };
+  }
+
   private async handleTubeCreated(event: TubeCreatedEvent): Promise<void> {
     if (event.partOfBulkOperation) return;
     await this.logAuditEvent({
@@ -494,39 +529,53 @@ export class AuditEventHandler {
       const { username, isDemo } = await this.resolveUser(event.createdBy);
       if (isDemo) return;
 
-      const storage = await this.storageRepository.getForLab(event.labId!);
+      const count = event.tubeIds.length;
       const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => {
-        const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
-        return {
-          userId: event.createdBy,
-          username,
-          action: 'tube_created',
-          entityType: 'tube',
-          entityId: item.tubeId,
-          labId: event.labId,
-          details: {
-            location: rawLocation,
-            displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
-            cellType: item.sampleData.cellType ?? '',
-            donorInternalId: item.sampleData.donorInternalId ?? '',
-            donorSourceId: item.sampleData.donorSourceId ?? '',
-            createdBy: username,
-            timestamp,
-          },
-        };
-      });
+      const storage = await this.storageRepository.getForLab(event.labId!);
+      const entries: LogActionParams[] = [];
+
+      // Beyond the per-item limit, keep only the summary so a huge paste can't flood the log.
+      if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
+        const perItem: LogActionParams[] = event.perItemData.map(item => {
+          const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+          return {
+            userId: event.createdBy,
+            username,
+            action: 'tube_created',
+            entityType: 'tube',
+            entityId: item.tubeId,
+            labId: event.labId,
+            details: {
+              location: rawLocation,
+              displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
+              cellType: item.sampleData.cellType ?? '',
+              donorInternalId: item.sampleData.donorInternalId ?? '',
+              donorSourceId: item.sampleData.donorSourceId ?? '',
+              createdBy: username,
+              timestamp,
+            },
+          };
+        });
+        entries.push(...perItem);
+      }
 
       // A single create (e.g. copy/pasting one tube) needs no roll-up — the per-item entry
-      // already says it all. Only add the summary when it aggregates multiple tubes.
-      if (event.tubeIds.length > 1) {
+      // already says it all. Add the summary whenever the batch holds more than one tube.
+      if (count > 1) {
+        const where = this.resolveBatchLocation(storage, event.perItemData.map(i => i.location));
         entries.push({
           userId: event.createdBy,
           username,
           action: 'tube_bulk_created',
           entityType: 'tube',
           labId: event.labId,
-          details: { count: event.tubeIds.length, createdBy: username, timestamp },
+          details: {
+            count,
+            displayLocation: where.scope,
+            positions: where.positions,
+            createdBy: username,
+            timestamp,
+          },
         });
       }
 
@@ -539,35 +588,49 @@ export class AuditEventHandler {
       const { username, isDemo } = await this.resolveUser(event.updatedBy);
       if (isDemo) return;
 
-      const storage = await this.storageRepository.getForLab(event.labId!);
+      const count = event.tubeIds.length;
       const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => {
-        const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
-        return {
-          userId: event.updatedBy,
-          username,
-          action: 'tube_updated',
-          entityType: 'tube',
-          entityId: item.tubeId,
-          labId: event.labId,
-          details: {
-            changes: item.changes,
-            location: rawLocation,
-            displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
-            updatedBy: username,
-            timestamp,
-          },
-        };
-      });
+      const storage = await this.storageRepository.getForLab(event.labId!);
+      const entries: LogActionParams[] = [];
 
-      if (event.tubeIds.length > 1) {
+      if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
+        const perItem: LogActionParams[] = event.perItemData.map(item => {
+          const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+          return {
+            userId: event.updatedBy,
+            username,
+            action: 'tube_updated',
+            entityType: 'tube',
+            entityId: item.tubeId,
+            labId: event.labId,
+            details: {
+              changes: item.changes,
+              location: rawLocation,
+              displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
+              updatedBy: username,
+              timestamp,
+            },
+          };
+        });
+        entries.push(...perItem);
+      }
+
+      if (count > 1) {
+        const where = this.resolveBatchLocation(storage, event.perItemData.map(i => i.location));
         entries.push({
           userId: event.updatedBy,
           username,
           action: 'tube_bulk_updated',
           entityType: 'tube',
           labId: event.labId,
-          details: { count: event.tubeIds.length, changesSummary: event.changesSummary, updatedBy: username, timestamp },
+          details: {
+            count,
+            changesSummary: event.changesSummary,
+            displayLocation: where.scope,
+            positions: where.positions,
+            updatedBy: username,
+            timestamp,
+          },
         });
       }
 
@@ -580,37 +643,50 @@ export class AuditEventHandler {
       const { username, isDemo } = await this.resolveUser(event.deletedBy);
       if (isDemo) return;
 
-      const storage = await this.storageRepository.getForLab(event.labId!);
+      const count = event.tubeIds.length;
       const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => {
-        const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
-        return {
-          userId: event.deletedBy,
-          username,
-          action: 'tube_deleted',
-          entityType: 'tube',
-          entityId: item.tubeId,
-          labId: event.labId,
-          details: {
-            location: rawLocation,
-            displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
-            cellType: item.sampleData.cellType ?? '',
-            donorInternalId: item.sampleData.donorInternalId ?? '',
-            donorSourceId: item.sampleData.donorSourceId ?? '',
-            deletedBy: username,
-            timestamp,
-          },
-        };
-      });
+      const storage = await this.storageRepository.getForLab(event.labId!);
+      const entries: LogActionParams[] = [];
 
-      if (event.tubeIds.length > 1) {
+      if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
+        const perItem: LogActionParams[] = event.perItemData.map(item => {
+          const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+          return {
+            userId: event.deletedBy,
+            username,
+            action: 'tube_deleted',
+            entityType: 'tube',
+            entityId: item.tubeId,
+            labId: event.labId,
+            details: {
+              location: rawLocation,
+              displayLocation: this.resolveDisplayLocation(storage, item.location, rawLocation),
+              cellType: item.sampleData.cellType ?? '',
+              donorInternalId: item.sampleData.donorInternalId ?? '',
+              donorSourceId: item.sampleData.donorSourceId ?? '',
+              deletedBy: username,
+              timestamp,
+            },
+          };
+        });
+        entries.push(...perItem);
+      }
+
+      if (count > 1) {
+        const where = this.resolveBatchLocation(storage, event.perItemData.map(i => i.location));
         entries.push({
           userId: event.deletedBy,
           username,
           action: 'tube_bulk_deleted',
           entityType: 'tube',
           labId: event.labId,
-          details: { count: event.tubeIds.length, deletedBy: username, timestamp },
+          details: {
+            count,
+            displayLocation: where.scope,
+            positions: where.positions,
+            deletedBy: username,
+            timestamp,
+          },
         });
       }
 
@@ -623,37 +699,52 @@ export class AuditEventHandler {
       const { username, isDemo } = await this.resolveUser(event.movedBy);
       if (isDemo) return;
 
-      const storage = await this.storageRepository.getForLab(event.labId!);
+      const count = event.tubeIds.length;
       const timestamp = event.occurredOn.toISOString();
-      const entries: LogActionParams[] = event.perItemData.map(item => {
-        const rawOldLocation = `${item.oldLocation.tankId}/${item.oldLocation.rackId}/${item.oldLocation.boxId}/${item.oldLocation.position}`;
-        const rawNewLocation = `${item.newLocation.tankId}/${item.newLocation.rackId}/${item.newLocation.boxId}/${item.newLocation.position}`;
-        return {
-          userId: event.movedBy,
-          username,
-          action: 'tube_moved',
-          entityType: 'tube',
-          entityId: item.tubeId,
-          labId: event.labId,
-          details: {
-            oldLocation: rawOldLocation,
-            newLocation: rawNewLocation,
-            oldDisplayLocation: this.resolveDisplayLocation(storage, item.oldLocation, rawOldLocation),
-            displayLocation: this.resolveDisplayLocation(storage, item.newLocation, rawNewLocation),
-            movedBy: username,
-            timestamp,
-          },
-        };
-      });
+      const storage = await this.storageRepository.getForLab(event.labId!);
+      const entries: LogActionParams[] = [];
 
-      if (event.tubeIds.length > 1) {
+      if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
+        const perItem: LogActionParams[] = event.perItemData.map(item => {
+          const rawOldLocation = `${item.oldLocation.tankId}/${item.oldLocation.rackId}/${item.oldLocation.boxId}/${item.oldLocation.position}`;
+          const rawNewLocation = `${item.newLocation.tankId}/${item.newLocation.rackId}/${item.newLocation.boxId}/${item.newLocation.position}`;
+          return {
+            userId: event.movedBy,
+            username,
+            action: 'tube_moved',
+            entityType: 'tube',
+            entityId: item.tubeId,
+            labId: event.labId,
+            details: {
+              oldLocation: rawOldLocation,
+              newLocation: rawNewLocation,
+              oldDisplayLocation: this.resolveDisplayLocation(storage, item.oldLocation, rawOldLocation),
+              displayLocation: this.resolveDisplayLocation(storage, item.newLocation, rawNewLocation),
+              movedBy: username,
+              timestamp,
+            },
+          };
+        });
+        entries.push(...perItem);
+      }
+
+      if (count > 1) {
+        const from = this.resolveBatchLocation(storage, event.perItemData.map(i => i.oldLocation));
+        const to = this.resolveBatchLocation(storage, event.perItemData.map(i => i.newLocation));
         entries.push({
           userId: event.movedBy,
           username,
           action: 'tube_bulk_moved',
           entityType: 'tube',
           labId: event.labId,
-          details: { count: event.tubeIds.length, movedBy: username, timestamp },
+          details: {
+            count,
+            oldDisplayLocation: from.scope,
+            displayLocation: to.scope,
+            positions: to.positions,
+            movedBy: username,
+            timestamp,
+          },
         });
       }
 
