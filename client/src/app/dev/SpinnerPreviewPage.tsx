@@ -1,8 +1,9 @@
 /**
- * Odysseus Spinner Playground (Dev Only)
+ * Spinner Preview (Dev Only)
  *
  * Live-tune the counter-rotating brand loader — ring/snowflake speeds, size, breathe —
- * and preview it dropped into the boot-splash layout. Mounted only at /__dev/modals.
+ * and preview it dropped into the boot-splash layout. An entry in the dev surface
+ * preview gallery (/__dev/modals).
  */
 
 import { useId, useState } from 'react';
@@ -69,7 +70,7 @@ function Slider({
   );
 }
 
-export function OdysseusSpinnerPlayground() {
+export function SpinnerPreviewPage() {
   const [ring, setRing] = useState(15);
   const [flake, setFlake] = useState(10);
   const [size, setSize] = useState(96);

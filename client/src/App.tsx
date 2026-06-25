@@ -25,11 +25,11 @@ import { ErrorBanner } from '@shared/ui';
 // Minimum time the boot splash stays up so a fast bootstrap doesn't flash by.
 const SPLASH_FLOOR_MS = 1000;
 
-// Dev-only modal preview harness; the dynamic import is dead-code-eliminated from
+// Dev-only surface preview harness; the dynamic import is dead-code-eliminated from
 // production builds, so neither the route nor its component ships.
-const ModalPreviewPage = import.meta.env.DEV
+const SurfacePreviewPage = import.meta.env.DEV
   ? lazy(() =>
-      import('@app/dev/ModalPreviewPage').then(module => ({ default: module.ModalPreviewPage }))
+      import('@app/dev/SurfacePreviewPage').then(module => ({ default: module.SurfacePreviewPage }))
     )
   : null;
 
@@ -71,12 +71,12 @@ function AppContent() {
         <Routes>
           <Route path="/verify-email" element={<AuthEmailVerificationPage />} />
           <Route path="/reset-password" element={<AuthPasswordResetPage />} />
-          {ModalPreviewPage && (
+          {SurfacePreviewPage && (
             <Route
               path="/__dev/modals"
               element={
                 <Suspense fallback={null}>
-                  <ModalPreviewPage />
+                  <SurfacePreviewPage />
                 </Suspense>
               }
             />

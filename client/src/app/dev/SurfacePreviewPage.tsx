@@ -1,8 +1,9 @@
 /**
- * Modal Preview (Dev Only)
+ * Surface Preview (Dev Only)
  *
- * Renders auth and admin modals in isolation with mock data so their visuals can
- * be tuned without driving the real flows. Mounted only at /__dev/modals in dev builds.
+ * Renders auth/admin modals, full-screen pages, and the boot splash in isolation with
+ * mock data, so their visuals can be tuned without driving the real flows. Mounted only
+ * at /__dev/modals in dev builds.
  */
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -25,7 +26,7 @@ import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/g
 import { AuthSysAdminSetupPage } from '@domains/authentication/ui/components/gateway/AuthSysAdminSetupPage';
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
 
-import { OdysseusSpinnerPlayground } from './OdysseusSpinnerPlayground';
+import { SpinnerPreviewPage } from './SpinnerPreviewPage';
 
 import type { UseAppBootstrapResult } from '@app/bootstrap';
 import type { ResolvedTheme } from '@odysseus/shared-schemas';
@@ -338,7 +339,7 @@ const SPECS: ModalSpec[] = [
     group: 'Boot splash',
     label: 'Odysseus spinner (playground)',
     note: 'Counter-rotating mark — tune ring/snowflake speed, size, breathe; boot-splash mock',
-    render: () => <OdysseusSpinnerPlayground />,
+    render: () => <SpinnerPreviewPage />,
   },
 ];
 
@@ -386,7 +387,7 @@ function PreviewControls({
   );
 }
 
-export function ModalPreviewPage() {
+export function SurfacePreviewPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const close = useCallback(() => setActiveId(null), []);
   const active = SPECS.find(spec => spec.id === activeId);
