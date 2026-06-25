@@ -40,6 +40,12 @@
   .badge-audit-entity-default {
     --audit-tone: var(--color-audit-entity-system);
   }
+  .badge-audit-entity-supply {
+    --audit-tone: var(--color-audit-entity-supply);
+  }
+  .badge-audit-entity-donor {
+    --audit-tone: var(--color-audit-entity-person);
+  }
 
   /* Audit Log Action Badges */
   .badge-audit-action-created {

@@ -20,6 +20,8 @@ import {
   Box,
   Dna,
   Microscope,
+  Package,
+  Droplet,
 } from 'lucide-react';
 
 import { auditService } from '@domains/admin/services/AuditService';
@@ -149,8 +151,8 @@ export function AuditLogViewer({
         limit: filters.limit,
         offset: 0,
         username: newFilterState.username,
-        action: newFilterState.actions?.[0], // Backend only supports single action currently
-        entityType: newFilterState.entityTypes?.[0], // Backend only supports single entity type currently
+        action: newFilterState.actions,
+        entityType: newFilterState.entityTypes,
         dateFrom: newFilterState.dateFrom,
         dateTo: newFilterState.dateTo,
       };
@@ -220,6 +222,7 @@ export function AuditLogViewer({
 
   const ENTITY_TYPE_LABELS: Record<string, string> = {
     equipment_item: 'Equipment',
+    supply_item: 'Supply',
   };
 
   const formatEntityType = (entityType: string) => {
@@ -238,6 +241,8 @@ export function AuditLogViewer({
     if (entityType === 'lab') return 'badge-audit-entity-lab';
     if (entityType === 'configuration') return 'badge-audit-entity-configuration';
     if (entityType === 'equipment_item') return 'badge-audit-entity-equipment';
+    if (entityType === 'supply_item') return 'badge-audit-entity-supply';
+    if (entityType === 'donor') return 'badge-audit-entity-donor';
     return 'badge-audit-entity-default';
   };
 
@@ -257,6 +262,10 @@ export function AuditLogViewer({
         return Box;
       case 'equipment_item':
         return Microscope;
+      case 'supply_item':
+        return Package;
+      case 'donor':
+        return Droplet;
       default:
         return null;
     }

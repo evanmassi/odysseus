@@ -153,7 +153,10 @@ const ALL_ACTIONS = ACTION_SECTIONS.flatMap(s => s.actions);
 
 const ENTITY_TYPES = [
   { value: 'tube', label: 'Tube' },
-  { value: 'storage', label: 'Storage' },
+  { value: 'tank', label: 'Tank' },
+  { value: 'rack', label: 'Rack' },
+  { value: 'box', label: 'Box' },
+  { value: 'lab', label: 'Lab' },
   { value: 'equipment_item', label: 'Equipment' },
   { value: 'supply_item', label: 'Supply' },
   { value: 'donor', label: 'Donor' },

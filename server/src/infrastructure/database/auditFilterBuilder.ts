@@ -28,13 +28,13 @@ export function buildAuditFilterClauses(
     params.push(filters.username);
   }
 
-  if (filters.action) {
-    whereClauses.push(`action = $${paramIndex++}`);
+  if (filters.action && filters.action.length > 0) {
+    whereClauses.push(`action = ANY($${paramIndex++})`);
     params.push(filters.action);
   }
 
-  if (filters.entityType) {
-    whereClauses.push(`entity_type = $${paramIndex++}`);
+  if (filters.entityType && filters.entityType.length > 0) {
+    whereClauses.push(`entity_type = ANY($${paramIndex++})`);
     params.push(filters.entityType);
   }
 

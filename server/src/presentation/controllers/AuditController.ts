@@ -29,11 +29,20 @@ export class AuditController {
       limit: query.limit ? parseInt(query.limit as string) : 50,
       offset: query.offset ? parseInt(query.offset as string) : 0,
       username: query.username as string | undefined,
-      action: query.action as string | undefined,
-      entityType: query.entityType as string | undefined,
+      action: this.toStringArray(query.action),
+      entityType: this.toStringArray(query.entityType),
       dateFrom: query.dateFrom as string | undefined,
       dateTo: query.dateTo as string | undefined,
     };
+  }
+
+  /** Normalizes a repeated/single query param into a non-empty string array (or undefined). */
+  private toStringArray(value: unknown): string[] | undefined {
+    if (value === undefined) return undefined;
+    const values = (Array.isArray(value) ? value : [value]).filter(
+      (v): v is string => typeof v === 'string' && v.length > 0
+    );
+    return values.length > 0 ? values : undefined;
   }
 
   /** GET /api/admin/audit */
