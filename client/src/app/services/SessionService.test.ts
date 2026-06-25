@@ -87,7 +87,6 @@ describe('SessionService', () => {
       const validation = sessionManager.validateTokens(createValidTokenPair());
 
       expect(validation.isValid).toBe(true);
-      expect(validation.needsRefresh).toBe(false);
       expect(validation.expiresIn).toBeGreaterThan(25 * 60 * 1000);
     });
 
@@ -95,16 +94,14 @@ describe('SessionService', () => {
       const validation = sessionManager.validateTokens(createExpiredTokenPair());
 
       expect(validation.isValid).toBe(false);
-      expect(validation.needsRefresh).toBe(true);
       expect(validation.expiresIn).toBeLessThan(0);
     });
 
-    it('should detect tokens needing refresh', () => {
+    it('should treat tokens within the 1-minute validity threshold as invalid', () => {
       const validation = sessionManager.validateTokens(createExpiringSoonTokenPair());
 
       // Token with 30 seconds left is invalid (< 1 min threshold)
       expect(validation.isValid).toBe(false);
-      expect(validation.needsRefresh).toBe(true);
     });
   });
 
@@ -457,42 +454,6 @@ describe('SessionService', () => {
 
       expect(result).toBe(false);
       expect(mockHttpClient.post).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Authentication Check', () => {
-    it('should return true when authenticated', () => {
-      mockStorage.getTokens.mockReturnValue(createValidTokenPair());
-
-      expect(sessionManager.isAuthenticated()).toBe(true);
-    });
-
-    it('should return false when no tokens', () => {
-      mockStorage.getTokens.mockReturnValue(null);
-
-      expect(sessionManager.isAuthenticated()).toBe(false);
-    });
-
-    it('should return true during refresh', async () => {
-      mockStorage.getTokens.mockReturnValue(createExpiredTokenPair());
-
-      let resolveRefresh: (value: unknown) => void;
-      mockHttpClient.post.mockReturnValue(
-        new Promise(resolve => {
-          resolveRefresh = resolve;
-        })
-      );
-
-      const refreshPromise = sessionManager.refreshTokens();
-
-      // Should be authenticated during refresh
-      expect(sessionManager.isAuthenticated()).toBe(true);
-
-      resolveRefresh!({
-        success: true,
-        data: { accessToken: 'new', accessTokenExpiry: new Date(), tokenType: 'Bearer' },
-      });
-      await refreshPromise;
     });
   });
 });

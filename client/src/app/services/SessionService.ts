@@ -63,18 +63,18 @@ export class SessionService implements TokenProvider {
   private config: SessionConfig;
   private onSessionExpired?: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout') => void;
   private warningCallbacks?: SessionWarningCallbacks;
-  private isWarningShown: boolean = false;
+  private isWarningShown = false;
 
   // Activity tracking state
-  private isTrackingActivity: boolean = false;
-  private lastHeartbeatTime: number = 0;
+  private isTrackingActivity = false;
+  private lastHeartbeatTime = 0;
   private lastKnownTimeUntilTimeout?: number;
   private lastKnownWarningThresholdMs?: number;
   private boundActivityHandler?: () => void;
 
   // Tracks whether server has confirmed authentication in this app instance (page load)
   // Used to distinguish "session expired while here" vs "session already expired on arrival"
-  private hasConfirmedAuth: boolean = false;
+  private hasConfirmedAuth = false;
 
   constructor(
     private sessionHttpClient: SessionHttpClient,
@@ -132,11 +132,6 @@ export class SessionService implements TokenProvider {
     return null;
   }
 
-  isAuthenticated(): boolean {
-    const status = this.getSessionStatus();
-    return status === 'authenticated' || status === 'refreshing';
-  }
-
   getSessionStatus(): SessionStatus {
     if (this.state.isRefreshing) {
       return 'refreshing';
@@ -158,12 +153,10 @@ export class SessionService implements TokenProvider {
   validateTokens(tokens: TokenPair): TokenValidation {
     const now = Date.now();
     const expiresIn = tokens.accessTokenExpiry.getTime() - now;
-    const bufferMs = this.config.refreshBufferMinutes * 60 * 1000;
 
     return {
       isValid: expiresIn > 60000, // Valid if more than 1 minute remaining
       expiresIn,
-      needsRefresh: expiresIn <= bufferMs, // Refresh if within buffer time
     };
   }
 
@@ -316,14 +309,6 @@ export class SessionService implements TokenProvider {
     this.hasConfirmedAuth = false;
 
     this.onSessionExpired?.(reason);
-  }
-
-  getState(): SessionServiceState {
-    return { ...this.state };
-  }
-
-  getNextRefreshTime(): Date | null {
-    return this.state.nextRefreshTime;
   }
 
   private stopTimersAndTracking(): void {

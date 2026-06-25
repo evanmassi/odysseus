@@ -12,18 +12,7 @@
 import type { TokenPair } from '@odysseus/shared-schemas';
 export type { TokenPair };
 
-export type SessionStatus =
-  | 'authenticated'
-  | 'refreshing'
-  | 'expired'
-  | 'invalid'
-  | 'unauthenticated';
-
-export interface RefreshResponse {
-  accessToken: string;
-  accessTokenExpiry: Date;
-  tokenType: 'Bearer';
-}
+export type SessionStatus = 'authenticated' | 'refreshing' | 'expired' | 'unauthenticated';
 
 export interface SessionConfig {
   refreshBufferMinutes: number; // Default: 5
@@ -40,7 +29,6 @@ export interface SessionServiceState {
 export interface TokenValidation {
   isValid: boolean;
   expiresIn: number; // Milliseconds
-  needsRefresh: boolean;
 }
 
 /**
@@ -54,6 +42,5 @@ export interface SessionStorage {
 
 export interface TokenProvider {
   getValidAccessToken(): Promise<string | null>;
-  isAuthenticated(): boolean;
   getSessionStatus(): SessionStatus;
 }
