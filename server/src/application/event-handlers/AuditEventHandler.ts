@@ -6,6 +6,7 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { AuditService, LogActionParams } from '@application/services/AuditService';
+import type { Storage } from '@domain/entities/Storage';
 import type {
   DonorCreatedEvent,
   DonorUpdatedEvent,
@@ -119,7 +120,6 @@ import type {
 } from '@domain/events/UserEvents';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
-import type { Storage } from '@domain/entities/Storage';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
