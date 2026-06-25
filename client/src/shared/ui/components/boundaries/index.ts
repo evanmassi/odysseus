@@ -5,4 +5,5 @@
  */
 
 export { ErrorBoundary } from './ErrorBoundary';
+export { LazyModalBoundary } from './LazyModalBoundary';
 export { SuspenseBoundary } from './SuspenseBoundary';

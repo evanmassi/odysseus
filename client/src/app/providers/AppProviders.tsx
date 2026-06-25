@@ -3,19 +3,17 @@
  *
  * Wraps app with React Query, theming, tooltips, and toast notifications
  */
-import React, { Component, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
-import {
-  ConnectionStatusIndicator,
-  RealtimeSyncIndicator,
-} from '@app/components/layout/ConnectionStatusIndicator';
+import { ConnectionStatusIndicator } from '@app/components/layout/ConnectionStatusIndicator';
+import { RealtimeSyncIndicator } from '@app/components/layout/RealtimeSyncIndicator';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { Button } from '@shared/ui';
+import { ErrorBoundary } from '@shared/ui';
 import { notifications } from '@shared/utils/notifications';
 
 import { queryClient, setupQueryPersistence } from '../cache/queryClient';
@@ -61,49 +59,19 @@ export function Providers({ children }: ProvidersProps) {
   );
 }
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
-
-export class ErrorBoundary extends Component<{ children: React.ReactNode }, ErrorBoundaryState> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('App Error Boundary caught error', { error, errorInfo });
-  }
-
-  override render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen bg-foreground flex items-center justify-center">
-          <div className="bg-card rounded-lg p-8 max-w-md mx-4">
-            <h2 className="text-xl font-bold text-danger-text mb-4">Something went wrong</h2>
-            <p className="text-muted-foreground mb-4">
-              An unexpected error occurred. Please try refreshing the page.
-            </p>
-            <Button variant="primary" fullWidth onClick={() => window.location.reload()}>
-              Refresh Page
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
 export function AppProviders({ children }: ProvidersProps) {
   return (
-    <ErrorBoundary>
+    <ErrorBoundary
+      level="page"
+      name="Application"
+      onError={(error, errorInfo, errorId) =>
+        logger.error('App error boundary caught error', {
+          error: error.message,
+          componentStack: errorInfo.componentStack,
+          errorId,
+        })
+      }
+    >
       <Providers>{children}</Providers>
     </ErrorBoundary>
   );

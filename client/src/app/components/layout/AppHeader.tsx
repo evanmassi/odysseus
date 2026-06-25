@@ -9,18 +9,8 @@ import { useState, lazy, useRef, useCallback } from 'react';
 import { isAdminRole } from '@odysseus/shared-schemas';
 import {
   LogOut,
-  Plus,
-  Edit,
-  Trash2,
-  Copy,
-  Scissors,
-  ClipboardPaste,
-  X,
   Settings,
   ShieldUser,
-  Lock,
-  Unlock,
-  Share2,
   TestTubeDiagonal,
   FlaskConical,
   Biohazard,
@@ -37,77 +27,45 @@ import { useAuthStore } from '@domains/authentication';
 import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
 import { SearchPanel } from '@domains/search/ui/components/SearchPanel';
 import { useStorageData } from '@domains/storage';
-import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
 import { useUserProfile } from '@domains/users/hooks/useUserProfile';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { useResolvedTheme } from '@shared/hooks';
-import {
-  Button,
-  Chip,
-  DropdownMenu,
-  MenuDivider,
-  MenuItem,
-  SuspenseBoundary,
-  Tooltip,
-} from '@shared/ui';
+import { DropdownMenu, LazyModalBoundary, MenuDivider, MenuItem } from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
-import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
-import { createPreloadHook } from '@shared/utils/preloadHelpers';
 import { getUserDisplayName, getUserInitials } from '@shared/utils/userDisplayFormatters';
+
+import { TubeSelectionToolbar, type GridController } from './TubeSelectionToolbar';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import type { LucideIcon } from 'lucide-react';
 
 const AdminSettingsModal = lazy(() =>
-  import('@domains/admin').then(m => ({
-    default: m.AdminSettingsModal,
-  }))
+  import('@domains/admin').then(m => ({ default: m.AdminSettingsModal }))
 );
-
 const StorageManagerModal = lazy(() =>
   import('@domains/storage/ui/components/storage-manager/StorageManagerModal').then(m => ({
     default: m.StorageManagerModal,
   }))
 );
-
 const UserSettingsModal = lazy(() =>
   import('@domains/users/ui/components/settings-modal/UserSettingsModal').then(m => ({
     default: m.UserSettingsModal,
   }))
 );
-
-const HelpModal = lazy(() =>
-  import('@domains/help').then(m => ({
-    default: m.HelpModal,
-  }))
-);
-
+const HelpModal = lazy(() => import('@domains/help').then(m => ({ default: m.HelpModal })));
 const DonorRegistryModal = lazy(() =>
   import('@domains/donors/ui/components/DonorRegistryModal').then(m => ({
     default: m.DonorRegistryModal,
   }))
 );
 
-const useLazyAdminSettings = createPreloadHook(() => import('@domains/admin'));
-
-const useLazyStorageManager = createPreloadHook(
-  () => import('@domains/storage/ui/components/storage-manager/StorageManagerModal')
-);
-
-const useLazyUserSettings = createPreloadHook(
-  () => import('@domains/users/ui/components/settings-modal/UserSettingsModal')
-);
-
-const useLazyHelp = createPreloadHook(() => import('@domains/help'));
-
-const useLazyDonorRegistry = createPreloadHook(
-  () => import('@domains/donors/ui/components/DonorRegistryModal')
-);
-
 type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
+
+const ICON_POP_DURATION_MS = 350;
+const SUBMENU_CLOSE_DELAY_MS = 150;
 
 const ROLE_LABELS: Record<string, string> = {
   system_admin: 'System Admin',
@@ -119,21 +77,19 @@ interface HamburgerMenuItemProps {
   icon: IconComponent;
   label: string;
   onClick: () => void;
-  triggerProps?: Record<string, unknown>;
 }
 
-function HamburgerMenuItem({ icon: Icon, label, onClick, triggerProps }: HamburgerMenuItemProps) {
+function HamburgerMenuItem({ icon: Icon, label, onClick }: HamburgerMenuItemProps) {
   const isDark = useResolvedTheme() === 'dark';
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleMouseEnter = useCallback(() => {
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 350);
+    setTimeout(() => setIsAnimating(false), ICON_POP_DURATION_MS);
   }, []);
 
   return (
     <button
-      {...triggerProps}
       role="menuitem"
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
@@ -154,29 +110,11 @@ function HamburgerMenuItem({ icon: Icon, label, onClick, triggerProps }: Hamburg
   );
 }
 
-interface HeaderProps {
+interface AppHeaderProps {
   selectedPositions?: Set<PositionKey>;
   onClearSelection?: () => void;
   tubes?: TubeData[];
-  gridController?: {
-    openModal: () => void;
-    copy: () => void;
-    cut: () => void;
-    paste: () => void;
-    delete: () => void;
-    canPaste: boolean;
-    selection: {
-      hasFilledSelection: boolean;
-      isMixed: boolean;
-      lockableCount?: number;
-      unlockableCount?: number;
-      sharableCount?: number;
-      isUnlocking?: boolean;
-    };
-    lock?: () => void;
-    unlock?: () => Promise<void>;
-    shareAccess?: () => void;
-  };
+  gridController?: GridController;
   isViewOnlySpace?: boolean;
 }
 
@@ -186,7 +124,7 @@ export function AppHeader({
   tubes = [],
   gridController,
   isViewOnlySpace = false,
-}: HeaderProps) {
+}: AppHeaderProps) {
   const isDark = useResolvedTheme() === 'dark';
   const { user, logout } = useAuthStore();
   const { profile } = useUserProfile();
@@ -208,11 +146,6 @@ export function AppHeader({
     ? getUserInitials(user.username, profile?.firstName, profile?.lastName)
     : '';
 
-  const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
-  const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
-  const { triggerProps: userSettingsTriggerProps } = useLazyUserSettings();
-  const { triggerProps: helpTriggerProps } = useLazyHelp();
-  const { triggerProps: donorRegistryTriggerProps } = useLazyDonorRegistry();
   const donorRegistry = useDonorRegistryStore();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showStorageManager, setShowStorageManager] = useState(false);
@@ -224,11 +157,9 @@ export function AppHeader({
   const closeMenu = () => setShowHamburgerMenu(false);
 
   const handleLogout = () => {
-    // Socket cleanup is now handled centrally by AppBootstrapService
+    // Socket cleanup is handled centrally by AppBootstrapService
     void logout();
   };
-
-  const selectionAnalysis = useGridSelectionAnalysis(selectedPositions, tubes);
 
   const routeCrumbs = isBiobankRoute
     ? ['biobank']
@@ -311,7 +242,10 @@ export function AppHeader({
                 setShowLabSubmenu(true);
               }}
               onMouseLeave={() => {
-                labSubmenuTimeoutRef.current = setTimeout(() => setShowLabSubmenu(false), 150);
+                labSubmenuTimeoutRef.current = setTimeout(
+                  () => setShowLabSubmenu(false),
+                  SUBMENU_CLOSE_DELAY_MS
+                );
               }}
             >
               <MenuItem icon={FlaskConical} label="Lab Management">
@@ -355,173 +289,13 @@ export function AppHeader({
       </div>
 
       <div className="flex flex-1 items-center justify-end gap-3 px-4">
-        {selectionAnalysis.hasSelection && gridController && (
-          <div className="flex items-center space-x-1">
-            {gridController && (
-              <>
-                {selectedPositions.size > 1 && (
-                  <Chip size="sm" color="default" leftIcon={<TestTubeDiagonal />} className="mr-2">
-                    {selectedPositions.size} selected
-                  </Chip>
-                )}
-
-                {/* View-only mode shows actions in a banner on the grid instead. */}
-                {!isViewOnlySpace && (
-                  <>
-                    <Tooltip
-                      content={
-                        gridController.selection.isMixed
-                          ? 'Add tubes to mixed selection (overwrite prompt will appear)'
-                          : gridController.selection.hasFilledSelection
-                            ? 'Edit selected tube(s)'
-                            : 'Add new tube(s) to selected position(s)'
-                      }
-                      side="bottom"
-                    >
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        onClick={gridController.openModal}
-                        leftIcon={
-                          gridController.selection.hasFilledSelection &&
-                          !gridController.selection.isMixed ? (
-                            <Edit className="w-3 h-3" />
-                          ) : (
-                            <Plus className="w-3 h-3" />
-                          )
-                        }
-                      >
-                        {gridController.selection.hasFilledSelection &&
-                        !gridController.selection.isMixed
-                          ? 'Edit'
-                          : 'Add'}
-                      </Button>
-                    </Tooltip>
-
-                    {(selectionAnalysis.hasFilled || gridController?.canPaste) && (
-                      <>
-                        {selectionAnalysis.hasFilled && (
-                          <>
-                            <Tooltip content="Copy selected tube(s)" side="bottom">
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                onClick={gridController.copy}
-                                leftIcon={<Copy className="w-3 h-3" />}
-                              >
-                                Copy
-                              </Button>
-                            </Tooltip>
-                            <Tooltip content="Cut selected tube(s)" side="bottom">
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                onClick={gridController.cut}
-                                leftIcon={<Scissors className="w-3 h-3" />}
-                              >
-                                Cut
-                              </Button>
-                            </Tooltip>
-                          </>
-                        )}
-                        {gridController?.canPaste && selectionAnalysis.hasSelection && (
-                          <Tooltip content="Paste tube(s)" side="bottom">
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              onClick={gridController.paste}
-                              leftIcon={<ClipboardPaste className="w-3 h-3" />}
-                            >
-                              Paste
-                            </Button>
-                          </Tooltip>
-                        )}
-                      </>
-                    )}
-
-                    {selectionAnalysis.hasFilled &&
-                      ((gridController.selection.lockableCount ?? 0) > 0 ||
-                        (gridController.selection.unlockableCount ?? 0) > 0 ||
-                        (gridController.selection.sharableCount ?? 0) > 0) && (
-                        <>
-                          <div className="w-px h-4 bg-border mx-0.5"></div>
-                          {(gridController.selection.lockableCount ?? 0) > 0 &&
-                            gridController.lock && (
-                              <Tooltip content="Lock selected tube(s)" side="bottom">
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  onClick={gridController.lock}
-                                  leftIcon={<Lock className="w-3 h-3" />}
-                                >
-                                  Lock
-                                </Button>
-                              </Tooltip>
-                            )}
-                          {(gridController.selection.unlockableCount ?? 0) > 0 &&
-                            gridController.unlock && (
-                              <Tooltip content="Unlock selected tube(s)" side="bottom">
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  onClick={gridController.unlock}
-                                  disabled={gridController.selection.isUnlocking}
-                                  leftIcon={<Unlock className="w-3 h-3" />}
-                                >
-                                  {gridController.selection.isUnlocking ? 'Unlocking...' : 'Unlock'}
-                                </Button>
-                              </Tooltip>
-                            )}
-                          {(gridController.selection.sharableCount ?? 0) > 0 &&
-                            gridController.shareAccess && (
-                              <Tooltip content="Share access to locked tube(s)" side="bottom">
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  onClick={gridController.shareAccess}
-                                  leftIcon={<Share2 className="w-3 h-3" />}
-                                >
-                                  Share
-                                </Button>
-                              </Tooltip>
-                            )}
-                        </>
-                      )}
-
-                    {selectionAnalysis.hasFilled && (
-                      <>
-                        <div className="w-px h-4 bg-border mx-0.5"></div>
-                        <Tooltip content="Remove selected tube(s)" side="bottom">
-                          <Button
-                            variant="ghost-danger"
-                            size="xs"
-                            onClick={gridController.delete}
-                            leftIcon={<Trash2 className="w-3 h-3" />}
-                          >
-                            Remove
-                          </Button>
-                        </Tooltip>
-                      </>
-                    )}
-                  </>
-                )}
-
-                {/* Clear stays visible even in view-only mode. */}
-                {!isViewOnlySpace && <div className="w-px h-4 bg-border mx-0.5"></div>}
-                <Tooltip content="Clear selection" side="bottom">
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    onClick={onClearSelection}
-                    leftIcon={<X className="w-3 h-3" />}
-                  >
-                    Clear
-                  </Button>
-                </Tooltip>
-              </>
-            )}
-          </div>
-        )}
+        <TubeSelectionToolbar
+          selectedPositions={selectedPositions}
+          tubes={tubes}
+          gridController={gridController}
+          isViewOnlySpace={isViewOnlySpace}
+          onClearSelection={onClearSelection}
+        />
 
         <OnlineUsersBadgeList />
 
@@ -596,7 +370,6 @@ export function AppHeader({
                 setShowHelp(true);
                 closeMenu();
               }}
-              triggerProps={helpTriggerProps}
             />
 
             <HamburgerMenuItem
@@ -606,7 +379,6 @@ export function AppHeader({
                 setShowUserSettings(true);
                 closeMenu();
               }}
-              triggerProps={userSettingsTriggerProps}
             />
 
             {hasLab && isBiobankRoute && (
@@ -617,7 +389,6 @@ export function AppHeader({
                   setShowStorageManager(true);
                   closeMenu();
                 }}
-                triggerProps={storageManagerTriggerProps}
               />
             )}
 
@@ -629,7 +400,6 @@ export function AppHeader({
                   donorRegistry.open();
                   closeMenu();
                 }}
-                triggerProps={donorRegistryTriggerProps}
               />
             )}
 
@@ -641,7 +411,6 @@ export function AppHeader({
                   setShowAdminPanel(true);
                   closeMenu();
                 }}
-                triggerProps={adminSettingsTriggerProps}
               />
             )}
           </div>
@@ -661,33 +430,33 @@ export function AppHeader({
         </DropdownMenu>
       </div>
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="StorageManagerModal">
+      <LazyModalBoundary name="StorageManagerModal">
         <StorageManagerModal
           isOpen={showStorageManager}
           onClose={() => setShowStorageManager(false)}
         />
-      </SuspenseBoundary>
+      </LazyModalBoundary>
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="AdminSettingsModal">
+      <LazyModalBoundary name="AdminSettingsModal">
         <AdminSettingsModal isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
-      </SuspenseBoundary>
+      </LazyModalBoundary>
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="UserSettingsModal">
+      <LazyModalBoundary name="UserSettingsModal">
         <UserSettingsModal isOpen={showUserSettings} onClose={() => setShowUserSettings(false)} />
-      </SuspenseBoundary>
+      </LazyModalBoundary>
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="HelpModal">
+      <LazyModalBoundary name="HelpModal">
         <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
-      </SuspenseBoundary>
+      </LazyModalBoundary>
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="xl" />} name="DonorRegistryModal">
+      <LazyModalBoundary name="DonorRegistryModal" size="xl">
         <DonorRegistryModal
           isOpen={donorRegistry.isOpen}
           onClose={donorRegistry.close}
           initialDonorId={donorRegistry.initialDonorId}
           initialIdType={donorRegistry.initialIdType}
         />
-      </SuspenseBoundary>
+      </LazyModalBoundary>
     </header>
   );
 }

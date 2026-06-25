@@ -4,9 +4,9 @@
  * Provides visual feedback about network connectivity and reconnection status.
  */
 
-import React, { useState, useEffect, useTransition, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-import { useQueryClient, type MutationCacheNotifyEvent } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, WifiOff } from 'lucide-react';
 
 import { useNetworkStatus } from '@infra/connection';
@@ -61,6 +61,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
   const status = getStatusDisplay();
   const isOffline = !networkStatus.isOnline;
   const shouldShow = isOffline || networkStatus.reconnectAttempts > 0;
+  const lastConnectedTime = new Date(networkStatus.lastConnected).toLocaleTimeString();
 
   if (!shouldShow && !showDetails) {
     return (
@@ -93,7 +94,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {status.icon === 'wifi-off' ? (
-              <WifiOff className="w-4 h-4 text-[hsl(var(--color-danger-bg))]" />
+              <WifiOff className="w-4 h-4" style={{ color: status.color }} />
             ) : (
               <span style={{ color: status.color }} className="text-body-sm">
                 {status.icon === 'reconnecting' ? '◐' : '●'}
@@ -123,77 +124,31 @@ export const ConnectionStatusIndicator: React.FC = () => {
           {status.description}
         </p>
 
-        {(showDetails || shouldShow) && (
-          <div
-            className={`mt-2 pt-2 border-t ${isOffline ? 'border-status-offline-border' : 'border-border'}`}
-          >
-            {!isOffline && (
-              <div className="text-caption text-muted-foreground">
-                Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
-              </div>
-            )}
+        <div
+          className={`mt-2 pt-2 border-t ${isOffline ? 'border-status-offline-border' : 'border-border'}`}
+        >
+          {!isOffline && (
+            <div className="text-caption text-muted-foreground">
+              Last connected: {lastConnectedTime}
+            </div>
+          )}
 
-            {isOffline && (
-              <div className="flex items-center justify-between">
-                <span className="text-caption text-muted-foreground">
-                  Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
-                </span>
-                <button
-                  onClick={networkStatus.retryConnection}
-                  className="p-1.5 bg-status-offline-muted hover:bg-status-offline-hover text-status-offline-foreground rounded transition-colors"
-                  aria-label="Retry connection"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+          {isOffline && (
+            <div className="flex items-center justify-between">
+              <span className="text-caption text-muted-foreground">
+                Last connected: {lastConnectedTime}
+              </span>
+              <button
+                onClick={networkStatus.retryConnection}
+                className="p-1.5 bg-status-offline-muted hover:bg-status-offline-hover text-status-offline-foreground rounded transition-colors"
+                aria-label="Retry connection"
+              >
+                <RefreshCw className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
-
-interface RealtimeSyncIndicatorProps {
-  isVisible?: boolean;
-}
-
-export const RealtimeSyncIndicator: React.FC<RealtimeSyncIndicatorProps> = ({
-  isVisible = true,
-}) => {
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [_isPending, startTransition] = useTransition();
-
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const mutationCache = queryClient.getMutationCache();
-
-    const handleMutationUpdate = (event: MutationCacheNotifyEvent) => {
-      const mutation = event.mutation;
-
-      if (mutation?.state?.status === 'pending') {
-        startTransition(() => {
-          setIsAnimating(true);
-        });
-      } else if (mutation?.state?.status === 'success' || mutation?.state?.status === 'error') {
-        startTransition(() => {
-          setIsAnimating(false);
-        });
-      }
-    };
-
-    const unsubscribe = mutationCache.subscribe(handleMutationUpdate);
-
-    return unsubscribe;
-  }, [queryClient]);
-
-  if (!isVisible || !isAnimating) return null;
-
-  return (
-    <div className="fixed top-4 right-4 z-40 flex items-center space-x-2 bg-info-bg text-white px-3 py-1 rounded-full shadow-lg text-body-sm">
-      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-      <span>Syncing...</span>
     </div>
   );
 };

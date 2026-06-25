@@ -2,7 +2,6 @@
  * Biobank Dashboard
  *
  * Main lab workspace: storage navigator, tube grid, and info panel.
- * Extracted from AppDashboard to support route-based suite switching.
  */
 
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
@@ -19,7 +18,6 @@ import {
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
 import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
-import { useStorageSync } from '@domains/storage/hooks/useStorageSync';
 import {
   StorageNavigator,
   buildStorageHierarchy,
@@ -35,43 +33,34 @@ import {
   usePasteTubesMutation,
   useMoveTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
-import { TubeBulkEditorModal } from '@domains/tubes/ui/components/editor/TubeBulkEditorModal';
-import { TubeEditorModal } from '@domains/tubes/ui/components/editor/TubeEditorModal';
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
 import { useGridController } from '@domains/tubes/ui/components/grid/useGridController';
 import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
-import { TubeLockModal } from '@domains/tubes/ui/components/locking/TubeLockModal';
-import { TubeShareAccessModal } from '@domains/tubes/ui/components/locking/TubeShareAccessModal';
 import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@infra/logger';
-import { ErrorBoundary, HeaderStrip, PanelHeader, SuspenseBoundary } from '@shared/ui';
-import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
-import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { UnsavedConfirmDialog } from '@shared/ui/components/overlays/UnsavedConfirmDialog';
+import { ErrorBoundary, HeaderStrip, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { notifications } from '@shared/utils/notifications';
+import { getUserDisplayName } from '@shared/utils/userDisplayFormatters';
 
 import { AppHeader } from './AppHeader';
+import { BiobankModals } from './BiobankModals';
+import { DashboardLoading } from './DashboardLoading';
 
 import type {
   StorageHierarchy,
   SelectedLocation,
 } from '@domains/storage/ui/components/storage-navigator';
 import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
 import '@shared/styles/base/layout.css';
 
-export function BiobankDashboard() {
-  const { isSynced } = useStorageSync();
-
+export function BiobankDashboard({ isSynced }: { isSynced: boolean }) {
   if (!isSynced) {
     return (
       <div className="app-container">
-        <div className="flex items-center justify-center h-full">
-          <div className="text-muted-foreground">Loading...</div>
-        </div>
+        <DashboardLoading />
       </div>
     );
   }
@@ -114,8 +103,7 @@ function BiobankWorkspace() {
   const userDisplayMap = useMemo(() => {
     const map = new Map<string, string>();
     lockUsers.forEach(u => {
-      const displayName = u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username;
-      map.set(u.id, displayName);
+      map.set(u.id, getUserDisplayName(u.username, u.firstName, u.lastName));
     });
     return map;
   }, [lockUsers]);
@@ -156,7 +144,7 @@ function BiobankWorkspace() {
 
   const isStorageNavigatorFocused = () => {
     const activeElement = document.activeElement;
-    return activeElement && storageNavigatorRef.current?.contains(activeElement);
+    return !!(activeElement && storageNavigatorRef.current?.contains(activeElement));
   };
 
   const { getCurrentTanks, currentLab } = useStorageData();
@@ -174,15 +162,11 @@ function BiobankWorkspace() {
   const tanks = getCurrentTanks();
   const modalService = useModalStore();
 
-  const modalPositionsSet = useMemo(
-    () => new Set(modalService.tubeEditorModal.positions ?? []),
-    [modalService.tubeEditorModal.positions]
-  );
-
   const isAdmin = isAdminRole(user?.role);
 
   const isViewOnlySpace = useMemo(() => {
     if (!user) return true;
+    // Box owner wins; undefined means "inherit from rack", null means "explicitly unassigned".
     const effectiveOwnerId =
       currentBoxObj?.assignedUserId !== undefined
         ? currentBoxObj.assignedUserId
@@ -234,18 +218,6 @@ function BiobankWorkspace() {
       rackId: location.rackId,
       boxId: location.boxId,
     });
-  };
-
-  const handleCloseModal = () => {
-    modalService.hideTubeEditorModal();
-  };
-
-  const handleSelectionChange = (newSelection: Set<PositionKey>) => {
-    setSelection(newSelection);
-  };
-
-  const handleClearSelection = () => {
-    clearSelection();
   };
 
   const handleLockTubes = useCallback(
@@ -356,7 +328,7 @@ function BiobankWorkspace() {
       <div className="app-header">
         <AppHeader
           selectedPositions={selectedPositions}
-          onClearSelection={handleClearSelection}
+          onClearSelection={clearSelection}
           tubes={tubes}
           gridController={{
             openModal: gridController.openModal,
@@ -440,10 +412,9 @@ function BiobankWorkspace() {
                   rackId={currentRack}
                   boxId={currentBox}
                   selectedPositions={
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isStorageNavigatorFocused() || isSelectorActive ? new Set() : selectedPositions
                   }
-                  onSelectionChange={handleSelectionChange}
+                  onSelectionChange={setSelection}
                   gridController={gridController}
                   lockContext={lockContext}
                 />
@@ -460,83 +431,11 @@ function BiobankWorkspace() {
         </div>
       </div>
 
-      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'add' && (
-        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Add">
-          <TubeEditorModal
-            isOpen
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
-            rackId={modalService.tubeEditorModal.rackId || currentRack}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
-            boxId={modalService.tubeEditorModal.boxId || currentBox}
-            onClose={handleCloseModal}
-            selectedPositions={modalPositionsSet}
-          />
-        </SuspenseBoundary>
-      )}
-
-      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'edit' && (
-        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Edit">
-          <TubeEditorModal
-            isOpen
-            tubeId={modalService.tubeEditorModal.tubeId}
-            onClose={handleCloseModal}
-          />
-        </SuspenseBoundary>
-      )}
-
-      {modalService.tubeEditorModal.isOpen &&
-        modalService.tubeEditorModal.mode === 'bulk' &&
-        (modalService.tubeEditorModal.tubeIds ?? []).length > 0 && (
-          <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeBulkEditorModal">
-            <TubeBulkEditorModal
-              isOpen
-              tubeIds={modalService.tubeEditorModal.tubeIds ?? []}
-              onClose={handleCloseModal}
-            />
-          </SuspenseBoundary>
-        )}
-
-      <ConfirmDialog
-        isOpen={modalService.deleteConfirm.isOpen}
-        variant="danger"
-        title={modalService.deleteConfirm.title}
-        message={modalService.deleteConfirm.message}
-        confirmText={modalService.deleteConfirm.confirmText}
-        onConfirm={modalService.deleteConfirm.onConfirm}
-        onCancel={modalService.deleteConfirm.onCancel}
-      />
-
-      <ConfirmDialog
-        isOpen={modalService.overwriteConfirm.isOpen}
-        variant="warning"
-        title={modalService.overwriteConfirm.title}
-        message={modalService.overwriteConfirm.message}
-        confirmText={modalService.overwriteConfirm.confirmText}
-        onConfirm={modalService.overwriteConfirm.onConfirm}
-        onCancel={modalService.overwriteConfirm.onCancel}
-      />
-
-      <UnsavedConfirmDialog
-        isOpen={modalService.unsavedConfirm.isOpen}
-        title={modalService.unsavedConfirm.title}
-        message={modalService.unsavedConfirm.message}
-        onConfirm={modalService.unsavedConfirm.onConfirm}
-        onCancel={modalService.unsavedConfirm.onCancel}
-      />
-
-      <TubeLockModal
-        isOpen={modalService.lockTubesModal.isOpen}
-        tubeIds={modalService.lockTubesModal.tubeIds}
-        onClose={modalService.hideLockTubesModal}
-      />
-
-      <TubeShareAccessModal
-        isOpen={modalService.shareAccessModal.isOpen && !!user}
-        tubes={modalService.shareAccessModal.tubeIds
-          .map(id => tubes.find(t => t.id === id))
-          .filter((t): t is TubeData => t !== undefined)}
-        currentUserId={user?.id ?? ''}
-        onClose={modalService.hideShareAccessModal}
+      <BiobankModals
+        currentRack={currentRack}
+        currentBox={currentBox}
+        currentUserId={user?.id}
+        tubes={tubes}
       />
     </div>
   );

@@ -14,6 +14,7 @@ export * from './primitives';
 
 // Error boundaries
 export { ErrorBoundary } from './components/boundaries/ErrorBoundary';
+export { LazyModalBoundary } from './components/boundaries/LazyModalBoundary';
 export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 
 // Info display components

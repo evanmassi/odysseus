@@ -18,6 +18,8 @@ interface OfflineInitializationPageProps {
 const AUTO_RETRY_SECONDS = 10;
 const RETRY_SPINNER_DELAY_MS = 300;
 const RETRY_COOLDOWN_MS = 1000;
+const COUNTDOWN_TICK_MS = 1000;
+const CONNECTING_LABEL = 'Connecting...';
 
 export function OfflineInitializationPage({ onRetry }: OfflineInitializationPageProps) {
   const [countdown, setCountdown] = useState(AUTO_RETRY_SECONDS);
@@ -48,7 +50,7 @@ export function OfflineInitializationPage({ onRetry }: OfflineInitializationPage
       } else {
         setCountdown(c => c - 1);
       }
-    }, 1000);
+    }, COUNTDOWN_TICK_MS);
 
     return () => clearTimeout(timer);
   }, [isRetrying, countdown, handleRetry]);
@@ -81,7 +83,7 @@ export function OfflineInitializationPage({ onRetry }: OfflineInitializationPage
           <h1
             className={`text-xl font-bold mb-2 ${isRetrying ? 'text-card-foreground' : 'text-danger-bg'}`}
           >
-            {isRetrying ? 'Connecting...' : "You're Offline"}
+            {isRetrying ? CONNECTING_LABEL : "You're Offline"}
           </h1>
 
           <p className="text-body-sm text-muted-foreground">
@@ -103,7 +105,7 @@ export function OfflineInitializationPage({ onRetry }: OfflineInitializationPage
             fullWidth
             onClick={handleRetry}
             isLoading={isRetrying}
-            loadingText="Connecting..."
+            loadingText={CONNECTING_LABEL}
             leftIcon={<RefreshCw className="w-4 h-4" />}
           >
             Try Now

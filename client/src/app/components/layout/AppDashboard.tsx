@@ -5,7 +5,7 @@
  * based on user context and URL path.
  */
 
-import { lazy } from 'react';
+import { lazy, type ReactNode } from 'react';
 
 import { Routes, Route } from 'react-router-dom';
 
@@ -14,6 +14,7 @@ import { SuspenseBoundary } from '@shared/ui';
 
 import { AppHeader } from './AppHeader';
 import { BiobankDashboard } from './BiobankDashboard';
+import { DashboardLoading } from './DashboardLoading';
 
 import '@shared/styles/base/layout.css';
 
@@ -25,26 +26,27 @@ const LabManagementPage = lazy(() =>
   import('@domains/lab-management').then(m => ({ default: m.LabManagementPage }))
 );
 
+function DashboardChrome({ children }: { children: ReactNode }) {
+  return (
+    <div className="app-container">
+      <div className="app-header">
+        <AppHeader />
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export function AppDashboard() {
-  const { hasNoLab } = useStorageSync();
+  const { hasNoLab, isSynced } = useStorageSync();
 
   if (hasNoLab) {
     return (
-      <div className="app-container">
-        <div className="app-header">
-          <AppHeader />
-        </div>
-        <SuspenseBoundary
-          fallback={
-            <div className="flex items-center justify-center h-full">
-              <div className="text-muted-foreground">Loading...</div>
-            </div>
-          }
-          name="SystemAdminDashboard"
-        >
+      <DashboardChrome>
+        <SuspenseBoundary fallback={<DashboardLoading />} name="System Admin">
           <SystemAdminDashboard />
         </SuspenseBoundary>
-      </div>
+      </DashboardChrome>
     );
   }
 
@@ -55,22 +57,17 @@ export function AppDashboard() {
         element={
           <SuspenseBoundary
             fallback={
-              <div className="app-container">
-                <div className="app-header">
-                  <AppHeader />
-                </div>
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-muted-foreground">Loading...</div>
-                </div>
-              </div>
+              <DashboardChrome>
+                <DashboardLoading />
+              </DashboardChrome>
             }
-            name="LabManagementPage"
+            name="Lab Management"
           >
             <LabManagementPage />
           </SuspenseBoundary>
         }
       />
-      <Route path="/*" element={<BiobankDashboard />} />
+      <Route path="/*" element={<BiobankDashboard isSynced={isSynced} />} />
     </Routes>
   );
 }

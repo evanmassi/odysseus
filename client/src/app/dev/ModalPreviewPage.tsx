@@ -322,7 +322,7 @@ const SPECS: ModalSpec[] = [
     id: 'boot-error',
     group: 'Boot splash',
     label: 'Initialization failed',
-    note: 'Error splash with retry + cancel',
+    note: 'Error splash with retry',
     render: close => (
       <AppLoader
         context={mockBootstrapContext(
@@ -330,7 +330,6 @@ const SPECS: ModalSpec[] = [
           'Could not reach the server. Check your connection and try again.'
         )}
         onRetry={close}
-        onCancel={close}
       />
     ),
   },

@@ -4,4 +4,4 @@
  * Top-level provider composition and last-resort error boundary.
  */
 
-export { AppProviders, Providers, ErrorBoundary } from './AppProviders';
+export { AppProviders, Providers } from './AppProviders';
