@@ -271,7 +271,7 @@ export class SupplyService {
       `${this.BASE_PATH}/barcodes/resolve?value=${encodeURIComponent(value)}`,
       { 'Cache-Control': 'no-cache' }
     );
-    const data = response.data as { success: boolean; data: { item: SupplyItem | null } };
+    const data = response as { success: boolean; data: { item: SupplyItem | null } };
     return data.data.item;
   }
 

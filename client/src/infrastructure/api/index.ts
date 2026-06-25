@@ -4,7 +4,7 @@
 
 export { baseTransport, HttpTransport } from './HttpTransport';
 export { OfflineWriteError, isOfflineError } from './HttpTransport';
-export type { HttpTransportConfig, ApiResponse } from './HttpTransport';
+export type { HttpTransportConfig } from './HttpTransport';
 export { HttpClient } from './HttpClient';
 export { sessionHttpClient, SessionHttpClient } from './SessionHttpClient';
 

@@ -12,6 +12,7 @@ import { CONFIG_VERSION_KEY } from '@app/cache/cacheStorageKeys';
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
+import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 
 import { useInitializeConfigurationMutation } from './useStorageMutations';
@@ -53,11 +54,7 @@ export function useStorageSync() {
             // Do NOT retry for "config already exists" - that means config IS there
             const errorMessage = initError instanceof Error ? initError.message : String(initError);
             const isAlreadyExists = errorMessage.toLowerCase().includes('already exists');
-            const isOffline =
-              typeof initError === 'object' &&
-              initError !== null &&
-              'code' in initError &&
-              (initError as { code: unknown }).code === 'OFFLINE_WRITE_BLOCKED';
+            const isOffline = isOfflineError(initError);
 
             if (isAlreadyExists || isOffline) {
               // Config exists or we're offline - don't retry, just wait for query to succeed

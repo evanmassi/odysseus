@@ -9,6 +9,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 
+import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 import { notifications } from '@shared/utils/notifications';
@@ -110,7 +111,7 @@ const mutationRetryLogic = (failureCount: number, error: unknown): boolean => {
     return false;
   }
 
-  if (hasCode(error) && error.code === 'OFFLINE_WRITE_BLOCKED') {
+  if (isOfflineError(error)) {
     return false;
   }
 
@@ -183,7 +184,7 @@ const handleMutationError = (
     }
   }
 
-  if (hasCode(error) && error.code === 'OFFLINE_WRITE_BLOCKED') {
+  if (isOfflineError(error)) {
     notifications.offlineError();
     return;
   }

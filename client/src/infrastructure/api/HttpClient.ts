@@ -7,7 +7,7 @@
 import { successEnvelopeSchema, ApiError, API_ERROR_CODES } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
-import type { HttpTransport, ApiResponse } from './HttpTransport';
+import type { HttpTransport } from './HttpTransport';
 import type { TokenProvider } from '@shared/types/sessionTypes';
 
 // Session errors that should NOT trigger token refresh — session is invalidated server-side
@@ -28,7 +28,7 @@ export class HttpClient {
 
   // PRIMITIVE METHODS — auth headers + retry
 
-  async get<T = unknown>(url: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
+  async get<T = unknown>(url: string, headers?: Record<string, string>): Promise<T> {
     return this.withAuthRetry(h => this.baseClient.get<T>(url, h), headers);
   }
 
@@ -36,7 +36,7 @@ export class HttpClient {
     url: string,
     data?: unknown,
     headers?: Record<string, string>
-  ): Promise<ApiResponse<T>> {
+  ): Promise<T> {
     return this.withAuthRetry(h => this.baseClient.post<T>(url, data, h), headers);
   }
 
@@ -44,14 +44,11 @@ export class HttpClient {
     url: string,
     data?: unknown,
     headers?: Record<string, string>
-  ): Promise<ApiResponse<T>> {
+  ): Promise<T> {
     return this.withAuthRetry(h => this.baseClient.put<T>(url, data, h), headers);
   }
 
-  async delete<T = unknown>(
-    url: string,
-    headers?: Record<string, string>
-  ): Promise<ApiResponse<T>> {
+  async delete<T = unknown>(url: string, headers?: Record<string, string>): Promise<T> {
     return this.withAuthRetry(h => this.baseClient.delete<T>(url, h), headers);
   }
 
@@ -67,8 +64,7 @@ export class HttpClient {
     headers?: Record<string, string>
   ): Promise<T> {
     const response = await this.get(url, headers);
-    const envelope = successEnvelopeSchema(dataSchema).parse(response.data);
-    return envelope.data;
+    return this.unwrap(response, dataSchema);
   }
 
   async getArray<T>(
@@ -77,11 +73,7 @@ export class HttpClient {
     headers?: Record<string, string>
   ): Promise<T[]> {
     const response = await this.get(url, headers);
-    const envelope = successEnvelopeSchema(z.array(itemSchema)).safeParse(response.data);
-    if (!envelope.success) {
-      throw envelope.error;
-    }
-    return envelope.data.data;
+    return this.unwrap(response, z.array(itemSchema));
   }
 
   async postData<TResponse, TRequest = unknown>(
@@ -91,8 +83,7 @@ export class HttpClient {
     headers?: Record<string, string>
   ): Promise<TResponse> {
     const response = await this.post(url, body, headers);
-    const envelope = successEnvelopeSchema(responseSchema).parse(response.data);
-    return envelope.data;
+    return this.unwrap(response, responseSchema);
   }
 
   async putData<TResponse, TRequest = unknown>(
@@ -102,8 +93,7 @@ export class HttpClient {
     headers?: Record<string, string>
   ): Promise<TResponse> {
     const response = await this.put(url, body, headers);
-    const envelope = successEnvelopeSchema(responseSchema).parse(response.data);
-    return envelope.data;
+    return this.unwrap(response, responseSchema);
   }
 
   async deleteData(url: string, headers?: Record<string, string>): Promise<void> {
@@ -116,11 +106,14 @@ export class HttpClient {
     headers?: Record<string, string>
   ): Promise<T> {
     const response = await this.delete(url, headers);
-    const envelope = successEnvelopeSchema(responseSchema).parse(response.data);
-    return envelope.data;
+    return this.unwrap(response, responseSchema);
   }
 
   // INTERNAL
+
+  private unwrap<T>(body: unknown, schema: z.ZodType<T>): T {
+    return successEnvelopeSchema(schema).parse(body).data;
+  }
 
   private async getAuthHeaders(): Promise<Record<string, string>> {
     if (!this.tokenProvider) return {};
