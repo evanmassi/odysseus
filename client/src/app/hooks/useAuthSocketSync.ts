@@ -26,7 +26,6 @@ export function useAuthSocketSync(): void {
     // initialize/cleanup socket simultaneously, causing cascading re-renders.
     if (isFirstMountRef.current) {
       isFirstMountRef.current = false;
-      wasAuthenticatedRef.current = isAuthenticated;
       return;
     }
 
