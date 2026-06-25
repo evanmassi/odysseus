@@ -1,12 +1,10 @@
 /**
  * Infrastructure API Layer
+ *
+ * The shared httpClient singleton and the offline-write error check.
  */
 
-export { baseTransport, HttpTransport } from './HttpTransport';
-export { OfflineWriteError, isOfflineError } from './HttpTransport';
-export type { HttpTransportConfig } from './HttpTransport';
-export { HttpClient } from './HttpClient';
-export { sessionHttpClient, SessionHttpClient } from './SessionHttpClient';
+export { isOfflineError } from './HttpTransport';
 
 import { HttpClient } from './HttpClient';
 import { baseTransport } from './HttpTransport';

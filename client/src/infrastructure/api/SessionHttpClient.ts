@@ -8,19 +8,11 @@ import { ApiError } from '@odysseus/shared-schemas';
 
 import { env } from '@shared/config';
 
-export class SessionHttpClient {
-  private readonly baseURL: string;
-  private readonly timeout: number;
+const REQUEST_TIMEOUT_MS = 30_000;
 
-  constructor(
-    config: { baseURL: string; timeout?: number } = {
-      baseURL: env.apiBaseUrl(),
-    }
-  ) {
-    this.baseURL = config.baseURL;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
-    this.timeout = config.timeout || 30000;
-  }
+export class SessionHttpClient {
+  private readonly baseURL = env.apiBaseUrl();
+  private readonly timeout = REQUEST_TIMEOUT_MS;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client, accepts any request body
   async post<T = any>(path: string, data: any, headers?: Record<string, string>): Promise<T> {
