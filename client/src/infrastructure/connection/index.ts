@@ -1,15 +1,15 @@
 /**
  * Network Connection Infrastructure
+ *
+ * The server-reachability monitor, the shared offline flag, and the useNetworkStatus hook.
  */
 
 export {
-  NetworkMonitor,
   initializeNetworkMonitor,
   getNetworkMonitor,
   cleanupNetworkMonitor,
 } from './NetworkMonitor';
-export type { NetworkStatus, NetworkEvent } from './NetworkMonitor';
 
-export { isOffline, setOffline, resetNetworkState } from './networkState';
+export { isOffline, resetNetworkState } from './networkState';
 
 export { useNetworkStatus } from './useNetworkStatus';

@@ -5,12 +5,16 @@
  */
 
 // Falls back to navigator.onLine until NetworkMonitor verifies with a server ping
-let _isOffline: boolean = typeof navigator !== 'undefined' ? !navigator.onLine : false;
-let _initialized: boolean = false;
+function browserOffline(): boolean {
+  return typeof navigator !== 'undefined' ? !navigator.onLine : false;
+}
+
+let _isOffline = browserOffline();
+let _initialized = false;
 
 export function isOffline(): boolean {
   if (!_initialized) {
-    return typeof navigator !== 'undefined' ? !navigator.onLine : false;
+    return browserOffline();
   }
   return _isOffline;
 }
@@ -20,8 +24,7 @@ export function setOffline(offline: boolean): void {
   _initialized = true;
 }
 
-// Only used for testing
 export function resetNetworkState(): void {
-  _isOffline = typeof navigator !== 'undefined' ? !navigator.onLine : false;
+  _isOffline = browserOffline();
   _initialized = false;
 }
