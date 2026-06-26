@@ -17,6 +17,9 @@ pass — not read-only.
   partial-path grep misses re-exporters (e.g. an aggregate barrel that re-exports the one you're deleting).
 - **A "DRY" swap can change behavior.** Replacing inline logic with a shared util/type may differ on edge cases —
   diff the two implementations and flag the behavior change; don't present it as behavior-neutral.
+- **No tests = the diff is the gate.** When a refactor touches behavior-sensitive code with no test coverage,
+  "tests pass" is vacuous — gate on a careful per-item diff trace + typecheck, and note the missing coverage in the
+  finding.
 - **Decide by convention, with data.** When choosing to keep/remove/standardize a pattern (barrels, accessors,
   naming), measure the dominant convention with grep counts instead of assuming. Keep what's the real import
   surface; remove what's vestigial.
@@ -54,6 +57,9 @@ Comments that should NOT exist — flag for removal:
   refetchOnWindowFocus: false). The property name IS the documentation.
 - Parenthetical restatements on section divider comments (e.g., // Admin (admin-only operations) — the parenthetical
   restates the label). Keep dividers bare.
+- Section dividers that only restate the adjacent symbol (e.g. // TUBE EVENT HANDLERS above setupTubeEventHandlers) →
+  remove. A divider with a strategy/why suffix (e.g. // … — patches cache directly instead of invalidation) earns
+  its place → keep.
 - Self-promotional language: "INDUSTRY STANDARD", "BEST PRACTICE", "Enterprise-grade", "A++++ QUALITY", "Type-safe"
 - Redundant markers: checkmarks (✅), "NEW:", "FIXED:", "ARCHITECTURAL FIX:"
 - Process references: "Phase 2", "Refactored from", "Added in January 2025", "migrated from", "expanded from"
@@ -134,7 +140,11 @@ Loose files:
 
 - Overly complex logic that could be simplified
 - Inconsistent patterns (e.g., mixing async styles, inconsistent error handling)
-- Magic numbers/strings without explanation
+- Magic numbers/strings without explanation. (Numbers inside a named-key config object are self-documenting; flag
+  standalone literals that recur or carry meaning.)
+- Redundant type annotations the initializer already fixes (`x: boolean = false`, `x: number = 0`) → drop them; but
+  KEEP load-bearing ones that widen on purpose (e.g. `Set<string>` so `.has(someString)` typechecks instead of a
+  literal-union)
 - Redundant parameters that are always passed the same module singleton (e.g. a queryClient param that's always the
   imported instance) → drop the param, use the import
 - Thin handler wrappers that only forward to a store action or prop (`const handleX = () => clearX()`) → pass the
@@ -153,8 +163,10 @@ Loose files:
 - Exported functions/variables unused codebase-wide (verify by grepping all consumers, not just this file)
 - Speculative exports/keys/fields/props with zero PRODUCTION consumers — a prop/export used only by a dev preview,
   mock, or test harness still counts as speculative (dead query keys, unused result fields, "for later" methods)
-- Vestigial barrels: an index.ts re-exporting things every consumer imports directly (don't keep a barrel that
-  isn't the real import surface)
+- Barrels are a two-part decision: DELETE a barrel with zero external importers (everyone deep-imports it, so it
+  isn't the real surface); KEEP-and-TRIM a barrel that IS the surface (re-export only the externally-consumed
+  symbols, drop the rest). Decide with grep counts — barrel-path imports vs deep-path imports. Don't go barrel-free;
+  barrel headers may stay title-only.
 - Unreachable or constant-by-guard code paths: branches hidden by earlier, broader checks (e.g., a 401/403 check
   after a general 4xx check that already covers it); a condition made always-true/false by an enclosing guard (e.g.
   `{(a || b) && …}` inside a branch already gated on `a || b`); an `else` unreachable because an upstream check returned
