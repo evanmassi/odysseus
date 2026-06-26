@@ -70,10 +70,7 @@ export function InfoDialog({
 
   const trapRef = useFocusTrap({
     isOpen: isVisible,
-    restoreFocus: true,
-    initialFocusDelay: 150,
     initialFocusRef: closeButtonRef,
-    autoFocusFirstInput: false,
   });
 
   // Disabled during exit to prevent double-triggers

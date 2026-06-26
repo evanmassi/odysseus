@@ -8,8 +8,6 @@ import { useRef, useEffect } from 'react';
 
 interface UseFocusTrapOptions {
   isOpen?: boolean;
-  restoreFocus?: boolean;
-  initialFocusDelay?: number;
   initialFocusRef?: React.RefObject<HTMLElement>;
   autoFocusFirstInput?: boolean;
 }
@@ -18,15 +16,7 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
   const trapRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  const {
-    isOpen = true,
-    restoreFocus = true,
-    // 150ms balances modal animation time with perceived responsiveness
-    // Too short = focus before render, too long = noticeable delay
-    initialFocusDelay = 150,
-    initialFocusRef,
-    autoFocusFirstInput = false,
-  } = options ?? {};
+  const { isOpen = true, initialFocusRef, autoFocusFirstInput = false } = options ?? {};
 
   useEffect(() => {
     if (isOpen) {
@@ -34,11 +24,11 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
     }
 
     return () => {
-      if (restoreFocus && previousFocusRef.current) {
+      if (previousFocusRef.current) {
         previousFocusRef.current.focus();
       }
     };
-  }, [isOpen, restoreFocus]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -46,7 +36,6 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
     const modal = trapRef.current;
     if (!modal) return;
 
-    // Delay allows modal animation to complete before focus shifts
     const timer = setTimeout(() => {
       let elementToFocus: HTMLElement | null = null;
 
@@ -76,10 +65,10 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
       }
 
       elementToFocus?.focus();
-    }, initialFocusDelay);
+    }, INITIAL_FOCUS_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [isOpen, initialFocusDelay, initialFocusRef, autoFocusFirstInput]);
+  }, [isOpen, initialFocusRef, autoFocusFirstInput]);
 
   // Tab/Shift+Tab focus cycling within modal
   // Note: Focus escape prevention is handled by the inert attribute on #root
@@ -116,6 +105,10 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
 
   return trapRef;
 }
+
+// 150ms balances modal animation time with perceived responsiveness.
+// Too short = focus before render, too long = noticeable delay.
+const INITIAL_FOCUS_DELAY_MS = 150;
 
 const FOCUSABLE_SELECTOR = [
   'a[href]',

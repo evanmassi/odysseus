@@ -38,9 +38,6 @@ export {
 // Lock access control hooks
 export { useTubeAccessControl } from './useTubeAccessControl';
 
-// Lookup hooks
-export { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-
 // Form hooks
 export {
   useCreateTubeForm,

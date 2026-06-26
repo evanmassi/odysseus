@@ -21,7 +21,7 @@ export function useSearch() {
   const { query, filters, setSearchQuery, setSearchFilters, clearSearch, hasActiveFilters } =
     useSearchStore();
 
-  const debouncedQuery = useDebounce(query, 300);
+  const debouncedQuery = useDebounce(query);
 
   // Memoize search options to prevent unnecessary React Query cache misses
   // React Query uses referential equality for query keys - must memoize objects

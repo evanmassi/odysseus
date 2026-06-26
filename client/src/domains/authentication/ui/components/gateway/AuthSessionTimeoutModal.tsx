@@ -58,10 +58,7 @@ export function AuthSessionTimeoutModal() {
 
   const trapRef = useFocusTrap({
     isOpen: isVisible,
-    restoreFocus: true,
-    initialFocusDelay: 150,
     initialFocusRef: stayLoggedInRef,
-    autoFocusFirstInput: false,
   });
 
   useEffect(() => {

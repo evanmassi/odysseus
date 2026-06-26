@@ -7,15 +7,14 @@
 
 import { useEffect, useCallback, type RefObject } from 'react';
 
-export interface ModalKeyboardNavConfig {
-  onEscape?: () => void;
+interface ModalKeyboardNavigationConfig {
+  onEscape: () => void;
   enabled?: boolean;
-  preventDefaultEscape?: boolean;
   containerRef?: RefObject<HTMLElement>;
 }
 
-export function useModalKeyboardNavigation(config: ModalKeyboardNavConfig) {
-  const { onEscape, enabled = true, preventDefaultEscape = true, containerRef } = config;
+export function useModalKeyboardNavigation(config: ModalKeyboardNavigationConfig) {
+  const { onEscape, enabled = true, containerRef } = config;
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -31,14 +30,12 @@ export function useModalKeyboardNavigation(config: ModalKeyboardNavConfig) {
             }
           }
 
-          if (preventDefaultEscape) {
-            event.preventDefault();
-          }
-          onEscape?.();
+          event.preventDefault();
+          onEscape();
           break;
       }
     },
-    [enabled, onEscape, preventDefaultEscape, containerRef]
+    [enabled, onEscape, containerRef]
   );
 
   useEffect(() => {

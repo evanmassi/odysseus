@@ -91,10 +91,7 @@ export function ConfirmDialog({
 
   const trapRef = useFocusTrap({
     isOpen: isVisible,
-    restoreFocus: true,
-    initialFocusDelay: 150,
     initialFocusRef: confirmButtonRef,
-    autoFocusFirstInput: false,
   });
 
   useEffect(() => {

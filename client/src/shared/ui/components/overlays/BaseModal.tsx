@@ -105,7 +105,6 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
   // Focus trap must exist before keyboard hook so we can pass containerRef
   const trapRef = useFocusTrap({
     isOpen: isVisible,
-    restoreFocus: true,
     autoFocusFirstInput: true,
   });
 

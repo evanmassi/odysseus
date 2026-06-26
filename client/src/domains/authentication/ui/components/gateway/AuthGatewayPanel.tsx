@@ -57,7 +57,6 @@ export function AuthGatewayPanel({ children }: AuthGatewayPanelProps) {
 
   const trapRef = useFocusTrap({
     isOpen: true,
-    restoreFocus: true,
     initialFocusRef: config?.initialFocusRef,
   });
 

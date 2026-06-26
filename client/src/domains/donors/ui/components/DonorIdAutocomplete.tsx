@@ -41,7 +41,7 @@ export function DonorIdAutocomplete({
   hasConflict,
   onPairSelect,
 }: DonorIdAutocompleteProps) {
-  const debouncedQuery = useDebounce(value, 300);
+  const debouncedQuery = useDebounce(value);
   const { data: results = [] } = useDonorSearchQuery(debouncedQuery);
 
   const options: AutocompleteOption[] = useMemo(

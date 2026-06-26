@@ -1,7 +1,7 @@
 /**
  * Edit Modal Form Hook
  *
- * Manages form state lifecycle for edit modals (init, reset on open, submit wrapper).
+ * Holds edit-modal form state and resets it when the modal opens.
  */
 
 import { useState, useEffect, useCallback } from 'react';
