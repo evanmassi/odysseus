@@ -72,24 +72,6 @@ class SocketService {
     }
   }
 
-  /** Refreshes auth token before reconnecting to maintain presence tracking. */
-  public async reconnect(): Promise<void> {
-    if (!this.socket) {
-      await this.initialize();
-      return;
-    }
-
-    if (!this.socket.connected) {
-      const authToken = await sessionManager.getValidAccessToken();
-      if (authToken) {
-        this.socket.auth = { token: authToken };
-      }
-
-      this.socket.connect();
-      await this.waitForConnection();
-    }
-  }
-
   private waitForConnection(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.socket) {
@@ -131,21 +113,14 @@ class SocketService {
   }
 }
 
-// Global Instance Management
-
 let globalSocketService: SocketService | null = null;
 
-const getSocketService = (queryClient: QueryClient): SocketService => {
+export const initializeSocket = async (queryClient: QueryClient): Promise<SocketService> => {
   if (!globalSocketService) {
     globalSocketService = new SocketService(queryClient);
   }
+  await globalSocketService.initialize();
   return globalSocketService;
-};
-
-export const initializeSocket = async (queryClient: QueryClient): Promise<SocketService> => {
-  const service = getSocketService(queryClient);
-  await service.initialize();
-  return service;
 };
 
 export const cleanupSocket = (): void => {

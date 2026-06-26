@@ -22,6 +22,12 @@ import type { TubeData } from '@domains/tubes/types';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
 
+const CONFIG_CHANGE_SUMMARY_THRESHOLD = 5;
+
+interface ParsableSchema<T> {
+  parse(data: unknown): T;
+}
+
 class SocketQueryBridge {
   private socket: Socket | null = null;
   private queryClient: QueryClient;
@@ -70,7 +76,20 @@ class SocketQueryBridge {
     }
   }
 
-  // CONNECTION EVENT HANDLERS
+  /** Registers a socket handler that validates the payload; invalid events are logged and skipped. */
+  private registerHandler<T>(
+    event: string,
+    schema: ParsableSchema<T>,
+    handler: (parsed: T) => void
+  ): void {
+    this.socket?.on(event, (data: unknown) => {
+      try {
+        handler(schema.parse(data));
+      } catch (error) {
+        logger.error(`Invalid ${event} event`, { error });
+      }
+    });
+  }
 
   private setupConnectionHandlers(): void {
     if (!this.socket) return;
@@ -111,135 +130,59 @@ class SocketQueryBridge {
     });
   }
 
-  // TUBE EVENT HANDLERS
-
   private setupTubeEventHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('tube_created', (data: unknown) => {
+    this.registerHandler('tube_created', tubeEventSchemas.tube_created, ({ location }) => {
       if (!this.labId) return;
-      try {
-        const { location } = tubeEventSchemas.tube_created.parse(data);
-
-        void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(
-            this.labId,
-            location.tankId,
-            location.rackId,
-            location.boxId
-          ),
-        });
-        // Used by TubeEditorModal position analysis
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
-      } catch (error) {
-        logger.error('Invalid tube_created event', { error });
-      }
+      this.invalidateTubeLocation(location);
+      this.invalidateTubesListAndStats();
     });
 
-    this.socket.on('tube_updated', (data: unknown) => {
-      if (!this.labId) return;
-      try {
-        const { tubeId, oldLocation, newLocation } = tubeEventSchemas.tube_updated.parse(data);
+    this.registerHandler(
+      'tube_updated',
+      tubeEventSchemas.tube_updated,
+      ({ tubeId, oldLocation, newLocation }) => {
+        if (!this.labId) return;
 
         void this.queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.detail(this.labId, tubeId),
         });
-        void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(
-            this.labId,
-            oldLocation.tankId,
-            oldLocation.rackId,
-            oldLocation.boxId
-          ),
-        });
+        this.invalidateTubeLocation(oldLocation);
 
         if (
           oldLocation.tankId !== newLocation.tankId ||
           oldLocation.rackId !== newLocation.rackId ||
           oldLocation.boxId !== newLocation.boxId
         ) {
-          void this.queryClient.invalidateQueries({
-            queryKey: queryKeys.tubes.location(
-              this.labId,
-              newLocation.tankId,
-              newLocation.rackId,
-              newLocation.boxId
-            ),
-          });
+          this.invalidateTubeLocation(newLocation);
         }
 
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
-      } catch (error) {
-        logger.error('Invalid tube_updated event', { error });
+        this.invalidateTubesListAndStats();
       }
-    });
+    );
 
-    this.socket.on('tube_deleted', (data: unknown) => {
+    this.registerHandler('tube_deleted', tubeEventSchemas.tube_deleted, ({ tubeId, location }) => {
       if (!this.labId) return;
-      try {
-        const { tubeId, location } = tubeEventSchemas.tube_deleted.parse(data);
 
-        this.queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(this.labId, tubeId) });
-        void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(
-            this.labId,
-            location.tankId,
-            location.rackId,
-            location.boxId
-          ),
-        });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
-      } catch (error) {
-        logger.error('Invalid tube_deleted event', { error });
-      }
+      this.queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(this.labId, tubeId) });
+      this.invalidateTubeLocation(location);
+      this.invalidateTubesListAndStats();
     });
 
-    this.socket.on('tubes_bulk_created', (data: unknown) => {
-      if (!this.labId) return;
-      try {
-        tubeEventSchemas.tubes_bulk_created.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
-      } catch (error) {
-        logger.error('Invalid tubes_bulk_created event', { error });
-      }
-    });
+    const bulkTubeEvents = [
+      'tubes_bulk_created',
+      'tubes_bulk_updated',
+      'tubes_bulk_deleted',
+      'tubes_bulk_moved',
+    ] as const;
 
-    this.socket.on('tubes_bulk_updated', (data: unknown) => {
-      if (!this.labId) return;
-      try {
-        tubeEventSchemas.tubes_bulk_updated.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
-      } catch (error) {
-        logger.error('Invalid tubes_bulk_updated event', { error });
-      }
-    });
-
-    this.socket.on('tubes_bulk_deleted', (data: unknown) => {
-      if (!this.labId) return;
-      try {
-        tubeEventSchemas.tubes_bulk_deleted.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
-      } catch (error) {
-        logger.error('Invalid tubes_bulk_deleted event', { error });
-      }
-    });
-
-    this.socket.on('tubes_bulk_moved', (data: unknown) => {
-      if (!this.labId) return;
-      try {
-        tubeEventSchemas.tubes_bulk_moved.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
-      } catch (error) {
-        logger.error('Invalid tubes_bulk_moved event', { error });
-      }
-    });
+    for (const event of bulkTubeEvents) {
+      this.registerHandler<unknown>(event, tubeEventSchemas[event], () => {
+        if (!this.labId) return;
+        this.invalidateTubesListAndStats();
+      });
+    }
   }
 
   // TUBE LOCK EVENT HANDLERS — patches cache directly instead of invalidation
@@ -247,11 +190,10 @@ class SocketQueryBridge {
   private setupTubeLockEventHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('tubes_locked', (data: unknown) => {
-      try {
-        const { tubeIds, lockedBy, lockNote, updatedAt } =
-          tubeEventSchemas.tubes_locked.parse(data);
-
+    this.registerHandler(
+      'tubes_locked',
+      tubeEventSchemas.tubes_locked,
+      ({ tubeIds, lockedBy, lockNote, updatedAt }) => {
         this.patchTubesInCache(tubeIds, tube => ({
           ...tube,
           isLocked: true,
@@ -259,31 +201,24 @@ class SocketQueryBridge {
           lockNote,
           lockedAt: updatedAt,
         }));
-      } catch (error) {
-        logger.error('Invalid tubes_locked event', { error });
       }
+    );
+
+    this.registerHandler('tubes_unlocked', tubeEventSchemas.tubes_unlocked, ({ tubeIds }) => {
+      this.patchTubesInCache(tubeIds, tube => ({
+        ...tube,
+        isLocked: false,
+        lockedBy: undefined,
+        lockNote: undefined,
+        lockedAt: undefined,
+        sharedWithUserIds: undefined,
+      }));
     });
 
-    this.socket.on('tubes_unlocked', (data: unknown) => {
-      try {
-        const { tubeIds } = tubeEventSchemas.tubes_unlocked.parse(data);
-
-        this.patchTubesInCache(tubeIds, tube => ({
-          ...tube,
-          isLocked: false,
-          lockedBy: undefined,
-          lockNote: undefined,
-          lockedAt: undefined,
-          sharedWithUserIds: undefined,
-        }));
-      } catch (error) {
-        logger.error('Invalid tubes_unlocked event', { error });
-      }
-    });
-
-    this.socket.on('tube_access_shared', (data: unknown) => {
-      try {
-        const { tubeSharedUsers } = tubeEventSchemas.tube_access_shared.parse(data);
+    this.registerHandler(
+      'tube_access_shared',
+      tubeEventSchemas.tube_access_shared,
+      ({ tubeSharedUsers }) => {
         const sharedUsersMap = new Map(tubeSharedUsers.map(t => [t.tubeId, t.sharedWithUserIds]));
 
         this.patchTubesInCache([...sharedUsersMap.keys()], tube => {
@@ -294,14 +229,13 @@ class SocketQueryBridge {
             sharedWithUserIds: newSharedUsers.length > 0 ? newSharedUsers : undefined,
           };
         });
-      } catch (error) {
-        logger.error('Invalid tube_access_shared event', { error });
       }
-    });
+    );
 
-    this.socket.on('tube_access_revoked', (data: unknown) => {
-      try {
-        const { tubeSharedUsers } = tubeEventSchemas.tube_access_revoked.parse(data);
+    this.registerHandler(
+      'tube_access_revoked',
+      tubeEventSchemas.tube_access_revoked,
+      ({ tubeSharedUsers }) => {
         const sharedUsersMap = new Map(tubeSharedUsers.map(t => [t.tubeId, t.sharedWithUserIds]));
 
         this.patchTubesInCache([...sharedUsersMap.keys()], tube => {
@@ -312,10 +246,8 @@ class SocketQueryBridge {
             sharedWithUserIds: newSharedUsers.length > 0 ? newSharedUsers : undefined,
           };
         });
-      } catch (error) {
-        logger.error('Invalid tube_access_revoked event', { error });
       }
-    });
+    );
   }
 
   private patchTubesInCache(tubeIds: string[], patchFn: (tube: TubeData) => TubeData): void {
@@ -340,28 +272,44 @@ class SocketQueryBridge {
     );
   }
 
+  /** Refreshes the full tube list (used by TubeEditorModal position analysis) and tube stats. */
+  private invalidateTubesListAndStats(): void {
+    if (!this.labId) return;
+    void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
+    void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
+  }
+
+  private invalidateTubeLocation(location: {
+    tankId: string;
+    rackId: string;
+    boxId: string;
+  }): void {
+    if (!this.labId) return;
+    void this.queryClient.invalidateQueries({
+      queryKey: queryKeys.tubes.location(
+        this.labId,
+        location.tankId,
+        location.rackId,
+        location.boxId
+      ),
+    });
+  }
+
   // RESEARCHER EVENT HANDLERS — all invalidate researchers + tube stats
 
   private setupResearcherEventHandlers(): void {
     if (!this.socket) return;
 
     for (const [event, schema] of Object.entries(researcherEventSchemas)) {
-      this.socket.on(event, (data: unknown) => {
+      this.registerHandler<unknown>(event, schema, () => {
         if (!this.labId) return;
-        try {
-          schema.parse(data);
-          void this.queryClient.invalidateQueries({
-            queryKey: queryKeys.researchers.all(this.labId),
-          });
-          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
-        } catch (error) {
-          logger.error(`Invalid ${event} event`, { error });
-        }
+        void this.queryClient.invalidateQueries({
+          queryKey: queryKeys.researchers.all(this.labId),
+        });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       });
     }
   }
-
-  // USER EVENT HANDLERS
 
   private setupUserEventHandlers(): void {
     if (!this.socket) return;
@@ -390,14 +338,9 @@ class SocketQueryBridge {
     ];
 
     for (const { event, invalidate } of userEventHandlers) {
-      this.socket.on(event, (data: unknown) => {
-        try {
-          userEventSchemas[event].parse(data);
-          for (const queryKey of invalidate) {
-            void this.queryClient.invalidateQueries({ queryKey });
-          }
-        } catch (error) {
-          logger.error(`Invalid ${event} event`, { error });
+      this.registerHandler<unknown>(event, userEventSchemas[event], () => {
+        for (const queryKey of invalidate) {
+          void this.queryClient.invalidateQueries({ queryKey });
         }
       });
     }
@@ -408,11 +351,11 @@ class SocketQueryBridge {
   private setupPresenceEventHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('user_online', (data: unknown) => {
-      if (!this.labId) return;
-      try {
-        const { userId, onlineUserIds } = presenceEventSchemas.user_online.parse(data);
-
+    this.registerHandler(
+      'user_online',
+      presenceEventSchemas.user_online,
+      ({ userId, onlineUserIds }) => {
+        if (!this.labId) return;
         this.queryClient.setQueryData(queryKeys.users.presence(this.labId), onlineUserIds);
 
         // If the new user isn't in our cached list, refetch so we can display their badge
@@ -422,33 +365,23 @@ class SocketQueryBridge {
         if (cachedUsers && !cachedUsers.some(u => u.id === userId)) {
           void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list(this.labId) });
         }
-      } catch (error) {
-        logger.error('Invalid user_online event', { error });
       }
+    );
+
+    this.registerHandler('user_offline', presenceEventSchemas.user_offline, ({ onlineUserIds }) => {
+      if (!this.labId) return;
+      this.queryClient.setQueryData(queryKeys.users.presence(this.labId), onlineUserIds);
     });
 
-    this.socket.on('user_offline', (data: unknown) => {
-      if (!this.labId) return;
-      try {
-        const { onlineUserIds } = presenceEventSchemas.user_offline.parse(data);
+    this.registerHandler(
+      'presence_state',
+      presenceEventSchemas.presence_state,
+      ({ onlineUserIds }) => {
+        if (!this.labId) return;
         this.queryClient.setQueryData(queryKeys.users.presence(this.labId), onlineUserIds);
-      } catch (error) {
-        logger.error('Invalid user_offline event', { error });
       }
-    });
-
-    this.socket.on('presence_state', (data: unknown) => {
-      if (!this.labId) return;
-      try {
-        const { onlineUserIds } = presenceEventSchemas.presence_state.parse(data);
-        this.queryClient.setQueryData(queryKeys.users.presence(this.labId), onlineUserIds);
-      } catch (error) {
-        logger.error('Invalid presence_state event', { error });
-      }
-    });
+    );
   }
-
-  // CONFIGURATION EVENT HANDLERS
 
   private setupConfigurationEventHandlers(): void {
     if (!this.socket) return;
@@ -565,7 +498,7 @@ class SocketQueryBridge {
       return 'Configuration updated';
     }
 
-    if (eventCount > 5) {
+    if (eventCount > CONFIG_CHANGE_SUMMARY_THRESHOLD) {
       return `${eventCount} configuration changes applied`;
     }
 
@@ -586,22 +519,18 @@ class SocketQueryBridge {
     return 'Multiple configuration changes applied';
   }
 
-  // SYSTEM ADMIN EVENT HANDLERS
-
   private setupSystemAdminEventHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('lab_data_changed', (data: unknown) => {
-      try {
-        const { labId } = systemAdminEventSchemas.lab_data_changed.parse(data);
-
+    this.registerHandler(
+      'lab_data_changed',
+      systemAdminEventSchemas.lab_data_changed,
+      ({ labId }) => {
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.labs.list() });
-      } catch (error) {
-        logger.error('Invalid lab_data_changed event', { error });
       }
-    });
+    );
   }
 
   // RECONNECTION HANDLERS — Manager-level events (socket.io) in Socket.IO v4
@@ -623,8 +552,6 @@ class SocketQueryBridge {
     });
   }
 }
-
-// Global Instance Management
 
 let globalSocketBridge: SocketQueryBridge | null = null;
 
