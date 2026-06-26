@@ -87,14 +87,14 @@ describe('SessionService', () => {
       const validation = sessionManager.validateTokens(createValidTokenPair());
 
       expect(validation.isValid).toBe(true);
-      expect(validation.expiresIn).toBeGreaterThan(25 * 60 * 1000);
+      expect(validation.expiresInMs).toBeGreaterThan(25 * 60 * 1000);
     });
 
     it('should detect expired tokens', () => {
       const validation = sessionManager.validateTokens(createExpiredTokenPair());
 
       expect(validation.isValid).toBe(false);
-      expect(validation.expiresIn).toBeLessThan(0);
+      expect(validation.expiresInMs).toBeLessThan(0);
     });
 
     it('should treat tokens within the 1-minute validity threshold as invalid', () => {

@@ -149,11 +149,11 @@ export class SessionService implements TokenProvider {
 
   validateTokens(tokens: TokenPair): TokenValidation {
     const now = Date.now();
-    const expiresIn = tokens.accessTokenExpiry.getTime() - now;
+    const expiresInMs = tokens.accessTokenExpiry.getTime() - now;
 
     return {
-      isValid: expiresIn > 60000, // Valid if more than 1 minute remaining
-      expiresIn,
+      isValid: expiresInMs > 60000, // Valid if more than 1 minute remaining
+      expiresInMs,
     };
   }
 
@@ -561,7 +561,7 @@ export class SessionService implements TokenProvider {
     }
 
     const validation = this.validateTokens(tokens);
-    const timeUntilExpiry = Math.floor(validation.expiresIn / 60000);
+    const timeUntilExpiry = Math.floor(validation.expiresInMs / 60000);
     const timeUntilRefresh = this.state.nextRefreshTime
       ? Math.floor((this.state.nextRefreshTime.getTime() - Date.now()) / 60000)
       : null;
