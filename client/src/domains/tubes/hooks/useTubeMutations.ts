@@ -12,8 +12,8 @@ import { useLabId } from '@domains/authentication';
 import { getStorageDataFromCache } from '@domains/storage/hooks/useStorageData';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { TubeService } from '@domains/tubes/services/TubeService';
+import { isConflictError } from '@infra/api';
 import { logger } from '@infra/logger';
-import { isConflictError } from '@shared/errors';
 import { notifications } from '@shared/utils/notifications';
 
 import type {

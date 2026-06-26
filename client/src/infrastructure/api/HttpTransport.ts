@@ -9,7 +9,7 @@ import { errorEnvelopeSchema, ApiError } from '@odysseus/shared-schemas';
 import { isOffline } from '@infra/connection';
 import { env } from '@shared/config';
 
-const OFFLINE_WRITE_BLOCKED_CODE = 'OFFLINE_WRITE_BLOCKED';
+export const OFFLINE_WRITE_BLOCKED_CODE = 'OFFLINE_WRITE_BLOCKED';
 
 export class OfflineWriteError extends ApiError {
   constructor() {
@@ -23,17 +23,6 @@ export class OfflineWriteError extends ApiError {
 }
 
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-
-/** Use to avoid showing duplicate error notifications for offline writes. */
-export function isOfflineError(error: unknown): boolean {
-  return (
-    error instanceof OfflineWriteError ||
-    (typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code: unknown }).code === OFFLINE_WRITE_BLOCKED_CODE)
-  );
-}
 
 export interface HttpTransportConfig {
   baseURL?: string;

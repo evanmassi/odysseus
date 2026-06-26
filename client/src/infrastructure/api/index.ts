@@ -1,10 +1,10 @@
 /**
  * Infrastructure API Layer
  *
- * The shared httpClient singleton and the offline-write error check.
+ * The shared httpClient singleton and API error guards.
  */
 
-export { isOfflineError } from './HttpTransport';
+export { isOfflineError, isConflictError } from './apiErrorGuards';
 
 import { HttpClient } from './HttpClient';
 import { baseTransport } from './HttpTransport';

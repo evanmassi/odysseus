@@ -8,9 +8,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore, useLabId } from '@domains/authentication';
-import { isOfflineError } from '@infra/api';
+import { isConflictError, isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
-import { isConflictError } from '@shared/errors';
 import { notifications } from '@shared/utils/notifications';
 
 import { StorageService } from '../services/StorageService';
