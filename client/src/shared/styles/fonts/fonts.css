@@ -4,8 +4,7 @@
  * Self-hosted @font-face rules for offline availability.
  */
 
-/* Variable fonts: weight range tells the browser this face covers the whole
-   axis — any font-weight in the range maps to this single file. */
+/* Variable fonts: the weight range covers the whole axis — any font-weight maps to this one file. */
 @font-face {
   font-family: 'Hanken Grotesk';
   src: url('./HankenGrotesk-VariableFont_wght.ttf') format('truetype');

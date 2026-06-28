@@ -5,17 +5,11 @@
  */
 
 @layer components {
-  /*
-   * Use data-focus attribute to opt out or customize:
-   *   - data-focus="none"   - No focus ring (element has custom visual feedback like modal tabs)
-   *   - data-focus="custom" - Custom focus handling (grid elements, tubes)
-   *
-   * Special cases handled by CSS:
-   *   - .input-field-error  - Validation error state (pulsing red border)
-   *   - .auth-input-container - Container-managed focus (:focus-within)
-   */
+  /* data-focus (any value) opts an element out of the global ring — it provides its
+     own focus feedback (e.g. grid cells/tubes). .input-field-error is excluded so its
+     own error styling shows through. */
 
-  /* Contrast ring (inner) + colored outer ring + neon glow */
+  /* Contrast ring + colored outer ring + neon glow */
   button:not([data-focus]):focus-visible,
   a:not([data-focus]):focus-visible,
   input:not([data-focus]):not(.input-field-error):focus-visible,
@@ -32,8 +26,8 @@
       0 0 14px 4px hsl(var(--focus-ring-blur));
   }
 
-  /* Container-managed focus - auth-input-container handles :focus-within styling */
-  /* Uses !important to override global rule's higher specificity from :not() selectors */
+  /* auth-input-container manages focus via :focus-within; !important beats the global
+     rule's :not()-inflated specificity. */
   .auth-input-container input:focus-visible,
   .auth-input-container select:focus-visible,
   .auth-input-container textarea:focus-visible,
