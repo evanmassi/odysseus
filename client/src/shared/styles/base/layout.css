@@ -7,17 +7,13 @@
 :root {
   /* Layout Heights */
   --layout-header-height: 52px;
-  --layout-top-padding: 0px;
   --panel-title-height: 40px;
-
-  --space-sm: 8px;
 }
 
 .app-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top: var(--layout-top-padding);
   background-color: hsl(var(--page));
   background-image:
     repeating-linear-gradient(0deg, hsl(var(--foreground) / 0.013) 0 1px, transparent 1px 26px),
@@ -29,18 +25,14 @@
   flex-shrink: 0;
 }
 
-/* Light mode: the header is the deep steel-navy anchor (#16263c), darker than the
-   #234a82 primary accent so accents read against it. Scoped to the light root so the
-   dark-island header keeps its own --background in dark. */
+/* Light mode header: steel-navy (#16263c), darker than the #234a82 accent so
+   accents read on it. Scoped to light so the dark header keeps its own --background. */
 [data-theme='light'] .app-header-bar {
   --background: 213 45% 16%;
 
-  /* Powered-off anchor: the bar keeps the dark surface but reads as unlit chrome in
-     light mode — white ink (not the dark scope's warm cream) to pop against the navy
-     and tie to the white body, no emissive glow (--lit 0), and a lighter search well
-     (white wash, not the dark black wash) so the field stays visible on the bar.
-     Accents (breadcrumb --primary) are left bright. Dropdowns re-assert their own
-     data-theme, so these overrides never reach the menus. */
+  /* Unlit chrome in light mode: white ink + lighter search well so they read on the
+     navy bar; --lit 0 kills the glow. Dropdowns re-assert data-theme, so these never
+     reach the menus. */
   --lit: 0;
   --foreground: 0 0% 100%;
   --secondary-foreground: 210 17% 82%;
@@ -49,16 +41,14 @@
 }
 
 .main-layout {
-  height: calc(100vh - var(--layout-header-height) - var(--layout-top-padding));
+  height: calc(100vh - var(--layout-header-height));
   display: flex;
   justify-content: center;
   gap: 20px;
   padding: 8px 16px 16px;
   align-items: flex-start;
-  background-color: transparent;
 }
 
-/* Storage Navigator Panel */
 .storage-navigator-panel {
   display: flex;
   flex-direction: column;
@@ -67,22 +57,17 @@
   max-width: 320px;
 }
 
-/* Grid Section */
 .grid-section {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-width: 0;
   min-height: 0;
-  /* Cap width so the square grid plus the chrome stacked above it (panel title +
-     breadcrumb) never grows taller than the column, which would clip bottom rows. */
-  max-width: calc(
-    100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--panel-title-height) -
-      72px
-  );
+  /* Cap width so the square grid + chrome above it (title + breadcrumb) can't outgrow
+     the column and clip bottom rows. */
+  max-width: calc(100vh - var(--layout-header-height) - var(--panel-title-height) - 72px);
 }
 
-/* Info Panel */
 .info-panel {
   display: flex;
   flex-direction: column;
@@ -91,7 +76,6 @@
   max-width: 400px;
 }
 
-/* Grid Container */
 .grid-container {
   display: flex;
   align-items: center;
@@ -99,25 +83,13 @@
   padding: 12px;
   min-width: 0;
   min-height: 0;
-  /* Square chassis: height tracks the width-bound size so the panel hugs the grid
-     instead of stretching past it. aspect-ratio gives a definite height, so cqh is safe. */
+  /* aspect-ratio gives a definite height so the panel hugs the grid and child cqh resolves. */
   aspect-ratio: 1;
   container-type: size;
 }
 
-/* Panel Title */
-.panel-title {
-  height: var(--panel-title-height);
-  min-height: var(--panel-title-height);
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-/* Tube Grid */
 .tube-grid {
-  /* Largest square that fits the container on either axis, minus the ruler gutters
-     (mirrored on all four sides), so the grid fills the chassis. */
+  /* Largest square fitting either axis, minus the mirrored ruler gutters. */
   width: min(calc(100cqw - 2 * var(--grid-ruler, 0px)), calc(100cqh - 2 * var(--grid-ruler, 0px)));
   aspect-ratio: 1;
   gap: 6px;
@@ -130,8 +102,7 @@
   grid-template-rows: var(--grid-ruler, 0px) auto;
 }
 
-/* Mirror the ruler track on the far side so the cell grid (centre cell) is what
-   gets centred, giving equal margins on all four sides. */
+/* Mirror the far-side ruler track so the cell grid centres with equal margins. */
 .grid-with-rulers.has-rulers {
   --grid-ruler: 24px;
   grid-template-columns: calc(var(--grid-ruler) - 10px) auto calc(var(--grid-ruler) - 10px);
@@ -170,13 +141,11 @@
   line-height: 1;
 }
 
-/* Lab Management Layout */
 .lab-management-layout {
-  height: calc(100vh - var(--layout-header-height) - var(--layout-top-padding));
+  height: calc(100vh - var(--layout-header-height));
   display: flex;
   gap: 20px;
   padding: 8px 16px 16px;
-  background-color: transparent;
 }
 
 .lab-management-sidebar {
@@ -190,7 +159,6 @@
   min-height: 0;
 }
 
-/* Responsive adjustments */
 @media (max-width: 1400px) {
   .storage-navigator-panel {
     min-width: 200px;
@@ -205,7 +173,7 @@
   }
 
   .main-layout {
-    gap: var(--space-sm);
-    padding: var(--space-sm);
+    gap: 8px;
+    padding: 8px;
   }
 }

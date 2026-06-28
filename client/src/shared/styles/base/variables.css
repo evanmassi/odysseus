@@ -64,7 +64,7 @@
     --sheen: 0 0% 100%;
     --scrim: 0 0% 0%;
     /* Lit switch: 0 = unlit (light), 1 = lit (dark). Multiplies the glow/sheen/bloom
-       alphas across chassis, tree nubs, and connector lines; elevation ignores it. */
+       alphas; elevation ignores it. */
     --lit: 0;
     /* Table-header surface: % of card kept before mixing toward black (lighter in light). */
     --header-mix: 96%;
@@ -77,14 +77,13 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
 
-    /* Primary — light mode: deep-navy "steel anchor" accent (#234a82). */
+    /* Primary — deep-navy accent (#234a82). */
     --primary: 213 60% 40%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
     --secondary: 214.3 31.8% 91.4%;
-    /* Neutral text — muted near-black, cool-neutral to sit with the navy ink. The
-       study's warm grey read as gold against this theme's cool foreground. */
+    /* Neutral text — muted near-black, cool-neutral to sit with the navy ink. */
     --secondary-foreground: 220 9% 27%;
 
     /* Muted */
@@ -104,16 +103,14 @@
     --overlay: 0 0% 0% / 0.6;
     --overlay-emphasis: 0 0% 0% / 0.7;
 
-    /* Auth surface tokens — Steel Anchor light: a white console on a cool canvas
-       with a deep-navy accent. Dark theme overrides these below. Plain channels
-       (not Tailwind tokens) so they compose into the gradient/shadow stacks in
-       auth-console.css. */
+    /* Auth surface tokens — light console palette. Plain space-separated channels
+       (not HSL Tailwind tokens) so they compose into the gradient/shadow stacks in
+       auth-console.css. Dark overrides below. */
     --auth-ambient: 35 74 130;
     --auth-surface: 255 255 255;
-    /* Field behind the console — cool canvas so the white chrome floats. */
+    /* Field behind the console — cool canvas. */
     --auth-field-bg: 236 239 243;
-    /* Inset edge tokens are off in light; the rim hairline + soft shadow carry the
-       console (the light chrome rule rewrites the shadow, these stay neutral). */
+    /* Inset edge tokens off in light; the rim hairline + soft shadow carry the console. */
     --auth-edge-lift-top: 255 255 255 / 0;
     --auth-edge-lift-left: 255 255 255 / 0;
     --auth-edge-recess-bottom: 28 39 51 / 0;
@@ -132,7 +129,7 @@
     --color-action-light: 213 50% 97%;
     --color-action-light-hover: 213 50% 94%;
 
-    /* Danger Theme — study brick/clay ink (≈ rgb(178,66,52)). */
+    /* Danger Theme — brick/clay ink (≈ rgb(178,66,52)). */
     --color-danger-bg: 7 55% 45%;
     --color-danger-hover: 7 60% 38%;
     --color-danger-text: 7 55% 45%;
@@ -147,8 +144,8 @@
     --color-clear-hover: 220 13% 82.7%;
     --color-clear-text: 220 8.9% 46.1%;
 
-    /* Warning Theme — deepened to ochre ink (≈ ref rgb(158,110,30)) so amber reads
-       on warm paper rather than washing out at high lightness. */
+    /* Warning Theme — ochre ink (≈ rgb(158,110,30)), deepened so amber doesn't wash
+       out at high lightness. */
     --color-warning-bg: 38 68% 42%;
     --color-warning-hover: 38 72% 35%;
     --color-warning-text: 38 68% 37%;
@@ -158,7 +155,7 @@
     --color-warning-light-hover: 40 72% 91%;
     --color-warning-border: 38 58% 50%;
 
-    /* Success Theme — study pine ink (≈ rgb(46,116,78)). */
+    /* Success Theme — pine ink (≈ rgb(46,116,78)). */
     --color-success-bg: 147 43% 32%;
     --color-success-hover: 147 48% 26%;
     --color-success-text: 147 43% 32%;
@@ -168,8 +165,8 @@
     --color-success-light-hover: 147 43% 92%;
     --color-success-border: 147 38% 42%;
 
-    /* Info Theme — deepened to a deep azure so it sits with the study palette
-       (was a light sky blue that read lighter than the navy primary). */
+    /* Info Theme — deep azure; deepened from a sky blue that read lighter than the
+       primary. */
     --color-info-bg: 206 62% 42%;
     --color-info-hover: 206 66% 35%;
     --color-info-text: 206 62% 41%;
@@ -193,20 +190,12 @@
     /* Focus Ring System */
     --focus-ring-color: 200 85% 58%;
     --focus-ring-contrast: 0 0% 100%;
-    --focus-ring-glow-inner: 186.7 92.9% 90.6%;
     --focus-ring-glow-outer: 200 85% 58% / 0.45;
     --focus-ring-blur: 200 85% 58% / 0.3;
-    --focus-ring-width: 2px;
     --focus-ring-offset: 0px;
 
     /* Component library aliases */
     --ring: var(--focus-ring-color);
-    --ring-offset: var(--background);
-
-    /* Focus Ring System - Validation States */
-    --focus-ring-error: var(--color-danger-bg);
-    --focus-ring-warning: var(--color-warning-bg);
-    --focus-ring-success: var(--color-success-bg);
 
     /* Audit Log - Entity Colors */
     --color-audit-entity-tube: 209.3 89.7% 77.3%;
@@ -232,13 +221,9 @@
     --grid-border: 220 13% 91%;
     --grid-empty: 214 33% 96%;
     --grid-empty-foreground: 213 16% 63%;
-    --grid-position-label: 0 0% 100%;
-    --grid-position-label-foreground: 215.4 19.3% 34.5%;
-    --grid-position-label-border: 220 13% 82.7%;
-    /* Light: vivid-blue selection (Steel Anchor family), self-sufficient — bold ring +
-       fill tint (overlay) + elevation, no glow bloom, no dimming of the rest. Ring is
-       pushed brighter/more saturated than the navy primary so it stays apparent against
-       both pale and dark saturated cells. */
+    /* Light selection: bold ring + fill tint (overlay) + elevation, no glow bloom. Ring
+       is brighter/more saturated than the primary so it stays visible on pale and dark
+       cells. */
     --grid-selection: 213 82% 47%;
     --grid-selection-glow: 213 82% 50% / 0.45;
     --grid-selection-inner: 0 0% 100% / 0.5;
@@ -274,11 +259,7 @@
     --alpha-checkbox-shadow: 0.25;
     --alpha-zebra: 0.02;
     --alpha-hover: 0.05;
-    --alpha-cell-rim: 0.12;
     --alpha-header-rim: 0.09;
-    --alpha-header-rule: 0.18;
-    --alpha-header-emit: 0;
-    --alpha-header-bloom: 0;
     --alpha-phosphor-rim: 0;
     --alpha-phosphor-bloom: 0;
     --alpha-hover-stripe: 0.45;
@@ -292,7 +273,6 @@
     --alpha-hover-bloom-edge: 0;
     --alpha-hover-bloom-far: 0;
     --alpha-stripe-muted: 0.3;
-    --bg-header-band: 0 0% 0% / 0.04;
 
     /* Always-dark components */
 
@@ -345,7 +325,6 @@
     --scanline: 0 0% 0% / 0.12;
     --shade: 0 0% 0%;
     --recess: 0 0% 0%;
-    --sheen: 0 0% 100%;
     --lit: 1;
     --header-mix: 85%;
 
@@ -359,7 +338,6 @@
 
     /* Primary */
     --primary: 210 60% 60%;
-    --primary-foreground: 0 0% 100%;
 
     /* Secondary */
     --secondary: 217 26% 11%;
@@ -378,8 +356,7 @@
     --border: 215.3 25% 26.7%;
     --input: 217.2 25% 26.7%;
 
-    /* Auth surface tokens — always-dark navy console (CRT power-on). Overrides the
-       light values defined in the base block above. */
+    /* Auth surface tokens — always-dark navy console. Overrides the light values above. */
     --auth-ambient: 91 157 217;
     --auth-surface: 14 22 34;
     --auth-field-bg: 6 10 18;
@@ -395,7 +372,6 @@
     --auth-text-faint: 232 227 213 / 0.28;
 
     /* Action Colors */
-    --color-action-default: var(--primary);
     --color-action-hover: 210 65% 52%;
     --color-action-focus: 210 65% 52%;
     --color-action-light: 210 45% 12%;
@@ -406,7 +382,6 @@
     --color-danger-hover: 5 58% 52%;
     --color-danger-text: 5 50% 65%;
     --color-danger-text-hover: 5 58% 58%;
-    --color-danger-btnText: 0 0% 100%;
     --color-danger-light: 5 30% 12%;
     --color-danger-light-hover: 5 35% 16%;
     --color-danger-border: 5 45% 45%;
@@ -416,7 +391,6 @@
     --color-warning-hover: 32 72% 54%;
     --color-warning-text: 32 67% 68%;
     --color-warning-text-hover: 32 72% 60%;
-    --color-warning-btnText: 0 0% 100%;
     --color-warning-light: 32 40% 10%;
     --color-warning-light-hover: 32 45% 14%;
     --color-warning-border: 32 60% 45%;
@@ -426,7 +400,6 @@
     --color-success-hover: 152 45% 42%;
     --color-success-text: 152 45% 60%;
     --color-success-text-hover: 152 50% 52%;
-    --color-success-btnText: 0 0% 100%;
     --color-success-light: 152 15% 12%;
     --color-success-light-hover: 152 20% 16%;
     --color-success-border: 152 35% 40%;
@@ -436,7 +409,6 @@
     --color-info-hover: 213 80% 52%;
     --color-info-text: 213 75% 70%;
     --color-info-text-hover: 213 80% 62%;
-    --color-info-btnText: 0 0% 100%;
     --color-info-light: 213 45% 12%;
     --color-info-light-hover: 213 50% 16%;
     --color-info-border: 213 55% 40%;
@@ -460,12 +432,8 @@
     /* Focus Ring System */
     --focus-ring-color: 213.1 93.9% 67.8%;
     --focus-ring-contrast: var(--page);
-    --focus-ring-glow-inner: 213.8 50% 24.3%;
     --focus-ring-glow-outer: 213.1 93.9% 67.8% / 0.35;
     --focus-ring-blur: 213.1 93.9% 67.8% / 0.25;
-
-    /* Component library aliases */
-    --ring: var(--focus-ring-color);
 
     /* Audit Log - Entity Colors */
     --color-audit-entity-tube: 199 85% 65%;
@@ -485,13 +453,9 @@
     /* Tube Grid */
     --grid-border: 217.2 19.2% 26.7%;
     --grid-empty: 0 0% 0% / 0.32;
-    --grid-position-label: 217.2 32.6% 15.5%;
-    --grid-position-label-foreground: 220 10.6% 64.9%;
-    --grid-position-label-border: 217.2 19.2% 26.7%;
     --grid-empty-foreground: 220 8.9% 46.1%;
     --grid-selection: 213.1 93.9% 67.8%;
     --grid-selection-glow: 213.1 93.9% 67.8% / 0.7;
-    --grid-selection-inner: 0 0% 100% / 0.5;
     --grid-selection-overlay: 0 0% 100% / 0.35;
     --grid-selection-empty: 213.1 93.9% 67.8% / 0.15;
     --grid-selection-coord: 0 0% 100%;
@@ -521,14 +485,11 @@
     --alpha-checkbox-glow-inner: 0.55;
     --alpha-checkbox-glow-outer: 0.22;
     --alpha-checkbox-shadow: 0.6;
-    --alpha-header-emit: 0.18;
-    --alpha-header-bloom: 0.1;
     --alpha-phosphor-rim: 0.045;
     --alpha-phosphor-bloom: 0.04;
     --alpha-hover-edge: 0.18;
     --alpha-hover-bloom: 0.08;
     --alpha-hover-bloom-edge: 0.06;
     --alpha-hover-bloom-far: 0.04;
-    --bg-header-band: 0 0% 0% / 0.15;
   }
 }
