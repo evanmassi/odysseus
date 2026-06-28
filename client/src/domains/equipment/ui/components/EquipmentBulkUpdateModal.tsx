@@ -698,7 +698,7 @@ export function EquipmentBulkUpdateModal({
 
   const handleResult = useCallback(
     (result: EquipmentBulkResponse) => {
-      notifyBulkResult(result, 'items');
+      notifyBulkResult(result, { entityLabel: 'items', actionVerb: 'Updated' });
       setSelectedIds(new Set());
       onClose();
     },

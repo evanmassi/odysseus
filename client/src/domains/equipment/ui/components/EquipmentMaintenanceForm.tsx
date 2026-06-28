@@ -21,7 +21,7 @@ import { Button, DatePicker, NubDivider, Select } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
 import type {
@@ -70,12 +70,12 @@ export function EquipmentMaintenanceForm({
     ) as never,
     defaultValues: isEditing
       ? {
-          datePerformed: formatDateForInput(entry.datePerformed),
+          datePerformed: normalizeDateString(entry.datePerformed),
           maintenanceType: entry.maintenanceType,
           performedBy: entry.performedBy ?? '',
           technician: entry.technician ?? '',
           description: entry.description ?? '',
-          nextScheduledDate: formatDateForInput(entry.nextScheduledDate),
+          nextScheduledDate: normalizeDateString(entry.nextScheduledDate),
           cost: entry.cost,
           notes: entry.notes ?? '',
         }

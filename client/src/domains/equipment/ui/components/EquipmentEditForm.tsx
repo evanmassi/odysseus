@@ -25,7 +25,7 @@ import { Button, DatePicker, HeaderStrip, NubDivider, SectionHeader, Select } fr
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
 import type {
@@ -133,11 +133,11 @@ export function EquipmentEditForm({
           location: item.location ?? '',
           status: item.status,
           conditionNotes: item.conditionNotes ?? '',
-          purchaseDate: formatDateForInput(item.purchaseDate),
-          warrantyExpiration: formatDateForInput(item.warrantyExpiration),
+          purchaseDate: normalizeDateString(item.purchaseDate),
+          warrantyExpiration: normalizeDateString(item.warrantyExpiration),
           purchaseCost: item.purchaseCost,
           assetTag: item.assetTag ?? '',
-          nextMaintenanceDate: formatDateForInput(item.nextMaintenanceDate),
+          nextMaintenanceDate: normalizeDateString(item.nextMaintenanceDate),
           notes: item.notes ?? '',
         }
       : {

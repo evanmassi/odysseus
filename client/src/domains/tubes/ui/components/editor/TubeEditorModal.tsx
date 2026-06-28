@@ -40,7 +40,7 @@ import { AlertBanner, Button, Checkbox } from '@shared/ui';
 import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 
 import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
@@ -184,7 +184,7 @@ function EditModeForm({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Convert empty string to undefined for form
         concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
         concentrationUnit: tube.sample.concentrationUnit ?? undefined,
-        date: tube.sample.date ? formatDateForInput(tube.sample.date) : '',
+        date: tube.sample.date ? normalizeDateString(tube.sample.date) : '',
         mediaType: tube.sample.mediaType ?? '',
         mediaSupplements: tube.sample.mediaSupplements ?? '',
         mediaSelection: tube.sample.mediaSelection ?? '',

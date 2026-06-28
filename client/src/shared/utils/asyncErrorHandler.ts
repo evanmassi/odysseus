@@ -5,6 +5,7 @@
  */
 
 import { notifications } from './notifications';
+
 export async function withAsyncHandler(
   operation: () => Promise<void>,
   options: {
@@ -22,8 +23,9 @@ export async function withAsyncHandler(
     }
     options.onSuccess?.();
   } catch (error: unknown) {
+    const detail = error instanceof Error ? error.message : undefined;
     const message =
-      error instanceof Error ? error.message : (options.errorMessage ?? 'An error occurred');
+      [options.errorMessage, detail].filter(Boolean).join(': ') || 'An error occurred';
     notifications.error(message);
   } finally {
     options.setLoading?.(false);

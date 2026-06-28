@@ -20,7 +20,7 @@ import { Button, DatePicker, HeaderStrip, Input, NubDivider, Select, Tab, Tabs }
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
@@ -457,7 +457,7 @@ export function SupplyTransactionForm({
                     control={control}
                     render={({ field: { value, onChange } }) => (
                       <DatePicker
-                        value={formatDateForInput(value)}
+                        value={normalizeDateString(value)}
                         onChange={onChange}
                         clearable
                         fullWidth

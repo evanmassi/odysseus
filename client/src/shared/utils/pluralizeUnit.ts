@@ -86,7 +86,5 @@ export function pluralizeUnit(unit: string, count: number): string {
 
   if (/[^aeiou]y$/i.test(trimmed)) return applyCase(trimmed, `${trimmed.slice(0, -1)}ies`);
 
-  if (/[^aeiou]o$/i.test(trimmed)) return applyCase(trimmed, `${trimmed}es`);
-
   return applyCase(trimmed, `${trimmed}s`);
 }

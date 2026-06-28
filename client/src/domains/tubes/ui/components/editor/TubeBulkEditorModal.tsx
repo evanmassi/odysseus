@@ -37,7 +37,7 @@ import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays'
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 
 import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
@@ -227,7 +227,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         date:
           analysis.date.state !== 'conflict'
             ? analysis.date.commonValue
-              ? formatDateForInput(analysis.date.commonValue)
+              ? normalizeDateString(analysis.date.commonValue)
               : ''
             : '',
         mediaType:

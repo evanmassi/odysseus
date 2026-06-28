@@ -14,7 +14,7 @@ import { useVoidSupplyTransactionMutation } from '@domains/supplies/hooks/useSup
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
-import { formatDateForDisplay, formatDateForInput } from '@shared/utils/dateFormatters';
+import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
@@ -78,7 +78,7 @@ export function SupplyVoidTransactionModal({
           locationId: transaction.locationId,
           quantity: Math.abs(transaction.quantityChange),
           lotNumber: transaction.lotNumber,
-          expirationDate: formatDateForInput(transaction.expirationDate),
+          expirationDate: normalizeDateString(transaction.expirationDate),
           poNumber: transaction.poNumber,
           cost: transaction.cost,
           notes: transaction.notes,

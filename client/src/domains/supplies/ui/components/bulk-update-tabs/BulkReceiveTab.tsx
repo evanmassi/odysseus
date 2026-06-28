@@ -134,7 +134,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
 
     try {
       const result = await bulkReceiveMutation.mutateAsync({ items });
-      notifyBulkResult(result, 'items');
+      notifyBulkResult(result, { entityLabel: 'items', actionVerb: 'Received' });
       setRows([]);
       onComplete();
     } catch {

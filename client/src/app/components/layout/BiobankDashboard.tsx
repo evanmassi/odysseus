@@ -6,7 +6,7 @@
 
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 
-import { isAdminRole } from '@odysseus/shared-schemas';
+import { isAdminRole, getPersonDisplayName } from '@odysseus/shared-schemas';
 import { FlaskConical } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
@@ -42,7 +42,6 @@ import { logger } from '@infra/logger';
 import { ErrorBoundary, HeaderStrip, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { notifications } from '@shared/utils/notifications';
-import { getUserDisplayName } from '@shared/utils/userDisplayFormatters';
 
 import { AppHeader } from './AppHeader';
 import { BiobankModals } from './BiobankModals';
@@ -103,7 +102,10 @@ function BiobankWorkspace() {
   const userDisplayMap = useMemo(() => {
     const map = new Map<string, string>();
     lockUsers.forEach(u => {
-      map.set(u.id, getUserDisplayName(u.username, u.firstName, u.lastName));
+      map.set(
+        u.id,
+        getPersonDisplayName({ username: u.username, firstName: u.firstName, lastName: u.lastName })
+      );
     });
     return map;
   }, [lockUsers]);

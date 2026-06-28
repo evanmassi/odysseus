@@ -110,7 +110,7 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
 
     try {
       const result = await bulkIssueMutation.mutateAsync({ items });
-      notifyBulkResult(result, 'items');
+      notifyBulkResult(result, { entityLabel: 'items', actionVerb: 'Issued' });
       setRows([]);
       onComplete();
     } catch {

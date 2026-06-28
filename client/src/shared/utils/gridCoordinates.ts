@@ -1,15 +1,31 @@
 /**
  * Grid Coordinate Utilities
  *
- * Position-to-coordinate conversions for the tube grid layout.
+ * Conversions between box positions and row/column coordinates, plus
+ * selection-range helpers for the tube grid.
  */
 
-import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+export interface GridCoordinates {
+  row: number;
+  col: number;
+}
+
+export function positionToCoordinates(position: number, gridCols: number): GridCoordinates {
+  const zeroBasedPosition = position - 1;
+  return {
+    row: Math.floor(zeroBasedPosition / gridCols),
+    col: zeroBasedPosition % gridCols,
+  };
+}
+
+export function coordinatesToPosition(row: number, col: number, gridCols: number): number {
+  return row * gridCols + col + 1;
+}
 
 export function getPositionsInRectangle(
   start: GridCoordinates,
   end: GridCoordinates,
-  gridCols: number = 9
+  gridCols: number
 ): number[] {
   const positions: number[] = [];
 
@@ -20,48 +36,11 @@ export function getPositionsInRectangle(
 
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
-      const position = row * gridCols + col + 1;
-      positions.push(position);
+      positions.push(coordinatesToPosition(row, col, gridCols));
     }
   }
 
   return positions;
-}
-
-export interface GridCoordinates {
-  row: number;
-  col: number;
-}
-
-export function positionToCoordinates(position: number, gridSize: number = 9): GridCoordinates {
-  const zeroBasedPosition = position - 1;
-  return {
-    row: Math.floor(zeroBasedPosition / gridSize),
-    col: zeroBasedPosition % gridSize,
-  };
-}
-
-export function coordinatesToPosition(row: number, col: number, gridSize: number = 9): number {
-  return row * gridSize + col + 1;
-}
-
-export function getPixelCoordinates(
-  position: number,
-  cellSize: number,
-  gridSize: number = 9
-): { x: number; y: number } {
-  const coords = positionToCoordinates(position, gridSize);
-  return {
-    x: coords.col * cellSize,
-    y: coords.row * cellSize,
-  };
-}
-
-export function isValidPosition(
-  position: number,
-  maxPositions: number = EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX
-): boolean {
-  return position >= 1 && position <= maxPositions && Number.isInteger(position);
 }
 
 export function getSelectionRange(startPos: number, endPos: number): number[] {

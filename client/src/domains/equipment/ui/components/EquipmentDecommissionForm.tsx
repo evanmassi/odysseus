@@ -14,7 +14,7 @@ import { Button, DatePicker, NubDivider } from '@shared/ui';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { formatDateForInput } from '@shared/utils/dateFormatters';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 
 import type { DecommissionEquipmentItemRequest } from '@odysseus/shared-schemas';
@@ -45,7 +45,7 @@ export function EquipmentDecommissionForm({
   } = useForm({
     resolver: zodResolver(decommissionEquipmentItemRequestSchema),
     defaultValues: {
-      decommissionDate: formatDateForInput(new Date()),
+      decommissionDate: normalizeDateString(new Date()),
       decommissionReason: '',
       disposalMethod: '',
     },

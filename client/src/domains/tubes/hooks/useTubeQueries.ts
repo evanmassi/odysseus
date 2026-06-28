@@ -4,30 +4,14 @@
  * React Query hooks for tube read operations.
  */
 
-import {
-  type TubeData as SchemaTubeData,
-  type TubeFilterableField,
-} from '@odysseus/shared-schemas';
+import { type TubeFilterableField } from '@odysseus/shared-schemas';
 import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
 import { TubeService } from '@domains/tubes/services/TubeService';
-import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import type { TubeData } from '@domains/tubes/types';
-
-/** Normalizes concentration type from API responses (string → number). */
-function convertSchemaToSharedTubeData(schemaTube: SchemaTubeData): TubeData {
-  return {
-    ...schemaTube,
-    sample: {
-      ...schemaTube.sample,
-      concentration: normalizeConcentration(schemaTube.sample.concentration),
-    },
-    timestamps: schemaTube.timestamps,
-  };
-}
 
 export const useTubesByLocation = (
   tankId: string,
@@ -39,10 +23,7 @@ export const useTubesByLocation = (
 
   return useQuery({
     queryKey: queryKeys.tubes.location(labId, tankId, rackId, boxId),
-    queryFn: async (): Promise<TubeData[]> => {
-      const schemaTubes = await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
-      return schemaTubes.map(convertSchemaToSharedTubeData);
-    },
+    queryFn: () => TubeService.fetchTubesByLocation(tankId, rackId, boxId),
     enabled: !!(tankId && rackId && boxId),
     staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
     gcTime: 10 * 60 * 1000,
@@ -101,10 +82,7 @@ export const useTube = (
 
   return useQuery({
     queryKey: queryKeys.tubes.detail(labId, id),
-    queryFn: async (): Promise<TubeData> => {
-      const schemaTube = await TubeService.fetchTubeById(id);
-      return convertSchemaToSharedTubeData(schemaTube);
-    },
+    queryFn: () => TubeService.fetchTubeById(id),
     initialData,
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
@@ -138,8 +116,7 @@ export const useBulkTubes = (
         return [];
       }
 
-      const schemaTubes = await TubeService.bulkFetchTubes(tubeIds);
-      return schemaTubes.map(convertSchemaToSharedTubeData);
+      return TubeService.bulkFetchTubes(tubeIds);
     },
     enabled: tubeIds.length > 0,
     staleTime: 5 * 60 * 1000,

@@ -6,7 +6,7 @@
 
 import { useState, lazy, useRef, useCallback } from 'react';
 
-import { isAdminRole } from '@odysseus/shared-schemas';
+import { isAdminRole, getPersonDisplayName, getPersonInitials } from '@odysseus/shared-schemas';
 import {
   LogOut,
   Settings,
@@ -34,7 +34,6 @@ import { DropdownMenu, LazyModalBoundary, MenuDivider, MenuItem } from '@shared/
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
-import { getUserDisplayName, getUserInitials } from '@shared/utils/userDisplayFormatters';
 
 import { TubeSelectionToolbar, type GridController } from './TubeSelectionToolbar';
 
@@ -140,10 +139,18 @@ export function AppHeader({
   const labSubmenuTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const displayName = user
-    ? getUserDisplayName(user.username, profile?.firstName, profile?.lastName)
+    ? getPersonDisplayName({
+        username: user.username,
+        firstName: profile?.firstName,
+        lastName: profile?.lastName,
+      })
     : '';
   const initials = user
-    ? getUserInitials(user.username, profile?.firstName, profile?.lastName)
+    ? getPersonInitials({
+        username: user.username,
+        firstName: profile?.firstName,
+        lastName: profile?.lastName,
+      })
     : '';
 
   const donorRegistry = useDonorRegistryStore();

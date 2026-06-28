@@ -6,13 +6,10 @@
 
 import React, { useRef, useState } from 'react';
 
+import { formatConcentrationDisplay } from '@odysseus/shared-schemas';
 import { AlertCircle, AlertTriangle } from 'lucide-react';
 
 import { Input, Select, type InputState } from '@shared/ui';
-import {
-  formatToScientificNotation,
-  isScientificNotationInput,
-} from '@shared/utils/scientificNotation';
 
 interface ConcentrationFieldProps {
   label: string;
@@ -87,13 +84,9 @@ export function TubeConcentrationField({
   const handleFormat = (inputValue: string): string => {
     if (!inputValue || inputValue.trim() === '') return inputValue;
 
-    if (isScientificNotationInput(inputValue) || inputValue.includes('E')) {
-      return inputValue;
-    }
-
     const numValue = parseFloat(inputValue);
     if (!isNaN(numValue) && numValue >= 1000) {
-      return formatToScientificNotation(inputValue);
+      return formatConcentrationDisplay(numValue);
     }
 
     return inputValue;

@@ -621,6 +621,8 @@ export {
   sortByName,
 } from './persons/personSchemas';
 
+export { getPersonInitials, getPersonDisplayName } from './persons/personFormatters';
+
 // Date field helpers
 export {
   dateField,

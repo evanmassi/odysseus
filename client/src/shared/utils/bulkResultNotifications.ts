@@ -7,13 +7,16 @@
 import { notifications } from '@shared/utils/notifications';
 
 interface BulkResult {
-  succeeded: string[];
-  failed: Array<{ id: string; error: string }>;
+  succeeded: unknown[];
+  failed: unknown[];
 }
 
-export function notifyBulkResult(result: BulkResult, entityLabel: string): void {
+export function notifyBulkResult(
+  result: BulkResult,
+  { entityLabel, actionVerb }: { entityLabel: string; actionVerb: string }
+): void {
   if (result.failed.length === 0) {
-    notifications.success(`Updated ${result.succeeded.length} ${entityLabel}`);
+    notifications.success(`${actionVerb} ${result.succeeded.length} ${entityLabel}`);
   } else if (result.succeeded.length === 0) {
     notifications.error(`All ${result.failed.length} ${entityLabel} failed`);
   } else {

@@ -97,7 +97,7 @@ export function SupplyBulkUpdateModal({
 
   const handleResult = useCallback(
     (result: SupplyBulkResponse) => {
-      notifyBulkResult(result, 'items');
+      notifyBulkResult(result, { entityLabel: 'items', actionVerb: 'Updated' });
       setSelectedIds(new Set());
       onClose();
     },

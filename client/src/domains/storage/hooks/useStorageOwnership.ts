@@ -5,7 +5,7 @@
  */
 import { useMemo } from 'react';
 
-import { getUserInitials } from '@shared/utils/userDisplayFormatters';
+import { getPersonInitials } from '@odysseus/shared-schemas';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
@@ -40,7 +40,11 @@ export function useStorageOwnership(
         if (!user) return null;
 
         return {
-          initials: getUserInitials(user.username, user.firstName, user.lastName),
+          initials: getPersonInitials({
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          }),
           username: user.username,
           firstName: user.firstName,
           lastName: user.lastName,

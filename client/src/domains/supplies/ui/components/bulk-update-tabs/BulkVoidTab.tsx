@@ -111,7 +111,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
         transactionIds: [...selectedTxnIds],
         reason: reason.trim(),
       });
-      notifyBulkResult(result, 'transactions');
+      notifyBulkResult(result, { entityLabel: 'transactions', actionVerb: 'Voided' });
       setSelectedItemId(undefined);
       setSelectedTxnIds(new Set());
       setReason('');
