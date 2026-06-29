@@ -8,6 +8,8 @@ import React, { forwardRef, useState, useId, useCallback, useEffect, useRef } fr
 
 import { cva } from 'class-variance-authority';
 
+import { OdysseusSpinner } from '@shared/ui/components/loading';
+
 import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef, ValidationResult } from './types';
@@ -132,24 +134,17 @@ interface InputLoadingSpinnerProps {
   size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const InputLoadingSpinner: React.FC<InputLoadingSpinnerProps> = ({ size }) => {
-  return (
-    <svg
-      className={iconVariants({ position: 'right', size })}
-      fill="none"
-      viewBox="0 0 24 24"
-      role="status"
-      aria-label="Loading"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75 animate-spin"
-        fill="currentColor"
-        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
-  );
+const SPINNER_PX: Record<InputLoadingSpinnerProps['size'], number> = {
+  xs: 12,
+  sm: 16,
+  md: 16,
+  lg: 20,
+  xl: 20,
 };
+
+const InputLoadingSpinner: React.FC<InputLoadingSpinnerProps> = ({ size }) => (
+  <OdysseusSpinner size={SPINNER_PX[size]} className={iconVariants({ position: 'right', size })} />
+);
 
 interface InputLabelProps {
   htmlFor?: string;

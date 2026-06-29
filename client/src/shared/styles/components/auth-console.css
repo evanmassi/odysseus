@@ -1,8 +1,8 @@
 /**
  * Authentication Console Styles
  *
- * Gateway chrome plus a shared input variant. Chrome is gateway-only; the input
- * variant is theme-aware and reused by app modals. Tokens in variables.css.
+ * Gateway chrome plus a shared, theme-aware input variant reused by app modals.
+ * Tokens in variables.css.
  */
 
 @layer components {
@@ -34,8 +34,7 @@
     transition: max-width 300ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
-  /* Light (Steel Anchor): an opaque white console on the cool field — a flat panel
-     with a hairline rim and soft neutral elevation, no smoked glass or ambient halo. */
+  /* Light: opaque flat panel — drops the dark theme's smoked glass and ambient halo. */
   [data-theme='light'] .auth-console-chrome {
     background: rgb(var(--auth-surface));
     backdrop-filter: none;
@@ -46,32 +45,19 @@
       0 16px 32px -18px hsl(var(--recess) / 0.26);
   }
 
-  /* Lit field shared by the gateway backdrop and the boot splash — navy surface
-     with one anchored ambient pool. Opaque: the gateway sits over nothing pre-auth. */
+  /* Lit field shared by the gateway backdrop and boot splash. Opaque — the gateway
+     sits over nothing pre-auth. */
   .auth-field {
     background:
       radial-gradient(ellipse 55% 45% at 50% 40%, rgb(var(--auth-ambient) / 0.1), transparent 70%),
       rgb(var(--auth-field-bg));
   }
 
-  .auth-console-divider {
-    border-right: 1px solid rgb(var(--auth-divider));
-  }
-
-  .auth-console-left {
-    position: relative;
-    background: radial-gradient(
-      circle at 30% 30%,
-      rgb(var(--auth-ambient) / 0.05),
-      transparent 60%
-    );
-  }
-
   .auth-microheader {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono);
     font-size: 0.625rem; /* label-2xs (10px) */
     letter-spacing: 0.28em;
     text-transform: uppercase;
@@ -92,26 +78,22 @@
   }
 
   .auth-tagline {
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
-    font-size: 0.625rem; /* label-2xs (raised from 9.5px) */
+    font-family: var(--font-mono);
+    font-size: 0.625rem; /* label-2xs (10px) */
     letter-spacing: 0.32em;
     text-transform: uppercase;
     color: rgb(var(--auth-text-faint));
   }
 
-  /* drop-shadow tracks the image's alpha — wraps the icon shape, not its bounding box.
-     The bloom alphas scale by --lit, so the glow drops to zero in light mode. */
+  /* drop-shadow tracks the icon's alpha (not a bounding box); the bloom scales by
+     --lit, so the glow is zero in light. */
   .auth-watermark {
     filter: blur(2px) drop-shadow(0 0 28px rgb(var(--auth-ambient) / calc(0.45 * var(--lit))))
       drop-shadow(0 0 80px rgb(var(--auth-ambient) / calc(0.18 * var(--lit))));
   }
 
-  /* Label background is opaque so the border underneath reads as cut, not crossed.
-
-     Colors flow through --console-input-* tokens so the same structure adapts to
-     any surface. Defaults pull from theme-aware design tokens; the gateway
-     overrides below re-point them at the (theme-aware) --auth-* tokens so fields
-     match the console surface in both light and dark. */
+  /* --console-input-* tokens let the same markup adapt to any surface: defaults are
+     theme-aware; the dark and gateway rules below re-point them (gateway → --auth-*). */
   .auth-input-console {
     --console-input-surface: hsl(var(--foreground) / 0.045);
     --console-input-surface-hover: hsl(var(--foreground) / 0.07);
@@ -129,16 +111,13 @@
     position: relative;
   }
 
-  /* Dark theme: translucent black so the panel surface shows through, matching
-     the gateway's smoked-glass fields. */
+  /* Dark: translucent black so the panel shows through (like the gateway's smoked-glass fields). */
   [data-theme='dark'] .auth-input-console {
-    --console-input-surface: rgba(0, 0, 0, 0.42);
-    --console-input-surface-hover: rgba(0, 0, 0, 0.55);
+    --console-input-surface: rgb(var(--auth-well));
+    --console-input-surface-hover: rgb(var(--auth-well-hover));
   }
 
-  /* Gateway inputs follow the --auth-* tokens so they track the console surface in
-     both themes. Only the well fill differs by theme (see the dark override below);
-     everything else flows through the theme-aware tokens. */
+  /* Gateway: re-points to --auth-* tokens; only the well fill differs by theme (dark override below). */
   .auth-console-chrome .auth-input-console {
     --console-input-surface: rgb(var(--auth-text) / 0.035);
     --console-input-surface-hover: rgb(var(--auth-text) / 0.06);
@@ -156,10 +135,11 @@
 
   /* Dark gateway: smoked-black wells so fields read recessed in the navy console. */
   [data-theme='dark'] .auth-console-chrome .auth-input-console {
-    --console-input-surface: rgba(0, 0, 0, 0.42);
-    --console-input-surface-hover: rgba(0, 0, 0, 0.55);
+    --console-input-surface: rgb(var(--auth-well));
+    --console-input-surface-hover: rgb(var(--auth-well-hover));
   }
 
+  /* Opaque bg notches the field border instead of crossing it. */
   .auth-input-console__label {
     position: absolute;
     top: -7px;
@@ -167,8 +147,8 @@
     z-index: 1;
     padding: 2px 6px;
     background: var(--console-input-label-bg);
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
-    font-size: 0.625rem; /* label-2xs (raised from 9.5px) */
+    font-family: var(--font-mono);
+    font-size: 0.625rem; /* label-2xs (10px) */
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--console-input-label-text);
@@ -233,7 +213,7 @@
     padding: 11px 12px;
     font-size: 0.8125rem; /* data-sm (13px) */
     color: var(--console-input-text);
-    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-family: var(--font-mono);
   }
 
   /* Reserve room for the overlaid icon/toggle without giving them their own cells. */
@@ -249,11 +229,9 @@
     color: var(--console-input-placeholder);
   }
 
-  /* Mask dots in password fields hug each other in the monospace cell —
-     letter-spacing pushes them apart so the row reads as discrete glyphs.
-     text-indent compensates for the leftmost dot sitting flush to the content edge.
-     :placeholder-shown scopes the spacing to when content exists, so the placeholder
-     stays consistent with other inputs. */
+  /* Monospace mask dots sit too tight: letter-spacing separates them, text-indent
+     offsets the flush leftmost dot. :placeholder-shown limits this to when content
+     exists, so the placeholder is unaffected. */
   .auth-input-console__control[type='password'] {
     letter-spacing: 0.2em;
     text-indent: 3px;
@@ -275,7 +253,7 @@
     -webkit-text-fill-color: var(--console-input-text) !important;
     caret-color: var(--console-input-text);
     transition: background-color 9999s ease-out 0s;
-    font-family: var(--font-mono, 'JetBrains Mono', monospace) !important;
+    font-family: var(--font-mono) !important;
   }
 
   .auth-input-console__toggle {

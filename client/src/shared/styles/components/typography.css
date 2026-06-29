@@ -1,15 +1,12 @@
 /**
  * Typography Helpers
  *
- * Voice bundles for the type system (see docs/typography-refactor-plan.md).
- * Size is carried by the semantic `text-*` tokens (tailwind.config.js); these
- * classes bundle the *non-size* properties of a voice so they aren't re-typed.
+ * Bundles a type voice's non-size properties (font, case, tracking); size comes from the `text-*` tokens.
  */
 
 @layer components {
-  /* Chrome / label voice: mono + uppercase + standard tracking.
-     Pair with a size token, e.g. `type-label text-label-md`.
-     Override tracking with `tracking-label-wide` / `tracking-ceremonial`. */
+  /* Pair with a size token (e.g. `text-label-md`); override tracking with
+     `tracking-label-wide` / `tracking-ceremonial`. */
   .type-label {
     font-family: theme('fontFamily.mono');
     text-transform: uppercase;

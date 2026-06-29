@@ -7,6 +7,7 @@
 import { CheckCircle, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react';
 
 import { ScrimHalo } from '../../primitives';
+import { OdysseusSpinner } from '../loading';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
@@ -87,11 +88,15 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
         aria-hidden
         className={`pointer-events-none absolute inset-y-3 left-[5px] w-[1.5px] rounded-full ${config.coreClass}`}
       />
-      <Icon
-        className={`w-5 h-5 flex-shrink-0 ${config.iconClass} ${isLoading ? 'animate-spin' : ''}`}
-        strokeWidth={2.25}
-        aria-hidden="true"
-      />
+      {isLoading ? (
+        <OdysseusSpinner size={20} className={`flex-shrink-0 ${config.iconClass}`} />
+      ) : (
+        <Icon
+          className={`w-5 h-5 flex-shrink-0 ${config.iconClass}`}
+          strokeWidth={2.25}
+          aria-hidden="true"
+        />
+      )}
       <span className="text-body-sm text-toast-foreground leading-snug">{message}</span>
     </div>
   );

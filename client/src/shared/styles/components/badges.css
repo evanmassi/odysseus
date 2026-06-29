@@ -1,16 +1,12 @@
 /**
  * Badge Styles
  *
- * Base, audit log, and status badge classes for the design system.
+ * Audit log badge classes for the design system.
  */
 
 @layer components {
-  .badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border;
-  }
-
-  /* Audit Log Badge Base — flat mono stencil tag, chamfered top-right to match the Chip primitive.
-     Tone is supplied per-category via the --audit-tone custom property (light/dark aware tokens). */
+  /* Audit badge base — chamfered top-right to match the Chip. Per-category tone via
+     --audit-tone, set by the variants below. */
   .badge-audit {
     @apply inline-flex items-center gap-1 whitespace-nowrap px-1.5;
     @apply font-mono uppercase text-label-2xs tracking-label-wide;
@@ -72,26 +68,5 @@
   }
   .badge-audit-action-default {
     --audit-tone: var(--color-audit-entity-system);
-  }
-
-  /* Status Badges */
-  .badge-success {
-    @apply badge bg-success-light text-success-text border-success-border;
-  }
-
-  .badge-warning {
-    @apply badge bg-warning-light text-warning-text border-warning-border;
-  }
-
-  .badge-error {
-    @apply badge bg-danger-light text-danger-text border-danger-border;
-  }
-
-  .badge-info {
-    @apply badge bg-info-light text-info-text border-info-border;
-  }
-
-  .badge-neutral {
-    @apply badge bg-muted text-muted-foreground border-border;
   }
 }

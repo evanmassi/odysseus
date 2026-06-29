@@ -36,7 +36,7 @@ import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { AlertBanner, Button, Checkbox } from '@shared/ui';
+import { AlertBanner, Button, Checkbox, OdysseusSpinner } from '@shared/ui';
 import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
@@ -130,7 +130,7 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
         mode="edit"
       >
         <div className="flex items-center justify-center py-12">
-          <div className="spinner w-8 h-8"></div>
+          <OdysseusSpinner size={32} className="text-primary" />
           <span className="ml-3 text-muted-foreground">Loading tube data...</span>
         </div>
       </BaseModal>

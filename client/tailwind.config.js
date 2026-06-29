@@ -207,19 +207,9 @@ export default {
         ceremonial: '0.32em', // auth register, loaders
       },
       fontFamily: {
-        sans: ['"Hanken Grotesk"', '"Helvetica Neue"', 'system-ui', 'sans-serif'],
-        display: ['"Hanken Grotesk"', '"Helvetica Neue"', 'sans-serif'],
-        mono: [
-          '"JetBrains Mono"',
-          'ui-monospace',
-          'SFMono-Regular',
-          'Menlo',
-          'Monaco',
-          'Consolas',
-          '"Liberation Mono"',
-          '"Courier New"',
-          'monospace',
-        ],
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-sans)'],
+        mono: ['var(--font-mono)'],
       },
       boxShadow: {
         sheen: 'inset 0 1px 0 0 hsl(var(--sheen) / 0.18)',

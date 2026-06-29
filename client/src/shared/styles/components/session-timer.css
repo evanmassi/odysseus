@@ -3,7 +3,7 @@
  *
  * Phosphor countdown readout + diamond depletion track for the session-timeout
  * modal. A single --tint, driven by the modal's data-state, warms amber → crimson
- * as time runs out; the surrounding chrome glow follows at low intensity.
+ * as time runs out.
  */
 
 @layer components {
@@ -32,7 +32,7 @@
     transition: box-shadow 600ms ease;
   }
 
-  /* ── readout: phosphor digits + faint caption ── */
+  /* Readout: phosphor digits + faint caption */
   .session-timeout-modal .st-readout {
     display: flex;
     align-items: baseline;
@@ -93,7 +93,7 @@
     }
   }
 
-  /* ── diamond depletion track ── */
+  /* Diamond depletion track */
   .session-timeout-modal .st-track {
     display: flex;
     align-items: center;
@@ -130,17 +130,12 @@
     filter: drop-shadow(0 0 1px var(--tint)) drop-shadow(0 0 6px var(--tint-soft));
   }
 
-  /* Light: the console is a flat white panel, so drop the phosphor optics — keep the
-     amber → crimson tint, lose the bloom, status halo, scanline, and pulse. */
+  /* Light: flat white panel — drop the phosphor optics, keep the amber → crimson tint. */
   [data-theme='light'] .session-timeout-modal::after {
     box-shadow: none;
   }
   [data-theme='light'] .session-timeout-modal .st-time {
     text-shadow: none;
-    animation: none;
-  }
-  [data-theme='light'] .session-timeout-modal[data-state='warn'] .st-time,
-  [data-theme='light'] .session-timeout-modal[data-state='crit'] .st-time {
     animation: none;
   }
   [data-theme='light'] .session-timeout-modal .st-time::after {

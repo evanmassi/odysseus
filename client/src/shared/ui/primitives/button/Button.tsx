@@ -8,6 +8,8 @@ import { forwardRef } from 'react';
 
 import { cva } from 'class-variance-authority';
 
+import { OdysseusSpinner } from '@shared/ui/components/loading';
+
 import { defaultButtonProps } from './types';
 
 import type { ButtonProps, ButtonRef, ButtonSize, ButtonVariant } from './types';
@@ -163,34 +165,10 @@ const ICON_TONE: Record<ButtonVariant, string> = {
   cancel: 'dark:drop-shadow-icon-bloom dark:group-hover:drop-shadow-icon-bloom-hover',
 };
 
-interface LoadingSpinnerProps {
-  size: ButtonSize;
-}
+const SPINNER_PX: Record<ButtonSize, number> = { xs: 12, sm: 12, md: 16, xl: 20 };
 
-function LoadingSpinner({ size }: LoadingSpinnerProps) {
-  const spinnerSizes: Record<ButtonSize, string> = {
-    xs: 'w-3 h-3',
-    sm: 'w-3 h-3',
-    md: 'w-4 h-4',
-    xl: 'w-5 h-5',
-  };
-
-  return (
-    <svg
-      className={`animate-spin ${spinnerSizes[size]}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      role="status"
-      aria-label="Loading"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
-  );
+function LoadingSpinner({ size }: { size: ButtonSize }) {
+  return <OdysseusSpinner size={SPINNER_PX[size]} />;
 }
 
 export const Button = forwardRef<ButtonRef, ButtonProps>(

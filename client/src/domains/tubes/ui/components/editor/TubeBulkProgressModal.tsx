@@ -4,9 +4,9 @@
  * Displays real-time progress during bulk tube update operations.
  */
 
-import { CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
-import { Button } from '@shared/ui';
+import { Button, OdysseusSpinner } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 
 import type { BulkUpdateProgress } from '@domains/tubes/types';
@@ -47,13 +47,13 @@ export function TubeBulkProgressModal({
     switch (phase) {
       case 'preparing':
       case 'validating':
-        return <Loader2 className="w-5 h-5 animate-spin text-info-text" />;
+        return <OdysseusSpinner size={20} className="text-info-text" />;
       case 'updating':
-        return <Loader2 className="w-5 h-5 animate-spin text-primary" />;
+        return <OdysseusSpinner size={20} className="text-primary" />;
       case 'completing':
         return <CheckCircle className="w-5 h-5 text-success-text" />;
       default:
-        return <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />;
+        return <OdysseusSpinner size={20} className="text-muted-foreground" />;
     }
   };
 

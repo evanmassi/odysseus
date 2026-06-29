@@ -10,7 +10,7 @@ import { Share2, X, UserRoundPlus, UsersRound } from 'lucide-react';
 
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
 import { useActiveUsersQuery } from '@domains/users';
-import { AlertBanner, Button, Checkbox } from '@shared/ui';
+import { AlertBanner, Button, Checkbox, OdysseusSpinner } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
@@ -169,7 +169,7 @@ export function TubeShareAccessModal({
 
           {isLoadingUsers ? (
             <div className="flex items-center justify-center py-4">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-action"></div>
+              <OdysseusSpinner size={20} className="text-action" />
               <span className="ml-2 text-body-sm text-muted-foreground">Loading users...</span>
             </div>
           ) : availableUsers.length === 0 ? (

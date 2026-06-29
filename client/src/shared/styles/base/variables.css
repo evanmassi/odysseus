@@ -10,7 +10,7 @@
   }
 
   html {
-    font-family: 'Hanken Grotesk', 'Helvetica Neue', system-ui, sans-serif;
+    font-family: var(--font-sans);
   }
 
   body {
@@ -29,6 +29,16 @@
     /* HSL format enables Tailwind opacity modifiers (e.g., text-foreground/50) */
     /* [data-theme='light'] lets a subtree re-assert light tokens inside a forced-dark
        island (e.g. a menu opened from the dark header). */
+
+    /* Typography — single source for the font stacks; Tailwind fontFamily references these. */
+    --font-sans: 'Hanken Grotesk', 'Helvetica Neue', system-ui, sans-serif;
+    --font-mono:
+      'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+      'Courier New', monospace;
+
+    /* Phosphor text glow — crisp core + soft halo on the element's own currentColor. */
+    --phosphor-shadow:
+      0 0 1px currentColor, 0 0 6px color-mix(in srgb, currentColor 40%, transparent);
 
     /* Core */
     --background: 0 0% 100%;
@@ -193,6 +203,10 @@
     --focus-ring-glow-outer: 200 85% 58% / 0.45;
     --focus-ring-blur: 200 85% 58% / 0.3;
     --focus-ring-offset: 0px;
+    /* Composed ring shared by the global focus rule and the auth-container focus-within. */
+    --focus-ring-shadow:
+      0 0 0 3px hsl(var(--ring)), 0 0 6px 2px hsl(var(--focus-ring-glow-outer)),
+      0 0 14px 4px hsl(var(--focus-ring-blur));
 
     /* Component library aliases */
     --ring: var(--focus-ring-color);
@@ -370,6 +384,9 @@
     --auth-text-dim: 232 227 213 / 0.62;
     --auth-text-mute: 232 227 213 / 0.42;
     --auth-text-faint: 232 227 213 / 0.28;
+    /* Smoked input well — dark only; light fields use their own surfaces. */
+    --auth-well: 0 0 0 / 0.42;
+    --auth-well-hover: 0 0 0 / 0.55;
 
     /* Action Colors */
     --color-action-hover: 210 65% 52%;

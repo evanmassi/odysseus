@@ -20,10 +20,7 @@
   [tabindex]:not([tabindex='-1']):not([data-focus]):focus-visible {
     outline: 1px solid hsl(var(--focus-ring-contrast));
     outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px hsl(var(--ring)),
-      0 0 6px 2px hsl(var(--focus-ring-glow-outer)),
-      0 0 14px 4px hsl(var(--focus-ring-blur));
+    box-shadow: var(--focus-ring-shadow);
   }
 
   /* auth-input-container manages focus via :focus-within; !important beats the global

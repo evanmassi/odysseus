@@ -462,7 +462,7 @@ export function SearchResultsPanel({
       {isSearching && (
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
           <div className="flex items-center border border-line-soft bg-card px-3 py-1 shadow-[0_8px_20px_-12px_hsl(var(--recess)/0.7)]">
-            <div className="animate-spin w-3 h-3 border-2 border-primary border-t-transparent rounded-full" />
+            <OdysseusSpinner size={12} className="text-primary" />
             <span className="ml-2 type-label text-label-2xs text-foreground/60">Updating</span>
           </div>
         </div>

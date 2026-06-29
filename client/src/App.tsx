@@ -20,7 +20,7 @@ import { AuthGateway, useAuthStore } from '@domains/authentication';
 import { AuthEmailVerificationPage } from '@domains/authentication/ui/components/gateway/AuthEmailVerificationPage';
 import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/gateway/AuthSessionTimeoutModal';
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
-import { ErrorBanner } from '@shared/ui';
+import { ErrorBanner, OdysseusSpinner } from '@shared/ui';
 
 // Minimum time the boot splash stays up so a fast bootstrap doesn't flash by.
 const SPLASH_FLOOR_MS = 1000;
@@ -58,7 +58,7 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
-          <div className="spinner mb-4 mx-auto w-8 h-8"></div>
+          <OdysseusSpinner size={32} className="mb-4 mx-auto text-primary" />
           <p className="text-lg font-medium text-secondary-foreground">Finalizing...</p>
         </div>
       </div>
