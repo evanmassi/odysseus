@@ -34,10 +34,8 @@ const MONTH_ABBR = [
 type Segment = 'month' | 'day' | 'year';
 const SEGMENT_ORDER: Segment[] = ['month', 'day', 'year'];
 
-const TRIGGER_FOCUS_SHADOW =
-  'shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
-const POPUP_SHADOW =
-  'shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_0_24px_-4px_hsl(var(--primary)/0.30)]';
+const TRIGGER_FOCUS_SHADOW = 'shadow-[var(--input-focus-shadow)]';
+const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
 
 const ICON_BUTTON =
   'p-0.5 text-secondary-foreground transition-colors hover:text-foreground dark:hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)] focus:outline-none focus-visible:text-foreground dark:focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]';

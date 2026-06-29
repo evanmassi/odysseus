@@ -14,4 +14,4 @@ export const SEARCH_INPUT_CLASS =
   'bg-[hsl(var(--input-well))] border border-line-faint placeholder:text-foreground/40 ' +
   'transition-[border-color,background,box-shadow] duration-200 hover:border-foreground/30 ' +
   'focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] ' +
-  'focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+  'focus:shadow-[var(--input-focus-shadow)]';

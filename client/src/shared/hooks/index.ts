@@ -9,6 +9,7 @@ export { useDebounce } from './useDebounce';
 export { useEditModalForm } from './useEditModalForm';
 export { useFocusTrap } from './useFocusTrap';
 export { useMenuKeyboardNavigation } from './useMenuKeyboardNavigation';
+export { useMergedRef } from './useMergedRef';
 export { useModalKeyboardNavigation } from './useModalKeyboardNavigation';
 export { useResolvedTheme } from './useResolvedTheme';
 export { useTextTruncation } from './useTextTruncation';

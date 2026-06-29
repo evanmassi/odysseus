@@ -42,14 +42,13 @@ interface UserBadgeProps {
   type: UserBadgeType;
   initials?: string;
   username?: string;
-  size?: 'xs' | 'sm' | 'md';
+  size?: 'sm' | 'md';
   /** Suppress the ownership tooltip — e.g. when the badge is reused as a menu trigger. */
   showTooltip?: boolean;
 }
 
 // Icon size scales with badge size so the unassigned glyph fits visually.
 const iconSizeMap: Record<NonNullable<UserBadgeProps['size']>, number> = {
-  xs: 11,
   sm: 11,
   md: 14,
 };

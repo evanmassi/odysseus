@@ -9,7 +9,7 @@ import { Badge, Tooltip } from '@shared/ui';
 interface LabBadgeProps {
   labId: string;
   labName: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md';
   isDemo?: boolean;
   isActive?: boolean;
 }

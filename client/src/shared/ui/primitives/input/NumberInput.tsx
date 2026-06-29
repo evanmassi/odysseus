@@ -8,8 +8,7 @@ import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'rea
 
 import { Minus, Plus } from 'lucide-react';
 
-const CONTAINER_FOCUS_SHADOW =
-  'focus-within:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+const CONTAINER_FOCUS_SHADOW = 'focus-within:shadow-[var(--input-focus-shadow)]';
 
 // Resting inner glow — Toggle's inset primary pool, dialed below the focus state so
 // the well reads lit/dimensional without looking focused.

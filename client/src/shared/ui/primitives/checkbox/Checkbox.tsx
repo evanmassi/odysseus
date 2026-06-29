@@ -5,7 +5,9 @@
  * corner points; adds a tone fill plus halo when checked.
  */
 
-import { forwardRef } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
+
+import { useMergedRef } from '@shared/hooks';
 
 export type CheckboxTone = 'primary' | 'success';
 
@@ -76,16 +78,14 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     },
     ref
   ) => {
-    const handleRef = (input: HTMLInputElement | null) => {
-      if (input) {
-        input.indeterminate = indeterminate;
+    const innerRef = useRef<HTMLInputElement>(null);
+    const mergedRef = useMergedRef(ref, innerRef);
+
+    useEffect(() => {
+      if (innerRef.current) {
+        innerRef.current.indeterminate = indeterminate;
       }
-      if (typeof ref === 'function') {
-        ref(input);
-      } else if (ref) {
-        ref.current = input;
-      }
-    };
+    }, [indeterminate]);
 
     const t = TONE[tone];
     const isLit = checked || indeterminate;
@@ -98,7 +98,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         className={`relative inline-flex h-3.5 w-3.5 items-center justify-center ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
       >
         <input
-          ref={handleRef}
+          ref={mergedRef}
           type="checkbox"
           id={id}
           checked={checked}

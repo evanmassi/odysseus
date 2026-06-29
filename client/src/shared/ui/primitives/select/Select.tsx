@@ -9,16 +9,16 @@ import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } fr
 import { cva } from 'class-variance-authority';
 import { createPortal } from 'react-dom';
 
+import { useMergedRef } from '@shared/hooks';
+
 import { ScrollArea } from '../scroll-area/ScrollArea';
 
 import { defaultSelectProps } from './types';
 
 import type { SelectOption, SelectProps, SelectRef } from './types';
 
-const TRIGGER_FOCUS_SHADOW =
-  'shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
-const POPUP_SHADOW =
-  'shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_0_24px_-4px_hsl(var(--primary)/0.30)]';
+const TRIGGER_FOCUS_SHADOW = 'shadow-[var(--input-focus-shadow)]';
+const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
 
 const ICON_BUTTON =
   'p-0.5 text-secondary-foreground transition-colors hover:text-foreground dark:hover:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)] focus:outline-none focus-visible:text-foreground dark:focus-visible:[text-shadow:0_0_8px_color-mix(in_srgb,currentColor_70%,transparent)]';
@@ -182,6 +182,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
 
     // Refs
     const selectRef = useRef<HTMLDivElement>(null);
+    const mergedSelectRef = useMergedRef(ref, selectRef);
     const searchInputRef = useRef<HTMLInputElement>(null);
     const optionsRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -507,12 +508,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         )}
 
         <div
-          ref={el => {
-            // Use type assertion to safely assign to mutable refs
-            (selectRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-            if (typeof ref === 'function') ref(el);
-            else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = el;
-          }}
+          ref={mergedSelectRef}
           className={selectClasses}
           onClick={handleToggle}
           onKeyDown={handleKeyDown}

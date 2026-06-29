@@ -8,14 +8,14 @@ import React, { forwardRef, useState, useId, useCallback, useEffect, useRef } fr
 
 import { cva } from 'class-variance-authority';
 
+import { useMergedRef } from '@shared/hooks';
 import { OdysseusSpinner } from '@shared/ui/components/loading';
 
 import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef, ValidationResult } from './types';
 
-const FOCUS_SHADOW =
-  'focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30)] dark:focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+const FOCUS_SHADOW = 'focus:shadow-[var(--input-focus-shadow)]';
 
 const inputVariants = cva(
   [
@@ -278,14 +278,7 @@ export const Input = forwardRef<InputRef, InputProps>(
 
     // Internal ref for reading DOM value (merged with forwarded ref)
     const internalRef = useRef<HTMLInputElement>(null);
-    const mergedRef = useCallback(
-      (node: HTMLInputElement | null) => {
-        (internalRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
-      },
-      [ref]
-    );
+    const mergedRef = useMergedRef(ref, internalRef);
 
     // Track if date input has a value (for placeholder styling)
     const [dateHasValue, setDateHasValue] = useState(() => {

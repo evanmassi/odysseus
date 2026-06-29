@@ -27,8 +27,7 @@ export interface SearchInputProps {
   'aria-label'?: string;
 }
 
-const FOCUS_SHADOW =
-  'focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
+const FOCUS_SHADOW = 'focus:shadow-[var(--input-focus-shadow)]';
 
 const SIZE = {
   xs: {

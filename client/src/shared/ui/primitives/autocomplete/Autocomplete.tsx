@@ -8,14 +8,17 @@ import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } fr
 
 import { createPortal } from 'react-dom';
 
+import { useMergedRef } from '@shared/hooks';
+
 import { ScrollArea } from '../scroll-area/ScrollArea';
 
 import type { AutocompleteProps, AutocompleteRef, AutocompleteOption } from './types';
 
-const FOCUS_SHADOW =
-  'focus:shadow-[0_0_0_1px_hsl(var(--primary)/0.30),0_0_20px_-2px_hsl(var(--primary)/0.45),inset_0_0_12px_-4px_hsl(var(--primary)/0.25)]';
-const POPUP_SHADOW =
-  'shadow-[0_0_0_1px_hsl(var(--primary)/0.15),0_0_24px_-4px_hsl(var(--primary)/0.30)]';
+const FOCUS_SHADOW = 'focus:shadow-[var(--input-focus-shadow)]';
+const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
+
+const MIN_CHARS = 2;
+const BLUR_CLOSE_DELAY_MS = 150;
 
 export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
   (
@@ -28,11 +31,8 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       disabled = false,
       state = 'default',
       fullWidth = false,
-      minChars = 2,
       'aria-label': ariaLabel,
-      className = '',
       inputClassName,
-      renderOption,
     },
     ref
   ) => {
@@ -45,16 +45,9 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
     const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
     const listboxId = useId();
 
-    const combinedRef = useCallback(
-      (node: HTMLInputElement | null) => {
-        (inputRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
-      },
-      [ref]
-    );
+    const combinedRef = useMergedRef(ref, inputRef);
 
-    const shouldShow = isOpen && value.length >= minChars && options.length > 0;
+    const shouldShow = isOpen && value.length >= MIN_CHARS && options.length > 0;
 
     const updateDropdownPosition = useCallback(() => {
       if (!containerRef.current) return;
@@ -84,7 +77,6 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       setHighlightedIndex(-1);
     }, [options]);
 
-    // Scroll highlighted option into view
     useEffect(() => {
       if (highlightedIndex >= 0) {
         optionRefs.current[highlightedIndex]?.scrollIntoView({ block: 'nearest' });
@@ -114,7 +106,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
         if (!shouldShow) {
-          if (e.key === 'ArrowDown' && value.length >= minChars && options.length > 0) {
+          if (e.key === 'ArrowDown' && value.length >= MIN_CHARS && options.length > 0) {
             e.preventDefault();
             setIsOpen(true);
           }
@@ -151,19 +143,19 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
             break;
         }
       },
-      [shouldShow, highlightedIndex, options, handleSelect, value.length, minChars]
+      [shouldShow, highlightedIndex, options, handleSelect, value.length]
     );
 
     const handleFocus = useCallback(() => {
-      if (value.length >= minChars && options.length > 0) {
+      if (value.length >= MIN_CHARS && options.length > 0) {
         setIsOpen(true);
       }
-    }, [value.length, minChars, options.length]);
+    }, [value.length, options.length]);
 
     const handleBlur = useCallback((e: React.FocusEvent) => {
       const relatedTarget = e.relatedTarget as Node | null;
       if (containerRef.current?.contains(relatedTarget)) return;
-      setTimeout(() => setIsOpen(false), 150);
+      setTimeout(() => setIsOpen(false), BLUR_CLOSE_DELAY_MS);
     }, []);
 
     const stateBorder =
@@ -184,6 +176,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                   return (
                     <div
                       key={option.value}
+                      id={`${listboxId}-option-${index}`}
                       ref={el => {
                         optionRefs.current[index] = el;
                       }}
@@ -199,17 +192,11 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
                       }}
                       onMouseEnter={() => setHighlightedIndex(index)}
                     >
-                      {renderOption ? (
-                        renderOption(option, { isHighlighted })
-                      ) : (
-                        <>
-                          <span className="font-medium">{option.label}</span>
-                          {option.secondary && (
-                            <span className="text-foreground/50 ml-2 text-caption">
-                              ({option.secondary})
-                            </span>
-                          )}
-                        </>
+                      <span className="font-medium">{option.label}</span>
+                      {option.secondary && (
+                        <span className="text-foreground/50 ml-2 text-caption">
+                          ({option.secondary})
+                        </span>
                       )}
                     </div>
                   );
@@ -222,7 +209,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       : null;
 
     return (
-      <div ref={containerRef} className={`relative ${fullWidth ? 'w-full' : ''} ${className}`}>
+      <div ref={containerRef} className={`relative ${fullWidth ? 'w-full' : ''}`}>
         <input
           ref={combinedRef}
           type="text"
