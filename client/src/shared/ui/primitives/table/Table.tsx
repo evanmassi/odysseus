@@ -475,12 +475,12 @@ export function Table<T extends TableRowBase>({
   const contextValue: TableContextValue = {
     selectable: selectable!,
     multiSelect: multiSelect!,
-    selectedRows: selectedRows!,
+    selectedRows,
     allRowIds: data.map(row => row.id),
     onSelectionChange,
     sortConfig,
     onSort: sortable ? onSort : undefined,
-    density: density!,
+    density,
   };
 
   const body = loading ? (

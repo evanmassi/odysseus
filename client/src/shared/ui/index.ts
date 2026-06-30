@@ -7,7 +7,6 @@
 // UI Primitive Components
 export { InlineEditInput } from './components/inputs/InlineEditInput';
 export { ValidatedInput } from './components/inputs/ValidatedInput';
-export { ErrorBanner } from './primitives/banners/ErrorBanner';
 
 // Re-export all primitives for convenience
 export * from './primitives';

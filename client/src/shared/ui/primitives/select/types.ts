@@ -75,7 +75,7 @@ export interface SelectProps {
 
 export type SelectRef = HTMLDivElement;
 
-export const defaultSelectProps: Partial<SelectProps> = {
+export const defaultSelectProps = {
   size: 'md',
   state: 'default',
   multiple: false,
@@ -86,4 +86,4 @@ export const defaultSelectProps: Partial<SelectProps> = {
   fullWidth: false,
   placeholder: 'Select an option...',
   maxHeight: 240,
-};
+} satisfies Partial<SelectProps>;

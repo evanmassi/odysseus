@@ -80,7 +80,7 @@ export interface TableContextValue {
   density: TableDensity;
 }
 
-export const defaultTableProps: Partial<TableProps> = {
+export const defaultTableProps = {
   density: 'default',
   sortable: false,
   selectable: false,
@@ -92,4 +92,4 @@ export const defaultTableProps: Partial<TableProps> = {
   emptyMessage: 'No data available',
   loadingMessage: 'Loading...',
   chassis: true,
-};
+} satisfies Partial<TableProps>;

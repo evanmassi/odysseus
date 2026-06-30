@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 
+import { AppErrorBanner } from '@app/components/layout/AppErrorBanner';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { modalStore } from '@app/stores/modalStore';
 import { adminUserService } from '@domains/admin/services/AdminUserService';
@@ -340,6 +341,22 @@ const SPECS: ModalSpec[] = [
     label: 'Odysseus spinner (playground)',
     note: 'Counter-rotating mark — tune ring/snowflake speed, size, breathe; boot-splash mock',
     render: () => <SpinnerPreviewPage />,
+  },
+  {
+    id: 'error-banner',
+    group: 'App shell',
+    label: 'Error Banner',
+    note: 'Global unhandled-error overlay — fuzzy-scrim card, red corner pins, scrollable list',
+    render: close => (
+      <AppErrorBanner
+        errors={[
+          '[12:01:04] JavaScript Error: Cannot read properties of undefined (reading "id") at TubeGrid.tsx:118',
+          '[12:01:05] Unhandled Promise Rejection: NetworkError: Failed to fetch',
+          '[12:01:07] JavaScript Error: Maximum update depth exceeded at AppDashboard.tsx:42',
+        ]}
+        onClear={close}
+      />
+    ),
   },
 ];
 

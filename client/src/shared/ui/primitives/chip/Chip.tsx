@@ -181,12 +181,12 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const isSelectable = behavior === 'selectable';
     const isAction = behavior === 'action';
     const isInteractive = isSelectable || isAction;
-    const tone = TONE_CLASSES[color!];
-    const sizeCfg = SIZE_CONFIG[size!];
+    const tone = TONE_CLASSES[color];
+    const sizeCfg = SIZE_CONFIG[size];
 
     // Lead resolution: explicit prop > deprecated leftIcon > tone auto-glyph > non-specific square.
     const leadFromProps = lead ?? leftIcon;
-    const autoGlyph = AUTO_GLYPHS[color!];
+    const autoGlyph = AUTO_GLYPHS[color];
     const displayLead: React.ReactNode = leadFromProps ?? autoGlyph ?? (
       <span
         aria-hidden="true"
@@ -209,7 +209,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       borderClass,
       labelBgClass,
       isLit ? SELECTED_GLOW : '',
-      LIT_CLASSES[color!] ?? (lit ? 'chip-lit chip-lit--neutral' : ''),
+      LIT_CLASSES[color] ?? (lit ? 'chip-lit chip-lit--neutral' : ''),
       disabled ? 'opacity-50 cursor-not-allowed' : '',
       isInteractive && !disabled
         ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
@@ -262,7 +262,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           {children}
         </span>
         {behavior === 'removable' && onRemove && (
-          <RemoveButton onClick={handleRemove} disabled={disabled} size={size!} />
+          <RemoveButton onClick={handleRemove} disabled={disabled} size={size} />
         )}
       </>
     );

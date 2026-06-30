@@ -69,7 +69,7 @@ export interface InputProps extends BaseInputProps {
   type?: InputType;
 }
 
-export const defaultInputProps: Partial<InputProps> = {
+export const defaultInputProps = {
   type: 'text',
   size: 'md',
   state: 'default',
@@ -80,4 +80,4 @@ export const defaultInputProps: Partial<InputProps> = {
   readOnly: false,
   isLoading: false,
   spellCheck: true,
-};
+} satisfies Partial<InputProps>;

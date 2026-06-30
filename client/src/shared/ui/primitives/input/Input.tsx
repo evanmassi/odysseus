@@ -477,7 +477,7 @@ export const Input = forwardRef<InputRef, InputProps>(
           />
 
           {isLoading ? (
-            <InputLoadingSpinner size={size!} />
+            <InputLoadingSpinner size={size} />
           ) : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/suffix
           rightIcon || suffix ? (
             <div className={iconVariants({ position: 'right', size })}>

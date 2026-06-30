@@ -10,6 +10,7 @@ import { Routes, Route } from 'react-router-dom';
 
 import { useAppBootstrap } from '@app/bootstrap';
 import { AppDashboard } from '@app/components/layout/AppDashboard';
+import { AppErrorBanner } from '@app/components/layout/AppErrorBanner';
 import { AppErrorBoundary } from '@app/components/layout/AppErrorBoundary';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
@@ -20,7 +21,7 @@ import { AuthGateway, useAuthStore } from '@domains/authentication';
 import { AuthEmailVerificationPage } from '@domains/authentication/ui/components/gateway/AuthEmailVerificationPage';
 import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/gateway/AuthSessionTimeoutModal';
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
-import { ErrorBanner, OdysseusSpinner } from '@shared/ui';
+import { OdysseusSpinner } from '@shared/ui';
 
 // Minimum time the boot splash stays up so a fast bootstrap doesn't flash by.
 const SPLASH_FLOOR_MS = 1000;
@@ -91,7 +92,7 @@ function AppContent() {
           />
         </Routes>
 
-        <ErrorBanner errors={errors} onClear={clearErrors} />
+        <AppErrorBanner errors={errors} onClear={clearErrors} />
         {isAuthenticated && <AuthSessionTimeoutModal />}
       </AppErrorBoundary>
     </BootstrapProvider>

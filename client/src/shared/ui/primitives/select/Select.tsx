@@ -386,7 +386,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       if (!selectRef.current) return;
       const rect = selectRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
-      const dropdownHeight = maxHeight ?? 240;
+      const dropdownHeight = maxHeight;
       const openUpward = spaceBelow < dropdownHeight + 8 && rect.top > spaceBelow;
       setDropdownPosition({
         top: openUpward ? rect.top - 4 : rect.bottom + 4,

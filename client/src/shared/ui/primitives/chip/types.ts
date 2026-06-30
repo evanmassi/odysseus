@@ -49,11 +49,11 @@ export interface ChipProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
 
 export type ChipRef = HTMLButtonElement | HTMLSpanElement;
 
-export const defaultChipProps: Partial<ChipProps> = {
+export const defaultChipProps = {
   color: 'default',
   size: 'sm',
   behavior: 'static',
   selected: false,
   disabled: false,
   lit: false,
-};
+} satisfies Partial<ChipProps>;
