@@ -1,7 +1,5 @@
 /**
  * Table Component Types
- *
- * Type definitions for the Table primitive.
  */
 
 import type { ReactNode } from 'react';

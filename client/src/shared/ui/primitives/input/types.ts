@@ -1,7 +1,5 @@
 /**
  * Input Component Types
- *
- * Type definitions for the Input primitive component.
  */
 
 import type { ComponentProps, ReactNode } from 'react';

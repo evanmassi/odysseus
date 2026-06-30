@@ -1,7 +1,5 @@
 /**
  * Button Component Types
- *
- * Type definitions for the Button primitive component.
  */
 
 import type { ComponentProps, ReactNode } from 'react';

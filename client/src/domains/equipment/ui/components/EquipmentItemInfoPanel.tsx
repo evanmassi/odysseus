@@ -205,7 +205,7 @@ export function EquipmentItemInfoPanel({
           {categoryName && (
             <>
               <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" leftIcon={<FolderOpen />}>
+              <Chip size="sm" color="info" lead={<FolderOpen />}>
                 {categoryName}
               </Chip>
             </>
@@ -213,7 +213,7 @@ export function EquipmentItemInfoPanel({
           {item.location && (
             <>
               <StripLabel>Location</StripLabel>
-              <Chip size="sm" color="info" leftIcon={<MapPin />}>
+              <Chip size="sm" color="info" lead={<MapPin />}>
                 {item.location}
               </Chip>
             </>

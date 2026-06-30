@@ -1,7 +1,5 @@
 /**
  * Date Picker Types
- *
- * Type definitions for the date picker primitive.
  */
 
 export type DatePickerSize = 'xs' | 'sm' | 'md' | 'lg';

@@ -474,7 +474,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
       {selectedTubes.length > 1 && (
         <div className="flex items-center gap-2">
-          <Chip size="sm" color="info" leftIcon={<TestTubeDiagonal />}>
+          <Chip size="sm" color="info" lead={<TestTubeDiagonal />}>
             {selectedTubes.length} selected
           </Chip>
           {hasConflicts && (
@@ -491,7 +491,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             size="sm"
             lit
             color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'info'}
-            leftIcon={<Lock />}
+            lead={<Lock />}
           >
             {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
           </Chip>
@@ -545,17 +545,13 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             </Tooltip>
           ) : (
             firstTube.lockNote && (
-              <Chip
-                size="sm"
-                color={lockInfo.isLockedOut ? 'danger' : 'info'}
-                leftIcon={<Notebook />}
-              >
+              <Chip size="sm" color={lockInfo.isLockedOut ? 'danger' : 'info'} lead={<Notebook />}>
                 {firstTube.lockNote}
               </Chip>
             )
           )}
           {lockInfo.hasSharedUsers && (
-            <Chip size="sm" color="info" leftIcon={<UsersRound />}>
+            <Chip size="sm" color="info" lead={<UsersRound />}>
               {lockInfo.sharedNames.length > 0
                 ? lockInfo.sharedNames.join(', ')
                 : `${firstTube.sharedWithUserIds!.length} user(s)`}

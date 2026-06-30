@@ -104,7 +104,7 @@ export function TubeSelectionToolbar({
   return (
     <div className="flex items-center space-x-1">
       {selectedPositions.size > 1 && (
-        <Chip size="sm" color="default" leftIcon={<TestTubeDiagonal />} className="mr-2">
+        <Chip size="sm" color="default" lead={<TestTubeDiagonal />} className="mr-2">
           {selectedPositions.size} selected
         </Chip>
       )}

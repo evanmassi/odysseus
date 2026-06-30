@@ -1,8 +1,7 @@
 /**
  * Checkbox
  *
- * Status-LED checkbox — dark inner well, soft connecting edges, and glowing
- * corner points; adds a tone fill plus halo when checked.
+ * Status-LED checkbox — glowing corner points that fill with the tone color when checked.
  */
 
 import { forwardRef, useEffect, useRef } from 'react';
@@ -63,6 +62,7 @@ const UNLIT_CORNER = 'bg-foreground/80';
 const UNLIT_CORNER_GLOW =
   'dark:shadow-[0_0_4px_color-mix(in_srgb,hsl(var(--foreground))_55%,transparent)]';
 const SOFT_EDGE = 'border border-foreground/[0.20] blur-[1px]';
+const CORNERS = ['left-0 top-0', 'right-0 top-0', 'bottom-0 left-0', 'bottom-0 right-0'] as const;
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   (
@@ -112,22 +112,13 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           className={`absolute inset-0 ${isLit ? t.fill : 'bg-surface-void/30'} ${boxGlow}`}
         />
         <span aria-hidden className={`pointer-events-none absolute inset-0 ${SOFT_EDGE}`} />
-        <span
-          aria-hidden
-          className={`pointer-events-none absolute left-0 top-0 h-0.5 w-0.5 ${cornerFill} ${cornerGlow}`}
-        />
-        <span
-          aria-hidden
-          className={`pointer-events-none absolute right-0 top-0 h-0.5 w-0.5 ${cornerFill} ${cornerGlow}`}
-        />
-        <span
-          aria-hidden
-          className={`pointer-events-none absolute bottom-0 left-0 h-0.5 w-0.5 ${cornerFill} ${cornerGlow}`}
-        />
-        <span
-          aria-hidden
-          className={`pointer-events-none absolute bottom-0 right-0 h-0.5 w-0.5 ${cornerFill} ${cornerGlow}`}
-        />
+        {CORNERS.map(pos => (
+          <span
+            key={pos}
+            aria-hidden
+            className={`pointer-events-none absolute h-0.5 w-0.5 ${cornerFill} ${cornerGlow} ${pos}`}
+          />
+        ))}
         {checked && !indeterminate && (
           <svg
             aria-hidden

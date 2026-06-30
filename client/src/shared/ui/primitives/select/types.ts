@@ -1,7 +1,5 @@
 /**
  * Select Component Types
- *
- * Type definitions for the Select primitive component.
  */
 
 import type { ReactNode } from 'react';

@@ -1,7 +1,5 @@
 /**
  * Alert Banner Types
- *
- * Type definitions for the alert banner primitive.
  */
 
 import type { ReactNode } from 'react';

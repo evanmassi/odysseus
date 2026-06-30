@@ -291,7 +291,7 @@ export function SupplyItemInfoPanel({
           {categoryName && (
             <>
               <StripLabel>Category</StripLabel>
-              <Chip size="sm" color="info" leftIcon={<FolderOpen />}>
+              <Chip size="sm" color="info" lead={<FolderOpen />}>
                 {categoryName}
               </Chip>
             </>
@@ -301,7 +301,7 @@ export function SupplyItemInfoPanel({
               <StripLabel>Location</StripLabel>
               <div className="flex flex-wrap gap-1.5">
                 {locationChips.map(loc => (
-                  <Chip key={loc.id} size="sm" color="info" leftIcon={<MapPin />}>
+                  <Chip key={loc.id} size="sm" color="info" lead={<MapPin />}>
                     {loc.name}
                   </Chip>
                 ))}

@@ -1,7 +1,5 @@
 /**
  * Chip Component Types
- *
- * Type definitions for the Chip primitive.
  */
 
 import type { HTMLAttributes, ReactNode } from 'react';
@@ -23,9 +21,8 @@ export type ChipSize = 'xs' | 'sm';
 export interface ChipProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
   children: ReactNode;
   /**
-   * Lead-cell content — a count, short abbreviation, glyph, or any ReactNode.
-   * `info` / `primary` / `default` / `outlined` tones require a lead;
-   * `success` / `warning` / `danger` auto-fill a semantic glyph.
+   * Lead-cell content (count, abbreviation, or glyph). `success` / `warning` / `danger`
+   * auto-fill a semantic glyph; other tones fall back to a neutral square if omitted.
    */
   lead?: ReactNode;
   color?: ChipColor;
@@ -38,12 +35,10 @@ export interface ChipProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
   onClick?: () => void;
   /** Override classes applied to the label cell. Use to opt out of uppercase/tracking on free-text content. */
   labelClassName?: string;
-  /** Render the label as a legible number — larger, tabular, normal tracking. The standard for counts. */
+  /** Render the label as a legible number (tabular, larger) — the standard for counts. */
   numeric?: boolean;
   /** Applies the lit edge + wash to neutral (`default`/`outlined`) tones. Semantic tones are always lit. */
   lit?: boolean;
-  /** @deprecated Use `lead`. Forwarded to the lead cell during the migration period. */
-  leftIcon?: ReactNode;
   disabled?: boolean;
 }
 

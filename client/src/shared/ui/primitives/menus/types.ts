@@ -1,7 +1,5 @@
 /**
  * Menu Types
- *
- * Type definitions for menu primitives.
  */
 
 import type { LucideIcon } from 'lucide-react';

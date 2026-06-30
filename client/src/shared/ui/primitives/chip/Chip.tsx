@@ -1,9 +1,7 @@
 /**
  * Chip
  *
- * Stencil-plate tag: two cells (lead · label), 6px chamfered top-right.
- * Tone drives the colour palette; success/warning/danger fill the lead
- * with an auto-glyph when no explicit `lead` is provided.
+ * Stencil-plate tag — a lead cell and a label cell with a chamfered corner; tone drives the palette.
  */
 
 import React, { forwardRef } from 'react';
@@ -160,7 +158,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     {
       children,
       lead,
-      leftIcon,
       color = defaultChipProps.color,
       size = defaultChipProps.size,
       behavior = defaultChipProps.behavior,
@@ -184,16 +181,15 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     const tone = TONE_CLASSES[color];
     const sizeCfg = SIZE_CONFIG[size];
 
-    // Lead resolution: explicit prop > deprecated leftIcon > tone auto-glyph > non-specific square.
-    const leadFromProps = lead ?? leftIcon;
+    // Lead resolution: explicit prop > tone auto-glyph > non-specific square.
     const autoGlyph = AUTO_GLYPHS[color];
-    const displayLead: React.ReactNode = leadFromProps ?? autoGlyph ?? (
+    const displayLead: React.ReactNode = lead ?? autoGlyph ?? (
       <span
         aria-hidden="true"
         className="block h-[3px] w-[3px] bg-current dark:shadow-[0_0_6px_1px_color-mix(in_srgb,currentColor_70%,transparent)]"
       />
     );
-    const leadIsAutoFilled = leadFromProps == null;
+    const leadIsAutoFilled = lead == null;
 
     const isLit = isSelectable && selected;
     const borderClass = isLit ? SELECTED_BORDER : tone.border;

@@ -139,12 +139,12 @@ export function EquipmentItemRow({ item, isSelected, onSelect }: EquipmentItemRo
 
       <div className="flex flex-shrink-0 items-center gap-1.5">
         {item.location && (
-          <Chip color="info" size="sm" leftIcon={<MapPin />}>
+          <Chip color="info" size="sm" lead={<MapPin />}>
             {item.location}
           </Chip>
         )}
         {item.assetTag && (
-          <Chip color="info" size="sm" leftIcon={<Tag />}>
+          <Chip color="info" size="sm" lead={<Tag />}>
             {item.assetTag}
           </Chip>
         )}

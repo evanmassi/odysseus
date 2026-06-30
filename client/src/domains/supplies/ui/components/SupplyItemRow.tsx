@@ -132,7 +132,7 @@ export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps
 
       <div className="flex flex-shrink-0 items-center gap-1.5">
         {item.locationNames.map(name => (
-          <Chip key={name} color="info" size="sm" leftIcon={<MapPin />}>
+          <Chip key={name} color="info" size="sm" lead={<MapPin />}>
             {name}
           </Chip>
         ))}

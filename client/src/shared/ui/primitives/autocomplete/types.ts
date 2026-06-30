@@ -1,7 +1,5 @@
 /**
  * Autocomplete Component Types
- *
- * Type definitions for the Autocomplete primitive component.
  */
 
 import type { InputState } from '../input/types';

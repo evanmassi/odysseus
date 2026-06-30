@@ -68,19 +68,19 @@ export function ResearchersTab({
     onTabFooter?.(
       <div className="space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <Chip color="info" size="sm" leftIcon={<Dna />}>
+          <Chip color="info" size="sm" lead={<Dna />}>
             {researchers.length} {researchers.length === 1 ? 'researcher' : 'researchers'}
           </Chip>
-          <Chip color="info" size="sm" leftIcon={<Link />}>
+          <Chip color="info" size="sm" lead={<Link />}>
             {researchers.filter(r => r.linkedUserId).length} linked to users
           </Chip>
-          <Chip color="info" size="sm" leftIcon={<TestTubeDiagonal />}>
+          <Chip color="info" size="sm" lead={<TestTubeDiagonal />}>
             {researchers.filter(r => r.tubeCount > 0).length}{' '}
             {researchers.filter(r => r.tubeCount > 0).length === 1 ? 'researcher' : 'researchers'}{' '}
             with tubes
           </Chip>
           {tubesWithoutResearcher > 0 && (
-            <Chip color="warning" size="sm" leftIcon={<TestTubeDiagonal />}>
+            <Chip color="warning" size="sm" lead={<TestTubeDiagonal />}>
               {tubesWithoutResearcher} {tubesWithoutResearcher === 1 ? 'tube' : 'tubes'} without
               researcher
             </Chip>
