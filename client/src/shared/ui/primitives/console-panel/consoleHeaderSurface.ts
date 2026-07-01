@@ -1,10 +1,8 @@
 /**
  * Console Header Surface
  *
- * Shared background recipe for console header bars — the data Table's header/toolbar
- * and the settings Subsection headers. Light is a flat faint-navy tint over the card;
- * the sheen + corner glow are --lit-gated, so they show only in dark. `lit` adds the
- * directional corner glow to the topmost bar so the light reads once across the top.
+ * Shared background recipe for console header bars: a flat faint-navy tint in light, with the
+ * sheen + corner glow --lit-gated so they show only in dark.
  */
 
 const HEADER_SHEEN =
@@ -22,6 +20,6 @@ const HEADER_BASE = 'color-mix(in srgb, hsl(var(--card)) var(--header-mix), blac
 /** Inner top rim that catches the light on the header's leading edge. */
 export const HEADER_TOP_EDGE = 'inset 0 1px 0 hsl(var(--foreground) / var(--alpha-header-rim))';
 
-/** Stacked `background` value for a console header bar; `lit` adds the corner glow (dark-only). */
+/** Stacked `background` value for a console header bar. Pass `lit` for the topmost bar only — it adds the dark-only corner glow so the light reads once across the top. */
 export const headerSurface = (lit: boolean): string =>
   [HEADER_SHEEN, ...(lit ? HEADER_GLOW : []), HEADER_TINT, HEADER_BASE].join(', ');

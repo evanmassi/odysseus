@@ -1,7 +1,7 @@
 /**
  * Input Component
  *
- * Accessible input primitive with validation, multiple variants, and design system tokens.
+ * Text input with built-in validation, size/state variants, and icon/prefix/suffix slots.
  */
 
 import React, { forwardRef, useState, useId, useCallback, useEffect, useRef } from 'react';
@@ -13,7 +13,7 @@ import { OdysseusSpinner } from '@shared/ui/components/loading';
 
 import { defaultInputProps } from './types';
 
-import type { InputProps, InputRef, ValidationResult } from './types';
+import type { InputProps, InputRef, InputSize, ValidationResult } from './types';
 
 const FOCUS_SHADOW = 'focus:shadow-[var(--input-focus-shadow)]';
 
@@ -131,10 +131,10 @@ const iconVariants = cva(['absolute top-1/2 transform -translate-y-1/2 pointer-e
 });
 
 interface InputLoadingSpinnerProps {
-  size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size: InputSize;
 }
 
-const SPINNER_PX: Record<InputLoadingSpinnerProps['size'], number> = {
+const SPINNER_PX: Record<InputSize, number> = {
   xs: 12,
   sm: 16,
   md: 16,
@@ -305,7 +305,7 @@ export const Input = forwardRef<InputRef, InputProps>(
     }, [type, value]);
 
     // Determine current state
-    const getCurrentState = useCallback(() => {
+    const getCurrentState = () => {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to determine input state
       if (error || validationResult?.type === 'error') return 'error';
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to determine input state
@@ -313,7 +313,7 @@ export const Input = forwardRef<InputRef, InputProps>(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to determine input state
       if (success || validationResult?.type === 'success') return 'success';
       return state;
-    }, [error, warning, success, validationResult, state]);
+    };
 
     const currentState = getCurrentState();
 
@@ -378,7 +378,7 @@ export const Input = forwardRef<InputRef, InputProps>(
     );
 
     // Determine aria-describedby
-    const getAriaDescribedBy = useCallback(() => {
+    const getAriaDescribedBy = () => {
       const descriptions: string[] = [];
 
       if (ariaDescribedBy) descriptions.push(ariaDescribedBy);
@@ -389,16 +389,7 @@ export const Input = forwardRef<InputRef, InputProps>(
       }
 
       return descriptions.length > 0 ? descriptions.join(' ') : undefined;
-    }, [
-      ariaDescribedBy,
-      description,
-      descriptionId,
-      error,
-      warning,
-      success,
-      validationResult,
-      errorId,
-    ]);
+    };
 
     // Generate component classes
     const wrapperClasses = wrapperVariants({ fullWidth, className });

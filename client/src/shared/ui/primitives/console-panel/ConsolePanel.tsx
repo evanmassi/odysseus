@@ -1,9 +1,8 @@
 /**
  * Console Panel
  *
- * Bordered chassis surface. Internal lighting (top sheen, ambient glow, rim sheen,
- * bloom) is scaled by --chassis-lit — full in dark, flattened in light — while the
- * neutral elevation shadow stays in both so the panel still floats.
+ * Bordered chassis surface. Internal lighting is scaled by --lit (full in dark, flat in light);
+ * the neutral elevation shadow persists in both so the panel still floats.
  */
 
 import type { CSSProperties, ReactNode } from 'react';

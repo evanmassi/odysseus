@@ -1,8 +1,7 @@
 /**
  * Date Picker
  *
- * Calendar-based date selector with segmented keyboard input (MM/DD/YYYY),
- * portal dropdown, and keyboard navigation.
+ * Calendar date selector with segmented MM/DD/YYYY keyboard entry.
  */
 
 import React, { useState, useRef, useCallback, useEffect, useId, useMemo } from 'react';
@@ -13,8 +12,6 @@ import { DayPicker } from 'react-day-picker';
 import { createPortal } from 'react-dom';
 
 import type { DatePickerProps } from './types';
-
-export type { DatePickerProps, DatePickerSize, DatePickerState } from './types';
 
 const MONTH_ABBR = [
   'Jan',
@@ -33,6 +30,8 @@ const MONTH_ABBR = [
 
 type Segment = 'month' | 'day' | 'year';
 const SEGMENT_ORDER: Segment[] = ['month', 'day', 'year'];
+const SEGMENT_MAX: Record<Segment, number> = { month: 12, day: 31, year: 2100 };
+const SEGMENT_MIN: Record<Segment, number> = { month: 1, day: 1, year: 1900 };
 
 const TRIGGER_FOCUS_SHADOW = 'shadow-[var(--input-focus-shadow)]';
 const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
@@ -313,10 +312,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        const maxVals: Record<Segment, number> = { month: 12, day: 31, year: 2100 };
         setSegments(prev => {
           const current = parseInt(prev[segment], 10) || 0;
-          const next = Math.min(current + 1, maxVals[segment]);
+          const next = Math.min(current + 1, SEGMENT_MAX[segment]);
           return { ...prev, [segment]: String(next).padStart(segment === 'year' ? 4 : 2, '0') };
         });
         return;
@@ -324,10 +322,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        const minVals: Record<Segment, number> = { month: 1, day: 1, year: 1900 };
         setSegments(prev => {
           const current = parseInt(prev[segment], 10) || 0;
-          const next = Math.max(current - 1, minVals[segment]);
+          const next = Math.max(current - 1, SEGMENT_MIN[segment]);
           return { ...prev, [segment]: String(next).padStart(segment === 'year' ? 4 : 2, '0') };
         });
         return;

@@ -23,9 +23,11 @@ const CHARGE_GLOW =
   'shadow-[0_0_0_1px_hsl(var(--primary)/0.55),0_0_10px_0_hsl(var(--primary)/0.65)]';
 
 const RAMP_DELAY = 350; // ms held before auto-repeat begins
+const RAMP_DOUBLE = 600; // ms held to reach ×2
 const RAMP_FULL = 1500; // ms held to reach full charge / ×5
 
-const multiplierFor = (heldMs: number): number => (heldMs >= RAMP_FULL ? 5 : heldMs >= 600 ? 2 : 1);
+const multiplierFor = (heldMs: number): number =>
+  heldMs >= RAMP_FULL ? 5 : heldMs >= RAMP_DOUBLE ? 2 : 1;
 const intervalFor = (heldMs: number): number => Math.max(45, 150 - heldMs / 12);
 
 /**
@@ -210,15 +212,23 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     const valueRef = useRef(value);
     valueRef.current = value;
 
+    const clamp = useCallback(
+      (n: number) => {
+        let r = n;
+        if (min !== undefined && r < min) r = min;
+        if (max !== undefined && r > max) r = max;
+        return r;
+      },
+      [min, max]
+    );
+
     const stepBy = useCallback(
       (delta: number) => {
         const cur = valueRef.current;
-        let next = cur + delta;
-        if (min !== undefined && next < min) next = min;
-        if (max !== undefined && next > max) next = max;
+        const next = clamp(cur + delta);
         if (next !== cur) onChange(next);
       },
-      [min, max, onChange]
+      [clamp, onChange]
     );
 
     const ramp = useHoldRamp(stepBy, step, disabled);
@@ -238,12 +248,10 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         setInputText(String(value));
         return;
       }
-      let next = parsed;
-      if (min !== undefined && next < min) next = min;
-      if (max !== undefined && next > max) next = max;
+      const next = clamp(parsed);
       onChange(next);
       setInputText(String(next));
-    }, [allowDecimals, inputText, min, max, onChange, value]);
+    }, [allowDecimals, inputText, clamp, onChange, value]);
 
     const handleInputChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,12 +261,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         }
         const parsed = parseInt(e.target.value, 10);
         if (isNaN(parsed)) return;
-        let next = parsed;
-        if (min !== undefined && next < min) next = min;
-        if (max !== undefined && next > max) next = max;
-        onChange(next);
+        onChange(clamp(parsed));
       },
-      [min, max, onChange, allowDecimals]
+      [clamp, onChange, allowDecimals]
     );
 
     const handleKeyDown = useCallback(

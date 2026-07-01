@@ -30,12 +30,12 @@ export interface ValidationResult {
 
 export type ValidationFunction = (value: string) => ValidationResult | Promise<ValidationResult>;
 
-export interface BaseInputProps extends Omit<ComponentProps<'input'>, 'size' | 'prefix'> {
+export interface InputProps extends Omit<ComponentProps<'input'>, 'size' | 'prefix'> {
   size?: InputSize;
   state?: InputState;
+  type?: InputType;
   label?: string;
   description?: string;
-  placeholder?: string;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   prefix?: string | ReactNode;
@@ -43,18 +43,10 @@ export interface BaseInputProps extends Omit<ComponentProps<'input'>, 'size' | '
   error?: string;
   warning?: string;
   success?: string;
-  required?: boolean;
   validate?: ValidationFunction | ValidationFunction[];
   validateOn?: 'blur' | 'change' | 'submit';
   isLoading?: boolean;
-  readOnly?: boolean;
-  disabled?: boolean;
   fullWidth?: boolean;
-  'aria-label'?: string;
-  'aria-describedby'?: string;
-  'aria-invalid'?: boolean;
-  'aria-required'?: boolean;
-  className?: string;
   inputClassName?: string;
   labelClassName?: string;
   onValueChange?: (value: string) => void;
@@ -62,10 +54,6 @@ export interface BaseInputProps extends Omit<ComponentProps<'input'>, 'size' | '
 }
 
 export type InputRef = HTMLInputElement;
-
-export interface InputProps extends BaseInputProps {
-  type?: InputType;
-}
 
 export const defaultInputProps = {
   type: 'text',

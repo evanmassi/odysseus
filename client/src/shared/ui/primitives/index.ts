@@ -34,9 +34,10 @@ export { KeyCombo } from './kbd/KeyCombo';
 export type { KeyComboProps } from './kbd/KeyCombo';
 
 export { AuthInput, Input, NumberInput } from './input';
-export type { AuthInputProps, AuthInputValidationState } from './input/AuthInput';
-export type { NumberInputProps } from './input/NumberInput';
 export type {
+  AuthInputProps,
+  AuthInputValidationState,
+  NumberInputProps,
   InputProps,
   InputSize,
   InputState,
@@ -44,20 +45,13 @@ export type {
   ValidationResult,
   ValidationFunction,
   InputRef,
-} from './input/types';
+} from './input';
 
 export { IdStamp } from './titles/id-stamp/IdStamp';
 export type { IdStampProps } from './titles/id-stamp/IdStamp';
 
 export { ConsolePanel } from './console-panel/ConsolePanel';
 export type { ConsolePanelProps } from './console-panel/ConsolePanel';
-
-export { CrtBackdrop } from './crt-backdrop/CrtBackdrop';
-export type {
-  CrtBackdropProps,
-  CrtBackdropSize,
-  CrtBackdropLighting,
-} from './crt-backdrop/CrtBackdrop';
 
 export { DropdownMenu } from './menus/DropdownMenu';
 export type { DropdownMenuProps, DropdownMotion } from './menus/DropdownMenu';
@@ -96,9 +90,6 @@ export type { PanelHeaderProps } from './titles/panel-header/PanelHeader';
 
 export { SectionHeader } from './titles/section-header/SectionHeader';
 export type { SectionHeaderProps } from './titles/section-header/SectionHeader';
-
-export { SectionToolbar } from './titles/section-toolbar/SectionToolbar';
-export type { SectionToolbarProps } from './titles/section-toolbar/SectionToolbar';
 
 export { SubsectionHeader } from './titles/subsection-header/SubsectionHeader';
 export type { SubsectionHeaderProps } from './titles/subsection-header/SubsectionHeader';

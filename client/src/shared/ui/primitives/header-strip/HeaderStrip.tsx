@@ -1,9 +1,8 @@
 /**
  * Header Strip
  *
- * Strip beneath a panel/modal header, terminated by a primary nub divider. Holds
- * location or meta content; flat tinted in light, a dark wash in dark. Pass
- * padding/layout via className — the strip chassis itself is fixed here.
+ * Strip beneath a panel/modal header, terminated by a nub divider; holds location or meta
+ * content. Pass padding/layout via className — the chassis itself is fixed here.
  */
 
 import type { ReactNode } from 'react';
