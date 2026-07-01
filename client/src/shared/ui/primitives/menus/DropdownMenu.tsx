@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 
 import { useMenuKeyboardNavigation, useResolvedTheme } from '@shared/hooks';
 
-export type DropdownMotion =
+type DropdownMotion =
   | 'reveal'
   | 'slide-down'
   | 'slide-up'
@@ -19,13 +19,21 @@ export type DropdownMotion =
   | 'slide-left'
   | 'instant';
 
+const MOTION_CLASSES: Record<DropdownMotion, { in: string; out: string }> = {
+  reveal: { in: 'animate-dropdown-reveal-in', out: 'animate-dropdown-reveal-out' },
+  'slide-down': { in: 'animate-dropdown-slide-down-in', out: 'animate-dropdown-slide-down-out' },
+  'slide-up': { in: 'animate-dropdown-slide-up-in', out: 'animate-dropdown-slide-up-out' },
+  'slide-right': { in: 'animate-dropdown-slide-right-in', out: 'animate-dropdown-slide-right-out' },
+  'slide-left': { in: 'animate-dropdown-slide-left-in', out: 'animate-dropdown-slide-left-out' },
+  instant: { in: 'animate-dropdown-instant-in', out: 'animate-dropdown-instant-out' },
+};
+
 export interface DropdownMenuProps {
   isOpen: boolean;
   onClose: () => void;
   triggerRef?: RefObject<HTMLElement>;
   portal?: boolean;
   align?: 'start' | 'end';
-  animated?: boolean;
   motion?: DropdownMotion;
   className?: string;
   style?: React.CSSProperties;
@@ -39,7 +47,6 @@ export function DropdownMenu({
   triggerRef,
   portal = false,
   align = 'end',
-  animated = true,
   motion = 'reveal',
   className = '',
   style,
@@ -51,8 +58,8 @@ export function DropdownMenu({
   const [visible, setVisible] = useState(false);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reacts to isOpen changes only — visible and animated are read but intentionally
-  // excluded to avoid re-triggering when visible changes (would cancel our own timeout)
+  // Reacts to isOpen changes only — visible is read but intentionally excluded to
+  // avoid re-triggering when visible changes (would cancel our own close timeout)
   useLayoutEffect(() => {
     if (isOpen) {
       if (closeTimeoutRef.current) {
@@ -60,10 +67,8 @@ export function DropdownMenu({
         closeTimeoutRef.current = null;
       }
       setVisible(true);
-    } else if (visible && animated) {
+    } else if (visible) {
       closeTimeoutRef.current = setTimeout(() => setVisible(false), 200);
-    } else {
-      setVisible(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
@@ -100,18 +105,8 @@ export function DropdownMenu({
   if (!visible) return null;
 
   const isClosing = !isOpen && visible;
-  const motionClass = {
-    reveal: { in: 'animate-dropdown-reveal-in', out: 'animate-dropdown-reveal-out' },
-    'slide-down': { in: 'animate-dropdown-slide-down-in', out: 'animate-dropdown-slide-down-out' },
-    'slide-up': { in: 'animate-dropdown-slide-up-in', out: 'animate-dropdown-slide-up-out' },
-    'slide-right': {
-      in: 'animate-dropdown-slide-right-in',
-      out: 'animate-dropdown-slide-right-out',
-    },
-    'slide-left': { in: 'animate-dropdown-slide-left-in', out: 'animate-dropdown-slide-left-out' },
-    instant: { in: 'animate-dropdown-instant-in', out: 'animate-dropdown-instant-out' },
-  }[motion];
-  const animationClass = animated ? (isClosing ? motionClass.out : motionClass.in) : '';
+  const motionClass = MOTION_CLASSES[motion];
+  const animationClass = isClosing ? motionClass.out : motionClass.in;
 
   const alignClass = portal ? '' : align === 'start' ? 'left-0' : 'right-0';
   const positionClass = portal ? 'fixed z-[9999]' : 'absolute z-50';

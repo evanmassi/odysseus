@@ -16,7 +16,6 @@ export interface MenuItemProps {
   warning?: boolean;
   disabled?: boolean;
   shortcut?: string;
-  isActive?: boolean;
   children?: React.ReactNode;
 }
 

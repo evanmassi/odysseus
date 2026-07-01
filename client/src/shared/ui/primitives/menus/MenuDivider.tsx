@@ -4,7 +4,7 @@
  * Horizontal separator line between menu item groups.
  */
 
-export interface MenuDividerProps {
+interface MenuDividerProps {
   /** Subtle flat faint line instead of the default rule that fades at both ends. */
   subtle?: boolean;
 }
