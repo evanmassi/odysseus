@@ -9,10 +9,6 @@ export interface AppBootstrapState {
   currentStep: BootstrapStep;
   error: string | null;
   steps: BootstrapStepInfo[];
-  flags: {
-    firstTimeSetupRequired: boolean;
-    needsSystemAdmin: boolean;
-  };
 }
 
 export type BootstrapStep =
@@ -40,8 +36,4 @@ export interface UseAppBootstrapResult {
   state: 'initializing' | 'loading' | 'error' | 'complete';
   canRetry: boolean;
   retry: () => void;
-  flags: {
-    firstTimeSetupRequired: boolean;
-    needsSystemAdmin: boolean;
-  };
 }

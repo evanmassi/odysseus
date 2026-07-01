@@ -40,6 +40,5 @@ export function useAppBootstrap(): UseAppBootstrapResult {
     state: getOverallState(),
     canRetry: bootstrapState.currentStep === 'error',
     retry: () => appBootstrapService.retry(),
-    flags: bootstrapState.flags,
   };
 }

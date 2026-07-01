@@ -65,8 +65,6 @@ interface AuthActions {
   ) => Promise<{ success: boolean; message?: string; user?: PublicUserData; tokens?: TokenPair }>;
   completeRegistration: (user: PublicUserData, tokens: TokenPair) => void;
   logout: () => Promise<void>;
-  verify: () => Promise<boolean>;
-  checkFirstTime: () => Promise<boolean>;
 
   // Session management
   updateSessionStatus: () => void;
@@ -352,51 +350,6 @@ export const useAuthStore = create<AuthStore>()(
           isLoading: false,
           error: null,
         });
-      },
-
-      verify: async () => {
-        const tokens = sessionManager.getTokens();
-        if (!tokens) {
-          set({ sessionStatus: 'unauthenticated' });
-          return false;
-        }
-
-        try {
-          // Use SessionService to get valid token (auto-refreshes if needed)
-          const validToken = await sessionManager.getValidAccessToken();
-
-          if (!validToken) {
-            get().clearAuth();
-            return false;
-          }
-
-          const result = await authService.verifySession();
-
-          set({
-            user: {
-              ...result.user,
-              lastActivity: new Date(),
-            },
-            tokens: sessionManager.getTokens(),
-            sessionStatus: 'authenticated',
-            error: null,
-          });
-          return true;
-        } catch (error) {
-          logger.error('Auth store session verification error', { error });
-          get().clearAuth();
-          return false;
-        }
-      },
-
-      checkFirstTime: async () => {
-        try {
-          const result = await authService.checkFirstTime();
-          return result.isFirstTime;
-        } catch (error) {
-          logger.error('Auth store first time check failed', { error });
-          return false;
-        }
       },
 
       logout: async () => {

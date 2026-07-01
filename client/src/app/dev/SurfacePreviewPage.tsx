@@ -216,7 +216,6 @@ function mockBootstrapContext(
     state,
     canRetry: state === 'error',
     retry: () => undefined,
-    flags: { firstTimeSetupRequired: false, needsSystemAdmin: false },
   };
 }
 

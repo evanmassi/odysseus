@@ -83,10 +83,6 @@ export class AuthService {
     );
   }
 
-  async verifySession(): Promise<AuthResponse> {
-    return await httpClient.getData('/auth/verify', authResponseSchema);
-  }
-
   async checkFirstTime(): Promise<{ isFirstTime: boolean; needsSystemAdmin: boolean }> {
     try {
       const data = await httpClient.getData('/public/auth/first-time', firstTimeResponseSchema);
@@ -100,9 +96,7 @@ export class AuthService {
     }
   }
 
-  async validateInviteCode(
-    code: string
-  ): Promise<{
+  async validateInviteCode(code: string): Promise<{
     valid: boolean;
     labName?: string;
     role?: 'lab_admin' | 'user';

@@ -37,14 +37,6 @@ export class AuthRouteModule implements RouteModule {
 
   configure(router: Router): void {
     // Session management
-    router.get('/verify',
-      this.authController.verifySession.bind(this.authController)
-    );
-
-    router.get('/me',
-      this.authController.getCurrentUser.bind(this.authController)
-    );
-
     router.post('/logout',
       this.authController.logout.bind(this.authController)
     );

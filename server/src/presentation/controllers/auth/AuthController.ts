@@ -1,7 +1,7 @@
 /**
  * Authenticated Session Controller
  *
- * Endpoints for logged-in users managing their own session — verify, logout, heartbeat,
+ * Endpoints for logged-in users managing their own session — logout, heartbeat,
  * password change, and email verification status.
  */
 
@@ -27,48 +27,6 @@ export interface AuthControllerDeps {
 
 export class AuthController {
   constructor(private deps: AuthControllerDeps) {}
-
-  async verifySession(req: Request, res: Response): Promise<void> {
-    try {
-      const user = req.user;
-
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to verify session');
-        return;
-      }
-
-      logger.debug('Session verified', {
-        userId: user.id,
-        username: user.username
-      });
-
-      const response = ResponseBuilder.success({
-        user: user.toPublicData()
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to verify session');
-    }
-  }
-
-  async getCurrentUser(req: Request, res: Response): Promise<void> {
-    try {
-      const user = req.user;
-
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to get current user');
-        return;
-      }
-
-      const response = ResponseBuilder.success({
-        user: user.toPublicData(),
-        permissions: user.getPermissions()
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get current user');
-    }
-  }
 
   async changePassword(req: Request, res: Response): Promise<void> {
     try {

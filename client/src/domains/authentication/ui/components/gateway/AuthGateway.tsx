@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 
 import { useBootstrapContext } from '@app/contexts/BootstrapContext';
 import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useFirstTimeSetupQuery } from '@domains/authentication/hooks/useFirstTimeSetupQuery';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 
 import { AuthGatewayPanel } from './AuthGatewayPanel';
@@ -40,8 +41,8 @@ export function AuthGateway({ children }: AuthGatewayProps) {
 }
 
 function AuthUnauthenticatedRouter() {
-  const { flags } = useBootstrapContext();
-  const [inputShowRegister, setInputShowRegister] = useState(flags.firstTimeSetupRequired);
+  const { data } = useFirstTimeSetupQuery();
+  const [inputShowRegister, setInputShowRegister] = useState(data?.isFirstTime ?? false);
   const { displayed: showRegister, isTransitioning } = useDelayedTransition(
     inputShowRegister,
     SWAP_EXIT_MS
@@ -49,7 +50,7 @@ function AuthUnauthenticatedRouter() {
 
   // Sysadmin setup auto-logs in on completion; AuthGateway transitions to the
   // authenticated branch via sessionStatus rather than via a separate done callback.
-  if (flags.needsSystemAdmin) {
+  if (data?.needsSystemAdmin) {
     return <AuthSysAdminSetupPage />;
   }
 

@@ -34,10 +34,6 @@ const createMockBootstrapState = (
   state: 'complete',
   canRetry: false,
   retry: vi.fn(),
-  flags: {
-    firstTimeSetupRequired: false,
-    needsSystemAdmin: false,
-  },
   ...overrides,
 });
 

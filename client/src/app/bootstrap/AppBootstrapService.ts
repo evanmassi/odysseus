@@ -5,7 +5,7 @@
  * cache validation, network setup, and socket connection.
  */
 
-import { authService } from '@domains/authentication/services/AuthService';
+import { firstTimeSetupQueryOptions } from '@domains/authentication/hooks/useFirstTimeSetupQuery';
 import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
 import { useSearchStore } from '@domains/search/stores/searchStore';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
@@ -42,10 +42,6 @@ class AppBootstrapService {
     currentStep: 'initialization',
     error: null,
     steps: [...BOOTSTRAP_STEPS],
-    flags: {
-      firstTimeSetupRequired: false,
-      needsSystemAdmin: false,
-    },
   };
 
   private listeners: Array<(state: AppBootstrapState) => void> = [];
@@ -137,20 +133,11 @@ class AppBootstrapService {
       await new Promise(resolve => setTimeout(resolve, LOADING_SCREEN_RENDER_DELAY_MS));
       this.updateStep('initialization', true);
 
-      // Detect first-time setup and system admin status
+      // Warm the first-time setup check so the auth gateway reflects current server
+      // truth before first paint (checkFirstTime swallows errors, returning safe defaults).
       this.updateStep('auth-check', false);
-      try {
-        const firstTimeResult = await authService.checkFirstTime();
-
-        this.state.flags.firstTimeSetupRequired = firstTimeResult.isFirstTime;
-        this.state.flags.needsSystemAdmin = firstTimeResult.needsSystemAdmin;
-
-        this.updateStep('auth-check', true);
-      } catch (error) {
-        logger.error('Bootstrap auth check failed', { error });
-        this.updateStep('auth-check', false, 'Failed to check authentication status');
-        throw error;
-      }
+      await queryClient.prefetchQuery(firstTimeSetupQueryOptions);
+      this.updateStep('auth-check', true);
 
       // SessionService already loaded tokens in constructor, now sync with auth store
       this.updateStep('session-restore', false);
