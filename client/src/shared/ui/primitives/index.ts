@@ -33,11 +33,12 @@ export type { KbdProps } from './kbd/Kbd';
 export { KeyCombo } from './kbd/KeyCombo';
 export type { KeyComboProps } from './kbd/KeyCombo';
 
-export { AuthInput, Input, NumberInput } from './input';
+export { AuthInput, Input, NumberInput, SearchInput } from './input';
 export type {
   AuthInputProps,
   AuthInputValidationState,
   NumberInputProps,
+  SearchInputProps,
   InputProps,
   InputSize,
   InputState,
@@ -69,9 +70,6 @@ export { ScrimHalo } from './scrim-halo/ScrimHalo';
 
 export { ScrollArea } from './scroll-area/ScrollArea';
 export type { ScrollAreaProps } from './scroll-area/ScrollArea';
-
-export { SearchInput } from './search-input/SearchInput';
-export type { SearchInputProps } from './search-input/SearchInput';
 
 export { Select } from './select/Select';
 export type { SelectProps, SelectOption, SelectSize, SelectState, SelectRef } from './select/types';

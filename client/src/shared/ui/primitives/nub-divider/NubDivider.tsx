@@ -1,7 +1,7 @@
 /**
  * Nub Divider
  *
- * Thin rule terminated by glowing end nubs, in a primary or neutral tone.
+ * Thin rule terminated by glowing end nubs, tinted by tone.
  */
 
 export type NubDividerTone = 'primary' | 'success' | 'warning' | 'danger' | 'neutral';

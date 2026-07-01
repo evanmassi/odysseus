@@ -15,8 +15,6 @@ import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef, InputSize, ValidationResult } from './types';
 
-const FOCUS_SHADOW = 'focus:shadow-[var(--input-focus-shadow)]';
-
 const inputVariants = cva(
   [
     'w-full relative',
@@ -26,7 +24,7 @@ const inputVariants = cva(
     'transition-[border-color,background,box-shadow] duration-200',
     'hover:border-foreground/30',
     'focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]',
-    FOCUS_SHADOW,
+    'focus:shadow-[var(--input-focus-shadow)]',
     'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line-faint',
     'read-only:cursor-default',
   ],

@@ -27,8 +27,6 @@ export interface SearchInputProps {
   'aria-label'?: string;
 }
 
-const FOCUS_SHADOW = 'focus:shadow-[var(--input-focus-shadow)]';
-
 const SIZE = {
   xs: {
     container: 'h-6',
@@ -117,7 +115,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             transition-[border-color,background,box-shadow] duration-200
             hover:border-foreground/30
             focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]
-            ${FOCUS_SHADOW}
+            focus:shadow-[var(--input-focus-shadow)]
             disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line-faint
             ${inputClassName ?? ''}
           `}

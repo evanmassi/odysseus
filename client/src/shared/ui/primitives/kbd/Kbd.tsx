@@ -2,7 +2,6 @@
  * Keyboard Key Cap
  *
  * Renders a single key as a console-style cap with a beveled rim and phosphor glyph.
- * Combine multiple for a chord (e.g. map over the keys, joined by a separator).
  */
 
 import type { ReactNode } from 'react';

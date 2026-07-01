@@ -14,7 +14,6 @@ import { ScrollArea } from '../scroll-area/ScrollArea';
 
 import type { AutocompleteProps, AutocompleteRef, AutocompleteOption } from './types';
 
-const FOCUS_SHADOW = 'focus:shadow-[var(--input-focus-shadow)]';
 const POPUP_SHADOW = 'shadow-[var(--popup-shadow)]';
 
 const MIN_CHARS = 2;
@@ -233,7 +232,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
           disabled={disabled}
           className={
             inputClassName ??
-            `w-full h-9 px-3 text-body bg-[hsl(var(--input-well))] border ${stateBorder} text-foreground placeholder:text-foreground/40 transition-[border-color,background,box-shadow] duration-200 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] ${FOCUS_SHADOW} disabled:opacity-50 disabled:cursor-not-allowed`
+            `w-full h-9 px-3 text-body bg-[hsl(var(--input-well))] border ${stateBorder} text-foreground placeholder:text-foreground/40 transition-[border-color,background,box-shadow] duration-200 focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04] focus:shadow-[var(--input-focus-shadow)] disabled:opacity-50 disabled:cursor-not-allowed`
           }
         />
         {dropdown}
