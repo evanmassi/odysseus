@@ -4,9 +4,9 @@
 
 import type { ReactNode } from 'react';
 
-export type SelectSize = 'xs' | 'sm' | 'md' | 'lg';
+type SelectSize = 'xs' | 'sm' | 'md' | 'lg';
 
-export type SelectState = 'default' | 'error' | 'warning' | 'success';
+type SelectState = 'default' | 'error' | 'warning' | 'success';
 
 export interface SelectOption {
   value: string | number;

@@ -4,7 +4,7 @@
  * Accessible select dropdown primitive with design system tokens.
  */
 
-import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } from 'react';
+import React, { forwardRef, useState, useRef, useCallback, useMemo, useId, useEffect } from 'react';
 
 import { cva } from 'class-variance-authority';
 import { createPortal } from 'react-dom';
@@ -157,10 +157,8 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     },
     ref
   ) => {
-    // Determine closeOnSelect default based on multiple
     const shouldCloseOnSelect = closeOnSelect ?? !multiple;
 
-    // Determine current state based on error/warning/success props
     const getCurrentState = () => {
       if (error) return 'error';
       if (warning) return 'warning';
@@ -170,7 +168,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
 
     const currentState = getCurrentState();
 
-    // State
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -180,7 +177,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       return multiple ? [] : null;
     });
 
-    // Refs
     const selectRef = useRef<HTMLDivElement>(null);
     const mergedSelectRef = useMergedRef(ref, selectRef);
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -190,7 +186,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     const typeaheadRef = useRef('');
     const typeaheadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Dropdown position state for portal
     const [dropdownPosition, setDropdownPosition] = useState({
       top: 0,
       left: 0,
@@ -198,21 +193,18 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       openUpward: false,
     });
 
-    // IDs
     const id = useId();
     const labelId = `${id}-label`;
     const listboxId = `${id}-listbox`;
     const descriptionId = `${id}-description`;
     const errorId = `${id}-error`;
 
-    // Filter options based on search query
     const filteredOptions =
       searchable && searchQuery
         ? options.filter(option => option.label.toLowerCase().includes(searchQuery.toLowerCase()))
         : options;
 
-    // Get selected options for display
-    const getSelectedOptions = useCallback(() => {
+    const selectedOptions = useMemo(() => {
       const currentValue = value ?? selectedValue;
       // Check for null/undefined specifically, not falsy - empty string '' is a valid value
       if (currentValue === null || currentValue === undefined) return [];
@@ -221,9 +213,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       return options.filter(option => values.includes(option.value));
     }, [value, selectedValue, options]);
 
-    const selectedOptions = getSelectedOptions();
-
-    // Handle option selection
     const handleOptionSelect = useCallback(
       (option: SelectOption) => {
         if (option.disabled) return;
@@ -255,7 +244,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       [multiple, selectedValue, value, onChange, shouldCloseOnSelect]
     );
 
-    // Handle clear selection
     const handleClear = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -270,7 +258,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       [multiple, value, onChange]
     );
 
-    // Handle select toggle
     const handleToggle = useCallback(() => {
       if (disabled) return;
 
@@ -279,7 +266,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
 
       if (newIsOpen) {
         onOpen?.();
-        // Focus search input if searchable
         setTimeout(() => {
           if (searchable && searchInputRef.current) {
             searchInputRef.current.focus();
@@ -292,7 +278,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       }
     }, [disabled, isOpen, onOpen, onClose, searchable]);
 
-    // Handle keyboard navigation
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
         switch (e.key) {
@@ -370,7 +355,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       };
     }, []);
 
-    // Handle search input change
     const handleSearchChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value;
@@ -381,7 +365,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       [onSearch]
     );
 
-    // Calculate dropdown position based on trigger element
     const updateDropdownPosition = useCallback(() => {
       if (!selectRef.current) return;
       const rect = selectRef.current.getBoundingClientRect();
@@ -396,24 +379,17 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       });
     }, [maxHeight]);
 
-    // Update position when dropdown opens and on scroll/resize
     useEffect(() => {
       if (!isOpen) return;
 
-      // Initial position calculation
       updateDropdownPosition();
 
-      // Update on scroll (any scrollable ancestor) and resize
-      const handleScrollOrResize = () => {
-        updateDropdownPosition();
-      };
-
-      window.addEventListener('scroll', handleScrollOrResize, true);
-      window.addEventListener('resize', handleScrollOrResize);
+      window.addEventListener('scroll', updateDropdownPosition, true);
+      window.addEventListener('resize', updateDropdownPosition);
 
       return () => {
-        window.removeEventListener('scroll', handleScrollOrResize, true);
-        window.removeEventListener('resize', handleScrollOrResize);
+        window.removeEventListener('scroll', updateDropdownPosition, true);
+        window.removeEventListener('resize', updateDropdownPosition);
       };
     }, [isOpen, updateDropdownPosition]);
 
@@ -438,7 +414,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       return undefined;
     }, [isOpen]);
 
-    // Generate classes
     const wrapperClasses = fullWidth ? 'relative w-full' : 'relative';
     const selectClasses = selectVariants({
       size,
@@ -450,7 +425,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
 
     const dropdownClasses = dropdownVariants({ isOpen });
 
-    // Render display value
     const renderDisplayValueContent = () => {
       if (isLoading) {
         return <span className="text-muted-foreground">Loading...</span>;
@@ -467,7 +441,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         return <span className="text-foreground/40">{firstOption.label}</span>;
       }
 
-      // Use custom renderValue if provided
       if (renderValue) {
         return renderValue(selectedOptions);
       }
@@ -484,7 +457,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       );
     };
 
-    // Get current message for display
     const getCurrentMessage = () => {
       if (error) return { message: error, type: 'error' as const };
       if (warning) return { message: warning, type: 'warning' as const };
@@ -620,10 +592,8 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                         tabIndex={isHighlighted ? 0 : -1}
                       >
                         {renderOption ? (
-                          // Custom option rendering
                           renderOption(option, { isSelected, isHighlighted })
                         ) : (
-                          // Default option rendering
                           <>
                             {multiple && (
                               <div className="flex items-center">

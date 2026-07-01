@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 import { headerSurface } from '../console-panel/consoleHeaderSurface';
 import { SubsectionHeader } from '../titles/subsection-header/SubsectionHeader';
 
-export interface SettingsRowProps {
+interface SettingsRowProps {
   label: string;
   hint?: ReactNode;
   children: ReactNode;
@@ -32,22 +32,7 @@ export function SettingsRow({ label, hint, children, className }: SettingsRowPro
   );
 }
 
-export interface SettingsRowGroupProps {
-  children: ReactNode;
-  className?: string;
-}
-
-const GROUP_CLASSES =
-  'divide-y divide-line-faint border-b border-transparent ' +
-  '[&>*:nth-child(2)]:[border-image:linear-gradient(90deg,hsl(var(--foreground)/0.14)_0%,hsl(var(--foreground)/0.10)_60%,transparent_100%)_1] ' +
-  '[&>*:nth-child(3)]:[border-image:linear-gradient(90deg,hsl(var(--foreground)/0.12)_0%,hsl(var(--foreground)/0.08)_72%,transparent_100%)_1] ' +
-  '[border-image:linear-gradient(90deg,hsl(var(--foreground)/0.10)_0%,hsl(var(--foreground)/0.06)_55%,transparent_100%)_1]';
-
-export function SettingsRowGroup({ children, className }: SettingsRowGroupProps) {
-  return <div className={`${GROUP_CLASSES} ${className ?? ''}`}>{children}</div>;
-}
-
-export interface SubsectionProps {
+interface SubsectionProps {
   title: ReactNode;
   index?: number;
   meta?: ReactNode;

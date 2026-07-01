@@ -55,7 +55,7 @@ export { SectionHeader } from './titles/section-header/SectionHeader';
 
 export { SubsectionHeader } from './titles/subsection-header/SubsectionHeader';
 
-export { Subsection, SettingsRow, SettingsRowGroup } from './settings-row/SettingsRow';
+export { Subsection, SettingsRow } from './settings-row/SettingsRow';
 
 export { StatCell } from './stat-cell/StatCell';
 

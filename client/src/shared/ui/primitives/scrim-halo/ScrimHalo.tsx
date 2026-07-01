@@ -1,8 +1,7 @@
 /**
  * Scrim Halo
  *
- * Always-dark backdrop behind floating chrome — tooltips, toasts, and the console
- * dialogs. Driven by --scrim so it stays dark in both themes.
+ * Always-dark backdrop behind floating chrome. Driven by --scrim so it stays dark in both themes.
  */
 export function ScrimHalo() {
   return (

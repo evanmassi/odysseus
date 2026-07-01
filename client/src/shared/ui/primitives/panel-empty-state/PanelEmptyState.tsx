@@ -1,11 +1,11 @@
 /**
  * Panel Empty State
  *
- * Centered idle placeholder for an info panel when nothing is selected.
+ * Centered placeholder for a panel's body — nothing selected yet, or no results.
  */
 import type { LucideIcon } from 'lucide-react';
 
-export interface PanelEmptyStateProps {
+interface PanelEmptyStateProps {
   icon: LucideIcon;
   message: string;
   description?: string;

@@ -28,7 +28,7 @@ const MOTION_CLASSES: Record<DropdownMotion, { in: string; out: string }> = {
   instant: { in: 'animate-dropdown-instant-in', out: 'animate-dropdown-instant-out' },
 };
 
-export interface DropdownMenuProps {
+interface DropdownMenuProps {
   isOpen: boolean;
   onClose: () => void;
   triggerRef?: RefObject<HTMLElement>;

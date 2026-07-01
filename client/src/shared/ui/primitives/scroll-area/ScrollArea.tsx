@@ -12,11 +12,7 @@ import {
   type OverlayScrollbarsComponentRef,
 } from 'overlayscrollbars-react';
 
-export interface ScrollAreaProps
-  extends Omit<OverlayScrollbarsComponentProps, 'options' | 'defer'> {
-  options?: OverlayScrollbarsComponentProps['options'];
-  defer?: OverlayScrollbarsComponentProps['defer'];
-}
+type ScrollAreaProps = OverlayScrollbarsComponentProps;
 
 export const ScrollArea = forwardRef<OverlayScrollbarsComponentRef, ScrollAreaProps>(
   ({ options, defer = true, ...rest }, ref) => {
@@ -26,6 +22,7 @@ export const ScrollArea = forwardRef<OverlayScrollbarsComponentRef, ScrollAreaPr
         defer={defer}
         options={{
           scrollbars: { theme: 'os-theme-odysseus', autoHide: 'move', autoHideDelay: 800 },
+          // Recompute scrollbars when [data-state] elements finish animating (content resizes).
           update: { elementEvents: [['[data-state]', 'animationend transitionend']] },
           ...options,
         }}
