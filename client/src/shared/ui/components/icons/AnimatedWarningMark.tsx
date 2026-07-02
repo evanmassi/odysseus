@@ -3,7 +3,8 @@
  *
  * SVG-based animated warning triangle using Lucide AlertTriangle's exact geometry.
  */
-import { useEffect, useState } from 'react';
+
+import { useRevealOnMount } from './useRevealOnMount';
 
 interface AnimatedWarningMarkProps {
   size?: number;
@@ -11,18 +12,13 @@ interface AnimatedWarningMarkProps {
 }
 
 export function AnimatedWarningMark({ size = 48, className = '' }: AnimatedWarningMarkProps) {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
+  const isVisible = useRevealOnMount();
 
   // pathLength="100" normalizes the path for easier dash animation
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <svg width={size} height={size} viewBox="0 0 24 24">
-        {/* Triangle (exact Lucide AlertTriangle path with rounded corners) */}
+        {/* Triangle */}
         <path
           fill="none"
           stroke="currentColor"
@@ -38,7 +34,7 @@ export function AnimatedWarningMark({ size = 48, className = '' }: AnimatedWarni
           }}
         />
 
-        {/* Exclamation line (Lucide's exact position) */}
+        {/* Exclamation line */}
         <path
           fill="none"
           stroke="currentColor"

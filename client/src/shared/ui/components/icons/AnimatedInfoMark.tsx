@@ -3,7 +3,8 @@
  *
  * SVG-based animated info mark using Lucide Info's exact geometry.
  */
-import { useEffect, useState } from 'react';
+
+import { useRevealOnMount } from './useRevealOnMount';
 
 interface AnimatedInfoMarkProps {
   size?: number;
@@ -11,18 +12,12 @@ interface AnimatedInfoMarkProps {
 }
 
 export function AnimatedInfoMark({ size = 48, className = '' }: AnimatedInfoMarkProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const isVisible = useRevealOnMount();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Lucide's "i" has dot at TOP (y=8) and line below (y=12 to y=16)
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <svg width={size} height={size} viewBox="0 0 24 24">
-        {/* Circle (Lucide: cx=12, cy=12, r=10) */}
+        {/* Circle */}
         <circle
           cx="12"
           cy="12"
@@ -52,7 +47,7 @@ export function AnimatedInfoMark({ size = 48, className = '' }: AnimatedInfoMark
           }}
         />
 
-        {/* Info line below dot (Lucide: M12 16v-4, draws bottom to top) */}
+        {/* Info line below dot */}
         <path
           fill="none"
           stroke="currentColor"
