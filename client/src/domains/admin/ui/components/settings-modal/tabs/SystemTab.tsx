@@ -193,7 +193,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                 ) : (
                   <>
                     <span
-                      className="truncate font-mono text-data-sm text-secondary-foreground phosphor-text"
+                      className="truncate font-mono text-data-sm font-semibold text-foreground phosphor-text"
                       title={currentLab?.name ?? undefined}
                     >
                       {currentLab?.name ?? '—'}
