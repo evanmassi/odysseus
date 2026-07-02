@@ -27,6 +27,7 @@ import {
   Button,
   ConsolePanel,
   IdStamp,
+  Input,
   PanelHeader,
   SectionHeader,
   StatCell,
@@ -362,49 +363,53 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
       </ConsolePanel>
 
       {showCreateLab && (
-        <div className="p-3 bg-muted rounded-lg space-y-3">
-          <h4 className="text-body font-medium text-card-foreground">New Lab</h4>
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
-              <label
-                htmlFor="new-lab-name"
-                className="text-body-sm text-muted-foreground block mb-1"
-              >
-                Lab name
-              </label>
-              <input
-                id="new-lab-name"
-                type="text"
-                value={newLabName}
-                onChange={e => setNewLabName(e.target.value)}
-                placeholder="e.g., Smith Lab"
-                className="w-full px-2 py-1.5 text-body border border-border rounded bg-background text-foreground"
-                maxLength={200}
-                onKeyDown={e => e.key === 'Enter' && handleCreateLab()}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => handleCreateLab()}
-                isLoading={createLabMutation.isPending}
-              >
-                Create
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowCreateLab(false);
-                  setNewLabName('');
-                }}
-              >
-                Cancel
-              </Button>
+        <ConsolePanel intensity="soft">
+          <div className="p-4">
+            <SectionHeader title="New Lab" icon={<FlaskConical size={13} />} />
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <label
+                  htmlFor="new-lab-name"
+                  className="mb-1.5 block type-label text-label-2xs tracking-label-wide text-muted-foreground"
+                >
+                  Lab name
+                </label>
+                <Input
+                  id="new-lab-name"
+                  size="sm"
+                  fullWidth
+                  value={newLabName}
+                  onValueChange={setNewLabName}
+                  onKeyDown={e => e.key === 'Enter' && handleCreateLab()}
+                  placeholder="e.g., Smith Lab"
+                  maxLength={200}
+                  // eslint-disable-next-line jsx-a11y/no-autofocus -- reveal-on-demand form; focus its only field
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleCreateLab()}
+                  isLoading={createLabMutation.isPending}
+                >
+                  Create
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowCreateLab(false);
+                    setNewLabName('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </ConsolePanel>
       )}
 
       {isLoading && labs.length === 0 ? (
