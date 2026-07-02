@@ -1,5 +1,5 @@
 /**
- * Error Boundary Component
+ * Error Boundary
  *
  * Error boundary with retry functionality and error reporting.
  */
@@ -36,7 +36,6 @@ export interface ErrorBoundaryProps {
       }) => ReactNode);
   onError?: (error: Error, errorInfo: ErrorInfo, errorId: string) => void;
   onRetry?: () => void;
-  isolate?: boolean;
   level?: 'page' | 'section' | 'component';
   name?: string;
 }
@@ -115,7 +114,6 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
           <Button
             variant="secondary"
             onClick={() => {
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
               // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
               console.group(`🚨 Error Boundary: ${name ?? 'Unknown'}`);
               logger.error('Error', { error });
@@ -177,7 +175,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     });
 
     if (env.isDev()) {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
       // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
       console.group(`🚨 Error Boundary Caught Error: ${this.props.name ?? 'Unknown'}`);
       logger.error('Error', { error });
