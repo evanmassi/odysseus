@@ -176,7 +176,6 @@ export function DonorRegistryModal({
         onClose={onClose}
         size="xl"
         fixedHeight
-        animation="slide"
         contentClassName="p-4 h-full"
       >
         <div className="flex gap-4 h-full min-h-0">

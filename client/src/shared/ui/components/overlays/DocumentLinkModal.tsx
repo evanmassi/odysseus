@@ -18,7 +18,7 @@ export interface DocumentLinkValues {
   notes?: string;
 }
 
-export interface DocumentLinkModalProps {
+interface DocumentLinkModalProps {
   isOpen: boolean;
   mode: 'add' | 'edit';
   initialValues?: DocumentLinkValues;

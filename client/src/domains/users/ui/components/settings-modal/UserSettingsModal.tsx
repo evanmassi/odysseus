@@ -180,7 +180,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       title="User Settings"
       subtitle="Account & Personal Preferences"
       size="lg"
-      animation="slide"
       tabs={tabs}
       tabOrientation="vertical"
       footer={footer}

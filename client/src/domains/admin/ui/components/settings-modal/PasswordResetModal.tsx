@@ -190,7 +190,6 @@ export function PasswordResetModal({
       size="sm"
       chassis="lit"
       contentClassName="p-5"
-      animation="slide"
       tabs={tabs}
       tabOrientation="horizontal"
       footer={footer}

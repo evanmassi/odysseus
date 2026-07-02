@@ -1,7 +1,7 @@
 /**
  * Base Modal
  *
- * Reusable modal with animation, focus trap, and nested Escape support
+ * Reusable modal with animation, focus trap, and nested Escape support.
  */
 import React, { forwardRef, useImperativeHandle } from 'react';
 
@@ -17,11 +17,10 @@ import { ModalPortal } from './ModalPortal';
 
 import type { TabOrientation } from '@shared/ui/primitives/tabs/Tabs';
 
-export type ModalSize = 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
-export type ModalAnimation = 'zoom' | 'slide';
-export type ModalChassis = 'default' | 'lit';
+type ModalSize = 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
+type ModalChassis = 'default' | 'lit';
 
-export interface BaseModalProps {
+interface BaseModalProps {
   isOpen: boolean;
   title: string;
   icon: React.ReactNode;
@@ -31,7 +30,6 @@ export interface BaseModalProps {
   size?: ModalSize;
   /** Locks height at 85vh with scrollable content area */
   fixedHeight?: boolean;
-  animation?: ModalAnimation;
   tabs?: React.ReactNode;
   tabOrientation?: TabOrientation;
   footer?: React.ReactNode;
@@ -63,11 +61,6 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
   full: 'max-w-[90vw]',
 };
 
-const ANIMATION_CLASSES: Record<ModalAnimation, { enter: string; exit: string }> = {
-  zoom: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' },
-  slide: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' }, // TODO: implement distinct slide animation
-};
-
 const EXIT_DURATION_MS = 300;
 
 export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function BaseModal(
@@ -80,7 +73,6 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
     subtitle,
     size = 'lg',
     fixedHeight = false,
-    animation = 'zoom',
     tabs,
     tabOrientation = 'horizontal',
     footer,
@@ -127,8 +119,7 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
   }
 
   const sizeClass = SIZE_CLASSES[size];
-  const animationClasses = ANIMATION_CLASSES[animation];
-  const modalAnimationClass = isClosing ? animationClasses.exit : animationClasses.enter;
+  const modalAnimationClass = isClosing ? 'animate-modal-reveal-out' : 'animate-modal-reveal-in';
   const backdropAnimationClass = isClosing
     ? 'animate-modal-backdrop-out'
     : 'animate-modal-backdrop-in';

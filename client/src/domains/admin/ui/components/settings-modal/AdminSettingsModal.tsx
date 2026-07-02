@@ -350,7 +350,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       title="Admin Settings"
       subtitle="Security & System Configuration"
       size="xl"
-      animation="slide"
       tabs={tabs}
       tabOrientation="vertical"
       footer={footer}

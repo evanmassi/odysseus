@@ -6,18 +6,16 @@
 
 import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 
-import { X } from 'lucide-react';
-
 import { useModalStore } from '@app/stores/modalStore';
 import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 import { AnimatedXMark } from '@shared/ui/components/icons/AnimatedXMark';
 
-import { Button, NubDivider, ScrimHalo, type ButtonVariant } from '../../primitives';
+import { Button, type ButtonVariant } from '../../primitives';
 
-import { ModalPortal } from './ModalPortal';
+import { AlertDialog } from './AlertDialog';
 
-export interface ConfirmDialogProps {
+interface ConfirmDialogProps {
   isOpen: boolean;
   variant: 'danger' | 'warning';
   title: string;
@@ -27,13 +25,6 @@ export interface ConfirmDialogProps {
   onCancel: () => void;
   isLoading?: boolean;
 }
-
-const CORNER_PINS = [
-  'left-2 top-2',
-  'right-2 top-2',
-  'bottom-2 left-2',
-  'bottom-2 right-2',
-] as const;
 
 function getVariantStyles(variant: 'danger' | 'warning') {
   if (variant === 'danger') {
@@ -69,7 +60,6 @@ export function ConfirmDialog({
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
   const styles = getVariantStyles(variant);
-  const MarkComponent = styles.Mark;
 
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
@@ -130,87 +120,31 @@ export function ConfirmDialog({
 
   if (!isVisible) return null;
 
-  const backdropAnimationClass = isClosing
-    ? 'animate-modal-backdrop-out'
-    : 'animate-modal-backdrop-in';
-  const modalAnimationClass = isClosing ? 'animate-modal-blowup-out' : 'animate-modal-blowup-in';
-
-  // During exit animation, disable interactions so clicks reach dashboard
-  const closingPointerEvents = isClosing ? 'pointer-events-none' : '';
-
   return (
-    <ModalPortal>
-      <div
-        className={`fixed inset-0 bg-[hsl(var(--overlay-emphasis))] flex items-center justify-center z-50 ${backdropAnimationClass} ${closingPointerEvents}`}
+    <AlertDialog
+      isClosing={isClosing}
+      trapRef={trapRef}
+      Mark={styles.Mark}
+      iconColor={styles.iconColor}
+      pin={styles.pin}
+      title={title}
+      message={message}
+      onClose={handleCancel}
+      closeDisabled={isLoading}
+    >
+      <Button variant="secondary" onClick={handleCancel} disabled={isLoading}>
+        Cancel
+      </Button>
+      <Button
+        ref={confirmButtonRef}
+        variant={styles.buttonVariant}
+        onClick={handleConfirm}
+        disabled={isLoading}
+        isLoading={isLoading}
+        loadingText="Processing..."
       >
-        <div
-          ref={trapRef}
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="confirm-dialog-title"
-          aria-describedby="confirm-dialog-message"
-          data-theme="dark"
-          className={`relative isolate mx-4 w-full max-w-md px-7 py-6 ${modalAnimationClass} ${closingPointerEvents}`}
-        >
-          <ScrimHalo />
-          {CORNER_PINS.map(pos => (
-            <span
-              key={pos}
-              aria-hidden
-              className={`pointer-events-none absolute h-0.5 w-2 ${styles.pin} ${pos}`}
-            />
-          ))}
-
-          {/* Header */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <MarkComponent size={22} className={styles.iconColor} />
-              <h2
-                id="confirm-dialog-title"
-                className="phosphor-text type-label text-label-lg font-semibold text-tooltip-foreground"
-              >
-                {title}
-              </h2>
-            </div>
-            <button
-              onClick={handleCancel}
-              disabled={isLoading}
-              className="text-tooltip-muted transition-colors hover:text-tooltip-foreground disabled:opacity-50"
-              aria-label="Close dialog"
-              type="button"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <NubDivider tone="neutral" className="relative my-4" />
-
-          {/* Message */}
-          <p
-            id="confirm-dialog-message"
-            className="mb-7 text-body leading-relaxed text-tooltip-foreground/80"
-          >
-            {message}
-          </p>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-3">
-            <Button variant="secondary" onClick={handleCancel} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button
-              ref={confirmButtonRef}
-              variant={styles.buttonVariant}
-              onClick={handleConfirm}
-              disabled={isLoading}
-              isLoading={isLoading}
-              loadingText="Processing..."
-            >
-              {confirmText}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </ModalPortal>
+        {confirmText}
+      </Button>
+    </AlertDialog>
   );
 }

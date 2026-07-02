@@ -182,7 +182,6 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         title="Help"
         subtitle="Reference Guide"
         size="lg"
-        animation="slide"
         tabs={tabs}
         tabOrientation="vertical"
         locator={locator}

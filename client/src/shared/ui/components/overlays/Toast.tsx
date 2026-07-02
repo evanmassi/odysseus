@@ -4,14 +4,14 @@
  * Notification card for react-hot-toast integration.
  */
 
-import { CheckCircle, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
 
 import { ScrimHalo } from '../../primitives';
 import { LoadingSpinner } from '../loading';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
-export interface ToastProps {
+interface ToastProps {
   type: ToastType;
   message: string;
   /** Bound to react-hot-toast's t.visible for enter/exit animation */
@@ -52,7 +52,6 @@ const TOAST_CONFIG = {
     ariaLive: 'polite' as const,
   },
   loading: {
-    icon: Loader2,
     iconClass:
       'text-[hsl(var(--color-info-bg))] dark:drop-shadow-[0_0_5px_hsl(var(--color-info-bg)/0.75)]',
     coreClass: 'bg-[hsl(var(--color-info-bg))]',
@@ -63,8 +62,6 @@ const TOAST_CONFIG = {
 
 export function Toast({ type, message, visible = true }: ToastProps): React.ReactElement {
   const config = TOAST_CONFIG[type];
-  const Icon = config.icon;
-  const isLoading = type === 'loading';
 
   return (
     <div
@@ -88,14 +85,14 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
         aria-hidden
         className={`pointer-events-none absolute inset-y-3 left-[5px] w-[1.5px] rounded-full ${config.coreClass}`}
       />
-      {isLoading ? (
-        <LoadingSpinner size={20} className={`flex-shrink-0 ${config.iconClass}`} />
-      ) : (
-        <Icon
+      {'icon' in config ? (
+        <config.icon
           className={`w-5 h-5 flex-shrink-0 ${config.iconClass}`}
           strokeWidth={2.25}
           aria-hidden="true"
         />
+      ) : (
+        <LoadingSpinner size={20} className={`flex-shrink-0 ${config.iconClass}`} />
       )}
       <span className="text-body-sm text-toast-foreground leading-snug">{message}</span>
     </div>

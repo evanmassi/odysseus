@@ -312,7 +312,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         subtitle="Storage Layout & Assignments"
         size="md-lg"
         fixedHeight
-        animation="slide"
         locator={locator}
         tabs={tabs}
         tabOrientation="horizontal"
