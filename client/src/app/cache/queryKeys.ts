@@ -83,6 +83,8 @@ export const queryKeys = {
     list: (labId = '') => [...queryKeys.donors.all(labId), 'list'] as const,
     search: (labId = '', query: string) =>
       [...queryKeys.donors.all(labId), 'search', query] as const,
+    collectionHistory: (labId = '', donorId: string) =>
+      [...queryKeys.donors.all(labId), 'collection-history', donorId] as const,
   },
 
   // Equipment (lab-scoped)

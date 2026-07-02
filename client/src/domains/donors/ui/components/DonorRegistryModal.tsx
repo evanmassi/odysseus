@@ -10,9 +10,9 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { BookUser } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
+import { useDonorCollectionHistoryQuery } from '@domains/donors/hooks/useDonorCollectionHistoryQuery';
 import { useDeleteDonorMutation } from '@domains/donors/hooks/useDonorMutations';
 import { useDonorsQuery } from '@domains/donors/hooks/useDonorsQuery';
-import { DonorService } from '@domains/donors/services/DonorService';
 import { LoadingSpinner } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -21,8 +21,6 @@ import { DonorEditForm } from './DonorEditForm';
 import { DonorInfoPanel } from './DonorInfoPanel';
 import { DonorInfoPanelEmpty } from './DonorInfoPanelEmpty';
 import { DonorTable } from './DonorTable';
-
-import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
 
 interface DonorRegistryModalProps {
   isOpen: boolean;
@@ -48,13 +46,13 @@ export function DonorRegistryModal({
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [collectionHistory, setCollectionHistory] = useState<DonorCollectionHistory[]>([]);
-  const [historyVersion, setHistoryVersion] = useState(0);
 
   const selectedDonor = useMemo(
     () => donors.find(d => d.id === selectedDonorId),
     [donors, selectedDonorId]
   );
+
+  const { data: collectionHistory = [] } = useDonorCollectionHistoryQuery(selectedDonorId);
 
   // Deep-link: resolve initialDonorId to a donor record
   useEffect(() => {
@@ -70,27 +68,6 @@ export function DonorRegistryModal({
       setSelectedDonorId(match.id);
     }
   }, [initialDonorId, initialIdType, donors]);
-
-  // Fetch collection history when a donor is selected
-  useEffect(() => {
-    if (!selectedDonorId) {
-      setCollectionHistory([]);
-      return;
-    }
-
-    let cancelled = false;
-    DonorService.getCollectionHistory(selectedDonorId)
-      .then(history => {
-        if (!cancelled) setCollectionHistory(history);
-      })
-      .catch(() => {
-        if (!cancelled) setCollectionHistory([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedDonorId, historyVersion]);
 
   const handleSelectDonor = useCallback((id: string) => {
     setSelectedDonorId(id);
@@ -127,7 +104,6 @@ export function DonorRegistryModal({
       setIsEditing(false);
       setIsCreating(false);
       setShowDeleteConfirm(false);
-      setCollectionHistory([]);
     }
   }, [isOpen]);
 
@@ -211,7 +187,6 @@ export function DonorRegistryModal({
                 collectionHistory={collectionHistory}
                 onEdit={() => setIsEditing(true)}
                 onDelete={() => setShowDeleteConfirm(true)}
-                onHistoryChange={() => setHistoryVersion(v => v + 1)}
                 isAdmin={isAdmin}
               />
             ) : (

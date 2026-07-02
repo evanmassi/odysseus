@@ -24,7 +24,6 @@ interface DonorIdAutocompleteProps {
   fieldType: 'source' | 'internal';
   badge?: React.ReactNode;
   hasConflict?: boolean;
-  state?: InputState;
   onPairSelect?: (secondaryValue: string) => void;
 }
 

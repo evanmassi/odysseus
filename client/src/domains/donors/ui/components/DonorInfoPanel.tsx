@@ -28,7 +28,6 @@ interface DonorInfoPanelProps {
   collectionHistory: DonorCollectionHistory[];
   onEdit: () => void;
   onDelete: () => void;
-  onHistoryChange: () => void;
   isAdmin: boolean;
 }
 
@@ -37,7 +36,6 @@ export function DonorInfoPanel({
   collectionHistory,
   onEdit,
   onDelete,
-  onHistoryChange,
   isAdmin,
 }: DonorInfoPanelProps) {
   const collectionCount = collectionHistory.length;
@@ -126,7 +124,6 @@ export function DonorInfoPanel({
               history={collectionHistory}
               donorId={donor.id}
               isAdmin={isAdmin}
-              onHistoryChange={onHistoryChange}
             />
           </div>
 

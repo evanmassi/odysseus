@@ -3,6 +3,7 @@
  *
  * Shown in place of the donor info panel when no donor is selected.
  */
+
 import { BookUser } from 'lucide-react';
 
 import { HeaderStrip, PanelEmptyState, PanelHeader } from '@shared/ui';

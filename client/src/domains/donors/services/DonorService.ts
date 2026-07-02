@@ -29,11 +29,6 @@ export class DonorService {
     return response.donors;
   }
 
-  static async getById(id: string): Promise<DonorWithTubeCount> {
-    const response = await httpClient.getData(`${this.BASE_PATH}/${id}`, donorResponseSchema);
-    return response.donor;
-  }
-
   static async search(query: string, limit?: number): Promise<DonorSearchResult[]> {
     const params = new URLSearchParams({ q: query });
     if (limit) params.set('limit', String(limit));

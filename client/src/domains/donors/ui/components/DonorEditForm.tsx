@@ -81,30 +81,17 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
   const clinicalStatus = allValues.clinicalStatus;
 
   // Profile completeness — diagnosis/disease stage only count when the donor is diseased.
-  const trackedFields: (keyof CreateDonorRequest)[] =
-    clinicalStatus === 'Diseased'
-      ? [
-          'donorSourceId',
-          'donorInternalId',
-          'species',
-          'age',
-          'sex',
-          'ethnicity',
-          'clinicalStatus',
-          'diagnosis',
-          'diseaseStage',
-          'notes',
-        ]
-      : [
-          'donorSourceId',
-          'donorInternalId',
-          'species',
-          'age',
-          'sex',
-          'ethnicity',
-          'clinicalStatus',
-          'notes',
-        ];
+  const trackedFields: (keyof CreateDonorRequest)[] = [
+    'donorSourceId',
+    'donorInternalId',
+    'species',
+    'age',
+    'sex',
+    'ethnicity',
+    'clinicalStatus',
+    ...(clinicalStatus === 'Diseased' ? (['diagnosis', 'diseaseStage'] as const) : []),
+    'notes',
+  ];
   const filledCount = trackedFields.filter(f => {
     const v = allValues[f];
     return v != null && String(v).trim() !== '';
@@ -119,6 +106,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
     }
   };
 
+  // zodResolver parks the schema's pathless .refine error under the '' key, not root.
   const rootError =
     errors.root?.message ?? (errors as Record<string, { message?: string }>)['']?.message;
 

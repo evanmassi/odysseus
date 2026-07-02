@@ -3,6 +3,7 @@
  *
  * Inline editor for a single collection event, shared by the add and edit flows.
  */
+
 import { Save } from 'lucide-react';
 
 import { Button, DatePicker, Select } from '@shared/ui';

@@ -27,14 +27,12 @@ interface CollectionHistoryTimelineProps {
   history: DonorCollectionHistory[];
   donorId: string;
   isAdmin: boolean;
-  onHistoryChange: () => void;
 }
 
 export function CollectionHistoryTimeline({
   history,
   donorId,
   isAdmin,
-  onHistoryChange,
 }: CollectionHistoryTimelineProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newDate, setNewDate] = useState('');
@@ -83,7 +81,6 @@ export function CollectionHistoryTimeline({
           setNewDate('');
           setNewSpecimenType('');
           setNewSource('');
-          onHistoryChange();
         },
       }
     );
@@ -96,7 +93,6 @@ export function CollectionHistoryTimeline({
     deleteMutation.mutate(pendingDeleteId, {
       onSuccess: () => {
         setPendingDeleteId(null);
-        onHistoryChange();
       },
     });
   };
@@ -134,7 +130,6 @@ export function CollectionHistoryTimeline({
       {
         onSuccess: () => {
           setEditingId(null);
-          onHistoryChange();
         },
       }
     );

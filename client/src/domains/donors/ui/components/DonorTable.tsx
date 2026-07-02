@@ -46,7 +46,6 @@ export function DonorTable({
     const q = normalize(searchQuery);
     return donors.filter(
       d =>
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: need to match on either ID
         normalize(d.donorSourceId ?? '').includes(q) ||
         normalize(d.donorInternalId ?? '').includes(q)
     );
