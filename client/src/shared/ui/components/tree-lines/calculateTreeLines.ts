@@ -6,24 +6,21 @@
  * any domain (storage, equipment, …) can drive it.
  */
 
-import { LINE_OFFSET, VERTICAL_OFFSET, type TreeLine } from './useTreeLines';
+import { LINE_OFFSET, type TreeLine } from './useTreeLines';
 
-export interface TreeLineCalcConfig {
+interface TreeLineCalcConfig {
   containerSelector: string;
   topLevelAttr: string;
   isTopExpanded: (id: string) => boolean;
   isRackExpanded?: (topId: string, rackId: string) => boolean;
-  /** Inset of the spine/elbow from each row's left edge. Defaults to LINE_OFFSET. */
   lineOffset?: number;
-  /** `data-level` value of the middle tier. Defaults to 'rack'. */
   midLevelAttr?: string;
-  /** `data-level` value of the leaf tier. Defaults to 'box'. */
   leafLevelAttr?: string;
-  /** Selector for the clickable row within a top/mid item. Defaults to '.storage-nav-button'. */
   rowSelector?: string;
-  /** Selector for the clickable row within a leaf item. Defaults to the storage box selectors. */
   leafRowSelector?: string;
 }
+
+const STROKE_WIDTH = 1.5;
 
 export function calculateTreeLines(config: TreeLineCalcConfig): {
   container: Element | null;
@@ -66,7 +63,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
 
       const rackRect = rackButton.getBoundingClientRect();
       const rackX = rackRect.left - containerRect.left + offset;
-      const rackY = rackRect.top - containerRect.top + rackRect.height / 2 + VERTICAL_OFFSET;
+      const rackY = rackRect.top - containerRect.top + rackRect.height / 2;
 
       lastRackY = rackY;
 
@@ -76,7 +73,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
         y1: rackY,
         x2: rackX,
         y2: rackY,
-        strokeWidth: 1.5,
+        strokeWidth: STROKE_WIDTH,
         type: 'rack-branch',
       });
 
@@ -92,7 +89,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
 
           const boxRect = boxButton.getBoundingClientRect();
           const boxX = boxRect.left - containerRect.left + offset;
-          const boxY = boxRect.top - containerRect.top + boxRect.height / 2 + VERTICAL_OFFSET;
+          const boxY = boxRect.top - containerRect.top + boxRect.height / 2;
 
           lastBoxY = boxY;
 
@@ -102,7 +99,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
             y1: boxY,
             x2: boxX,
             y2: boxY,
-            strokeWidth: 1.5,
+            strokeWidth: STROKE_WIDTH,
             type: 'box-branch',
           });
         });
@@ -114,7 +111,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
             y1: rackRect.bottom - containerRect.top - 2,
             x2: rackX,
             y2: lastBoxY,
-            strokeWidth: 1.5,
+            strokeWidth: STROKE_WIDTH,
             type: 'rack-vertical',
           });
         }
@@ -128,7 +125,7 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
         y1: topBottomY,
         x2: topX,
         y2: lastRackY,
-        strokeWidth: 1.5,
+        strokeWidth: STROKE_WIDTH,
         type: `${config.topLevelAttr}-vertical`,
       });
     }
