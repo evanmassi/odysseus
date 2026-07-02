@@ -44,8 +44,6 @@ import { adminService } from '../../../../services/AdminService';
 import { UtilizationBar } from '../../displays/UtilizationBar';
 import { DataExportForm } from '../DataExportForm';
 
-import '@shared/ui/components/nav-tree/nav-tree.css';
-
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
 export interface SystemTabProps {

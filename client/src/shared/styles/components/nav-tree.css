@@ -1,14 +1,10 @@
 /**
  * Nav Tree Styles
  *
- * BEM-style classes for the framed-console category → subcategory → item tree
- * shared by the equipment and supplies navigators (and the bulk-update selector).
+ * BEM-style classes for the framed-console category → subcategory → item tree.
  * Scope a consumer with the `.nav-tree` class (or `.nav-tree-select` for the
  * denser bulk selector); the SVG connectors are driven by the shared tree-line
  * overlay keyed off each consumer's `data-tree-id`.
- *
- * Light is flat (primary tint + soft leading stripe); the lit recipe (scanline +
- * directional wash + bloom) is restored under [data-theme='dark'] at the bottom.
  */
 
 :root {
@@ -39,15 +35,11 @@
   transition: all 0.15s ease;
 }
 
-/* Hover preview — flat tint + soft leading stripe. Skipped on selected/open rows
-   so they keep their own treatment. Dark restores the lit wash + bloom below. */
 .nav-tree .nav-tree-row:not(.is-selected):not(.is-open):hover {
   background: hsl(var(--row-tone) / 0.06);
   box-shadow: inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe));
 }
 
-/* Open container: the active state for a category/subcategory (only items get
-   .is-selected). Sits above the closed-row hover, below a selected item. */
 .nav-tree .nav-tree-row.is-open {
   border-color: hsl(var(--primary) / 0.4);
   background: hsl(var(--primary) / 0.07);
@@ -55,14 +47,11 @@
   color: var(--nav-tree-selected-text);
 }
 
-/* Open container, hovered: a small lift so it isn't a dead zone (still below selected). */
 .nav-tree .nav-tree-row.is-open:hover {
   border-color: hsl(var(--primary) / 0.55);
   background: hsl(var(--primary) / 0.1);
 }
 
-/* Selected leaf pops: lit border + flat tint over its card so the real object
-   reads above its receded containers. */
 .nav-tree .nav-tree-row--item.is-selected {
   border-color: hsl(var(--row-tone) / 0.5);
   background:
@@ -72,7 +61,6 @@
   font-weight: 600;
 }
 
-/* Selected item, hovered: lift the tint + border so it still reacts. */
 .nav-tree .nav-tree-row--item.is-selected:hover {
   border-color: hsl(var(--row-tone) / 0.8);
   background:
@@ -80,8 +68,6 @@
     hsl(var(--card));
 }
 
-/* Closed top-level categories read as raised section bars — a faint fill, defined
-   edge, and top rim give them weight at rest (hover/open override this). */
 .nav-tree .nav-tree-row--category {
   min-height: 2rem;
   padding: 0.375rem 0.5rem;
@@ -97,14 +83,10 @@
   gap: 0.5rem;
 }
 
-/* Read-only leaf rows (e.g. utilization readouts): keep the row frame, drop the
-   click affordance. Hover stays as a row-tracking aid. */
 .nav-tree .nav-tree-row--static {
   cursor: default;
 }
 
-/* The leaf is the one real object in the tree: a taller, elevated two-line card
-   that sits inside the recessed well, distinct from the quiet container rows. */
 .nav-tree .nav-tree-row--item {
   min-height: 2.75rem;
   padding: 0.5rem 0.625rem;
@@ -113,8 +95,6 @@
   border-color: hsl(var(--line-soft));
 }
 
-/* Recessed tray the leaf cards drop into — deepens the container-vs-object
-   contrast. Indentation comes from the enclosing children wrapper. */
 .nav-tree .nav-tree-well {
   display: flex;
   flex-direction: column;
@@ -141,9 +121,7 @@
   pointer-events: none;
 }
 
-/* Each nesting level indents its children by one step; row widths follow the
-   wrapper, so there is no per-row margin to keep in sync. The connecting spine and
-   elbows are drawn by the shared SVG tree-line overlay, styled below. */
+/* The connecting spine and elbows are drawn by the shared SVG tree-line overlay. */
 .nav-tree .nav-tree-children {
   display: flex;
   flex-direction: column;
@@ -152,8 +130,7 @@
   margin-top: 0.25rem;
 }
 
-/* Glowing-primary connectors, matching the storage navigator. The inline opacity
-   is an SVG presentation attribute, so this overrides it without !important. */
+/* The inline opacity is an SVG presentation attribute, so this overrides it without !important. */
 .nav-tree .tree-line {
   stroke: hsl(var(--primary) / 0.55);
   opacity: 1;
@@ -172,7 +149,6 @@
   color: var(--nav-tree-text);
 }
 
-.nav-tree .nav-tree-row.is-selected .nav-tree-row__chevron,
 .nav-tree .nav-tree-row.is-open .nav-tree-row__chevron {
   color: var(--nav-tree-selected-text);
 }
@@ -189,9 +165,7 @@
   color: var(--nav-tree-text-muted);
 }
 
-/* ── Bulk-update selector tree ──────────────────────────────────────────────
-   Same depth-tiered SVG connectors + directional hover wash as the nav, tuned a
-   touch dimmer for the dense checkbox list. */
+/* ── Bulk-update selector tree ────────────────────────────────────────────── */
 .nav-tree-select .tree-line {
   stroke: hsl(var(--primary) / 0.4);
   opacity: 1;
@@ -213,20 +187,24 @@
 }
 
 /* ── Dark theme: restore the lit recipe (scanline + directional wash + bloom) ── */
-/* Resting category bars stay neutral in dark; the navy fill is a light-mode choice. */
+[data-theme='dark'] .nav-tree,
+[data-theme='dark'] .nav-tree-select {
+  --scanline-layer: repeating-linear-gradient(
+    to bottom,
+    hsl(var(--scanline)) 0,
+    hsl(var(--scanline)) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
 [data-theme='dark'] .nav-tree .nav-tree-row--category {
   background-color: hsl(var(--foreground) / 0.035);
 }
 
 [data-theme='dark'] .nav-tree .nav-tree-row:not(.is-selected):not(.is-open):hover {
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       90deg,
       hsl(var(--row-tone) / var(--alpha-hover-wash-1)) 0%,
@@ -247,13 +225,7 @@
 [data-theme='dark'] .nav-tree .nav-tree-row.is-open {
   border-color: hsl(var(--primary) / 0.5);
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       90deg,
       hsl(var(--primary) / 0.12) 0%,
@@ -269,13 +241,7 @@
 [data-theme='dark'] .nav-tree .nav-tree-row.is-open:hover {
   border-color: hsl(var(--primary) / 0.65);
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       90deg,
       hsl(var(--primary) / 0.12) 0%,
@@ -291,13 +257,7 @@
 [data-theme='dark'] .nav-tree .nav-tree-row--item.is-selected {
   border-color: hsl(var(--row-tone) / 0.6);
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       180deg,
       hsl(var(--row-tone) / var(--alpha-glow-tint)),
@@ -323,7 +283,6 @@
     0 0 80px 4px hsl(var(--row-tone) / var(--alpha-glow-outer-far));
 }
 
-/* Selected item, hovered: already the brightest state — a touch more border + glow. */
 [data-theme='dark'] .nav-tree .nav-tree-row--item.is-selected:hover {
   border-color: hsl(var(--row-tone) / 0.8);
   filter: brightness(1.2);
@@ -332,13 +291,7 @@
 [data-theme='dark'] .nav-tree-select .bulk-select-row:hover {
   border-color: hsl(var(--primary) / 0.55);
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       90deg,
       hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,

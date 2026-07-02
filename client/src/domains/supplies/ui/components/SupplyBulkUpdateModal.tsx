@@ -37,8 +37,6 @@ import { BulkReceiveTab } from './bulk-update-tabs/BulkReceiveTab';
 import { BulkVoidTab } from './bulk-update-tabs/BulkVoidTab';
 import { SupplyBarcodeSheetModal } from './SupplyBarcodeSheetModal';
 
-import '@shared/ui/components/nav-tree/nav-tree.css';
-
 import type {
   SupplyCategory,
   SupplyItemWithStock,

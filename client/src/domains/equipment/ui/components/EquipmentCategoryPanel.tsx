@@ -21,8 +21,6 @@ import { NavTreeLines } from '@shared/ui/components/tree-lines';
 
 import { EquipmentItemRow } from './EquipmentItemRow';
 
-import '@shared/ui/components/nav-tree/nav-tree.css';
-
 import type { EquipmentCategory, EquipmentItem } from '@odysseus/shared-schemas';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
 

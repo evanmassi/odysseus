@@ -36,8 +36,6 @@ import { BulkSelectTreeLines } from '@shared/ui/components/tree-lines';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
-import '@shared/ui/components/nav-tree/nav-tree.css';
-
 import type {
   EquipmentItem,
   EquipmentCategory,
