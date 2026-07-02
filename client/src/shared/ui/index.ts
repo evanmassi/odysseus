@@ -17,9 +17,7 @@ export { LazyModalBoundary } from './components/boundaries/LazyModalBoundary';
 export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 
 // Info display components
-export { DetailRow, InfoField, InfoGroup } from './components/info-display';
-export type { DetailRowProps, InfoFieldProps } from './components/info-display';
-export type { InfoGroupProps } from './components/info-display';
+export { DetailRow } from './components/info-display';
 
 // Loading components
 export {

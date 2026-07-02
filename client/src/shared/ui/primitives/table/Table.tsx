@@ -12,6 +12,7 @@ import { cva } from 'class-variance-authority';
 import { Checkbox } from '../checkbox/Checkbox';
 import { headerSurface, HEADER_TOP_EDGE } from '../console-panel/consoleHeaderSurface';
 
+import { ROW_HOVER_GLOW } from './rowHoverGlow';
 import { defaultTableProps } from './types';
 
 import type { RowState, TableColumn, TableRowBase, TableProps, TableContextValue } from './types';
@@ -180,40 +181,6 @@ const STATE_TEXT: Record<RowState, string> = {
 // Reads as "the screen is on" — applied to all rows except those displaying the full selection glow.
 const PHOSPHOR_ROW =
   'shadow-[inset_0_1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom)),inset_0_-1px_0_hsl(var(--foreground)/var(--alpha-phosphor-rim)),inset_0_-8px_10px_-8px_hsl(var(--foreground)/var(--alpha-phosphor-bloom))]';
-
-// Hover preview of the selection. Light is a flat tone tint + soft leading stripe; the lit
-// recipe (scanline + directional wash + 8-layer bloom) is restored under `dark:`. The cell bg
-// tint is suppressed so no gray stacks under it. Tone matches the row's state.
-const HOVER_GLOW: Record<GlowTone, string> = {
-  primary: [
-    'hover:[background-image:linear-gradient(0deg,hsl(var(--primary)/0.06),hsl(var(--primary)/0.06))]',
-    'hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/var(--alpha-hover-stripe))]',
-    'dark:hover:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-hover-wash-1))_0%,hsl(var(--primary)/var(--alpha-hover-wash-2))_18%,hsl(var(--primary)/var(--alpha-hover-wash-3))_48%,hsl(var(--primary)/var(--alpha-hover-wash-4))_78%,hsl(var(--primary)/0)_100%)]',
-    'dark:hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--primary)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--primary)/var(--alpha-hover-bloom-far))]',
-    '[&:hover>td]:!bg-transparent',
-  ].join(' '),
-  success: [
-    'hover:[background-image:linear-gradient(0deg,hsl(var(--color-success-bg)/0.06),hsl(var(--color-success-bg)/0.06))]',
-    'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg)/var(--alpha-hover-stripe))]',
-    'dark:hover:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-success-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-success-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-success-bg)/0)_100%)]',
-    'dark:hover:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-success-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-success-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-success-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-success-bg)/var(--alpha-hover-bloom-far))]',
-    '[&:hover>td]:!bg-transparent',
-  ].join(' '),
-  warning: [
-    'hover:[background-image:linear-gradient(0deg,hsl(var(--color-warning-bg)/0.06),hsl(var(--color-warning-bg)/0.06))]',
-    'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)/var(--alpha-hover-stripe))]',
-    'dark:hover:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)]',
-    'dark:hover:shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-warning-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-warning-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-warning-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-warning-bg)/var(--alpha-hover-bloom-far))]',
-    '[&:hover>td]:!bg-transparent',
-  ].join(' '),
-  danger: [
-    'hover:[background-image:linear-gradient(0deg,hsl(var(--color-danger-bg)/0.06),hsl(var(--color-danger-bg)/0.06))]',
-    'hover:shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg)/var(--alpha-hover-stripe))]',
-    'dark:hover:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(90deg,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-1))_0%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-2))_18%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-3))_48%,hsl(var(--color-danger-bg)/var(--alpha-hover-wash-4))_78%,hsl(var(--color-danger-bg)/0)_100%)]',
-    'dark:hover:shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg)/var(--alpha-hover-stripe)),inset_14px_0_36px_-10px_hsl(var(--color-danger-bg)/var(--alpha-hover-edge)),inset_0_1px_0_hsl(var(--color-danger-bg)/var(--alpha-hover-rim)),inset_0_-1px_0_hsl(var(--color-danger-bg)/var(--alpha-hover-rim)),inset_0_10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-edge)),inset_0_-10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-edge)),0_0_22px_-4px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom)),0_0_50px_4px_hsl(var(--color-danger-bg)/var(--alpha-hover-bloom-far))]',
-    '[&:hover>td]:!bg-transparent',
-  ].join(' '),
-};
 
 // Leading 3px stripe per row state. Shown when row is selected (without glow) or has a non-default state.
 // Strings are literal so Tailwind JIT can see them.
@@ -399,9 +366,11 @@ const TableBody = <T extends TableRowBase>({
         const text = STATE_TEXT[state];
         const phosphor = !glow ? PHOSPHOR_ROW : '';
         // Hover previews the row's own tone (primary/success/warning/danger); muted rows skip it
-        // since there is no muted glow recipe.
+        // since there is no muted glow recipe. The `td` bg is cleared so the zebra tint doesn't stack.
         const hover =
-          hoverable && !isSelected && state !== 'muted' ? HOVER_GLOW[stateToGlowTone(state)] : '';
+          hoverable && !isSelected && state !== 'muted'
+            ? `${ROW_HOVER_GLOW[stateToGlowTone(state)]} [&:hover>td]:!bg-transparent`
+            : '';
 
         return (
           <tr
