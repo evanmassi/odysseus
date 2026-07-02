@@ -31,12 +31,13 @@ interface ValidatedInputProps {
   options?: Array<{ value: string; label: string }>;
   autoFocus?: boolean;
   badge?: React.ReactNode;
-  hasConflict?: boolean; // Applies amber highlight for conflicting values in bulk edit
+  hasConflict?: boolean;
   /** Label typography. 'default' = title-case sans; 'compact' = uppercase mono micro-label. */
   labelStyle?: 'default' | 'compact';
-  'aria-invalid'?: boolean;
-  'data-testid'?: string;
 }
+
+// Focus after the modal's entrance animation settles; 150ms clears it without feeling sluggish.
+const FOCUS_DELAY_MS = 150;
 
 export function ValidatedInput({
   label,
@@ -58,20 +59,17 @@ export function ValidatedInput({
   badge,
   hasConflict = false,
   labelStyle = 'default',
-  ...ariaProps
 }: ValidatedInputProps) {
   // More reliable than HTML autoFocus attribute which depends on browser timing
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
-      // Wait for modal animation before focusing
-      // 150ms provides enough time without feeling sluggish
       setTimeout(() => {
         inputRef.current?.focus();
-      }, 150);
+      }, FOCUS_DELAY_MS);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Autofocus is a mount-time intent; re-running on autoFocus change would refocus unexpectedly
   }, []);
 
   const getLabelClasses = () => {
@@ -115,7 +113,7 @@ export function ValidatedInput({
   const getInputState = (): InputState => {
     if (error) return 'error';
     if (warning) return 'warning';
-    if (hasConflict) return 'warning'; // Conflict uses warning-like styling
+    if (hasConflict) return 'warning';
     return 'default';
   };
 
@@ -138,7 +136,6 @@ export function ValidatedInput({
           onBlur={onBlur}
           className="input-field input-field-normal w-full"
           disabled={disabled}
-          {...ariaProps}
         >
           {options?.map(option => (
             <option key={option.value} value={option.value}>
@@ -161,7 +158,6 @@ export function ValidatedInput({
           resize="none"
           fullWidth
           className="pr-12"
-          {...ariaProps}
         />
       ) : (
         <Input
@@ -176,7 +172,6 @@ export function ValidatedInput({
           maxLength={maxLength}
           step={step}
           fullWidth
-          {...ariaProps}
         />
       )}
 
