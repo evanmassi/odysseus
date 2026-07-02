@@ -19,7 +19,7 @@ import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettings, useUserLookupQuery } from '@domains/users';
-import { Button, Chip, OdysseusSpinner, PanelEmptyState, Tooltip } from '@shared/ui';
+import { Button, Chip, LoadingSpinner, PanelEmptyState, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
@@ -126,7 +126,7 @@ export function SearchResultsPanel({
     return (
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="flex items-center">
-          <OdysseusSpinner size="md" className="text-primary" />
+          <LoadingSpinner size="md" className="text-primary" />
           <span className="ml-2 text-body-sm text-secondary-foreground">Searching...</span>
         </div>
       </div>
@@ -462,7 +462,7 @@ export function SearchResultsPanel({
       {isSearching && (
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
           <div className="flex items-center border border-line-soft bg-card px-3 py-1 shadow-[0_8px_20px_-12px_hsl(var(--recess)/0.7)]">
-            <OdysseusSpinner size={12} className="text-primary" />
+            <LoadingSpinner size={12} className="text-primary" />
             <span className="ml-2 type-label text-label-2xs text-foreground/60">Updating</span>
           </div>
         </div>

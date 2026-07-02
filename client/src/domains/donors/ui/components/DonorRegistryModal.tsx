@@ -13,7 +13,7 @@ import { useAuthStore } from '@domains/authentication';
 import { useDeleteDonorMutation } from '@domains/donors/hooks/useDonorMutations';
 import { useDonorsQuery } from '@domains/donors/hooks/useDonorsQuery';
 import { DonorService } from '@domains/donors/services/DonorService';
-import { OdysseusSpinner } from '@shared/ui';
+import { LoadingSpinner } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
@@ -196,7 +196,7 @@ export function DonorRegistryModal({
           <div className="w-[40%] flex-shrink-0 flex flex-col min-h-0 pb-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
-                <OdysseusSpinner className="text-primary" />
+                <LoadingSpinner className="text-primary" />
               </div>
             ) : isCreating ? (
               <DonorEditForm onSubmit={handleEditComplete} onCancel={() => setIsCreating(false)} />

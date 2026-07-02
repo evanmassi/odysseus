@@ -8,7 +8,7 @@ import { forwardRef } from 'react';
 
 import { cva } from 'class-variance-authority';
 
-import { OdysseusSpinner } from '@shared/ui/components/loading';
+import { LoadingSpinner } from '@shared/ui/components/loading';
 
 import { defaultButtonProps } from './types';
 
@@ -170,8 +170,8 @@ const ICON_TONE: Record<ButtonVariant, string> = {
 
 const SPINNER_PX: Record<ButtonSize, number> = { xs: 12, sm: 12, md: 16, xl: 20 };
 
-function LoadingSpinner({ size }: { size: ButtonSize }) {
-  return <OdysseusSpinner size={SPINNER_PX[size]} />;
+function ButtonSpinner({ size }: { size: ButtonSize }) {
+  return <LoadingSpinner size={SPINNER_PX[size]} />;
 }
 
 export const Button = forwardRef<ButtonRef, ButtonProps>(
@@ -219,7 +219,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
     };
 
     const renderLeading = () => {
-      if (isLoading) return <LoadingSpinner size={size} />;
+      if (isLoading) return <ButtonSpinner size={size} />;
       return (
         <>
           <span
@@ -240,7 +240,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       if (isLoading && loadingText) {
         return (
           <>
-            <LoadingSpinner size={size} />
+            <ButtonSpinner size={size} />
             <span>{loadingText}</span>
           </>
         );

@@ -9,7 +9,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
-import { Button, OdysseusSpinner } from '@shared/ui';
+import { Button, LoadingSpinner } from '@shared/ui';
 
 import { OfflineInitializationPage } from './OfflineInitializationPage';
 
@@ -73,7 +73,7 @@ export function AppLoader({ context, onRetry }: AppLoaderProps) {
     <BootSplashField>
       <div className="flex animate-in flex-col items-center gap-6 px-8 fade-in-0 duration-500">
         <div aria-hidden style={{ filter: HERO_BLOOM }}>
-          <OdysseusSpinner size={96} className="text-[rgb(var(--auth-text))]" />
+          <LoadingSpinner size={96} className="text-[rgb(var(--auth-text))]" />
         </div>
         <div className="flex flex-col items-center gap-3">
           <SplashLogo />

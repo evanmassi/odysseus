@@ -9,7 +9,7 @@
 import { useId, useState } from 'react';
 
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
-import { OdysseusSpinner } from '@shared/ui';
+import { LoadingSpinner } from '@shared/ui';
 
 interface Preset {
   label: string;
@@ -155,7 +155,7 @@ export function SpinnerPreviewPage() {
               className="flex items-center justify-center"
               style={{ minWidth: 220, minHeight: 220 }}
             >
-              <OdysseusSpinner
+              <LoadingSpinner
                 size={size}
                 ringDuration={ring}
                 flakeDuration={flake}
@@ -175,12 +175,12 @@ export function SpinnerPreviewPage() {
           </h2>
           <div className="auth-field relative flex h-[420px] items-center justify-center overflow-hidden rounded-lg border border-line-soft">
             <div className="flex flex-col items-center gap-6">
-              <OdysseusSpinner
+              <LoadingSpinner
                 size={96}
                 ringDuration={ring}
                 flakeDuration={flake}
                 breathe={breathe}
-                className="phosphor-glow text-[rgb(var(--auth-text))]"
+                className="text-[rgb(var(--auth-text))]"
               />
               <div className="flex flex-col items-center gap-3">
                 <OdysseusLogo

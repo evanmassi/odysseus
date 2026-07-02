@@ -11,7 +11,7 @@ import { Monitor, TabletSmartphone, MonitorCheck, LogOut } from 'lucide-react';
 import { UAParser } from 'ua-parser-js';
 
 import { useUserSessions } from '@domains/users';
-import { Button, OdysseusSpinner, Table, Tooltip } from '@shared/ui';
+import { Button, LoadingSpinner, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -198,7 +198,7 @@ export function SessionListPanel() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <OdysseusSpinner size="md" className="text-primary" />
+        <LoadingSpinner size="md" className="text-primary" />
         <span className="ml-2 text-body-sm text-secondary-foreground">Loading sessions...</span>
       </div>
     );

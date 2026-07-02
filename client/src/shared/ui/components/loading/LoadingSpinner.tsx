@@ -1,5 +1,5 @@
 /**
- * Odysseus Spinner
+ * Loading Spinner
  *
  * Branded loader built from the Odysseus mark — the O ring and the inner snowflake
  * counter-rotate about one shared center. Inherits the host's text color via currentColor.
@@ -43,7 +43,7 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-interface OdysseusSpinnerProps {
+interface LoadingSpinnerProps {
   /** A named size token (sm/md/lg/xl) or an explicit pixel size (square). */
   size?: SpinnerSize | number;
   /** Seconds per full revolution of the O ring (clockwise). */
@@ -56,14 +56,14 @@ interface OdysseusSpinnerProps {
   'aria-label'?: string;
 }
 
-export function OdysseusSpinner({
+export function LoadingSpinner({
   size = 'md',
   ringDuration = 15,
   flakeDuration = 10,
   breathe = false,
   className = '',
   'aria-label': ariaLabel = 'Loading',
-}: OdysseusSpinnerProps) {
+}: LoadingSpinnerProps) {
   const reduced = usePrefersReducedMotion();
   const px = typeof size === 'number' ? size : SIZE_PX[size];
   const style: CSSProperties = { display: 'inline-block', width: px, height: px };
@@ -73,7 +73,7 @@ export function OdysseusSpinner({
       viewBox={VIEW_BOX}
       role="status"
       aria-label={ariaLabel}
-      className={`${breathe ? 'phosphor-breathe ' : ''}${className}`}
+      className={`phosphor-glow ${breathe ? 'phosphor-breathe ' : ''}${className}`}
       style={style}
       fill="currentColor"
     >

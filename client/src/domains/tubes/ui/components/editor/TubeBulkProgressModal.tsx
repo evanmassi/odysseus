@@ -6,7 +6,7 @@
 
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
-import { Button, OdysseusSpinner } from '@shared/ui';
+import { Button, LoadingSpinner } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 
 import type { BulkUpdateProgress } from '@domains/tubes/types';
@@ -47,13 +47,13 @@ export function TubeBulkProgressModal({
     switch (phase) {
       case 'preparing':
       case 'validating':
-        return <OdysseusSpinner size={20} className="text-info-text" />;
+        return <LoadingSpinner size={20} className="text-info-text" />;
       case 'updating':
-        return <OdysseusSpinner size={20} className="text-primary" />;
+        return <LoadingSpinner size={20} className="text-primary" />;
       case 'completing':
         return <CheckCircle className="w-5 h-5 text-success-text" />;
       default:
-        return <OdysseusSpinner size={20} className="text-muted-foreground" />;
+        return <LoadingSpinner size={20} className="text-muted-foreground" />;
     }
   };
 

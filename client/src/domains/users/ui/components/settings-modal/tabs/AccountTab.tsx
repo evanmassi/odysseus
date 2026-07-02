@@ -15,7 +15,7 @@ import {
   AuthInput,
   Button,
   ConsolePanel,
-  OdysseusSpinner,
+  LoadingSpinner,
   Subsection,
 } from '@shared/ui';
 import { notifications } from '@shared/utils';
@@ -133,7 +133,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <OdysseusSpinner size="md" className="text-primary" />
+        <LoadingSpinner size="md" className="text-primary" />
       </div>
     );
   }

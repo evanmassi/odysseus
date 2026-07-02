@@ -11,7 +11,7 @@ import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { useUserSettings } from '@domains/users/hooks/useUserSettings';
-import { OdysseusSpinner } from '@shared/ui';
+import { LoadingSpinner } from '@shared/ui';
 
 import { TubeGridCell } from './TubeGridCell';
 import { TubeGridContextMenu } from './TubeGridContextMenu';
@@ -200,7 +200,7 @@ export function TubeGrid({
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
         <div className="flex items-center space-x-3 mb-4">
-          <OdysseusSpinner size="lg" className="text-primary" />
+          <LoadingSpinner size="lg" className="text-primary" />
           <span className="text-lg font-medium text-secondary-foreground">Loading tubes...</span>
         </div>
         <div className="text-body-sm text-muted-foreground">

@@ -9,7 +9,7 @@ import React, { forwardRef, useState, useId, useCallback, useEffect, useRef } fr
 import { cva } from 'class-variance-authority';
 
 import { useMergedRef } from '@shared/hooks';
-import { OdysseusSpinner } from '@shared/ui/components/loading';
+import { LoadingSpinner } from '@shared/ui/components/loading';
 
 import { defaultInputProps } from './types';
 
@@ -141,7 +141,7 @@ const SPINNER_PX: Record<InputSize, number> = {
 };
 
 const InputLoadingSpinner: React.FC<InputLoadingSpinnerProps> = ({ size }) => (
-  <OdysseusSpinner size={SPINNER_PX[size]} className={iconVariants({ position: 'right', size })} />
+  <LoadingSpinner size={SPINNER_PX[size]} className={iconVariants({ position: 'right', size })} />
 );
 
 interface InputLabelProps {

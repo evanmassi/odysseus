@@ -12,7 +12,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
-import { AlertBanner, Button, OdysseusSpinner } from '@shared/ui';
+import { AlertBanner, Button, LoadingSpinner } from '@shared/ui';
 
 import { AuthGatewayPanel } from './AuthGatewayPanel';
 
@@ -83,7 +83,7 @@ function VerifyContent() {
     return (
       <div key="verify-verifying" className={`animate-auth-stack ${exitClass}`}>
         <div className="flex flex-col items-center gap-4 py-2">
-          <OdysseusSpinner size="lg" className="text-[rgb(var(--auth-text))]" />
+          <LoadingSpinner size="lg" className="text-[rgb(var(--auth-text))]" />
           <p className="text-body-sm text-[rgb(var(--auth-text-dim))]">Verifying your email…</p>
         </div>
       </div>

@@ -4,12 +4,12 @@
  * Centered branded spinner for dashboard lazy-load and storage-sync states.
  */
 
-import { OdysseusSpinner } from '@shared/ui';
+import { LoadingSpinner } from '@shared/ui';
 
 export function DashboardLoading() {
   return (
     <div className="flex items-center justify-center h-full">
-      <OdysseusSpinner size="lg" className="text-primary" />
+      <LoadingSpinner size="lg" className="text-primary" />
     </div>
   );
 }

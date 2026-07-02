@@ -5,7 +5,6 @@
  */
 
 // UI Primitive Components
-export { InlineEditInput } from './components/inputs/InlineEditInput';
 export { ValidatedInput } from './components/inputs/ValidatedInput';
 
 // Re-export all primitives for convenience
@@ -20,9 +19,4 @@ export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 export { DetailRow } from './components/info-display';
 
 // Loading components
-export {
-  LoadingOverlay,
-  LoadingSkeleton,
-  ModalSkeleton,
-  OdysseusSpinner,
-} from './components/loading';
+export { LoadingSkeleton, LoadingSpinner, ModalSkeleton } from './components/loading';
