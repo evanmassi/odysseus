@@ -95,7 +95,8 @@ nothing (no `"use client"`, no blank line, no comment) before it.
 ### 2. Comments & JSDoc
 
 Philosophy: comments explain **why** (business rationale, non-obvious decisions), never **what** (the
-code shows that). Best comment = a well-named function.
+code shows that). Best comment = a well-named function. Scrutinize comments as hard as the code — a
+restatement comment is dead weight just like dead code, and easy to skim past while reading the logic.
 
 **KILL (flag for removal):**
 - Restatement comments — `// Increment counter` over `counter++`.
@@ -107,6 +108,13 @@ code shows that). Best comment = a well-named function.
 - Process refs: "Phase 2", "Refactored from", "migrated from", "expanded from", "Added in Jan 2025".
 - Decorative dividers: `//=====`, `// ***`.
 - Commented-out code with no explanation of why it's kept.
+- "Defaults to X" JSDoc/comment restating a default already in the code (a `?? X` / `= X` in the body) — drop.
+- Value/coordinate restatements next to the literal (`// (Lucide: cx=12, cy=12)` above `cx="12" cy="12"`, or a
+  file-header description restating the title) — drop.
+- Visual "narration" of what CSS/JSX renders rather than why (`// lift the tint so it reacts`) — drop; keep only the
+  non-obvious why (an `!important`-avoidance trick, an intentional `||`).
+- Bare `eslint-disable` / `eslint-disable-next-line` with no `-- reason` → flag. A `prefer-nullish-coalescing` disable
+  on code already using `??` is dead → remove.
 
 **KEEP (do not flag; flag if *missing* on a non-obvious spot):**
 - Business rationale (why a timeout is 15min, why an algorithm was chosen).
@@ -117,7 +125,8 @@ code shows that). Best comment = a well-named function.
 
 **JSDoc:** use for public API, complex return types, `@throws`. Skip for private helpers, simple
 getters, obvious handlers, functions whose types already tell the story. Flag JSDoc that just repeats
-param names/types (`@param data - the data`).
+param names/types (`@param data - the data`). Once a type is **unexported** (internal), its per-field
+JSDoc bar rises sharply — the impl is right there; document only genuinely non-obvious fields.
 
 **Self-documenting check:** if a comment only compensates for a poor name, the finding is the *name*,
 not the missing comment.
@@ -158,7 +167,10 @@ harness still counts as speculative/dead.
 
 **Deletion grep discipline:** before declaring a file/barrel/export dead, grep **every** import form —
 relative (`./x`, `../x`), aliased (`@app/x`, `@shared/x`), and `export *` re-export chains. A
-partial-path grep misses aggregate barrels that re-export the target.
+partial-path grep misses aggregate barrels that re-export the target. **For a whole component this is
+critical:** it can be exported through its folder barrel AND re-exported through an aggregate barrel
+(e.g. `@shared/ui`) yet have zero real consumers — which reads as alive. Confirm by grepping the JSX
+render site (`<Name`) and every import site, not just "is it exported."
 
 ### 5. Barrels (`index.ts`)
 
