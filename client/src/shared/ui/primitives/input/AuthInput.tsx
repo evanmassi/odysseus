@@ -8,7 +8,7 @@ import React, { forwardRef, useState } from 'react';
 
 import { Eye, EyeOff } from 'lucide-react';
 
-export type AuthInputValidationState = 'default' | 'success' | 'warning' | 'error';
+import type { InputState } from './types';
 
 type AuthInputVariant = 'card' | 'console';
 
@@ -24,7 +24,7 @@ export interface AuthInputProps {
   /** Rendered on the left side of the input */
   icon?: React.ReactNode;
   /** Controls border and label colors */
-  state?: AuthInputValidationState;
+  state?: InputState;
   /** Surface treatment: 'card' for light/regular forms (default), 'console' for the auth gateway dark surface. */
   variant?: AuthInputVariant;
   /** Shows required asterisk after label */

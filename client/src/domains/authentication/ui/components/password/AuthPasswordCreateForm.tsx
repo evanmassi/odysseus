@@ -1,23 +1,25 @@
 /**
- * Reusable password creation form with real-time validation.
- * Used by AuthLoginModal (force change) and AuthPasswordResetPage (token reset).
+ * Password Creation Form
+ *
+ * New-password entry with live requirement validation, shared by the force-change
+ * (AuthLoginModal) and token-reset (AuthPasswordResetPage) flows.
  */
 
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 
-import { PasswordValidator } from '@odysseus/shared-schemas';
+import {
+  PasswordValidator,
+  type PasswordRequirementsResponse as PasswordConfig,
+} from '@odysseus/shared-schemas';
 import { KeyRound } from 'lucide-react';
 
-import {
-  authService,
-  type PasswordRequirements as PasswordConfig,
-} from '@domains/authentication/services/AuthService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';
 
-export interface AuthPasswordCreateFormProps {
+interface AuthPasswordCreateFormProps {
   onSubmit: (newPassword: string) => Promise<void>;
   onCancel?: () => void;
   cancelText?: string;
@@ -76,11 +78,10 @@ export function AuthPasswordCreateForm({
   const confirmPasswordValidationState = useMemo(() => {
     if (!confirmPassword) return 'default' as const;
     if (passwordsMatch && passwordMeetsRequirements) return 'success' as const;
-    if (confirmPassword.length > 0 && !passwordsMatch) return 'error' as const;
+    if (!passwordsMatch) return 'error' as const;
     return 'default' as const;
   }, [confirmPassword, passwordsMatch, passwordMeetsRequirements]);
 
-  // Combined error (internal takes precedence, then external)
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string error should fall through
   const displayError = internalError || externalError;
 

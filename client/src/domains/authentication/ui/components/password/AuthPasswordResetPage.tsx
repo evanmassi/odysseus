@@ -8,7 +8,7 @@ import { useRef, useEffect, useState } from 'react';
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useAuthStackTransition } from '@domains/authentication/hooks/useAuthStackTransition';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { AuthGatewayPanel } from '@domains/authentication/ui/components/gateway/AuthGatewayPanel';
@@ -68,8 +68,7 @@ function ResetContent() {
   };
 
   const inputState: ResetState = !token ? 'invalid' : isSuccess ? 'success' : 'form';
-  const { displayed: state, isTransitioning } = useDelayedTransition(inputState, 200);
-  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
+  const { state, exitClass } = useAuthStackTransition(inputState);
 
   useShellConfig(getShellConfig(state));
 

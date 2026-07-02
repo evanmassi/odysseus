@@ -19,13 +19,9 @@ import {
   Subsection,
 } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
-
-function getValidationState(touched: boolean, isValid: boolean) {
-  if (!touched) return 'default' as const;
-  return isValid ? ('success' as const) : ('error' as const);
-}
 
 interface AccountTabProps {
   /** Reports the number of unsaved profile field edits to the modal footer. */
@@ -60,11 +56,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
     }
   }, [profile]);
 
-  const emailIsValid = useMemo(() => {
-    if (!email.trim()) return false;
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailPattern.test(email.trim());
-  }, [email]);
+  const emailIsValid = useMemo(() => isValidEmail(email), [email]);
 
   const dirtyCount = useMemo(() => {
     if (!profile) return 0;

@@ -1,5 +1,5 @@
 /**
- * Use Delayed Transition
+ * Delayed Value Transition
  *
  * Lags the displayed value behind the input so consumers can play an exit animation before swapping.
  */

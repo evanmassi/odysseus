@@ -5,7 +5,10 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 
-import { PasswordValidator } from '@odysseus/shared-schemas';
+import {
+  PasswordValidator,
+  type PasswordRequirementsResponse as PasswordConfig,
+} from '@odysseus/shared-schemas';
 import { KeyRound, Save } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthService';
@@ -15,10 +18,9 @@ import { usePasswordChange } from '@domains/users/hooks/usePasswordChange';
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { getValidationState } from '@shared/utils/fieldValidation';
 
 import { SessionListPanel } from '../SessionListPanel';
-
-import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';
 
 export function SecurityTab() {
   const user = useAuthStore(state => state.user);
@@ -50,12 +52,6 @@ export function SecurityTab() {
     };
     void fetchRequirements();
   }, [isDemo]);
-
-  // Convert touched/valid to AuthInput validation state
-  const getValidationState = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'default' as const;
-    return isValid ? ('success' as const) : ('error' as const);
-  };
 
   const newPasswordMeetsRequirements = useMemo(() => {
     if (!passwordRequirements || !newPassword) return false;

@@ -7,23 +7,20 @@
 
 import { useState, useRef, useMemo, useEffect } from 'react';
 
-import { PasswordValidator } from '@odysseus/shared-schemas';
+import {
+  PasswordValidator,
+  type PasswordRequirementsResponse as PasswordConfig,
+} from '@odysseus/shared-schemas';
 import { UserRound, KeyRound, Mail, ShieldCheck, Building2, BriefcaseBusiness } from 'lucide-react';
 
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
-import {
-  authService,
-  type PasswordRequirements as PasswordConfig,
-} from '@domains/authentication/services/AuthService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
-import {
-  generateUsernamePreview,
-  getValidationState,
-  isValidEmail,
-} from '@domains/authentication/utils/registrationUtils';
+import { generateUsernamePreview } from '@domains/authentication/utils/registrationUtils';
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
 export function AuthSysAdminSetupPage() {
   const [firstName, setFirstName] = useState('');
@@ -87,7 +84,7 @@ export function AuthSysAdminSetupPage() {
 
     if (!passwordIsValid) {
       setPasswordTouched(true);
-      notifications.error('Password must be at least 8 characters');
+      notifications.error('Password does not meet requirements');
       return;
     }
 

@@ -9,7 +9,6 @@ import {
   loginResponseSchema,
   registerWithProfileResponseSchema,
   passwordRequirementsResponseSchema,
-  verificationStatusResponseSchema,
   validateInviteCodeResponseSchema,
   firstTimeResponseSchema,
   verifyEmailResponseSchema,
@@ -18,8 +17,8 @@ import {
   type LoginResponse,
   type RegisterWithProfileResponse,
   type PasswordChangeRequiredResponse,
-  type VerificationStatusResponse,
-  type UserRole,
+  type PasswordRequirementsResponse,
+  type ValidateInviteCodeResponse,
 } from '@odysseus/shared-schemas';
 
 import { queryClient } from '@app/cache/queryClient';
@@ -32,29 +31,12 @@ export function isPasswordChangeRequired(
   return 'requirePasswordChange' in response && response.requirePasswordChange === true;
 }
 
-export interface RegisterRequest {
+interface LoginRequest {
   username: string;
   password: string;
-  role?: UserRole;
-}
-
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface PasswordRequirements {
-  passwordMinLength: number;
-  requireStrongPasswords: boolean;
-  passwordRequireSpecialChars: boolean;
 }
 
 export class AuthService {
-  /** Used only during first-time setup — bypasses approval workflow. */
-  async register(request: RegisterRequest): Promise<AuthResponse> {
-    return await httpClient.postData('/public/auth/register', request, authResponseSchema);
-  }
-
   /**
    * First user: auto-approved as admin (returns tokens).
    * Subsequent users: pending approval (no tokens).
@@ -96,12 +78,7 @@ export class AuthService {
     }
   }
 
-  async validateInviteCode(code: string): Promise<{
-    valid: boolean;
-    labName?: string;
-    role?: 'lab_admin' | 'user';
-    createResearcher?: boolean;
-  }> {
+  async validateInviteCode(code: string): Promise<ValidateInviteCodeResponse> {
     try {
       return await httpClient.postData(
         '/public/invite-codes/validate',
@@ -127,7 +104,7 @@ export class AuthService {
     return await httpClient.postData('/public/auth/setup-system-admin', data, authResponseSchema);
   }
 
-  async getPasswordRequirements(): Promise<PasswordRequirements> {
+  async getPasswordRequirements(): Promise<PasswordRequirementsResponse> {
     try {
       return await httpClient.getData(
         '/public/auth/password-requirements',
@@ -154,10 +131,6 @@ export class AuthService {
       { usernameOrEmail },
       messageResponseSchema
     );
-  }
-
-  async getVerificationStatus(): Promise<VerificationStatusResponse> {
-    return await httpClient.getData('/auth/verification-status', verificationStatusResponseSchema);
   }
 
   async resetPasswordWithToken(token: string, newPassword: string): Promise<void> {

@@ -8,7 +8,7 @@ import { useEffect, useState, useRef } from 'react';
 
 import { KeyRound, UserRound, Mail, Clock, TimerOff } from 'lucide-react';
 
-import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useAuthStackTransition } from '@domains/authentication/hooks/useAuthStackTransition';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
@@ -143,8 +143,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
       : showForgotPassword
         ? 'forgot'
         : 'login';
-  const { displayed: state, isTransitioning } = useDelayedTransition(inputState, 200);
-  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
+  const { state, exitClass } = useAuthStackTransition(inputState);
 
   useShellConfig(getShellConfig(state, usernameInputRef));
 

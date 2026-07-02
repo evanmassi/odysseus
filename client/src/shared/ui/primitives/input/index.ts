@@ -5,7 +5,7 @@
  */
 
 export { AuthInput } from './AuthInput';
-export type { AuthInputProps, AuthInputValidationState } from './AuthInput';
+export type { AuthInputProps } from './AuthInput';
 export { Input } from './Input';
 export { NumberInput } from './NumberInput';
 export type { NumberInputProps } from './NumberInput';

@@ -6,13 +6,15 @@
 
 import { useMemo } from 'react';
 
-import { PasswordValidator, type PasswordRequirement } from '@odysseus/shared-schemas';
+import {
+  PasswordValidator,
+  type PasswordRequirement,
+  type PasswordRequirementsResponse as PasswordConfig,
+} from '@odysseus/shared-schemas';
 
-import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';
+type PasswordRequirementsVariant = 'card' | 'console';
 
-export type PasswordRequirementsVariant = 'card' | 'console';
-
-export interface PasswordRequirementsProps {
+interface PasswordRequirementsProps {
   password: string;
   config: PasswordConfig;
   showError?: boolean;

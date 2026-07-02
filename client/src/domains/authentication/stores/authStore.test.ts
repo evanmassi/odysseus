@@ -14,7 +14,6 @@ import type { TokenPair } from '@shared/types/sessionTypes';
 // Hoisted mocks must be declared before vi.mock calls
 const mockAuthService = vi.hoisted(() => ({
   login: vi.fn(),
-  register: vi.fn(),
   logout: vi.fn(),
   registerWithProfile: vi.fn(),
   forceChangePassword: vi.fn(),
@@ -88,8 +87,17 @@ const mockLoginResponse = {
 describe('Enhanced AuthStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset store state
-    useAuthStore.getState().reset();
+    useAuthStore.setState({
+      user: null,
+      tokens: null,
+      sessionStatus: 'unauthenticated',
+      isLoading: false,
+      error: null,
+      logoutReason: null,
+      passwordChangeRequired: null,
+      passwordChangeSuccess: false,
+      isAuthenticated: false,
+    });
   });
 
   describe('Initial State', () => {
@@ -203,40 +211,6 @@ describe('Enhanced AuthStore', () => {
     });
   });
 
-  describe('Registration Flow', () => {
-    it('should register successfully with valid data', async () => {
-      // AuthService.register returns { user, tokens } directly
-      mockAuthService.register.mockResolvedValue(mockLoginResponse);
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const success = await result.current.register('newuser', 'password');
-        expect(success).toBe(true);
-      });
-
-      // User has fresh lastActivity added by the store
-      expect(result.current.user?.id).toBe(mockUser.id);
-      expect(result.current.user?.username).toBe(mockUser.username);
-      expect(result.current.tokens).toEqual(mockTokens);
-      expect(result.current.sessionStatus).toBe('authenticated');
-    });
-
-    it('should handle registration failure', async () => {
-      // AuthService throws on failure
-      mockAuthService.register.mockRejectedValue(new Error('Username already exists'));
-
-      const { result } = renderHook(() => useAuthStore());
-
-      await act(async () => {
-        const success = await result.current.register('existinguser', 'password');
-        expect(success).toBe(false);
-      });
-
-      expect(result.current.error).toBe('Username already exists');
-    });
-  });
-
   describe('Logout Flow', () => {
     it('should logout and clear all session data', async () => {
       // Set up authenticated state first
@@ -277,18 +251,6 @@ describe('Enhanced AuthStore', () => {
   });
 
   describe('Session Status Management', () => {
-    it('should update session status based on SessionService', () => {
-      mockSessionService.getSessionStatus.mockReturnValue('refreshing');
-
-      const { result } = renderHook(() => useAuthStore());
-
-      act(() => {
-        result.current.updateSessionStatus();
-      });
-
-      expect(result.current.sessionStatus).toBe('refreshing');
-    });
-
     it('should provide isAuthenticated computed property', () => {
       // Use renderHook to properly observe reactive state changes
       const { result } = renderHook(() => useAuthStore());
@@ -314,7 +276,7 @@ describe('Enhanced AuthStore', () => {
 
       // Set error state
       act(() => {
-        result.current.setError('Previous error');
+        useAuthStore.setState({ error: 'Previous error' });
       });
 
       expect(result.current.error).toBe('Previous error');

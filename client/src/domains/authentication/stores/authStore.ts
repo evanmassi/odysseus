@@ -33,6 +33,9 @@ export type LoginResult =
   | { success: false; error: string }
   | { success: 'password_change_required' };
 
+// Hold the success state briefly so its animation plays before login completes.
+const PASSWORD_CHANGE_SUCCESS_DELAY_MS = 2500;
+
 interface AuthState {
   // Core session data
   user: PublicUserData | null;
@@ -50,7 +53,6 @@ interface AuthState {
   // Password change success state (for showing confirmation before login completes)
   passwordChangeSuccess: boolean;
 
-  // Computed properties
   isAuthenticated: boolean;
 }
 
@@ -59,7 +61,6 @@ interface AuthActions {
   login: (username: string, password: string) => Promise<LoginResult>;
   forceChangePassword: (newPassword: string) => Promise<boolean>;
   clearPasswordChangeRequired: () => void;
-  register: (username: string, password: string) => Promise<boolean>;
   registerWithProfile: (
     request: RegisterWithProfileRequest
   ) => Promise<{ success: boolean; message?: string; user?: PublicUserData; tokens?: TokenPair }>;
@@ -67,15 +68,11 @@ interface AuthActions {
   logout: () => Promise<void>;
 
   // Session management
-  updateSessionStatus: () => void;
   initializeFromStorage: () => void;
 
   // Internal state management
   setAuthData: (user: PublicUserData, tokens: TokenPair) => void;
   clearAuth: (reason?: 'idle_timeout' | 'token_expired' | 'manual_logout') => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  reset: () => void;
 
   // Development debugging
   getDebugInfo: () => AuthDebugInfo | null;
@@ -83,7 +80,7 @@ interface AuthActions {
 
 interface AuthStore extends AuthState, AuthActions {}
 
-// Initialize session manager with AuthHttpClient to prevent circular dependency
+// sessionManager uses a dedicated sessionHttpClient to avoid a circular dependency with httpClient
 const sessionStorage = new BrowserSessionStorage();
 
 // Callback pattern: SessionService notifies auth store when session expires
@@ -221,8 +218,7 @@ export const useAuthStore = create<AuthStore>()(
             passwordChangeSuccess: true,
           });
 
-          // Brief delay to show success animation
-          await new Promise(resolve => setTimeout(resolve, 2500));
+          await new Promise(resolve => setTimeout(resolve, PASSWORD_CHANGE_SUCCESS_DELAY_MS));
 
           set({
             user: userWithActivity,
@@ -257,42 +253,6 @@ export const useAuthStore = create<AuthStore>()(
         set({ passwordChangeRequired: null, error: null });
       },
 
-      register: async (username: string, password: string) => {
-        set({ isLoading: true, error: null });
-
-        try {
-          const result = await authService.register({ username, password });
-
-          const userWithActivity = {
-            ...result.user,
-            lastActivity: new Date(),
-          };
-
-          // Set tokens in session manager (handles HTTP client + storage)
-          sessionManager.setTokens(result.tokens);
-
-          set({
-            user: userWithActivity,
-            tokens: result.tokens,
-            sessionStatus: 'authenticated',
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-
-          return true;
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Registration error';
-          logger.error('Auth store registration exception', { error });
-
-          set({
-            error: errorMessage,
-            isLoading: false,
-          });
-          return false;
-        }
-      },
-
       /**
        * Register with profile
        *
@@ -310,7 +270,6 @@ export const useAuthStore = create<AuthStore>()(
 
             return {
               success: true,
-              status: 'approved' as const,
               message: result.message,
               user: result.user,
               tokens: result.tokens,
@@ -369,15 +328,6 @@ export const useAuthStore = create<AuthStore>()(
 
       // SESSION MANAGEMENT
 
-      updateSessionStatus: () => {
-        const newStatus = sessionManager.getSessionStatus();
-        const currentStatus = get().sessionStatus;
-
-        if (newStatus !== currentStatus) {
-          set({ sessionStatus: newStatus });
-        }
-      },
-
       /**
        * Initialize store from persistent storage
        *
@@ -427,19 +377,6 @@ export const useAuthStore = create<AuthStore>()(
           error: null,
           logoutReason: reason,
         });
-      },
-
-      setLoading: (loading: boolean) => {
-        set({ isLoading: loading });
-      },
-
-      setError: (error: string | null) => {
-        set({ error });
-      },
-
-      reset: () => {
-        sessionManager.clearSession();
-        get().clearAuth();
       },
 
       getDebugInfo: () => {

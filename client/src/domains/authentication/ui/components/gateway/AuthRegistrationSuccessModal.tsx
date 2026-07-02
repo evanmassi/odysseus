@@ -10,7 +10,9 @@ import { Copy, Check } from 'lucide-react';
 
 import { AlertBanner, Button } from '@shared/ui';
 
-export interface AuthRegistrationSuccessModalProps {
+const COPY_FEEDBACK_MS = 2000;
+
+interface AuthRegistrationSuccessModalProps {
   username: string;
   onClose: () => void;
 }
@@ -24,9 +26,7 @@ export function AuthRegistrationSuccessModal({
   const handleCopyUsername = async () => {
     try {
       await navigator.clipboard.writeText(username);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = username;
@@ -34,9 +34,9 @@ export function AuthRegistrationSuccessModal({
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
   };
 
   return (

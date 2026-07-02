@@ -6,7 +6,11 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
-import { PasswordValidator, type PublicUserData } from '@odysseus/shared-schemas';
+import {
+  PasswordValidator,
+  type PublicUserData,
+  type PasswordRequirementsResponse as PasswordConfig,
+} from '@odysseus/shared-schemas';
 import {
   UserRound,
   KeyRound,
@@ -17,21 +21,15 @@ import {
   Info,
 } from 'lucide-react';
 
-import { useDelayedTransition } from '@domains/authentication/hooks/useDelayedTransition';
+import { useAuthStackTransition } from '@domains/authentication/hooks/useAuthStackTransition';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
-import {
-  authService,
-  type PasswordRequirements as PasswordConfig,
-} from '@domains/authentication/services/AuthService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import {
-  generateUsernamePreview,
-  getValidationState,
-  isValidEmail,
-} from '@domains/authentication/utils/registrationUtils';
+import { generateUsernamePreview } from '@domains/authentication/utils/registrationUtils';
 import { logger } from '@infra/logger';
 import { AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
+import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
 import { PasswordRequirements } from '../password/PasswordRequirements';
 
@@ -103,7 +101,6 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
         setPasswordConfig(requirements);
       } catch (error) {
         logger.error('Failed to load password requirements', { error });
-        // Keep default requirements on error
       }
     }
     void loadPasswordRequirements();
@@ -224,8 +221,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
 
   const inputRegState: 'invite' | 'form' | 'success' =
     showSuccessModal && !!registrationResult ? 'success' : inviteCodeValidated ? 'form' : 'invite';
-  const { displayed: regState, isTransitioning } = useDelayedTransition(inputRegState, 200);
-  const exitClass = isTransitioning ? 'animate-auth-stack-exit' : '';
+  const { state: regState, exitClass } = useAuthStackTransition(inputRegState);
 
   useShellConfig(
     regState === 'success'
