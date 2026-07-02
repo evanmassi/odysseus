@@ -1,8 +1,10 @@
 /**
  * User Ownership Badge
  *
- * Square initial chip showing tube ownership state with color-coded background.
+ * Square initial chip showing ownership/assignment state with a color-coded background.
  */
+
+import type { ComponentProps } from 'react';
 
 import { UsersRound } from 'lucide-react';
 
@@ -10,7 +12,7 @@ import { Badge, Tooltip } from '@shared/ui';
 
 export type UserBadgeType = 'unassigned' | 'currentUser' | 'otherUser';
 
-export interface UserBadgeStyles {
+interface UserBadgeStyles {
   background: string;
   text: string;
   lit: boolean;
@@ -34,15 +36,11 @@ const styleMap: Record<UserBadgeType, UserBadgeStyles> = {
   },
 };
 
-export function getUserBadgeStyles(type: UserBadgeType): UserBadgeStyles {
-  return styleMap[type];
-}
-
 interface UserBadgeProps {
   type: UserBadgeType;
   initials?: string;
   username?: string;
-  size?: 'sm' | 'md';
+  size?: ComponentProps<typeof Badge>['size'];
   /** Suppress the ownership tooltip — e.g. when the badge is reused as a menu trigger. */
   showTooltip?: boolean;
 }
@@ -65,25 +63,22 @@ export function UserBadge({
   size = 'sm',
   showTooltip = true,
 }: UserBadgeProps) {
-  const ownershipStyles = getUserBadgeStyles(type);
+  const ownershipStyles = styleMap[type];
   const iconSize = iconSizeMap[size];
 
   const colorClass = `${ownershipStyles.background} ${ownershipStyles.text}`;
 
-  if (type === 'unassigned') {
-    return (
-      <Tooltip content="Unassigned/Common" side="bottom" disabled={!showTooltip}>
-        <Badge size={size} lit={ownershipStyles.lit} className={colorClass}>
-          <UsersRound size={iconSize} className="text-foreground" />
-        </Badge>
-      </Tooltip>
-    );
-  }
+  const tooltipContent =
+    type === 'unassigned' ? 'Unassigned/Common' : getAssignmentTitle(type, username);
 
   return (
-    <Tooltip content={getAssignmentTitle(type, username)} side="bottom" disabled={!showTooltip}>
+    <Tooltip content={tooltipContent} side="bottom" disabled={!showTooltip}>
       <Badge size={size} lit={ownershipStyles.lit} className={colorClass}>
-        <span className="text-foreground">{initials}</span>
+        {type === 'unassigned' ? (
+          <UsersRound size={iconSize} className="text-foreground" />
+        ) : (
+          <span className="text-foreground">{initials}</span>
+        )}
       </Badge>
     </Tooltip>
   );

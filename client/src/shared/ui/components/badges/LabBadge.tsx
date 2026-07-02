@@ -4,12 +4,14 @@
  * Square initial chip with a unique color derived from the lab ID.
  */
 
+import type { ComponentProps } from 'react';
+
 import { Badge, Tooltip } from '@shared/ui';
 
 interface LabBadgeProps {
   labId: string;
   labName: string;
-  size?: 'sm' | 'md';
+  size?: ComponentProps<typeof Badge>['size'];
   isDemo?: boolean;
   isActive?: boolean;
 }
