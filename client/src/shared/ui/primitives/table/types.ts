@@ -4,7 +4,7 @@
 
 import type { ReactNode } from 'react';
 
-export type TableDensity = 'compact' | 'default';
+type TableDensity = 'compact' | 'default';
 
 export type RowState = 'success' | 'warning' | 'danger' | 'muted' | 'default';
 
@@ -32,7 +32,7 @@ interface TableRowMap extends TableRowBase {
   [key: string]: unknown;
 }
 
-export interface TableToolbar {
+interface TableToolbar {
   left?: ReactNode;
   right?: ReactNode;
 }
@@ -63,8 +63,6 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   /** Wrap the table in a ConsolePanel chassis. Defaults to true. */
   chassis?: boolean;
 }
-
-export type TableRef = HTMLTableElement;
 
 // Internal
 export interface TableContextValue {

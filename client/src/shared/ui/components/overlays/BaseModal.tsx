@@ -15,9 +15,10 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { ModalPortal } from './ModalPortal';
 
+import type { TabOrientation } from '@shared/ui/primitives/tabs/Tabs';
+
 export type ModalSize = 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
 export type ModalAnimation = 'zoom' | 'slide';
-export type TabOrientation = 'horizontal' | 'vertical';
 export type ModalChassis = 'default' | 'lit';
 
 export interface BaseModalProps {

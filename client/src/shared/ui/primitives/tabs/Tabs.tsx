@@ -14,11 +14,11 @@ import {
   useLayoutEffect,
   useRef,
 } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactNode, KeyboardEvent, CSSProperties } from 'react';
 
 export type TabOrientation = 'horizontal' | 'vertical';
 
-export interface TabsProps {
+interface TabsProps {
   value: string;
   onChange: (value: string) => void;
   children: ReactNode;
@@ -27,7 +27,7 @@ export interface TabsProps {
   className?: string;
 }
 
-export interface TabProps {
+interface TabProps {
   id: string;
   icon?: ReactNode;
   children: ReactNode;
@@ -83,16 +83,16 @@ export function Tab({ id, icon, children }: TabProps) {
 
   // Icon-pop is a vertical-only hover micro-affordance.
   const [isAnimating, setIsAnimating] = useState(false);
-  const handleMouseEnter = useCallback(() => {
+  const handleMouseEnter = () => {
     if (orientation === 'vertical') {
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 350);
     }
-  }, [orientation]);
+  };
 
   const handleClick = () => onChange(id);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleClick();
@@ -135,7 +135,7 @@ export function Tabs({ value, onChange, children, orientation, className = '' }:
   );
 
   const listRef = useRef<HTMLDivElement>(null);
-  const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
+  const [indicatorStyle, setIndicatorStyle] = useState<CSSProperties>({});
   const [hasMeasured, setHasMeasured] = useState(false);
 
   const recomputeIndicator = useCallback(() => {

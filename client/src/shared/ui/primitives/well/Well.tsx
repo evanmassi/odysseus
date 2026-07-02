@@ -1,8 +1,7 @@
 /**
  * Well
  *
- * Recessed surface — a sunken, inset tile matching the app's input wells and empty
- * grid cells. Pass onClick to render an interactive button that lights up on hover.
+ * Recessed, inset tile matching the app's input wells and empty grid cells. Pass onClick to make it an interactive button.
  */
 import type { ReactNode } from 'react';
 
@@ -17,7 +16,7 @@ const WELL_INTERACTIVE =
   'hover:shadow-[inset_0_1px_3px_hsl(var(--recess)/0.5),inset_0_0_0_1px_hsl(var(--primary)/0.18)] ' +
   'dark:hover:shadow-[inset_0_1px_3px_hsl(var(--recess)/0.5),inset_0_0_0_1px_hsl(var(--primary)/0.18),0_0_18px_-6px_hsl(var(--primary)/0.55)]';
 
-export interface WellProps {
+interface WellProps {
   children: ReactNode;
   className?: string;
   onClick?: () => void;

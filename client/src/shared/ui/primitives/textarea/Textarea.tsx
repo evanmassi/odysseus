@@ -4,18 +4,19 @@
  * Multi-line text input primitive with consistent styling and validation states.
  */
 
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+import type { ChangeEvent, FocusEvent } from 'react';
 
-export type TextareaState = 'default' | 'error' | 'warning' | 'success';
-export type TextareaSize = 'sm' | 'md' | 'lg';
-export type TextareaResize = 'none' | 'vertical' | 'horizontal' | 'both';
+type TextareaState = 'default' | 'error' | 'warning' | 'success';
+type TextareaSize = 'sm' | 'md' | 'lg';
+type TextareaResize = 'none' | 'vertical' | 'horizontal' | 'both';
 
-export interface TextareaProps {
+interface TextareaProps {
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   /** Convenience handler that passes the string value directly */
   onValueChange?: (value: string) => void;
-  onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
+  onBlur?: (e: FocusEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;
   rows?: number;
   maxLength?: number;
@@ -34,6 +35,26 @@ export interface TextareaProps {
   'aria-invalid'?: boolean;
   className?: string;
 }
+
+const SIZE_CLASSES: Record<TextareaSize, string> = {
+  sm: 'px-2 py-1.5 text-body-sm',
+  md: 'px-3 py-2 text-body',
+  lg: 'px-4 py-3 text-body-lg',
+};
+
+const STATE_CLASSES: Record<TextareaState, string> = {
+  default: 'border-line-faint hover:border-foreground/30',
+  error: 'border-danger-border',
+  warning: 'border-warning-border',
+  success: 'border-success-border',
+};
+
+const RESIZE_CLASSES: Record<TextareaResize, string> = {
+  none: 'resize-none',
+  vertical: 'resize-y',
+  horizontal: 'resize-x',
+  both: 'resize',
+};
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
@@ -62,27 +83,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     },
     ref
   ) => {
-    const sizeClasses = {
-      sm: 'px-2 py-1.5 text-body-sm',
-      md: 'px-3 py-2 text-body',
-      lg: 'px-4 py-3 text-body-lg',
-    };
-
-    const stateClasses = {
-      default: 'border-line-faint hover:border-foreground/30',
-      error: 'border-danger-border',
-      warning: 'border-warning-border',
-      success: 'border-success-border',
-    };
-
-    const resizeClasses = {
-      none: 'resize-none',
-      vertical: 'resize-y',
-      horizontal: 'resize-x',
-      both: 'resize',
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
       onChange?.(e);
       onValueChange?.(e.target.value);
     };
@@ -115,9 +116,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           focus:shadow-[var(--input-focus-shadow)]
           disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line-faint
           read-only:cursor-default
-          ${sizeClasses[size]}
-          ${stateClasses[state]}
-          ${resizeClasses[resize]}
+          ${SIZE_CLASSES[size]}
+          ${STATE_CLASSES[state]}
+          ${RESIZE_CLASSES[resize]}
           ${className}
         `}
       />

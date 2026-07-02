@@ -8,7 +8,7 @@ import { Fragment } from 'react';
 
 import { Kbd } from './Kbd';
 
-export interface KeyComboProps {
+interface KeyComboProps {
   /** Shortcut string; "+" separates chord keys (e.g. "Shift+L"). */
   keys: string;
   className?: string;

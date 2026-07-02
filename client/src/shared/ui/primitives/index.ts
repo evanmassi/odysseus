@@ -22,13 +22,10 @@ export { DatePicker } from './date-picker/DatePicker';
 
 export { HeaderStrip } from './header-strip/HeaderStrip';
 
-export { Kbd } from './kbd/Kbd';
 export { KeyCombo } from './kbd/KeyCombo';
 
 export { AuthInput, Input, NumberInput, SearchInput } from './input';
 export type { InputState } from './input';
-
-export { IdStamp } from './titles/id-stamp/IdStamp';
 
 export { ConsolePanel } from './console-panel/ConsolePanel';
 
@@ -49,11 +46,12 @@ export { NubDivider } from './nub-divider/NubDivider';
 
 export { PanelEmptyState } from './panel-empty-state/PanelEmptyState';
 
-export { PanelHeader } from './titles/panel-header/PanelHeader';
+export { IdStamp } from './titles/IdStamp';
+export { PanelHeader } from './titles/PanelHeader';
 
-export { SectionHeader } from './titles/section-header/SectionHeader';
+export { SectionHeader } from './titles/SectionHeader';
 
-export { SubsectionHeader } from './titles/subsection-header/SubsectionHeader';
+export { SubsectionHeader } from './titles/SubsectionHeader';
 
 export { Subsection, SettingsRow } from './settings-row/SettingsRow';
 

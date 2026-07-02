@@ -6,15 +6,15 @@
 
 import type { ReactNode } from 'react';
 
-export type SectionHeaderSize = 'sm' | 'md' | 'lg';
+type SectionHeaderSize = 'sm' | 'md' | 'lg';
 
-export interface SectionHeaderProps {
+interface SectionHeaderProps {
   title: string;
-  /** Leading icon shown after the marker glyph (muted). */
+  /** Leading icon, rendered after the beacon marker. */
   icon?: ReactNode;
   meta?: ReactNode;
   rightMeta?: ReactNode;
-  /** Title typography. 'lg' (14px) for tab headers; 'md' (default, 12px) for admin/dashboard surfaces; 'sm' (10px) for in-form section dividers. */
+  /** Title typography scale. Defaults to 'md'. */
   size?: SectionHeaderSize;
   className?: string;
 }
@@ -44,6 +44,8 @@ const BEACON: Record<SectionHeaderSize, { box: string; c1: string; c2: string }>
   },
 };
 
+const CHEVRON = 'absolute top-1/2 -translate-y-1/2 rotate-45';
+
 export function SectionHeader({
   title,
   icon,
@@ -56,12 +58,8 @@ export function SectionHeader({
     <div className={`flex items-center gap-2.5 pb-3.5 ${className ?? ''}`}>
       <span aria-hidden className={`relative flex shrink-0 ${BEACON[size].box}`}>
         <span className="absolute left-0 top-1/2 h-0.5 w-1 -translate-y-1/2 bg-foreground dark:shadow-[0_0_7px_1px_hsl(var(--primary)/0.75)]" />
-        <span
-          className={`absolute top-1/2 -translate-y-1/2 rotate-45 border-foreground/85 ${BEACON[size].c1}`}
-        />
-        <span
-          className={`absolute top-1/2 -translate-y-1/2 rotate-45 border-foreground/45 ${BEACON[size].c2}`}
-        />
+        <span className={`${CHEVRON} border-foreground/85 ${BEACON[size].c1}`} />
+        <span className={`${CHEVRON} border-foreground/45 ${BEACON[size].c2}`} />
       </span>
       {icon && (
         <span

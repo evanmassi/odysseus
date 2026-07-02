@@ -6,7 +6,7 @@
 
 import type { ReactNode } from 'react';
 
-export interface KbdProps {
+interface KbdProps {
   children: ReactNode;
   className?: string;
 }

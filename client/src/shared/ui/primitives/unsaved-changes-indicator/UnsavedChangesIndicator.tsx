@@ -1,12 +1,10 @@
 /**
  * Unsaved Changes Indicator
  *
- * Footer stamp for settings surfaces: a glowing warning tick with a live count,
- * or a muted "no changes" rest state. Shared so every settings footer reads the
- * same dirty-state language.
+ * Footer stamp for settings surfaces — a warning tick with a live count, or a muted rest state.
  */
 
-export interface UnsavedChangesIndicatorProps {
+interface UnsavedChangesIndicatorProps {
   count: number;
 }
 

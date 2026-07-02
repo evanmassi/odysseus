@@ -6,7 +6,7 @@
 
 import type { ReactNode } from 'react';
 
-export interface SubsectionHeaderProps {
+interface SubsectionHeaderProps {
   title: ReactNode;
   /** Zero-padded section ordinal rendered before the title (e.g. 1 → "01 /"). */
   index?: number;

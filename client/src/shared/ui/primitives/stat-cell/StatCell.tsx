@@ -4,21 +4,21 @@
  * Labeled metric block for stat strips.
  */
 
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { cva } from 'class-variance-authority';
 
 type StatCellTone = 'default' | 'success' | 'warning' | 'danger';
 type StatCellSize = 'md' | 'sm';
 
-export interface StatCellProps {
+interface StatCellProps {
   label: string;
-  value: React.ReactNode;
+  value: ReactNode;
   unit?: string;
-  footer?: React.ReactNode;
+  footer?: ReactNode;
   tone?: StatCellTone;
   size?: StatCellSize;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   className?: string;
 }
 
@@ -64,9 +64,9 @@ export function StatCell({
   icon,
   className,
 }: StatCellProps) {
-  const s = sizeStyles[size];
+  const sizeStyle = sizeStyles[size];
   return (
-    <div className={`flex flex-col ${s.container} ${className ?? ''}`}>
+    <div className={`flex flex-col ${sizeStyle.container} ${className ?? ''}`}>
       <span className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground">
         {icon ? (
           <span className="inline-flex shrink-0 items-center">{icon}</span>
@@ -76,15 +76,17 @@ export function StatCell({
         {label}
       </span>
       <div
-        className={`font-display font-normal leading-none tracking-[-0.02em] text-foreground ${s.value}`}
+        className={`font-display font-normal leading-none tracking-[-0.02em] text-foreground ${sizeStyle.value}`}
       >
-        <span className={s.valueGlow}>{value}</span>
+        <span className={sizeStyle.valueGlow}>{value}</span>
         {unit && (
-          <span className={`font-mono tracking-meta text-muted-foreground ${s.unit}`}>{unit}</span>
+          <span className={`font-mono tracking-meta text-muted-foreground ${sizeStyle.unit}`}>
+            {unit}
+          </span>
         )}
       </div>
       {footer && (
-        <div className={`font-mono tracking-meta text-muted-foreground/60 ${s.footer}`}>
+        <div className={`font-mono tracking-meta text-muted-foreground/60 ${sizeStyle.footer}`}>
           {footer}
         </div>
       )}

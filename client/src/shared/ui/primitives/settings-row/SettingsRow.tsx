@@ -7,7 +7,7 @@
 import type { ReactNode } from 'react';
 
 import { headerSurface } from '../console-panel/consoleHeaderSurface';
-import { SubsectionHeader } from '../titles/subsection-header/SubsectionHeader';
+import { SubsectionHeader } from '../titles/SubsectionHeader';
 
 interface SettingsRowProps {
   label: string;

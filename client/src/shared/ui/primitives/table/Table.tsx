@@ -4,7 +4,8 @@
  * Sortable, selectable data grid with status-edge rows and zebra body.
  */
 
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
 
 import { cva } from 'class-variance-authority';
 
@@ -229,7 +230,7 @@ interface SortIndicatorProps {
   direction?: 'asc' | 'desc';
 }
 
-const SortIndicator: React.FC<SortIndicatorProps> = ({ direction }) => (
+const SortIndicator = ({ direction }: SortIndicatorProps) => (
   <svg
     className="ml-2 w-3.5 h-3.5 shrink-0 inline-block"
     viewBox="0 0 14 14"
@@ -325,7 +326,7 @@ const TableHeader = <T,>({
               })} ${headerRim}${isFirstCell || isLastCell ? ' relative' : ''}`}
               style={{ width: column.width }}
               onClick={column.sortable ? () => handleSort(column.id) : undefined}
-              role={column.sortable ? 'columnheader button' : 'columnheader'}
+              role="columnheader"
               aria-sort={
                 isSorted
                   ? sortDirection === 'asc'
@@ -374,25 +375,15 @@ const TableBody = <T extends TableRowBase>({
     onSelectionChange(newSelection);
   };
 
-  const getCellValue = (column: TableColumn<T>, row: T, index: number): React.ReactNode => {
-    if (column.render) {
-      return column.render(
-        column.accessor
-          ? typeof column.accessor === 'function'
-            ? column.accessor(row)
-            : row[column.accessor]
-          : undefined,
-        row,
-        index
-      );
-    }
+  const getCellValue = (column: TableColumn<T>, row: T, index: number): ReactNode => {
+    const resolved = column.accessor
+      ? typeof column.accessor === 'function'
+        ? column.accessor(row)
+        : row[column.accessor]
+      : undefined;
 
-    if (column.accessor) {
-      const value =
-        typeof column.accessor === 'function' ? column.accessor(row) : row[column.accessor];
-      return value as React.ReactNode;
-    }
-
+    if (column.render) return column.render(resolved, row, index);
+    if (column.accessor) return resolved as ReactNode;
     return null;
   };
 
@@ -473,8 +464,8 @@ export function Table<T extends TableRowBase>({
   chassis = defaultTableProps.chassis,
 }: TableProps<T>) {
   const contextValue: TableContextValue = {
-    selectable: selectable!,
-    multiSelect: multiSelect!,
+    selectable,
+    multiSelect,
     selectedRows,
     allRowIds: data.map(row => row.id),
     onSelectionChange,
@@ -502,7 +493,7 @@ export function Table<T extends TableRowBase>({
         <TableBody
           columns={columns}
           data={data}
-          hoverable={hoverable!}
+          hoverable={hoverable}
           onRowClick={onRowClick}
           rowState={rowState}
           selectedRowGlow={selectedRowGlow}
