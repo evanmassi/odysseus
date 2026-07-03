@@ -16,7 +16,7 @@ import { notifications } from '@shared/utils/notifications';
 
 import { CONFIG_VERSION_KEY, QUERY_CACHE_KEY } from './cacheStorageKeys';
 
-import type { DefaultOptions } from '@tanstack/react-query';
+import type { DefaultOptions, QueryKey } from '@tanstack/react-query';
 
 // React Query v5 types errors as `unknown`.
 
@@ -201,6 +201,15 @@ const handleMutationError = (
   }
 };
 
+// Central post-write invalidation: a mutation declares `meta: { invalidates: [queryKey, ...] }` and
+// this refetches those keys on success, so hooks don't repeat useQueryClient + an onSuccess block.
+// Use meta ONLY for pure static-key invalidation; keep onSuccess for anything more — keys derived from
+// the mutation's (typed) variables or result, success toasts, cache patching, or optimistic updates.
+const handleMutationSuccess = (mutation: { meta?: Record<string, unknown> }): void => {
+  const invalidates = mutation.meta?.['invalidates'] as QueryKey[] | undefined;
+  invalidates?.forEach(queryKey => void queryClient.invalidateQueries({ queryKey }));
+};
+
 const defaultOptions: DefaultOptions = {
   queries: {
     staleTime: CACHE_TIMES.MEDIUM.staleTime,
@@ -233,6 +242,9 @@ export const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error, variables, context, mutation) => {
       handleMutationError(error, variables, context, mutation);
+    },
+    onSuccess: (_data, _variables, _context, mutation) => {
+      handleMutationSuccess(mutation);
     },
   }),
 });

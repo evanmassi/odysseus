@@ -3,7 +3,7 @@
  *
  * React Query hooks for session management operations.
  */
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 
@@ -18,25 +18,17 @@ function useUserSessionsQuery() {
 }
 
 function useRevokeSessionMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (sessionId: string) => UserSessionService.revokeSession(sessionId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.users.sessions() });
-    },
+    meta: { invalidates: [queryKeys.users.sessions()] },
   });
 }
 
 /** Returns number of sessions revoked. */
 function useRevokeAllSessionsMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: () => UserSessionService.revokeAllOtherSessions(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.users.sessions() });
-    },
+    meta: { invalidates: [queryKeys.users.sessions()] },
   });
 }
 
