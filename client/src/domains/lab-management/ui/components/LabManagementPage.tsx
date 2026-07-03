@@ -29,13 +29,7 @@ interface TabConfig {
 
 const TABS: TabConfig[] = [
   { id: 'equipment', label: 'Equipment', icon: Microscope, path: '/lab/equipment', enabled: true },
-  {
-    id: 'supplies',
-    label: 'Supplies',
-    icon: Package,
-    path: '/lab/supplies',
-    enabled: true,
-  },
+  { id: 'supplies', label: 'Supplies', icon: Package, path: '/lab/supplies', enabled: true },
   { id: 'reagents', label: 'Reagents', icon: Biohazard, path: '/lab/reagents', enabled: false },
 ];
 
@@ -68,7 +62,6 @@ export function LabManagementPage() {
               />
             </div>
 
-            {/* Locator strip: suite counts */}
             <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
               <span className="flex min-w-0 items-center gap-1.5">
                 <span
