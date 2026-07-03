@@ -21,7 +21,8 @@ import type {
   UpdateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
-  EquipmentStatus,
+  EquipmentBulkStatusRequest,
+  EquipmentBulkRelocateRequest,
 } from '@odysseus/shared-schemas';
 
 // Categories
@@ -181,9 +182,6 @@ export function useAddEquipmentMaintenanceEntryMutation() {
     }) => EquipmentService.addMaintenanceEntry(itemId, data),
     onSuccess: (_, { itemId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.equipment.maintenance(labId, itemId),
-      });
       // Item's next_maintenance_date may have changed
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
     },
@@ -206,9 +204,6 @@ export function useUpdateEquipmentMaintenanceEntryMutation() {
     }) => EquipmentService.updateMaintenanceEntry(itemId, entryId, data),
     onSuccess: (_, { itemId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.equipment.maintenance(labId, itemId),
-      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
     },
   });
@@ -221,9 +216,9 @@ export type EquipmentBulkAction =
   | {
       type: 'status';
       itemIds: string[];
-      data: { status: EquipmentStatus; conditionNotes?: string };
+      data: EquipmentBulkStatusRequest['data'];
     }
-  | { type: 'relocate'; itemIds: string[]; data: { categoryId: string } };
+  | { type: 'relocate'; itemIds: string[]; data: EquipmentBulkRelocateRequest['data'] };
 
 export function useEquipmentBulkUpdateMutation() {
   const labId = useLabId();
@@ -255,9 +250,6 @@ export function useDeleteEquipmentMaintenanceEntryMutation() {
       EquipmentService.deleteMaintenanceEntry(itemId, entryId),
     onSuccess: (_, { itemId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.detail(labId, itemId) });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.equipment.maintenance(labId, itemId),
-      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
     },
   });

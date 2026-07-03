@@ -11,8 +11,11 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useEquipmentCategoriesQuery, useEquipmentItemsQuery } from '@domains/equipment/hooks';
 import { useDeleteEquipmentCategoryMutation } from '@domains/equipment/hooks/useEquipmentMutations';
+import {
+  useEquipmentCategoriesQuery,
+  useEquipmentItemsQuery,
+} from '@domains/equipment/hooks/useEquipmentQueries';
 import { Button, HeaderStrip, PanelHeader, SearchInput, Select, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -174,7 +177,6 @@ export function EquipmentTab() {
   return (
     <div className="flex justify-center h-full min-h-0 px-4 pb-4 pt-2">
       <div className="flex gap-4 h-full min-h-0 w-full max-w-[1700px]">
-        {/* Left Panel: Equipment list chassis */}
         <ConsolePanel
           intensity="soft"
           className="flex max-h-full min-h-0 min-w-0 flex-1 flex-col self-start"
@@ -183,7 +185,6 @@ export function EquipmentTab() {
             <PanelHeader icon={<Microscope className="h-4 w-4" />} title="Equipment" />
           </div>
 
-          {/* Locator strip: inventory counts */}
           <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 items-center gap-1.5">
               <span
@@ -201,7 +202,6 @@ export function EquipmentTab() {
             </span>
           </HeaderStrip>
 
-          {/* Toolbar: search · sort · decommissioned · actions — the table's own header */}
           <div className="flex flex-shrink-0 items-center gap-2 border-b border-line-faint px-3 py-2">
             <SearchInput
               value={searchQuery}
@@ -274,7 +274,6 @@ export function EquipmentTab() {
             )}
           </div>
 
-          {/* Body: pinned maintenance alerts + scrolling category tree */}
           <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
             <EquipmentMaintenanceAlertPanel
               items={items}
@@ -302,7 +301,6 @@ export function EquipmentTab() {
           </div>
         </ConsolePanel>
 
-        {/* Right Panel: Detail / Edit / Maintenance */}
         <div
           className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}

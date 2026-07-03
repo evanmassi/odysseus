@@ -133,16 +133,6 @@ export class EquipmentController extends BaseController {
 
   // Documents
 
-  async listDocuments(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const documents = await this.deps.equipmentApplicationService.listDocuments(labId, req.params.id);
-      res.json(ResponseBuilder.success({ documents }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to list equipment documents', req.requestId);
-    }
-  }
-
   async addDocument(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -220,16 +210,6 @@ export class EquipmentController extends BaseController {
   }
 
   // Maintenance log
-
-  async getMaintenanceLog(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const entries = await this.deps.equipmentApplicationService.getMaintenanceLog(labId, req.params.id);
-      res.json(ResponseBuilder.success({ entries }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get maintenance log', req.requestId);
-    }
-  }
 
   async addMaintenanceEntry(req: Request, res: Response): Promise<void> {
     try {

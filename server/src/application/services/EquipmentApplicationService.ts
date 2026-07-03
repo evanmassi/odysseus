@@ -327,12 +327,6 @@ export class EquipmentApplicationService {
 
   // Documents
 
-  async listDocuments(labId: string, itemId: string): Promise<EquipmentDocumentResponse[]> {
-    await this.getItemOrThrow(itemId, labId);
-    const documents = await this.itemRepository.findDocumentsByItemId(itemId);
-    return documents.map(EquipmentDto.documentToResponse);
-  }
-
   async addDocument(
     labId: string,
     itemId: string,
@@ -392,12 +386,6 @@ export class EquipmentApplicationService {
   }
 
   // Maintenance log
-
-  async getMaintenanceLog(labId: string, itemId: string): Promise<EquipmentMaintenanceLogResponse[]> {
-    await this.getItemOrThrow(itemId, labId);
-    const entries = await this.itemRepository.findMaintenanceLogByItemId(itemId);
-    return entries.map(EquipmentDto.maintenanceEntryToResponse);
-  }
 
   async addMaintenanceEntry(
     labId: string,

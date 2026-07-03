@@ -8,8 +8,9 @@ import { useState, useMemo, useEffect } from 'react';
 
 import { ChevronRight } from 'lucide-react';
 
+import { resolveMaintenanceDue } from '@domains/equipment/utils/maintenanceSchedule';
 import { NubDivider, Table } from '@shared/ui';
-import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import type { EquipmentItem } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui/primitives/table/types';
@@ -36,27 +37,20 @@ export function EquipmentMaintenanceAlertPanel({
   onSelectItem,
 }: EquipmentMaintenanceAlertPanelProps) {
   const alertRows = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const rows: MaintenanceAlertRow[] = [];
 
     items.forEach(item => {
-      if (!item.nextMaintenanceDate || item.status === 'decommissioned') return;
-      const dateStr = normalizeDateString(item.nextMaintenanceDate);
-      if (!dateStr) return;
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const date = new Date(y, m - 1, d);
-      const daysUntil = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (item.status === 'decommissioned' || !item.nextMaintenanceDate) return;
+      const due = resolveMaintenanceDue(item.nextMaintenanceDate);
+      if (!due || due.daysUntil > 30) return;
 
-      if (daysUntil <= 30) {
-        rows.push({
-          id: item.id,
-          name: item.name,
-          categoryName: categoryNameMap.get(item.categoryId) ?? '—',
-          dueDate: dateStr,
-          daysUntil,
-        });
-      }
+      rows.push({
+        id: item.id,
+        name: item.name,
+        categoryName: categoryNameMap.get(item.categoryId) ?? '—',
+        dueDate: due.dateStr,
+        daysUntil: due.daysUntil,
+      });
     });
 
     rows.sort((a, b) => a.daysUntil - b.daysUntil);

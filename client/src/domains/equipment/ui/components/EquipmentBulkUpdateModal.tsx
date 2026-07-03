@@ -17,7 +17,11 @@ import {
 import { Layers, Wrench, RefreshCw, FolderInput, FolderOpen, CornerDownRight } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 
-import { useEquipmentBulkUpdateMutation, type EquipmentBulkAction } from '@domains/equipment/hooks';
+import {
+  useEquipmentBulkUpdateMutation,
+  type EquipmentBulkAction,
+} from '@domains/equipment/hooks/useEquipmentMutations';
+import { EQUIPMENT_STATUS_LABELS } from '@domains/equipment/utils/equipmentStatus';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   Button,
@@ -29,6 +33,7 @@ import {
   Tabs,
   Tab,
 } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -36,10 +41,13 @@ import { BulkSelectTreeLines } from '@shared/ui/components/tree-lines';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 
+import { EquipmentCategorySelect } from './EquipmentCategorySelect';
+
 import type {
   EquipmentItem,
   EquipmentCategory,
-  EquipmentStatus,
+  EquipmentBulkStatusRequest,
+  EquipmentBulkRelocateRequest,
   CreateEquipmentMaintenanceLogRequest,
   EquipmentBulkResponse,
 } from '@odysseus/shared-schemas';
@@ -54,17 +62,6 @@ interface EquipmentBulkUpdateModalProps {
   items: EquipmentItem[];
   categories: EquipmentCategory[];
 }
-
-const STATUS_LABELS: Record<string, string> = {
-  active: 'Active',
-  inactive: 'Inactive',
-  under_maintenance: 'Under Maintenance',
-  out_of_service: 'Out of Service',
-};
-
-// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
-const SELECT_LABEL =
-  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 // Selection
 
@@ -396,7 +393,7 @@ function MaintenanceForm({
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <div>
-            <span className={SELECT_LABEL}>
+            <span className={FIELD_LABEL_COMPACT}>
               Date Performed <span className="text-danger-bg">*</span>
             </span>
             <DatePicker
@@ -416,7 +413,7 @@ function MaintenanceForm({
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <div>
             {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-            <label id="bulk-maint-type-label" className={SELECT_LABEL}>
+            <label id="bulk-maint-type-label" className={FIELD_LABEL_COMPACT}>
               Maintenance Type
             </label>
             <Select
@@ -463,7 +460,7 @@ function MaintenanceForm({
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <div>
-            <span className={SELECT_LABEL}>Next Scheduled Date</span>
+            <span className={FIELD_LABEL_COMPACT}>Next Scheduled Date</span>
             <DatePicker
               value={(value as string) ?? ''}
               onChange={onChange}
@@ -505,12 +502,12 @@ function StatusForm({
   onSubmit,
   onValidityChange,
 }: {
-  onSubmit: (data: { status: EquipmentStatus; conditionNotes?: string }) => void;
+  onSubmit: (data: EquipmentBulkStatusRequest['data']) => void;
   onValidityChange: (valid: boolean) => void;
 }) {
   const statusOptions: SelectOption[] = equipmentBulkStatusValues.map(s => ({
     value: s,
-    label: STATUS_LABELS[s] ?? s,
+    label: EQUIPMENT_STATUS_LABELS[s],
   }));
 
   const {
@@ -528,7 +525,7 @@ function StatusForm({
   }, [isValid, onValidityChange]);
 
   const onFormSubmit = (data: FieldValues) => {
-    onSubmit(data as { status: EquipmentStatus; conditionNotes?: string });
+    onSubmit(data as EquipmentBulkStatusRequest['data']);
   };
 
   return (
@@ -539,7 +536,7 @@ function StatusForm({
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <div>
             {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-            <label id="bulk-status-label" className={SELECT_LABEL}>
+            <label id="bulk-status-label" className={FIELD_LABEL_COMPACT}>
               Status
             </label>
             <Select
@@ -574,38 +571,9 @@ function RelocateForm({
   onValidityChange,
 }: {
   categories: EquipmentCategory[];
-  onSubmit: (data: { categoryId: string }) => void;
+  onSubmit: (data: EquipmentBulkRelocateRequest['data']) => void;
   onValidityChange: (valid: boolean) => void;
 }) {
-  const parentNameMap = useMemo(() => {
-    const map = new Map<string, string>();
-    categories.forEach(c => {
-      if (c.parentId) {
-        const parent = categories.find(p => p.id === c.parentId);
-        if (parent) map.set(c.id, parent.name);
-      }
-    });
-    return map;
-  }, [categories]);
-
-  const categoryOptions: SelectOption[] = useMemo(() => {
-    const topLevel = categories
-      .filter(c => !c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-
-    const options: SelectOption[] = [];
-    topLevel.forEach(parent => {
-      options.push({ value: parent.id, label: parent.name });
-      const subs = categories
-        .filter(c => c.parentId === parent.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-      subs.forEach(sub => {
-        options.push({ value: sub.id, label: sub.name, description: parent.name });
-      });
-    });
-    return options;
-  }, [categories]);
-
   const {
     handleSubmit,
     control,
@@ -620,7 +588,7 @@ function RelocateForm({
   }, [isValid, onValidityChange]);
 
   const onFormSubmit = (data: FieldValues) => {
-    onSubmit(data as { categoryId: string });
+    onSubmit(data as EquipmentBulkRelocateRequest['data']);
   };
 
   return (
@@ -629,51 +597,13 @@ function RelocateForm({
         name="categoryId"
         control={control}
         render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <div>
-            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-            <label id="bulk-relocate-label" className={SELECT_LABEL}>
-              Category
-            </label>
-            <Select
-              aria-labelledby="bulk-relocate-label"
-              options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
-              value={value ?? ''}
-              onChange={v => onChange(v)}
-              state={error ? 'error' : 'default'}
-              error={error?.message}
-              fullWidth
-              renderOption={option => {
-                const isSub = !!option.description;
-                return (
-                  <div className="w-full">
-                    {isSub ? (
-                      <span className="pl-4 text-body">{option.label}</span>
-                    ) : (
-                      <span className="text-body font-semibold">{option.label}</span>
-                    )}
-                  </div>
-                );
-              }}
-              renderValue={selected => {
-                const opt = selected[0];
-                if (!opt)
-                  return (
-                    <span className="text-muted-foreground opacity-40">Select category...</span>
-                  );
-                const parentName = parentNameMap.get(opt.value as string);
-                if (parentName) {
-                  return (
-                    <span className="text-foreground text-body">
-                      <span className="text-muted-foreground">{parentName}</span>
-                      <span className="text-muted-foreground mx-1">›</span>
-                      {opt.label}
-                    </span>
-                  );
-                }
-                return <span className="text-foreground text-body">{opt.label}</span>;
-              }}
-            />
-          </div>
+          <EquipmentCategorySelect
+            categories={categories}
+            value={(value as string) ?? ''}
+            onChange={onChange}
+            error={error?.message}
+            labelId="bulk-relocate-label"
+          />
         )}
       />
     </form>
@@ -711,14 +641,14 @@ export function EquipmentBulkUpdateModal({
   );
 
   const handleStatusSubmit = useCallback(
-    (data: { status: EquipmentStatus; conditionNotes?: string }) => {
+    (data: EquipmentBulkStatusRequest['data']) => {
       setPendingAction({ type: 'status', itemIds: Array.from(selectedIds), data });
     },
     [selectedIds]
   );
 
   const handleRelocateSubmit = useCallback(
-    (data: { categoryId: string }) => {
+    (data: EquipmentBulkRelocateRequest['data']) => {
       setPendingAction({ type: 'relocate', itemIds: Array.from(selectedIds), data });
     },
     [selectedIds]

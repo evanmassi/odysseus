@@ -22,14 +22,15 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks';
 import {
   useAddEquipmentDocumentMutation,
   useUpdateEquipmentDocumentMutation,
   useRemoveEquipmentDocumentMutation,
   useDeleteEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
+import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
+import { EQUIPMENT_STATUS_LABELS } from '@domains/equipment/utils/equipmentStatus';
 import {
   Button,
   Chip,
@@ -63,15 +64,12 @@ interface EquipmentItemInfoPanelProps {
   categoryName?: string;
 }
 
-const STATUS_LABELS: Record<
-  string,
-  { color: 'success' | 'warning' | 'danger' | 'default'; label: string }
-> = {
-  active: { color: 'success', label: 'Active' },
-  inactive: { color: 'default', label: 'Inactive' },
-  under_maintenance: { color: 'warning', label: 'Under Maintenance' },
-  out_of_service: { color: 'danger', label: 'Out of Service' },
-  decommissioned: { color: 'danger', label: 'Decommissioned' },
+const STATUS_COLORS: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
+  active: 'success',
+  inactive: 'default',
+  under_maintenance: 'warning',
+  out_of_service: 'danger',
+  decommissioned: 'danger',
 };
 
 function formatDate(date: Date | string | undefined): string | undefined {
@@ -134,7 +132,8 @@ export function EquipmentItemInfoPanel({
   }
 
   const { item, documents, maintenanceLog } = detail;
-  const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['active'];
+  const statusColor = STATUS_COLORS[item.status] ?? 'success';
+  const statusLabel = EQUIPMENT_STATUS_LABELS[item.status] ?? EQUIPMENT_STATUS_LABELS.active;
   const isDecommissioned = item.status === 'decommissioned';
 
   const hasIdentification = [item.manufacturer, item.model, item.serialNumber, item.assetTag].some(
@@ -199,8 +198,8 @@ export function EquipmentItemInfoPanel({
       <HeaderStrip className="px-4 py-2.5">
         <div className="grid grid-cols-[auto_1fr] items-center justify-items-start gap-x-3 gap-y-2">
           <StripLabel>Status</StripLabel>
-          <Chip size="sm" color={statusConfig.color}>
-            {statusConfig.label}
+          <Chip size="sm" color={statusColor}>
+            {statusLabel}
           </Chip>
           {categoryName && (
             <>

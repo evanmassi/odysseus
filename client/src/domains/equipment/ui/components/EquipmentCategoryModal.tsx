@@ -18,7 +18,7 @@ import { notifications } from '@shared/utils/notifications';
 
 import type { EquipmentCategory } from '@odysseus/shared-schemas';
 
-export interface EquipmentCategoryModalProps {
+interface EquipmentCategoryModalProps {
   isOpen: boolean;
   parentId?: string;
   parentName?: string;

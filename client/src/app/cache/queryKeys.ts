@@ -7,7 +7,6 @@
  */
 
 import type {
-  ResearcherQueryFilters,
   AdvancedSearchOptions,
   LookupCategory,
   TubeFilterableField,
@@ -62,10 +61,7 @@ export const queryKeys = {
   researchers: {
     root: ['researchers'] as const,
     all: (labId = '') => [...queryKeys.researchers.root, labId] as const,
-    list: (labId = '', filters?: ResearcherQueryFilters) =>
-      filters
-        ? ([...queryKeys.researchers.all(labId), 'list', filters] as const)
-        : ([...queryKeys.researchers.all(labId), 'list'] as const),
+    list: (labId = '') => [...queryKeys.researchers.all(labId), 'list'] as const,
     visible: (labId = '') => [...queryKeys.researchers.all(labId), 'visible'] as const,
   },
 
@@ -93,8 +89,6 @@ export const queryKeys = {
     categories: (labId = '') => [...queryKeys.equipment.all(labId), 'categories'] as const,
     items: (labId = '') => [...queryKeys.equipment.all(labId), 'items'] as const,
     detail: (labId = '', id: string) => [...queryKeys.equipment.all(labId), 'detail', id] as const,
-    maintenance: (labId = '', itemId: string) =>
-      [...queryKeys.equipment.all(labId), 'maintenance', itemId] as const,
   },
 
   // Supplies (lab-scoped)

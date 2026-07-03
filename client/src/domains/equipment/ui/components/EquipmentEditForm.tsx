@@ -4,29 +4,35 @@
  * React Hook Form for creating and editing equipment items with category tree dropdown.
  */
 
-import { useMemo } from 'react';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   createEquipmentItemRequestSchema,
   updateEquipmentItemRequestSchema,
 } from '@odysseus/shared-schemas';
-import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Save, SquarePen } from 'lucide-react';
 import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
-import { queryKeys } from '@app/cache/queryKeys';
-import { useLabId } from '@domains/authentication';
 import {
   useCreateEquipmentItemMutation,
   useUpdateEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, DatePicker, HeaderStrip, NubDivider, SectionHeader, Select } from '@shared/ui';
+import { EQUIPMENT_STATUS_LABELS } from '@domains/equipment/utils/equipmentStatus';
+import {
+  Button,
+  CompletenessMeter,
+  DatePicker,
+  NubDivider,
+  SectionHeader,
+  Select,
+} from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
+
+import { EquipmentCategorySelect } from './EquipmentCategorySelect';
 
 import type {
   EquipmentItem,
@@ -34,7 +40,6 @@ import type {
   CreateEquipmentItemRequest,
   UpdateEquipmentItemRequest,
 } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface EquipmentEditFormProps {
   item?: EquipmentItem;
@@ -43,15 +48,9 @@ interface EquipmentEditFormProps {
   onCancel: () => void;
 }
 
-const SELECT_LABEL =
-  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
-
-const STATUS_OPTIONS = [
-  { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
-  { value: 'under_maintenance', label: 'Under Maintenance' },
-  { value: 'out_of_service', label: 'Out of Service' },
-];
+const STATUS_OPTIONS = (['active', 'inactive', 'under_maintenance', 'out_of_service'] as const).map(
+  status => ({ value: status, label: EQUIPMENT_STATUS_LABELS[status] })
+);
 
 const TRACKED_FIELDS = [
   'name',
@@ -78,39 +77,8 @@ export function EquipmentEditForm({
   onCancel,
 }: EquipmentEditFormProps) {
   const isEditing = !!item;
-  const queryClient = useQueryClient();
-  const labId = useLabId();
   const createMutation = useCreateEquipmentItemMutation();
   const updateMutation = useUpdateEquipmentItemMutation();
-
-  const parentNameMap = useMemo(() => {
-    const map = new Map<string, string>();
-    categories.forEach(c => {
-      if (c.parentId) {
-        const parent = categories.find(p => p.id === c.parentId);
-        if (parent) map.set(c.id, parent.name);
-      }
-    });
-    return map;
-  }, [categories]);
-
-  const categoryOptions: SelectOption[] = useMemo(() => {
-    const topLevel = categories
-      .filter(c => !c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-
-    const options: SelectOption[] = [];
-    topLevel.forEach(parent => {
-      options.push({ value: parent.id, label: parent.name });
-      const subs = categories
-        .filter(c => c.parentId === parent.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-      subs.forEach(sub => {
-        options.push({ value: sub.id, label: sub.name, description: parent.name });
-      });
-    });
-    return options;
-  }, [categories]);
 
   const {
     register,
@@ -150,7 +118,6 @@ export function EquipmentEditForm({
     const v = allValues[f];
     return v != null && String(v).trim() !== '';
   }).length;
-  const completionPct = Math.round((filledCount / TRACKED_FIELDS.length) * 100);
 
   const onFormSubmit = async (data: FieldValues) => {
     try {
@@ -164,7 +131,6 @@ export function EquipmentEditForm({
         await createMutation.mutateAsync(data as CreateEquipmentItemRequest);
         notifications.success('Equipment created');
       }
-      await queryClient.refetchQueries({ queryKey: queryKeys.equipment.items(labId) });
       onSubmit();
     } catch {
       notifications.error(isEditing ? 'Failed to update equipment' : 'Failed to create equipment');
@@ -182,26 +148,7 @@ export function EquipmentEditForm({
         </h2>
       </div>
 
-      <HeaderStrip className="px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-            />
-            Completeness
-          </span>
-          <span className="font-mono text-data-sm tracking-[0.06em] text-foreground">
-            {filledCount}/{TRACKED_FIELDS.length}
-          </span>
-          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
-            <span
-              className="absolute inset-y-0 left-0 bg-primary/70 dark:shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
-              style={{ width: `${completionPct}%` }}
-            />
-          </span>
-        </div>
-      </HeaderStrip>
+      <CompletenessMeter filled={filledCount} total={TRACKED_FIELDS.length} />
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="equipment-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-2 p-4">
@@ -220,53 +167,13 @@ export function EquipmentEditForm({
               name="categoryId"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
-                <div>
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="category-label" className={SELECT_LABEL}>
-                    Category
-                  </label>
-                  <Select
-                    options={[{ value: '', label: 'Select category...' }, ...categoryOptions]}
-                    value={value ?? ''}
-                    onChange={v => onChange(v)}
-                    state={error ? 'error' : 'default'}
-                    error={error?.message}
-                    fullWidth
-                    aria-labelledby="category-label"
-                    renderOption={option => {
-                      const isSub = !!option.description;
-                      return (
-                        <div className="w-full">
-                          {isSub ? (
-                            <span className="pl-4 text-body">{option.label}</span>
-                          ) : (
-                            <span className="text-body font-semibold">{option.label}</span>
-                          )}
-                        </div>
-                      );
-                    }}
-                    renderValue={selected => {
-                      const opt = selected[0];
-                      if (!opt)
-                        return (
-                          <span className="text-muted-foreground opacity-40">
-                            Select category...
-                          </span>
-                        );
-                      const parentName = parentNameMap.get(opt.value as string);
-                      if (parentName) {
-                        return (
-                          <span className="text-body text-foreground">
-                            <span className="text-muted-foreground">{parentName}</span>
-                            <span className="mx-1 text-muted-foreground">›</span>
-                            {opt.label}
-                          </span>
-                        );
-                      }
-                      return <span className="text-body text-foreground">{opt.label}</span>;
-                    }}
-                  />
-                </div>
+                <EquipmentCategorySelect
+                  categories={categories}
+                  value={(value as string) ?? ''}
+                  onChange={onChange}
+                  error={error?.message}
+                  labelId="category-label"
+                />
               )}
             />
             <Controller
@@ -275,7 +182,7 @@ export function EquipmentEditForm({
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="status-label" className={SELECT_LABEL}>
+                  <label id="status-label" className={FIELD_LABEL_COMPACT}>
                     Status
                   </label>
                   <Select
@@ -354,7 +261,7 @@ export function EquipmentEditForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Purchase Date</span>
+                  <span className={FIELD_LABEL_COMPACT}>Purchase Date</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -382,7 +289,7 @@ export function EquipmentEditForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Warranty Expiration</span>
+                  <span className={FIELD_LABEL_COMPACT}>Warranty Expiration</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}
@@ -405,7 +312,7 @@ export function EquipmentEditForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Next Maintenance</span>
+                  <span className={FIELD_LABEL_COMPACT}>Next Maintenance</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}

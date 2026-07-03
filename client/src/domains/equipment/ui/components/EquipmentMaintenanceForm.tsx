@@ -18,6 +18,7 @@ import {
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { Button, DatePicker, NubDivider, Select } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -37,9 +38,6 @@ interface EquipmentMaintenanceFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
-
-const SELECT_LABEL =
-  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 export function EquipmentMaintenanceForm({
   itemId,
@@ -122,7 +120,7 @@ export function EquipmentMaintenanceForm({
             control={control}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <div>
-                <span className={SELECT_LABEL}>
+                <span className={FIELD_LABEL_COMPACT}>
                   Date Performed <span className="text-danger-bg">*</span>
                 </span>
                 <DatePicker
@@ -142,7 +140,7 @@ export function EquipmentMaintenanceForm({
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <div>
                 {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="maintenance-type-label" className={SELECT_LABEL}>
+                <label id="maintenance-type-label" className={FIELD_LABEL_COMPACT}>
                   Maintenance Type <span className="text-danger-bg">*</span>
                 </label>
                 <Select
@@ -191,7 +189,7 @@ export function EquipmentMaintenanceForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Next Scheduled</span>
+                  <span className={FIELD_LABEL_COMPACT}>Next Scheduled</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}

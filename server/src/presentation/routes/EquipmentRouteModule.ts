@@ -122,11 +122,6 @@ export class EquipmentRouteModule implements RouteModule {
 
     // Documents
 
-    router.get('/:id/documents',
-      validateParams(IdParams),
-      this.equipmentController.listDocuments.bind(this.equipmentController)
-    );
-
     router.post('/:id/documents',
       validateParams(IdParams),
       validateBody(CreateEquipmentDocumentHttpSchema),
@@ -145,11 +140,6 @@ export class EquipmentRouteModule implements RouteModule {
     );
 
     // Maintenance log
-
-    router.get('/:id/maintenance',
-      validateParams(IdParams),
-      this.equipmentController.getMaintenanceLog.bind(this.equipmentController)
-    );
 
     router.post('/:id/maintenance',
       validateParams(IdParams),

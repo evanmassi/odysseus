@@ -9,9 +9,10 @@ import type { CSSProperties } from 'react';
 
 import { MapPin, Tag, Wrench } from 'lucide-react';
 
+import { resolveMaintenanceDue } from '@domains/equipment/utils/maintenanceSchedule';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
-import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import type { EquipmentItem } from '@odysseus/shared-schemas';
 
@@ -34,13 +35,9 @@ function getMaintenanceIndicator(
 ):
   | { color: 'text-primary' | 'text-warning-text' | 'text-danger-text'; tooltip: string }
   | undefined {
-  const dateStr = normalizeDateString(nextMaintenanceDate);
-  if (!dateStr) return undefined;
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysUntil = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const due = resolveMaintenanceDue(nextMaintenanceDate);
+  if (!due) return undefined;
+  const { daysUntil, dateStr } = due;
 
   if (daysUntil < 0) {
     return {

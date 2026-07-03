@@ -156,10 +156,6 @@ export const equipmentDocumentResponseSchema = z.object({
   document: equipmentDocumentSchema,
 });
 
-export const equipmentDocumentListResponseSchema = z.object({
-  documents: z.array(equipmentDocumentSchema),
-});
-
 // Maintenance log schemas
 
 export const equipmentMaintenanceLogSchema = z.object({
@@ -201,10 +197,6 @@ export const updateEquipmentMaintenanceLogRequestSchema = z.object({
 
 export const equipmentMaintenanceLogEntryResponseSchema = z.object({
   entry: equipmentMaintenanceLogSchema,
-});
-
-export const equipmentMaintenanceLogListResponseSchema = z.object({
-  entries: z.array(equipmentMaintenanceLogSchema),
 });
 
 // Composed detail response — item with its documents and maintenance log

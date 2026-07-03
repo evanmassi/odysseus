@@ -11,6 +11,7 @@ import { useForm, Controller, type FieldValues } from 'react-hook-form';
 
 import { useDecommissionEquipmentItemMutation } from '@domains/equipment/hooks/useEquipmentMutations';
 import { Button, DatePicker, NubDivider } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -25,9 +26,6 @@ interface EquipmentDecommissionFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
-
-const SELECT_LABEL =
-  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 export function EquipmentDecommissionForm({
   itemId,
@@ -91,7 +89,7 @@ export function EquipmentDecommissionForm({
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
                 <div>
-                  <span className={SELECT_LABEL}>Decommission Date</span>
+                  <span className={FIELD_LABEL_COMPACT}>Decommission Date</span>
                   <DatePicker
                     value={(value as string) ?? ''}
                     onChange={onChange}

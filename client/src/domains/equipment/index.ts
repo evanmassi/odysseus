@@ -1,11 +1,7 @@
 /**
  * Equipment Domain Public API
  *
- * Equipment inventory query hooks for cross-domain consumption.
+ * Equipment inventory management, mounted as a tab in Lab Management.
  */
 
-export {
-  useEquipmentCategoriesQuery,
-  useEquipmentItemsQuery,
-  useEquipmentItemDetailQuery,
-} from './hooks';
+export { EquipmentTab } from './ui/components/EquipmentTab';
