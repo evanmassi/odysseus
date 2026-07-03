@@ -11,6 +11,7 @@ import { PackagePlus, PackageMinus, ClipboardCheck, Trash2, Search } from 'lucid
 import { useSupplyLocationsQuery, useSupplyTransactionHistoryQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkVoidMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Autocomplete, Button, Checkbox, NubDivider } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
@@ -20,7 +21,7 @@ import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
-import { SEARCH_INPUT_CLASS, SELECT_LABEL } from './fieldLabelStyle';
+import { SEARCH_INPUT_CLASS } from './fieldLabelStyle';
 
 import type { SupplyItemWithStock, SupplyTransaction } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
@@ -196,7 +197,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
       <div className="relative px-4 pt-3 pb-4 border-t border-line-faint flex-shrink-0 space-y-3">
         <NubDivider tone="primary" className="absolute inset-x-0 -top-px" />
         <div>
-          <label htmlFor="bulk-void-reason" className={SELECT_LABEL}>
+          <label htmlFor="bulk-void-reason" className={FIELD_LABEL_COMPACT}>
             Reason for voiding *
           </label>
           <Textarea

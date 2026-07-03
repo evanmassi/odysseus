@@ -7,11 +7,9 @@
 import { Save } from 'lucide-react';
 
 import { Button, DatePicker, Select } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
-
-const FIELD_LABEL =
-  'mb-1.5 block type-label text-label-2xs tracking-label-wide text-muted-foreground';
 
 interface CollectionHistoryEntryFormProps {
   date: string;
@@ -45,7 +43,7 @@ export function CollectionHistoryEntryForm({
   return (
     <div className="space-y-2.5 rounded-md border border-line-faint bg-shade/20 p-3">
       <div>
-        <span className={FIELD_LABEL}>Date</span>
+        <span className={FIELD_LABEL_COMPACT}>Date</span>
         <DatePicker
           value={date}
           onChange={onDateChange}
@@ -55,7 +53,7 @@ export function CollectionHistoryEntryForm({
         />
       </div>
       <div>
-        <span className={FIELD_LABEL}>Specimen Type</span>
+        <span className={FIELD_LABEL_COMPACT}>Specimen Type</span>
         <Select
           options={specimenTypeOptions}
           value={specimenType}
@@ -67,7 +65,7 @@ export function CollectionHistoryEntryForm({
         />
       </div>
       <div>
-        <span className={FIELD_LABEL}>Source</span>
+        <span className={FIELD_LABEL_COMPACT}>Source</span>
         <Select
           options={sourceOptions}
           value={source}

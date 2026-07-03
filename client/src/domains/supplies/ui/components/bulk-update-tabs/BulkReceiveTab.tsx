@@ -11,6 +11,7 @@ import { Search } from 'lucide-react';
 import { useSupplyLocationsQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkReceiveMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Autocomplete, Button, Input, NubDivider } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { notifications } from '@shared/utils/notifications';
@@ -18,7 +19,7 @@ import { notifications } from '@shared/utils/notifications';
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
 import { BulkItemRow } from './BulkItemRow';
-import { SEARCH_INPUT_CLASS, SELECT_LABEL } from './fieldLabelStyle';
+import { SEARCH_INPUT_CLASS } from './fieldLabelStyle';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
@@ -185,7 +186,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
             >
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <span className={SELECT_LABEL}>Lot #</span>
+                  <span className={FIELD_LABEL_COMPACT}>Lot #</span>
                   <Input
                     type="text"
                     value={row.lotNumber}
@@ -195,7 +196,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
                   />
                 </div>
                 <div>
-                  <span className={SELECT_LABEL}>PO #</span>
+                  <span className={FIELD_LABEL_COMPACT}>PO #</span>
                   <Input
                     type="text"
                     value={row.poNumber}
@@ -205,7 +206,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
                   />
                 </div>
                 <div>
-                  <span className={SELECT_LABEL}>Cost ($)</span>
+                  <span className={FIELD_LABEL_COMPACT}>Cost ($)</span>
                   <Input
                     type="number"
                     value={row.cost}

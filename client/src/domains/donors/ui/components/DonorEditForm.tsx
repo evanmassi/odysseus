@@ -14,7 +14,8 @@ import {
   useUpdateDonorMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, HeaderStrip, NubDivider, SectionHeader, Select } from '@shared/ui';
+import { Button, CompletenessMeter, NubDivider, SectionHeader, Select } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -26,9 +27,6 @@ interface DonorEditFormProps {
   onSubmit: () => void;
   onCancel: () => void;
 }
-
-const SELECT_LABEL =
-  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 const SEX_OPTIONS = [
   { value: '', label: 'Select sex...' },
@@ -96,7 +94,6 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
     const v = allValues[f];
     return v != null && String(v).trim() !== '';
   }).length;
-  const completionPct = Math.round((filledCount / trackedFields.length) * 100);
 
   const handleFormSubmit = (data: CreateDonorRequest) => {
     if (isEditMode && donor) {
@@ -121,26 +118,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
         </h2>
       </div>
 
-      <HeaderStrip className="px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-            />
-            Completeness
-          </span>
-          <span className="font-mono text-data-sm tracking-[0.06em] text-foreground">
-            {filledCount}/{trackedFields.length}
-          </span>
-          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
-            <span
-              className="absolute inset-y-0 left-0 bg-primary/70 dark:shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
-              style={{ width: `${completionPct}%` }}
-            />
-          </span>
-        </div>
-      </HeaderStrip>
+      <CompletenessMeter filled={filledCount} total={trackedFields.length} />
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="donor-form" onSubmit={handleSubmit(handleFormSubmit)} className="space-y-2 p-4">
@@ -180,7 +158,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="species-label" className={SELECT_LABEL}>
+                  <label id="species-label" className={FIELD_LABEL_COMPACT}>
                     Species
                   </label>
                   <Select
@@ -211,7 +189,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="sex-label" className={SELECT_LABEL}>
+                  <label id="sex-label" className={FIELD_LABEL_COMPACT}>
                     Sex
                   </label>
                   <Select
@@ -244,7 +222,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="clinical-status-label" className={SELECT_LABEL}>
+                  <label id="clinical-status-label" className={FIELD_LABEL_COMPACT}>
                     Clinical Status
                   </label>
                   <Select

@@ -24,12 +24,13 @@ import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   Button,
   Checkbox,
-  HeaderStrip,
+  CompletenessMeter,
   Input,
   NubDivider,
   SectionHeader,
   Select,
 } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -56,10 +57,6 @@ interface LocalPackagingLevel {
   quantity: number;
   parentUnit: string | null;
 }
-
-// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
-const SELECT_LABEL =
-  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 const TRACKED_FIELDS = [
   'name',
@@ -278,7 +275,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     if (Array.isArray(v)) return v.length > 0;
     return v != null && String(v).trim() !== '';
   }).length;
-  const completionPct = Math.round((filledCount / TRACKED_FIELDS.length) * 100);
 
   const currentBaseItemName = allValues['baseItemName'] as string | undefined;
   const currentStockUnit = allValues['stockUnit'] as string | undefined;
@@ -395,26 +391,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
         </h2>
       </div>
 
-      <HeaderStrip className="px-4 py-2.5">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-            />
-            Completeness
-          </span>
-          <span className="font-mono text-data-sm tracking-[0.06em] text-foreground">
-            {filledCount}/{TRACKED_FIELDS.length}
-          </span>
-          <span className="relative h-1 w-20 overflow-hidden bg-foreground/10">
-            <span
-              className="absolute inset-y-0 left-0 bg-primary/70 dark:shadow-[0_0_6px_hsl(var(--primary)/0.5)] transition-[width] duration-300"
-              style={{ width: `${completionPct}%` }}
-            />
-          </span>
-        </div>
-      </HeaderStrip>
+      <CompletenessMeter filled={filledCount} total={TRACKED_FIELDS.length} />
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="supply-item-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-2 p-4">
@@ -434,7 +411,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <div>
                 {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="supply-category-label" className={SELECT_LABEL}>
+                <label id="supply-category-label" className={FIELD_LABEL_COMPACT}>
                   Category
                 </label>
                 <Select
@@ -471,7 +448,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             <div>
               <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
                 <div>
-                  <label htmlFor="mfg-barcode" className={SELECT_LABEL}>
+                  <label htmlFor="mfg-barcode" className={FIELD_LABEL_COMPACT}>
                     Manufacturer Barcode
                   </label>
                   <Input
@@ -484,7 +461,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   />
                 </div>
                 <div>
-                  <label htmlFor="mfg-barcode-label" className={SELECT_LABEL}>
+                  <label htmlFor="mfg-barcode-label" className={FIELD_LABEL_COMPACT}>
                     Barcode Label
                   </label>
                   <Input
@@ -509,7 +486,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="supply-manufacturer-label" className={SELECT_LABEL}>
+                  <label id="supply-manufacturer-label" className={FIELD_LABEL_COMPACT}>
                     Manufacturer
                   </label>
                   <Select
@@ -534,7 +511,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="supply-vendor-label" className={SELECT_LABEL}>
+                  <label id="supply-vendor-label" className={FIELD_LABEL_COMPACT}>
                     Vendor
                   </label>
                   <Select
@@ -571,7 +548,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="supply-stock-unit-label" className={SELECT_LABEL}>
+                  <label id="supply-stock-unit-label" className={FIELD_LABEL_COMPACT}>
                     Stock Unit
                   </label>
                   <Select
@@ -586,7 +563,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             />
           </div>
           <div>
-            <span className={SELECT_LABEL}>Packaging</span>
+            <span className={FIELD_LABEL_COMPACT}>Packaging</span>
             {packagingLevels.length > 0 && (
               <div className="mb-2 space-y-1">
                 {packagingLevels.map((level, index) => {
@@ -718,7 +695,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
           </div>
           <div className="grid grid-cols-3 items-end gap-2.5">
             <div>
-              <label htmlFor="threshold-qty" className={SELECT_LABEL}>
+              <label htmlFor="threshold-qty" className={FIELD_LABEL_COMPACT}>
                 Threshold
               </label>
               <Input
@@ -742,7 +719,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             {thresholdUnitOptions.length > 0 ? (
               <div>
                 {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="supply-threshold-unit-label" className={SELECT_LABEL}>
+                <label id="supply-threshold-unit-label" className={FIELD_LABEL_COMPACT}>
                   Unit
                 </label>
                 <Select
@@ -806,7 +783,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               render={({ field: { value, onChange } }) => (
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                  <label id="supply-reorder-unit-label" className={SELECT_LABEL}>
+                  <label id="supply-reorder-unit-label" className={FIELD_LABEL_COMPACT}>
                     Reorder Unit
                   </label>
                   <Select

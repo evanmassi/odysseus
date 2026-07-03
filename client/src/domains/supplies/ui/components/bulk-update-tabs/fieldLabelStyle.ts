@@ -1,14 +1,9 @@
 /**
- * Bulk Form Field Styles
+ * Bulk Search Input Style
  *
- * Shared field typography for the bulk-update tab forms: the compact mono
- * micro-label (matching the edit-form `labelStyle="compact"`) and the console
- * search-input styling (matching the `SearchInput` primitive) for the
- * Autocomplete item-search fields.
+ * Console search-input styling (matching the `SearchInput` primitive) for the
+ * bulk-update Autocomplete item-search fields.
  */
-export const SELECT_LABEL =
-  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
-
 export const SEARCH_INPUT_CLASS =
   'w-full h-8 pl-8 pr-3 text-data font-mono tracking-[0.04em] text-foreground ' +
   'bg-[hsl(var(--input-well))] border border-line-faint placeholder:text-foreground/40 ' +

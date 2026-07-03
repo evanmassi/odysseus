@@ -7,8 +7,7 @@
 import { useMemo } from 'react';
 
 import { Select } from '@shared/ui';
-
-import { SELECT_LABEL } from './fieldLabelStyle';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 
 import type { SupplyCategory } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -55,7 +54,7 @@ export function BulkReassignTab({
       </p>
       <div>
         {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-        <label id="bulk-reassign-category-label" className={SELECT_LABEL}>
+        <label id="bulk-reassign-category-label" className={FIELD_LABEL_COMPACT}>
           Category
         </label>
         <Select

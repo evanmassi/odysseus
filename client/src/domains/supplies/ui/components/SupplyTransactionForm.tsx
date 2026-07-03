@@ -17,6 +17,7 @@ import {
   useRecordSupplyStockCountMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button, DatePicker, HeaderStrip, Input, NubDivider, Select, Tab, Tabs } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -34,10 +35,6 @@ const MODE_LABELS: Record<TransactionMode, string> = {
   count: 'Count',
   disposed: 'Dispose',
 };
-
-// Field-label typography shared with the equipment/tube edit forms: uppercase mono micro-label.
-const SELECT_LABEL =
-  'block type-label text-label-2xs tracking-label-wide mb-1.5 text-muted-foreground';
 
 export interface TransactionPrefill {
   locationId?: string;
@@ -317,7 +314,7 @@ export function SupplyTransactionForm({
 
           {hasPackaging ? (
             <div className="space-y-2">
-              <span className={SELECT_LABEL}>{MODE_LABELS[mode]}</span>
+              <span className={FIELD_LABEL_COMPACT}>{MODE_LABELS[mode]}</span>
               <div className="space-y-1.5">
                 {orderedLevels.map(level => (
                   <div key={level.unitName} className="flex items-center gap-2">
@@ -425,7 +422,7 @@ export function SupplyTransactionForm({
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <div>
                 {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="txn-location-label" className={SELECT_LABEL}>
+                <label id="txn-location-label" className={FIELD_LABEL_COMPACT}>
                   Location
                 </label>
                 <Select
@@ -451,7 +448,7 @@ export function SupplyTransactionForm({
                   registration={register('lotNumber')}
                 />
                 <div>
-                  <span className={SELECT_LABEL}>Expiration Date</span>
+                  <span className={FIELD_LABEL_COMPACT}>Expiration Date</span>
                   <Controller
                     name="expirationDate"
                     control={control}

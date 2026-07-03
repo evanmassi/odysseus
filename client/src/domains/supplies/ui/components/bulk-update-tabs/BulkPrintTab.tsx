@@ -10,6 +10,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { SupplyService } from '@domains/supplies/services/SupplyService';
 import { Select } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { NumberInput } from '@shared/ui/primitives/input/NumberInput';
 import { notifications } from '@shared/utils/notifications';
 
@@ -20,8 +21,6 @@ import {
   type SheetTemplate,
 } from '../sheetTemplates';
 import { FORMAT_OPTIONS, type BarcodeFormat } from '../SupplyBarcodePrint';
-
-import { SELECT_LABEL } from './fieldLabelStyle';
 
 import type { PrintableLabel } from '../supplyBarcodeSheetTypes';
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
@@ -314,7 +313,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
       </p>
 
       <div>
-        <h4 className={SELECT_LABEL}>Format</h4>
+        <h4 className={FIELD_LABEL_COMPACT}>Format</h4>
         <div className="grid grid-cols-2 gap-2">
           {FORMAT_OPTIONS.map(({ value, label, Icon }) => {
             const isSelected = format === value;
@@ -346,7 +345,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
 
       <div>
         {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-        <label id="bulk-print-template-label" className={SELECT_LABEL}>
+        <label id="bulk-print-template-label" className={FIELD_LABEL_COMPACT}>
           Sheet template
         </label>
         <Select
@@ -370,7 +369,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
         <div className="space-y-3 p-3 rounded-md border border-border bg-muted/20">
           <div>
             {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-            <label id="bulk-print-paper-label" className={SELECT_LABEL}>
+            <label id="bulk-print-paper-label" className={FIELD_LABEL_COMPACT}>
               Paper size
             </label>
             <Select
@@ -452,7 +451,7 @@ export function BulkPrintTab({ selectedCount, state }: BulkPrintTabProps) {
       )}
 
       <div>
-        <h4 className={SELECT_LABEL}>Starting position</h4>
+        <h4 className={FIELD_LABEL_COMPACT}>Starting position</h4>
         <div className="flex items-center gap-2">
           <NumberInput
             value={startingPosition}
@@ -482,7 +481,7 @@ interface CustomFieldProps {
 function CustomField({ label, value, onChange, min, step, allowDecimals }: CustomFieldProps) {
   return (
     <div className="flex flex-col items-start">
-      <span className={SELECT_LABEL}>{label}</span>
+      <span className={FIELD_LABEL_COMPACT}>{label}</span>
       <NumberInput
         value={value}
         onChange={onChange}

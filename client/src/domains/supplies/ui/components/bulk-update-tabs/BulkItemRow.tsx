@@ -12,9 +12,8 @@ import { X } from 'lucide-react';
 
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
 import { Input, Select } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
-
-import { SELECT_LABEL } from './fieldLabelStyle';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
@@ -179,7 +178,7 @@ export function BulkItemRow({
       ) : (
         <div className="flex items-center gap-2">
           <div className="w-16">
-            <span className={SELECT_LABEL}>Qty *</span>
+            <span className={FIELD_LABEL_COMPACT}>Qty *</span>
             <Input
               type="number"
               value={String(simpleQty)}
@@ -197,7 +196,7 @@ export function BulkItemRow({
       )}
 
       <div>
-        <span className={SELECT_LABEL}>Location *</span>
+        <span className={FIELD_LABEL_COMPACT}>Location *</span>
         <Select
           options={locationOptions}
           value={locationId}
