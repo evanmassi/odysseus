@@ -55,7 +55,7 @@ export { SubsectionHeader } from './titles/SubsectionHeader';
 
 export { Subsection, SettingsRow } from './settings-row/SettingsRow';
 
-export { StatCell } from './stat-cell/StatCell';
+export { StatCell, STAT_STRIP } from './stat-cell/StatCell';
 
 export { Table } from './table/Table';
 export type { TableColumn, SortConfig } from './table/types';

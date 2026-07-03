@@ -5,7 +5,8 @@
  */
 import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 
-import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
+import { sortByName } from '@odysseus/shared-schemas';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Shield,
   Activity,
@@ -18,7 +19,9 @@ import {
   TicketCheck,
 } from 'lucide-react';
 
+import { queryKeys } from '@app/cache/queryKeys';
 import { useModalStore } from '@app/stores/modalStore';
+import { useLabId } from '@domains/authentication';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useStorageData } from '@domains/storage';
 import { logger } from '@infra/logger';
@@ -36,12 +39,13 @@ import {
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
 
+import { useSecurityConfig } from '../../../hooks/useSecurityConfig';
 import { useLabStorageAnalyticsQuery } from '../../../hooks/useStorageAnalyticsQueries';
+import { useUsersQuery } from '../../../hooks/useUsersQuery';
 import { adminService } from '../../../services/AdminService';
-import { adminUserService } from '../../../services/AdminUserService';
 import { UtilizationBar } from '../displays/UtilizationBar';
 
-import type { SecurityConfig, AdminUser, SystemMetrics } from '@odysseus/shared-schemas';
+import type { SystemMetrics } from '@odysseus/shared-schemas';
 
 const SecurityTab = lazy(() =>
   import('./tabs/SecurityTab').then(m => ({ default: m.SecurityTab }))
@@ -98,46 +102,36 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const securityReadOnly = !isSystemAdmin || isDemo;
 
   const [activeTab, setActiveTab] = useState<TabId>('system');
-  const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
-  const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
-  const [isSaving, setSaving] = useState(false);
-  const [users, setUsers] = useState<AdminUser[]>([]);
   const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null);
   const [tabFooter, setTabFooter] = useState<React.ReactNode>(null);
   const modalService = useModalStore();
+
+  const queryClient = useQueryClient();
+  const labId = useLabId();
+  const { data: users = [] } = useUsersQuery({
+    queryOptions: { enabled: isOpen && !isSystemAdmin, select: sortByName },
+  });
+  const refreshUsers = () =>
+    void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
+
+  const {
+    config,
+    handleConfigChange,
+    changedCount,
+    hasChanges,
+    isSaving,
+    load: loadConfiguration,
+    save,
+  } = useSecurityConfig(isSystemAdmin);
 
   useEffect(() => {
     if (isOpen) {
       void loadConfiguration();
       if (!isSystemAdmin) {
-        void loadUsers();
         void loadSystemStats();
       }
     }
-  }, [isOpen, isSystemAdmin]);
-
-  const loadConfiguration = async () => {
-    try {
-      const config = await adminService.getSecurityConfig();
-      const loadedConfig = { ...DEFAULT_SECURITY_CONFIG, ...config };
-      setConfig(loadedConfig);
-      setOriginalConfig(loadedConfig);
-    } catch (error) {
-      logger.error('Failed to load configuration', { error });
-      setConfig(DEFAULT_SECURITY_CONFIG);
-      setOriginalConfig(DEFAULT_SECURITY_CONFIG);
-    }
-  };
-
-  const loadUsers = async () => {
-    try {
-      const users = await adminUserService.getUsers();
-      setUsers(sortByName(users));
-    } catch (error) {
-      logger.error('Failed to load users', { error });
-      setUsers([]);
-    }
-  };
+  }, [isOpen, isSystemAdmin, loadConfiguration]);
 
   const loadSystemStats = async () => {
     try {
@@ -155,42 +149,15 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   };
 
   const saveConfiguration = async () => {
-    const changes: Partial<SecurityConfig> = {};
-    Object.keys(config).forEach(key => {
-      const configKey = key as keyof SecurityConfig;
-      if (config[configKey] !== originalConfig[configKey]) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic property assignment to partial config object
-        (changes as any)[configKey] = config[configKey];
-      }
-    });
-
-    setSaving(true);
     try {
-      if (isSystemAdmin) {
-        await adminService.updateSecurityConfigAsSystemAdmin(changes);
-      } else {
-        await adminService.updateSecurityConfig(changes);
-      }
-
+      await save();
       notifications.success('Security configuration updated successfully');
-      setOriginalConfig(config);
       onClose();
     } catch (error) {
       logger.error('Failed to save configuration', { error });
       notifications.error('Failed to update security configuration');
-    } finally {
-      setSaving(false);
     }
   };
-
-  const handleConfigChange = (field: keyof SecurityConfig, value: boolean | number | string) => {
-    setConfig(prev => ({ ...prev, [field]: value }));
-  };
-
-  const changedCount = (Object.keys(config) as (keyof SecurityConfig)[]).filter(
-    key => config[key] !== originalConfig[key]
-  ).length;
-  const hasChanges = changedCount > 0;
 
   const handleClose = () => {
     if (hasChanges && activeTab === 'security') {
@@ -385,7 +352,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'users' && !isSystemAdmin && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <UsersTab users={users} onUserUpdate={loadUsers} readOnly={isDemo} />
+          <UsersTab users={users} onUserUpdate={refreshUsers} readOnly={isDemo} />
         </Suspense>
       )}
 
@@ -394,7 +361,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
           <ResearchersTab
             onResearcherUpdate={() => {
               void loadSystemStats();
-              void loadUsers();
+              refreshUsers();
             }}
             onTabFooter={handleTabFooter}
             readOnly={isDemo}

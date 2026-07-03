@@ -4,7 +4,7 @@
  * Admin interface for researcher profiles, status management, and deletion.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
 import {
@@ -24,6 +24,7 @@ import { logger } from '@infra/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
+import { getErrorMessage } from '@shared/utils/getErrorMessage';
 
 import { adminResearcherService } from '../../../../services/AdminResearcherService';
 import { ResearcherModal } from '../ResearcherModal';
@@ -31,9 +32,9 @@ import { ResearcherModal } from '../ResearcherModal';
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
-export interface ResearchersTabProps {
+interface ResearchersTabProps {
   onResearcherUpdate?: () => void;
-  onTabFooter?: (footer: React.ReactNode) => void;
+  onTabFooter?: (footer: ReactNode) => void;
   readOnly?: boolean;
 }
 
@@ -148,11 +149,8 @@ export function ResearchersTab({
       );
       await loadResearchers();
       onResearcherUpdate?.();
-    } catch (error: unknown) {
-      const errorMessage =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Failed to activate researcher';
-      notifications.error(errorMessage);
+    } catch (error) {
+      notifications.error(getErrorMessage(error, 'Failed to activate researcher'));
     } finally {
       setTogglingStatus(null);
     }
@@ -166,11 +164,8 @@ export function ResearchersTab({
       setConfirmDialog(null);
       await loadResearchers();
       onResearcherUpdate?.();
-    } catch (error: unknown) {
-      const errorMessage =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Failed to deactivate researcher';
-      notifications.error(errorMessage);
+    } catch (error) {
+      notifications.error(getErrorMessage(error, 'Failed to deactivate researcher'));
       setConfirmDialog(null);
     } finally {
       setTogglingStatus(null);
@@ -185,14 +180,9 @@ export function ResearchersTab({
       setConfirmDialog(null);
       await loadResearchers();
       onResearcherUpdate?.();
-    } catch (error: unknown) {
+    } catch (error) {
       logger.error('Failed to delete researcher', { error });
-
-      // Extract error message from API response
-      const errorMessage =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Failed to delete researcher';
-      notifications.error(errorMessage);
+      notifications.error(getErrorMessage(error, 'Failed to delete researcher'));
       setConfirmDialog(null);
     } finally {
       setDeleting(null);

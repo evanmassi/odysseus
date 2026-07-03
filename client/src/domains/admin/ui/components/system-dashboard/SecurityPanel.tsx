@@ -27,6 +27,7 @@ import {
   PanelHeader,
   SectionHeader,
   StatCell,
+  STAT_STRIP,
   Table,
   DatePicker,
   SearchInput,
@@ -66,6 +67,26 @@ function getReasonTone(reason: string): string {
   const lower = reason.toLowerCase();
   const isStrong = STRONG_DENIAL_KEYWORDS.some(kw => lower.includes(kw));
   return isStrong ? 'phosphor-text text-danger-text-hover' : 'phosphor-text text-danger-text';
+}
+
+function formatDateStacked(value: Date) {
+  const date = value.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const time = value.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return { date, time };
+}
+
+/** Stacked date / time / relative-time cell; `own` tints it as the viewer's own session. */
+function renderTimeCell(value: Date, own = false) {
+  const { date, time } = formatDateStacked(value);
+  return (
+    <div className="text-caption">
+      <div className={own ? 'text-success-text' : 'text-secondary-foreground'}>{date}</div>
+      <div className={own ? 'text-success-text/70' : 'text-muted-foreground'}>{time}</div>
+      <div className={`text-caption ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}>
+        {formatRelativeTime(value)}
+      </div>
+    </div>
+  );
 }
 
 export function SecurityPanel() {
@@ -131,13 +152,6 @@ export function SecurityPanel() {
     return counts;
   }, [sessionsData]);
 
-  const formatDateStacked = (iso: string | Date) => {
-    const d = iso instanceof Date ? iso : new Date(iso);
-    const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-    return { date, time };
-  };
-
   const isOwnSession = (session: ActiveSessionEntry) => session.userId === user?.id;
 
   const filteredSessions = useMemo(() => {
@@ -173,54 +187,51 @@ export function SecurityPanel() {
     });
   }, [filteredSessions, sessionSortConfig]);
 
-  const handlePurge = async () => {
-    try {
-      const result = await purgeExpiredMutation.mutateAsync();
-      notifications.success(
-        `Purged ${result.purgedSessions} sessions and ${result.purgedTokens} tokens`
-      );
-      setShowPurgeConfirm(false);
-    } catch {
-      notifications.error('Failed to purge expired sessions');
-    }
+  const handlePurge = () => {
+    purgeExpiredMutation.mutate(undefined, {
+      onSuccess: result => {
+        notifications.success(
+          `Purged ${result.purgedSessions} sessions and ${result.purgedTokens} tokens`
+        );
+        setShowPurgeConfirm(false);
+      },
+    });
   };
 
-  const handleRevoke = async () => {
+  const handleRevoke = () => {
     if (!revokeTarget) return;
-    try {
-      await revokeSessionMutation.mutateAsync(revokeTarget.id);
-      notifications.success('Session revoked');
-      setRevokeTarget(null);
-    } catch {
-      notifications.error('Failed to revoke session');
-    }
+    revokeSessionMutation.mutate(revokeTarget.id, {
+      onSuccess: () => {
+        notifications.success('Session revoked');
+        setRevokeTarget(null);
+      },
+    });
   };
 
-  const handleBulkRevoke = async () => {
+  const handleBulkRevoke = () => {
     const ids = selectedSessionIds.map(String);
     if (ids.length === 0) return;
-    try {
-      const result = await bulkRevokeMutation.mutateAsync(ids);
-      notifications.success(`Revoked ${result.revokedCount} sessions`);
-      setSelectedSessionIds([]);
-      setShowBulkRevokeConfirm(false);
-    } catch {
-      notifications.error('Failed to revoke sessions');
-    }
+    bulkRevokeMutation.mutate(ids, {
+      onSuccess: result => {
+        notifications.success(`Revoked ${result.revokedCount} sessions`);
+        setSelectedSessionIds([]);
+        setShowBulkRevokeConfirm(false);
+      },
+    });
   };
 
-  const handleRevokeFromIp = async () => {
+  const handleRevokeFromIp = () => {
     if (!bulkRevokeIp) return;
+    const ip = bulkRevokeIp;
     const sessions = sessionsData?.sessions ?? [];
-    const ids = sessions.filter(s => s.ipAddress === bulkRevokeIp).map(s => s.id);
+    const ids = sessions.filter(s => s.ipAddress === ip).map(s => s.id);
     if (ids.length === 0) return;
-    try {
-      const result = await bulkRevokeMutation.mutateAsync(ids);
-      notifications.success(`Revoked ${result.revokedCount} sessions from ${bulkRevokeIp}`);
-      setBulkRevokeIp(null);
-    } catch {
-      notifications.error('Failed to revoke sessions');
-    }
+    bulkRevokeMutation.mutate(ids, {
+      onSuccess: result => {
+        notifications.success(`Revoked ${result.revokedCount} sessions from ${ip}`);
+        setBulkRevokeIp(null);
+      },
+    });
   };
 
   const activeSessionCountsByIp = useMemo(() => {
@@ -314,41 +325,13 @@ export function SecurityPanel() {
       id: 'loginTime',
       header: 'Login',
       sortable: true,
-      render: (_val, row) => {
-        const { date, time } = formatDateStacked(row.loginTime);
-        const own = isOwnSession(row);
-        return (
-          <div className="text-caption">
-            <div className={own ? 'text-success-text' : 'text-secondary-foreground'}>{date}</div>
-            <div className={own ? 'text-success-text/70' : 'text-muted-foreground'}>{time}</div>
-            <div
-              className={`text-caption ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}
-            >
-              {formatRelativeTime(row.loginTime)}
-            </div>
-          </div>
-        );
-      },
+      render: (_val, row) => renderTimeCell(row.loginTime, isOwnSession(row)),
     },
     {
       id: 'lastActivity',
       header: 'Last Active',
       sortable: true,
-      render: (_val, row) => {
-        const { date, time } = formatDateStacked(row.lastActivity);
-        const own = isOwnSession(row);
-        return (
-          <div className="text-caption">
-            <div className={own ? 'text-success-text' : 'text-secondary-foreground'}>{date}</div>
-            <div className={own ? 'text-success-text/70' : 'text-muted-foreground'}>{time}</div>
-            <div
-              className={`text-caption ${own ? 'text-success-text/60' : 'text-muted-foreground'}`}
-            >
-              {formatRelativeTime(row.lastActivity)}
-            </div>
-          </div>
-        );
-      },
+      render: (_val, row) => renderTimeCell(row.lastActivity, isOwnSession(row)),
     },
     {
       id: 'device',
@@ -462,18 +445,7 @@ export function SecurityPanel() {
     {
       id: 'timestamp',
       header: 'Time',
-      render: (_val, row) => {
-        const { date, time } = formatDateStacked(row.timestamp);
-        return (
-          <div className="text-caption">
-            <div className="text-secondary-foreground">{date}</div>
-            <div className="text-muted-foreground">{time}</div>
-            <div className="text-muted-foreground text-caption">
-              {formatRelativeTime(row.timestamp)}
-            </div>
-          </div>
-        );
-      },
+      render: (_val, row) => renderTimeCell(row.timestamp),
     },
   ];
 
@@ -547,7 +519,7 @@ export function SecurityPanel() {
               </Button>
             </div>
           )}
-          <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
+          <div className={STAT_STRIP}>
             <StatCell
               size="sm"
               label="Active Sessions"

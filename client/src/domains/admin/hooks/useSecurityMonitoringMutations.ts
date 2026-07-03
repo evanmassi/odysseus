@@ -7,7 +7,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { logger } from '@infra/logger';
 
 import { securityMonitoringService } from '../services/SecurityMonitoringService';
 
@@ -18,9 +17,6 @@ export function usePurgeExpiredSessionsMutation() {
     mutationFn: () => securityMonitoringService.purgeExpiredSessions(),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.security.all });
-    },
-    onError: error => {
-      logger.error('Failed to purge expired sessions', { error });
     },
   });
 }
@@ -33,9 +29,6 @@ export function useRevokeSessionMutation() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.security.all });
     },
-    onError: error => {
-      logger.error('Failed to revoke session', { error });
-    },
   });
 }
 
@@ -46,9 +39,6 @@ export function useBulkRevokeSessionsMutation() {
     mutationFn: (sessionIds: string[]) => securityMonitoringService.bulkRevokeSessions(sessionIds),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.security.all });
-    },
-    onError: error => {
-      logger.error('Failed to bulk revoke sessions', { error });
     },
   });
 }

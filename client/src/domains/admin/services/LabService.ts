@@ -12,13 +12,11 @@ import {
   systemOverviewSchema,
   labsListSchema,
   labDataResponseSchema,
-  inviteCodesListSchema,
   inviteCodeDataResponseSchema,
   demoLimitsDataSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
-import { logger } from '@infra/logger';
 
 import { buildAuditFilterParams } from '../utils/auditLogFilterParams';
 
@@ -30,228 +28,122 @@ import type {
   DemoLimits,
   SeedDemoResponse,
   UnseedDemoResponse,
-  AuditLogEntry,
+  AuditSearchResponse,
   AuditLogFilters,
   SystemOverview,
 } from '@odysseus/shared-schemas';
 
 export class LabService {
   async getLabs(): Promise<LabData[]> {
-    try {
-      const data = await httpClient.getData('/system/labs', labsListSchema);
-      return data.labs;
-    } catch (error) {
-      logger.error('Failed to get labs', { error });
-      throw error;
-    }
+    const data = await httpClient.getData('/system/labs', labsListSchema);
+    return data.labs;
   }
 
   async createLab(name: string, isDemo?: boolean): Promise<LabData> {
-    try {
-      const data = await httpClient.postData(
-        '/system/labs',
-        { name, ...(isDemo && { isDemo }) },
-        labDataResponseSchema
-      );
-      return data.lab;
-    } catch (error) {
-      logger.error('Failed to create lab', { error });
-      throw error;
-    }
+    const data = await httpClient.postData(
+      '/system/labs',
+      { name, ...(isDemo && { isDemo }) },
+      labDataResponseSchema
+    );
+    return data.lab;
   }
 
   async updateLab(id: string, name: string): Promise<LabData> {
-    try {
-      const data = await httpClient.putData(`/system/labs/${id}`, { name }, labDataResponseSchema);
-      return data.lab;
-    } catch (error) {
-      logger.error('Failed to update lab', { id, error });
-      throw error;
-    }
+    const data = await httpClient.putData(`/system/labs/${id}`, { name }, labDataResponseSchema);
+    return data.lab;
   }
 
   async deactivateLab(id: string): Promise<void> {
-    try {
-      await httpClient.post(`/system/labs/${id}/deactivate`);
-    } catch (error) {
-      logger.error('Failed to deactivate lab', { id, error });
-      throw error;
-    }
+    await httpClient.post(`/system/labs/${id}/deactivate`);
   }
 
   async getLabDetails(labId: string): Promise<LabDetails> {
-    try {
-      return await httpClient.getData(`/system/labs/${labId}/details`, labDetailsSchema);
-    } catch (error) {
-      logger.error('Failed to get lab details', { labId, error });
-      throw error;
-    }
+    return await httpClient.getData(`/system/labs/${labId}/details`, labDetailsSchema);
   }
 
   async activateLab(id: string): Promise<void> {
-    try {
-      await httpClient.post(`/system/labs/${id}/activate`);
-    } catch (error) {
-      logger.error('Failed to activate lab', { id, error });
-      throw error;
-    }
-  }
-
-  async getLabInviteCodes(labId: string): Promise<InviteCodeData[]> {
-    try {
-      const data = await httpClient.getData(
-        `/system/labs/${labId}/invite-codes`,
-        inviteCodesListSchema
-      );
-      return data.inviteCodes;
-    } catch (error) {
-      logger.error('Failed to get lab invite codes', { labId, error });
-      throw error;
-    }
+    await httpClient.post(`/system/labs/${id}/activate`);
   }
 
   async createLabInviteCode(labId: string, data: CreateInviteCodeRequest): Promise<InviteCodeData> {
-    try {
-      const result = await httpClient.postData(
-        `/system/labs/${labId}/invite-codes`,
-        data,
-        inviteCodeDataResponseSchema
-      );
-      return result.inviteCode;
-    } catch (error) {
-      logger.error('Failed to create lab invite code', { labId, error });
-      throw error;
-    }
+    const result = await httpClient.postData(
+      `/system/labs/${labId}/invite-codes`,
+      data,
+      inviteCodeDataResponseSchema
+    );
+    return result.inviteCode;
   }
 
   async resetDemoData(labId: string): Promise<void> {
-    try {
-      await httpClient.post(`/system/labs/${labId}/demo/reset`);
-    } catch (error) {
-      logger.error('Failed to reset demo data', { labId, error });
-      throw error;
-    }
+    await httpClient.post(`/system/labs/${labId}/demo/reset`);
   }
 
   async seedDemo(labId: string): Promise<SeedDemoResponse> {
-    try {
-      return await httpClient.postData(
-        `/system/labs/${labId}/demo/seed`,
-        undefined,
-        seedDemoResponseSchema
-      );
-    } catch (error) {
-      logger.error('Failed to seed demo lab', { labId, error });
-      throw error;
-    }
+    return await httpClient.postData(
+      `/system/labs/${labId}/demo/seed`,
+      undefined,
+      seedDemoResponseSchema
+    );
   }
 
   async unseedDemo(labId: string): Promise<UnseedDemoResponse> {
-    try {
-      return await httpClient.postData(
-        `/system/labs/${labId}/demo/unseed`,
-        undefined,
-        unseedDemoResponseSchema
-      );
-    } catch (error) {
-      logger.error('Failed to unseed demo lab', { labId, error });
-      throw error;
-    }
+    return await httpClient.postData(
+      `/system/labs/${labId}/demo/unseed`,
+      undefined,
+      unseedDemoResponseSchema
+    );
   }
 
   async getDemoLimits(labId: string): Promise<DemoLimits> {
-    try {
-      const data = await httpClient.getData(
-        `/system/labs/${labId}/demo/limits`,
-        demoLimitsDataSchema
-      );
-      return data.limits;
-    } catch (error) {
-      logger.error('Failed to get demo limits', { labId, error });
-      throw error;
-    }
+    const data = await httpClient.getData(
+      `/system/labs/${labId}/demo/limits`,
+      demoLimitsDataSchema
+    );
+    return data.limits;
   }
 
   async updateDemoLimits(labId: string, limits: Partial<DemoLimits>): Promise<DemoLimits> {
-    try {
-      const data = await httpClient.putData(
-        `/system/labs/${labId}/demo/limits`,
-        limits,
-        demoLimitsDataSchema
-      );
-      return data.limits;
-    } catch (error) {
-      logger.error('Failed to update demo limits', { labId, error });
-      throw error;
-    }
+    const data = await httpClient.putData(
+      `/system/labs/${labId}/demo/limits`,
+      limits,
+      demoLimitsDataSchema
+    );
+    return data.limits;
   }
 
   async activateUser(labId: string, userId: string): Promise<void> {
-    try {
-      await httpClient.post(`/system/labs/${labId}/users/${userId}/activate`);
-    } catch (error) {
-      logger.error('Failed to activate user', { labId, userId, error });
-      throw error;
-    }
+    await httpClient.post(`/system/labs/${labId}/users/${userId}/activate`);
   }
 
   async deactivateUser(labId: string, userId: string): Promise<void> {
-    try {
-      await httpClient.post(`/system/labs/${labId}/users/${userId}/deactivate`);
-    } catch (error) {
-      logger.error('Failed to deactivate user', { labId, userId, error });
-      throw error;
-    }
+    await httpClient.post(`/system/labs/${labId}/users/${userId}/deactivate`);
   }
 
   async suspendUser(labId: string, userId: string): Promise<void> {
-    try {
-      await httpClient.post(`/system/labs/${labId}/users/${userId}/suspend`);
-    } catch (error) {
-      logger.error('Failed to suspend user', { labId, userId, error });
-      throw error;
-    }
+    await httpClient.post(`/system/labs/${labId}/users/${userId}/suspend`);
   }
 
   async deleteUser(labId: string, userId: string): Promise<void> {
-    try {
-      await httpClient.deleteData(`/system/labs/${labId}/users/${userId}`);
-    } catch (error) {
-      logger.error('Failed to delete user', { labId, userId, error });
-      throw error;
-    }
+    await httpClient.deleteData(`/system/labs/${labId}/users/${userId}`);
   }
 
   async getLabAuditLog(
     labId: string,
     filters: AuditLogFilters = {},
     includeArchive: boolean = false
-  ): Promise<{
-    entries: AuditLogEntry[];
-    pagination: { total: number; limit: number; offset: number; hasMore: boolean };
-  }> {
-    try {
-      const params = buildAuditFilterParams(filters);
-      params.append('includeArchive', includeArchive.toString());
+  ): Promise<AuditSearchResponse> {
+    const params = buildAuditFilterParams(filters);
+    params.append('includeArchive', includeArchive.toString());
 
-      const query = params.toString() ? `?${params.toString()}` : '';
-      return await httpClient.getData(
-        `/system/labs/${labId}/audit${query}`,
-        auditSearchResponseSchema
-      );
-    } catch (error) {
-      logger.error('Failed to get lab audit log', { labId, error });
-      throw error;
-    }
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return await httpClient.getData(
+      `/system/labs/${labId}/audit${query}`,
+      auditSearchResponseSchema
+    );
   }
 
   async getSystemOverview(): Promise<SystemOverview> {
-    try {
-      return await httpClient.getData('/system/overview', systemOverviewSchema);
-    } catch (error) {
-      logger.error('Failed to get system overview', { error });
-      throw error;
-    }
+    return await httpClient.getData('/system/overview', systemOverviewSchema);
   }
 }
 

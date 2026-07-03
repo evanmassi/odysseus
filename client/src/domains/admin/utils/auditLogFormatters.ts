@@ -1,13 +1,7 @@
 /**
  * Audit Log Formatters
  *
- * Formats audit log entry details for display with consistent separators:
- *   · (center dot) for location paths
- *   — (em dash) for separating location from change details
- *   → (arrow) for before/after transitions
- *   : (colon) after subject names or counts
- *   , (comma) for listing multiple items
- *   () for parenthetical metadata
+ * Formats audit log entry details into concise human-readable summaries for the audit table.
  */
 
 import type { AuditLogEntry } from '@odysseus/shared-schemas';
@@ -196,7 +190,7 @@ function formatUserList(users: unknown[]): { text: string; full?: string } {
   };
 }
 
-export interface AuditDetailFormatted {
+interface AuditDetailFormatted {
   text: string;
   /** Only set when content was truncated */
   fullText?: string;
@@ -605,7 +599,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     if (entityType === 'donor') {
       const sourceId = getStringProperty(details, 'donorSourceId');
       const internalId = getStringProperty(details, 'donorInternalId');
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentional: empty strings from getStringProperty should be treated as absent
       const donorLabel = sourceId
         ? `S.ID: ${sourceId}`
         : internalId

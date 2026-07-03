@@ -25,6 +25,7 @@ import {
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
+import { getErrorMessage } from '@shared/utils/getErrorMessage';
 
 import { adminService } from '../../../../services/AdminService';
 
@@ -482,11 +483,10 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       });
       setterForCategory[category](prev => [...prev, { ...created, usageCount: 0 }]);
       notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category] ?? category}`);
-    } catch (error: unknown) {
-      const msg =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to add ${CATEGORY_SINGULAR_LABELS[category] ?? category}`;
-      notifications.error(msg);
+    } catch (error) {
+      notifications.error(
+        getErrorMessage(error, `Failed to add ${CATEGORY_SINGULAR_LABELS[category] ?? category}`)
+      );
     }
   };
 
@@ -499,11 +499,10 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
         prev.map(item => (item.id === id ? { ...updated, usageCount: item.usageCount } : item))
       );
       notifications.success(`Renamed to "${newValue}"`);
-    } catch (error: unknown) {
-      const msg =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to rename ${CATEGORY_SINGULAR_LABELS[category] ?? category}`;
-      notifications.error(msg);
+    } catch (error) {
+      notifications.error(
+        getErrorMessage(error, `Failed to rename ${CATEGORY_SINGULAR_LABELS[category] ?? category}`)
+      );
     }
   };
 
@@ -524,11 +523,13 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       );
       notifications.success(`Deleted "${confirmDialog.value}"`);
       setConfirmDialog(null);
-    } catch (error: unknown) {
-      const msg =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`;
-      notifications.error(msg);
+    } catch (error) {
+      notifications.error(
+        getErrorMessage(
+          error,
+          `Failed to delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`
+        )
+      );
       setConfirmDialog(null);
     } finally {
       setDeletingId(null);

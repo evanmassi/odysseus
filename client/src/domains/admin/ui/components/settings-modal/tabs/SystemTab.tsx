@@ -22,8 +22,7 @@ import {
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
-import { useStorageData } from '@domains/storage';
-import { httpClient } from '@infra/api';
+import { StorageService, useStorageData } from '@domains/storage';
 import { logger } from '@infra/logger';
 import {
   Button,
@@ -32,6 +31,7 @@ import {
   Input,
   SettingsRow,
   StatCell,
+  STAT_STRIP,
   Subsection,
   Toggle,
 } from '@shared/ui';
@@ -44,9 +44,9 @@ import { adminService } from '../../../../services/AdminService';
 import { UtilizationBar } from '../../displays/UtilizationBar';
 import { DataExportForm } from '../DataExportForm';
 
-import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
+import type { SecurityConfig, SystemMetrics, VersionInfo } from '@odysseus/shared-schemas';
 
-export interface SystemTabProps {
+interface SystemTabProps {
   config: SecurityConfig;
   stats: SystemMetrics | null;
   onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
@@ -64,12 +64,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   const [isSavingLabName, setIsSavingLabName] = useState(false);
 
   // Version info state
-  const [versionInfo, setVersionInfo] = useState<{
-    version: string;
-    environment: string;
-    nodeVersion: string;
-    platform: string;
-  } | null>(null);
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
 
   useEffect(() => {
     setLabNameInput(currentLab?.name ?? '');
@@ -102,8 +97,8 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
     setIsSavingLabName(true);
     try {
-      // Use dedicated system settings endpoint - only updates labName, preserves all equipment
-      await httpClient.put('/storage/system', { labName: trimmedName });
+      // Dedicated system-settings endpoint — updates only labName, preserves all equipment.
+      await StorageService.updateSystemSettings(trimmedName);
 
       if (labId) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
@@ -139,7 +134,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
     <div className="space-y-4">
       {stats && (
         <ConsolePanel intensity="soft">
-          <div className="relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]">
+          <div className={STAT_STRIP}>
             <StatCell
               size="sm"
               label="Total Tubes"
@@ -236,34 +231,25 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   );
 }
 
+function toggleInSet(
+  setExpanded: (updater: (prev: Set<string>) => Set<string>) => void,
+  id: string
+) {
+  setExpanded(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  });
+}
+
 function StorageUtilizationSection() {
   const { data } = useLabStorageAnalyticsQuery();
   const [expandedTanks, setExpandedTanks] = useState<Set<string>>(new Set());
   const [expandedRacks, setExpandedRacks] = useState<Set<string>>(new Set());
 
-  const toggleTank = (id: string) => {
-    setExpandedTanks(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const toggleRack = (id: string) => {
-    setExpandedRacks(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
+  const toggleTank = (id: string) => toggleInSet(setExpandedTanks, id);
+  const toggleRack = (id: string) => toggleInSet(setExpandedRacks, id);
 
   if (!data) return null;
 
@@ -412,7 +398,7 @@ function StorageRowMeter({ occupied, total, percent }: StorageRowMeterProps) {
       <span className="w-20 text-right font-mono text-data-sm tabular-nums text-muted-foreground">
         {occupied}/{total}
       </span>
-      <UtilizationBar percent={percent} width="w-20" />
+      <UtilizationBar percent={percent} />
     </div>
   );
 }

@@ -167,7 +167,7 @@ When writing new code, pattern it after these already-audited files. They define
 | Server route module | `server/src/presentation/routes/SearchRouteModule.ts` |
 | Client TanStack Query hook | `client/src/domains/donors/hooks/useDonorsQuery.ts` |
 | Client feature component | `client/src/domains/donors/ui/components/DonorEditForm.tsx` |
-| Client HTTP service | `client/src/domains/researchers/services/ResearcherService.ts` |
+| Client HTTP service | `client/src/domains/donors/services/DonorService.ts` |
 | Client Zustand store | `client/src/app/stores/errorStore.ts` |
 | Shared schema module | `packages/shared-schemas/src/auth/authSchemas.ts` |
 

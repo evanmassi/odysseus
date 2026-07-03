@@ -9,7 +9,7 @@ import { AlertBanner } from '@shared/ui';
 import { AuditLogViewer } from '../AuditLogViewer';
 import { AuditRetentionSettings } from '../AuditRetentionSettings';
 
-export interface MonitoringTabProps {
+interface MonitoringTabProps {
   isSystemAdmin?: boolean;
   isDemo?: boolean;
 }

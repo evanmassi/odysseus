@@ -11,15 +11,10 @@ import { useLabId } from '@domains/authentication';
 
 import { storageAnalyticsService } from '../services/StorageAnalyticsService';
 
-import type {
-  LabStorageAnalyticsResponse,
-  CrossLabStorageAnalyticsResponse,
-} from '@odysseus/shared-schemas';
-
 export function useLabStorageAnalyticsQuery() {
   const labId = useLabId();
 
-  return useQuery<LabStorageAnalyticsResponse>({
+  return useQuery({
     queryKey: queryKeys.storageAnalytics.lab('self'),
     queryFn: () => storageAnalyticsService.getLabAnalytics(),
     enabled: !!labId,
@@ -28,7 +23,7 @@ export function useLabStorageAnalyticsQuery() {
 }
 
 export function useLabStorageAnalyticsSystemQuery(labId: string) {
-  return useQuery<LabStorageAnalyticsResponse>({
+  return useQuery({
     queryKey: queryKeys.storageAnalytics.lab(labId),
     queryFn: () => storageAnalyticsService.getLabAnalyticsAsSystemAdmin(labId),
     staleTime: 60_000,
@@ -37,7 +32,7 @@ export function useLabStorageAnalyticsSystemQuery(labId: string) {
 }
 
 export function useCrossLabStorageAnalyticsQuery() {
-  return useQuery<CrossLabStorageAnalyticsResponse>({
+  return useQuery({
     queryKey: queryKeys.storageAnalytics.crossLab(),
     queryFn: () => storageAnalyticsService.getCrossLabAnalytics(),
     staleTime: 60_000,

@@ -3,7 +3,7 @@
  *
  * Multi-select filters for actions, entity types, users, and date ranges.
  */
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, type ReactNode } from 'react';
 
 import { ChevronDown, ChevronRight, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
@@ -181,11 +181,11 @@ interface AuditLogFilterPanelProps {
 
 interface CollapsibleSectionProps {
   title: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   count: number;
   isOpen: boolean;
   onToggle: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 function CollapsibleSection({
@@ -224,19 +224,21 @@ function CollapsibleSection({
   );
 }
 
+interface ActionSubsectionProps {
+  section: ActionSection;
+  isOpen: boolean;
+  onToggle: () => void;
+  selectedActions: string[];
+  onToggleAction: (action: string) => void;
+}
+
 function ActionSubsection({
   section,
   isOpen,
   onToggle,
   selectedActions,
   onToggleAction,
-}: {
-  section: ActionSection;
-  isOpen: boolean;
-  onToggle: () => void;
-  selectedActions: string[];
-  onToggleAction: (action: string) => void;
-}) {
+}: ActionSubsectionProps) {
   const count = selectedActions.filter(a => section.prefixes.some(p => a.startsWith(p))).length;
 
   return (

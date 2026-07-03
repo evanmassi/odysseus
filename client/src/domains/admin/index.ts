@@ -1,19 +1,8 @@
 /**
  * Admin Domain Public API
  *
- * Services and hooks for admin panel, user management, and audit functionality.
+ * Entry-point UI for the admin settings modal and system admin dashboard.
  */
 
-// Services
-export { adminService, AdminService } from './services/AdminService';
-export { adminUserService, AdminUserService } from './services/AdminUserService';
-export { adminResearcherService, AdminResearcherService } from './services/AdminResearcherService';
-export { auditService, AuditService } from './services/AuditService';
-export { exportService, ExportService } from './services/ExportService';
-
-// Hooks
-export * from './hooks';
-
-// UI Components
 export { AdminSettingsModal } from './ui/components/settings-modal/AdminSettingsModal';
 export { SystemAdminDashboard } from './ui/components/system-dashboard/SystemAdminDashboard';

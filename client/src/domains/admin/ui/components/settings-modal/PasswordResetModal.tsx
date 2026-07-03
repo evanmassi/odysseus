@@ -1,7 +1,7 @@
 /**
- * Password Reset Modal - Admin password reset with two methods:
- * 1. Direct reset - Admin sets password immediately
- * 2. Token generation - Generate 15-minute one-time link for user
+ * Password Reset Modal
+ *
+ * Admin resets a user's password directly, or generates a one-time reset link.
  */
 
 import { useState, useEffect } from 'react';

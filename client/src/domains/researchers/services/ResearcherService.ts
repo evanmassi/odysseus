@@ -1,19 +1,15 @@
 /**
  * Researcher Data Service
  *
- * HTTP operations for researcher CRUD and filtered listing.
+ * HTTP operations for researcher filtered listing.
  */
 
 import {
   type Researcher,
   type AdminResearcher,
-  type CreateResearcherProfile,
-  type UpdateResearcherProfile,
   type ResearcherQueryFilters,
   researcherSchema,
   adminResearcherSchema,
-  createResearcherProfileSchema,
-  updateResearcherProfileSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
@@ -68,23 +64,5 @@ export class ResearcherService {
     const schema = admin ? adminResearcherSchema : researcherSchema;
 
     return await httpClient.getArray(url, schema);
-  }
-
-  static async get(id: string): Promise<AdminResearcher> {
-    return await httpClient.getData(`${this.BASE_PATH}/${id}`, adminResearcherSchema);
-  }
-
-  static async create(data: CreateResearcherProfile): Promise<AdminResearcher> {
-    const validated = createResearcherProfileSchema.parse(data);
-    return await httpClient.postData(this.BASE_PATH, validated, adminResearcherSchema);
-  }
-
-  static async update(id: string, data: UpdateResearcherProfile): Promise<AdminResearcher> {
-    const validated = updateResearcherProfileSchema.parse(data);
-    return await httpClient.putData(`${this.BASE_PATH}/${id}`, validated, adminResearcherSchema);
-  }
-
-  static async delete(id: string): Promise<void> {
-    await httpClient.deleteData(`${this.BASE_PATH}/${id}`);
   }
 }

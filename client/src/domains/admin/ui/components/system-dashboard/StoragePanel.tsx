@@ -10,17 +10,14 @@ import { refrigeratorFreezer } from '@lucide/lab';
 import {
   Box as BoxIcon,
   ChevronLeft,
-  CircleCheckBig,
   FlaskConical,
   HardDrive,
   Icon,
-  OctagonX,
   RefreshCw,
   Rows3,
   TestTubeDiagonal,
 } from 'lucide-react';
 
-import { useResolvedTheme } from '@shared/hooks';
 import {
   Button,
   Chip,
@@ -31,7 +28,7 @@ import {
   StatCell,
   Table,
 } from '@shared/ui';
-import { LabBadge, getLabBadgeTextClasses } from '@shared/ui/components/badges/LabBadge';
+import { LabBadge } from '@shared/ui/components/badges/LabBadge';
 
 import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueries';
 import {
@@ -39,6 +36,8 @@ import {
   useLabStorageAnalyticsSystemQuery,
 } from '../../../hooks/useStorageAnalyticsQueries';
 import { UtilizationBar } from '../displays/UtilizationBar';
+
+import { LabIdentityPanel } from './LabIdentityPanel';
 
 import type {
   LabStorageSummary,
@@ -272,7 +271,6 @@ function LabDrillDown({
   onBack: () => void;
 }) {
   const { data, isLoading } = useLabStorageAnalyticsSystemQuery(labId);
-  const isDark = useResolvedTheme() === 'dark';
   const [expandedTankId, setExpandedTankId] = useState<string | null>(null);
   const [expandedRackId, setExpandedRackId] = useState<string | null>(null);
 
@@ -284,10 +282,6 @@ function LabDrillDown({
     0
   );
 
-  const statusVar = isActive ? '--color-success-bg' : '--color-danger-bg';
-  const statusTextClass = isActive ? 'text-success-text' : 'text-danger-text';
-  const statusColor = `hsl(var(${statusVar}))`;
-  const identityTextClass = getLabBadgeTextClasses(labId, isDemo);
   const utilizationTone =
     utilizationPercent >= CRITICAL_CAPACITY_THRESHOLD
       ? 'danger'
@@ -352,6 +346,7 @@ function LabDrillDown({
   ];
 
   const expandedTank = data?.tanks.find(t => t.tankId === expandedTankId);
+  const expandedRack = expandedTank?.racks.find(r => r.rackId === expandedRackId);
 
   return (
     <div className="space-y-8">
@@ -359,81 +354,33 @@ function LabDrillDown({
         All Labs
       </Button>
 
-      <div className="relative pt-7">
-        <div
-          aria-hidden
-          className="absolute inset-x-0 top-3 h-px"
-          style={{
-            background: `linear-gradient(90deg, transparent 0%, hsl(var(${statusVar})/0.6) 9%, hsl(var(${statusVar})/0.6) 91%, transparent 100%)`,
-            boxShadow: isDark ? `0 0 8px hsl(var(${statusVar})/0.4)` : undefined,
-          }}
-        />
-        <div className="absolute top-1.5 left-1/2 z-10 -translate-x-1/2 bg-page px-3">
-          <span className="flex items-center gap-2.5 type-label text-label-xs tracking-label-wide whitespace-nowrap">
-            <span className="text-foreground">{labName}</span>
-            <span className="text-foreground/35">{'//'}</span>
-            <span className={`flex items-center gap-1.5 ${statusTextClass}`}>
-              {isActive ? <CircleCheckBig size={11} /> : <OctagonX size={11} />}
-              {isActive ? 'active' : 'deactivated'}
-            </span>
-          </span>
+      <LabIdentityPanel labId={labId} labName={labName} isActive={isActive} isDemo={isDemo}>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-w-0 flex-col gap-2 px-5 pt-5 pb-4">
+            <h1 className="font-display text-display leading-none font-normal tracking-[-0.015em] text-foreground">
+              {labName}
+            </h1>
+            <IdStamp parts={[`/${labSlug}`]} />
+          </div>
+
+          <div className="grid grid-cols-4 border-t border-line-faint divide-x divide-line-faint [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.10)_10%,hsl(var(--foreground)/0.10)_86%,transparent_100%)_1]">
+            <StatCell
+              label="Tanks"
+              value={tankCount}
+              icon={<Icon iconNode={refrigeratorFreezer} size={11} />}
+            />
+            <StatCell label="Racks" value={rackCount} icon={<Rows3 size={11} />} />
+            <StatCell label="Boxes" value={boxCount} icon={<BoxIcon size={11} />} />
+            <StatCell
+              label="Utilization"
+              value={utilizationPercent}
+              unit="%"
+              tone={utilizationTone}
+              icon={<HardDrive size={11} />}
+            />
+          </div>
         </div>
-
-        <ConsolePanel
-          className={`flex items-stretch ${identityTextClass}`}
-          statusColor={statusColor}
-          identityColor="currentColor"
-        >
-          <div
-            className={`flex w-14 shrink-0 flex-col items-center border-r border-line-soft pt-5 ${identityTextClass}`}
-          >
-            <LabBadge
-              labId={labId}
-              labName={labName}
-              size="md"
-              isDemo={isDemo}
-              isActive={isActive}
-            />
-            <span
-              aria-hidden
-              className="mb-4 w-px flex-1"
-              style={{
-                background:
-                  'linear-gradient(180deg, currentColor 0%, currentColor 24%, color-mix(in srgb, currentColor 45%, transparent) 60%, transparent 100%)',
-                filter: isDark
-                  ? 'drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px color-mix(in srgb, currentColor 55%, transparent))'
-                  : undefined,
-              }}
-            />
-          </div>
-
-          <div className="flex min-w-0 flex-1 flex-col">
-            <div className="flex min-w-0 flex-col gap-2 px-5 pt-5 pb-4">
-              <h1 className="font-display text-display leading-none font-normal tracking-[-0.015em] text-foreground">
-                {labName}
-              </h1>
-              <IdStamp parts={[`/${labSlug}`]} />
-            </div>
-
-            <div className="grid grid-cols-4 border-t border-line-faint divide-x divide-line-faint [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.10)_10%,hsl(var(--foreground)/0.10)_86%,transparent_100%)_1]">
-              <StatCell
-                label="Tanks"
-                value={tankCount}
-                icon={<Icon iconNode={refrigeratorFreezer} size={11} />}
-              />
-              <StatCell label="Racks" value={rackCount} icon={<Rows3 size={11} />} />
-              <StatCell label="Boxes" value={boxCount} icon={<BoxIcon size={11} />} />
-              <StatCell
-                label="Utilization"
-                value={utilizationPercent}
-                unit="%"
-                tone={utilizationTone}
-                icon={<HardDrive size={11} />}
-              />
-            </div>
-          </div>
-        </ConsolePanel>
-      </div>
+      </LabIdentityPanel>
 
       {data && data.nearCapacityBoxes.length > 0 && (
         <ConsolePanel intensity="soft">
@@ -501,12 +448,12 @@ function LabDrillDown({
             </div>
           </ConsolePanel>
 
-          {expandedRackId && expandedTank.racks.find(r => r.rackId === expandedRackId) && (
+          {expandedRack && (
             <ConsolePanel intensity="soft">
               <div className="p-4">
                 <SectionHeader
                   title="Boxes"
-                  meta={`${expandedTank.racks.find(r => r.rackId === expandedRackId)!.boxes.length} // ${expandedTank.tankName} // ${expandedTank.racks.find(r => r.rackId === expandedRackId)!.rackName}`}
+                  meta={`${expandedRack.boxes.length} // ${expandedTank.tankName} // ${expandedRack.rackName}`}
                 />
                 <Table<BoxRow>
                   columns={[
@@ -528,9 +475,7 @@ function LabDrillDown({
                       render: (_val, row) => <UtilizationBar percent={row.utilizationPercent} />,
                     },
                   ]}
-                  data={expandedTank.racks
-                    .find(r => r.rackId === expandedRackId)!
-                    .boxes.map(b => ({ ...b, id: b.boxName }))}
+                  data={expandedRack.boxes.map(b => ({ ...b, id: b.boxName }))}
                   hoverable
                   emptyMessage="No boxes in this rack"
                   aria-label="Box utilization"

@@ -3,7 +3,7 @@
  *
  * Create or link researcher profiles to user accounts.
  */
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -19,7 +19,7 @@ import { BaseModal } from '@shared/ui/components/overlays';
 import { AuthInput } from '@shared/ui/primitives';
 import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 
-export interface ResearcherModalProps {
+interface ResearcherModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'create-only' | 'select-or-create';
@@ -232,7 +232,7 @@ export function ResearcherModal({
 interface FormFieldProps {
   name: keyof CreateResearcherProfile;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   placeholder: string;
   type?: 'text' | 'email';
   required?: boolean;

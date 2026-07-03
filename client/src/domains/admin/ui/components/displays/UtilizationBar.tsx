@@ -4,13 +4,11 @@
  * Compact capacity meter — fill width and threshold tint reflect the utilization percent.
  */
 
-export interface UtilizationBarProps {
+interface UtilizationBarProps {
   percent: number;
-  /** Tailwind width class for the meter track. Narrow it for nested/compact rows. */
-  width?: string;
 }
 
-export function UtilizationBar({ percent, width = 'w-20' }: UtilizationBarProps) {
+export function UtilizationBar({ percent }: UtilizationBarProps) {
   const tone =
     percent >= 90
       ? 'bg-danger-bg dark:shadow-[0_0_6px_hsl(var(--color-danger-bg)/0.6)]'
@@ -20,7 +18,7 @@ export function UtilizationBar({ percent, width = 'w-20' }: UtilizationBarProps)
   const clamped = Math.min(percent, 100);
   return (
     <div className="flex items-center gap-2">
-      <div className={`relative h-1.5 ${width} border border-foreground/15 bg-foreground/[0.03]`}>
+      <div className="relative h-1.5 w-20 border border-foreground/15 bg-foreground/[0.03]">
         <div className={`h-full bg-scanlines ${tone}`} style={{ width: `${clamped}%` }} />
       </div>
       <span className="inline-block w-10 text-right font-mono text-data-sm tabular-nums tracking-data text-foreground/70">

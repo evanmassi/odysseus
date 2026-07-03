@@ -1,7 +1,7 @@
 /**
  * Audit Retention Settings
  *
- * Admin controls for retention policy, metrics, and manual archival
+ * Admin controls for retention policy, metrics, and manual archival.
  */
 import { useState, useEffect } from 'react';
 
@@ -18,7 +18,8 @@ import {
 
 import { auditService } from '@domains/admin/services/AuditService';
 import { logger } from '@infra/logger';
-import { AlertBanner, Button, ConsolePanel, StatCell, Subsection } from '@shared/ui';
+import { AlertBanner, Button, ConsolePanel, StatCell, STAT_STRIP, Subsection } from '@shared/ui';
+import { downloadBlob } from '@shared/utils/downloadBlob';
 
 import type { RetentionMetrics, RetentionPolicy } from '@odysseus/shared-schemas';
 
@@ -26,10 +27,6 @@ const STATUS_CONFIG = {
   healthy: { icon: CheckCircle, label: 'Healthy', textClass: 'text-success-text' },
   warning: { icon: AlertTriangle, label: 'Warning', textClass: 'text-warning-text' },
 } as const;
-
-// Horizontal stat strip — equal columns split by hairline gradient dividers (matches SystemTab).
-const STAT_STRIP =
-  'relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]';
 
 interface AuditRetentionSettingsProps {
   defaultCollapsed?: boolean;
@@ -99,14 +96,7 @@ export function AuditRetentionSettings({
   const exportArchive = async () => {
     try {
       const blob = await auditService.exportArchivedLogs();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `audit-archive-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `audit-archive-${new Date().toISOString().split('T')[0]}.json`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to export archive');
       logger.error('Failed to export archive', { err });

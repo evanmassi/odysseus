@@ -44,13 +44,11 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
   const [userAction, setUserAction] = useState<UserAction | null>(null);
   const [showInactive, setShowInactive] = useState(false);
 
-  const handleActivate = async (user: LabDetailsUser) => {
-    try {
-      await activateUserMutation.mutateAsync({ labId, userId: user.id });
-      notifications.success(`${user.username} activated`);
-    } catch {
-      notifications.error('Failed to activate user');
-    }
+  const handleActivate = (user: LabDetailsUser) => {
+    activateUserMutation.mutate(
+      { labId, userId: user.id },
+      { onSuccess: () => notifications.success(`${user.username} activated`) }
+    );
   };
 
   const activeUsers = useMemo(() => users.filter(u => u.status === 'approved'), [users]);
@@ -59,17 +57,19 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
     [users]
   );
 
+  const columns = getUserColumns({
+    onUserAction: setUserAction,
+    onActivate: handleActivate,
+    currentUserId,
+  });
+
   return (
     <>
       <ConsolePanel intensity="soft">
         <div className="p-4">
           <SectionHeader title="Users" meta={`${activeUsers.length} records`} />
           <Table
-            columns={getUserColumns({
-              onUserAction: setUserAction,
-              onActivate: handleActivate,
-              currentUserId,
-            })}
+            columns={columns}
             data={activeUsers}
             sortable
             sortConfig={sortConfig}
@@ -93,11 +93,7 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
               {showInactive && (
                 <div className="mt-2">
                   <Table
-                    columns={getUserColumns({
-                      onUserAction: setUserAction,
-                      onActivate: handleActivate,
-                      currentUserId,
-                    })}
+                    columns={columns}
                     data={inactiveUsers}
                     emptyMessage=""
                     aria-label="Inactive lab users"
@@ -139,24 +135,27 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
           suspendUserMutation.isPending ||
           deactivateUserMutation.isPending
         }
-        onConfirm={async () => {
+        onConfirm={() => {
           if (!userAction) return;
           const { type, user } = userAction;
-          try {
-            if (type === 'delete') {
-              await deleteUserMutation.mutateAsync({ labId, userId: user.id });
-              notifications.success(`${user.username} deleted`);
-            } else if (type === 'suspend') {
-              await suspendUserMutation.mutateAsync({ labId, userId: user.id });
-              notifications.success(`${user.username} suspended`);
-            } else {
-              await deactivateUserMutation.mutateAsync({ labId, userId: user.id });
-              notifications.success(`${user.username} deactivated`);
-            }
-          } catch {
-            notifications.error(`Failed to ${type} user`);
+          const vars = { labId, userId: user.id };
+          const onSettled = () => setUserAction(null);
+          if (type === 'delete') {
+            deleteUserMutation.mutate(vars, {
+              onSuccess: () => notifications.success(`${user.username} deleted`),
+              onSettled,
+            });
+          } else if (type === 'suspend') {
+            suspendUserMutation.mutate(vars, {
+              onSuccess: () => notifications.success(`${user.username} suspended`),
+              onSettled,
+            });
+          } else {
+            deactivateUserMutation.mutate(vars, {
+              onSuccess: () => notifications.success(`${user.username} deactivated`),
+              onSettled,
+            });
           }
-          setUserAction(null);
         }}
         onCancel={() => setUserAction(null)}
       />

@@ -9,7 +9,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@app/cache/queryKeys';
 import { adminUserService } from '@domains/admin/services/AdminUserService';
 import { useLabId } from '@domains/authentication';
-import { logger } from '@infra/logger';
 
 export function useDeactivateUserMutation() {
   const queryClient = useQueryClient();
@@ -19,9 +18,6 @@ export function useDeactivateUserMutation() {
     mutationFn: (userId: string) => adminUserService.deactivateUser(userId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
-    },
-    onError: (error, userId) => {
-      logger.error(`Failed to deactivate user ${userId}`, { error });
     },
   });
 }
@@ -35,9 +31,6 @@ export function useActivateUserMutation() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
     },
-    onError: (error, userId) => {
-      logger.error(`Failed to activate user ${userId}`, { error });
-    },
   });
 }
 
@@ -47,15 +40,10 @@ export function useDeleteUserMutation() {
 
   return useMutation({
     mutationFn: (userId: string) => adminUserService.deleteUser(userId),
-
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.all(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-    },
-
-    onError: (error, userId) => {
-      logger.error(`Failed to delete user ${userId}`, { error });
     },
   });
 }
@@ -66,15 +54,10 @@ export function useUnlinkResearcherMutation() {
 
   return useMutation({
     mutationFn: (userId: string) => adminUserService.unlinkResearcherFromUser(userId),
-
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.all(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-    },
-
-    onError: (error, userId) => {
-      logger.error(`Failed to unlink researcher from user ${userId}`, { error });
     },
   });
 }

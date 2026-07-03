@@ -7,7 +7,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { logger } from '@infra/logger';
 
 import { labService } from '../services/LabService';
 
@@ -28,9 +27,6 @@ export function useCreateLabMutation() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
     },
-    onError: error => {
-      logger.error('Failed to create lab', { error });
-    },
   });
 }
 
@@ -42,9 +38,6 @@ export function useDeactivateLabMutation() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
-    },
-    onError: error => {
-      logger.error('Failed to deactivate lab', { error });
     },
   });
 }
@@ -58,9 +51,6 @@ export function useActivateLabMutation() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
     },
-    onError: error => {
-      logger.error('Failed to activate lab', { error });
-    },
   });
 }
 
@@ -72,9 +62,6 @@ export function useUpdateLabMutation() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
-    },
-    onError: error => {
-      logger.error('Failed to update lab', { error });
     },
   });
 }
@@ -89,9 +76,6 @@ export function useActivateLabUserMutation() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
     },
-    onError: error => {
-      logger.error('Failed to activate user', { error });
-    },
   });
 }
 
@@ -104,9 +88,6 @@ export function useDeactivateLabUserMutation() {
     onSuccess: (_data, { labId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
-    },
-    onError: error => {
-      logger.error('Failed to deactivate user', { error });
     },
   });
 }
@@ -121,9 +102,6 @@ export function useSuspendLabUserMutation() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
     },
-    onError: error => {
-      logger.error('Failed to suspend user', { error });
-    },
   });
 }
 
@@ -137,9 +115,6 @@ export function useDeleteLabUserMutation() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
     },
-    onError: error => {
-      logger.error('Failed to delete user', { error });
-    },
   });
 }
 
@@ -151,18 +126,12 @@ export function useResetDemoDataMutation() {
     onSuccess: (_data, labId) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
     },
-    onError: error => {
-      logger.error('Failed to reset demo data', { error });
-    },
   });
 }
 
 export function useCreateLabInviteCodeMutation() {
   return useMutation<InviteCodeData, Error, { labId: string } & CreateInviteCodeRequest>({
     mutationFn: ({ labId, ...data }) => labService.createLabInviteCode(labId, data),
-    onError: error => {
-      logger.error('Failed to generate lab admin code', { error });
-    },
   });
 }
 
@@ -174,9 +143,6 @@ export function useSeedDemoMutation() {
     onSuccess: (_data, labId) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.list() });
-    },
-    onError: error => {
-      logger.error('Failed to seed demo lab', { error });
     },
   });
 }
@@ -190,9 +156,6 @@ export function useUnseedDemoMutation() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.list() });
     },
-    onError: error => {
-      logger.error('Failed to unseed demo lab', { error });
-    },
   });
 }
 
@@ -204,9 +167,6 @@ export function useUpdateDemoLimitsMutation() {
     onSuccess: (_data, { labId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.demoLimits(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
-    },
-    onError: error => {
-      logger.error('Failed to update demo limits', { error });
     },
   });
 }

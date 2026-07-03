@@ -8,6 +8,10 @@ import type { ReactNode } from 'react';
 
 import { cva } from 'class-variance-authority';
 
+/** Container for a horizontal strip of `StatCell`s, split by hairline gradient dividers. */
+export const STAT_STRIP =
+  'relative flex divide-x divide-line-soft [&>*:not(:first-child)]:[border-image:linear-gradient(180deg,transparent_0%,hsl(var(--foreground)/0.13)_8%,hsl(var(--foreground)/0.13)_84%,transparent_100%)_1]';
+
 type StatCellTone = 'default' | 'success' | 'warning' | 'danger';
 type StatCellSize = 'md' | 'sm';
 

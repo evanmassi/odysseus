@@ -46,7 +46,7 @@ import type {
 } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
-export interface UsersTabProps {
+interface UsersTabProps {
   users: AdminUser[];
   onUserUpdate: () => void;
   readOnly?: boolean;
@@ -103,13 +103,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     deleteUserMutation.mutate(userId, {
       onSuccess: () => {
         notifications.success(`User "${username}" deleted successfully`);
-        setConfirmDialog(null);
         onUserUpdate();
       },
-      onError: () => {
-        notifications.error('Failed to delete user');
-        setConfirmDialog(null);
-      },
+      onSettled: () => setConfirmDialog(null),
     });
   };
 
@@ -117,26 +113,23 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     setConfirmDialog({ type: 'deactivate', userId, username });
   };
 
-  const executeDeactivateUser = async (userId: string, username: string) => {
-    try {
-      await deactivateUserMutation.mutateAsync(userId);
-      notifications.success(`User "${username}" deactivated`);
-      setConfirmDialog(null);
-      onUserUpdate();
-    } catch {
-      notifications.error('Failed to deactivate user');
-      setConfirmDialog(null);
-    }
+  const executeDeactivateUser = (userId: string, username: string) => {
+    deactivateUserMutation.mutate(userId, {
+      onSuccess: () => {
+        notifications.success(`User "${username}" deactivated`);
+        onUserUpdate();
+      },
+      onSettled: () => setConfirmDialog(null),
+    });
   };
 
-  const handleActivateUser = async (userId: string, username: string) => {
-    try {
-      await activateUserMutation.mutateAsync(userId);
-      notifications.success(`User "${username}" activated`);
-      onUserUpdate();
-    } catch {
-      notifications.error('Failed to activate user');
-    }
+  const handleActivateUser = (userId: string, username: string) => {
+    activateUserMutation.mutate(userId, {
+      onSuccess: () => {
+        notifications.success(`User "${username}" activated`);
+        onUserUpdate();
+      },
+    });
   };
 
   const unlinkResearcher = (userId: string, username: string) => {
@@ -147,13 +140,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     unlinkResearcherMutation.mutate(userId, {
       onSuccess: () => {
         notifications.success(`Researcher unlinked from "${username}"`);
-        setConfirmDialog(null);
         onUserUpdate();
       },
-      onError: () => {
-        notifications.error('Failed to unlink researcher');
-        setConfirmDialog(null);
-      },
+      onSettled: () => setConfirmDialog(null),
     });
   };
 

@@ -10,17 +10,10 @@ import { queryKeys } from '@app/cache/queryKeys';
 
 import { labService } from '../services/LabService';
 
-import type {
-  LabData,
-  LabDetails,
-  DemoLimits,
-  AuditLogEntry,
-  AuditLogFilters,
-  SystemOverview,
-} from '@odysseus/shared-schemas';
+import type { AuditLogFilters } from '@odysseus/shared-schemas';
 
 export function useLabsQuery() {
-  return useQuery<LabData[]>({
+  return useQuery({
     queryKey: queryKeys.labs.list(),
     queryFn: () => labService.getLabs(),
     staleTime: 60 * 1000,
@@ -28,7 +21,7 @@ export function useLabsQuery() {
 }
 
 export function useSystemOverviewQuery() {
-  return useQuery<SystemOverview>({
+  return useQuery({
     queryKey: queryKeys.labs.overview(),
     queryFn: () => labService.getSystemOverview(),
     staleTime: 60 * 1000,
@@ -36,7 +29,7 @@ export function useSystemOverviewQuery() {
 }
 
 export function useLabDetailsQuery(labId: string | null) {
-  return useQuery<LabDetails>({
+  return useQuery({
     queryKey: queryKeys.labs.labDetails(labId ?? ''),
     queryFn: () => labService.getLabDetails(labId!),
     enabled: !!labId,
@@ -45,7 +38,7 @@ export function useLabDetailsQuery(labId: string | null) {
 }
 
 export function useDemoLimitsQuery(labId: string | null) {
-  return useQuery<DemoLimits>({
+  return useQuery({
     queryKey: queryKeys.labs.demoLimits(labId ?? ''),
     queryFn: () => labService.getDemoLimits(labId!),
     enabled: !!labId,
@@ -58,10 +51,7 @@ export function useLabAuditLogsQuery(
   filters: AuditLogFilters = {},
   includeArchive: boolean = false
 ) {
-  return useQuery<{
-    entries: AuditLogEntry[];
-    pagination: { total: number; limit: number; offset: number; hasMore: boolean };
-  }>({
+  return useQuery({
     queryKey: [...queryKeys.labs.audit(labId ?? ''), filters, includeArchive],
     queryFn: () => labService.getLabAuditLog(labId!, filters, includeArchive),
     enabled: !!labId,

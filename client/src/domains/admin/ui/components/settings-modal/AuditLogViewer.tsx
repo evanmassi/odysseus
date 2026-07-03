@@ -32,8 +32,7 @@ import { Button, Table, Tooltip } from '@shared/ui';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
-import type { Pagination } from '@domains/admin/types/auditTypes';
-import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
+import type { AuditLogEntry, AuditLogFilters, Pagination } from '@odysseus/shared-schemas';
 import type { TableColumn } from '@shared/ui';
 
 const ACTION_LABEL_OVERRIDES: Record<string, string> = {
@@ -84,6 +83,25 @@ const SUFFIX_BADGE_MAP: Record<string, string> = {
   unassigned: 'badge-audit-action-unlinked',
   unlinked: 'badge-audit-action-unlinked',
   revoked: 'badge-audit-action-unlinked',
+};
+
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  equipment_item: 'Equipment',
+  supply_item: 'Supply',
+};
+
+const ENTITY_BADGE_CLASSES: Record<string, string> = {
+  tube: 'badge-audit-entity-tube',
+  user: 'badge-audit-entity-user',
+  researcher: 'badge-audit-entity-researcher',
+  tank: 'badge-audit-entity-tank',
+  rack: 'badge-audit-entity-rack',
+  box: 'badge-audit-entity-box',
+  lab: 'badge-audit-entity-lab',
+  configuration: 'badge-audit-entity-configuration',
+  equipment_item: 'badge-audit-entity-equipment',
+  supply_item: 'badge-audit-entity-supply',
+  donor: 'badge-audit-entity-donor',
 };
 
 interface AuditLogViewerProps {
@@ -220,31 +238,14 @@ export function AuditLogViewer({
     return SUFFIX_BADGE_MAP[suffix] ?? 'badge-audit-action-default';
   };
 
-  const ENTITY_TYPE_LABELS: Record<string, string> = {
-    equipment_item: 'Equipment',
-    supply_item: 'Supply',
-  };
-
   const formatEntityType = (entityType: string) => {
     return (
       ENTITY_TYPE_LABELS[entityType] ?? entityType.charAt(0).toUpperCase() + entityType.slice(1)
     );
   };
 
-  const getEntityBadgeClass = (entityType: string) => {
-    if (entityType === 'tube') return 'badge-audit-entity-tube';
-    if (entityType === 'user') return 'badge-audit-entity-user';
-    if (entityType === 'researcher') return 'badge-audit-entity-researcher';
-    if (entityType === 'tank') return 'badge-audit-entity-tank';
-    if (entityType === 'rack') return 'badge-audit-entity-rack';
-    if (entityType === 'box') return 'badge-audit-entity-box';
-    if (entityType === 'lab') return 'badge-audit-entity-lab';
-    if (entityType === 'configuration') return 'badge-audit-entity-configuration';
-    if (entityType === 'equipment_item') return 'badge-audit-entity-equipment';
-    if (entityType === 'supply_item') return 'badge-audit-entity-supply';
-    if (entityType === 'donor') return 'badge-audit-entity-donor';
-    return 'badge-audit-entity-default';
-  };
+  const getEntityBadgeClass = (entityType: string) =>
+    ENTITY_BADGE_CLASSES[entityType] ?? 'badge-audit-entity-default';
 
   const getEntityIcon = (entityType: string) => {
     switch (entityType) {

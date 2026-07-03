@@ -83,6 +83,10 @@ export class StorageService {
     });
   }
 
+  static async updateSystemSettings(labName: string): Promise<void> {
+    await httpClient.put('/storage/system', { labName });
+  }
+
   // CQRS Tank Operations
 
   static async addTank(name: string, location?: string): Promise<{ tankId: string }> {
