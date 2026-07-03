@@ -21,7 +21,7 @@ export function HelpSection({ id, children }: HelpSectionProps) {
   if (!meta) return null;
 
   return (
-    <section id={id} data-help-section={id} className="scroll-mt-2">
+    <section id={id} className="scroll-mt-2">
       <SubsectionHeader
         title={meta.title}
         index={getHelpSectionIndex(id)}

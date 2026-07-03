@@ -82,7 +82,6 @@ const DONOR_BRIGHTNESS_SWATCHES = [
 export function TubesTab() {
   return (
     <div className="space-y-8">
-      {/* Section A: Annotated Tube Diagram */}
       <HelpSection id="tubes-anatomy">
         <div className="flex justify-center">
           <svg
@@ -100,7 +99,7 @@ export function TubesTab() {
               </linearGradient>
             </defs>
 
-            {/* Tube cell replica — sharp-cornered square, centered at x=310, size 120x120 */}
+            {/* Tube cell replica */}
             <rect
               x={250}
               y={110}
@@ -197,7 +196,7 @@ export function TubesTab() {
               strokeLinejoin="round"
             />
 
-            {/* --- Callout lines --- anchors (x1,y1) sit AT each visual element --- */}
+            {/* Callout lines — anchors (x1,y1) sit at each visual element */}
 
             {/* Lot indicator — anchor at the square's outer corner */}
             <Callout
@@ -279,7 +278,6 @@ export function TubesTab() {
         </div>
       </HelpSection>
 
-      {/* Section B: Lock States Legend */}
       <HelpSection id="tubes-lock-states">
         <div className="grid grid-cols-3 gap-4">
           <Well className="flex flex-col items-center gap-2 p-3">
@@ -312,9 +310,7 @@ export function TubesTab() {
         </p>
       </HelpSection>
 
-      {/* Section C: Color Coding */}
       <HelpSection id="tubes-color">
-        {/* Cell line swatches */}
         <h4 className="text-body-sm font-medium text-card-foreground mb-1">Cell Lines</h4>
         <p className="text-body-sm text-muted-foreground mb-2">
           Known and commonly used cell lines have fixed, recognizable colors.
@@ -333,7 +329,6 @@ export function TubesTab() {
           ))}
         </div>
 
-        {/* Donor brightness example */}
         <h4 className="text-body-sm font-medium text-card-foreground mb-1">
           Donor-Based Brightness
         </h4>
@@ -358,7 +353,6 @@ export function TubesTab() {
           Text color adjusts automatically for contrast.
         </p>
 
-        {/* Indicator examples */}
         <h4 className="text-body-sm font-medium text-card-foreground mb-2">Indicators</h4>
         <div className="flex items-center gap-2">
           <TubePropertyIndicator

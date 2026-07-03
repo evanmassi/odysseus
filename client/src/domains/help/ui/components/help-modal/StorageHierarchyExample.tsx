@@ -89,7 +89,6 @@ export function StorageHierarchyExample() {
         up in the Navigator:
       </p>
 
-      {/* Example navigator */}
       <Well className="space-y-1.5 p-3">
         <div className="flex items-center gap-2">
           <ChevronRight size={11} className="rotate-90 text-muted-foreground" />
@@ -152,7 +151,6 @@ export function StorageHierarchyExample() {
         </div>
       </Well>
 
-      {/* What you're seeing */}
       <div className="space-y-1.5">
         <LegendRow n={1}>
           Each box shows a small grid of its positions, colored by cell type or donor. The more
@@ -165,7 +163,6 @@ export function StorageHierarchyExample() {
         </LegendRow>
       </div>
 
-      {/* Level definitions */}
       <div className="space-y-2 border-t border-line-faint pt-3">
         <LevelDef icon={<Icon iconNode={refrigeratorFreezer} size={16} />} label="Tank">
           a physical freezer, dewar, or similar storage device.

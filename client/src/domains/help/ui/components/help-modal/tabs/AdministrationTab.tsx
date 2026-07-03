@@ -11,7 +11,6 @@ import { HelpSection } from '../HelpSection';
 export function AdministrationTab() {
   return (
     <div className="space-y-8">
-      {/* Overview */}
       <HelpSection id="admin-overview">
         <p className="text-body-sm text-muted-foreground">
           The Admin Settings panel is accessible from the header menu. It is the central hub for
@@ -20,7 +19,6 @@ export function AdministrationTab() {
         </p>
       </HelpSection>
 
-      {/* System */}
       <HelpSection id="admin-system">
         <ul className="text-body-sm text-muted-foreground space-y-1 list-disc list-inside">
           <li>Edit your lab name</li>
@@ -30,7 +28,6 @@ export function AdministrationTab() {
         </ul>
       </HelpSection>
 
-      {/* Security Settings */}
       <HelpSection id="admin-security">
         <p className="text-body-sm text-muted-foreground mb-2">
           Authentication, login, and timeout settings for your lab. Only the system administrator
@@ -58,7 +55,6 @@ export function AdministrationTab() {
         </div>
       </HelpSection>
 
-      {/* User Management */}
       <HelpSection id="admin-users">
         <p className="text-body-sm text-muted-foreground mb-2">
           View and manage all user accounts in your lab.
@@ -81,7 +77,6 @@ export function AdministrationTab() {
         </Well>
       </HelpSection>
 
-      {/* Researcher Management */}
       <HelpSection id="admin-researchers">
         <p className="text-body-sm text-muted-foreground mb-2">
           Manage researcher profiles independently from user accounts.
@@ -94,7 +89,6 @@ export function AdministrationTab() {
         </ul>
       </HelpSection>
 
-      {/* Invite Codes */}
       <HelpSection id="admin-invites">
         <p className="text-body-sm text-muted-foreground">
           Generate invite codes to allow new users to register for your lab. Each code can be
@@ -104,7 +98,6 @@ export function AdministrationTab() {
         </p>
       </HelpSection>
 
-      {/* Catalog Management */}
       <HelpSection id="admin-catalog">
         <p className="text-body-sm text-muted-foreground">
           Customize the options available when filling out tube and donor forms — species, source
@@ -114,7 +107,6 @@ export function AdministrationTab() {
         </p>
       </HelpSection>
 
-      {/* Monitoring */}
       <HelpSection id="admin-monitoring">
         <p className="text-body-sm text-muted-foreground">
           The audit log tracks user actions across the system. Filter by user, action type, or date

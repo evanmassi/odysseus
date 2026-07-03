@@ -17,7 +17,6 @@ export function ResearchersTab() {
 
   return (
     <div className="space-y-8">
-      {/* Section A: Users vs Researchers */}
       <HelpSection id="researchers-vs-users">
         <p className="text-body-sm text-muted-foreground">
           A user is a login account — someone who can sign in and use the app. A researcher is a
@@ -27,7 +26,6 @@ export function ResearchersTab() {
         </p>
       </HelpSection>
 
-      {/* Section B: How Tubes Connect to Researchers */}
       <HelpSection id="researchers-tubes">
         <p className="text-body-sm text-muted-foreground">
           Every tube can be assigned to a researcher, though it is not required. This is how
@@ -37,7 +35,6 @@ export function ResearchersTab() {
         </p>
       </HelpSection>
 
-      {/* Section C: Linked vs Unlinked Researchers */}
       <HelpSection id="researchers-linked">
         <p className="text-body-sm text-muted-foreground">
           A researcher can optionally be linked to a user account. When linked, that user can see
@@ -46,7 +43,6 @@ export function ResearchersTab() {
         </p>
       </HelpSection>
 
-      {/* Section D: Managing Researchers */}
       <HelpSection id="researchers-managing">
         <div className="flex items-start gap-2">
           <ShieldUser size={14} className="text-muted-foreground flex-shrink-0 mt-0.5" />

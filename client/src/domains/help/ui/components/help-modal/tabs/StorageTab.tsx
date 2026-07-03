@@ -16,19 +16,16 @@ import { StorageHierarchyExample } from '../StorageHierarchyExample';
 export function StorageTab() {
   return (
     <div className="space-y-8">
-      {/* Section A: Storage Hierarchy */}
       <HelpSection id="storage-hierarchy">
         <StorageHierarchyExample />
       </HelpSection>
 
-      {/* Section B: Ownership & Assignment */}
       <HelpSection id="storage-ownership">
         <p className="text-body-sm text-muted-foreground mb-3">
           Racks and boxes can be assigned to users. Badges in the Storage Manager indicate ownership
           at a glance.
         </p>
 
-        {/* Ownership badges */}
         <div className="grid grid-cols-3 gap-3 mb-4">
           <Well className="flex flex-col items-center gap-2 p-3">
             <UserBadge type="currentUser" initials="ME" size="md" />
@@ -51,7 +48,6 @@ export function StorageTab() {
           </Well>
         </div>
 
-        {/* Inheritance explanation */}
         <Well className="p-3">
           <h4 className="text-body-sm font-medium text-card-foreground mb-1">Default Assignment</h4>
           <p className="text-body-sm text-muted-foreground">
@@ -61,7 +57,6 @@ export function StorageTab() {
         </Well>
       </HelpSection>
 
-      {/* Section C: Roles & Permissions */}
       <HelpSection id="storage-roles">
         <div className="space-y-3">
           <div className="flex items-start gap-3">
@@ -93,7 +88,6 @@ export function StorageTab() {
         </div>
       </HelpSection>
 
-      {/* Section D: Quick Reference */}
       <HelpSection id="storage-quick-ref">
         <div className="space-y-2">
           <div className="flex items-start gap-2">

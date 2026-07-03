@@ -16,7 +16,6 @@ export function DonorsTab() {
 
   return (
     <div className="space-y-8">
-      {/* Section A: What is the Donor Registry? */}
       <HelpSection id="donors-what">
         <p className="text-body-sm text-muted-foreground">
           The Donor Registry is a curated database of donor profiles. Each donor can have two
@@ -27,7 +26,6 @@ export function DonorsTab() {
         </p>
       </HelpSection>
 
-      {/* Section B: Browsing & Searching */}
       <HelpSection id="donors-browse">
         <p className="text-body-sm text-muted-foreground">
           Open the Donor Registry from the header menu. It displays a searchable table on the left
@@ -37,7 +35,6 @@ export function DonorsTab() {
         </p>
       </HelpSection>
 
-      {/* Section C: Donor Profiles */}
       <HelpSection id="donors-profiles">
         <p className="text-body-sm text-muted-foreground mb-3">Each donor profile contains:</p>
         <div className="space-y-2">
@@ -66,7 +63,6 @@ export function DonorsTab() {
         </div>
       </HelpSection>
 
-      {/* Section D: Collection History */}
       <HelpSection id="donors-history">
         <p className="text-body-sm text-muted-foreground">
           Each donor has a timeline of collection events. Entries record the collection date,
@@ -75,7 +71,6 @@ export function DonorsTab() {
         </p>
       </HelpSection>
 
-      {/* Section E: Linking Donors to Tubes */}
       <HelpSection id="donors-linking">
         <p className="text-body-sm text-muted-foreground">
           When adding or editing a tube, use the donor search fields to link it to an existing
@@ -94,7 +89,6 @@ export function DonorsTab() {
         </p>
       </HelpSection>
 
-      {/* Section F: Managing Donors (admin only) */}
       {isAdmin && (
         <HelpSection id="donors-managing">
           <p className="text-body-sm text-muted-foreground mb-2">

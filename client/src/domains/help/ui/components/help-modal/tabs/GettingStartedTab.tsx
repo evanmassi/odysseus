@@ -37,7 +37,6 @@ export function GettingStartedTab() {
 
   return (
     <div className="space-y-8">
-      {/* Section A: Navigating the Grid */}
       <HelpSection id="gs-grid">
         <p className="text-body-sm text-muted-foreground mb-2">
           Use the navigator sidebar to browse tanks, racks, and boxes. Click a tube in the grid to
@@ -51,7 +50,6 @@ export function GettingStartedTab() {
         </p>
       </HelpSection>
 
-      {/* Section B: Adding & Editing Tubes */}
       <HelpSection id="gs-edit">
         <p className="text-body-sm text-muted-foreground">
           Click an empty position to add a tube. Double-click an existing tube to edit it, or
@@ -61,7 +59,6 @@ export function GettingStartedTab() {
         </p>
       </HelpSection>
 
-      {/* Section C: Locking & Sharing */}
       <HelpSection id="gs-lock">
         <div className="space-y-2">
           <div className="flex items-start gap-2">
@@ -95,7 +92,6 @@ export function GettingStartedTab() {
         </div>
       </HelpSection>
 
-      {/* Section D: Search */}
       <HelpSection id="gs-search">
         <p className="text-body-sm text-muted-foreground">
           Find tubes across all storage using the search bar. Use advanced filters to narrow results
@@ -104,7 +100,6 @@ export function GettingStartedTab() {
         </p>
       </HelpSection>
 
-      {/* Explore: launchpad to the deeper topic tabs */}
       <section>
         <SubsectionHeader title="Explore the Guide" accent className="mb-3" />
         <div className="grid grid-cols-2 gap-3">
