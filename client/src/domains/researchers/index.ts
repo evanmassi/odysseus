@@ -1,7 +1,7 @@
 /**
  * Researchers Domain Public API
  *
- * Researcher query hooks and data access.
+ * Researcher query hooks.
  */
 
 export * from './hooks/useActiveResearchersQuery';

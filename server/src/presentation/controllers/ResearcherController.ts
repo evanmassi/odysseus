@@ -26,27 +26,18 @@ export class ResearcherController extends BaseController {
 
   /**
    * GET /api/researchers
-   * GET /api/researchers?admin=true (includes tubeCount, linkedUserId, linkedUsername)
    * GET /api/researchers?visible=true (only approved AND active)
    */
   async getAllResearchers(req: Request, res: Response): Promise<void> {
     try {
-      const includeAdminData = req.query.admin === 'true';
       const visibleOnly = req.query.visible === 'true';
-
       const labId = this.extractLabId(req);
 
-      if (includeAdminData) {
-        const user = this.getAuthenticatedUser(req);
-        const result = await this.deps.researcherApplicationService.getResearchersWithMetadata(labId, user);
-        res.json(ResponseBuilder.success(result));
-      } else if (visibleOnly) {
-        const researchers = await this.deps.researcherApplicationService.getVisibleResearchers(labId);
-        res.json(ResponseBuilder.success(researchers));
-      } else {
-        const researchers = await this.deps.researcherApplicationService.getAllResearchers(labId);
-        res.json(ResponseBuilder.success(researchers));
-      }
+      const researchers = visibleOnly
+        ? await this.deps.researcherApplicationService.getVisibleResearchers(labId)
+        : await this.deps.researcherApplicationService.getAllResearchers(labId);
+
+      res.json(ResponseBuilder.success(researchers));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researchers', req.requestId);
     }

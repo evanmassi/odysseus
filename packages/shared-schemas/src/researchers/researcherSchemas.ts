@@ -42,20 +42,9 @@ export const updateResearcherProfileSchema = createResearcherProfileSchema.parti
   active: z.boolean().optional()
 });
 
-export const researcherQueryFiltersSchema = z.object({
-  active: z.boolean().optional(),
-  department: z.string().optional(),
-  search: z.string().optional(),
-  limit: z.number().int().positive().max(1000).optional(),
-  offset: z.number().int().min(0).optional(),
-  sortBy: z.enum(['firstName', 'lastName', 'email', 'createdAt']).optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional()
-});
-
 export type Researcher = z.infer<typeof researcherSchema>;
 export type CreateResearcherProfile = z.infer<typeof createResearcherProfileSchema>;
 export type UpdateResearcherProfile = z.infer<typeof updateResearcherProfileSchema>;
-export type ResearcherQueryFilters = z.infer<typeof researcherQueryFiltersSchema>;
 
 /**
  * Extended researcher view with admin metadata.
