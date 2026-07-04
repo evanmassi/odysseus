@@ -20,7 +20,7 @@ import {
   getTemplateById,
   type SheetTemplate,
 } from '../sheetTemplates';
-import { FORMAT_OPTIONS, type BarcodeFormat } from '../SupplyBarcodePrint';
+import { FORMAT_OPTIONS, type BarcodeFormat } from '../SupplyBarcodeLabel';
 
 import type { PrintableLabel } from '../supplyBarcodeSheetTypes';
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';

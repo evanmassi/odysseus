@@ -20,6 +20,7 @@ import {
   useRemoveSupplyPackagingLevelMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
+import { computePackagingMultiplier } from '@domains/supplies/utils/packagingChain';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   Button,
@@ -37,6 +38,8 @@ import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
+
+import { SupplyCategorySelect } from './SupplyCategorySelect';
 
 import type {
   SupplyCategory,
@@ -156,24 +159,9 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     [stockUnits]
   );
 
-  const categoryOptions: SelectOption[] = useMemo(() => {
-    const topLevel = categories
-      .filter(c => !c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
-    const options: SelectOption[] = [{ value: '', label: 'Select category...' }];
-    topLevel.forEach(parent => {
-      options.push({ value: parent.id, label: parent.name });
-      categories
-        .filter(c => c.parentId === parent.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
-        .forEach(sub => options.push({ value: sub.id, label: sub.name, description: parent.name }));
-    });
-    return options;
-  }, [categories]);
-
   // Available units for the add-level "unit" dropdown (exclude already-used names)
   const availableUnitOptions: SelectOption[] = useMemo(() => {
-    const usedNames = packagingLevels.map(l => ('unitName' in l ? l.unitName : ''));
+    const usedNames = packagingLevels.map(l => l.unitName);
     return [
       { value: '', label: 'Select...' },
       ...stockUnits
@@ -186,19 +174,14 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const parentOptions: SelectOption[] = useMemo(
     () => [
       { value: '__base__', label: 'base item' },
-      ...packagingLevels.map(l => ({
-        value: 'unitName' in l ? l.unitName : '',
-        label: 'unitName' in l ? l.unitName : '',
-      })),
+      ...packagingLevels.map(l => ({ value: l.unitName, label: l.unitName })),
     ],
     [packagingLevels]
   );
 
   const topOfChain = useMemo(() => {
     if (packagingLevels.length === 0) return null;
-    const childParents = new Set(
-      packagingLevels.map(l => ('parentUnit' in l ? l.parentUnit : null)).filter(Boolean)
-    );
+    const childParents = new Set(packagingLevels.map(l => l.parentUnit).filter(Boolean));
     const top = packagingLevels.find(l => !childParents.has(l.unitName));
     return top?.unitName ?? null;
   }, [packagingLevels]);
@@ -208,29 +191,13 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     if (!hasLevels) return [];
     return [
       { value: '', label: 'stock unit' },
-      ...packagingLevels.map(l => ({
-        value: 'unitName' in l ? l.unitName : '',
-        label: 'unitName' in l ? l.unitName : '',
-      })),
+      ...packagingLevels.map(l => ({ value: l.unitName, label: l.unitName })),
     ];
   }, [packagingLevels]);
 
   const computeThresholdMultiplier = useCallback(
-    (fromUnit: string, stockUnitOverride?: string): number => {
-      const stockUnitVal = stockUnitOverride ?? '';
-      if (!fromUnit || fromUnit === stockUnitVal) return 1;
-      let multiplier = 1;
-      let current = fromUnit;
-      for (let i = 0; i < packagingLevels.length + 1; i++) {
-        const level = packagingLevels.find(l => ('unitName' in l ? l.unitName : '') === current);
-        if (!level) return 1;
-        multiplier *= level.quantity;
-        const parent = 'parentUnit' in level ? level.parentUnit : null;
-        if (parent === null || parent === stockUnitVal) return multiplier;
-        current = parent;
-      }
-      return multiplier;
-    },
+    (fromUnit: string, stockUnitOverride?: string) =>
+      computePackagingMultiplier(packagingLevels, fromUnit, stockUnitOverride ?? ''),
     [packagingLevels]
   );
 
@@ -409,35 +376,13 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             name="categoryId"
             control={control}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="supply-category-label" className={FIELD_LABEL_COMPACT}>
-                  Category
-                </label>
-                <Select
-                  aria-labelledby="supply-category-label"
-                  options={categoryOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  state={error ? 'error' : 'default'}
-                  error={error?.message}
-                  fullWidth
-                  renderOption={option => (
-                    <div className="w-full">
-                      {option.description ? (
-                        <span className="pl-4 text-body">{option.label}</span>
-                      ) : (
-                        <span className="text-body font-semibold">{option.label}</span>
-                      )}
-                    </div>
-                  )}
-                  renderValue={selected => {
-                    const opt = selected[0];
-                    if (!opt?.value) return 'Select category...';
-                    return opt.description ? `${opt.description} > ${opt.label}` : opt.label;
-                  }}
-                />
-              </div>
+              <SupplyCategorySelect
+                categories={categories}
+                value={(value as string) ?? ''}
+                onChange={onChange}
+                labelId="supply-category-label"
+                error={error?.message}
+              />
             )}
           />
 
@@ -570,11 +515,11 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                   const levelData = {
                     unitName: level.unitName,
                     quantity: level.quantity,
-                    parentUnit: ('parentUnit' in level ? level.parentUnit : null) as string | null,
+                    parentUnit: level.parentUnit,
                   };
                   const levelId = 'id' in level ? (level.id as string) : undefined;
                   const hasChildren = packagingLevels.some(
-                    l => ('parentUnit' in l ? l.parentUnit : null) === levelData.unitName
+                    l => l.parentUnit === levelData.unitName
                   );
                   return (
                     <div

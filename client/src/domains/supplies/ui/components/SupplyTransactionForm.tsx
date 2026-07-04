@@ -16,6 +16,10 @@ import {
   useRecordSupplyTransactionMutation,
   useRecordSupplyStockCountMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
+import {
+  computePackagingMultiplier,
+  orderPackagingChain,
+} from '@domains/supplies/utils/packagingChain';
 import { Button, DatePicker, HeaderStrip, Input, NubDivider, Select, Tab, Tabs } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
@@ -89,39 +93,11 @@ export function SupplyTransactionForm({
   const identityParts = [manufacturer, catalogNumber].filter(Boolean);
 
   const computeMultiplier = useCallback(
-    (fromUnit: string): number => {
-      if (fromUnit === stockUnit) return 1;
-      let multiplier = 1;
-      let current = fromUnit;
-      for (let i = 0; i < packagingLevels.length + 1; i++) {
-        const level = packagingLevels.find(l => l.unitName === current);
-        if (!level) return 1;
-        multiplier *= level.quantity;
-        if (level.parentUnit === null || level.parentUnit === stockUnit) return multiplier;
-        current = level.parentUnit;
-      }
-      return multiplier;
-    },
+    (fromUnit: string) => computePackagingMultiplier(packagingLevels, fromUnit, stockUnit),
     [stockUnit, packagingLevels]
   );
 
-  const orderedLevels = useMemo(() => {
-    if (!hasPackaging) return [];
-    const levels = [...packagingLevels];
-    const ordered: typeof levels = [];
-    const bottom = levels.find(l => l.parentUnit === null);
-    if (bottom) {
-      ordered.push(bottom);
-      let current = bottom;
-      for (let i = 0; i < levels.length; i++) {
-        const next = levels.find(l => l.parentUnit === current.unitName);
-        if (!next) break;
-        ordered.push(next);
-        current = next;
-      }
-    }
-    return ordered;
-  }, [hasPackaging, packagingLevels]);
+  const orderedLevels = useMemo(() => orderPackagingChain(packagingLevels), [packagingLevels]);
 
   const showLooseRow = hasPackaging && !packagingLevels.some(l => l.unitName === stockUnit);
 

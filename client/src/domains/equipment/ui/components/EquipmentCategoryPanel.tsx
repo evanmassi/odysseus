@@ -18,6 +18,7 @@ import {
 
 import { Button, OverflowMenu } from '@shared/ui';
 import { NavTreeLines } from '@shared/ui/components/tree-lines';
+import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { EquipmentItemRow } from './EquipmentItemRow';
 
@@ -58,10 +59,7 @@ export function EquipmentCategoryPanel({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const topLevelCategories = useMemo(
-    () =>
-      categories
-        .filter(c => !c.parentId)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)),
+    () => categories.filter(c => !c.parentId).sort(compareByOrderThenName),
     [categories]
   );
 
@@ -69,7 +67,7 @@ export function EquipmentCategoryPanel({
     const map = new Map<string, EquipmentCategory[]>();
     categories
       .filter(c => c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+      .sort(compareByOrderThenName)
       .forEach(c => {
         const list = map.get(c.parentId!) ?? [];
         list.push(c);

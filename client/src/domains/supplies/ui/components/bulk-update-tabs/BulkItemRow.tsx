@@ -11,6 +11,10 @@ import { useState, useMemo, useCallback } from 'react';
 import { X } from 'lucide-react';
 
 import { useSupplyItemDetailQuery } from '@domains/supplies/hooks';
+import {
+  computePackagingMultiplier,
+  orderPackagingChain,
+} from '@domains/supplies/utils/packagingChain';
 import { Input, Select } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
@@ -48,38 +52,11 @@ export function BulkItemRow({
   const [simpleQty, setSimpleQty] = useState(1);
 
   const computeMultiplier = useCallback(
-    (fromUnit: string): number => {
-      if (fromUnit === stockUnit) return 1;
-      let multiplier = 1;
-      let current = fromUnit;
-      for (let i = 0; i < packagingLevels.length + 1; i++) {
-        const level = packagingLevels.find(l => l.unitName === current);
-        if (!level) return 1;
-        multiplier *= level.quantity;
-        if (level.parentUnit === null || level.parentUnit === stockUnit) return multiplier;
-        current = level.parentUnit;
-      }
-      return multiplier;
-    },
+    (fromUnit: string) => computePackagingMultiplier(packagingLevels, fromUnit, stockUnit),
     [stockUnit, packagingLevels]
   );
 
-  const orderedLevels = useMemo(() => {
-    if (!hasPackaging) return [];
-    const ordered: typeof packagingLevels = [];
-    const bottom = packagingLevels.find(l => l.parentUnit === null);
-    if (bottom) {
-      ordered.push(bottom);
-      let current = bottom;
-      for (let i = 0; i < packagingLevels.length; i++) {
-        const next = packagingLevels.find(l => l.parentUnit === current.unitName);
-        if (!next) break;
-        ordered.push(next);
-        current = next;
-      }
-    }
-    return ordered;
-  }, [hasPackaging, packagingLevels]);
+  const orderedLevels = useMemo(() => orderPackagingChain(packagingLevels), [packagingLevels]);
 
   const showLooseRow = hasPackaging && !packagingLevels.some(l => l.unitName === stockUnit);
 

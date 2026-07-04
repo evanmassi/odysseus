@@ -9,6 +9,7 @@ import type { CSSProperties } from 'react';
 
 import { AlertTriangle, MapPin } from 'lucide-react';
 
+import { SUPPLY_STATUS_DISPLAY } from '@domains/supplies/utils/supplyStatus';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
@@ -39,19 +40,10 @@ function getStockChipColor(
   return 'success';
 }
 
-const STATUS_CHIP: Record<
-  string,
-  { color: 'success' | 'warning' | 'danger' | 'default'; label: string }
-> = {
-  active: { color: 'success', label: 'Active' },
-  discontinued: { color: 'warning', label: 'Discontinued' },
-  archived: { color: 'danger', label: 'Archived' },
-};
-
 export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps) {
   const isArchived = item.status === 'archived';
   const stockColor = getStockChipColor(item.totalStock, item.reorderThreshold);
-  const statusInfo = STATUS_CHIP[item.status];
+  const statusInfo = SUPPLY_STATUS_DISPLAY[item.status];
 
   // The low-stock triangle (and the warning/danger line tone) only show when the
   // item is actually at or below reorder — a healthy stock reads as active.

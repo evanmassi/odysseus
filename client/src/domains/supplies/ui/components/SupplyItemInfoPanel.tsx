@@ -35,6 +35,8 @@ import {
   useUpdateSupplyBarcodeMutation,
   useRegenerateInternalBarcodeMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
+import { orderPackagingChain } from '@domains/supplies/utils/packagingChain';
+import { SUPPLY_STATUS_DISPLAY } from '@domains/supplies/utils/supplyStatus';
 import {
   Button,
   Chip,
@@ -65,15 +67,6 @@ import { SupplyTransactionTimeline } from './SupplyTransactionTimeline';
 import type { TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyBarcode, SupplyDocument } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
-
-const STATUS_LABELS: Record<
-  string,
-  { color: 'success' | 'warning' | 'danger' | 'default'; label: string }
-> = {
-  active: { color: 'success', label: 'Active' },
-  discontinued: { color: 'warning', label: 'Discontinued' },
-  archived: { color: 'danger', label: 'Archived' },
-};
 
 const BARCODE_TYPE_LABELS: Record<string, string> = {
   internal: 'Internal',
@@ -158,7 +151,7 @@ export function SupplyItemInfoPanel({
   }
 
   const { item, documents, barcodes, stock } = detail;
-  const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS['active'];
+  const statusConfig = SUPPLY_STATUS_DISPLAY[item.status] ?? SUPPLY_STATUS_DISPLAY['active'];
   const isArchived = item.status === 'archived';
   const totalStock = stock.reduce((sum, s) => sum + s.quantity, 0);
 
@@ -347,21 +340,9 @@ export function SupplyItemInfoPanel({
             <div>
               <SectionHeader title="Packaging" size="sm" />
               {(() => {
-                // Walk the chain base-up, accumulating the running base-unit total so
+                // Accumulate the running base-unit total over the base-up chain so
                 // each tier can show the multiplicative scale the flat text hid.
-                const levels = detail.packagingLevels;
-                const bottomUp: typeof levels = [];
-                const bottom = levels.find(l => l.parentUnit === null);
-                if (bottom) {
-                  bottomUp.push(bottom);
-                  let current = bottom;
-                  for (let i = 0; i < levels.length; i++) {
-                    const next = levels.find(l => l.parentUnit === current.unitName);
-                    if (!next) break;
-                    bottomUp.push(next);
-                    current = next;
-                  }
-                }
+                const bottomUp = orderPackagingChain(detail.packagingLevels);
                 const baseName = item.baseItemName ?? item.stockUnit ?? 'unit';
                 let running = 1;
                 const tiers = bottomUp.map(level => {
@@ -563,7 +544,7 @@ export function SupplyItemInfoPanel({
             )}
             {isAdmin && (
               <div className="mt-2">
-                <SupplyBarcodeForm itemId={itemId} onAdded={() => {}} />
+                <SupplyBarcodeForm itemId={itemId} />
               </div>
             )}
           </div>

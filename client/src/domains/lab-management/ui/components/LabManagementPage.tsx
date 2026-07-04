@@ -11,7 +11,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { AppHeader } from '@app/components/layout/AppHeader';
 import { EquipmentTab } from '@domains/equipment';
 import { useStorageData } from '@domains/storage';
-import { SuppliesTab } from '@domains/supplies/ui/components/SuppliesTab';
+import { SuppliesTab } from '@domains/supplies';
 import { HeaderStrip, PanelHeader, Tab, Tabs } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 

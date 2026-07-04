@@ -12,6 +12,7 @@ import { Ban } from 'lucide-react';
 import { useSupplyLocationsQuery } from '@domains/supplies/hooks';
 import { useVoidSupplyTransactionMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button } from '@shared/ui';
+import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFormatters';
@@ -125,10 +126,7 @@ export function SupplyVoidTransactionModal({
           </div>
 
           <div>
-            <label
-              htmlFor="void-reason"
-              className="text-body-sm font-medium text-secondary-foreground block mb-1"
-            >
+            <label htmlFor="void-reason" className={FIELD_LABEL_STANDARD}>
               Reason for voiding *
             </label>
             <Textarea

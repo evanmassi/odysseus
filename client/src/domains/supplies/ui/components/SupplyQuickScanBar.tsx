@@ -7,28 +7,19 @@
 
 import { useState, useCallback, useRef } from 'react';
 
-import {
-  ScanBarcode,
-  Eye,
-  PackagePlus,
-  PackageMinus,
-  ClipboardCheck,
-  Trash2,
-  Link,
-} from 'lucide-react';
+import { ScanBarcode, Eye, PackagePlus, PackageMinus, ClipboardCheck, Trash2 } from 'lucide-react';
 
-import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
-import { Button, SearchInput, Select } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/overlays';
+import { SearchInput } from '@shared/ui';
 import { DropdownMenu } from '@shared/ui/primitives/menus/DropdownMenu';
 import { MenuDivider } from '@shared/ui/primitives/menus/MenuDivider';
 import { MenuItem } from '@shared/ui/primitives/menus/MenuItem';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
+import { SupplyBarcodeLinkDialog } from './SupplyBarcodeLinkDialog';
+
 import type { SupplyItem, SupplyItemWithStock } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 type TransactionTab = 'received' | 'issued' | 'count' | 'disposed';
 
@@ -49,20 +40,8 @@ export function SupplyQuickScanBar({
   const [showActions, setShowActions] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [unresolvedBarcode, setUnresolvedBarcode] = useState('');
-  const [linkItemId, setLinkItemId] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
-  const addBarcodeMutation = useAddSupplyBarcodeMutation();
-
-  const itemOptions: SelectOption[] = [
-    { value: '', label: 'Select item...' },
-    ...items
-      .filter(p => p.status === 'active')
-      .map(p => ({
-        value: p.id,
-        label: `${p.name}${p.catalogNumber ? ` (${p.catalogNumber})` : ''}`,
-      })),
-  ];
 
   const handleScan = useCallback(async () => {
     const value = scanValue.trim();
@@ -102,23 +81,6 @@ export function SupplyQuickScanBar({
     },
     [resolvedItem, onViewItem, onRecordTransaction]
   );
-
-  const handleLink = useCallback(async () => {
-    if (!linkItemId || !unresolvedBarcode) return;
-    try {
-      await addBarcodeMutation.mutateAsync({
-        itemId: linkItemId,
-        data: { barcodeValue: unresolvedBarcode, barcodeType: 'manufacturer_sku' },
-      });
-      notifications.success('Barcode linked');
-      setShowLinkDialog(false);
-      setUnresolvedBarcode('');
-      setLinkItemId('');
-      setScanValue('');
-    } catch {
-      notifications.error('Failed to link barcode');
-    }
-  }, [linkItemId, unresolvedBarcode, addBarcodeMutation]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -183,51 +145,15 @@ export function SupplyQuickScanBar({
         </DropdownMenu>
       </div>
 
-      <BaseModal
+      <SupplyBarcodeLinkDialog
         isOpen={showLinkDialog}
-        title="Unknown Barcode"
-        icon={<Link size={24} />}
+        barcodeValue={unresolvedBarcode}
+        items={items}
         onClose={() => {
           setShowLinkDialog(false);
           setScanValue('');
         }}
-        className="max-w-md"
-      >
-        <div className="space-y-4">
-          <p className="text-body text-muted-foreground">
-            Barcode{' '}
-            <span className="font-mono font-semibold text-card-foreground">
-              {unresolvedBarcode}
-            </span>{' '}
-            isn&apos;t linked to any item. Link it now?
-          </p>
-          <Select
-            label="Link to Item"
-            options={itemOptions}
-            value={linkItemId}
-            onChange={v => setLinkItemId(String(v ?? ''))}
-            fullWidth
-          />
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setShowLinkDialog(false);
-                setScanValue('');
-              }}
-            >
-              Skip
-            </Button>
-            <Button
-              onClick={() => void handleLink()}
-              disabled={!linkItemId}
-              isLoading={addBarcodeMutation.isPending}
-            >
-              Link Barcode
-            </Button>
-          </div>
-        </div>
-      </BaseModal>
+      />
     </>
   );
 }

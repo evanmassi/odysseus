@@ -27,6 +27,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { BulkSelectTreeLines } from '@shared/ui/components/tree-lines';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
+import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 import { notifications } from '@shared/utils/notifications';
 
 import { BulkArchiveTab } from './bulk-update-tabs/BulkArchiveTab';
@@ -299,15 +300,11 @@ function buildCategoryGroups(
   items: SupplyItemWithStock[]
 ): CategoryGroup[] {
   const active = items.filter(p => p.status === 'active');
-  const topLevel = categories
-    .filter(c => !c.parentId)
-    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+  const topLevel = categories.filter(c => !c.parentId).sort(compareByOrderThenName);
 
   return topLevel
     .map(parent => {
-      const subs = categories
-        .filter(c => c.parentId === parent.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+      const subs = categories.filter(c => c.parentId === parent.id).sort(compareByOrderThenName);
 
       const directItems = active.filter(p => p.categoryId === parent.id);
       const subcategories = subs.map(sub => ({

@@ -13,16 +13,19 @@ import { createPortal } from 'react-dom';
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import { PRINT_PORTAL_CLASS, buildBarcodePrintStyles } from './barcodePrintStyles';
+import {
+  PRINT_PORTAL_CLASS,
+  PRINT_SHEET_CLASS,
+  buildBarcodePrintStyles,
+} from './barcodePrintStyles';
 import { deriveLabelSize, type SheetTemplate } from './sheetTemplates';
-import { BarcodeLabel } from './SupplyBarcodePrint';
+import { BarcodeLabel } from './SupplyBarcodeLabel';
 import { SupplyBarcodeSheetPreview } from './SupplyBarcodeSheetPreview';
 
-import type { BarcodeFormat } from './SupplyBarcodePrint';
+import type { BarcodeFormat } from './SupplyBarcodeLabel';
 import type { PrintableLabel } from './supplyBarcodeSheetTypes';
 
 const PRINT_STYLE_ID = 'barcode-sheet-print-styles';
-const PRINT_SHEET_CLASS = 'barcode-print-sheet';
 
 const EMPTY_SKIPPED_SLOTS: ReadonlySet<number> = new Set();
 

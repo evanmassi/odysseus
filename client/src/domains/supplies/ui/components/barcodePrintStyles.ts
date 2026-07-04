@@ -16,7 +16,7 @@ export interface PrintStyleOptions {
 }
 
 export const PRINT_PORTAL_CLASS = 'barcode-print-portal';
-const PRINT_SHEET_CLASS = 'barcode-print-sheet';
+export const PRINT_SHEET_CLASS = 'barcode-print-sheet';
 
 export function buildBarcodePrintStyles(opts: PrintStyleOptions): string {
   const pageRule =

@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 
 import { Select } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
+import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import type { EquipmentCategory } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -40,16 +41,12 @@ export function EquipmentCategorySelect({
   }, [categories]);
 
   const categoryOptions: SelectOption[] = useMemo(() => {
-    const topLevel = categories
-      .filter(c => !c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    const topLevel = categories.filter(c => !c.parentId).sort(compareByOrderThenName);
 
     const options: SelectOption[] = [];
     topLevel.forEach(parent => {
       options.push({ value: parent.id, label: parent.name });
-      const subs = categories
-        .filter(c => c.parentId === parent.id)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+      const subs = categories.filter(c => c.parentId === parent.id).sort(compareByOrderThenName);
       subs.forEach(sub => {
         options.push({ value: sub.id, label: sub.name, description: parent.name });
       });

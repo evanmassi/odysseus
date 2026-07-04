@@ -23,10 +23,9 @@ const BARCODE_TYPE_OPTIONS: SelectOption[] = [
 
 interface SupplyBarcodeFormProps {
   itemId: string;
-  onAdded: () => void;
 }
 
-export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
+export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [barcodeValue, setBarcodeValue] = useState('');
   const [barcodeType, setBarcodeType] = useState<SupplyBarcodeType>('manufacturer_sku');
@@ -52,7 +51,6 @@ export function SupplyBarcodeForm({ itemId, onAdded }: SupplyBarcodeFormProps) {
       setIsPrimary(false);
       setLabel('');
       setIsOpen(false);
-      onAdded();
     } catch {
       notifications.error('Failed to add barcode — it may already be in use');
     }

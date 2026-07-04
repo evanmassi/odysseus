@@ -270,8 +270,6 @@ export function useRemoveSupplyBarcodeMutation() {
   });
 }
 
-// Barcode regeneration
-
 export function useRegenerateInternalBarcodeMutation() {
   const labId = useLabId();
   const queryClient = useQueryClient();
@@ -376,7 +374,7 @@ export function useRecordSupplyStockCountMutation() {
 
 // Bulk operations
 
-export type SupplyBulkAction =
+type SupplyBulkAction =
   | { type: 'receive'; data: SupplyBulkReceiveRequest }
   | { type: 'issue'; data: SupplyBulkIssueRequest }
   | { type: 'reassign-category'; itemIds: string[]; categoryId: string }

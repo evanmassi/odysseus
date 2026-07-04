@@ -13,12 +13,13 @@ import {
   useUpdateSupplyCategoryMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button, Input } from '@shared/ui';
+import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
 import type { SupplyCategory } from '@odysseus/shared-schemas';
 
-export interface SupplyCategoryModalProps {
+interface SupplyCategoryModalProps {
   isOpen: boolean;
   parentId?: string;
   parentName?: string;
@@ -95,10 +96,7 @@ export function SupplyCategoryModal({
         )}
 
         <div>
-          <label
-            htmlFor="categoryName"
-            className="text-body-sm font-medium text-secondary-foreground mb-1 block"
-          >
+          <label htmlFor="categoryName" className={FIELD_LABEL_STANDARD}>
             {isSubcategory && !isEditing ? 'Subcategory Name' : 'Category Name'}
           </label>
           <Input

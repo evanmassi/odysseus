@@ -14,6 +14,7 @@ import {
   type SupplyDocument,
   type SupplyBarcode,
   type SupplyTransaction,
+  type SupplyVoidTransactionResponse,
   type SupplyBulkResponse,
   type CreateSupplyCategoryRequest,
   type UpdateSupplyCategoryRequest,
@@ -43,6 +44,7 @@ import {
   supplyItemDetailResponseSchema,
   supplyDocumentResponseSchema,
   supplyBarcodeResponseSchema,
+  supplyResolveBarcodeResponseSchema,
   supplyTransactionResponseSchema,
   supplyTransactionListResponseSchema,
   supplyBulkResponseSchema,
@@ -226,6 +228,24 @@ export class SupplyService {
     await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/barcodes/${barcodeId}`);
   }
 
+  static async regenerateInternalBarcode(itemId: string): Promise<SupplyBarcode> {
+    const response = await httpClient.postData(
+      `${this.BASE_PATH}/${itemId}/barcodes/regenerate-internal`,
+      {},
+      supplyBarcodeResponseSchema
+    );
+    return response.barcode;
+  }
+
+  static async resolveBarcode(value: string): Promise<SupplyItem | null> {
+    const response = await httpClient.getData(
+      `${this.BASE_PATH}/barcodes/resolve?value=${encodeURIComponent(value)}`,
+      supplyResolveBarcodeResponseSchema,
+      { 'Cache-Control': 'no-cache' }
+    );
+    return response.item;
+  }
+
   // Packaging levels
 
   static async addPackagingLevel(
@@ -252,27 +272,8 @@ export class SupplyService {
     );
   }
 
-  static async regenerateInternalBarcode(itemId: string): Promise<SupplyBarcode> {
-    const response = await httpClient.postData(
-      `${this.BASE_PATH}/${itemId}/barcodes/regenerate-internal`,
-      {},
-      supplyBarcodeResponseSchema
-    );
-    return response.barcode;
-  }
-
   static async removePackagingLevel(itemId: string, levelId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${itemId}/packaging-levels/${levelId}`);
-  }
-
-  /** Skips Zod validation — server may return null item for unresolved barcodes */
-  static async resolveBarcode(value: string): Promise<SupplyItem | null> {
-    const response = await httpClient.get(
-      `${this.BASE_PATH}/barcodes/resolve?value=${encodeURIComponent(value)}`,
-      { 'Cache-Control': 'no-cache' }
-    );
-    const data = response as { success: boolean; data: { item: SupplyItem | null } };
-    return data.data.item;
   }
 
   // Stock operations
@@ -306,7 +307,7 @@ export class SupplyService {
   static async voidTransaction(
     transactionId: string,
     data: VoidSupplyTransactionRequest
-  ): Promise<{ original: SupplyTransaction; reversal: SupplyTransaction }> {
+  ): Promise<SupplyVoidTransactionResponse> {
     return await httpClient.postData(
       `${this.BASE_PATH}/transactions/${transactionId}/void`,
       data,

@@ -13,12 +13,13 @@ import {
   useUpdateSupplyLocationMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { Button, Input } from '@shared/ui';
+import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
 import type { SupplyLocation } from '@odysseus/shared-schemas';
 
-export interface SupplyLocationModalProps {
+interface SupplyLocationModalProps {
   isOpen: boolean;
   location?: SupplyLocation;
   onClose: () => void;
@@ -76,7 +77,7 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
   };
 
   const hasChanges = isEditing
-    ? name.trim() !== location.name || (description.trim() ?? '') !== (location.description ?? '')
+    ? name.trim() !== location.name || description.trim() !== (location.description ?? '')
     : !!name.trim();
 
   return (
@@ -89,10 +90,7 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
     >
       <div className="space-y-4">
         <div>
-          <label
-            htmlFor="locationName"
-            className="text-body-sm font-medium text-secondary-foreground mb-1 block"
-          >
+          <label htmlFor="locationName" className={FIELD_LABEL_STANDARD}>
             Location Name
           </label>
           <Input
@@ -108,10 +106,7 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
         </div>
 
         <div>
-          <label
-            htmlFor="locationDescription"
-            className="text-body-sm font-medium text-secondary-foreground mb-1 block"
-          >
+          <label htmlFor="locationDescription" className={FIELD_LABEL_STANDARD}>
             Description
           </label>
           <Input

@@ -10,6 +10,7 @@ import { Search } from 'lucide-react';
 
 import { useSupplyLocationsQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkIssueMutation } from '@domains/supplies/hooks/useSupplyMutations';
+import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
 import { Autocomplete, Button, NubDivider } from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
@@ -18,7 +19,7 @@ import { notifications } from '@shared/utils/notifications';
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
 import { BulkItemRow } from './BulkItemRow';
-import { SEARCH_INPUT_CLASS } from './fieldLabelStyle';
+import { SEARCH_INPUT_CLASS } from './searchInputStyle';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
@@ -52,14 +53,7 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
   );
 
   const itemOptions: AutocompleteOption[] = useMemo(
-    () =>
-      items
-        .filter(p => p.status === 'active')
-        .map(p => ({
-          value: p.id,
-          label: p.name,
-          secondary: [p.manufacturer, p.catalogNumber].filter(Boolean).join(' · '),
-        })),
+    () => toItemAutocompleteOptions(items),
     [items]
   );
 

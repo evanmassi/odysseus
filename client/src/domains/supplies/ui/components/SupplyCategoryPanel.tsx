@@ -18,6 +18,7 @@ import {
 
 import { Button, OverflowMenu } from '@shared/ui';
 import { NavTreeLines } from '@shared/ui/components/tree-lines';
+import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { SupplyItemRow } from './SupplyItemRow';
 
@@ -40,6 +41,24 @@ interface SupplyCategoryPanelProps {
   sortDirection: 'asc' | 'desc';
 }
 
+function buildCategoryMenuItems(
+  category: SupplyCategory,
+  hasItems: boolean,
+  onRename: (category: SupplyCategory) => void,
+  onDelete: (category: SupplyCategory) => void
+): OverflowMenuItem[] {
+  return [
+    { icon: SquarePen, label: 'Rename', onClick: () => onRename(category) },
+    {
+      icon: Trash2,
+      label: 'Remove',
+      onClick: () => onDelete(category),
+      danger: true,
+      disabled: hasItems,
+    },
+  ];
+}
+
 export function SupplyCategoryPanel({
   categories,
   items,
@@ -58,10 +77,7 @@ export function SupplyCategoryPanel({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const topLevelCategories = useMemo(
-    () =>
-      categories
-        .filter(c => !c.parentId)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)),
+    () => categories.filter(c => !c.parentId).sort(compareByOrderThenName),
     [categories]
   );
 
@@ -69,7 +85,7 @@ export function SupplyCategoryPanel({
     const map = new Map<string, SupplyCategory[]>();
     categories
       .filter(c => c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+      .sort(compareByOrderThenName)
       .forEach(c => {
         const list = map.get(c.parentId!) ?? [];
         list.push(c);
@@ -195,21 +211,6 @@ export function SupplyCategoryPanel({
     return ids;
   }, [topLevelCategories, isSearching, getCategoryItemCount, expandedCategories]);
 
-  const getCategoryMenuItems = (cat: SupplyCategory, itemCount: number): OverflowMenuItem[] => [
-    {
-      icon: SquarePen,
-      label: 'Rename',
-      onClick: () => onRenameCategory(cat),
-    },
-    {
-      icon: Trash2,
-      label: 'Remove',
-      onClick: () => onDeleteCategory(cat),
-      danger: true,
-      disabled: itemCount > 0,
-    },
-  ];
-
   if (topLevelCategories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
@@ -284,7 +285,12 @@ export function SupplyCategoryPanel({
                     onKeyDown={e => e.stopPropagation()}
                   >
                     <OverflowMenu
-                      items={getCategoryMenuItems(category, totalCount)}
+                      items={buildCategoryMenuItems(
+                        category,
+                        totalCount > 0,
+                        onRenameCategory,
+                        onDeleteCategory
+                      )}
                       dividerBefore={['Remove']}
                       size="sm"
                       aria-label={`Actions for ${category.name}`}
@@ -408,17 +414,6 @@ function SubcategorySection({
   const [isExpanded, setIsExpanded] = useState(true);
   const effectiveExpanded = forceExpanded ?? isExpanded;
 
-  const menuItems: OverflowMenuItem[] = [
-    { icon: SquarePen, label: 'Rename', onClick: () => onRename(subcategory) },
-    {
-      icon: Trash2,
-      label: 'Remove',
-      onClick: () => onDelete(subcategory),
-      danger: true,
-      disabled: items.length > 0,
-    },
-  ];
-
   return (
     <div data-level="l2" data-id={subcategory.id}>
       <div
@@ -443,7 +438,7 @@ function SubcategorySection({
             onKeyDown={e => e.stopPropagation()}
           >
             <OverflowMenu
-              items={menuItems}
+              items={buildCategoryMenuItems(subcategory, items.length > 0, onRename, onDelete)}
               dividerBefore={['Remove']}
               size="sm"
               aria-label={`Actions for ${subcategory.name}`}
