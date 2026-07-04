@@ -9,7 +9,7 @@ import { groupTubesByRelevance } from './groupTubesByRelevance';
 import type { TubeData } from '@domains/tubes/types';
 import type { SearchResult, GroupedResult } from '@odysseus/shared-schemas';
 
-export interface HighlightedSegment {
+interface HighlightedSegment {
   text: string;
   isMatch: boolean;
 }
@@ -98,27 +98,11 @@ export function formatResultsForDisplay(
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
-  const tubes: TubeData[] = serverResult.data.map((tube: any) => ({
-    ...tube,
-    sample: {
-      ...tube.sample,
-      concentration:
-        typeof tube.sample.concentration === 'string'
-          ? tube.sample.concentration
-            ? Number(tube.sample.concentration)
-            : undefined
-          : tube.sample.concentration,
-    },
-  }));
-
-  let grouped: GroupedResult[];
-
-  if (serverResult.grouped && serverResult.grouped.length > 0) {
-    grouped = serverResult.grouped;
-  } else {
-    grouped = groupTubesByRelevance(tubes, query);
-  }
+  const tubes = serverResult.data;
+  const grouped =
+    serverResult.grouped && serverResult.grouped.length > 0
+      ? serverResult.grouped
+      : groupTubesByRelevance(tubes, query);
 
   return {
     tubes,

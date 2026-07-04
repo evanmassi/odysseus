@@ -93,8 +93,8 @@ export const CACHE_TIMES = {
   },
 
   SEARCH: {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
   },
 } as const;
 
@@ -273,7 +273,7 @@ export const DOMAIN_QUERY_OPTIONS = {
   search: {
     staleTime: CACHE_TIMES.SEARCH.staleTime,
     gcTime: CACHE_TIMES.SEARCH.gcTime,
-    refetchOnMount: true,
+    refetchOnMount: false,
   },
 
   statistics: {

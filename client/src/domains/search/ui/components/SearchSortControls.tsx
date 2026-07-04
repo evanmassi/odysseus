@@ -1,17 +1,18 @@
 /**
- * Sort Dropdown
+ * Sort Controls
  *
  * Field and direction controls for search result ordering.
  */
 
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
-import { useSearchStore, type SortField } from '@domains/search';
 import { Select, Tooltip } from '@shared/ui';
 import {
   headerSurface,
   HEADER_TOP_EDGE,
 } from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
+
+import { useSearchStore, type SortField } from '../../stores/searchStore';
 
 import type { SelectOption } from '@shared/ui';
 

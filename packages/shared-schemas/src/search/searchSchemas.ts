@@ -37,10 +37,10 @@ export const SearchFiltersSchema = z.object({
 export const AdvancedSearchOptionsSchema = z.object({
   query: z.string().optional(),
   filters: SearchFiltersSchema.optional(),
-  limit: z.number().min(1).max(1000).default(50).optional(),
-  offset: z.number().min(0).default(0).optional(),
+  limit: z.number().min(1).max(1000).default(50),
+  offset: z.number().min(0).default(0),
   sortBy: z.string().optional(),
-  sortOrder: z.enum(['asc', 'desc']).default('desc').optional(),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
 }).strict();
 
 const SearchPaginationSchema = z.object({
@@ -72,23 +72,13 @@ export const SearchResultSchema = z.object({
   metadata: SearchMetadataSchema.optional(),
 }).strict();
 
-// UI-layer result shape — distinct from SearchResultSchema (API response)
-export const SearchResultsSchema = z.object({
-  tubes: z.array(tubeDataSchema),
-  grouped: z.array(GroupedResultSchema),
-  matchedTerms: z.array(z.string()).optional(), // Terms for client-side highlighting (includes synonyms)
-  total: z.number(),
-  query: z.string(),
-  hasResults: z.boolean(),
-}).strict();
-
 export const SearchSuggestionsResponseSchema = z.object({
   suggestions: z.array(z.string()),
 }).strict();
 
 export type SearchFilters = z.infer<typeof SearchFiltersSchema>;
-export type AdvancedSearchOptions = z.infer<typeof AdvancedSearchOptionsSchema>;
+// Input shape: callers may omit limit/offset/sortOrder — the schema applies their defaults on parse.
+export type AdvancedSearchOptions = z.input<typeof AdvancedSearchOptionsSchema>;
 export type SearchResult = z.infer<typeof SearchResultSchema>;
-export type SearchResults = z.infer<typeof SearchResultsSchema>;
 export type GroupedResult = z.infer<typeof GroupedResultSchema>;
 export type SearchSuggestionsResponse = z.infer<typeof SearchSuggestionsResponseSchema>;

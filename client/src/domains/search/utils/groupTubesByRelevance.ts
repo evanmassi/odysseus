@@ -58,8 +58,6 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType = 'lotNumber';
     } else if (getMediaString(tube.sample).toLowerCase().includes(lowerQuery)) {
       groupType = 'media';
-    } else {
-      groupType = 'cellType';
     }
 
     const tankId = tube.location.tankId;

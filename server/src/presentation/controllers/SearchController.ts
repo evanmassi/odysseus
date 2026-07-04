@@ -48,8 +48,8 @@ export class SearchController extends BaseController {
       // tubes randomly breaks apart groups that should be whole.
       const searchCriteria = SearchCriteriaMapper.toTubeSearchCriteria(filters, {
         query: query || '',
-        limit: shouldGroup ? undefined : (limit || 50),
-        offset: shouldGroup ? undefined : (offset || 0),
+        limit: shouldGroup ? undefined : limit,
+        offset: shouldGroup ? undefined : offset,
         sortBy,
         sortOrder
       });
@@ -68,7 +68,7 @@ export class SearchController extends BaseController {
 
       const { tubes, matchedTerms } = searchResult;
 
-      const maxGroups = limit || 50;
+      const maxGroups = limit;
       const grouped = shouldGroup ? this.autoGroupTubes(tubes).slice(0, maxGroups) : undefined;
 
       const result = {
@@ -77,9 +77,9 @@ export class SearchController extends BaseController {
         matchedTerms,
         pagination: {
           total: tubes.length,
-          limit: shouldGroup ? tubes.length : (limit || 50),
-          offset: shouldGroup ? 0 : (offset || 0),
-          hasMore: shouldGroup ? false : tubes.length >= (limit || 50),
+          limit: shouldGroup ? tubes.length : limit,
+          offset: shouldGroup ? 0 : offset,
+          hasMore: shouldGroup ? false : tubes.length >= limit,
         },
         metadata: {
           query: query || '',

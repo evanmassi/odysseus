@@ -9,10 +9,12 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react
 import { SlidersHorizontal, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-import { useSearch, useSearchStore } from '@domains/search';
 import { logger } from '@infra/logger';
 import { useResolvedTheme } from '@shared/hooks';
 import { SearchInput, Tooltip } from '@shared/ui';
+
+import { useSearch } from '../../hooks/useSearch';
+import { useSearchStore } from '../../stores/searchStore';
 
 import { SearchFilterPanel } from './SearchFilterPanel';
 import { SearchResultsPanel } from './SearchResultsPanel';

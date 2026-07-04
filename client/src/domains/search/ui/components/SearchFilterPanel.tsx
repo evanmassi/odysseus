@@ -29,7 +29,6 @@ import {
 } from 'lucide-react';
 
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { useTubeFilterOptionsQuery } from '@domains/tubes/hooks';
 import { Chip, DatePicker, Tooltip } from '@shared/ui';
@@ -40,6 +39,8 @@ import {
 } from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
+
+import { useSearchStore } from '../../stores/searchStore';
 
 import type { Researcher, SearchFilters, TubeFilterableField } from '@odysseus/shared-schemas';
 
@@ -165,7 +166,7 @@ interface SearchFilterPanelProps {
   onClose?: () => void;
 }
 
-export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
+export function SearchFilterPanel({ onClose }: SearchFilterPanelProps) {
   const { filters, toggleFilterValue, setSearchFilters, clearFilters } = useSearchStore();
 
   const [openSections, setOpenSections] = useState({
@@ -282,7 +283,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
   const activeFilters = useMemo((): ActiveFilter[] => {
     const result: ActiveFilter[] = [];
 
-    // Location filters
     filters.tankIds?.forEach(tankId => {
       result.push({
         category: 'Location',
@@ -307,7 +307,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
       });
     });
 
-    // Sample filters
     for (const { filterKey } of SAMPLE_FILTER_GROUPS) {
       (filters[filterKey] as string[] | undefined)?.forEach(value => {
         result.push({
@@ -318,7 +317,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
       });
     }
 
-    // Researcher filters
     filters.researcherIds?.forEach(researcherId => {
       const researcher = researchers.find(r => r.id === researcherId);
       if (researcher) {
@@ -330,7 +328,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
       }
     });
 
-    // Date filters
     if (filters.dateFrom) {
       result.push({
         category: 'Date',
@@ -367,7 +364,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with Clear All and Close buttons - Fixed */}
       <div
         className="relative flex h-9 flex-shrink-0 items-center justify-between border-b border-line-soft px-4"
         style={{ background: headerSurface(true), boxShadow: HEADER_TOP_EDGE }}
@@ -403,9 +399,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
         </div>
       </div>
 
-      {/* Filter Sections - Scrollable */}
       <ScrollArea className="flex-1 p-1" tabIndex={-1}>
-        {/* LOCATION SECTION */}
         <CollapsibleSection
           title="Location"
           icon={<MapPin className="w-3.5 h-3.5" />}
@@ -414,7 +408,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
           onToggle={() => toggleSection('location')}
         >
           <div className="space-y-4">
-            {/* Tanks */}
             {filterOptions.tankIds.length > 0 && (
               <div>
                 <div className="mb-2 flex items-center gap-2 text-foreground/45">
@@ -437,7 +430,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
               </div>
             )}
 
-            {/* Racks */}
             {filterOptions.rackIds.length > 0 && (
               <div>
                 <div className="mb-2 flex items-center gap-2 text-foreground/45">
@@ -460,7 +452,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
               </div>
             )}
 
-            {/* Boxes */}
             {filterOptions.boxIds.length > 0 && (
               <div>
                 <div className="mb-2 flex items-center gap-2 text-foreground/45">
@@ -485,7 +476,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
           </div>
         </CollapsibleSection>
 
-        {/* SAMPLE SECTION */}
         <CollapsibleSection
           title="Sample"
           icon={<TestTubeDiagonal className="w-3.5 h-3.5" />}
@@ -521,7 +511,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
           </div>
         </CollapsibleSection>
 
-        {/* RESEARCHER SECTION */}
         {filterOptions.researchers.length > 0 && (
           <CollapsibleSection
             title="Researcher"
@@ -546,7 +535,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
           </CollapsibleSection>
         )}
 
-        {/* DATE RANGE SECTION */}
         <CollapsibleSection
           title="Date Range"
           icon={<Calendar className="w-3.5 h-3.5" />}
@@ -581,7 +569,6 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
         </CollapsibleSection>
       </ScrollArea>
 
-      {/* Active Filters Summary - Pinned Footer */}
       {hasActiveFilters && (
         <div className="flex-shrink-0 border-t border-line-soft bg-foreground/[0.02] px-3 py-2">
           <div className="flex flex-wrap gap-1 items-center">

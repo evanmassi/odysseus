@@ -9,12 +9,12 @@ import { useMemo } from 'react';
 import {
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
+  formatResearcherListDisplay,
   formatStorageDisplayName,
 } from '@odysseus/shared-schemas';
 import { Download, MapPin, TestTubeDiagonal } from 'lucide-react';
 
 import { useResearchersQuery } from '@domains/researchers';
-import { useSearch, useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
@@ -23,15 +23,16 @@ import { Button, Chip, LoadingSpinner, PanelEmptyState, Tooltip } from '@shared/
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
-import { highlightMatches } from '../../utils/searchFormatters';
+import { useSearch } from '../../hooks/useSearch';
+import { useSearchStore } from '../../stores/searchStore';
+import { highlightMatches, type DisplayResults } from '../../utils/searchFormatters';
 
 import { SearchSortControls } from './SearchSortControls';
 
-import type { SearchResults } from '@domains/search';
 import type { TubeData } from '@domains/tubes/types';
 
 interface SearchResultsPanelProps {
-  results: SearchResults | null;
+  results: DisplayResults | null;
   isSearching?: boolean;
   onClose?: () => void;
 }
@@ -41,7 +42,6 @@ export function SearchResultsPanel({
   isSearching = false,
   onClose,
 }: SearchResultsPanelProps) {
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { navigateToResult } = useSearch();
   const { currentTank } = useTubeStore();
   const { currentLab, getCurrentTanks, getBox } = useStorageData();
@@ -75,7 +75,6 @@ export function SearchResultsPanel({
 
       switch (sortField) {
         case 'location': {
-          // Sort by tankId → rackId → boxId → position
           const locationA = `${firstTubeA.location.tankId}:${firstTubeA.location.rackId}:${firstTubeA.location.boxId}:${firstTubeA.location.position}`;
           const locationB = `${firstTubeB.location.tankId}:${firstTubeB.location.rackId}:${firstTubeB.location.boxId}:${firstTubeB.location.position}`;
           compareValue = locationA.localeCompare(locationB);
@@ -99,8 +98,8 @@ export function SearchResultsPanel({
         case 'researcher': {
           const researcherA = researchers.find(r => r.id === firstTubeA.researcherId);
           const researcherB = researchers.find(r => r.id === firstTubeB.researcherId);
-          const nameA = researcherA ? `${researcherA.lastName}, ${researcherA.firstName}` : '';
-          const nameB = researcherB ? `${researcherB.lastName}, ${researcherB.firstName}` : '';
+          const nameA = researcherA ? formatResearcherListDisplay(researcherA) : '';
+          const nameB = researcherB ? formatResearcherListDisplay(researcherB) : '';
           compareValue = nameA.localeCompare(nameB);
           break;
         }
@@ -370,7 +369,6 @@ export function SearchResultsPanel({
 
     const box = getBox(tankId, rackId, boxId);
     if (!box?.gridConfig) {
-      // Fallback to numeric if box config not found
       return positions.length === 1 ? `Pos: ${positions[0]}` : `Pos: ${positions.join(', ')}`;
     }
 
@@ -458,7 +456,6 @@ export function SearchResultsPanel({
 
   return (
     <div className="flex-1 max-h-[600px] overflow-hidden relative flex flex-col">
-      {/* Loading overlay when refetching */}
       {isSearching && (
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
           <div className="flex items-center border border-line-soft bg-card px-3 py-1 shadow-[0_8px_20px_-12px_hsl(var(--recess)/0.7)]">
@@ -468,13 +465,10 @@ export function SearchResultsPanel({
         </div>
       )}
 
-      {/* Sort Controls */}
       <SearchSortControls />
 
-      {/* Scrollable Results Container */}
       <ScrollArea className="flex-1 p-4">
         <div className="flex min-h-full flex-col space-y-3">
-          {/* Results Header */}
           <div className="flex items-center justify-between border-b border-line-soft pb-2">
             <div className="type-label text-label-2xs text-foreground/60">
               <span className="tabular-nums text-foreground/85">{totalCount}</span> tube
@@ -495,7 +489,6 @@ export function SearchResultsPanel({
             )}
           </div>
 
-          {/* Grouped Results - New 4-line format */}
           {sortedGroups.length > 0 ? (
             <div className="space-y-2">
               {sortedGroups.map((group, index) => {
@@ -518,7 +511,6 @@ export function SearchResultsPanel({
                     className="w-full cursor-pointer border border-line-soft bg-card p-2.5 text-left transition-colors hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-[inset_3px_0_0_0_hsl(var(--primary)/0.5)]"
                     aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
                   >
-                    {/* Line 1: Cell Type with tube count badge */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <TubeIcon
@@ -543,11 +535,9 @@ export function SearchResultsPanel({
                       </Chip>
                     </div>
 
-                    {/* Detail lines with vertical indicator */}
                     <div className="flex mt-1">
                       <div className="ml-[11px] mr-2 border-l-2 border-line-soft"></div>
                       <div className="flex-1 space-y-0.5 text-caption text-secondary-foreground">
-                        {/* Donor Internal ID · Donor Source ID */}
                         {(donorInternal || donorSource) && (
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {donorInternal && <span>{highlightText(donorInternal, query)}</span>}
@@ -558,7 +548,6 @@ export function SearchResultsPanel({
                           </div>
                         )}
 
-                        {/* Lot Number · Date · Researcher */}
                         {(lotNumber || date || researcherName) && (
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {lotNumber && <span>{highlightText(lotNumber, query)}</span>}
@@ -575,7 +564,6 @@ export function SearchResultsPanel({
                       </div>
                     </div>
 
-                    {/* Line 5: Location */}
                     <div className="inline-flex items-center gap-1.5 text-caption text-muted-foreground mt-1">
                       <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
                       <span>{location}</span>

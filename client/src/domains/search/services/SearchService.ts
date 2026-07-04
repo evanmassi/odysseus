@@ -31,12 +31,10 @@ export class SearchService {
     const requestPayload = {
       query: validatedOptions.query,
       filters: normalizedFilters,
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- 0 limit is invalid, use default 50
-      limit: validatedOptions.limit || 50,
-      offset: validatedOptions.offset ?? 0,
+      limit: validatedOptions.limit,
+      offset: validatedOptions.offset,
       sortBy: validatedOptions.sortBy,
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty sortOrder is invalid, default to 'desc'
-      sortOrder: validatedOptions.sortOrder || 'desc',
+      sortOrder: validatedOptions.sortOrder,
     };
 
     return httpClient.postData('/search/tubes/advanced', requestPayload, SearchResultSchema);

@@ -104,13 +104,11 @@ export {
   SearchFiltersSchema,
   AdvancedSearchOptionsSchema,
   SearchResultSchema,
-  SearchResultsSchema,
   GroupedResultSchema,
   SearchSuggestionsResponseSchema,
   type SearchFilters,
   type AdvancedSearchOptions,
   type SearchResult,
-  type SearchResults,
   type GroupedResult,
   type SearchSuggestionsResponse,
 } from './search/searchSchemas';
