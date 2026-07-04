@@ -17,7 +17,7 @@ import { useStorageManagerContext } from '../../StorageManagerContext';
 import { RackRow } from './RackRow';
 import { RowMeta } from './RowMeta';
 
-import type { TankConfiguration } from '@domains/storage';
+import type { TankConfiguration } from '@odysseus/shared-schemas';
 
 interface TankRowProps {
   tank: TankConfiguration;

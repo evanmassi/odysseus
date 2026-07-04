@@ -7,8 +7,11 @@ import { useMemo } from 'react';
 
 import { getPersonInitials } from '@odysseus/shared-schemas';
 
-import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
-import type { UserDisplayInfo } from '@odysseus/shared-schemas';
+import type {
+  BoxConfiguration,
+  RackConfiguration,
+  UserDisplayInfo,
+} from '@odysseus/shared-schemas';
 
 export interface UserInfo {
   initials: string;

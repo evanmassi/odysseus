@@ -9,7 +9,8 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 
 import { Compass } from 'lucide-react';
 
-import { useLocationCounts, useTubesByRack } from '@domains/tubes/hooks';
+import { useRackTubesByBox } from '@domains/storage/hooks/useRackTubesByBox';
+import { useLocationCounts } from '@domains/tubes/hooks';
 import { HeaderStrip, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
@@ -420,22 +421,9 @@ interface RackBoxMinimapsProps {
   renderBox: (box: Box, tubes: RackTube[]) => React.ReactNode;
 }
 
-/** Loads one open rack's slim tube colors once and hands each box its own tubes. */
+/** Feeds each box its own tubes from the open rack's grouped fetch. */
 function RackBoxMinimaps({ tankId, rackId, boxes, renderBox }: RackBoxMinimapsProps) {
-  const { data: tubes = [] } = useTubesByRack(tankId, rackId);
-
-  const tubesByBox = useMemo(() => {
-    const grouped = new Map<string, RackTube[]>();
-    for (const tube of tubes) {
-      const list = grouped.get(tube.boxId);
-      if (list) {
-        list.push(tube);
-      } else {
-        grouped.set(tube.boxId, [tube]);
-      }
-    }
-    return grouped;
-  }, [tubes]);
+  const tubesByBox = useRackTubesByBox(tankId, rackId);
 
   return <>{boxes.map(box => renderBox(box, tubesByBox.get(box.id) ?? []))}</>;
 }

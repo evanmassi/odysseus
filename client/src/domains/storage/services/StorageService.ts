@@ -9,61 +9,16 @@ import {
   addRacksResponseSchema,
   addBoxesResponseSchema,
   bulkOperationResponseSchema,
-  positionDisplayPresetsResponseSchema,
   messageResponseSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
 
-import type {
-  StorageResponse,
-  PositionDisplayConfig,
-  POSITION_DISPLAY_PRESETS,
-  GridConfiguration,
-} from '@odysseus/shared-schemas';
+import type { StorageResponse, GridConfiguration } from '@odysseus/shared-schemas';
 
 export class StorageService {
   static async loadConfiguration(): Promise<StorageResponse> {
     return httpClient.getData('/storage', StorageResponseSchema);
-  }
-
-  static async getPositionDisplayPresets(): Promise<{
-    presets: typeof POSITION_DISPLAY_PRESETS;
-    description: Record<string, string>;
-  }> {
-    const response = await httpClient.getData(
-      '/storage/position-display-presets',
-      positionDisplayPresetsResponseSchema
-    );
-
-    return {
-      presets: response.presets as typeof POSITION_DISPLAY_PRESETS,
-      description: response.description as Record<string, string>,
-    };
-  }
-
-  /** Pass null to reset to system default (alphanumeric). */
-  static async updateBoxPositionDisplay(
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    positionDisplay: PositionDisplayConfig | null
-  ): Promise<void> {
-    await httpClient.put('/storage/box-position-display', {
-      tankId,
-      rackId,
-      boxId,
-      positionDisplay,
-    });
-  }
-
-  /** Boxes with custom overrides are not affected. Pass null to fall back to system default. */
-  static async updateLabDefaultPositionDisplay(
-    positionDisplay: PositionDisplayConfig | null
-  ): Promise<void> {
-    await httpClient.put('/storage/lab-position-display', {
-      positionDisplay,
-    });
   }
 
   /** Resource owners can set their own labels via canEditResource, not just admins. */
@@ -87,15 +42,8 @@ export class StorageService {
     await httpClient.put('/storage/system', { labName });
   }
 
-  // CQRS Tank Operations
-
-  static async addTank(name: string, location?: string): Promise<{ tankId: string }> {
-    const response = await httpClient.postData(
-      '/storage/tanks',
-      { name, location },
-      addTankResponseSchema
-    );
-    return { tankId: response.tankId };
+  static async addTank(name: string): Promise<{ tankId: string }> {
+    return httpClient.postData('/storage/tanks', { name }, addTankResponseSchema);
   }
 
   static async updateTank(
@@ -110,15 +58,8 @@ export class StorageService {
     await httpClient.delete(`/storage/tanks/${tankId}`);
   }
 
-  // CQRS Rack Operations
-
   static async addRacks(tankId: string, count: number): Promise<{ rackIds: string[] }> {
-    const response = await httpClient.postData(
-      `/storage/tanks/${tankId}/racks`,
-      { count },
-      addRacksResponseSchema
-    );
-    return { rackIds: response.rackIds };
+    return httpClient.postData(`/storage/tanks/${tankId}/racks`, { count }, addRacksResponseSchema);
   }
 
   static async updateRack(
@@ -144,31 +85,23 @@ export class StorageService {
     });
   }
 
-  // CQRS Box Operations
-
   static async addBoxes(
     tankId: string,
     rackId: string,
     count: number
   ): Promise<{ boxIds: string[] }> {
-    const response = await httpClient.postData(
+    return httpClient.postData(
       `/storage/tanks/${tankId}/racks/${rackId}/boxes`,
       { count },
       addBoxesResponseSchema
     );
-    return { boxIds: response.boxIds };
   }
 
   static async updateBox(
     tankId: string,
     rackId: string,
     boxId: string,
-    updates: {
-      name?: string;
-      gridConfig?: GridConfiguration;
-      positionDisplay?: PositionDisplayConfig | null;
-      isActive?: boolean;
-    }
+    updates: { gridConfig?: GridConfiguration }
   ): Promise<void> {
     await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`, updates);
   }
@@ -189,30 +122,26 @@ export class StorageService {
     });
   }
 
-  // CQRS Bulk Operations
-
   /** Unassign all resources from a user. Used when deactivating users. */
   static async bulkUnassignResources(
     fromUserId: string
   ): Promise<{ racksAffected: number; boxesAffected: number }> {
-    const response = await httpClient.postData(
+    return httpClient.postData(
       '/storage/bulk-unassign',
       { fromUserId },
       bulkOperationResponseSchema
     );
-    return { racksAffected: response.racksAffected, boxesAffected: response.boxesAffected };
   }
 
   static async bulkReassignResources(
     fromUserId: string,
     toUserId: string
   ): Promise<{ racksAffected: number; boxesAffected: number }> {
-    const response = await httpClient.postData(
+    return httpClient.postData(
       '/storage/bulk-reassign',
       { fromUserId, toUserId },
       bulkOperationResponseSchema
     );
-    return { racksAffected: response.racksAffected, boxesAffected: response.boxesAffected };
   }
 
   /** Initialize configuration for a fresh install. */

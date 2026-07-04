@@ -26,7 +26,7 @@ import { CustomLabelButton } from './CustomLabelButton';
 import { RackBoxMinimaps } from './RackBoxMinimaps';
 import { RowMeta } from './RowMeta';
 
-import type { RackConfiguration } from '@domains/storage';
+import type { RackConfiguration } from '@odysseus/shared-schemas';
 
 interface RackRowProps {
   rack: RackConfiguration;

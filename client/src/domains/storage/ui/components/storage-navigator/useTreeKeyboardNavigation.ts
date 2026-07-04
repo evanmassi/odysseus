@@ -8,6 +8,8 @@ import { useCallback, useState, useRef } from 'react';
 
 import type { VisibleTreeNode } from './storageNavigatorTypes';
 
+const TYPE_AHEAD_RESET_MS = 500;
+
 interface UseTreeKeyboardNavigationProps {
   visibleNodes: VisibleTreeNode[];
   focusedIndex: number;
@@ -158,10 +160,9 @@ export function useTreeKeyboardNavigation({
               focusNode(matchIndex);
             }
 
-            // Clear search string after 500ms
             searchTimeoutRef.current = setTimeout(() => {
               setSearchString('');
-            }, 500);
+            }, TYPE_AHEAD_RESET_MS);
           }
           break;
       }

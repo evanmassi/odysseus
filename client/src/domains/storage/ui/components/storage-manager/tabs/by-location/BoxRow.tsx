@@ -21,8 +21,7 @@ import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 import { CustomLabelButton } from './CustomLabelButton';
 import { RowMeta } from './RowMeta';
 
-import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
-import type { RackTube } from '@odysseus/shared-schemas';
+import type { BoxConfiguration, RackConfiguration, RackTube } from '@odysseus/shared-schemas';
 
 interface BoxRowProps {
   box: BoxConfiguration;
@@ -156,7 +155,6 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
                     <CustomLabelButton
                       onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
                       size={12}
-                      className="text-secondary-foreground hover:bg-shade/10 transition-colors p-1 rounded"
                     />
                   )}
                 </>

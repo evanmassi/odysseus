@@ -7,7 +7,11 @@ import { useMemo } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 
-import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
+import type {
+  BoxConfiguration,
+  RackConfiguration,
+  TankConfiguration,
+} from '@odysseus/shared-schemas';
 
 interface UseStoragePermissionsResult {
   canEditResource: (
@@ -57,10 +61,7 @@ export function useStoragePermissions(
     [currentUser, isDemo]
   );
 
-  const canManageStorage = useMemo(
-    () => currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin',
-    [currentUser?.role]
-  );
+  const canManageStorage = useMemo(() => isAdminRole(currentUser?.role), [currentUser?.role]);
 
   return {
     canEditResource,

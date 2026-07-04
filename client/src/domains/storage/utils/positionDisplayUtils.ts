@@ -40,13 +40,6 @@ function preferenceToConfig(
   return getDefaultPositionDisplay(gridRows, gridCols);
 }
 
-/**
- * 4-Tier Hierarchy (highest to lowest priority):
- * 1. Box override — full config stored per-box
- * 2. User preference — format-only, converted to full config on-demand
- * 3. Lab default — full config stored lab-wide
- * 4. System default — alphanumeric (built-in fallback)
- */
 function getResolvedPositionDisplay(
   tankId: string,
   rackId: string,

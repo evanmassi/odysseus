@@ -7,7 +7,7 @@
 import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
 import type { LabConfiguration } from '@odysseus/shared-schemas';
 
-export interface ResourceAssignment {
+interface ResourceAssignment {
   type: 'rack' | 'box';
   tankId: string;
   tankName: string;
@@ -20,7 +20,7 @@ export interface ResourceAssignment {
   isInherited?: boolean;
 }
 
-export interface UserAssignments {
+interface UserAssignments {
   userId: string | null;
   username: string;
   initials: string;

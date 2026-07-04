@@ -12,7 +12,7 @@ import { Button, Checkbox, Input } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import type { TankConfiguration } from '@domains/storage';
+import type { TankConfiguration } from '@odysseus/shared-schemas';
 
 interface TankEditModalProps {
   isOpen: boolean;
@@ -29,14 +29,12 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
   } = useEditModalForm(isOpen, initialTank);
 
   const handleSave = async () => {
-    if (editedTank.name.trim()) {
-      await onSave(editedTank.id, {
-        name: editedTank.name.trim(),
-        location: editedTank.location?.trim() || '',
-        isActive: editedTank.isActive,
-      });
-      onClose();
-    }
+    await onSave(editedTank.id, {
+      name: editedTank.name,
+      location: editedTank.location,
+      isActive: editedTank.isActive,
+    });
+    onClose();
   };
 
   const handleSubmit = createSubmitHandler(async () => {

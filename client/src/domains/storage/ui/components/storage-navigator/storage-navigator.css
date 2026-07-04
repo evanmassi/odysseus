@@ -93,6 +93,17 @@
 }
 
 /* Dark theme: restore the lit recipe (scanline + directional wash + bloom). */
+[data-theme='dark'] [data-tree-id='navigator'],
+[data-theme='dark'] [data-tree-id^='modal'] {
+  --scanline-layer: repeating-linear-gradient(
+    to bottom,
+    hsl(var(--scanline)) 0,
+    hsl(var(--scanline)) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
 [data-theme='dark']
   [data-tree-id='navigator']
   .storage-nav-button:not(.selected):not([aria-expanded='true']):hover,
@@ -100,13 +111,7 @@
   [data-tree-id^='modal']
   .storage-nav-button:not(.selected):not([aria-expanded='true']):hover {
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       90deg,
       hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
@@ -132,14 +137,7 @@
   .storage-nav-button[aria-expanded='true']:not(.selected) {
   border-color: hsl(var(--primary) / 0.5);
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(90deg, hsl(var(--primary) / 0.12), transparent 72%);
+    var(--scanline-layer), linear-gradient(90deg, hsl(var(--primary) / 0.12), transparent 72%);
   box-shadow:
     inset 2px 0 0 hsl(var(--primary)),
     0 0 12px -6px hsl(var(--primary) / 0.55);
@@ -149,13 +147,7 @@
 [data-theme='dark'] [data-tree-id^='modal'] .storage-nav-button.selected {
   border-color: hsl(var(--primary) / 0.6);
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       180deg,
       hsl(var(--primary) / var(--alpha-glow-tint)),
@@ -186,148 +178,73 @@
 
 /* Box minimaps (navigator box level) — same light/dark split as the nav buttons:
    light is a flat tint + soft leading stripe, dark restores the lit glow. Full
-   boxes swap the primary tone for the warning tone. */
-.storage-nav-minimap:not([aria-selected='true']):hover {
-  background: hsl(var(--primary) / 0.06);
-  box-shadow: inset 3px 0 0 0 hsl(var(--primary) / var(--alpha-hover-stripe));
+   boxes retint via --row-tone (primary → warning) so one rule set covers both. */
+.storage-nav-minimap {
+  --row-tone: var(--primary);
 }
 
-.storage-nav-minimap[data-full]:not([aria-selected='true']):hover {
-  background: hsl(var(--color-warning-bg) / 0.06);
-  box-shadow: inset 3px 0 0 0 hsl(var(--color-warning-bg) / var(--alpha-hover-stripe));
+.storage-nav-minimap[data-full] {
+  --row-tone: var(--color-warning-bg);
+}
+
+.storage-nav-minimap:not([aria-selected='true']):hover {
+  background: hsl(var(--row-tone) / 0.06);
+  box-shadow: inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe));
 }
 
 .storage-nav-minimap[aria-selected='true'] {
-  background: hsl(var(--primary) / 0.1);
-  box-shadow: inset 3px 0 0 0 hsl(var(--primary));
-}
-
-.storage-nav-minimap[data-full][aria-selected='true'] {
-  background: hsl(var(--color-warning-bg) / 0.1);
-  box-shadow: inset 3px 0 0 0 hsl(var(--color-warning-bg));
+  background: hsl(var(--row-tone) / 0.1);
+  box-shadow: inset 3px 0 0 0 hsl(var(--row-tone));
 }
 
 /* Light: hovering an already-selected box lifts the tint so it still reacts. */
 .storage-nav-minimap[aria-selected='true']:hover {
-  background: hsl(var(--primary) / 0.15);
-}
-
-.storage-nav-minimap[data-full][aria-selected='true']:hover {
-  background: hsl(var(--color-warning-bg) / 0.15);
+  background: hsl(var(--row-tone) / 0.15);
 }
 
 [data-theme='dark'] .storage-nav-minimap:not([aria-selected='true']):hover {
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       90deg,
-      hsl(var(--primary) / var(--alpha-hover-wash-1)) 0%,
-      hsl(var(--primary) / var(--alpha-hover-wash-2)) 18%,
-      hsl(var(--primary) / var(--alpha-hover-wash-3)) 48%,
-      hsl(var(--primary) / var(--alpha-hover-wash-4)) 78%,
-      hsl(var(--primary) / 0) 100%
+      hsl(var(--row-tone) / var(--alpha-hover-wash-1)) 0%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-2)) 18%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-3)) 48%,
+      hsl(var(--row-tone) / var(--alpha-hover-wash-4)) 78%,
+      hsl(var(--row-tone) / 0) 100%
     );
   box-shadow:
-    inset 3px 0 0 0 hsl(var(--primary) / var(--alpha-hover-stripe)),
-    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-hover-edge)),
-    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
-    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-hover-bloom-edge)),
-    0 0 22px -4px hsl(var(--primary) / var(--alpha-hover-bloom)),
-    0 0 50px 4px hsl(var(--primary) / var(--alpha-hover-bloom-far));
-}
-
-[data-theme='dark'] .storage-nav-minimap[data-full]:not([aria-selected='true']):hover {
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(
-      90deg,
-      hsl(var(--color-warning-bg) / var(--alpha-hover-wash-1)) 0%,
-      hsl(var(--color-warning-bg) / var(--alpha-hover-wash-2)) 18%,
-      hsl(var(--color-warning-bg) / var(--alpha-hover-wash-3)) 48%,
-      hsl(var(--color-warning-bg) / var(--alpha-hover-wash-4)) 78%,
-      hsl(var(--color-warning-bg) / 0) 100%
-    );
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--color-warning-bg) / var(--alpha-hover-stripe)),
-    inset 14px 0 36px -10px hsl(var(--color-warning-bg) / var(--alpha-hover-edge)),
-    inset 0 10px 16px -8px hsl(var(--color-warning-bg) / var(--alpha-hover-bloom-edge)),
-    inset 0 -10px 16px -8px hsl(var(--color-warning-bg) / var(--alpha-hover-bloom-edge)),
-    0 0 22px -4px hsl(var(--color-warning-bg) / var(--alpha-hover-bloom)),
-    0 0 50px 4px hsl(var(--color-warning-bg) / var(--alpha-hover-bloom-far));
+    inset 3px 0 0 0 hsl(var(--row-tone) / var(--alpha-hover-stripe)),
+    inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-hover-edge)),
+    inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
+    inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-hover-bloom-edge)),
+    0 0 22px -4px hsl(var(--row-tone) / var(--alpha-hover-bloom)),
+    0 0 50px 4px hsl(var(--row-tone) / var(--alpha-hover-bloom-far));
 }
 
 [data-theme='dark'] .storage-nav-minimap[aria-selected='true'] {
   background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
+    var(--scanline-layer),
     linear-gradient(
       180deg,
-      hsl(var(--primary) / var(--alpha-glow-tint)),
-      hsl(var(--primary) / var(--alpha-glow-tint))
+      hsl(var(--row-tone) / var(--alpha-glow-tint)),
+      hsl(var(--row-tone) / var(--alpha-glow-tint))
     ),
     linear-gradient(
       90deg,
-      hsl(var(--primary) / var(--alpha-glow-wash-1)) 0%,
-      hsl(var(--primary) / var(--alpha-glow-wash-2)) 18%,
-      hsl(var(--primary) / var(--alpha-glow-wash-3)) 48%,
-      hsl(var(--primary) / var(--alpha-glow-wash-4)) 78%,
-      hsl(var(--primary) / 0) 100%
+      hsl(var(--row-tone) / var(--alpha-glow-wash-1)) 0%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-2)) 18%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-3)) 48%,
+      hsl(var(--row-tone) / var(--alpha-glow-wash-4)) 78%,
+      hsl(var(--row-tone) / 0) 100%
     );
   box-shadow:
-    inset 3px 0 0 0 hsl(var(--primary)),
-    inset 14px 0 36px -10px hsl(var(--primary) / var(--alpha-glow-edge-inner)),
-    inset 0 10px 16px -8px hsl(var(--primary) / var(--alpha-glow-edge-bloom)),
-    inset 0 -10px 16px -8px hsl(var(--primary) / var(--alpha-glow-edge-bloom)),
-    0 0 32px -4px hsl(var(--primary) / var(--alpha-glow-outer-near)),
-    0 0 80px 4px hsl(var(--primary) / var(--alpha-glow-outer-far));
-}
-
-[data-theme='dark'] .storage-nav-minimap[data-full][aria-selected='true'] {
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      hsl(var(--scanline)) 0,
-      hsl(var(--scanline)) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(
-      180deg,
-      hsl(var(--color-warning-bg) / var(--alpha-glow-tint)),
-      hsl(var(--color-warning-bg) / var(--alpha-glow-tint))
-    ),
-    linear-gradient(
-      90deg,
-      hsl(var(--color-warning-bg) / var(--alpha-glow-wash-1)) 0%,
-      hsl(var(--color-warning-bg) / var(--alpha-glow-wash-2)) 18%,
-      hsl(var(--color-warning-bg) / var(--alpha-glow-wash-3)) 48%,
-      hsl(var(--color-warning-bg) / var(--alpha-glow-wash-4)) 78%,
-      hsl(var(--color-warning-bg) / 0) 100%
-    );
-  box-shadow:
-    inset 3px 0 0 0 hsl(var(--color-warning-bg)),
-    inset 14px 0 36px -10px hsl(var(--color-warning-bg) / var(--alpha-glow-edge-inner)),
-    inset 0 10px 16px -8px hsl(var(--color-warning-bg) / var(--alpha-glow-edge-bloom)),
-    inset 0 -10px 16px -8px hsl(var(--color-warning-bg) / var(--alpha-glow-edge-bloom)),
-    0 0 32px -4px hsl(var(--color-warning-bg) / var(--alpha-glow-outer-near)),
-    0 0 80px 4px hsl(var(--color-warning-bg) / var(--alpha-glow-outer-far));
+    inset 3px 0 0 0 hsl(var(--row-tone)),
+    inset 14px 0 36px -10px hsl(var(--row-tone) / var(--alpha-glow-edge-inner)),
+    inset 0 10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
+    inset 0 -10px 16px -8px hsl(var(--row-tone) / var(--alpha-glow-edge-bloom)),
+    0 0 32px -4px hsl(var(--row-tone) / var(--alpha-glow-outer-near)),
+    0 0 80px 4px hsl(var(--row-tone) / var(--alpha-glow-outer-far));
 }
 
 /* Dark: hovering an already-selected box intensifies the lit glow. */

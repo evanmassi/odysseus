@@ -6,7 +6,7 @@
 
 import { useMemo, useState, useCallback } from 'react';
 
-import { formatStorageDisplayName, type UserDisplayInfo } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { UsersRound, ChevronDown, UserRoundX, UserRoundPen } from 'lucide-react';
 
@@ -21,8 +21,8 @@ import { AssignmentDropdown } from './AssignmentDropdown';
 import { buildUserAssignments, buildRackGroups } from './buildUserAssignments';
 import { TreeLinesByUser } from './TreeLinesByUser';
 
-import type { LabConfiguration } from '@domains/storage';
 import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
+import type { LabConfiguration, UserDisplayInfo } from '@odysseus/shared-schemas';
 
 interface ByUserTabProps {
   lab: LabConfiguration;

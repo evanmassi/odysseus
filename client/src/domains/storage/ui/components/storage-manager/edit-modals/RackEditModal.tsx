@@ -11,7 +11,7 @@ import { AlertBanner, Button, Checkbox, Input } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import type { RackConfiguration } from '@domains/storage';
+import type { RackConfiguration } from '@odysseus/shared-schemas';
 
 interface RackEditModalProps {
   isOpen: boolean;

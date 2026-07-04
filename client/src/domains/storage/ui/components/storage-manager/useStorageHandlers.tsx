@@ -21,8 +21,7 @@ import {
 } from '@domains/storage';
 import { notifications } from '@shared/utils/notifications';
 
-import type { TankConfiguration } from '@domains/storage';
-import type { LabConfiguration } from '@odysseus/shared-schemas';
+import type { LabConfiguration, TankConfiguration } from '@odysseus/shared-schemas';
 
 function countAssignedResources(
   tanks: TankConfiguration[],

@@ -13,7 +13,7 @@ import { Button, Select } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import type { BoxConfiguration, GridConfiguration } from '@domains/storage';
+import type { BoxConfiguration, GridConfiguration } from '@odysseus/shared-schemas';
 
 interface BoxEditModalProps {
   isOpen: boolean;

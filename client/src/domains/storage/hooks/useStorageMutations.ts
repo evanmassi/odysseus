@@ -7,14 +7,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { useAuthStore, useLabId } from '@domains/authentication';
+import { useLabId } from '@domains/authentication';
 import { isConflictError, isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { notifications } from '@shared/utils/notifications';
 
 import { StorageService } from '../services/StorageService';
 
-import type { GridConfiguration, PositionDisplayConfig } from '@odysseus/shared-schemas';
+import type { GridConfiguration } from '@odysseus/shared-schemas';
 
 function handleConflictError(
   queryClient: ReturnType<typeof useQueryClient>,
@@ -45,16 +45,13 @@ function createMutationErrorHandler(
   };
 }
 
-// Tank Mutations
-
 export const useAddTankMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'addTank'],
-    mutationFn: ({ name, location }: { name: string; location?: string }) =>
-      StorageService.addTank(name, location),
+    mutationFn: ({ name }: { name: string }) => StorageService.addTank(name),
 
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
@@ -105,8 +102,6 @@ export const useDeleteTankMutation = () => {
     onError: createMutationErrorHandler(queryClient, labId, 'Delete tank', 'Failed to delete tank'),
   });
 };
-
-// Rack Mutations
 
 export const useAddRacksMutation = () => {
   const queryClient = useQueryClient();
@@ -201,8 +196,6 @@ export const useAssignRackMutation = () => {
   });
 };
 
-// Box Mutations
-
 export const useAddBoxesMutation = () => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -240,12 +233,7 @@ export const useUpdateBoxMutation = () => {
       tankId: string;
       rackId: string;
       boxId: string;
-      updates: {
-        name?: string;
-        gridConfig?: GridConfiguration;
-        positionDisplay?: PositionDisplayConfig | null;
-        isActive?: boolean;
-      };
+      updates: { gridConfig?: GridConfiguration };
     }) => StorageService.updateBox(tankId, rackId, boxId, updates),
 
     onSuccess: () => {
@@ -304,8 +292,6 @@ export const useAssignBoxMutation = () => {
     onError: createMutationErrorHandler(queryClient, labId, 'Assign box', 'Failed to assign box'),
   });
 };
-
-// Bulk Operations
 
 /** Used when deactivating users. */
 export const useBulkUnassignMutation = () => {
@@ -371,7 +357,7 @@ export const useBulkReassignMutation = () => {
 /** For fresh installs only. */
 export const useInitializeConfigurationMutation = () => {
   const queryClient = useQueryClient();
-  const labId = useAuthStore(s => s.user?.labId);
+  const labId = useLabId();
 
   return useMutation({
     mutationKey: ['storage', 'initialize'],
@@ -402,8 +388,6 @@ export const useInitializeConfigurationMutation = () => {
       : () => notifications.error('Failed to initialize configuration'),
   });
 };
-
-// Resource Label Mutations
 
 export const useUpdateResourceLabelMutation = () => {
   const queryClient = useQueryClient();

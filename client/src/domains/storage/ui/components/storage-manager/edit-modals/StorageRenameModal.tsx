@@ -11,7 +11,7 @@ import { useEditModalForm } from '@shared/hooks';
 import { Button, Input } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 
-import type { LabConfiguration } from '@domains/storage';
+import type { LabConfiguration } from '@odysseus/shared-schemas';
 
 interface StorageRenameModalProps {
   isOpen: boolean;

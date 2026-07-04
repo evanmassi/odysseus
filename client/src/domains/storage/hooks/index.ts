@@ -4,23 +4,12 @@
  * React Query hooks for storage equipment operations.
  */
 
-// Data hooks
-export { useStorageData, getStorageDataFromCache } from './useStorageData';
-
-// Query hooks
-export { useLoadStorageQuery } from './useStorageQueries';
-
-// Sync hooks
+export { useStorageData } from './useStorageData';
 export { useStorageSync } from './useStorageSync';
-
-// Location hooks
-export { useStorageLocationNames, type LocationDisplayNames } from './useStorageLocationNames';
-
-// Permission & ownership hooks
+export { useStorageLocationNames } from './useStorageLocationNames';
 export { useStoragePermissions } from './useStoragePermissions';
 export { useStorageOwnership } from './useStorageOwnership';
 
-// Equipment mutation hooks
 export {
   useAddTankMutation,
   useUpdateTankMutation,

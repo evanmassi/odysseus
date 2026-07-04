@@ -19,16 +19,13 @@ import type {
 import type { useQueryClient } from '@tanstack/react-query';
 
 interface StorageDataResult {
-  // Core data
   currentLab: LabConfiguration | null;
   systemConfig: SystemConfiguration | null;
 
-  // Loading states
   isLoading: boolean;
   isError: boolean;
   isFetched: boolean;
 
-  // Derived getters
   getCurrentTanks: () => TankConfiguration[];
   getCurrentRacks: (tankId?: string) => RackConfiguration[];
   getCurrentBoxes: (tankId: string, rackId: string) => BoxConfiguration[];
