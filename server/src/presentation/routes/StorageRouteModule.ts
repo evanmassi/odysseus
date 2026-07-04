@@ -8,7 +8,26 @@
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { StorageController } from '@presentation/controllers/StorageController';
 import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
+import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
+import {
+  TankIdParams,
+  RackIdParams,
+  BoxIdParams,
+  AddTankHttpSchema,
+  UpdateTankHttpSchema,
+  AddRacksHttpSchema,
+  UpdateRackHttpSchema,
+  AssignRackHttpSchema,
+  AddBoxesHttpSchema,
+  UpdateBoxHttpSchema,
+  AssignBoxHttpSchema,
+  UpdateResourceLabelHttpSchema,
+  UpdateSystemStorageHttpSchema,
+  InitializeStorageHttpSchema,
+  BulkUnassignHttpSchema,
+  BulkReassignHttpSchema,
+} from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
 
@@ -60,6 +79,7 @@ export class StorageRouteModule implements RouteModule {
 
     // Uses fine-grained canEditResource permission, not admin-only
     router.put('/resource-label',
+      validateBody(UpdateResourceLabelHttpSchema),
       this.storageController.updateResourceLabel.bind(this.storageController)
     );
 
@@ -67,6 +87,7 @@ export class StorageRouteModule implements RouteModule {
 
     router.put('/system',
       this.authMiddleware.requireAdmin,
+      validateBody(UpdateSystemStorageHttpSchema),
       this.storageController.updateSystemStorage.bind(this.storageController)
     );
 
@@ -96,11 +117,14 @@ export class StorageRouteModule implements RouteModule {
 
     router.post('/tanks',
       this.authMiddleware.requireAdmin,
+      validateBody(AddTankHttpSchema),
       this.storageController.addTank.bind(this.storageController)
     );
 
     router.put('/tanks/:tankId',
       this.authMiddleware.requireAdmin,
+      validateParams(TankIdParams),
+      validateBody(UpdateTankHttpSchema),
       this.storageController.updateTank.bind(this.storageController)
     );
 
@@ -115,11 +139,15 @@ export class StorageRouteModule implements RouteModule {
     // Supports bulk creation via count parameter
     router.post('/tanks/:tankId/racks',
       this.authMiddleware.requireAdmin,
+      validateParams(TankIdParams),
+      validateBody(AddRacksHttpSchema),
       this.storageController.addRacks.bind(this.storageController)
     );
 
     router.put('/tanks/:tankId/racks/:rackId',
       this.authMiddleware.requireAdmin,
+      validateParams(RackIdParams),
+      validateBody(UpdateRackHttpSchema),
       this.storageController.updateRack.bind(this.storageController)
     );
 
@@ -131,6 +159,8 @@ export class StorageRouteModule implements RouteModule {
 
     router.put('/tanks/:tankId/racks/:rackId/assign',
       this.authMiddleware.requireAdmin,
+      validateParams(RackIdParams),
+      validateBody(AssignRackHttpSchema),
       this.storageController.assignRack.bind(this.storageController)
     );
 
@@ -139,11 +169,15 @@ export class StorageRouteModule implements RouteModule {
     // Supports bulk creation via count parameter
     router.post('/tanks/:tankId/racks/:rackId/boxes',
       this.authMiddleware.requireAdmin,
+      validateParams(RackIdParams),
+      validateBody(AddBoxesHttpSchema),
       this.storageController.addBoxes.bind(this.storageController)
     );
 
     router.put('/tanks/:tankId/racks/:rackId/boxes/:boxId',
       this.authMiddleware.requireAdmin,
+      validateParams(BoxIdParams),
+      validateBody(UpdateBoxHttpSchema),
       this.storageController.updateBox.bind(this.storageController)
     );
 
@@ -155,6 +189,8 @@ export class StorageRouteModule implements RouteModule {
 
     router.put('/tanks/:tankId/racks/:rackId/boxes/:boxId/assign',
       this.authMiddleware.requireAdmin,
+      validateParams(BoxIdParams),
+      validateBody(AssignBoxHttpSchema),
       this.storageController.assignBox.bind(this.storageController)
     );
 
@@ -162,11 +198,13 @@ export class StorageRouteModule implements RouteModule {
 
     router.post('/bulk-unassign',
       this.authMiddleware.requireAdmin,
+      validateBody(BulkUnassignHttpSchema),
       this.storageController.bulkUnassignResources.bind(this.storageController)
     );
 
     router.post('/bulk-reassign',
       this.authMiddleware.requireAdmin,
+      validateBody(BulkReassignHttpSchema),
       this.storageController.bulkReassignResources.bind(this.storageController)
     );
 
@@ -175,6 +213,7 @@ export class StorageRouteModule implements RouteModule {
     router.post('/initialize',
       this.authMiddleware.requireAdmin,
       this.strictLimiter,
+      validateBody(InitializeStorageHttpSchema),
       this.storageController.initializeStorage.bind(this.storageController)
     );
   }

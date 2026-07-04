@@ -338,21 +338,6 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { resourceType, tankId, rackId, boxId, customLabel } = req.body;
 
-      if (!resourceType || !['rack', 'box'].includes(resourceType)) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'resourceType must be "rack" or "box"'));
-        return;
-      }
-
-      if (!tankId || !rackId) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'tankId and rackId are required'));
-        return;
-      }
-
-      if (resourceType === 'box' && !boxId) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'boxId is required for box label updates'));
-        return;
-      }
-
       const labId = this.extractLabId(req);
 
       const updatedStorage = await this.deps.updateResourceLabelHandler.handle({
@@ -395,15 +380,10 @@ export class StorageController extends BaseController {
   async addTank(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
-      const { name, location } = req.body;
-
-      if (!name) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'name is required'));
-        return;
-      }
+      const { name } = req.body;
 
       const labId = this.extractLabId(req);
-      const result = await this.deps.addTankHandler.handle({ userId, labId, name, location });
+      const result = await this.deps.addTankHandler.handle({ userId, labId, name });
 
       res.status(201).json(ResponseBuilder.success({ tankId: result.tankId }));
     } catch (error) {
@@ -594,11 +574,6 @@ export class StorageController extends BaseController {
       const userId = this.extractUserId(req);
       const { fromUserId } = req.body;
 
-      if (!fromUserId) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'fromUserId is required'));
-        return;
-      }
-
       const labId = this.extractLabId(req);
       const result = await this.deps.bulkUnassignHandler.handle({ userId, labId, fromUserId });
 
@@ -616,11 +591,6 @@ export class StorageController extends BaseController {
     try {
       const userId = this.extractUserId(req);
       const { fromUserId, toUserId } = req.body;
-
-      if (!fromUserId || !toUserId) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'fromUserId and toUserId are required'));
-        return;
-      }
 
       const labId = this.extractLabId(req);
       const result = await this.deps.bulkReassignHandler.handle({ userId, labId, fromUserId, toUserId });
@@ -641,11 +611,6 @@ export class StorageController extends BaseController {
     try {
       const userId = this.extractUserId(req);
       const { labName, tankCount, racksPerTank, boxesPerRack } = req.body;
-
-      if (!labName) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'labName is required'));
-        return;
-      }
 
       const labId = this.extractLabId(req);
 

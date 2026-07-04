@@ -29,7 +29,6 @@ export interface AddTankCommand {
   userId: string;
   labId: string;
   name: string;
-  location?: string;
 }
 
 export interface UpdateTankCommand {

@@ -32,6 +32,19 @@ import {
   equipmentBulkMaintenanceRequestSchema,
   equipmentBulkStatusRequestSchema,
   equipmentBulkRelocateRequestSchema,
+  addTankRequestSchema,
+  updateTankRequestSchema,
+  addRacksRequestSchema,
+  updateRackRequestSchema,
+  assignRackRequestSchema,
+  addBoxesRequestSchema,
+  updateBoxRequestSchema,
+  assignBoxRequestSchema,
+  updateResourceLabelRequestSchema,
+  updateSystemStorageRequestSchema,
+  initializeStorageRequestSchema,
+  bulkUnassignRequestSchema,
+  bulkReassignRequestSchema,
   createSupplyCategoryRequestSchema,
   updateSupplyCategoryRequestSchema,
   createSupplyLocationRequestSchema,
@@ -207,6 +220,25 @@ export const UpdateEquipmentMaintenanceLogHttpSchema = updateEquipmentMaintenanc
 export const EquipmentBulkMaintenanceHttpSchema = equipmentBulkMaintenanceRequestSchema;
 export const EquipmentBulkStatusHttpSchema = equipmentBulkStatusRequestSchema;
 export const EquipmentBulkRelocateHttpSchema = equipmentBulkRelocateRequestSchema;
+
+// Storage schemas
+
+export const TankIdParams = z.object({ tankId: z.string().min(1) });
+export const RackIdParams = z.object({ tankId: z.string().min(1), rackId: z.string().min(1) });
+export const BoxIdParams = z.object({ tankId: z.string().min(1), rackId: z.string().min(1), boxId: z.string().min(1) });
+export const AddTankHttpSchema = addTankRequestSchema;
+export const UpdateTankHttpSchema = updateTankRequestSchema;
+export const AddRacksHttpSchema = addRacksRequestSchema;
+export const UpdateRackHttpSchema = updateRackRequestSchema;
+export const AssignRackHttpSchema = assignRackRequestSchema;
+export const AddBoxesHttpSchema = addBoxesRequestSchema;
+export const UpdateBoxHttpSchema = updateBoxRequestSchema;
+export const AssignBoxHttpSchema = assignBoxRequestSchema;
+export const UpdateResourceLabelHttpSchema = updateResourceLabelRequestSchema;
+export const UpdateSystemStorageHttpSchema = updateSystemStorageRequestSchema;
+export const InitializeStorageHttpSchema = initializeStorageRequestSchema;
+export const BulkUnassignHttpSchema = bulkUnassignRequestSchema;
+export const BulkReassignHttpSchema = bulkReassignRequestSchema;
 
 // Supply schemas
 
