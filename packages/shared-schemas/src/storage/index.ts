@@ -40,6 +40,22 @@ export {
 } from './storageSchemas';
 
 export {
+  addTankRequestSchema,
+  updateTankRequestSchema,
+  addRacksRequestSchema,
+  updateRackRequestSchema,
+  assignRackRequestSchema,
+  addBoxesRequestSchema,
+  updateBoxRequestSchema,
+  assignBoxRequestSchema,
+  updateResourceLabelRequestSchema,
+  updateSystemStorageRequestSchema,
+  initializeStorageRequestSchema,
+  bulkUnassignRequestSchema,
+  bulkReassignRequestSchema,
+} from './storageRequestSchemas';
+
+export {
   formatStorageDisplayName,
 } from './storageFormatters';
 

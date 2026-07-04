@@ -198,6 +198,10 @@ export const supplyBarcodeResponseSchema = z.object({
   barcode: supplyBarcodeSchema,
 });
 
+export const supplyResolveBarcodeResponseSchema = z.object({
+  item: supplyItemSchema.nullable(),
+});
+
 // Transaction schemas
 
 export const supplyTransactionSchema = z.object({
@@ -290,10 +294,6 @@ export const updateSupplyDocumentRequestSchema = z.object({
 
 export const supplyDocumentResponseSchema = z.object({
   document: supplyDocumentSchema,
-});
-
-export const supplyDocumentListResponseSchema = z.object({
-  documents: z.array(supplyDocumentSchema),
 });
 
 // Packaging level schemas
@@ -401,6 +401,7 @@ export type SupplyLocation = z.infer<typeof supplyLocationSchema>;
 export type SupplyStock = z.infer<typeof supplyStockSchema>;
 export type SupplyBarcode = z.infer<typeof supplyBarcodeSchema>;
 export type SupplyTransaction = z.infer<typeof supplyTransactionSchema>;
+export type SupplyVoidTransactionResponse = z.infer<typeof supplyVoidTransactionResponseSchema>;
 export type SupplyDocument = z.infer<typeof supplyDocumentSchema>;
 export type SupplyItemDetail = z.infer<typeof supplyItemDetailResponseSchema>;
 export type CreateSupplyCategoryRequest = z.infer<typeof createSupplyCategoryRequestSchema>;
