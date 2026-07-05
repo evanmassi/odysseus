@@ -12,7 +12,6 @@ import {
 
 import { httpClient } from '@infra/api';
 
-/** Extended update type including password confirmation requirement. */
 export interface UpdatePersonProfileWithPassword extends UpdatePersonProfile {
   currentPassword: string;
 }

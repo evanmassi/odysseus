@@ -35,10 +35,3 @@ export const activeSessionSchema = z.object({
 });
 
 export type ActiveSession = z.infer<typeof activeSessionSchema>;
-
-export const revokeAllResponseSchema = z.object({
-  message: z.string(),
-  revokedCount: z.number(),
-});
-
-export type RevokeAllResponse = z.infer<typeof revokeAllResponseSchema>;

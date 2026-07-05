@@ -24,28 +24,15 @@ function useRevokeSessionMutation() {
   });
 }
 
-/** Returns number of sessions revoked. */
-function useRevokeAllSessionsMutation() {
-  return useMutation({
-    mutationFn: () => UserSessionService.revokeAllOtherSessions(),
-    meta: { invalidates: [queryKeys.users.sessions()] },
-  });
-}
-
 export function useUserSessions() {
   const sessionsQuery = useUserSessionsQuery();
   const revokeSessionMutation = useRevokeSessionMutation();
-  const revokeAllMutation = useRevokeAllSessionsMutation();
 
   return {
     sessions: sessionsQuery.data ?? [],
     isLoading: sessionsQuery.isLoading,
-    error: sessionsQuery.error,
-    refetch: sessionsQuery.refetch,
     revokeSession: revokeSessionMutation.mutate,
     revokeSessionAsync: revokeSessionMutation.mutateAsync,
     isRevoking: revokeSessionMutation.isPending,
-    revokeAll: revokeAllMutation.mutate,
-    isRevokingAll: revokeAllMutation.isPending,
   };
 }

@@ -3,16 +3,12 @@
  *
  * Password management and active session controls for authenticated users.
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
-import {
-  PasswordValidator,
-  type PasswordRequirementsResponse as PasswordConfig,
-} from '@odysseus/shared-schemas';
+import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound, Save } from 'lucide-react';
 
-import { authService } from '@domains/authentication/services/AuthService';
-import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useIsDemo, usePasswordRequirementsQuery } from '@domains/authentication';
 import { PasswordRequirements } from '@domains/authentication/ui/components/password/PasswordRequirements';
 import { usePasswordChange } from '@domains/users/hooks/usePasswordChange';
 import { logger } from '@infra/logger';
@@ -20,11 +16,11 @@ import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@share
 import { notifications } from '@shared/utils';
 import { getValidationState } from '@shared/utils/fieldValidation';
 
+import { DemoModeBanner } from '../DemoModeBanner';
 import { SessionListPanel } from '../SessionListPanel';
 
 export function SecurityTab() {
-  const user = useAuthStore(state => state.user);
-  const isDemo = user?.isDemo ?? false;
+  const isDemo = useIsDemo();
   const { changePassword, isChanging, reset } = usePasswordChange();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -36,22 +32,9 @@ export function SecurityTab() {
 
   const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null);
 
-  const [passwordRequirements, setPasswordRequirements] = useState<PasswordConfig | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  useEffect(() => {
-    if (isDemo) return;
-
-    const fetchRequirements = async () => {
-      try {
-        const requirements = await authService.getPasswordRequirements();
-        setPasswordRequirements(requirements);
-      } catch (error) {
-        logger.error('Failed to fetch password requirements', { error });
-      }
-    };
-    void fetchRequirements();
-  }, [isDemo]);
+  const { data: passwordRequirements } = usePasswordRequirementsQuery({ enabled: !isDemo });
 
   const newPasswordMeetsRequirements = useMemo(() => {
     if (!passwordRequirements || !newPassword) return false;
@@ -132,11 +115,7 @@ export function SecurityTab() {
     <ConsolePanel intensity="soft">
       <Subsection title="Password" index={1} accent>
         <div className="col-span-2 space-y-4 py-4">
-          {isDemo && (
-            <AlertBanner variant="demo" spacing="sm">
-              Account changes are not available in demo mode
-            </AlertBanner>
-          )}
+          <DemoModeBanner />
 
           <div className="space-y-1">
             <AuthInput

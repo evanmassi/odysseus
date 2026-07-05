@@ -110,7 +110,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     if (anyDirty) {
       modalService.showUnsavedConfirm({
         onConfirm: () => {
-          // Revert theme to original if it was changed
           if (localSettings.theme !== originalSettings.theme) {
             setPreference(originalSettings.theme ?? 'auto');
           }

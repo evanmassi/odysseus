@@ -27,10 +27,7 @@ export function usePasswordChange() {
 
   return {
     changePassword: mutation.mutate,
-    changePasswordAsync: mutation.mutateAsync,
     isChanging: mutation.isPending,
-    error: mutation.error,
-    isSuccess: mutation.isSuccess,
     reset: mutation.reset,
   };
 }

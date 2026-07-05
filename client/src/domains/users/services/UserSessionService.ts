@@ -3,13 +3,7 @@
  *
  * Handles listing and revoking user sessions.
  */
-import {
-  activeSessionSchema,
-  revokeAllResponseSchema,
-  type ActiveSession,
-} from '@odysseus/shared-schemas';
-
-export type { ActiveSession } from '@odysseus/shared-schemas';
+import { activeSessionSchema, type ActiveSession } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api';
 
@@ -23,14 +17,5 @@ export class UserSessionService {
   /** @throws Error if attempting to revoke current session */
   static async revokeSession(sessionId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${sessionId}`);
-  }
-
-  /** @returns Number of sessions revoked */
-  static async revokeAllOtherSessions(): Promise<number> {
-    const response = await httpClient.deleteWithData(
-      `${this.BASE_PATH}/all`,
-      revokeAllResponseSchema
-    );
-    return response.revokedCount;
   }
 }

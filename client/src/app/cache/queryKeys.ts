@@ -25,9 +25,10 @@ export const queryKeys = {
     presence: (labId = '') => [...queryKeys.users.all, labId, 'presence'] as const,
   },
 
-  // Auth (public — first-time setup detection; not lab-scoped)
+  // Auth (public — first-time setup detection, password policy; not lab-scoped)
   auth: {
     firstTime: () => ['auth', 'first-time'] as const,
+    passwordRequirements: () => ['auth', 'password-requirements'] as const,
   },
 
   // Admin (lab-scoped)

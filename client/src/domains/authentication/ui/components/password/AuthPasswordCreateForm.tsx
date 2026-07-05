@@ -5,16 +5,12 @@
  * (AuthLoginModal) and token-reset (AuthPasswordResetPage) flows.
  */
 
-import { useState, useEffect, useMemo, type ReactNode } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 
-import {
-  PasswordValidator,
-  type PasswordRequirementsResponse as PasswordConfig,
-} from '@odysseus/shared-schemas';
+import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound } from 'lucide-react';
 
-import { authService } from '@domains/authentication/services/AuthService';
-import { logger } from '@infra/logger';
+import { usePasswordRequirementsQuery } from '@domains/authentication/hooks/usePasswordRequirementsQuery';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';
@@ -45,19 +41,9 @@ export function AuthPasswordCreateForm({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [internalError, setInternalError] = useState<string | null>(null);
-  const [passwordConfig, setPasswordConfig] = useState<PasswordConfig | null>(null);
   const [newPasswordTouched, setNewPasswordTouched] = useState(false);
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const requirements = await authService.getPasswordRequirements();
-        setPasswordConfig(requirements);
-      } catch (err) {
-        logger.error('Failed to load password requirements', { error: err });
-      }
-    })();
-  }, []);
+  const { data: passwordConfig } = usePasswordRequirementsQuery();
 
   const passwordMeetsRequirements = useMemo(() => {
     if (!passwordConfig || !newPassword) return false;

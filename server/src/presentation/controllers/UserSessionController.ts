@@ -81,28 +81,4 @@ export class UserSessionController extends BaseController {
       handleControllerError(error, res, 'Failed to revoke session');
     }
   }
-
-  /** DELETE /api/users/me/sessions/all */
-  async revokeAllOtherSessions(req: Request, res: Response): Promise<void> {
-    try {
-      const user = this.getAuthenticatedUser(req);
-      const currentSessionId = req.sessionId;
-
-      const sessions = await this.deps.userSessionRepository.findActiveSessionsByUserId(user.id);
-      const otherSessionIds = sessions
-        .filter(s => s.id !== currentSessionId)
-        .map(s => s.id);
-
-      const revokedCount = await this.deps.userSessionRepository.bulkRevoke(otherSessionIds);
-
-      logger.debug('All other sessions revoked', { userId: user.id, revokedCount, requestId: req.requestId });
-
-      res.status(200).json(ResponseBuilder.success({
-        message: `${revokedCount} session(s) revoked successfully`,
-        revokedCount
-      }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to revoke sessions');
-    }
-  }
 }

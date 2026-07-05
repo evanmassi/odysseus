@@ -65,10 +65,6 @@ export class UserRouteModule implements RouteModule {
       this.sessionController.revokeSession.bind(this.sessionController)
     );
 
-    router.delete('/me/sessions/all',
-      this.sessionController.revokeAllOtherSessions.bind(this.sessionController)
-    );
-
     // USER LOOKUP
 
     router.post('/lookup',

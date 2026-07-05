@@ -10,16 +10,12 @@ import { useLabId } from '@domains/authentication';
 
 import { userLookupService } from '../services/UserLookupService';
 
-import type { UserDisplayInfo } from '@odysseus/shared-schemas';
-
 export function useUserLookupQuery(userIds: string[]) {
   const labId = useLabId();
 
   return useQuery({
     queryKey: queryKeys.users.lookup(labId, userIds),
-    queryFn: async (): Promise<UserDisplayInfo[]> => {
-      return userLookupService.lookupUsers(userIds);
-    },
+    queryFn: () => userLookupService.lookupUsers(userIds),
     enabled: userIds.length > 0,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,

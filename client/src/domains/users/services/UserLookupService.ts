@@ -7,7 +7,7 @@ import { usersLookupListSchema, type UserDisplayInfo } from '@odysseus/shared-sc
 
 import { httpClient } from '@infra/api';
 
-export class UserLookupService {
+class UserLookupService {
   async lookupUsers(userIds: string[]): Promise<UserDisplayInfo[]> {
     if (userIds.length === 0) return [];
 

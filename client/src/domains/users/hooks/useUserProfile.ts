@@ -11,12 +11,11 @@ import { PersonService, type UpdatePersonProfileWithPassword } from '../services
 
 import type { Person } from '@odysseus/shared-schemas';
 
-function useUserProfileQuery(options?: { enabled?: boolean }) {
+function useUserProfileQuery() {
   return useQuery({
     queryKey: queryKeys.users.profile(),
     queryFn: () => PersonService.getMyProfile(),
     staleTime: 5 * 60 * 1000,
-    enabled: options?.enabled ?? true,
     meta: {
       errorMessage: 'Failed to load profile',
     },
@@ -38,13 +37,11 @@ function useUpdateUserProfileMutation() {
 }
 
 export function useUserProfile() {
-  const { data: profile, isLoading, error } = useUserProfileQuery();
+  const { data: profile, isLoading } = useUserProfileQuery();
 
   return {
     profile,
     isLoading,
-    error,
-    hasProfile: !!profile,
   };
 }
 
@@ -53,9 +50,6 @@ export function useUserProfileActions() {
 
   return {
     updateProfile: updateProfileMutation.mutate,
-    updateProfileAsync: updateProfileMutation.mutateAsync,
     isUpdating: updateProfileMutation.isPending,
-    updateError: updateProfileMutation.error,
-    resetError: updateProfileMutation.reset,
   };
 }

@@ -7,19 +7,14 @@ import { useState, useEffect, useMemo } from 'react';
 
 import { UserRound, Mail, Building2, BriefcaseBusiness, KeyRound, Save } from 'lucide-react';
 
-import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useIsDemo } from '@domains/authentication';
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
 import { logger } from '@infra/logger';
-import {
-  AlertBanner,
-  AuthInput,
-  Button,
-  ConsolePanel,
-  LoadingSpinner,
-  Subsection,
-} from '@shared/ui';
+import { AuthInput, Button, ConsolePanel, LoadingSpinner, Subsection } from '@shared/ui';
 import { notifications } from '@shared/utils';
 import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
+
+import { DemoModeBanner } from '../DemoModeBanner';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
 
@@ -29,8 +24,7 @@ interface AccountTabProps {
 }
 
 export function AccountTab({ onDirtyChange }: AccountTabProps) {
-  const user = useAuthStore(state => state.user);
-  const isDemo = user?.isDemo ?? false;
+  const isDemo = useIsDemo();
   const { profile, isLoading } = useUserProfile();
   const { updateProfile, isUpdating } = useUserProfileActions();
 
@@ -134,11 +128,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
     <ConsolePanel intensity="soft">
       <Subsection title="Identity" index={1} accent>
         <div className="col-span-2 space-y-4 py-4">
-          {isDemo && (
-            <AlertBanner variant="demo" spacing="sm">
-              Account changes are not available in demo mode
-            </AlertBanner>
-          )}
+          <DemoModeBanner />
 
           <div className="grid grid-cols-2 gap-3">
             <AuthInput

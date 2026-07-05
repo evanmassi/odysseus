@@ -419,10 +419,8 @@ export {
   type UsersLookupList,
   userSessionSchema,
   activeSessionSchema,
-  revokeAllResponseSchema,
   type UserSession,
   type ActiveSession,
-  type RevokeAllResponse,
 } from './users';
 
 // Demo

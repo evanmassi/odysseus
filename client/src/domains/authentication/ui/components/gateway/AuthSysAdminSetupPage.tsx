@@ -5,14 +5,12 @@
  * Shown when no system admin exists (detected during bootstrap).
  */
 
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo } from 'react';
 
-import {
-  PasswordValidator,
-  type PasswordRequirementsResponse as PasswordConfig,
-} from '@odysseus/shared-schemas';
+import { PasswordValidator } from '@odysseus/shared-schemas';
 import { UserRound, KeyRound, Mail, ShieldCheck, Building2, BriefcaseBusiness } from 'lucide-react';
 
+import { usePasswordRequirementsQuery } from '@domains/authentication/hooks/usePasswordRequirementsQuery';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
@@ -40,7 +38,7 @@ export function AuthSysAdminSetupPage() {
 
   const firstNameRef = useRef<HTMLInputElement>(null);
 
-  const [passwordConfig, setPasswordConfig] = useState<PasswordConfig | null>(null);
+  const { data: passwordConfig } = usePasswordRequirementsQuery();
 
   const requireSetupKey = !!import.meta.env['VITE_REQUIRE_SETUP_KEY'];
 
@@ -50,18 +48,6 @@ export function AuthSysAdminSetupPage() {
   );
 
   const emailIsValid = useMemo(() => isValidEmail(email), [email]);
-
-  useEffect(() => {
-    async function loadPasswordRequirements() {
-      try {
-        const requirements = await authService.getPasswordRequirements();
-        setPasswordConfig(requirements);
-      } catch (error) {
-        logger.error('Failed to load password requirements', { error });
-      }
-    }
-    void loadPasswordRequirements();
-  }, []);
 
   const passwordIsValid = useMemo(() => {
     if (!passwordConfig || !password) return false;
