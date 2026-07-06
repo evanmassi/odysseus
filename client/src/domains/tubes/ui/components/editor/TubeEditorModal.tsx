@@ -21,7 +21,6 @@ import {
 import { Edit, Plus, Save, Trash2 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubesByLocation, useTube } from '@domains/tubes';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
@@ -35,7 +34,6 @@ import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConf
 import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
-import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { AlertBanner, Button, Checkbox, LoadingSpinner } from '@shared/ui';
 import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
@@ -46,6 +44,7 @@ import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
 import { countDirtyFields } from './countDirtyFields';
 import { TubeForm } from './TubeForm';
+import { useTubeFormOptions } from './useTubeFormOptions';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
@@ -84,22 +83,7 @@ interface EditModeContentProps {
 }
 
 function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
-  const { data: researchers = [] } = useActiveResearchersQuery();
-  const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: sourceValues = [] } = useLookupValuesQuery('source');
-  const { data: mediaValues = [] } = useLookupValuesQuery('media');
-  const speciesOptions = useMemo(
-    () => speciesValues.map(v => ({ value: v.value, label: v.value })),
-    [speciesValues]
-  );
-  const sourceOptions = useMemo(
-    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
-    [sourceValues]
-  );
-  const mediaOptions = useMemo(
-    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
-    [mediaValues]
-  );
+  const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
 
   const { data: tube, isLoading: isFetchingTube, isError } = useTube(tubeId);
 
@@ -308,7 +292,6 @@ function EditModeForm({
       contentClassName="p-5"
       locator={
         <TubeLocationDisplay
-          variant="strip"
           tankId={tube.location.tankId}
           rackId={tube.location.rackId}
           boxId={tube.location.boxId}
@@ -370,7 +353,6 @@ function EditModeForm({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-3"
       >
-        {/* Stale Form Warning Banner */}
         {showStaleWarning && (
           <AlertBanner
             variant="warning"
@@ -421,10 +403,7 @@ function EditModeForm({
 }
 
 function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEditorModalProps) {
-  const { data: researchers = [] } = useActiveResearchersQuery();
-  const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: sourceValues = [] } = useLookupValuesQuery('source');
-  const { data: mediaValues = [] } = useLookupValuesQuery('media');
+  const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
   // All selected positions are within a single box (tubeStore clears selection on box change).
   const firstPositionLocation = useMemo(() => {
     if (!selectedPositions || selectedPositions.size === 0) return undefined;
@@ -443,18 +422,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
   const updateTubeMutation = useUpdateTubeMutation();
   const pasteTubesMutation = usePasteTubesMutation();
 
-  const speciesOptions = useMemo(
-    () => speciesValues.map(v => ({ value: v.value, label: v.value })),
-    [speciesValues]
-  );
-  const sourceOptions = useMemo(
-    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
-    [sourceValues]
-  );
-  const mediaOptions = useMemo(
-    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
-    [mediaValues]
-  );
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
 
@@ -520,7 +487,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
     const boxGenericName = box?.name ?? `Box ${firstLocation.boxId}`;
     const boxName = formatStorageDisplayName(boxGenericName, box?.customLabel);
 
-    // Get box config for flexible position formatting
     const boxObj = getBox(firstLocation.tankId, firstLocation.rackId, firstLocation.boxId);
     const gridConfig = boxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
@@ -674,7 +640,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         const createCount = positionAnalysis.emptyPositions.length;
         const updateCount = positionAnalysis.occupiedPositions.length;
 
-        // Build position range display for notification
         const positionRange = bulkLocationDisplay?.positionRanges ?? '';
 
         if (createCount > 0 && updateCount > 0) {
@@ -725,7 +690,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
   const locatorNode =
     parsedPositions.length === 1 && parsedPositions[0] ? (
       <TubeLocationDisplay
-        variant="strip"
         tankId={parsedPositions[0].location.tankId}
         rackId={parsedPositions[0].location.rackId}
         boxId={parsedPositions[0].location.boxId}
@@ -733,7 +697,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
       />
     ) : parsedPositions.length > 1 && bulkLocationDisplay ? (
       <TubeLocationDisplay
-        variant="strip"
         tankName={bulkLocationDisplay.tankName}
         rackName={bulkLocationDisplay.rackName}
         boxName={bulkLocationDisplay.boxName}

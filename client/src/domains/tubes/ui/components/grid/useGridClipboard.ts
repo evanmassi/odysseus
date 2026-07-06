@@ -52,13 +52,9 @@ export interface UseGridClipboardReturn {
   paste: (options?: { targetStart?: number }) => Promise<void>;
   clipboard: {
     hasData: boolean;
-    count: number;
     cutPositions: Set<PositionKey>;
     copyPositions: Set<PositionKey>;
   };
-  getCopyLabel: () => string;
-  getCutLabel: () => string;
-  getPasteLabel: () => string;
 }
 
 export const useGridClipboard = ({
@@ -423,7 +419,6 @@ export const useGridClipboard = ({
   const clipboardState = useMemo(
     () => ({
       hasData: Boolean(clipboard?.tubes?.length),
-      count: clipboard?.tubes?.length ?? 0,
       cutPositions:
         clipboard?.operation === 'cut'
           ? new Set(
@@ -444,34 +439,10 @@ export const useGridClipboard = ({
     [clipboard, ctx]
   );
 
-  const getCopyLabel = useCallback(() => {
-    const count = selectedPositionsInThisBox().length;
-    if (count === 0) return 'Copy';
-    if (count === 1) return 'Copy Tube';
-    return `Copy ${count} Tubes`;
-  }, [selectedPositionsInThisBox]);
-
-  const getCutLabel = useCallback(() => {
-    const count = selectedPositionsInThisBox().length;
-    if (count === 0) return 'Cut';
-    if (count === 1) return 'Cut Tube';
-    return `Cut ${count} Tubes`;
-  }, [selectedPositionsInThisBox]);
-
-  const getPasteLabel = useCallback(() => {
-    const count = clipboard?.tubes?.length ?? 0;
-    if (count === 0) return 'Paste';
-    if (count === 1) return 'Paste Tube';
-    return `Paste ${count} Tubes`;
-  }, [clipboard]);
-
   return {
     copy,
     cut,
     paste,
     clipboard: clipboardState,
-    getCopyLabel,
-    getCutLabel,
-    getPasteLabel,
   };
 };

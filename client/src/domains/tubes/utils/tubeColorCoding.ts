@@ -4,7 +4,6 @@
  * LAB color space system for visually distinguishing tubes by donor, cell type, and lot.
  */
 
-import { adaptTubeDataForColorSystem } from '@domains/tubes/types/tubeColorCodingTypes';
 import { logger } from '@infra/logger';
 import {
   generateOptimalColorPalette,
@@ -32,6 +31,19 @@ interface TubeColorFields {
   cultureCondition?: string;
 }
 
+/** Projects a full tube onto the minimal fields the color system reads. */
+function adaptTubeDataForColorSystem(tubeData: TubeData): TubeColorFields {
+  return {
+    cellType: tubeData.sample?.cellType ?? '',
+    cellLine: tubeData.sample?.cellType,
+    donor: tubeData.sample?.donorInternalId ?? tubeData.sample?.donorSourceId,
+    donorInternalId: tubeData.sample?.donorInternalId,
+    donorSourceId: tubeData.sample?.donorSourceId,
+    lotNumber: tubeData.sample?.lotNumber,
+    cultureCondition: tubeData.sample?.cultureCondition,
+  };
+}
+
 interface LotStyle {
   color: string;
   pattern:
@@ -43,18 +55,6 @@ interface LotStyle {
     | 'circle'
     | 'double-stripe'
     | 'diamond';
-  shape?:
-    | 'square'
-    | 'circle'
-    | 'triangle'
-    | 'diamond'
-    | 'hexagon'
-    | 'star'
-    | 'plus'
-    | 'cross-shape'
-    | 'heart'
-    | 'pentagon';
-  size?: 'small' | 'medium' | 'large';
 }
 
 const donorColorPalette = generateOptimalColorPalette({
@@ -72,10 +72,9 @@ interface CellLineCategory {
 }
 
 export const cellLineCategories: CellLineCategory[] = [
-  // Lab's commonly used cell lines (muted versions)
   {
     name: 'jurkat',
-    color: '#B84A5A', // Muted crimson
+    color: '#B84A5A',
     patterns: [
       'jurkat',
       'jur-kat',
@@ -91,12 +90,12 @@ export const cellLineCategories: CellLineCategory[] = [
   },
   {
     name: 'nalm6',
-    color: '#4A9A8F', // Muted teal
+    color: '#4A9A8F',
     patterns: ['nalm6', 'nalm-6', 'nalm 6', 'nalm_6'],
   },
   {
     name: 'lncap',
-    color: '#7B7FC4', // Muted periwinkle
+    color: '#7B7FC4',
     patterns: [
       'lncap',
       // Strain suffixes
@@ -108,12 +107,12 @@ export const cellLineCategories: CellLineCategory[] = [
   },
   {
     name: '22rv1',
-    color: '#C9B86A', // Muted gold
+    color: '#C9B86A',
     patterns: ['22rv1', '22 rv1', '22-rv1', '22_rv1'],
   },
   {
     name: 'skbr3',
-    color: '#9A7AA8', // Muted lavender
+    color: '#9A7AA8',
     patterns: [
       'skbr3',
       'skbr-3',
@@ -128,7 +127,7 @@ export const cellLineCategories: CellLineCategory[] = [
   },
   {
     name: 'panc1',
-    color: '#C9986A', // Muted sandy tan
+    color: '#C9986A',
     patterns: [
       // PANC-1 (pancreatic carcinoma - most common meaning)
       'panc-1',
@@ -144,7 +143,7 @@ export const cellLineCategories: CellLineCategory[] = [
   },
   {
     name: 'mcf7',
-    color: '#3D5A73', // Muted slate blue
+    color: '#3D5A73',
     patterns: [
       'mcf7',
       'mcf-7',
@@ -155,7 +154,7 @@ export const cellLineCategories: CellLineCategory[] = [
   },
   {
     name: 'a549',
-    color: '#C47A65', // Muted coral
+    color: '#C47A65',
     patterns: [
       'a549',
       'a-549',
@@ -166,7 +165,7 @@ export const cellLineCategories: CellLineCategory[] = [
   },
   {
     name: 'h1299',
-    color: '#4A6A6A', // Muted dark teal
+    color: '#4A6A6A',
     patterns: [
       'h1299',
       'h-1299',
@@ -178,21 +177,19 @@ export const cellLineCategories: CellLineCategory[] = [
       'nci_h1299',
     ],
   },
-
-  // Additional common cell lines
   {
     name: 'hela',
-    color: '#8B6B4A', // Muted brown
+    color: '#8B6B4A',
     patterns: ['hela', 'he-la', 'he la', 'he_la'],
   },
   {
     name: 'k562',
-    color: '#A85A4A', // Muted terracotta red
+    color: '#A85A4A',
     patterns: ['k562', 'k-562', 'k 562', 'k_562'],
   },
   {
     name: 'u937',
-    color: '#5A8AAA', // Muted steel blue
+    color: '#5A8AAA',
     patterns: ['u937', 'u-937', 'u 937', 'u_937'],
   },
 ];
@@ -241,22 +238,22 @@ const additionalStyles: LotStyle[] = [
 lotIndicatorStyles.push(...additionalStyles);
 
 const conditionIndicatorColors = [
-  '#FF0000', // Pure Red
-  '#00AA00', // Green
-  '#0066FF', // Blue
-  '#FF8800', // Orange
-  '#8800FF', // Purple
-  '#00CCCC', // Cyan
-  '#FFCC00', // Yellow
-  '#FF0080', // Magenta
-  '#666666', // Dark Gray
-  '#CC6600', // Brown
-  '#008800', // Dark Green
-  '#000088', // Dark Blue
-  '#880000', // Dark Red
-  '#CC0088', // Dark Magenta
-  '#006666', // Dark Cyan
-  '#664400', // Olive Brown
+  '#FF0000',
+  '#00AA00',
+  '#0066FF',
+  '#FF8800',
+  '#8800FF',
+  '#00CCCC',
+  '#FFCC00',
+  '#FF0080',
+  '#666666',
+  '#CC6600',
+  '#008800',
+  '#000088',
+  '#880000',
+  '#CC0088',
+  '#006666',
+  '#664400',
 ];
 
 const conditionIndicatorStyles: LotStyle[] = conditionIndicatorColors.map(color => ({
@@ -715,7 +712,7 @@ export function getConditionStyleForBox(condition: string | undefined): LotStyle
 }
 
 /** Grid cells only have room for trailing digits — users identify donors by the last few characters. */
-export function formatIdForGrid(id: string, maxLength = 5): string {
+function formatIdForGrid(id: string, maxLength = 5): string {
   if (!id || id.trim() === '') return '';
 
   const cleanId = id.trim();

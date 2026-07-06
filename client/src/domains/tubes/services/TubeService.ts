@@ -162,8 +162,6 @@ export class TubeService {
     );
   }
 
-  // Tube locking
-
   static async lockTubes(request: LockTubesRequest): Promise<BulkLockResult> {
     return await httpClient.postData(`${this.BASE_PATH}/lock`, request, bulkLockResultSchema);
   }

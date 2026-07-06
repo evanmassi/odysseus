@@ -13,6 +13,9 @@ import { TubeService } from '@domains/tubes/services/TubeService';
 
 import type { TubeData } from '@domains/tubes/types';
 
+const TUBE_STALE_TIME = 5 * 60 * 1000; // WebSocket keeps data fresh
+const TUBE_GC_TIME = 10 * 60 * 1000;
+
 export const useTubesByLocation = (
   tankId: string,
   rackId: string,
@@ -25,8 +28,8 @@ export const useTubesByLocation = (
     queryKey: queryKeys.tubes.location(labId, tankId, rackId, boxId),
     queryFn: () => TubeService.fetchTubesByLocation(tankId, rackId, boxId),
     enabled: !!(tankId && rackId && boxId),
-    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
     ...options,
   });
 };
@@ -39,8 +42,8 @@ export const useTubesByRack = (tankId: string, rackId: string) => {
     queryKey: queryKeys.tubes.byRack(labId, tankId, rackId),
     queryFn: () => TubeService.fetchTubesByRack(tankId, rackId),
     enabled: !!(labId && tankId && rackId),
-    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
   });
 };
 
@@ -52,8 +55,8 @@ export const useLocationCounts = () => {
     queryKey: queryKeys.tubes.locationCounts(labId),
     queryFn: () => TubeService.fetchLocationCounts(),
     enabled: !!labId,
-    staleTime: 5 * 60 * 1000, // WebSocket keeps data fresh
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
   });
 };
 
@@ -85,21 +88,21 @@ export const useTube = (
     queryFn: () => TubeService.fetchTubeById(id),
     initialData,
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
     gcTime: 15 * 60 * 1000,
     ...options,
   });
 };
 
-export const useTubeFilterOptionsQuery = (fields: TubeFilterableField[]) => {
+export const useTubeFilterOptions = (fields: TubeFilterableField[]) => {
   const labId = useLabId();
 
   return useQuery({
     queryKey: queryKeys.tubes.filterOptions(labId, fields),
     queryFn: () => TubeService.fetchFilterOptions(fields),
     enabled: !!labId && fields.length > 0,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
   });
 };
 
@@ -119,8 +122,8 @@ export const useBulkTubes = (
       return TubeService.bulkFetchTubes(tubeIds);
     },
     enabled: tubeIds.length > 0,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: TUBE_STALE_TIME,
+    gcTime: TUBE_GC_TIME,
     ...options,
   });
 };

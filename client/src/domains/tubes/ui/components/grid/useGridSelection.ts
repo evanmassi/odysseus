@@ -30,10 +30,7 @@ export interface UseGridSelectionProps {
 }
 
 export interface SelectionCounts {
-  filledCount: number;
-  emptyCount: number;
   hasFilledSelection: boolean;
-  hasEmptySelection: boolean;
   isMixed: boolean;
   allFilled: boolean;
   allEmpty: boolean;
@@ -48,15 +45,12 @@ export interface UseGridSelectionReturn {
     event: React.MouseEvent | React.KeyboardEvent,
     gridSize?: number
   ) => void;
-  handleBulkSelection: (positions: number[]) => void;
   isPositionSelected: (position: number) => boolean;
   selectedPositionsInThisBox: () => number[];
   selectionAnalysis: SelectionCounts;
   clickTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
   actions: {
     setSelection: (position: number) => void;
-    addToSelection: (position: number) => void;
-    removeFromSelection: (position: number) => void;
     toggleInSelection: (position: number) => void;
     clearSelection: () => void;
   };
@@ -143,15 +137,6 @@ export const useGridSelection = ({
     [ctx, selectedPositions, onSelectionChange]
   );
 
-  const handleBulkSelection = useCallback(
-    (positions: number[]) => {
-      const positionKeys = positions.map(pos => toPositionKey(ctx, pos));
-      const newSelection = new Set(positionKeys);
-      onSelectionChange(newSelection);
-    },
-    [ctx, onSelectionChange]
-  );
-
   const isPositionSelected = useCallback(
     (position: number) => {
       const positionKey = toPositionKey(ctx, position);
@@ -205,10 +190,7 @@ export const useGridSelection = ({
     });
 
     return {
-      filledCount,
-      emptyCount,
       hasFilledSelection: filledCount > 0,
-      hasEmptySelection: emptyCount > 0,
       isMixed: filledCount > 0 && emptyCount > 0,
       allFilled: filledCount > 0 && emptyCount === 0,
       allEmpty: emptyCount > 0 && filledCount === 0,
@@ -223,18 +205,6 @@ export const useGridSelection = ({
       setSelection: (position: number) => {
         const positionKey = toPositionKey(ctx, position);
         onSelectionChange(new Set([positionKey]));
-      },
-      addToSelection: (position: number) => {
-        const positionKey = toPositionKey(ctx, position);
-        const newSelection = new Set(selectedPositions);
-        newSelection.add(positionKey);
-        onSelectionChange(newSelection);
-      },
-      removeFromSelection: (position: number) => {
-        const positionKey = toPositionKey(ctx, position);
-        const newSelection = new Set(selectedPositions);
-        newSelection.delete(positionKey);
-        onSelectionChange(newSelection);
       },
       toggleInSelection: (position: number) => {
         const positionKey = toPositionKey(ctx, position);
@@ -255,7 +225,6 @@ export const useGridSelection = ({
 
   return {
     handlePositionClick,
-    handleBulkSelection,
     isPositionSelected,
     selectedPositionsInThisBox,
     selectionAnalysis,

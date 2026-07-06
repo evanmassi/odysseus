@@ -6,12 +6,14 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 
-import { Notebook, SquarePen } from 'lucide-react';
+import { SquarePen } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
-import { AlertBanner, Button, Input } from '@shared/ui';
+import { AlertBanner, Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
+
+import { LockNoteField } from './LockNoteField';
 
 import type { TubeData } from '@domains/tubes/types';
 
@@ -107,34 +109,12 @@ export function TubeLockNoteModal({
           </AlertBanner>
         )}
 
-        <div>
-          <label
-            htmlFor="lockNote"
-            className="flex items-center gap-1.5 text-body-sm font-medium text-secondary-foreground mb-1"
-          >
-            <Notebook className="w-4 h-4" />
-            Lock Note (optional)
-          </label>
-          <div className="relative">
-            <Input
-              id="lockNote"
-              type="text"
-              value={lockNote}
-              onValueChange={setLockNote}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                hasMixedNotes ? 'Enter new note for all tubes...' : 'e.g., Project X - Donor 123'
-              }
-              maxLength={100}
-              fullWidth
-              inputClassName="pr-12"
-            />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-caption text-muted-foreground/50 pointer-events-none">
-              {lockNote.length}/100
-            </span>
-          </div>
-          <p className="text-caption text-muted-foreground mt-1">Provides context for the lock.</p>
-        </div>
+        <LockNoteField
+          value={lockNote}
+          onValueChange={setLockNote}
+          onKeyDown={handleKeyDown}
+          placeholder={hasMixedNotes ? 'Enter new note for all tubes...' : undefined}
+        />
 
         <div className="flex justify-end space-x-3 pt-2">
           <Button variant="secondary" onClick={onClose}>

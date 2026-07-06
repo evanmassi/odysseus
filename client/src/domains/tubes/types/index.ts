@@ -1,7 +1,7 @@
 /**
  * Tubes Domain Types
  *
- * Local bulk/color-coding types and re-exports from shared schemas.
+ * Local domain types and re-exports from shared schemas.
  */
 
 export type LockVariant = 'own' | 'shared' | 'admin-override' | 'other';
@@ -9,7 +9,6 @@ export type LockVariant = 'own' | 'shared' | 'admin-override' | 'other';
 export * from './bulkUpdateTypes';
 export * from './clipboardTypes';
 export * from './gridSelectionTypes';
-export * from './tubeColorCodingTypes';
 
 export type {
   TubeData,

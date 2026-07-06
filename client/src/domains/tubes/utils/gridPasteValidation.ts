@@ -4,13 +4,13 @@
  * Pure functions for validating paste operations across different grid configurations.
  */
 
-import type { GridConfiguration } from '@/domains/storage';
-import { getGridTotalPositions } from '@/domains/storage';
+import { getGridTotalPositions } from '@domains/storage';
 import { positionToCoordinates, coordinatesToPosition } from '@shared/utils/gridCoordinates';
 
+import type { GridConfiguration } from '@domains/storage';
 import type { SelectionMode } from '@domains/tubes/types/clipboardTypes';
 
-export interface PasteValidationResult {
+interface PasteValidationResult {
   isValid: boolean;
   warnings: string[];
   validTargetPositions: number[];

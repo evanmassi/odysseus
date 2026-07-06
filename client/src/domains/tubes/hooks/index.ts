@@ -11,7 +11,7 @@ export {
   useLocationCounts,
   useTube,
   useBulkTubes,
-  useTubeFilterOptionsQuery,
+  useTubeFilterOptions,
 } from './useTubeQueries';
 
 // Mutation hooks
@@ -23,8 +23,6 @@ export {
   useBulkDeleteTubesMutation,
   usePasteTubesMutation,
   useMoveTubesMutation,
-  type PasteTubesResult,
-  type MoveTubesResult,
 } from './useTubeMutations';
 
 // Lock mutation hooks
@@ -39,18 +37,7 @@ export {
 export { useTubeAccessControl } from './useTubeAccessControl';
 
 // Form hooks
-export {
-  useCreateTubeForm,
-  useEditTubeForm,
-  useTubeFormTransform,
-  type TubeFormSubmissionResult,
-  type SubmitContext,
-} from './useTubeForm';
+export { useCreateTubeForm, useEditTubeForm } from './useTubeForm';
 
 // Field resolver hooks
-export {
-  useTubeFieldResolver,
-  TUBE_FIELD_PATHS,
-  type FieldConflictAnalysis,
-  type TubeFieldResolverResult,
-} from './useTubeFieldResolver';
+export { useTubeFieldResolver, TUBE_FIELD_PATHS } from './useTubeFieldResolver';

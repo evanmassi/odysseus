@@ -14,7 +14,6 @@ import {
 } from '@odysseus/shared-schemas';
 import { XCircle, RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
 
-import { useActiveResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,
   useStorageLocationNames,
@@ -31,7 +30,6 @@ import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConfirmation';
 import { useUserSettings } from '@domains/users';
 import { logger } from '@infra/logger';
-import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import { AlertBanner, Button } from '@shared/ui';
 import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -44,6 +42,7 @@ import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 import { countDirtyFields } from './countDirtyFields';
 import { TubeBulkProgressModal } from './TubeBulkProgressModal';
 import { TubeForm } from './TubeForm';
+import { useTubeFormOptions } from './useTubeFormOptions';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useTubeFieldResolver';
@@ -130,22 +129,7 @@ function pickDirtyFields(
 }
 
 export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBulkEditorModalProps) {
-  const { data: researchers = [] } = useActiveResearchersQuery();
-  const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: sourceValues = [] } = useLookupValuesQuery('source');
-  const { data: mediaValues = [] } = useLookupValuesQuery('media');
-  const speciesOptions = useMemo(
-    () => speciesValues.map(v => ({ value: v.value, label: v.value })),
-    [speciesValues]
-  );
-  const sourceOptions = useMemo(
-    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
-    [sourceValues]
-  );
-  const mediaOptions = useMemo(
-    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
-    [mediaValues]
-  );
+  const { researchers, speciesOptions, sourceOptions, mediaOptions } = useTubeFormOptions();
 
   // Fetch specific tubes by ID - ensures fresh data regardless of cache state
   const { data: tubes = [], isLoading: isTubesLoading } = useBulkTubes(tubeIds);
@@ -270,7 +254,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const [progress, setProgress] = useState<BulkUpdateProgress>({
     current: 0,
     total: 0,
-    completed: 0,
     phase: 'preparing',
     errors: [],
   });
@@ -379,7 +362,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const handleRetryFailures = async () => {
     if (!result || result.success) return;
 
-    const failedTubeIds = result.errors.map(error => error.itemId);
+    const failedTubeIds = result.errors.map(error => error.tubeId);
 
     if (failedTubeIds.length === 0) {
       notifications.info('No retryable failures found');
@@ -450,7 +433,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
           setProgress({
             current: progress.completed,
             total: progress.total,
-            completed: progress.completed,
             currentTubeId: progress.currentId,
             phase: 'updating',
             errors: [],
@@ -583,7 +565,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         contentClassName="p-5"
         locator={
           <TubeLocationDisplay
-            variant="strip"
             tankName={tankName}
             rackName={rackName}
             boxName={boxName}
@@ -689,14 +670,9 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
                   className="text-body-sm text-danger-text flex items-start space-x-2"
                 >
                   <div className="font-mono text-data-sm bg-muted px-2 py-1 rounded">
-                    {error.itemId}
+                    {error.tubeId}
                   </div>
-                  <div className="flex-1">
-                    {error.error}
-                    {error.field && (
-                      <span className="ml-2 text-caption text-danger-text">({error.field})</span>
-                    )}
-                  </div>
+                  <div className="flex-1">{error.error}</div>
                 </div>
               ))}
               {result.errors.length > 5 && (
@@ -705,12 +681,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
                 </div>
               )}
             </div>
-
-            {result.duration && (
-              <div className="mt-2 text-caption text-secondary-foreground">
-                Completed in {(result.duration / 1000).toFixed(1)}s
-              </div>
-            )}
           </div>
         )}
       </BaseModal>

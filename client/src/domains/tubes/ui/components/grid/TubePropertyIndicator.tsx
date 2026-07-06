@@ -5,7 +5,7 @@
  */
 import React, { memo } from 'react';
 
-type IndicatorShape = 'square' | 'triangle' | 'corner-triangle';
+type IndicatorShape = 'square' | 'corner-triangle';
 type IndicatorPattern =
   | 'solid'
   | 'stripe'
@@ -22,7 +22,6 @@ interface TubePropertyIndicatorProps {
   pattern: IndicatorPattern;
   size: number;
   title?: string;
-  className?: string;
   /** Outline override; defaults to a contrast stroke against the shape's own fill. */
   strokeColor?: string;
 }
@@ -33,11 +32,6 @@ function getStrokeColor(fillColor: string): string {
   return lightColors.some(c => fillColor.toUpperCase().startsWith(c.slice(0, 7)))
     ? '#000000'
     : '#FFFFFF';
-}
-
-// Pattern color (inverse of stroke for visibility)
-function getPatternColor(fillColor: string): string {
-  return getStrokeColor(fillColor);
 }
 
 function renderPattern(
@@ -148,96 +142,11 @@ function renderPattern(
   }
 }
 
-function renderTrianglePattern(
-  pattern: IndicatorPattern,
-  patternColor: string,
-  viewBoxSize: number
-): React.ReactNode {
-  const center = viewBoxSize / 2;
-  // Triangle center is lower than geometric center due to shape
-  const triangleCenterY = viewBoxSize * 0.65;
-  const strokeWidth = 2;
-
-  switch (pattern) {
-    case 'solid':
-      return null;
-
-    case 'stripe':
-      return (
-        <line
-          x1={center}
-          y1={viewBoxSize * 0.35}
-          x2={center}
-          y2={viewBoxSize - 2}
-          stroke={patternColor}
-          strokeWidth={strokeWidth}
-        />
-      );
-
-    case 'dot':
-      return <circle cx={center} cy={triangleCenterY} r={2.5} fill={patternColor} />;
-
-    case 'cross':
-      return (
-        <>
-          <line
-            x1={center - 4}
-            y1={triangleCenterY}
-            x2={center + 4}
-            y2={triangleCenterY}
-            stroke={patternColor}
-            strokeWidth={strokeWidth}
-          />
-          <line
-            x1={center}
-            y1={triangleCenterY - 4}
-            x2={center}
-            y2={triangleCenterY + 4}
-            stroke={patternColor}
-            strokeWidth={strokeWidth}
-          />
-        </>
-      );
-
-    case 'circle':
-      return (
-        <circle
-          cx={center}
-          cy={triangleCenterY}
-          r={3}
-          fill="none"
-          stroke={patternColor}
-          strokeWidth={1.5}
-        />
-      );
-
-    case 'diamond':
-      return (
-        <rect
-          x={center - 2.5}
-          y={triangleCenterY - 2.5}
-          width={5}
-          height={5}
-          fill={patternColor}
-          transform={`rotate(45 ${center} ${triangleCenterY})`}
-        />
-      );
-
-    // Checkered and double-stripe don't work well in triangles - fall back to dot
-    case 'checkered':
-    case 'double-stripe':
-      return <circle cx={center} cy={triangleCenterY} r={2.5} fill={patternColor} />;
-
-    default:
-      return null;
-  }
-}
-
 export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
-  ({ shape, color, pattern, size, title, className, strokeColor }) => {
+  ({ shape, color, pattern, size, title, strokeColor }) => {
     const viewBoxSize = 16;
     const stroke = strokeColor ?? getStrokeColor(color);
-    const patternColor = getPatternColor(color);
+    const patternColor = getStrokeColor(color);
     const strokeWidth = 1.25;
 
     return (
@@ -245,7 +154,6 @@ export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
         width={size}
         height={size}
         viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
-        className={className}
         role="img"
         aria-label={title}
       >
@@ -265,7 +173,7 @@ export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
             />
             {renderPattern(pattern, patternColor, viewBoxSize)}
           </>
-        ) : shape === 'corner-triangle' ? (
+        ) : (
           <polygon
             points={`${viewBoxSize - strokeWidth / 2},${strokeWidth / 2} ${viewBoxSize - strokeWidth / 2},${viewBoxSize - strokeWidth / 2} ${strokeWidth / 2},${viewBoxSize - strokeWidth / 2}`}
             fill={color}
@@ -273,18 +181,6 @@ export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
             strokeWidth={strokeWidth}
             strokeLinejoin="round"
           />
-        ) : (
-          <>
-            {/* Triangle background (pointing up) */}
-            <polygon
-              points={`${viewBoxSize / 2},${strokeWidth} ${viewBoxSize - strokeWidth},${viewBoxSize - strokeWidth} ${strokeWidth},${viewBoxSize - strokeWidth}`}
-              fill={color}
-              stroke={stroke}
-              strokeWidth={strokeWidth}
-              strokeLinejoin="round"
-            />
-            {renderTrianglePattern(pattern, patternColor, viewBoxSize)}
-          </>
         )}
       </svg>
     );

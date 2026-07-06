@@ -271,33 +271,3 @@ export function useBulkEditTubeForm(config?: {
     // Note: submitTube not exposed - bulk editor uses bulk mutations directly
   };
 }
-
-export function useTubeFormTransform() {
-  const transformToFormData = useCallback((tubeData: TubeData): Partial<CreateTubeFormInput> => {
-    return {
-      sample: {
-        cellType: tubeData.sample.cellType,
-        donorInternalId: tubeData.sample.donorInternalId ?? '',
-        donorSourceId: tubeData.sample.donorSourceId ?? '',
-        concentration: tubeData.sample.concentration,
-        concentrationUnit: tubeData.sample.concentrationUnit,
-        date: tubeData.sample.date ?? '',
-        mediaType: tubeData.sample.mediaType ?? '',
-        mediaSupplements: tubeData.sample.mediaSupplements ?? '',
-        mediaSelection: tubeData.sample.mediaSelection ?? '',
-        cultureCondition: tubeData.sample.cultureCondition ?? '',
-        lotNumber: tubeData.sample.lotNumber ?? '',
-        species: tubeData.sample.species ?? '',
-        source: tubeData.sample.source ?? '',
-        catalogNumber: tubeData.sample.catalogNumber ?? '',
-        passageNumber: tubeData.sample.passageNumber ?? '',
-        notes: tubeData.sample.notes ?? '',
-      },
-      researcherId: tubeData.researcherId,
-    };
-  }, []);
-
-  return {
-    transformToFormData,
-  };
-}

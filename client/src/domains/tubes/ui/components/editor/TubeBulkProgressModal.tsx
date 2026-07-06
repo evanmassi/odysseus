@@ -4,7 +4,7 @@
  * Displays real-time progress during bulk tube update operations.
  */
 
-import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { XCircle, AlertCircle } from 'lucide-react';
 
 import { Button, LoadingSpinner } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
@@ -28,34 +28,15 @@ export function TubeBulkProgressModal({
 }: TubeBulkProgressModalProps) {
   if (!isOpen) return null;
 
-  const getPhaseLabel = (phase: BulkUpdateProgress['phase']) => {
-    switch (phase) {
-      case 'preparing':
-        return 'Preparing updates...';
-      case 'validating':
-        return 'Validating data...';
-      case 'updating':
-        return 'Updating tubes...';
-      case 'completing':
-        return 'Finalizing...';
-      default:
-        return 'Processing...';
-    }
-  };
+  const getPhaseLabel = (phase: BulkUpdateProgress['phase']) =>
+    phase === 'preparing' ? 'Preparing updates...' : 'Updating tubes...';
 
-  const getPhaseIcon = (phase: BulkUpdateProgress['phase']) => {
-    switch (phase) {
-      case 'preparing':
-      case 'validating':
-        return <LoadingSpinner size={20} className="text-info-text" />;
-      case 'updating':
-        return <LoadingSpinner size={20} className="text-primary" />;
-      case 'completing':
-        return <CheckCircle className="w-5 h-5 text-success-text" />;
-      default:
-        return <LoadingSpinner size={20} className="text-muted-foreground" />;
-    }
-  };
+  const getPhaseIcon = (phase: BulkUpdateProgress['phase']) => (
+    <LoadingSpinner
+      size={20}
+      className={phase === 'preparing' ? 'text-info-text' : 'text-primary'}
+    />
+  );
 
   const isIndeterminate = progress.total === 0;
   const progressPercentage = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;

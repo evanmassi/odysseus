@@ -279,7 +279,6 @@ export function TubeGrid({
               const isCut = gridController.clipboard.cutPositions.has(positionKey);
               const isCopied = gridController.clipboard.copyPositions.has(positionKey);
               const inDragPreview = dragSelection.dragPreview.has(positionKey);
-              const isKeyboardFocused = position === focusedPosition;
 
               const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
               const isLockedByCurrentUser =
@@ -303,7 +302,6 @@ export function TubeGrid({
                   isDragPreview={inDragPreview && !selected}
                   isCut={isCut}
                   isCopied={isCopied}
-                  _isKeyboardFocused={isKeyboardFocused}
                   gridConfig={gridConfig}
                   fontSize={fontSize}
                   onPositionClick={handlePositionClick}

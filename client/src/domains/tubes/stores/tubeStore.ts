@@ -6,9 +6,8 @@
 
 import { create } from 'zustand';
 
-import { type PositionKey } from '@domains/tubes/types/gridSelectionTypes';
-
 import type { SelectionMode } from '@domains/tubes/types/clipboardTypes';
+import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
 interface TubeStoreState {
   currentTank: string;
@@ -26,7 +25,6 @@ interface TubeStoreActions {
   setCurrentRack: (rackId: string) => void;
   setCurrentBox: (boxId: string) => void;
 
-  togglePosition: (position: PositionKey) => void;
   clearSelection: () => void;
   setSelection: (positions: Set<PositionKey>) => void;
   setSelectionAnchor: (position: number | null) => void;
@@ -75,17 +73,6 @@ export const useTubeStore = create<TubeStoreState & TubeStoreActions>((set, get)
     if (boxId !== currentBox) {
       set({ currentBox: boxId, selectedPositions: new Set<PositionKey>(), selectionAnchor: null });
     }
-  },
-
-  togglePosition: position => {
-    const { selectedPositions } = get();
-    const newSelection = new Set(selectedPositions);
-    if (newSelection.has(position)) {
-      newSelection.delete(position);
-    } else {
-      newSelection.add(position);
-    }
-    set({ selectedPositions: newSelection });
   },
 
   clearSelection: () => set({ selectedPositions: new Set<PositionKey>(), selectionAnchor: null }),

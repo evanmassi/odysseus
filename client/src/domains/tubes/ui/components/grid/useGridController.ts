@@ -8,7 +8,6 @@ import { useMemo, useState, useCallback } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useTubesByLocation } from '@domains/tubes/hooks';
-import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey, parsePositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConfirmation';
 import {
@@ -70,7 +69,6 @@ export const useGridController = ({
 
   const {
     handlePositionClick,
-    handleBulkSelection,
     isPositionSelected,
     selectedPositionsInThisBox,
     selectionAnalysis,
@@ -85,24 +83,22 @@ export const useGridController = ({
     lockContext,
   });
 
-  const { copy, cut, paste, clipboard, getCopyLabel, getCutLabel, getPasteLabel } =
-    useGridClipboard({
-      ctx,
-      tubes,
-      selectedPositionsInThisBox,
-      resolveTubeIdAtPosition: resolveTube,
-      onDeleteTubes,
-      onPasteTubes,
-      onMoveTubes,
-      onSelectionChange,
-      currentUserId,
-      isViewOnlySpace,
-      isAdmin,
-      hasResearcherProfile,
-    });
+  const { copy, cut, paste, clipboard } = useGridClipboard({
+    ctx,
+    tubes,
+    selectedPositionsInThisBox,
+    resolveTubeIdAtPosition: resolveTube,
+    onDeleteTubes,
+    onPasteTubes,
+    onMoveTubes,
+    onSelectionChange,
+    currentUserId,
+    isViewOnlySpace,
+    isAdmin,
+    hasResearcherProfile,
+  });
 
   const modalService = useModalStore();
-  const setMousePositionStore = useGridClipboardStore(state => state.setMousePosition);
 
   const [contextMenu, setContextMenu] = useState({
     isOpen: false,
@@ -378,13 +374,6 @@ export const useGridController = ({
     onShareAccess(sharableTubeIds);
   }, [lockContext, getFilteredTubeIds, onShareAccess, guardNoResearcherProfile]);
 
-  const setMousePosition = useCallback(
-    (position: { x: number; y: number } | null) => {
-      setMousePositionStore(position);
-    },
-    [setMousePositionStore]
-  );
-
   const showContextMenu = useCallback((x: number, y: number) => {
     setContextMenu({ isOpen: true, x, y });
   }, []);
@@ -426,14 +415,8 @@ export const useGridController = ({
   return {
     handlePositionClick,
     handlePositionDoubleClick,
-    handleBulkSelection,
     isPositionSelected,
-    setMousePosition,
     openModal,
-    copy,
-    cut,
-    paste,
-    delete: deleteSelectedTubes,
     actions,
     clipboard,
     contextMenu: {
@@ -446,15 +429,10 @@ export const useGridController = ({
     selection: {
       hasFilledSelection: selectionAnalysis.hasFilledSelection,
       isMixed: selectionAnalysis.isMixed,
-      filledCount: selectionAnalysis.filledCount,
-      emptyCount: selectionAnalysis.emptyCount,
       lockableCount: selectionAnalysis.lockableCount,
       unlockableCount: selectionAnalysis.unlockableCount,
       sharableCount: selectionAnalysis.sharableCount,
       isUnlocking,
     },
-    getCopyLabel,
-    getCutLabel,
-    getPasteLabel,
   };
 };

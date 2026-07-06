@@ -81,21 +81,12 @@ export interface GridControllerReturn {
     gridSize?: number
   ) => void;
   handlePositionDoubleClick: (position: number) => void;
-  handleBulkSelection: (positions: number[]) => void;
   isPositionSelected: (position: number) => boolean;
-  setMousePosition: (position: { x: number; y: number } | null) => void;
 
   openModal: () => void;
 
-  copy: () => Promise<void>;
-  cut: () => Promise<void>;
-  paste: (options?: { targetStart?: number }) => Promise<void>;
-  delete: () => Promise<void>;
-
   actions: {
     setSelection: (position: number) => void;
-    addToSelection: (position: number) => void;
-    removeFromSelection: (position: number) => void;
     toggleInSelection: (position: number) => void;
     clearSelection: () => void;
     copy: () => Promise<void>;
@@ -110,7 +101,6 @@ export interface GridControllerReturn {
 
   clipboard: {
     hasData: boolean;
-    count: number;
     cutPositions: Set<PositionKey>;
     copyPositions: Set<PositionKey>;
   };
@@ -126,15 +116,9 @@ export interface GridControllerReturn {
   selection: {
     hasFilledSelection: boolean;
     isMixed: boolean;
-    filledCount: number;
-    emptyCount: number;
     lockableCount?: number;
     unlockableCount?: number;
     sharableCount?: number;
     isUnlocking?: boolean;
   };
-
-  getCopyLabel: () => string;
-  getCutLabel: () => string;
-  getPasteLabel: () => string;
 }

@@ -46,7 +46,6 @@ interface TubeGridCellProps {
   isDragPreview?: boolean; // Visual preview only, no animation
   isCut: boolean;
   isCopied: boolean;
-  _isKeyboardFocused: boolean;
   gridConfig: GridConfiguration;
   fontSize: { cellFont: number; donorFont: number; positionFont: number };
   onPositionClick: (position: number, event: React.MouseEvent | React.KeyboardEvent) => void;
@@ -75,7 +74,6 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     isDragPreview = false,
     isCut,
     isCopied,
-    _isKeyboardFocused: _,
     gridConfig,
     fontSize,
     onPositionClick,

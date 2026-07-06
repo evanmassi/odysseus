@@ -25,7 +25,6 @@ export interface UseGridDragSelectionProps {
 }
 
 export interface UseGridDragSelectionReturn {
-  isDragging: boolean;
   dragPreview: Set<PositionKey>;
   handleMouseDown: (position: number, event: React.MouseEvent) => void;
   handleMouseMove: (position: number) => void;
@@ -147,7 +146,6 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
   }, [isDragging, dragPreview, onSelectionChange]);
 
   return {
-    isDragging,
     dragPreview,
     handleMouseDown,
     handleMouseMove,

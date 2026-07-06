@@ -258,7 +258,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       <HeaderStrip className="px-4 py-2.5">
         <div className="space-y-2">
           <TubeLocationDisplay
-            variant="strip"
             tankName={tankName}
             rackName={rackName}
             boxName={boxName}
@@ -341,6 +340,26 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const getDisplayValue = (path: string): string | number | null | undefined => {
     return fieldAnalysis.values[path];
   };
+
+  const renderDonorRow = (
+    label: string,
+    value: string | number | null | undefined,
+    path: string,
+    kind: 'internal' | 'source'
+  ) =>
+    value && !isFieldMixed(path) ? (
+      <DetailRow label={label}>
+        <button
+          type="button"
+          onClick={() => openDonorRegistry(value as string, kind)}
+          className="cursor-pointer break-all text-right text-body font-medium text-card-foreground hover:text-primary hover:underline"
+        >
+          {value}
+        </button>
+      </DetailRow>
+    ) : (
+      <DetailRow label={label} value={value} isMixed={isFieldMixed(path)} />
+    );
 
   const cellType = getDisplayValue('sample.cellType');
   const donorInternalId = getDisplayValue('sample.donorInternalId');
@@ -563,40 +582,8 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       <div>
         <SectionHeader title="Donor information" size="sm" />
         <div>
-          {donorInternalId && !isFieldMixed('sample.donorInternalId') ? (
-            <DetailRow label="Internal ID">
-              <button
-                type="button"
-                onClick={() => openDonorRegistry(donorInternalId as string, 'internal')}
-                className="cursor-pointer break-all text-right text-body font-medium text-card-foreground hover:text-primary hover:underline"
-              >
-                {donorInternalId}
-              </button>
-            </DetailRow>
-          ) : (
-            <DetailRow
-              label="Internal ID"
-              value={donorInternalId}
-              isMixed={isFieldMixed('sample.donorInternalId')}
-            />
-          )}
-          {donorSourceId && !isFieldMixed('sample.donorSourceId') ? (
-            <DetailRow label="Source ID">
-              <button
-                type="button"
-                onClick={() => openDonorRegistry(donorSourceId as string, 'source')}
-                className="cursor-pointer break-all text-right text-body font-medium text-card-foreground hover:text-primary hover:underline"
-              >
-                {donorSourceId}
-              </button>
-            </DetailRow>
-          ) : (
-            <DetailRow
-              label="Source ID"
-              value={donorSourceId}
-              isMixed={isFieldMixed('sample.donorSourceId')}
-            />
-          )}
+          {renderDonorRow('Internal ID', donorInternalId, 'sample.donorInternalId', 'internal')}
+          {renderDonorRow('Source ID', donorSourceId, 'sample.donorSourceId', 'source')}
         </div>
       </div>
 

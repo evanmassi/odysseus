@@ -385,7 +385,6 @@ export const useBulkUpdateTubesMutation = (
       const result = await TubeService.bulkUpdateTubes(bulkUpdateItems);
 
       const errors = result.failed.map(f => ({
-        itemId: f.id,
         tubeId: f.id,
         error: f.error,
       }));
@@ -394,17 +393,8 @@ export const useBulkUpdateTubesMutation = (
         success: result.failed.length === 0,
         totalProcessed: tubeIds.length,
         successCount: result.updated.length,
-        successful: result.updated.length,
-        failed: result.failed.length,
-        errorCount: result.failed.length,
-        total: tubeIds.length,
         results: [],
-        errors: errors,
-        duration: 0,
-        response: {
-          updated: result.updated.length,
-          errors: errors,
-        },
+        errors,
       } as BulkUpdateResult;
     },
 
@@ -465,7 +455,6 @@ export const useBulkDeleteTubesMutation = (
 
       const successfulIds = result.deleted;
       const errors = result.failed.map(f => ({
-        itemId: f.id,
         tubeId: f.id,
         error: f.error,
       }));
@@ -474,16 +463,11 @@ export const useBulkDeleteTubesMutation = (
         success: result.failed.length === 0,
         totalProcessed: tubeIds.length,
         successCount: successfulIds.length,
-        successful: successfulIds.length,
-        failed: result.failed.length,
-        errorCount: result.failed.length,
-        total: tubeIds.length,
         results: [
           ...successfulIds.map(id => ({ id, success: true })),
           ...result.failed.map(f => ({ id: f.id, success: false, error: f.error })),
         ],
         errors,
-        duration: 0,
       };
     },
 

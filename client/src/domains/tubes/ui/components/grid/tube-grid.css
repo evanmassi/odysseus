@@ -86,17 +86,6 @@
   animation: syncedGlowPulse 2.5s ease-in-out infinite;
 }
 
-/* Legacy fallback for browsers without @property support */
-@keyframes glowPulse {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
 /* Respect user's reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .tube-position.freshly-selected {

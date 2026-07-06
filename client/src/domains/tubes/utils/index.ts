@@ -1,12 +1,7 @@
 /**
  * Tubes Domain Utilities
  *
- * Grid navigation, clipboard, access control, and color-coding helpers.
+ * Color helper surfaced for the storage navigator's box minimaps.
  */
 
-export * from './gridClipboard';
-export * from './gridNavigation';
-export * from './gridPasteValidation';
-export * from './removeTubeConfirmation';
-export * from './tubeAccessControl';
-export * from './tubeColorCoding';
+export { getTubeColorFromFields } from './tubeColorCoding';

@@ -30,7 +30,7 @@ import {
 
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData } from '@domains/storage';
-import { useTubeFilterOptionsQuery } from '@domains/tubes/hooks';
+import { useTubeFilterOptions } from '@domains/tubes/hooks';
 import { Chip, DatePicker, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import {
@@ -176,7 +176,7 @@ export function SearchFilterPanel({ onClose }: SearchFilterPanelProps) {
     date: false,
   });
 
-  const { data: filterOptionsData } = useTubeFilterOptionsQuery(FILTER_FIELDS);
+  const { data: filterOptionsData } = useTubeFilterOptions(FILTER_FIELDS);
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { getCurrentTanks } = useStorageData();
   const tanks = getCurrentTanks();
