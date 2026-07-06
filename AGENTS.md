@@ -160,17 +160,17 @@ When writing new code, pattern it after these already-audited files. They define
 
 | Layer | Exemplar |
 |-------|----------|
-| Server controller | `server/src/presentation/controllers/UserController.ts` |
+| Server controller | `server/src/presentation/controllers/DonorController.ts` |
 | Server application service | `server/src/application/services/DonorApplicationService.ts` |
-| Server domain entity | `server/src/domain/entities/Researcher.ts` |
+| Server domain entity | `server/src/domain/entities/Donor.ts` |
 | Server repository interface | `server/src/domain/repositories/ResearcherRepository.ts` |
 | Server repository (Postgres impl) | `server/src/infrastructure/repositories/ResearcherRepository.ts` |
-| Server route module | `server/src/presentation/routes/SearchRouteModule.ts` |
+| Server route module | `server/src/presentation/routes/DonorRouteModule.ts` |
 | Client TanStack Query hook | `client/src/domains/donors/hooks/useDonorsQuery.ts` |
 | Client feature component | `client/src/domains/donors/ui/components/DonorEditForm.tsx` |
 | Client HTTP service | `client/src/domains/donors/services/DonorService.ts` |
-| Client Zustand store | `client/src/app/stores/errorStore.ts` |
-| Shared schema module | `packages/shared-schemas/src/auth/authSchemas.ts` |
+| Client Zustand store | `client/src/app/stores/modalStore.ts` |
+| Shared schema module | `packages/shared-schemas/src/donors/donorSchemas.ts` |
 
 The **equipment** domain has NOT been audited — never use it as a reference.
 
