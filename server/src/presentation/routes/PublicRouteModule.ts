@@ -21,7 +21,6 @@ import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMid
 import { validateBody } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
-  RegisterBodySchema,
   LoginBodySchema,
   RefreshTokenBodySchema,
   VerifyEmailBodySchema,
@@ -79,12 +78,6 @@ export class PublicRouteModule implements RouteModule {
 
     router.get('/auth/password-requirements',
       this.publicAuthController.getPasswordRequirements.bind(this.publicAuthController)
-    );
-
-    router.post('/auth/register',
-      this.authLimiter,
-      validateBody(RegisterBodySchema),
-      this.publicAuthController.register.bind(this.publicAuthController)
     );
 
     router.post('/auth/login',

@@ -12,14 +12,12 @@ import { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
 import {
   UserCreatedEvent,
   UserPasswordChangedEvent,
   UserRoleChangedEvent,
   UserLoggedInEvent
 } from '@domain/events/UserEvents';
-import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -31,14 +29,6 @@ import { logger } from '@infrastructure/logging/logger';
 import type { UserSettings } from '@odysseus/shared-schemas';
 
 // COMMAND INTERFACES
-
-export interface CreateUserCommand {
-  username: string;
-  password: string;
-  role: UserRole;
-  initiatedBy: string;
-  inviteCode?: string;
-}
 
 export interface CreateSystemAdminCommand {
   username: string;
@@ -77,72 +67,6 @@ export interface UpdateUserSettingsCommand {
 }
 
 // COMMAND HANDLERS
-
-export class CreateUserCommandHandler {
-  constructor(
-    private userRepository: UserRepository,
-    private eventBus: EventBus,
-    private storageRepository: StorageRepository,
-    private passwordService: PasswordService,
-    private inviteCodeRepository?: InviteCodeRepository
-  ) {}
-
-  async handle(command: CreateUserCommand): Promise<User> {
-    const existingUser = await this.userRepository.findByUsername(command.username);
-    if (existingUser) {
-      throw new UserAlreadyExistsError(command.username);
-    }
-
-    await validatePasswordPolicy(this.storageRepository, command.password);
-    const passwordHash = await this.passwordService.hash(command.password);
-
-    let labId: string | undefined;
-    let resolvedRole = command.role;
-    let autoApprove = false;
-
-    if (command.inviteCode && this.inviteCodeRepository) {
-      const inviteCode = await this.inviteCodeRepository.findByCode(command.inviteCode);
-      if (!inviteCode || !inviteCode.isValid()) {
-        throw new ValidationError('Invalid or expired invite code');
-      }
-
-      labId = inviteCode.labId;
-      resolvedRole = UserRole.create(inviteCode.role);
-
-      // Lab admins designated by invite code are auto-approved
-      if (inviteCode.role === 'lab_admin') {
-        autoApprove = true;
-      }
-
-      inviteCode.recordUse();
-      await this.inviteCodeRepository.save(inviteCode);
-
-      await this.eventBus.publish(new InviteCodeUsedEvent(
-        inviteCode.id,
-        inviteCode.labId,
-        command.initiatedBy
-      ));
-    }
-
-    const status = autoApprove ? 'approved' : 'pending';
-    const user = User.createWithPassword(
-      command.username,
-      passwordHash,
-      resolvedRole,
-      undefined,
-      undefined,
-      status,
-      labId
-    );
-
-    await this.userRepository.save(user);
-
-    const event = new UserCreatedEvent(user.id, user.username, user.role, user.labId);
-    await this.eventBus.publish(event);
-
-    return user;
-  }
-}
 
 export class CreateSystemAdminCommandHandler {
   constructor(

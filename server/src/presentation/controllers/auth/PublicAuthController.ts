@@ -17,7 +17,6 @@ import {
 import type { SendVerificationEmailCommandHandler, VerifyEmailCommand, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import type { ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 import type {
-  CreateUserCommand, CreateUserCommandHandler,
   CreateSystemAdminCommand, CreateSystemAdminCommandHandler,
   LoginCommand, LoginCommandHandler,
 } from '@application/commands/UserCommands';
@@ -34,7 +33,6 @@ import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
-import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
 import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -44,7 +42,6 @@ import type { Request, Response } from 'express';
 
 
 export interface PublicAuthControllerDeps {
-  createUserHandler: CreateUserCommandHandler;
   loginHandler: LoginCommandHandler;
   createSystemAdminHandler: CreateSystemAdminCommandHandler;
   checkFirstTimeHandler: CheckFirstTimeSetupQueryHandler;
@@ -124,40 +121,6 @@ export class PublicAuthController {
       res.status(200).json(ResponseBuilder.success(passwordRequirements));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get password requirements');
-    }
-  }
-
-  async register(req: Request, res: Response): Promise<void> {
-    try {
-
-      const { username, password, role = 'admin' } = req.body;
-
-      const command: CreateUserCommand = {
-        username,
-        password,
-        role: UserRole.create(role),
-        initiatedBy: 'system',
-      };
-
-      const user = await this.deps.createUserHandler.handle(command);
-
-      logger.info('User registered successfully', {
-        userId: user.id,
-        username: user.username,
-        role: user.role.value
-      });
-
-      const userAgent = req.headers['user-agent'];
-      const ipAddress = req.ip ?? req.socket.remoteAddress;
-      const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
-
-      const response = ResponseBuilder.success({
-        user: user.toPublicData(),
-        tokens: authResult.tokens
-      });
-      res.status(201).json(response);
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to register');
     }
   }
 

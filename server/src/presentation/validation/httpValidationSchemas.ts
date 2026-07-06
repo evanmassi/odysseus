@@ -131,12 +131,6 @@ export const RevokeTubeAccessHttpSchema = revokeTubeAccessRequestSchema;
 
 // Auth schemas
 
-export const RegisterBodySchema = z.object({
-  username: z.string().min(1).max(50),
-  password: z.string().min(8).max(128),
-  role: z.enum(['admin', 'user']).optional(),
-});
-
 export const LoginBodySchema = z.object({
   username: z.string().min(1),
   password: z.string().min(1),

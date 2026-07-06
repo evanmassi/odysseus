@@ -6,7 +6,7 @@
 
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
-import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
+import { LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
 import type { ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
@@ -28,7 +28,6 @@ interface AuthCrossModuleDeps {
 }
 
 export class AuthModule {
-  private createUserHandler?: CreateUserCommandHandler;
   private loginHandler?: LoginCommandHandler;
   private changePasswordHandler?: ChangeUserPasswordCommandHandler;
   private sendVerificationEmailHandler?: SendVerificationEmailCommandHandler;
@@ -50,19 +49,6 @@ export class AuthModule {
   ) {}
 
   // Handlers
-
-  getCreateUserHandler(): CreateUserCommandHandler {
-    if (!this.createUserHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.createUserHandler = new CreateUserCommandHandler(
-        repositories.users,
-        this.shared.eventBus,
-        repositories.storage,
-        this.shared.passwordService
-      );
-    }
-    return this.createUserHandler;
-  }
 
   getLoginHandler(): LoginCommandHandler {
     if (!this.loginHandler) {
@@ -191,7 +177,6 @@ export class AuthModule {
   getPublicAuthController(): PublicAuthController {
     if (!this.publicAuthController) {
       this.publicAuthController = new PublicAuthController({
-        createUserHandler: this.getCreateUserHandler(),
         loginHandler: this.getLoginHandler(),
         createSystemAdminHandler: this.getCreateSystemAdminHandler(),
         checkFirstTimeHandler: this.crossModuleDeps.getCheckFirstTimeHandler(),
