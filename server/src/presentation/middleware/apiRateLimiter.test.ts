@@ -49,10 +49,10 @@ describe('apiRateLimiter', () => {
 
       const res = await agent.get('/test');
 
-      // Draft-7 uses a combined header: "limit=100, remaining=99, reset=60"
+      // Draft-7 uses a combined header: "limit=300, remaining=299, reset=60"
       expect(res.headers).toHaveProperty('ratelimit');
       expect(res.headers).toHaveProperty('ratelimit-policy');
-      expect(res.headers['ratelimit']).toContain('limit=100');
+      expect(res.headers['ratelimit']).toContain('limit=300');
     });
 
     it('should not include legacy X-RateLimit headers', async () => {

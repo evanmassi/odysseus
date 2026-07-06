@@ -213,56 +213,23 @@ describe('User', () => {
     });
   });
 
-  describe('approval workflow', () => {
-    it('should approve pending user', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
-      user.approve(admin);
-      expect(user.isApproved()).toBe(true);
-    });
-
-    it('should reject pending user', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
-      user.reject(admin);
-      expect(user.isRejected()).toBe(true);
-    });
-
-    it('should not allow approving rejected user', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
-      user.reject(admin);
-      expect(() => user.approve(admin)).toThrow('Rejected users cannot be approved');
-    });
-
-    it('should not allow approving already approved user', () => {
+  describe('reactivation guards', () => {
+    it('should not reactivate an already-active user', () => {
       const admin = createTestSystemAdmin();
       const user = createTestUser({ status: 'approved' });
-      expect(() => user.approve(admin)).toThrow('User is already approved');
+      expect(() => user.reactivate(admin)).toThrow('User is already active');
     });
 
-    it('should only allow rejecting pending users', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'approved' });
-      expect(() => user.reject(admin)).toThrow('Only pending users can be rejected');
-    });
-
-    it('should not allow rejecting deactivated user', () => {
-      const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'deactivated' });
-      expect(() => user.reject(admin)).toThrow('Only pending users can be rejected');
-    });
-
-    it('should not allow non-admin to approve', () => {
+    it('should not allow a non-admin to reactivate', () => {
       const regular = createTestUser({ username: 'regular' });
-      const pending = createTestUser({ username: 'pending', status: 'pending' });
-      expect(() => pending.approve(regular)).toThrow('Cannot manage user');
+      const user = createTestUser({ username: 'target', status: 'deactivated' });
+      expect(() => user.reactivate(regular)).toThrow('Cannot manage user');
     });
 
-    it('should not allow lab_admin to approve users from other labs', () => {
+    it('should not allow a lab admin to reactivate a user in another lab', () => {
       const admin = createTestAdmin({ labId: 'lab_1' });
-      const user = createTestUser({ status: 'pending', labId: 'lab_2' });
-      expect(() => user.approve(admin)).toThrow('Cannot manage user');
+      const user = createTestUser({ status: 'deactivated', labId: 'lab_2' });
+      expect(() => user.reactivate(admin)).toThrow('Cannot manage user');
     });
   });
 
@@ -295,7 +262,7 @@ describe('User', () => {
     it('should reactivate deactivated user (any admin)', () => {
       const admin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ status: 'deactivated', labId: 'lab_1' });
-      user.approve(admin);
+      user.reactivate(admin);
       expect(user.isApproved()).toBe(true);
     });
   });
@@ -330,14 +297,14 @@ describe('User', () => {
     it('should unsuspend user (system admin only)', () => {
       const sysAdmin = createTestSystemAdmin();
       const user = createTestUser({ status: 'suspended' });
-      user.approve(sysAdmin);
+      user.reactivate(sysAdmin);
       expect(user.isApproved()).toBe(true);
     });
 
     it('should not allow lab admin to unsuspend', () => {
       const labAdmin = createTestAdmin({ labId: 'lab_1' });
       const user = createTestUser({ status: 'suspended', labId: 'lab_1' });
-      expect(() => user.approve(labAdmin)).toThrow('Only system administrators can unsuspend users');
+      expect(() => user.reactivate(labAdmin)).toThrow('Only system administrators can unsuspend users');
     });
   });
 

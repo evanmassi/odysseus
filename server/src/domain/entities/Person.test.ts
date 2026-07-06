@@ -51,8 +51,8 @@ describe('Person', () => {
       expect(() => Person.create('John', 'x'.repeat(101), 'a@b.com')).toThrow('Last name cannot exceed 100 characters');
     });
 
-    it('should throw for empty email', () => {
-      expect(() => Person.create('John', 'Doe', '')).toThrow('Email is required');
+    it('should allow empty email (historical persons kept for tube attribution have none)', () => {
+      expect(() => Person.create('John', 'Doe', '')).not.toThrow();
     });
 
     it('should throw for invalid email format', () => {
