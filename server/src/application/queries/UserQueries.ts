@@ -4,6 +4,7 @@
  * Queries for user-related read operations in the CQRS pattern.
  */
 
+import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { QueryHandler } from '@application/queries/Query';
 import { BaseQuery } from '@application/queries/Query';
 import type { User } from '@domain/entities/User';
@@ -17,6 +18,8 @@ import type { UserSettings } from '@odysseus/shared-schemas';
 export class GetUserByIdQuery extends BaseQuery {
   constructor(
     public readonly userId: string,
+    public readonly requesterLabId: string | undefined,
+    public readonly requesterIsSystemAdmin: boolean,
     requestedBy?: string
   ) {
     super(requestedBy);
@@ -27,7 +30,10 @@ export class GetUserByIdQueryHandler implements QueryHandler<GetUserByIdQuery, U
   constructor(private userRepository: UserRepository) {}
 
   async handle(query: GetUserByIdQuery): Promise<User> {
-    const user = await this.userRepository.findById(query.userId);
+    const user = await findByIdForRequester(this.userRepository, query.userId, {
+      labId: query.requesterLabId,
+      isSystemAdmin: query.requesterIsSystemAdmin,
+    });
     if (!user) {
       throw new UserNotFoundError(query.userId);
     }
@@ -113,7 +119,7 @@ export class GetUserSettingsQueryHandler {
   constructor(private userRepository: UserRepository) {}
 
   async handle(query: GetUserSettingsQuery): Promise<UserSettings> {
-    const user = await this.userRepository.findById(query.userId);
+    const user = await this.userRepository.findByIdAnyLab(query.userId);
     if (!user) {
       throw new UserNotFoundError(query.userId);
     }

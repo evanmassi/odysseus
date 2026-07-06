@@ -161,7 +161,7 @@ export class TubeApplicationService {
       if (options?.researcherNameCache?.has(tubeData.researcherId)) {
         createdByName = options.researcherNameCache.get(tubeData.researcherId);
       } else {
-        const researcher = await this.researcherRepository.findById(tubeData.researcherId);
+        const researcher = await this.researcherRepository.findById(tubeData.researcherId, authenticatedUser.labId!);
         if (researcher) {
           const person = await this.personRepository.findById(researcher.personId);
           if (person) {

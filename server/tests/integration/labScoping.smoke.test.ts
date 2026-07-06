@@ -54,7 +54,7 @@ describe('integration harness', () => {
     const researcher = await seed.researcher({ labId: lab.id });
 
     const repo = new ResearcherRepository(context);
-    const found = await repo.findById(researcher.id);
+    const found = await repo.findById(researcher.id, lab.id);
     expect(found?.id).toBe(researcher.id);
     expect(found?.labId).toBe(lab.id);
   });

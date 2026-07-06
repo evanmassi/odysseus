@@ -18,7 +18,15 @@ export class ResearcherRepository implements IResearcherRepository {
 
   constructor(private context: PostgresContext) {}
 
-  async findById(id: string): Promise<Researcher | null> {
+  async findById(id: string, labId: string): Promise<Researcher | null> {
+    const row = await this.context.queryOne<ResearcherRow>(
+      `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE id = $1 AND lab_id = $2`,
+      [id, labId]
+    );
+    return row ? ResearcherMapper.fromRow(row) : null;
+  }
+
+  async findByIdAnyLab(id: string): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(
       `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE id = $1`,
       [id]

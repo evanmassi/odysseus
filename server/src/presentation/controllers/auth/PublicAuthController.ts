@@ -419,7 +419,7 @@ export class PublicAuthController {
         return;
       }
 
-      const user = await this.deps.userRepository.findById(tokenData.userId);
+      const user = await this.deps.userRepository.findByIdAnyLab(tokenData.userId);
       if (!user) {
         res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'User not found'));
         return;

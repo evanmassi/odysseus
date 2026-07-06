@@ -188,13 +188,13 @@ describe('ValidationService', () => {
 
   describe('validateResearcherIdReference', () => {
     it('should pass for empty researcher ID', async () => {
-      const result = await createService().validateResearcherIdReference('');
+      const result = await createService().validateResearcherIdReference('', 'lab_1');
       expect(result.isValid).toBe(true);
     });
 
     it('should warn for non-existent researcher', async () => {
       mockResearcherRepository.findById.mockResolvedValue(null);
-      const result = await createService().validateResearcherIdReference('res_missing');
+      const result = await createService().validateResearcherIdReference('res_missing', 'lab_1');
       expect(result.warnings.some(w => w.includes('not found'))).toBe(true);
     });
 
@@ -204,7 +204,7 @@ describe('ValidationService', () => {
       });
       mockPersonRepository.findById.mockResolvedValue({ fullName: 'John Smith' });
 
-      const result = await createService().validateResearcherIdReference('res_1');
+      const result = await createService().validateResearcherIdReference('res_1', 'lab_1');
       expect(result.warnings.some(w => w.includes('John Smith') && w.includes('inactive'))).toBe(true);
     });
 
@@ -214,7 +214,7 @@ describe('ValidationService', () => {
       });
       mockPersonRepository.findById.mockResolvedValue(null);
 
-      const result = await createService().validateResearcherIdReference('res_1');
+      const result = await createService().validateResearcherIdReference('res_1', 'lab_1');
       expect(result.warnings.some(w => w.includes('res_1') && w.includes('inactive'))).toBe(true);
     });
   });

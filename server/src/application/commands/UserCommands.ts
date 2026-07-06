@@ -6,6 +6,7 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
+import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
 import { User } from '@domain/entities/User';
@@ -134,7 +135,7 @@ export class ChangeUserPasswordCommandHandler {
   ) {}
 
   async handle(command: ChangeUserPasswordCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }
@@ -178,14 +179,17 @@ export class ChangeUserRoleCommandHandler {
   ) {}
 
   async handle(command: ChangeUserRoleCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
-    if (!user) {
-      throw new UserNotFoundError(command.userId);
-    }
-
-    const performingUser = await this.userRepository.findById(command.initiatedBy);
+    const performingUser = await this.userRepository.findByIdAnyLab(command.initiatedBy);
     if (!performingUser) {
       throw new UserNotFoundError(command.initiatedBy);
+    }
+
+    const user = await findByIdForRequester(this.userRepository, command.userId, {
+      labId: performingUser.labId,
+      isSystemAdmin: performingUser.isSystemAdmin(),
+    });
+    if (!user) {
+      throw new UserNotFoundError(command.userId);
     }
 
     const oldRole = user.role;
@@ -295,7 +299,7 @@ export class UpdateUserSettingsCommandHandler {
   constructor(private userRepository: UserRepository) {}
 
   async handle(command: UpdateUserSettingsCommand): Promise<User> {
-    const user = await this.userRepository.findById(command.userId);
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
     if (!user) {
       throw new UserNotFoundError(command.userId);
     }

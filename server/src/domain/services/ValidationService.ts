@@ -86,7 +86,7 @@ export class ValidationService {
 
     // 4. Researcher validation
     if (tubeData.researcherId) {
-      const researcherValidation = await this.validateResearcherIdReference(tubeData.researcherId);
+      const researcherValidation = await this.validateResearcherIdReference(tubeData.researcherId, user.labId ?? '');
       result.warnings.push(...researcherValidation.warnings);
     }
 
@@ -171,7 +171,7 @@ export class ValidationService {
       if (updates.researcherId.trim() === '') {
         result.warnings.push('Tube will be unassigned from any researcher');
       } else {
-        const researcherValidation = await this.validateResearcherIdReference(updates.researcherId);
+        const researcherValidation = await this.validateResearcherIdReference(updates.researcherId, user.labId ?? '');
         result.warnings.push(...researcherValidation.warnings);
       }
     }
@@ -319,7 +319,7 @@ export class ValidationService {
 
   // RESEARCHER VALIDATION
 
-  async validateResearcherIdReference(researcherId: string): Promise<DomainValidationResult> {
+  async validateResearcherIdReference(researcherId: string, labId: string): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
       errors: [],
@@ -331,7 +331,7 @@ export class ValidationService {
     }
 
     try {
-      const researcher = await this.researcherRepository.findById(researcherId);
+      const researcher = await this.researcherRepository.findById(researcherId, labId);
 
       if (!researcher) {
         result.warnings.push(`Researcher ID '${researcherId}' not found in system.`);

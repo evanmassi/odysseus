@@ -52,7 +52,7 @@ export class BulkUnassignResourcesCommandHandler {
       throw PermissionError.configurationManagement('bulk unassign resources', command.userId);
     }
 
-    const fromUser = await this.userRepository.findById(command.fromUserId);
+    const fromUser = await this.userRepository.findById(command.fromUserId, command.labId);
     if (!fromUser) {
       throw new NotFoundError(`User '${command.fromUserId}' not found`);
     }
@@ -131,12 +131,12 @@ export class BulkReassignResourcesCommandHandler {
       throw PermissionError.configurationManagement('bulk reassign resources', command.userId);
     }
 
-    const fromUser = await this.userRepository.findById(command.fromUserId);
+    const fromUser = await this.userRepository.findById(command.fromUserId, command.labId);
     if (!fromUser) {
       throw new NotFoundError(`User '${command.fromUserId}' not found`);
     }
 
-    const toUser = await this.userRepository.findById(command.toUserId);
+    const toUser = await this.userRepository.findById(command.toUserId, command.labId);
     if (!toUser) {
       throw new NotFoundError(`User '${command.toUserId}' not found`);
     }

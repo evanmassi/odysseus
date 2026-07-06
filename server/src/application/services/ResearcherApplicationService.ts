@@ -7,6 +7,7 @@
 
 import { type AdminResearcher, type AdminResearchersList, type UpdateResearcherProfile } from '@odysseus/shared-schemas';
 
+import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import { ResearcherDto } from '@application/dto/ResearcherDto';
 import type { CreateResearcherRequest, ResearcherResponse } from '@application/dto/ResearcherDto';
@@ -101,8 +102,7 @@ export class ResearcherApplicationService {
   }
 
   async getResearcherById(id: string, user: User): Promise<ResearcherResponse> {
-    const researcher = await this.getResearcherOrThrow(id);
-    this.requireSameLabAsResearcher(user, researcher);
+    const researcher = await this.getResearcherOrThrow(id, user);
     const person = await this.getPersonForResearcher(researcher);
     return ResearcherDto.toResponse(researcher, person);
   }
@@ -180,8 +180,7 @@ export class ResearcherApplicationService {
     await this.deps.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
-    const researcher = await this.getResearcherOrThrow(id);
-    this.requireSameLabAsResearcher(user, researcher);
+    const researcher = await this.getResearcherOrThrow(id, user);
     const person = await this.getPersonForResearcher(researcher);
 
     const changes: AuditChange[] = [];
@@ -248,8 +247,7 @@ export class ResearcherApplicationService {
     await this.deps.accessControlService.requireAdminAccess(user);
     this.rejectIfDemoLab(user);
 
-    const researcher = await this.getResearcherOrThrow(id);
-    this.requireSameLabAsResearcher(user, researcher);
+    const researcher = await this.getResearcherOrThrow(id, user);
     const person = await this.getPersonForResearcher(researcher);
     const personId = researcher.personId;
 
@@ -298,8 +296,7 @@ export class ResearcherApplicationService {
     await this.deps.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
-    const researcher = await this.getResearcherOrThrow(id);
-    this.requireSameLabAsResearcher(user, researcher);
+    const researcher = await this.getResearcherOrThrow(id, user);
 
     if (user.researcherId === id) {
       throw new PermissionError('Cannot deactivate your own researcher profile');
@@ -328,8 +325,7 @@ export class ResearcherApplicationService {
     await this.deps.accessControlService.requireCanManageResearchers(user);
     this.rejectIfDemoLab(user);
 
-    const researcher = await this.getResearcherOrThrow(id);
-    this.requireSameLabAsResearcher(user, researcher);
+    const researcher = await this.getResearcherOrThrow(id, user);
 
     const person = await this.getPersonForResearcher(researcher);
 
@@ -369,8 +365,7 @@ export class ResearcherApplicationService {
   }
 
   async getResearcherTubeCount(id: string, user: User): Promise<{ tubeCount: number }> {
-    const researcher = await this.getResearcherOrThrow(id);
-    this.requireSameLabAsResearcher(user, researcher);
+    const researcher = await this.getResearcherOrThrow(id, user);
     const tubeCount = await this.deps.researcherRepository.getTubeCountByResearcher(researcher.id);
     return { tubeCount };
   }
@@ -401,8 +396,11 @@ export class ResearcherApplicationService {
     };
   }
 
-  private async getResearcherOrThrow(id: string): Promise<Researcher> {
-    const researcher = await this.deps.researcherRepository.findById(id);
+  private async getResearcherOrThrow(id: string, user: User): Promise<Researcher> {
+    const researcher = await findByIdForRequester(this.deps.researcherRepository, id, {
+      labId: user.labId,
+      isSystemAdmin: user.isSystemAdmin(),
+    });
     if (!researcher) {
       throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
     }
@@ -443,12 +441,6 @@ export class ResearcherApplicationService {
         email,
         researcherId: existing.id
       });
-    }
-  }
-
-  private requireSameLabAsResearcher(user: User, researcher: Researcher): void {
-    if (user.isLabAdmin() && !user.isSystemAdmin() && researcher.labId !== user.labId) {
-      throw new PermissionError('Cannot manage researchers outside your lab');
     }
   }
 

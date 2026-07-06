@@ -32,7 +32,15 @@ export class UserRepository implements IUserRepository {
 
   // BASIC CRUD OPERATIONS
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string, labId: string): Promise<User | null> {
+    const row = await this.context.queryOne<UserRow>(
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id = $1 AND u.lab_id = $2`,
+      [id, labId]
+    );
+    return row ? UserMapper.fromRow(row) : null;
+  }
+
+  async findByIdAnyLab(id: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
       `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id = $1`,
       [id]

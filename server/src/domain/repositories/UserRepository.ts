@@ -10,7 +10,11 @@ export interface UserRepository {
 
   // BASIC CRUD OPERATIONS
 
-  findById(id: string): Promise<User | null>;
+  /** Lab-scoped lookup — the default. Returns null for a user in another lab. */
+  findById(id: string, labId: string): Promise<User | null>;
+
+  /** Cross-lab lookup for identity/auth and system-admin paths only. Prefer findById. */
+  findByIdAnyLab(id: string): Promise<User | null>;
 
   /** Primary authentication lookup. */
   findByApiKey(apiKey: string): Promise<User | null>;

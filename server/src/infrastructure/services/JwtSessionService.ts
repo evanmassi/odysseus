@@ -154,7 +154,7 @@ export class JwtSessionService implements SessionService {
       }
 
       // Ensures disabled users can't authenticate and permissions are current
-      const user = await this.userRepository.findById(userId);
+      const user = await this.userRepository.findByIdAnyLab(userId);
 
       if (!user) {
         return null;
@@ -379,7 +379,7 @@ export class JwtSessionService implements SessionService {
         throw new Error('REVOKED_REFRESH_TOKEN');
       }
 
-      const user = await this.userRepository.findById(tokenRecord.userId);
+      const user = await this.userRepository.findByIdAnyLab(tokenRecord.userId);
       if (!user) {
         await this.refreshTokenRepository.delete(tokenRecord.id);
         throw new Error('USER_NOT_FOUND');
@@ -462,7 +462,7 @@ export class JwtSessionService implements SessionService {
         return null;
       }
 
-      const user = await this.userRepository.findById(decoded.sub);
+      const user = await this.userRepository.findByIdAnyLab(decoded.sub);
       if (!user) {
         logger.warn('User not found for temp token', { userId: decoded.sub });
         return null;

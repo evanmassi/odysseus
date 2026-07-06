@@ -42,7 +42,7 @@ export class SendVerificationEmailCommandHandler {
   ) {}
 
   async handle(command: SendVerificationEmailCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
     if (!user) {
       throw new NotFoundError('User not found');
     }
@@ -105,7 +105,7 @@ export class ResendVerificationEmailCommandHandler {
   ) {}
 
   async handle(command: ResendVerificationEmailCommand): Promise<void> {
-    const user = await this.userRepository.findById(command.userId);
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
     if (!user) {
       throw new NotFoundError('User not found');
     }

@@ -7,6 +7,7 @@
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { nanoid } from 'nanoid';
 
+import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import { UserDto } from '@application/dto/UserDto';
@@ -216,7 +217,7 @@ export class UserApplicationService {
    * Researchers with tubes are preserved for history (email cleared); otherwise deleted.
    */
   async deleteUser(userId: string, admin: User): Promise<void> {
-    const targetUser = await this.getUserOrThrow(userId);
+    const targetUser = await this.getUserOrThrow(userId, admin);
 
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
@@ -258,7 +259,10 @@ export class UserApplicationService {
         }
       } else {
         // Researcher has tubes — deactivate and preserve for history, release the email
-        const researcher = await this.researcherRepository.findById(researcherId);
+        const researcher = await findByIdForRequester(this.researcherRepository, researcherId, {
+          labId: admin.labId,
+          isSystemAdmin: admin.isSystemAdmin(),
+        });
         if (researcher) {
           researcher.deactivate();
           await this.researcherRepository.save(researcher);
@@ -299,8 +303,11 @@ export class UserApplicationService {
     }
   }
 
-  private async getUserOrThrow(id: string): Promise<User> {
-    const user = await this.userRepository.findById(id);
+  private async getUserOrThrow(id: string, admin: User): Promise<User> {
+    const user = await findByIdForRequester(this.userRepository, id, {
+      labId: admin.labId,
+      isSystemAdmin: admin.isSystemAdmin(),
+    });
     if (!user) {
       throw new NotFoundError(`User not found: ${id}`, { userId: id });
     }
@@ -329,7 +336,7 @@ export class UserApplicationService {
       throw new PermissionError(`Cannot ${action} yourself`, { userId: admin.id });
     }
 
-    const user = await this.getUserOrThrow(userId);
+    const user = await this.getUserOrThrow(userId, admin);
 
     if (expectedLabId && user.labId !== expectedLabId) {
       throw new ValidationError('User does not belong to the specified lab');
@@ -561,7 +568,7 @@ export class UserApplicationService {
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
-    const user = await this.getUserOrThrow(userId);
+    const user = await this.getUserOrThrow(userId, admin);
     const previousStatus = user.status as 'deactivated' | 'suspended';
 
     user.reactivate(admin);
@@ -599,15 +606,14 @@ export class UserApplicationService {
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
-    const user = await this.getUserOrThrow(userId);
+    const user = await this.getUserOrThrow(userId, admin);
     admin.requireCanManage(user);
 
-    const researcher = await this.researcherRepository.findById(researcherId);
+    const researcher = await findByIdForRequester(this.researcherRepository, researcherId, {
+      labId: admin.labId,
+      isSystemAdmin: admin.isSystemAdmin(),
+    });
     if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${researcherId}`, { researcherId });
-    }
-
-    if (admin.isLabAdmin() && !admin.isSystemAdmin() && researcher.labId !== admin.labId) {
       throw new NotFoundError(`Researcher not found: ${researcherId}`, { researcherId });
     }
 
@@ -644,7 +650,7 @@ export class UserApplicationService {
     await this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
-    const user = await this.getUserOrThrow(userId);
+    const user = await this.getUserOrThrow(userId, admin);
     admin.requireCanManage(user);
 
     if (!user.hasResearcherProfile()) {
@@ -656,7 +662,10 @@ export class UserApplicationService {
     let researcherName = oldResearcherId ?? '';
 
     if (oldResearcherId && this.researcherRepository && this.personRepository) {
-      const researcher = await this.researcherRepository.findById(oldResearcherId);
+      const researcher = await findByIdForRequester(this.researcherRepository, oldResearcherId, {
+        labId: admin.labId,
+        isSystemAdmin: admin.isSystemAdmin(),
+      });
       if (researcher) {
         const person = await this.personRepository.findById(researcher.personId);
         researcherName = person ? `${person.firstName} ${person.lastName}` : oldResearcherId;

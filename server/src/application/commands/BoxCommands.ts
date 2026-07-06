@@ -357,7 +357,7 @@ export class AssignBoxCommandHandler {
 
     let assignedUser: User | null = null;
     if (command.assignedUserId) {
-      assignedUser = await this.userRepository.findById(command.assignedUserId);
+      assignedUser = await this.userRepository.findById(command.assignedUserId, command.labId);
       if (!assignedUser) {
         throw new ValidationError(`User '${command.assignedUserId}' not found`);
       }
@@ -368,7 +368,7 @@ export class AssignBoxCommandHandler {
 
     const previousUserId = box.assignedUserId;
     const previousUsername = previousUserId
-      ? (await this.userRepository.findById(previousUserId))?.username ?? 'Unknown'
+      ? (await this.userRepository.findById(previousUserId, command.labId))?.username ?? 'Unknown'
       : '';
 
     if (previousUserId === command.assignedUserId) {

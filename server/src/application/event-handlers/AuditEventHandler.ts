@@ -157,7 +157,7 @@ export class AuditEventHandler {
   }
 
   private async resolveUser(userId: string): Promise<{ username: string; isDemo: boolean }> {
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userRepository.findByIdAnyLab(userId);
     return {
       username: user?.username ?? userId,
       isDemo: user?.isDemo ?? false

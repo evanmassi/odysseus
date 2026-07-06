@@ -6,6 +6,7 @@
  * a Person for a Researcher, a Category for an item) so tests read as intent, not plumbing.
  */
 
+import { createTestUser } from '@domain/__tests__/helpers';
 import { Donor } from '@domain/entities/Donor';
 import { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
@@ -27,7 +28,9 @@ import { PersonRepository } from '@infrastructure/repositories/PersonRepository'
 import { ResearcherRepository } from '@infrastructure/repositories/ResearcherRepository';
 import { SupplyCategoryRepository } from '@infrastructure/repositories/SupplyCategoryRepository';
 import { SupplyItemRepository } from '@infrastructure/repositories/SupplyItemRepository';
+import { UserRepository } from '@infrastructure/repositories/UserRepository';
 
+import type { User } from '@domain/entities/User';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import type {
   SupplyBarcodeRow,
@@ -43,10 +46,20 @@ export function createSeed(context: PostgresContext) {
   const equipmentItems = new EquipmentItemRepository(context);
   const supplyCategories = new SupplyCategoryRepository(context);
   const supplyItems = new SupplyItemRepository(context);
+  const users = new UserRepository(context);
 
   async function lab(overrides: { name?: string } = {}): Promise<Lab> {
     const entity = Lab.create(overrides.name ?? `Lab ${generateId('lab')}`);
     await labs.save(entity);
+    return entity;
+  }
+
+  async function user(overrides: { labId?: string; username?: string } = {}): Promise<User> {
+    const entity = createTestUser({
+      username: overrides.username ?? `user-${generateId('u')}`,
+      labId: overrides.labId,
+    });
+    await users.save(entity);
     return entity;
   }
 
@@ -220,6 +233,7 @@ export function createSeed(context: PostgresContext) {
 
   return {
     lab,
+    user,
     person,
     researcher,
     donor,

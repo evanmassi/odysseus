@@ -96,15 +96,40 @@ phase is checked and the review passes.** Commits batched by domain per the audi
 - [x] Smoke test green: `tests/integration/labScoping.smoke.test.ts` — 7 tests, every factory persists a readable lab-scoped row. All 22 migrations apply on a fresh DB. Unit suite unaffected (27 suites / 762 tests pass).
 - **Commit:** `test: server integration harness + two-lab fixtures`
 
-### Phase 1 — Reads → Camp A (holes 1–3)
+### Phase 1 — Reads → Camp A (holes 1–5)
 
-- [ ] `ResearcherRepository.findById(id)` → `findById(id, labId)`, SQL `WHERE id = $1 AND lab_id = $2` (+ interface `domain/repositories/ResearcherRepository.ts`).
-- [ ] `getResearcherOrThrow(id)` → `(id, labId)`; update all call sites (`ResearcherApplicationService.ts:104,183,251,301,331,372`) to pass `user.labId`; cross-lab → `NotFoundError`. Remove reliance on inverted `requireSameLabAsResearcher` (`:449`).
-- [ ] `UserRepository.findById(id)` → `findById(id, labId)`, SQL `WHERE u.id = $1 AND u.lab_id = $2`; `GetUserByIdQuery` carries requester `labId`; handler passes it (`UserQueries.ts:29`).
-- [ ] Donor collection-history read: scope it — either `findCollectionHistory(donorId, labId)` with a `d.lab_id = $2` JOIN (like `DonorRepository.ts:207`) or load donor via `findById(id, labId)` first in `getCollectionHistory` (`DonorApplicationService.ts:144`); controller passes `user.labId`.
-- [ ] Add explicit `findByIdAnyLab` for legitimate system-admin cross-lab paths (audit `SystemAdminUserController` + any system-admin researcher read); default stays scoped.
-- [ ] Red→green integration test per hole (cross-lab read returns null/404; same-lab still works; system-admin any-lab still works).
-- **Commit:** `fix(security): lab-scope by-id reads — researcher/user/donor collection history`
+**Scope expanded after the caller-classification pass** (`findById` blast-radius trace, 2026-07-06):
+a blanket signature swap would break auth. `UserRepository.findById` has ~23 callers, many in
+identity/auth paths with no lab context. The trace also surfaced **two new verified holes**.
+
+**Design:** `findById(id, labId)` becomes the **scoped default** (SQL `AND lab_id = $2`); a new,
+explicit `findByIdAnyLab(id)` serves identity/auth/system-admin. The unqualified name is now the
+safe one — an unscoped read must be deliberately spelled `AnyLab`. Holes reachable by system-admins
+(no labId) get a **role-branch**: `isSystemAdmin()` → `findByIdAnyLab`, else scoped.
+
+**Verified holes:**
+- **#1** `ResearcherApplicationService.getResearcherOrThrow` — cross-lab **read**, any non-admin (guard at `:449` is inverted).
+- **#2** `GetUserByIdQueryHandler` (`UserQueries.ts:30`) — cross-lab **read**, lab-admin via `GET /admin/users/:id`.
+- **#3** `DonorApplicationService.getCollectionHistory` — cross-lab **read**, any user (`DonorController.ts:90`, unguarded).
+- **#4 (new)** `UserApplicationService.getUserOrThrow` feeds `deactivate`/`suspend`/`reactivate` which lack a per-target lab check (`reactivate` none; `deactivate`'s `expectedLabId` is never passed by the controller, `AdminUserController.ts:123`) — cross-lab **write**.
+- **#5 (new)** `ValidationService.validateResearcherIdReference` (`:334`) + `TubeApplicationService.ts:164` — unscoped + advisory-only, so a tube can reference a **foreign-lab researcher**; leaks the researcher's name for inactive foreign ids. Fix = scoped lookup **plus** promote a foreign/invalid researcher ref to a hard error at the write path (behavior change, approved).
+
+**Cleared (not a hole):** admin password reset — `AdminReset`/`GeneratePasswordResetToken` both call `admin.requireCanManage(targetUser)` (`PasswordResetCommands.ts:53,94`), same-lab enforced.
+
+**Call-site handling** (full table in session notes):
+- **Group A → `findByIdAnyLab`** (mechanical, no behavior change): `JwtSessionService:157/382/465`, `PublicAuthController:422`, `EmailVerificationCommands:45/108`, `AuditEventHandler:160`, `UserGuards.requireUser:13`, `UserCommands:186`.
+- **Group B → `findById(id, labId)`** (labId already in scope; also closes latent assign-to-foreign-user gaps): `Bulk/Rack/BoxCommands` ×7, `UserApplicationService` researcher lookups ×3, `TubeApplicationService:164`, `PersonController:62`, `UserQueries:116`, `UserCommands:137/298`.
+- **Group C → scope + role-branch**: `getResearcherOrThrow`, `GetUserByIdQuery`, `getUserOrThrow` (scope by actor; **keep** `expectedLabId` — it's the system-admin target-lab selector, `SystemAdminUserController:47,65`), `UserCommands.ChangeUserRole` lookup, `ValidationService` ref check.
+
+**Implementation refinements (vs. written plan):** (1) `expectedLabId` is kept, not dropped — the system-admin path relies on it. (2) Self-service sites (own id) use `findByIdAnyLab(ownId)` rather than scoped — scoping by your own labId is redundant and breaks system admins (no labId); safe because the id is the caller's own.
+
+**Sub-commits (batched by domain, reviewed as one phase):**
+- [x] `fix(security): lab-scope user by-id reads + deactivate/reactivate writes` (#2, #4; adds `findByIdAnyLab`, role-branch, keeps `expectedLabId`) — **DONE, green, pending commit**
+- [x] `fix(security): lab-scope researcher by-id reads` (#1; inverted guard deleted; #5 reference lookups scoped — name-leak closed) — **DONE, green**
+- [ ] `fix(security): lab-scope donor collection-history read` (#3)
+- [ ] `fix(security): reject cross-lab tube→researcher references` (#5 hard-block) — reference lookups already scoped; remaining: reject a tube whose researcherId doesn't resolve in-lab at the write path. **Note:** the bulk-create name-cache uses `researcherRepository.findByIds` (also unscoped) — check whether it needs scoping too.
+- Shared: `application/authorization/findByIdForRequester.ts` — the one helper backing every actor-scoped read (User + Researcher).
+- [ ] Red→green integration tests per hole (cross-lab → null/404/reject; same-lab works; system-admin any-lab works).
 
 ### Phase 2 — Child writes → parent-scoped (holes 4–10)
 

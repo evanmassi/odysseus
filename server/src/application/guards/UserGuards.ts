@@ -10,7 +10,7 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 
 export async function requireUser(userRepository: UserRepository, userId: string): Promise<User> {
-  const user = await userRepository.findById(userId);
+  const user = await userRepository.findByIdAnyLab(userId);
   if (!user) {
     throw NotFoundError.forEntity('User', userId);
   }

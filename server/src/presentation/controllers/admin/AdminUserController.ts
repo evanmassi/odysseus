@@ -58,7 +58,8 @@ export class AdminUserController extends BaseController {
   async getUserById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const query = new GetUserByIdQuery(id);
+      const adminUser = this.getAuthenticatedUser(req);
+      const query = new GetUserByIdQuery(id, adminUser.labId, adminUser.isSystemAdmin(), adminUser.id);
       const user = await this.deps.getUserByIdHandler.handle(query);
 
       const response = ResponseBuilder.success({

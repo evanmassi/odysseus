@@ -59,7 +59,7 @@ export class PersonController extends BaseController {
         throw new ValidationError('Current password is required to update profile');
       }
 
-      const fullUser = await this.deps.userRepository.findById(user.id);
+      const fullUser = await this.deps.userRepository.findByIdAnyLab(user.id);
       if (!fullUser) {
         throw new NotFoundError('User not found');
       }

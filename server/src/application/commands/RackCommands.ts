@@ -299,7 +299,7 @@ export class AssignRackCommandHandler {
 
     let assignedUser: User | null = null;
     if (command.assignedUserId) {
-      assignedUser = await this.userRepository.findById(command.assignedUserId);
+      assignedUser = await this.userRepository.findById(command.assignedUserId, command.labId);
       if (!assignedUser) {
         throw NotFoundError.forEntity('User', command.assignedUserId);
       }
@@ -310,7 +310,7 @@ export class AssignRackCommandHandler {
 
     const previousUserId = rack.assignedUserId;
     const previousUsername = previousUserId
-      ? (await this.userRepository.findById(previousUserId))?.username ?? 'Unknown'
+      ? (await this.userRepository.findById(previousUserId, command.labId))?.username ?? 'Unknown'
       : '';
 
     if (previousUserId === command.assignedUserId) {
