@@ -11,6 +11,12 @@ import { AlertCircle, AlertTriangle } from 'lucide-react';
 
 import { Input, Select, type InputState } from '@shared/ui';
 
+const UNIT_OPTIONS = [
+  { value: '', label: '--' },
+  { value: 'c/v', label: 'c/v' },
+  { value: 'c/mL', label: 'c/mL' },
+];
+
 interface ConcentrationFieldProps {
   label: string;
   value: string;
@@ -43,12 +49,6 @@ export function TubeConcentrationField({
   badge,
   hasConflict = false,
 }: ConcentrationFieldProps) {
-  const unitOptions = [
-    { value: '', label: '--' },
-    { value: 'c/v', label: 'c/v' },
-    { value: 'c/mL', label: 'c/mL' },
-  ];
-
   // useRef captures initial value on first render only
   const initialValueRef = useRef<string>(value);
   const initialUnitRef = useRef<string>(unitValue);
@@ -135,13 +135,13 @@ export function TubeConcentrationField({
           placeholder={placeholder}
           disabled={disabled}
           state={getInputState()}
-          inputClassName="border-r-0 focus:relative focus:z-10"
+          inputClassName="hover:z-10 focus:z-10"
           className="flex-1 min-w-0"
         />
 
-        <div className="w-20 relative flex-shrink-0 [&_[role=combobox]]:focus-within:relative [&_[role=combobox]]:focus-within:z-10">
+        <div className="w-20 relative flex-shrink-0 -ml-px [&_[role=combobox]]:hover:z-10 [&_[role=combobox]]:focus-within:z-10">
           <Select
-            options={unitOptions}
+            options={UNIT_OPTIONS}
             value={unitValue}
             onChange={newValue => {
               const newUnit = String(newValue ?? '');

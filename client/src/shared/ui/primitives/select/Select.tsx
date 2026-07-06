@@ -29,7 +29,8 @@ const selectVariants = cva(
     'bg-[hsl(var(--input-well))] border',
     'transition-[border-color,background,box-shadow] duration-200',
     'disabled:opacity-50 disabled:cursor-not-allowed',
-    'focus-visible:outline-none',
+    'focus-visible:outline-none focus-visible:border-primary/70 focus-visible:bg-primary/[0.04]',
+    'focus-visible:shadow-[var(--input-focus-shadow)]',
   ],
   {
     variants: {
