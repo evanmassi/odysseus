@@ -66,7 +66,7 @@ export class UserSessionController extends BaseController {
       }
 
       if (session.userId !== user.id) {
-        throw new PermissionError('You can only revoke your own sessions');
+        throw new NotFoundError('Session not found');
       }
 
       const revoked = await this.deps.userSessionRepository.revokeSession(sessionId);

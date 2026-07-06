@@ -319,35 +319,6 @@ export class AccessControlService {
     return this.createAllowedResult();
   }
 
-  async canManageUser(user: User, targetUser: User): Promise<AccessResult> {
-    const manageCheck = await this.canManageUsers(user);
-    if (!manageCheck.allowed) {
-      return manageCheck;
-    }
-
-    if (user.equals(targetUser)) {
-      return this.createDeniedResult('Cannot manage your own user account');
-    }
-
-    if (user.isLabAdmin() && !user.isSystemAdmin()) {
-      if (user.labId !== targetUser.labId) {
-        return this.createDeniedResult('Lab administrators can only manage users within their own lab');
-      }
-      if (targetUser.isSystemAdmin()) {
-        return this.createDeniedResult('Lab administrators cannot manage system admin accounts');
-      }
-    }
-
-    if (targetUser.isLabAdmin() && !targetUser.isSystemAdmin() && targetUser.labId) {
-      const labAdminCount = await this.userRepository.countByRoleInLab('lab_admin', targetUser.labId);
-      if (labAdminCount <= 1) {
-        return this.createDeniedResult('Cannot modify the last lab administrator account');
-      }
-    }
-
-    return this.createAllowedResult();
-  }
-
   // CONFIGURATION OPERATIONS
 
   async canModifyStorage(user: User): Promise<AccessResult> {

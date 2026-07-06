@@ -21,10 +21,10 @@ export class DonorRepository implements IDonorRepository {
 
   constructor(private db: PostgresContext) {}
 
-  async findById(id: string): Promise<Donor | null> {
+  async findById(id: string, labId: string): Promise<Donor | null> {
     const row = await this.db.queryOne<DonorRow>(
-      `SELECT ${DONOR_COLUMNS} FROM donors WHERE id = $1`,
-      [id]
+      `SELECT ${DONOR_COLUMNS} FROM donors WHERE id = $1 AND lab_id = $2`,
+      [id, labId]
     );
     return row ? DonorMapper.fromRow(row) : null;
   }
@@ -202,10 +202,13 @@ export class DonorRepository implements IDonorRepository {
     return DonorMapper.historyFromRows(rows);
   }
 
-  async findCollectionHistoryById(id: string): Promise<DonorCollectionHistory | null> {
+  async findCollectionHistoryById(id: string, labId: string): Promise<DonorCollectionHistory | null> {
     const row = await this.db.queryOne<DonorCollectionHistoryRow>(
-      `SELECT ${HISTORY_SELECT_COLUMNS} FROM donor_collection_history WHERE id = $1`,
-      [id]
+      `SELECT dch.id, dch.donor_id, dch.collection_date::text AS collection_date, dch.specimen_type, dch.source, dch.created_at
+       FROM donor_collection_history dch
+       JOIN donors d ON d.id = dch.donor_id
+       WHERE dch.id = $1 AND d.lab_id = $2`,
+      [id, labId]
     );
     return row ? DonorMapper.historyFromRow(row) : null;
   }
@@ -226,8 +229,11 @@ export class DonorRepository implements IDonorRepository {
     );
   }
 
-  async deleteCollectionHistory(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM donor_collection_history WHERE id = $1', [id]);
+  async deleteCollectionHistory(id: string, labId: string): Promise<boolean> {
+    const result = await this.db.execute(
+      'DELETE FROM donor_collection_history WHERE id = $1 AND donor_id IN (SELECT id FROM donors WHERE lab_id = $2)',
+      [id, labId]
+    );
     return (result.rowCount ?? 0) > 0;
   }
 

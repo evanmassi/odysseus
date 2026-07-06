@@ -41,7 +41,7 @@ export class DonorApplicationService {
   }
 
   async getDonor(labId: string, id: string): Promise<DonorWithTubeCountResponse> {
-    const donor = await this.getDonorOrThrow(id);
+    const donor = await this.getDonorOrThrow(id, labId);
     const tubeCounts = await this.donorRepository.getTubeCountsForDonors(labId, [donor]);
     return DonorDto.toResponseWithTubeCount(donor, tubeCounts.get(donor.id) ?? 0);
   }
@@ -102,7 +102,7 @@ export class DonorApplicationService {
   ): Promise<DonorWithTubeCountResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const donor = await this.getDonorOrThrow(id);
+    const donor = await this.getDonorOrThrow(id, labId);
     const changes = this.trackChanges(donor, data);
 
     donor.update({
@@ -133,7 +133,7 @@ export class DonorApplicationService {
   async deleteDonor(labId: string, id: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const donor = await this.getDonorOrThrow(id);
+    const donor = await this.getDonorOrThrow(id, labId);
     await this.donorRepository.delete(id);
 
     await this.eventBus.publish(new DonorDeletedEvent(
@@ -153,7 +153,7 @@ export class DonorApplicationService {
     user: User
   ): Promise<DonorCollectionHistoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
-    await this.getDonorOrThrow(donorId);
+    await this.getDonorOrThrow(donorId, labId);
 
     const entry = DonorCollectionHistory.create({
       donorId,
@@ -174,7 +174,7 @@ export class DonorApplicationService {
   ): Promise<DonorCollectionHistoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const existing = await this.donorRepository.findCollectionHistoryById(historyId);
+    const existing = await this.donorRepository.findCollectionHistoryById(historyId, labId);
     if (!existing) {
       throw new NotFoundError(`Collection history entry not found: ${historyId}`);
     }
@@ -191,7 +191,7 @@ export class DonorApplicationService {
 
   async deleteCollectionHistory(labId: string, historyId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
-    const deleted = await this.donorRepository.deleteCollectionHistory(historyId);
+    const deleted = await this.donorRepository.deleteCollectionHistory(historyId, labId);
     if (!deleted) {
       throw new NotFoundError(`Collection history entry not found: ${historyId}`);
     }
@@ -216,8 +216,8 @@ export class DonorApplicationService {
     await this.donorRepository.saveIfNotExists(donor);
   }
 
-  private async getDonorOrThrow(id: string): Promise<Donor> {
-    const donor = await this.donorRepository.findById(id);
+  private async getDonorOrThrow(id: string, labId: string): Promise<Donor> {
+    const donor = await this.donorRepository.findById(id, labId);
     if (!donor) {
       throw new NotFoundError(`Donor not found: ${id}`, { donorId: id });
     }

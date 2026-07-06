@@ -22,10 +22,10 @@ const CATEGORY_COLUMN_MAP: Partial<Record<LookupCategory, string>> = {
 export class LookupValueRepository implements ILookupValueRepository {
   constructor(private context: PostgresContext) {}
 
-  async findById(id: string): Promise<LookupValue | null> {
+  async findById(id: string, labId: string): Promise<LookupValue | null> {
     const row = await this.context.queryOne<LookupValueRow>(
-      `SELECT ${LOOKUP_VALUE_COLUMNS} FROM lookup_values WHERE id = $1`,
-      [id]
+      `SELECT ${LOOKUP_VALUE_COLUMNS} FROM lookup_values WHERE id = $1 AND lab_id = $2`,
+      [id, labId]
     );
     return row ? LookupValueMapper.fromRow(row) : null;
   }

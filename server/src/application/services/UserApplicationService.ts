@@ -600,9 +600,14 @@ export class UserApplicationService {
     this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
+    admin.requireCanManage(user);
 
     const researcher = await this.researcherRepository.findById(researcherId);
     if (!researcher) {
+      throw new NotFoundError(`Researcher not found: ${researcherId}`, { researcherId });
+    }
+
+    if (admin.isLabAdmin() && !admin.isSystemAdmin() && researcher.labId !== admin.labId) {
       throw new NotFoundError(`Researcher not found: ${researcherId}`, { researcherId });
     }
 
@@ -640,6 +645,7 @@ export class UserApplicationService {
     this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
+    admin.requireCanManage(user);
 
     if (!user.hasResearcherProfile()) {
       throw new ValidationError('User has no linked researcher profile', { userId });

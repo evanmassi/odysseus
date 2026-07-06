@@ -67,6 +67,7 @@ client/src/
 ├── domains/          # Feature modules
 │   ├── tubes/        # Tube management
 │   ├── researchers/  # Researcher profiles
+│   ├── donors/       # Donor registry & collection history
 │   ├── search/       # Advanced search
 │   ├── storage/      # Tank/Rack/Box configuration
 │   ├── admin/        # Admin panel, user management
@@ -171,7 +172,7 @@ When writing new code, pattern it after these already-audited files. They define
 | Client Zustand store | `client/src/app/stores/errorStore.ts` |
 | Shared schema module | `packages/shared-schemas/src/auth/authSchemas.ts` |
 
-The **equipment, supply, supplies, and consumables** domains have NOT been audited — never use them as references.
+The **equipment** domain has NOT been audited — never use it as a reference.
 
 ---
 

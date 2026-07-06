@@ -120,7 +120,7 @@ export class DeactivateInviteCodeCommandHandler {
     if (!user.isSystemAdmin()) {
       if (user.isLabAdmin()) {
         if (user.labId !== inviteCode.labId) {
-          throw new PermissionError('Lab admins can only manage invite codes for their own lab', { userId: command.userId });
+          throw NotFoundError.forEntity('InviteCode', command.codeId);
         }
       } else {
         throw new PermissionError('Only admins can manage invite codes', { userId: command.userId });

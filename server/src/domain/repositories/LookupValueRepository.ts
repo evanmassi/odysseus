@@ -7,7 +7,7 @@
 import type { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
 
 export interface LookupValueRepository {
-  findById(id: string): Promise<LookupValue | null>;
+  findById(id: string, labId: string): Promise<LookupValue | null>;
   findByCategory(category: LookupCategory, labId: string): Promise<LookupValue[]>;
   findActiveByCategoryForDropdown(category: LookupCategory, labId: string): Promise<LookupValue[]>;
   findByCategoryAndValue(category: LookupCategory, value: string, labId: string): Promise<LookupValue | null>;

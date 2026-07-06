@@ -86,10 +86,6 @@ export class Researcher {
     this._active = false;
   }
 
-  toggleActiveStatus(): void {
-    this._active = !this._active;
-  }
-
   toData(): {
     id: string;
     personId: string;

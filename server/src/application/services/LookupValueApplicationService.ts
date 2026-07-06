@@ -77,7 +77,7 @@ export class LookupValueApplicationService {
   }
 
   async rename(labId: string, id: string, newValue: string): Promise<ReturnType<LookupValue['toData']>> {
-    const entity = await this.lookupValueRepository.findById(id);
+    const entity = await this.lookupValueRepository.findById(id, labId);
     if (!entity) {
       throw new NotFoundError('Lookup value not found');
     }
@@ -112,7 +112,7 @@ export class LookupValueApplicationService {
   }
 
   async delete(labId: string, id: string): Promise<void> {
-    const entity = await this.lookupValueRepository.findById(id);
+    const entity = await this.lookupValueRepository.findById(id, labId);
     if (!entity) {
       throw new NotFoundError('Lookup value not found');
     }

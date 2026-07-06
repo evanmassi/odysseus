@@ -142,8 +142,9 @@ export class AuditEventHandler {
     this.subscribeToEvents();
   }
 
-  private async resolveDonorLabel(donorId: string): Promise<{ donorSourceId?: string; donorInternalId?: string }> {
-    const donor = await this.donorRepository.findById(donorId);
+  private async resolveDonorLabel(donorId: string, labId: string | undefined): Promise<{ donorSourceId?: string; donorInternalId?: string }> {
+    if (!labId) return {};
+    const donor = await this.donorRepository.findById(donorId, labId);
     return {
       donorSourceId: donor?.donorSourceId,
       donorInternalId: donor?.donorInternalId,
@@ -1344,7 +1345,7 @@ export class AuditEventHandler {
   }
 
   private async handleDonorUpdated(event: DonorUpdatedEvent): Promise<void> {
-    const donorIds = await this.resolveDonorLabel(event.donorId);
+    const donorIds = await this.resolveDonorLabel(event.donorId, event.labId);
     await this.logAuditEvent({
       eventName: 'donor updated', context: { donorId: event.donorId },
       actorId: event.updatedBy, action: 'donor_updated', entityType: 'donor',

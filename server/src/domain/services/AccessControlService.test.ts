@@ -284,47 +284,6 @@ describe('AccessControlService', () => {
     });
   });
 
-  describe('canManageUser', () => {
-    it('should deny self-management', async () => {
-      const admin = createTestAdmin();
-      mockUserRepository.countByRoleInLab.mockResolvedValue(2);
-      const result = await createService().canManageUser(admin, admin);
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toContain('own user account');
-    });
-
-    it('should deny lab admin managing cross-lab user', async () => {
-      const admin = createTestAdmin({ labId: 'lab_1' });
-      const user = createTestUser({ labId: 'lab_2' });
-      const result = await createService().canManageUser(admin, user);
-      expect(result.allowed).toBe(false);
-    });
-
-    it('should deny lab admin managing system admin', async () => {
-      const labAdmin = createTestAdmin({ labId: 'lab_1' });
-      const sysAdmin = createTestSystemAdmin();
-      const result = await createService().canManageUser(labAdmin, sysAdmin);
-      expect(result.allowed).toBe(false);
-    });
-
-    it('should prevent removing last lab admin', async () => {
-      const sysAdmin = createTestSystemAdmin();
-      const labAdmin = createTestAdmin({ labId: 'lab_1' });
-      mockUserRepository.countByRoleInLab.mockResolvedValue(1);
-      const result = await createService().canManageUser(sysAdmin, labAdmin);
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toContain('last lab administrator');
-    });
-
-    it('should allow managing user when multiple lab admins exist', async () => {
-      const sysAdmin = createTestSystemAdmin();
-      const labAdmin = createTestAdmin({ labId: 'lab_1' });
-      mockUserRepository.countByRoleInLab.mockResolvedValue(2);
-      const result = await createService().canManageUser(sysAdmin, labAdmin);
-      expect(result.allowed).toBe(true);
-    });
-  });
-
   describe('canModifyStorage', () => {
     it('should allow admin', async () => {
       const admin = createTestAdmin();

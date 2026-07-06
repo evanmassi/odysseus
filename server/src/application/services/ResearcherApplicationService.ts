@@ -368,8 +368,9 @@ export class ResearcherApplicationService {
     return this.resolveWithPersons(researchers);
   }
 
-  async getResearcherTubeCount(id: string): Promise<{ tubeCount: number }> {
+  async getResearcherTubeCount(id: string, user: User): Promise<{ tubeCount: number }> {
     const researcher = await this.getResearcherOrThrow(id);
+    this.requireSameLabAsResearcher(user, researcher);
     const tubeCount = await this.deps.researcherRepository.getTubeCountByResearcher(researcher.id);
     return { tubeCount };
   }

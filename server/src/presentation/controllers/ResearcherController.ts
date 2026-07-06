@@ -241,8 +241,9 @@ export class ResearcherController extends BaseController {
   async getResearcherTubeCount(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      const user = this.getAuthenticatedUser(req);
 
-      const result = await this.deps.researcherApplicationService.getResearcherTubeCount(id);
+      const result = await this.deps.researcherApplicationService.getResearcherTubeCount(id, user);
 
       res.json(ResponseBuilder.success(result));
     } catch (error) {
