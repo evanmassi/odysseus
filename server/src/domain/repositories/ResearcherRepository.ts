@@ -23,7 +23,7 @@ export interface ResearcherRepository {
   /** Create vs update determined by existence. */
   save(researcher: Researcher): Promise<void>;
 
-  delete(id: string): Promise<boolean>;
+  delete(id: string, labId: string): Promise<boolean>;
 
   nameExists(firstName: string, lastName: string, labId?: string): Promise<boolean>;
   findDeactivatedByName(firstName: string, lastName: string, labId: string): Promise<Researcher | null>;

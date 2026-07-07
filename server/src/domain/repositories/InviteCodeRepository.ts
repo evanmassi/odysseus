@@ -12,6 +12,5 @@ export interface InviteCodeRepository {
   findByLabId(labId: string): Promise<InviteCode[]>;
   findActiveByLabId(labId: string): Promise<InviteCode[]>;
   save(inviteCode: InviteCode): Promise<void>;
-  delete(id: string): Promise<boolean>;
   deleteByCreator(userId: string): Promise<number>;
 }

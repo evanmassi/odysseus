@@ -275,7 +275,7 @@ export class ResearcherApplicationService {
       );
     }
 
-    await this.deps.researcherRepository.delete(id);
+    await this.deps.researcherRepository.delete(id, researcher.labId ?? '');
 
     const userWithPerson = await this.deps.userRepository.findByPersonId(personId);
     if (!userWithPerson) {

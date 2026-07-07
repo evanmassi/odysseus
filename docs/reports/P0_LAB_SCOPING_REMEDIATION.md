@@ -141,12 +141,16 @@ safe one — an unscoped read must be deliberately spelled `AnyLab`. Holes reach
 
 ### Phase 3 — Tier-3 convergence sweep + dead code
 
-- [ ] `DonorRepository.delete(id)` → `delete(id, labId)`, `WHERE id = $1 AND lab_id = $2` (`:110`); update `DonorApplicationService.ts:136` + any other callers.
-- [ ] `TubeRepository.saveWithOptimisticLock` → add `AND lab_id = $n` to the WHERE (`:174`); verify hot-path callers (`TubeApplicationService.ts:554,859,960`). **Test carefully — hot path.**
-- [ ] `LookupValueRepository.delete(id)` → `delete(id, labId)` (`:72`); update `LookupValueApplicationService.ts:115`.
-- [ ] Delete dead `InviteCodeRepository.delete(id)` (`:71`) + its interface entry.
-- [ ] Integration + typecheck green.
-- **Commit:** `refactor: converge remaining by-id writes to SQL lab-scoping; drop dead InviteCode.delete`
+Scope = **Option 2** (converge every guarded Camp-B by-id method that was an *inconsistency*; leave the genuinely-cross-lab ones). Entity-labId (not actor) used for researcher/user deletes.
+
+- [x] Deletes → `(id, labId)` + `AND lab_id`: `Donor.delete`, `LookupValue.delete`, `Researcher.delete` (entity labId), `User.delete` (entity labId).
+- [x] `Tube.saveWithOptimisticLock` → `AND lab_id = $32` (append `tube.labId`). Hot path — regression-tested (save works + stale version → `ConflictError`).
+- [x] Donor collection-history: `findCollectionHistory`/`updateCollectionHistory` → scoped via donor subquery (matches already-converged `deleteCollectionHistory`).
+- [x] Supply transactions: `findTransactionById` + `voidTransaction` (inner SELECT/UPDATE) → `AND lab_id`; dropped the service's manual `existing.labId !== labId` check.
+- [x] Deleted dead `InviteCodeRepository.delete` + interface entry.
+- [x] **Left as-is (legitimately cross-lab, not inconsistencies):** `InviteCode.findById` (deactivate has a real system-admin cross-lab branch), `User.findByIds` (audit spans labs), `Researcher.findByPersonId` (person↔researcher global), the `findByIdAnyLab` methods.
+- [x] `phase3ConvergenceLabScoping.test` (5) — cross-lab delete no-op, lab-scoped collection-history, Tube hot-path. **Green** (typecheck · 36 integration · 767 unit).
+- **Commit (pending):** `refactor: converge remaining by-id writes to SQL lab-scoping; drop dead InviteCode.delete`
 
 ### Phase 4 — Service-layer forwarding tests (the fast "Both" layer)
 

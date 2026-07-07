@@ -34,7 +34,7 @@ export interface UserRepository {
   /** Create vs update determined by existence. */
   save(user: User): Promise<void>;
 
-  delete(id: string): Promise<boolean>;
+  delete(id: string, labId: string): Promise<boolean>;
 
   // AUTHENTICATION OPERATIONS
 

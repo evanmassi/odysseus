@@ -66,14 +66,6 @@ export class InviteCodeRepository implements IInviteCodeRepository {
     );
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute(
-      'DELETE FROM invite_codes WHERE id = $1',
-      [id]
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
   async deleteByCreator(userId: string): Promise<number> {
     const result = await this.context.execute(
       'DELETE FROM invite_codes WHERE created_by = $1',

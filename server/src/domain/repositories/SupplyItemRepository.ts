@@ -48,6 +48,7 @@ export interface SupplyTransactionRow {
 
 export interface VoidTransactionData {
   transactionId: string;
+  labId: string;
   voidedBy: string;
   voidReason: string;
 }
@@ -116,7 +117,7 @@ export interface SupplyItemRepository {
   // Transactions — recordTransaction is atomic: UPSERT stock RETURNING → INSERT transaction
 
   findTransactionsByItemId(itemId: string, limit?: number): Promise<SupplyTransactionRow[]>;
-  findTransactionById(id: string): Promise<SupplyTransactionRow | null>;
+  findTransactionById(id: string, labId: string): Promise<SupplyTransactionRow | null>;
   recordTransaction(data: RecordTransactionData): Promise<SupplyTransactionRow>;
   voidTransaction(data: VoidTransactionData): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }>;
 

@@ -243,7 +243,7 @@ export class ResetDemoDataCommandHandler {
     if (this.donorRepository) {
       const donors = await this.donorRepository.findByLabId(command.labId);
       for (const donor of donors) {
-        await this.donorRepository.delete(donor.id);
+        await this.donorRepository.delete(donor.id, command.labId);
       }
     }
 

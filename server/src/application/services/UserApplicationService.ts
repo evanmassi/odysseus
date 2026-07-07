@@ -246,14 +246,14 @@ export class UserApplicationService {
       await this.userRepository.save(targetUser);
     }
 
-    await this.userRepository.delete(userId);
+    await this.userRepository.delete(userId, targetUser.labId ?? '');
 
     // Clean up linked researcher and person records
     if (researcherId && this.researcherRepository && this.personRepository) {
       const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcherId);
 
       if (tubeCount === 0) {
-        await this.researcherRepository.delete(researcherId);
+        await this.researcherRepository.delete(researcherId, targetUser.labId ?? '');
         if (personId) {
           await this.personRepository.delete(personId);
         }

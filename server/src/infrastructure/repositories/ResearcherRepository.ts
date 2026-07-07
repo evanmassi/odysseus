@@ -88,8 +88,8 @@ export class ResearcherRepository implements IResearcherRepository {
     `, [row.id, row.person_id, row.active, row.created_at, row.approval_status, row.source, row.lab_id]);
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM researchers WHERE id = $1', [id]);
+  async delete(id: string, labId: string): Promise<boolean> {
+    const result = await this.context.execute('DELETE FROM researchers WHERE id = $1 AND lab_id = $2', [id, labId]);
     return (result.rowCount ?? 0) > 0;
   }
 

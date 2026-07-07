@@ -534,8 +534,8 @@ export class SupplyApplicationService {
   ): Promise<{ original: SupplyTransactionResponse; reversal: SupplyTransactionResponse }> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const existing = await this.itemRepository.findTransactionById(transactionId);
-    if (!existing || existing.labId !== labId) {
+    const existing = await this.itemRepository.findTransactionById(transactionId, labId);
+    if (!existing) {
       throw new NotFoundError(`Transaction ${transactionId} not found`);
     }
     if (existing.voidedAt) {
@@ -547,6 +547,7 @@ export class SupplyApplicationService {
 
     const { original, reversal } = await this.itemRepository.voidTransaction({
       transactionId,
+      labId,
       voidedBy: user.id,
       voidReason: data.reason,
     });

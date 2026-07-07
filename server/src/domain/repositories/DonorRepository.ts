@@ -21,7 +21,7 @@ export interface DonorRepository {
   search(labId: string, query: string, limit?: number): Promise<Donor[]>;
 
   save(donor: Donor): Promise<void>;
-  delete(id: string): Promise<boolean>;
+  delete(id: string, labId: string): Promise<boolean>;
 
   /**
    * Atomically creates a donor stub only if no donor with matching IDs exists.
@@ -35,10 +35,10 @@ export interface DonorRepository {
 
   // Collection history
 
-  findCollectionHistory(donorId: string): Promise<DonorCollectionHistory[]>;
+  findCollectionHistory(donorId: string, labId: string): Promise<DonorCollectionHistory[]>;
   findCollectionHistoryById(id: string, labId: string): Promise<DonorCollectionHistory | null>;
   saveCollectionHistory(entry: DonorCollectionHistory): Promise<void>;
-  updateCollectionHistory(entry: DonorCollectionHistory): Promise<void>;
+  updateCollectionHistory(entry: DonorCollectionHistory, labId: string): Promise<void>;
   deleteCollectionHistory(id: string, labId: string): Promise<boolean>;
 
   // Lookup value support

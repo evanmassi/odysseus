@@ -136,7 +136,7 @@ export class LookupValueApplicationService {
       );
     }
 
-    await this.lookupValueRepository.delete(id);
+    await this.lookupValueRepository.delete(id, labId);
   }
 
   private getSupplyCountFn(category: LookupCategory): ((value: string, labId: string) => Promise<number>) | undefined {

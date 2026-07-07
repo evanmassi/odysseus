@@ -106,8 +106,8 @@ export class DonorRepository implements IDonorRepository {
     ]);
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM donors WHERE id = $1', [id]);
+  async delete(id: string, labId: string): Promise<boolean> {
+    const result = await this.db.execute('DELETE FROM donors WHERE id = $1 AND lab_id = $2', [id, labId]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -194,10 +194,10 @@ export class DonorRepository implements IDonorRepository {
     return result;
   }
 
-  async findCollectionHistory(donorId: string): Promise<DonorCollectionHistory[]> {
+  async findCollectionHistory(donorId: string, labId: string): Promise<DonorCollectionHistory[]> {
     const rows = await this.db.queryMany<DonorCollectionHistoryRow>(
-      `SELECT ${HISTORY_SELECT_COLUMNS} FROM donor_collection_history WHERE donor_id = $1 ORDER BY COALESCE(collection_date, created_at::date) DESC, created_at DESC`,
-      [donorId]
+      `SELECT ${HISTORY_SELECT_COLUMNS} FROM donor_collection_history WHERE donor_id = $1 AND donor_id IN (SELECT id FROM donors WHERE lab_id = $2) ORDER BY COALESCE(collection_date, created_at::date) DESC, created_at DESC`,
+      [donorId, labId]
     );
     return DonorMapper.historyFromRows(rows);
   }
@@ -221,11 +221,11 @@ export class DonorRepository implements IDonorRepository {
     `, [row.id, row.donor_id, row.collection_date, row.specimen_type, row.source, row.created_at]);
   }
 
-  async updateCollectionHistory(entry: DonorCollectionHistory): Promise<void> {
+  async updateCollectionHistory(entry: DonorCollectionHistory, labId: string): Promise<void> {
     const row = DonorMapper.historyToRow(entry);
     await this.db.execute(
-      `UPDATE donor_collection_history SET collection_date = $2, specimen_type = $3, source = $4 WHERE id = $1`,
-      [row.id, row.collection_date, row.specimen_type, row.source]
+      `UPDATE donor_collection_history SET collection_date = $2, specimen_type = $3, source = $4 WHERE id = $1 AND donor_id IN (SELECT id FROM donors WHERE lab_id = $5)`,
+      [row.id, row.collection_date, row.specimen_type, row.source, labId]
     );
   }
 

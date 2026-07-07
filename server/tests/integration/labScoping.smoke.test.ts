@@ -68,7 +68,7 @@ describe('integration harness', () => {
     const foundDonor = await repo.findById(donor.id, lab.id);
     expect(foundDonor?.id).toBe(donor.id);
 
-    const history = await repo.findCollectionHistory(donor.id);
+    const history = await repo.findCollectionHistory(donor.id, lab.id);
     expect(history).toHaveLength(1);
   });
 

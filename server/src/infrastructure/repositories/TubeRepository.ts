@@ -171,7 +171,7 @@ export class TubeRepository implements ITubeRepository {
           lock_note = $28,
           locked_at = $29,
           shared_with_user_ids = $30
-        WHERE id = $1 AND version = $31
+        WHERE id = $1 AND version = $31 AND lab_id = $32
       `, [
         row.id, row.tank_id, row.rack_id, row.box_id, row.position,
         row.cell_type, row.donor_internal_id, row.donor_source_id,
@@ -181,7 +181,7 @@ export class TubeRepository implements ITubeRepository {
         row.notes,
         row.updated_at, row.version,
         row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
-        expectedVersion
+        expectedVersion, tube.labId ?? ''
       ]);
     } catch (error) {
       if (isPositionConstraintError(error)) {

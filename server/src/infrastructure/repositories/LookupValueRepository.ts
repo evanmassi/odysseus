@@ -68,8 +68,8 @@ export class LookupValueRepository implements ILookupValueRepository {
     `, [row.id, row.category, row.value, row.sort_order, row.is_active, row.created_at, row.updated_at, row.lab_id]);
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM lookup_values WHERE id = $1', [id]);
+  async delete(id: string, labId: string): Promise<boolean> {
+    const result = await this.context.execute('DELETE FROM lookup_values WHERE id = $1 AND lab_id = $2', [id, labId]);
     return (result.rowCount ?? 0) > 0;
   }
 

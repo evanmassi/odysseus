@@ -134,7 +134,7 @@ export class DonorApplicationService {
     await this.accessControlService.requireAdminAccess(user);
 
     const donor = await this.getDonorOrThrow(id, labId);
-    await this.donorRepository.delete(id);
+    await this.donorRepository.delete(id, labId);
 
     await this.eventBus.publish(new DonorDeletedEvent(
       donor.id, donor.donorSourceId, donor.donorInternalId, user.id, labId
@@ -143,7 +143,7 @@ export class DonorApplicationService {
 
   async getCollectionHistory(labId: string, donorId: string): Promise<DonorCollectionHistoryResponse[]> {
     await this.getDonorOrThrow(donorId, labId);
-    const history = await this.donorRepository.findCollectionHistory(donorId);
+    const history = await this.donorRepository.findCollectionHistory(donorId, labId);
     return history.map(DonorDto.historyToResponse);
   }
 
@@ -186,7 +186,7 @@ export class DonorApplicationService {
       source: data.source,
     });
 
-    await this.donorRepository.updateCollectionHistory(updated);
+    await this.donorRepository.updateCollectionHistory(updated, labId);
     return DonorDto.historyToResponse(updated);
   }
 

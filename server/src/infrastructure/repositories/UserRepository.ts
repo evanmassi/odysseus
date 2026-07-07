@@ -169,8 +169,8 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM users WHERE id = $1', [id]);
+  async delete(id: string, labId: string): Promise<boolean> {
+    const result = await this.context.execute('DELETE FROM users WHERE id = $1 AND lab_id = $2', [id, labId]);
     return (result.rowCount ?? 0) > 0;
   }
 

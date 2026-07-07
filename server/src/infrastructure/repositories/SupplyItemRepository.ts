@@ -329,10 +329,10 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     });
   }
 
-  async findTransactionById(id: string): Promise<SupplyTransactionRow | null> {
+  async findTransactionById(id: string, labId: string): Promise<SupplyTransactionRow | null> {
     const row = await this.db.queryOne<SupplyTransactionDbRow>(
-      `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1`,
-      [id]
+      `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1 AND lab_id = $2`,
+      [id, labId]
     );
     return row ? SupplyTransactionMapper.fromRow(row) : null;
   }
@@ -340,8 +340,8 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   async voidTransaction(data: VoidTransactionData): Promise<{ original: SupplyTransactionRow; reversal: SupplyTransactionRow }> {
     return await this.db.transaction(async (client) => {
       const originalRow = await client.query<SupplyTransactionDbRow>(
-        `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1`,
-        [data.transactionId]
+        `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1 AND lab_id = $2`,
+        [data.transactionId, data.labId]
       );
       if (originalRow.rows.length === 0) {
         throw new Error(`Transaction ${data.transactionId} not found`);
@@ -353,8 +353,8 @@ export class SupplyItemRepository implements ISupplyItemRepository {
       }
 
       await client.query(
-        `UPDATE supply_transactions SET voided_at = NOW(), voided_by = $1, void_reason = $2 WHERE id = $3`,
-        [data.voidedBy, data.voidReason, data.transactionId]
+        `UPDATE supply_transactions SET voided_at = NOW(), voided_by = $1, void_reason = $2 WHERE id = $3 AND lab_id = $4`,
+        [data.voidedBy, data.voidReason, data.transactionId, data.labId]
       );
 
       const reversedQuantity = -original.quantityChange;
@@ -382,8 +382,8 @@ export class SupplyItemRepository implements ISupplyItemRepository {
       );
 
       const updatedOriginalRow = await client.query<SupplyTransactionDbRow>(
-        `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1`,
-        [data.transactionId]
+        `SELECT ${TXN_COLUMNS} FROM supply_transactions WHERE id = $1 AND lab_id = $2`,
+        [data.transactionId, data.labId]
       );
 
       return {

@@ -6,7 +6,7 @@
  * a Person for a Researcher, a Category for an item) so tests read as intent, not plumbing.
  */
 
-import { createTestUser } from '@domain/__tests__/helpers';
+import { createTestTube, createTestUser } from '@domain/__tests__/helpers';
 import { Donor } from '@domain/entities/Donor';
 import { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 import { EquipmentCategory } from '@domain/entities/EquipmentCategory';
@@ -26,10 +26,13 @@ import { EquipmentItemRepository } from '@infrastructure/repositories/EquipmentI
 import { LabRepository } from '@infrastructure/repositories/LabRepository';
 import { PersonRepository } from '@infrastructure/repositories/PersonRepository';
 import { ResearcherRepository } from '@infrastructure/repositories/ResearcherRepository';
+import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
 import { SupplyCategoryRepository } from '@infrastructure/repositories/SupplyCategoryRepository';
 import { SupplyItemRepository } from '@infrastructure/repositories/SupplyItemRepository';
+import { TubeRepository } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository } from '@infrastructure/repositories/UserRepository';
 
+import type { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import type {
@@ -46,6 +49,7 @@ export function createSeed(context: PostgresContext) {
   const equipmentItems = new EquipmentItemRepository(context);
   const supplyCategories = new SupplyCategoryRepository(context);
   const supplyItems = new SupplyItemRepository(context);
+  const tubes = new TubeRepository(context, new StorageRepository(context));
   const users = new UserRepository(context);
 
   async function lab(overrides: { name?: string } = {}): Promise<Lab> {
@@ -60,6 +64,15 @@ export function createSeed(context: PostgresContext) {
       labId: overrides.labId,
     });
     await users.save(entity);
+    return entity;
+  }
+
+  async function tube(overrides: { labId: string; position?: number }): Promise<Tube> {
+    const entity = createTestTube({
+      labId: overrides.labId,
+      location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: overrides.position ?? 1 },
+    });
+    await tubes.save(entity);
     return entity;
   }
 
@@ -234,6 +247,7 @@ export function createSeed(context: PostgresContext) {
   return {
     lab,
     user,
+    tube,
     person,
     researcher,
     donor,
