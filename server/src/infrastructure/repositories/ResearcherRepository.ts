@@ -62,8 +62,13 @@ export class ResearcherRepository implements IResearcherRepository {
     return ResearcherMapper.fromRows(rows);
   }
 
-  async findByIds(ids: string[]): Promise<Researcher[]> {
-    const rows = await this.context.queryByIds<ResearcherRow>('researchers', RESEARCHER_COLUMNS, ids);
+  async findByIds(ids: string[], labId: string): Promise<Researcher[]> {
+    if (ids.length === 0) return [];
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+    const rows = await this.context.queryMany<ResearcherRow>(
+      `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE id IN (${placeholders}) AND lab_id = $${ids.length + 1}`,
+      [...ids, labId]
+    );
     return ResearcherMapper.fromRows(rows);
   }
 
@@ -141,7 +146,7 @@ export class ResearcherRepository implements IResearcherRepository {
     );
 
     const ids = rows.map(r => r.researcher_id);
-    const researchers = await this.findByIds(ids);
+    const researchers = await this.findByIds(ids, labId);
     const researcherMap = new Map(researchers.map(r => [r.id, r]));
     return rows
       .filter(row => researcherMap.has(row.researcher_id))

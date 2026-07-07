@@ -87,7 +87,8 @@ export class DonorController extends BaseController {
 
   async getCollectionHistory(req: Request, res: Response): Promise<void> {
     try {
-      const history = await this.deps.donorApplicationService.getCollectionHistory(req.params.id);
+      const labId = this.extractLabId(req);
+      const history = await this.deps.donorApplicationService.getCollectionHistory(labId, req.params.id);
       res.json(ResponseBuilder.success({ history }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get collection history', req.requestId);

@@ -17,8 +17,8 @@ export interface ResearcherRepository {
   findByLabId(labId: string): Promise<Researcher[]>;
   findActiveByLabId(labId: string): Promise<Researcher[]>;
 
-  /** Returns only found researchers — no errors for missing IDs. */
-  findByIds(ids: string[]): Promise<Researcher[]>;
+  /** Returns only found researchers in the lab — no errors for missing IDs. */
+  findByIds(ids: string[], labId: string): Promise<Researcher[]>;
 
   /** Create vs update determined by existence. */
   save(researcher: Researcher): Promise<void>;

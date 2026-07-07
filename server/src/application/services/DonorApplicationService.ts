@@ -141,7 +141,8 @@ export class DonorApplicationService {
     ));
   }
 
-  async getCollectionHistory(donorId: string): Promise<DonorCollectionHistoryResponse[]> {
+  async getCollectionHistory(labId: string, donorId: string): Promise<DonorCollectionHistoryResponse[]> {
+    await this.getDonorOrThrow(donorId, labId);
     const history = await this.donorRepository.findCollectionHistory(donorId);
     return history.map(DonorDto.historyToResponse);
   }

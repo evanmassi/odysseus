@@ -142,7 +142,7 @@ export class ExportService {
     const storageConfig = await this.storageRepository.getForLab(labId);
 
     const researcherIds = [...new Set(tubes.map(t => t.researcherId).filter(Boolean))] as string[];
-    const researchers = await this.researcherRepository.findByIds(researcherIds);
+    const researchers = await this.researcherRepository.findByIds(researcherIds, labId);
     const personMap = await this.buildPersonMap(researchers.map(r => r.personId));
 
     const researcherNameMap = new Map<string, string>();

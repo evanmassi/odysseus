@@ -126,8 +126,8 @@ safe one — an unscoped read must be deliberately spelled `AnyLab`. Holes reach
 **Sub-commits (batched by domain, reviewed as one phase):**
 - [x] `fix(security): lab-scope user by-id reads + deactivate/reactivate writes` (#2, #4; adds `findByIdAnyLab`, role-branch, keeps `expectedLabId`) — **DONE, green, pending commit**
 - [x] `fix(security): lab-scope researcher by-id reads` (#1; inverted guard deleted; #5 reference lookups scoped — name-leak closed) — **DONE, green**
-- [ ] `fix(security): lab-scope donor collection-history read` (#3)
-- [ ] `fix(security): reject cross-lab tube→researcher references` (#5 hard-block) — reference lookups already scoped; remaining: reject a tube whose researcherId doesn't resolve in-lab at the write path. **Note:** the bulk-create name-cache uses `researcherRepository.findByIds` (also unscoped) — check whether it needs scoping too.
+- [x] `fix(security): lab-scope donor collection-history read` (#3) — `getCollectionHistory` guards via the lab-scoped `getDonorOrThrow`. **DONE, green** (`donorLabScoping.test`).
+- [x] `fix(security): scope researcher findByIds + reject cross-lab tube→researcher refs` (#5) — name-leak closed on **both** paths (`findById` and the bulk-cache `findByIds` now lab-scoped); hard-block on tube **create + update** rejects a *set* `researcherId` that doesn't resolve in-lab (unassigned/empty/null still allowed, per requirement). **DONE, green.** Write-guard proven by `TubeApplicationService.researcherScope.test` (5 tests: rejects a foreign researcherId on create *and* update; allows an unassigned tube and a valid in-lab researcher).
 - Shared: `application/authorization/findByIdForRequester.ts` — the one helper backing every actor-scoped read (User + Researcher).
 - [ ] Red→green integration tests per hole (cross-lab → null/404/reject; same-lab works; system-admin any-lab works).
 

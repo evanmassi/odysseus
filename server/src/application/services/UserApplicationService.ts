@@ -163,7 +163,7 @@ export class UserApplicationService {
 
     const [directPersons, researchers] = await Promise.all([
       this.personRepository.findByIds(directPersonIds),
-      this.researcherRepository.findByIds(researcherIds)
+      this.researcherRepository.findByIds(researcherIds, labId)
     ]);
 
     const researcherPersonIds = researchers

@@ -162,11 +162,12 @@ export class TubeApplicationService {
         createdByName = options.researcherNameCache.get(tubeData.researcherId);
       } else {
         const researcher = await this.researcherRepository.findById(tubeData.researcherId, authenticatedUser.labId!);
-        if (researcher) {
-          const person = await this.personRepository.findById(researcher.personId);
-          if (person) {
-            createdByName = person.fullName;
-          }
+        if (!researcher) {
+          throw new ValidationError(`Researcher not found in this lab: ${tubeData.researcherId}`, { researcherId: tubeData.researcherId });
+        }
+        const person = await this.personRepository.findById(researcher.personId);
+        if (person) {
+          createdByName = person.fullName;
         }
       }
     }
@@ -213,7 +214,7 @@ export class TubeApplicationService {
       requests.map(r => r.researcherId).filter((id): id is string => !!id)
     )];
     if (uniqueResearcherIds.length > 0) {
-      const researchers = await this.researcherRepository.findByIds(uniqueResearcherIds);
+      const researchers = await this.researcherRepository.findByIds(uniqueResearcherIds, authenticatedUser.labId!);
       const personIds = [...new Set(researchers.map(r => r.personId))];
       if (personIds.length > 0) {
         const persons = await this.personRepository.findByIds(personIds);
@@ -544,6 +545,14 @@ export class TubeApplicationService {
     const oldSampleData = existingTube.sample;
 
     const updateData = TubeDto.fromUpdateRequest(request);
+
+    // A tube may be unassigned (empty/null researcherId), but a set researcherId must resolve in-lab.
+    if (updateData.researcherId) {
+      const researcher = await this.researcherRepository.findById(updateData.researcherId, authenticatedUser.labId!);
+      if (!researcher) {
+        throw new ValidationError(`Researcher not found in this lab: ${updateData.researcherId}`, { researcherId: updateData.researcherId });
+      }
+    }
 
     let updatedTube = existingTube.update(updateData);
 
