@@ -46,7 +46,6 @@ export interface UserRepository {
 
   countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number>;
   isEmpty(): Promise<boolean>;
-  findByStatus(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended'): Promise<User[]>;
 
   // LAB-SCOPED OPERATIONS
 

@@ -9,6 +9,7 @@ import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler, GetUserBy
 import { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { UserApplicationService } from '@application/services/UserApplicationService';
+import { UserSessionApplicationService } from '@application/services/UserSessionApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { PersonController } from '@presentation/controllers/PersonController';
@@ -28,6 +29,7 @@ export class UserModule {
   private userApplicationService?: UserApplicationService;
   private researcherApplicationService?: ResearcherApplicationService;
   private personApplicationService?: PersonApplicationService;
+  private userSessionApplicationService?: UserSessionApplicationService;
   private userController?: UserController;
   private personController?: PersonController;
   private userSessionController?: UserSessionController;
@@ -151,6 +153,15 @@ export class UserModule {
     return this.personApplicationService;
   }
 
+  getUserSessionApplicationService(): UserSessionApplicationService {
+    if (!this.userSessionApplicationService) {
+      this.userSessionApplicationService = new UserSessionApplicationService({
+        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+      });
+    }
+    return this.userSessionApplicationService;
+  }
+
   // Controllers
 
   getUserController(): UserController {
@@ -158,8 +169,7 @@ export class UserModule {
       this.userController = new UserController({
         updateUserSettingsHandler: this.getUpdateUserSettingsHandler(),
         getUserSettingsHandler: this.getGetUserSettingsHandler(),
-        userRepository: this.repositoryFactory.getUserRepository(),
-        personRepository: this.repositoryFactory.getPersonRepository(),
+        userApplicationService: this.getUserApplicationService(),
       });
     }
     return this.userController;
@@ -177,7 +187,7 @@ export class UserModule {
   getUserSessionController(): UserSessionController {
     if (!this.userSessionController) {
       this.userSessionController = new UserSessionController({
-        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+        userSessionApplicationService: this.getUserSessionApplicationService(),
       });
     }
     return this.userSessionController;

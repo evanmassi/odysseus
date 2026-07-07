@@ -218,14 +218,6 @@ export class UserRepository implements IUserRepository {
     return !(result?.exists ?? false);
   }
 
-  async findByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<User[]> {
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.status = $1 ORDER BY u.created_at DESC`,
-      [status]
-    );
-    return UserMapper.fromRows(rows);
-  }
-
   // LAB-SCOPED OPERATIONS
 
   async findByLabId(labId: string): Promise<User[]> {

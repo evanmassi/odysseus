@@ -41,7 +41,7 @@ import type { AccessControlService } from '@domain/services/AccessControlService
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
 
-import type { RegisterWithProfileRequest } from '@odysseus/shared-schemas';
+import type { RegisterWithProfileRequest, UserDisplayInfo } from '@odysseus/shared-schemas';
 
 
 
@@ -209,6 +209,39 @@ export class UserApplicationService {
       }
 
       return enriched;
+    });
+  }
+
+  /** Resolves slim display info (name via linked person) for the given user ids. */
+  async lookupUsers(userIds: string[]): Promise<UserDisplayInfo[]> {
+    const users = await this.userRepository.findByIds(userIds);
+    return this.toDisplayUsers(users);
+  }
+
+  /** Approved users in the lab, for user-selection dropdowns. */
+  async listActiveUsers(labId: string): Promise<UserDisplayInfo[]> {
+    const users = await this.userRepository.findByStatusInLab('approved', labId);
+    return this.toDisplayUsers(users);
+  }
+
+  private async toDisplayUsers(users: User[]): Promise<UserDisplayInfo[]> {
+    const personIds = users
+      .map(u => u.toPublicData().personId)
+      .filter((id): id is string => id != null);
+
+    const persons = this.personRepository ? await this.personRepository.findByIds(personIds) : [];
+    const personMap = new Map(persons.map(p => [p.id, p]));
+
+    return users.map(user => {
+      const publicData = user.toPublicData();
+      const person = publicData.personId ? personMap.get(publicData.personId) : undefined;
+      return {
+        id: publicData.id,
+        username: publicData.username,
+        firstName: person?.firstName,
+        lastName: person?.lastName,
+        hasResearcher: user.hasResearcherProfile(),
+      };
     });
   }
 
