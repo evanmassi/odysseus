@@ -278,13 +278,11 @@ export class SupplyApplicationService {
   ): Promise<SupplyDocumentResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
-    await this.itemRepository.updateDocument(docId, {
+    const updated = await this.itemRepository.updateDocument(docId, itemId, {
       label: data.label,
       url: data.url,
       notes: data.notes,
     });
-    const docs = await this.itemRepository.findDocumentsByItemId(itemId);
-    const updated = docs.find(d => d.id === docId);
     if (!updated) throw new NotFoundError(`Document ${docId} not found`);
     return SupplyDto.documentToResponse(updated);
   }
@@ -292,7 +290,8 @@ export class SupplyApplicationService {
   async removeDocument(labId: string, itemId: string, docId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
-    await this.itemRepository.deleteDocument(docId);
+    const deleted = await this.itemRepository.deleteDocument(docId, itemId);
+    if (!deleted) throw new NotFoundError(`Document ${docId} not found`);
     await this.eventBus.publish(new SupplyDocumentRemovedEvent(itemId, user.id, labId));
   }
 
@@ -326,12 +325,10 @@ export class SupplyApplicationService {
   ): Promise<SupplyBarcodeResponse> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
-    await this.itemRepository.updateBarcode(barcodeId, {
+    const updated = await this.itemRepository.updateBarcode(barcodeId, itemId, {
       label: data.label,
       isPrimary: data.isPrimary,
     });
-    const barcodes = await this.itemRepository.findBarcodesByItemId(itemId);
-    const updated = barcodes.find(b => b.id === barcodeId);
     if (!updated) throw new NotFoundError(`Barcode ${barcodeId} not found`);
     return SupplyDto.barcodeToResponse(updated);
   }
@@ -339,7 +336,8 @@ export class SupplyApplicationService {
   async removeBarcode(labId: string, itemId: string, barcodeId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
-    await this.itemRepository.deleteBarcode(barcodeId);
+    const deleted = await this.itemRepository.deleteBarcode(barcodeId, itemId);
+    if (!deleted) throw new NotFoundError(`Barcode ${barcodeId} not found`);
   }
 
   async resolveBarcode(labId: string, barcodeValue: string): Promise<SupplyItemResponse | null> {
@@ -384,7 +382,7 @@ export class SupplyApplicationService {
     const barcodes = await this.itemRepository.findBarcodesByItemId(itemId);
     const existingInternal = barcodes.find(b => b.barcodeType === 'internal');
     if (existingInternal) {
-      await this.itemRepository.deleteBarcode(existingInternal.id);
+      await this.itemRepository.deleteBarcode(existingInternal.id, itemId);
     }
 
     const barcode: SupplyBarcodeRow = {
@@ -426,7 +424,8 @@ export class SupplyApplicationService {
   async updatePackagingLevel(labId: string, itemId: string, levelId: string, quantity: number, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
-    await this.itemRepository.updatePackagingLevel(levelId, quantity);
+    const updated = await this.itemRepository.updatePackagingLevel(levelId, itemId, quantity);
+    if (!updated) throw new NotFoundError(`Packaging level ${levelId} not found`);
   }
 
   async removePackagingLevel(labId: string, itemId: string, levelId: string, user: User): Promise<void> {

@@ -22,8 +22,8 @@ export interface EquipmentItemRepository {
 
   findDocumentsByItemId(itemId: string): Promise<EquipmentDocument[]>;
   saveDocument(document: EquipmentDocument): Promise<void>;
-  updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void>;
-  deleteDocument(id: string): Promise<boolean>;
+  updateDocument(id: string, itemId: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<EquipmentDocument | null>;
+  deleteDocument(id: string, itemId: string): Promise<boolean>;
 
   // Maintenance log
 

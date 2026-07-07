@@ -111,7 +111,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     `, [row.id, row.item_id, row.label, row.url, row.notes, row.created_at]);
   }
 
-  async updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void> {
+  async updateDocument(id: string, itemId: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<EquipmentDocument | null> {
     const sets: string[] = [];
     const params: unknown[] = [];
     let idx = 1;
@@ -119,17 +119,25 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     if (fields.label !== undefined) { sets.push(`label = $${idx++}`); params.push(fields.label); }
     if (fields.url !== undefined) { sets.push(`url = $${idx++}`); params.push(fields.url); }
     if (fields.notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(fields.notes); }
-    if (sets.length === 0) return;
 
-    params.push(id);
-    await this.db.execute(
-      `UPDATE equipment_documents SET ${sets.join(', ')} WHERE id = $${idx}`,
+    if (sets.length === 0) {
+      const existing = await this.db.queryOne<EquipmentDocumentRow>(
+        `SELECT ${DOC_COLUMNS} FROM equipment_documents WHERE id = $1 AND item_id = $2`,
+        [id, itemId]
+      );
+      return existing ? EquipmentDocumentMapper.fromRow(existing) : null;
+    }
+
+    params.push(id, itemId);
+    const row = await this.db.queryOne<EquipmentDocumentRow>(
+      `UPDATE equipment_documents SET ${sets.join(', ')} WHERE id = $${idx} AND item_id = $${idx + 1} RETURNING ${DOC_COLUMNS}`,
       params
     );
+    return row ? EquipmentDocumentMapper.fromRow(row) : null;
   }
 
-  async deleteDocument(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM equipment_documents WHERE id = $1', [id]);
+  async deleteDocument(id: string, itemId: string): Promise<boolean> {
+    const result = await this.db.execute('DELETE FROM equipment_documents WHERE id = $1 AND item_id = $2', [id, itemId]);
     return (result.rowCount ?? 0) > 0;
   }
 

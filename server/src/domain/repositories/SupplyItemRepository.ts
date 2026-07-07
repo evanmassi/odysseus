@@ -96,8 +96,8 @@ export interface SupplyItemRepository {
 
   findDocumentsByItemId(itemId: string): Promise<SupplyDocument[]>;
   saveDocument(document: SupplyDocument): Promise<void>;
-  updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void>;
-  deleteDocument(id: string): Promise<boolean>;
+  updateDocument(id: string, itemId: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<SupplyDocument | null>;
+  deleteDocument(id: string, itemId: string): Promise<boolean>;
 
   // Barcodes
 
@@ -105,8 +105,8 @@ export interface SupplyItemRepository {
   findPrimaryBarcodesByItemIds(itemIds: string[], labId: string): Promise<SupplyBarcodeRow[]>;
   findByBarcodeValue(barcodeValue: string): Promise<SupplyBarcodeRow | null>;
   saveBarcode(barcode: SupplyBarcodeRow): Promise<void>;
-  updateBarcode(id: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<void>;
-  deleteBarcode(id: string): Promise<boolean>;
+  updateBarcode(id: string, itemId: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<SupplyBarcodeRow | null>;
+  deleteBarcode(id: string, itemId: string): Promise<boolean>;
 
   // Stock
 
@@ -139,6 +139,6 @@ export interface SupplyItemRepository {
 
   findPackagingLevelsByItemId(itemId: string): Promise<SupplyPackagingLevelRow[]>;
   savePackagingLevel(level: SupplyPackagingLevelRow): Promise<void>;
-  updatePackagingLevel(id: string, quantity: number): Promise<void>;
+  updatePackagingLevel(id: string, itemId: string, quantity: number): Promise<boolean>;
   deletePackagingLevel(id: string): Promise<boolean>;
 }

@@ -163,7 +163,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     `, [row.id, row.item_id, row.label, row.url, row.notes, row.created_at]);
   }
 
-  async updateDocument(id: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<void> {
+  async updateDocument(id: string, itemId: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<SupplyDocument | null> {
     const sets: string[] = [];
     const params: unknown[] = [];
     let idx = 1;
@@ -171,17 +171,25 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     if (fields.label !== undefined) { sets.push(`label = $${idx++}`); params.push(fields.label); }
     if (fields.url !== undefined) { sets.push(`url = $${idx++}`); params.push(fields.url); }
     if (fields.notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(fields.notes); }
-    if (sets.length === 0) return;
 
-    params.push(id);
-    await this.db.execute(
-      `UPDATE supply_documents SET ${sets.join(', ')} WHERE id = $${idx}`,
+    if (sets.length === 0) {
+      const existing = await this.db.queryOne<SupplyDocumentRow>(
+        `SELECT ${DOC_COLUMNS} FROM supply_documents WHERE id = $1 AND item_id = $2`,
+        [id, itemId]
+      );
+      return existing ? SupplyDocumentMapper.fromRow(existing) : null;
+    }
+
+    params.push(id, itemId);
+    const row = await this.db.queryOne<SupplyDocumentRow>(
+      `UPDATE supply_documents SET ${sets.join(', ')} WHERE id = $${idx} AND item_id = $${idx + 1} RETURNING ${DOC_COLUMNS}`,
       params
     );
+    return row ? SupplyDocumentMapper.fromRow(row) : null;
   }
 
-  async deleteDocument(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM supply_documents WHERE id = $1', [id]);
+  async deleteDocument(id: string, itemId: string): Promise<boolean> {
+    const result = await this.db.execute('DELETE FROM supply_documents WHERE id = $1 AND item_id = $2', [id, itemId]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -221,7 +229,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     `, [barcode.id, barcode.itemId, barcode.barcodeValue, barcode.barcodeType, barcode.isPrimary, barcode.label ?? null]);
   }
 
-  async updateBarcode(id: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<void> {
+  async updateBarcode(id: string, itemId: string, fields: { label?: string | null; isPrimary?: boolean }): Promise<SupplyBarcodeRow | null> {
     const sets: string[] = [];
     const params: unknown[] = [];
     let idx = 1;
@@ -234,17 +242,25 @@ export class SupplyItemRepository implements ISupplyItemRepository {
       sets.push(`is_primary = $${idx++}`);
       params.push(fields.isPrimary);
     }
-    if (sets.length === 0) return;
 
-    params.push(id);
-    await this.db.execute(
-      `UPDATE supply_barcodes SET ${sets.join(', ')} WHERE id = $${idx}`,
+    if (sets.length === 0) {
+      const existing = await this.db.queryOne<SupplyBarcodeDbRow>(
+        `SELECT ${BARCODE_COLUMNS} FROM supply_barcodes WHERE id = $1 AND item_id = $2`,
+        [id, itemId]
+      );
+      return existing ? SupplyBarcodeMapper.fromRow(existing) : null;
+    }
+
+    params.push(id, itemId);
+    const row = await this.db.queryOne<SupplyBarcodeDbRow>(
+      `UPDATE supply_barcodes SET ${sets.join(', ')} WHERE id = $${idx} AND item_id = $${idx + 1} RETURNING ${BARCODE_COLUMNS}`,
       params
     );
+    return row ? SupplyBarcodeMapper.fromRow(row) : null;
   }
 
-  async deleteBarcode(id: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM supply_barcodes WHERE id = $1', [id]);
+  async deleteBarcode(id: string, itemId: string): Promise<boolean> {
+    const result = await this.db.execute('DELETE FROM supply_barcodes WHERE id = $1 AND item_id = $2', [id, itemId]);
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -485,11 +501,12 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     );
   }
 
-  async updatePackagingLevel(id: string, quantity: number): Promise<void> {
-    await this.db.execute(
-      'UPDATE supply_packaging_levels SET quantity = $1 WHERE id = $2',
-      [String(quantity), id]
+  async updatePackagingLevel(id: string, itemId: string, quantity: number): Promise<boolean> {
+    const result = await this.db.execute(
+      'UPDATE supply_packaging_levels SET quantity = $1 WHERE id = $2 AND item_id = $3',
+      [String(quantity), id, itemId]
     );
+    return (result.rowCount ?? 0) > 0;
   }
 
   async deletePackagingLevel(id: string): Promise<boolean> {

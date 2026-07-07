@@ -133,11 +133,11 @@ safe one — an unscoped read must be deliberately spelled `AnyLab`. Holes reach
 
 ### Phase 2 — Child writes → parent-scoped (holes 4–10)
 
-- [ ] Equipment `updateDocument(docId, itemId, fields)` + `deleteDocument(docId, itemId)` → `AND item_id`, return rowCount; service passes `itemId`, 404 on 0 rows, drop post-hoc find (`EquipmentItemRepository.ts:114,131`; `EquipmentApplicationService.ts:355-386`).
-- [ ] Supply `updateDocument` + `deleteDocument` + `updateBarcode` + `deleteBarcode` + `updatePackagingLevel` → same treatment (`SupplyItemRepository.ts:178,184,241,247,491`; `SupplyApplicationService.ts:272-343,426-430`).
-- [ ] Update repo interfaces to match new signatures.
-- [ ] Red→green integration test per hole (foreign-lab child id → 404, no mutation; own child still mutable).
-- **Commits:** `fix(security): scope equipment child mutations to parent item` · `fix(security): scope supply child mutations to parent item`
+- [x] Equipment `updateDocument`/`deleteDocument` → `AND item_id`; update returns the row via `RETURNING` (collapses the mutate-then-verify + drops the extra fetch), delete returns rowCount>0; service 404s on no-match. **DONE.**
+- [x] Supply `updateDocument`/`deleteDocument`/`updateBarcode`/`deleteBarcode`/`updatePackagingLevel` → same treatment. The 3 previously-**silent** methods (`removeDocument`, `removeBarcode`, `updatePackagingLevel`) now 404 on a missing/foreign child id (approved behavior change). `regenerateInternalBarcode` threads `itemId` (item-sourced id, safe). **DONE.**
+- [x] Repo interfaces updated to match.
+- [x] Integration tests: `equipmentDocLabScoping.test` (4), `supplyChildLabScoping.test` (9) — foreign itemId → null/false + target row untouched; own child still mutable. **All green** (typecheck · 31 integration · 767 unit).
+- **Commits (pending):** `fix(security): scope equipment + supply child mutations to parent item`
 
 ### Phase 3 — Tier-3 convergence sweep + dead code
 
