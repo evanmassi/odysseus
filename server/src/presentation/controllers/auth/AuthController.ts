@@ -5,14 +5,13 @@
  * password change, and email verification status.
  */
 
-
 import type { ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import type { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
-import { PermissionError } from '@domain/errors/PermissionError';
+import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import { logger } from '@infrastructure/logging/logger';
+import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
@@ -21,20 +20,18 @@ import type { Request, Response } from 'express';
 export interface AuthControllerDeps {
   changePasswordHandler: ChangeUserPasswordCommandHandler;
   resendVerificationHandler: ResendVerificationEmailCommandHandler;
-  personRepository: PersonRepository;
+  personApplicationService: PersonApplicationService;
   eventBus: EventBus;
 }
 
-export class AuthController {
-  constructor(private deps: AuthControllerDeps) {}
+export class AuthController extends BaseController {
+  constructor(private deps: AuthControllerDeps) {
+    super();
+  }
 
   async changePassword(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user;
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to change password');
-        return;
-      }
+      const user = this.getAuthenticatedUser(req);
 
       if (user.isDemo) {
         res.status(403).json(ResponseBuilder.forbidden('Password change is not available in demo mode'));
@@ -53,13 +50,9 @@ export class AuthController {
 
       await this.deps.changePasswordHandler.handle(command);
 
-      logger.info('Password changed successfully', {
-        userId: user.id,
-        username: user.username
-      });
+      logger.info('Password changed successfully', { userId: user.id, username: user.username });
 
-      const response = ResponseBuilder.success({ message: 'Password changed successfully' });
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success({ message: 'Password changed successfully' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to change password');
     }
@@ -67,25 +60,13 @@ export class AuthController {
 
   async logout(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user;
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to logout');
-        return;
-      }
+      const user = this.getAuthenticatedUser(req);
 
-      await this.deps.eventBus.publish(new UserLoggedOutEvent(
-        user.id,
-        user.username,
-        user.labId
-      ));
+      await this.deps.eventBus.publish(new UserLoggedOutEvent(user.id, user.username, user.labId));
 
-      logger.info('User logged out', {
-        userId: user.id,
-        username: user.username
-      });
+      logger.info('User logged out', { userId: user.id, username: user.username });
 
-      const response = ResponseBuilder.success({ message: 'Logged out successfully' });
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success({ message: 'Logged out successfully' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to logout');
     }
@@ -97,20 +78,11 @@ export class AuthController {
    */
   async heartbeat(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user;
-      if (!user) {
-        handleControllerError(new Error('User not found in request context'), res, 'Failed to process heartbeat');
-        return;
-      }
+      const user = this.getAuthenticatedUser(req);
 
-      logger.debug('Session heartbeat received', {
-        userId: user.id,
-        username: user.username,
-        sessionId: req.sessionId
-      });
+      logger.debug('Session heartbeat received', { userId: user.id, username: user.username, sessionId: req.sessionId });
 
-      const response = ResponseBuilder.success({ message: 'Session extended' });
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success({ message: 'Session extended' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to process heartbeat');
     }
@@ -119,20 +91,12 @@ export class AuthController {
   /** Deprecated — use public endpoint. */
   async resendVerification(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        throw new PermissionError('Authentication required');
-      }
+      const user = this.getAuthenticatedUser(req);
 
-      const command = { userId: req.user.id };
-      await this.deps.resendVerificationHandler.handle(command);
+      await this.deps.resendVerificationHandler.handle({ userId: user.id });
 
-      if (req.user.personId) {
-        const person = await this.deps.personRepository.findById(req.user.personId);
-        logger.info('Verification email resent', {
-          userId: req.user.id,
-          email: person?.email ?? 'unknown'
-        });
-      }
+      const email = await this.deps.personApplicationService.getContactEmail(user);
+      logger.info('Verification email resent', { userId: user.id, email: email ?? 'unknown' });
 
       res.status(200).json(ResponseBuilder.success({
         message: 'Verification email sent. Check your inbox.',
@@ -145,24 +109,15 @@ export class AuthController {
 
   async getVerificationStatus(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        throw new PermissionError('Authentication required');
-      }
+      const user = this.getAuthenticatedUser(req);
 
-      logger.info('Verification status checked', {
-        userId: req.user.id,
-        emailVerified: req.user.emailVerified
-      });
+      logger.info('Verification status checked', { userId: user.id, emailVerified: user.emailVerified });
 
-      let email: string | null = null;
-      if (req.user.personId) {
-        const person = await this.deps.personRepository.findById(req.user.personId);
-        email = person?.email ?? null;
-      }
+      const email = await this.deps.personApplicationService.getContactEmail(user);
 
       res.status(200).json(ResponseBuilder.success({
-        emailVerified: req.user.emailVerified,
-        email
+        emailVerified: user.emailVerified,
+        email: email ?? null
       }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get verification status');

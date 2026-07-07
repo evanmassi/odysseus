@@ -10,6 +10,7 @@ import { LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdmi
 import type { ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
+import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
@@ -25,6 +26,7 @@ interface AuthCrossModuleDeps {
   getChangeRoleHandler: () => ChangeUserRoleCommandHandler;
   getUserApplicationService: () => UserApplicationService;
   getResearcherApplicationService: () => ResearcherApplicationService;
+  getPersonApplicationService: () => PersonApplicationService;
 }
 
 export class AuthModule {
@@ -202,7 +204,7 @@ export class AuthModule {
       this.authController = new AuthController({
         changePasswordHandler: this.getChangePasswordHandler(),
         resendVerificationHandler: this.getResendVerificationHandler(),
-        personRepository: this.repositoryFactory.getPersonRepository(),
+        personApplicationService: this.crossModuleDeps.getPersonApplicationService(),
         eventBus: this.shared.eventBus,
       });
     }

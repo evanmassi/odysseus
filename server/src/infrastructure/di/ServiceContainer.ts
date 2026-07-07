@@ -271,6 +271,7 @@ export class ServiceContainer {
         getChangeRoleHandler: () => this.getUserModule().getChangeRoleHandler(),
         getUserApplicationService: () => this.getUserModule().getUserApplicationService(),
         getResearcherApplicationService: () => this.getUserModule().getResearcherApplicationService(),
+        getPersonApplicationService: () => this.getUserModule().getPersonApplicationService(),
       });
     }
     return this._authModule;

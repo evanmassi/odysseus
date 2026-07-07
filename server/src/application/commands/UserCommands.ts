@@ -6,6 +6,7 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
+import { verifyCurrentPassword, upgradePasswordHashIfNeeded } from '@application/authentication/passwordCredentials';
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
@@ -140,13 +141,7 @@ export class ChangeUserPasswordCommandHandler {
       throw new UserNotFoundError(command.userId);
     }
 
-    if (!user.hasPassword()) {
-      throw new InvalidCredentialsError('Current password is incorrect');
-    }
-    const isCurrentPasswordValid = await this.passwordService.verify(command.currentPassword, user.passwordHash!, user.salt);
-    if (!isCurrentPasswordValid) {
-      throw new InvalidCredentialsError('Current password is incorrect');
-    }
+    await verifyCurrentPassword(user, command.currentPassword, this.passwordService);
 
     await validatePasswordPolicy(this.storageRepository, command.newPassword);
     const newHash = await this.passwordService.hash(command.newPassword);
@@ -240,11 +235,7 @@ export class LoginCommandHandler {
     }
 
     // Lazy migration: re-hash PBKDF2 passwords to bcrypt on successful login
-    if (this.passwordService.needsUpgrade(user.passwordHash!, user.salt)) {
-      const newHash = await this.passwordService.hash(command.password);
-      user.setPasswordHash(newHash);
-      await this.userRepository.save(user);
-    }
+    await upgradePasswordHashIfNeeded(user, command.password, this.passwordService, this.userRepository);
 
     // Check admin approval status FIRST (gates access before email verification)
     if (user.status === 'pending') {

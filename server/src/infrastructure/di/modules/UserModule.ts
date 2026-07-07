@@ -6,6 +6,7 @@
 
 import { ChangeUserRoleCommandHandler, UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
 import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
@@ -26,6 +27,7 @@ export class UserModule {
   private getUserStatsHandler?: GetUserStatisticsQueryHandler;
   private userApplicationService?: UserApplicationService;
   private researcherApplicationService?: ResearcherApplicationService;
+  private personApplicationService?: PersonApplicationService;
   private userController?: UserController;
   private personController?: PersonController;
   private userSessionController?: UserSessionController;
@@ -138,6 +140,17 @@ export class UserModule {
     return this.researcherApplicationService;
   }
 
+  getPersonApplicationService(): PersonApplicationService {
+    if (!this.personApplicationService) {
+      this.personApplicationService = new PersonApplicationService({
+        personRepository: this.repositoryFactory.getPersonRepository(),
+        userRepository: this.repositoryFactory.getUserRepository(),
+        passwordService: this.shared.passwordService,
+      });
+    }
+    return this.personApplicationService;
+  }
+
   // Controllers
 
   getUserController(): UserController {
@@ -155,9 +168,7 @@ export class UserModule {
   getPersonController(): PersonController {
     if (!this.personController) {
       this.personController = new PersonController({
-        personRepository: this.repositoryFactory.getPersonRepository(),
-        userRepository: this.repositoryFactory.getUserRepository(),
-        passwordService: this.shared.passwordService,
+        personApplicationService: this.getPersonApplicationService(),
       });
     }
     return this.personController;

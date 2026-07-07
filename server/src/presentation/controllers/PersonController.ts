@@ -4,14 +4,7 @@
  * Handles profile management for the authenticated user.
  */
 
-import type { PasswordService } from '@application/contracts/PasswordService';
-import type { Person } from '@domain/entities/Person';
-import { NotFoundError } from '@domain/errors/NotFoundError';
-import { InvalidCredentialsError } from '@domain/errors/UserErrors';
-import { ValidationError } from '@domain/errors/ValidationError';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
-import { logger } from '@infrastructure/logging/logger';
+import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -19,9 +12,7 @@ import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import type { Request, Response } from 'express';
 
 export interface PersonControllerDeps {
-  personRepository: PersonRepository;
-  userRepository: UserRepository;
-  passwordService: PasswordService;
+  personApplicationService: PersonApplicationService;
 }
 
 export class PersonController extends BaseController {
@@ -32,11 +23,9 @@ export class PersonController extends BaseController {
   /** GET /api/users/me/profile */
   async getMyProfile(req: Request, res: Response): Promise<void> {
     try {
-      const person = await this.getPersonForCurrentUser(req);
-
-      logger.debug('Profile retrieved', { userId: req.user!.id, personId: person.id, requestId: req.requestId });
-
-      res.status(200).json(ResponseBuilder.success(this.toPersonResponse(person)));
+      const user = this.getAuthenticatedUser(req);
+      const profile = await this.deps.personApplicationService.getMyProfile(user);
+      res.status(200).json(ResponseBuilder.success(profile));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get profile');
     }
@@ -46,109 +35,10 @@ export class PersonController extends BaseController {
   async updateMyProfile(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
-
-      if (user.isDemo) {
-        res.status(403).json(ResponseBuilder.forbidden('Profile changes are not available in demo mode'));
-        return;
-      }
-
-      const person = await this.getPersonForCurrentUser(req);
-      const { firstName, lastName, position, department, email, currentPassword } = req.body;
-
-      if (!currentPassword?.trim()) {
-        throw new ValidationError('Current password is required to update profile');
-      }
-
-      const fullUser = await this.deps.userRepository.findByIdAnyLab(user.id);
-      if (!fullUser) {
-        throw new NotFoundError('User not found');
-      }
-
-      if (!fullUser.hasPassword()) {
-        throw new InvalidCredentialsError('Current password is incorrect');
-      }
-      const isValid = await this.deps.passwordService.verify(currentPassword, fullUser.passwordHash!, fullUser.salt);
-      if (!isValid) {
-        throw new InvalidCredentialsError('Current password is incorrect');
-      }
-
-      // Lazy migration: re-hash PBKDF2 passwords to bcrypt
-      if (this.deps.passwordService.needsUpgrade(fullUser.passwordHash!, fullUser.salt)) {
-        const newHash = await this.deps.passwordService.hash(currentPassword);
-        fullUser.setPasswordHash(newHash);
-        await this.deps.userRepository.save(fullUser);
-      }
-
-      if (firstName !== undefined && !firstName.trim()) {
-        throw new ValidationError('First name cannot be empty');
-      }
-
-      if (lastName !== undefined && !lastName.trim()) {
-        throw new ValidationError('Last name cannot be empty');
-      }
-
-      if (firstName !== undefined || lastName !== undefined || position !== undefined || department !== undefined) {
-        person.updateProfile(
-          firstName !== undefined ? firstName : person.firstName,
-          lastName !== undefined ? lastName : person.lastName,
-          position !== undefined ? position : person.position,
-          department !== undefined ? department : person.department
-        );
-      }
-
-      if (email !== undefined) {
-        if (!email.trim()) {
-          throw new ValidationError('Email cannot be empty');
-        }
-
-        const existingPerson = await this.deps.personRepository.findByEmail(email);
-        if (existingPerson && existingPerson.id !== person.id) {
-          throw new ValidationError('Email is already in use');
-        }
-
-        person.updateEmail(email);
-      }
-
-      await this.deps.personRepository.save(person);
-
-      logger.debug('Profile updated', {
-        userId: user.id,
-        personId: person.id,
-        fields: { firstName, lastName, position, department, email },
-        requestId: req.requestId
-      });
-
-      res.status(200).json(ResponseBuilder.success(this.toPersonResponse(person)));
+      const profile = await this.deps.personApplicationService.updateMyProfile(user, req.body);
+      res.status(200).json(ResponseBuilder.success(profile));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update profile');
     }
-  }
-
-  private async getPersonForCurrentUser(req: Request): Promise<Person> {
-    const user = this.getAuthenticatedUser(req);
-
-    if (!user.personId) {
-      throw new NotFoundError('User does not have a linked person profile');
-    }
-
-    const person = await this.deps.personRepository.findById(user.personId);
-    if (!person) {
-      throw new NotFoundError('Person profile not found');
-    }
-
-    return person;
-  }
-
-  private toPersonResponse(person: Person) {
-    return {
-      id: person.id,
-      firstName: person.firstName,
-      lastName: person.lastName,
-      email: person.email,
-      position: person.position,
-      department: person.department,
-      createdAt: person.createdAt.toISOString(),
-      updatedAt: person.updatedAt.toISOString()
-    };
   }
 }
