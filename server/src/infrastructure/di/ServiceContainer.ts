@@ -272,6 +272,7 @@ export class ServiceContainer {
         getUserApplicationService: () => this.getUserModule().getUserApplicationService(),
         getResearcherApplicationService: () => this.getUserModule().getResearcherApplicationService(),
         getPersonApplicationService: () => this.getUserModule().getPersonApplicationService(),
+        getSecurityConfigApplicationService: () => this.getStorageModule().getSecurityConfigApplicationService(),
       });
     }
     return this._authModule;

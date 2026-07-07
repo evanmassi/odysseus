@@ -5,12 +5,14 @@
  */
 
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
-import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
+import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler, ForceChangePasswordCommandHandler } from '@application/commands/PasswordResetCommands';
 import { LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
 import type { ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
+import { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
 import type { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
 import type { PersonApplicationService } from '@application/services/PersonApplicationService';
+import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
@@ -27,6 +29,7 @@ interface AuthCrossModuleDeps {
   getUserApplicationService: () => UserApplicationService;
   getResearcherApplicationService: () => ResearcherApplicationService;
   getPersonApplicationService: () => PersonApplicationService;
+  getSecurityConfigApplicationService: () => SecurityConfigApplicationService;
 }
 
 export class AuthModule {
@@ -39,6 +42,8 @@ export class AuthModule {
   private generatePasswordResetTokenHandler?: GeneratePasswordResetTokenCommandHandler;
   private resetPasswordWithTokenHandler?: ResetPasswordWithTokenCommandHandler;
   private createSystemAdminHandler?: CreateSystemAdminCommandHandler;
+  private forceChangePasswordHandler?: ForceChangePasswordCommandHandler;
+  private getSessionInfoHandler?: GetSessionInfoQueryHandler;
   private publicAuthController?: PublicAuthController;
   private authController?: AuthController;
   private adminUserController?: AdminUserController;
@@ -174,6 +179,33 @@ export class AuthModule {
     return this.createSystemAdminHandler;
   }
 
+  getForceChangePasswordHandler(): ForceChangePasswordCommandHandler {
+    if (!this.forceChangePasswordHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.forceChangePasswordHandler = new ForceChangePasswordCommandHandler(
+        repositories.users,
+        this.shared.eventBus,
+        repositories.refreshTokens,
+        repositories.userSessions,
+        this.shared.passwordService,
+        repositories.storage
+      );
+    }
+    return this.forceChangePasswordHandler;
+  }
+
+  getGetSessionInfoHandler(): GetSessionInfoQueryHandler {
+    if (!this.getSessionInfoHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.getSessionInfoHandler = new GetSessionInfoQueryHandler(
+        this.shared.sessionService,
+        repositories.userSessions,
+        repositories.storage
+      );
+    }
+    return this.getSessionInfoHandler;
+  }
+
   // Controllers
 
   getPublicAuthController(): PublicAuthController {
@@ -186,13 +218,12 @@ export class AuthModule {
         verifyEmailHandler: this.getVerifyEmailHandler(),
         resendVerificationHandler: this.getResendVerificationHandler(),
         resetPasswordWithTokenHandler: this.getResetPasswordWithTokenHandler(),
+        forceChangePasswordHandler: this.getForceChangePasswordHandler(),
+        getSessionInfoHandler: this.getGetSessionInfoHandler(),
         sessionService: this.shared.sessionService,
         userApplicationService: this.crossModuleDeps.getUserApplicationService(),
-        configRepository: this.repositoryFactory.getStorageRepository(),
-        personRepository: this.repositoryFactory.getPersonRepository(),
-        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
-        userRepository: this.repositoryFactory.getUserRepository(),
-        passwordService: this.shared.passwordService,
+        securityConfigService: this.crossModuleDeps.getSecurityConfigApplicationService(),
+        personApplicationService: this.crossModuleDeps.getPersonApplicationService(),
         eventBus: this.shared.eventBus,
       });
     }

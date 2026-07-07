@@ -8,8 +8,11 @@ import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { requireUser, requireAdmin } from '@application/guards/UserGuards';
+import type { User } from '@domain/entities/User';
+import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PasswordResetByAdminEvent, PasswordResetTokenGeneratedEvent, PasswordResetCompletedEvent } from '@domain/events/PasswordResetEvents';
+import { UserPasswordChangedEvent } from '@domain/events/UserEvents';
 import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
@@ -32,6 +35,11 @@ export interface GeneratePasswordResetTokenCommand {
 
 export interface ResetPasswordWithTokenCommand {
   token: string;
+  newPassword: string;
+}
+
+export interface ForceChangePasswordCommand {
+  userId: string;
   newPassword: string;
 }
 
@@ -155,5 +163,50 @@ export class ResetPasswordWithTokenCommandHandler {
       revokedSessions: revokedSessions,
       timestamp: new Date().toISOString()
     });
+  }
+}
+
+/**
+ * Completes the force-change-password flow (temp-token identity resolved by the caller).
+ * Mirrors a token reset: revokes all existing sessions/tokens so only the freshly
+ * issued session survives. Returns the user for token-pair creation.
+ */
+export class ForceChangePasswordCommandHandler {
+  constructor(
+    private userRepository: UserRepository,
+    private eventBus: EventBus,
+    private refreshTokenRepository: RefreshTokenRepository,
+    private userSessionRepository: UserSessionRepository,
+    private passwordService: PasswordService,
+    private storageRepository: StorageRepository
+  ) {}
+
+  async handle(command: ForceChangePasswordCommand): Promise<User> {
+    const user = await this.userRepository.findByIdAnyLab(command.userId);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    await validatePasswordPolicy(this.storageRepository, command.newPassword);
+    const passwordHash = await this.passwordService.hash(command.newPassword);
+
+    user.setPasswordHash(passwordHash);
+    user.markPasswordChanged();
+    await this.userRepository.save(user);
+
+    const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(user.id);
+    const revokedSessions = await this.userSessionRepository.revokeAllSessions(user.id);
+
+    await this.eventBus.publish(new UserPasswordChangedEvent(user.id, user.username, user.id, user.labId));
+
+    logger.info('Password changed via force-change flow', {
+      userId: user.id,
+      username: user.username,
+      revokedRefreshTokens: revokedTokens,
+      revokedSessions: revokedSessions,
+      timestamp: new Date().toISOString()
+    });
+
+    return user;
   }
 }

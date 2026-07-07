@@ -8,31 +8,27 @@ import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import {
   registerWithProfileSchema,
   forceChangePasswordRequestSchema,
-  type PasswordChangeRequiredResponse,
-  type SessionInfoResponse,
-  PasswordValidator
+  type PasswordChangeRequiredResponse
 } from '@odysseus/shared-schemas';
 
 
 import type { SendVerificationEmailCommandHandler, VerifyEmailCommand, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
-import type { ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
+import type { ForceChangePasswordCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 import type {
   CreateSystemAdminCommand, CreateSystemAdminCommandHandler,
   LoginCommand, LoginCommandHandler,
 } from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
-import type { PasswordService } from '@application/contracts/PasswordService';
 import type { SessionService } from '@application/contracts/SessionService';
 import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
 import { CheckFirstTimeSetupQuery } from '@application/queries/UserQueries';
+import type { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
+import type { PersonApplicationService } from '@application/services/PersonApplicationService';
+import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { InvalidCredentialsError } from '@domain/errors/UserErrors';
 import { UserLoginFailedEvent } from '@domain/events/UserEvents';
-import type { PersonRepository } from '@domain/repositories/PersonRepository';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { logger } from '@infrastructure/logging/logger';
 import { recordSuccessfulLogin, recordFailedLogin } from '@presentation/middleware/rateLimitMiddleware';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -49,13 +45,12 @@ export interface PublicAuthControllerDeps {
   verifyEmailHandler: VerifyEmailCommandHandler;
   resendVerificationHandler: ResendVerificationEmailCommandHandler;
   resetPasswordWithTokenHandler: ResetPasswordWithTokenCommandHandler;
+  forceChangePasswordHandler: ForceChangePasswordCommandHandler;
+  getSessionInfoHandler: GetSessionInfoQueryHandler;
   sessionService: SessionService;
   userApplicationService: UserApplicationService;
-  configRepository: StorageRepository;
-  personRepository: PersonRepository;
-  userSessionRepository: UserSessionRepository;
-  userRepository: UserRepository;
-  passwordService: PasswordService;
+  securityConfigService: SecurityConfigApplicationService;
+  personApplicationService: PersonApplicationService;
   eventBus: EventBus;
 }
 
@@ -108,7 +103,7 @@ export class PublicAuthController {
   async getPasswordRequirements(req: Request, res: Response): Promise<void> {
     try {
 
-      const securityConfig = await this.deps.configRepository.getSecurityConfig();
+      const securityConfig = await this.deps.securityConfigService.getSecurityConfig();
 
       const passwordRequirements = {
         passwordMinLength: securityConfig.passwordMinLength,
@@ -259,20 +254,17 @@ export class PublicAuthController {
       });
 
       // First user is auto-verified but still gets the email for record keeping
-      if (user.personId) {
-        const person = await this.deps.personRepository.findById(user.personId);
-        if (person?.email) {
-          try {
-            const sendCommand = { userId: user.id };
-            await this.deps.sendVerificationEmailHandler.handle(sendCommand);
-            logger.info('Verification email sent', { userId: user.id, email: person.email });
-          } catch (emailError) {
-            logger.error('Failed to send verification email', {
-              userId: user.id,
-              email: person.email,
-              error: emailError instanceof Error ? emailError.message : String(emailError)
-            });
-          }
+      const email = await this.deps.personApplicationService.getContactEmail(user);
+      if (email) {
+        try {
+          await this.deps.sendVerificationEmailHandler.handle({ userId: user.id });
+          logger.info('Verification email sent', { userId: user.id, email });
+        } catch (emailError) {
+          logger.error('Failed to send verification email', {
+            userId: user.id,
+            email,
+            error: emailError instanceof Error ? emailError.message : String(emailError)
+          });
         }
       }
 
@@ -316,13 +308,8 @@ export class PublicAuthController {
       const command: VerifyEmailCommand = { token };
       const user = await this.deps.verifyEmailHandler.handle(command);
 
-      if (user.personId) {
-        const person = await this.deps.personRepository.findById(user.personId);
-        logger.info('Email verified successfully', {
-          userId: user.id,
-          email: person?.email ?? 'unknown'
-        });
-      }
+      const email = await this.deps.personApplicationService.getContactEmail(user);
+      logger.info('Email verified successfully', { userId: user.id, email: email ?? 'unknown' });
 
       res.status(200).json(ResponseBuilder.success({ emailVerified: true }));
     } catch (error) {
@@ -404,7 +391,6 @@ export class PublicAuthController {
   async forceChangePassword(req: Request, res: Response): Promise<void> {
     try {
 
-
       const parseResult = forceChangePasswordRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
         res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, parseResult.error.issues[0].message));
@@ -419,29 +405,7 @@ export class PublicAuthController {
         return;
       }
 
-      const user = await this.deps.userRepository.findByIdAnyLab(tokenData.userId);
-      if (!user) {
-        res.status(404).json(ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, 'User not found'));
-        return;
-      }
-
-      const securityConfig = await this.deps.configRepository.getSecurityConfig();
-      try {
-        PasswordValidator.enforce(newPassword, securityConfig);
-      } catch (error) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.VALIDATION_FAILED, (error as Error).message));
-        return;
-      }
-
-      const passwordHash = await this.deps.passwordService.hash(newPassword);
-      user.setPasswordHash(passwordHash);
-      user.markPasswordChanged();
-      await this.deps.userRepository.save(user);
-
-      logger.info('Password changed via force-change flow', {
-        userId: user.id,
-        username: user.username
-      });
+      const user = await this.deps.forceChangePasswordHandler.handle({ userId: tokenData.userId, newPassword });
 
       const userAgent = req.headers['user-agent'];
       const ipAddress = req.ip ?? req.socket.remoteAddress;
@@ -472,41 +436,9 @@ export class PublicAuthController {
       }
 
       const token = authHeader.substring(7);
+      const info = await this.deps.getSessionInfoHandler.handle({ token });
 
-      const result = await this.deps.sessionService.validateSessionWithActivity(token, { updateActivity: false });
-
-      if (!result.success) {
-        res.status(200).json(ResponseBuilder.success({
-          isAuthenticated: false,
-          reason: result.code
-        }));
-        return;
-      }
-
-      const session = await this.deps.userSessionRepository.findById(result.sessionId);
-      const config = await this.deps.configRepository.getSecurityConfig();
-
-      if (!session) {
-        res.status(200).json(ResponseBuilder.success({
-          isAuthenticated: false,
-          reason: 'SESSION_NOT_FOUND'
-        }));
-        return;
-      }
-
-      const now = Date.now();
-      const idleTimeoutMs = config.sessionTimeoutMinutes * 60 * 1000;
-      const warningMs = config.idleWarningMinutes * 60 * 1000;
-
-      const timeUntilIdleTimeoutMs = Math.max(0, (session.lastUsedAt.getTime() + idleTimeoutMs) - now);
-      const showWarning = timeUntilIdleTimeoutMs <= warningMs && timeUntilIdleTimeoutMs > 0;
-
-      res.status(200).json(ResponseBuilder.success<SessionInfoResponse>({
-        isAuthenticated: true,
-        timeUntilIdleTimeoutMs,
-        showWarning,
-        idleWarningMinutes: config.idleWarningMinutes
-      }));
+      res.status(200).json(ResponseBuilder.success(info));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get session info');
     }
