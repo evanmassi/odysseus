@@ -160,11 +160,11 @@ Scope = **Option 2** (converge every guarded Camp-B by-id method that was an *in
 
 ### Phase 5 — Docs
 
-- [ ] AGENTS.md: repoint the repo exemplar (currently `ResearcherRepository`, the source of hole #1) to an already-scoped repo, or keep it now that it's fixed — decide at edit time.
-- [ ] AGENTS.md: add a Common-Mistakes rule — *by-id methods on `lab_id` tables scope `lab_id` in SQL; child mutations scope `item_id`.*
-- [ ] AGENTS.md: fix stale `AuthenticatedHttpClient` → `HttpClient.ts` (line 112); complete the client-domain list (adds equipment/supplies/help/lab-management) and shared-schemas module list (adds equipment/supplies/labs/lookups/demo).
-- [ ] `ARCHITECTURE_AUDIT.md`: update P0 from 3 → 10 verified holes.
-- **Commit:** `docs: repoint repo exemplar; record verified P0 scope`
+- [x] AGENTS.md repo exemplar: **kept** `ResearcherRepository` — now lab-scoped (`findById(id, labId)` + `findByIdAnyLab`), so it's a valid exemplar of the pattern again.
+- [x] AGENTS.md: added a "No Parallel Systems" row — *lab-scoped by-id access scopes `lab_id` in SQL; cross-lab is an explicit `findByIdAnyLab`/`findByIdForRequester`*.
+- [x] AGENTS.md: `AuthenticatedHttpClient` → `HttpClient`; completed the client-domain tree (+equipment/supplies/help/lab-management) and shared-schemas module list (+donors/equipment/supplies/labs/lookups/demo). All additions verified to exist.
+- [x] `ARCHITECTURE_AUDIT.md`: added a P0 **RESOLVED** banner (3 → 10 verified holes + convergence) and an "addressed" note on the stale-AGENTS.md-claims section.
+- **Commit (pending):** `docs: correct AGENTS.md drift + record P0 resolution`
 
 ---
 

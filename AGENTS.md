@@ -68,11 +68,15 @@ client/src/
 │   ├── tubes/        # Tube management
 │   ├── researchers/  # Researcher profiles
 │   ├── donors/       # Donor registry & collection history
+│   ├── equipment/    # Equipment inventory & maintenance
+│   ├── supplies/     # Supply inventory & transactions
 │   ├── search/       # Advanced search
 │   ├── storage/      # Tank/Rack/Box configuration
 │   ├── admin/        # Admin panel, user management
 │   ├── users/        # User profile, sessions
 │   ├── authentication/
+│   ├── lab-management/
+│   ├── help/
 │   └── grid/         # Grid utilities
 ├── shared/           # Cross-cutting
 │   ├── ui/           # Components, primitives, design tokens
@@ -107,9 +111,9 @@ All validation in `@odysseus/shared-schemas`. Always import from here, never def
 import { createTubeRequestSchema, type TubeData } from '@odysseus/shared-schemas';
 ```
 
-**Modules**: tubes, researchers, search, storage, admin, auth, users, persons, events, infrastructure
+**Modules**: tubes, researchers, donors, search, storage, admin, auth, users, persons, events, infrastructure, equipment, supplies, labs, lookups, demo
 
-**Response schemas live in shared-schemas, not in client services.** Every Zod schema used to validate an HTTP response — whether a data wrapper (`{ users: [...] }`), a standalone response (`{ message: string }`), or an event payload — must be defined in `@odysseus/shared-schemas`. Client service files import these schemas; they never define them inline with `z.object()`. The only valid `zod` import in client code is in `AuthenticatedHttpClient` (the HTTP infrastructure layer).
+**Response schemas live in shared-schemas, not in client services.** Every Zod schema used to validate an HTTP response — whether a data wrapper (`{ users: [...] }`), a standalone response (`{ message: string }`), or an event payload — must be defined in `@odysseus/shared-schemas`. Client service files import these schemas; they never define them inline with `z.object()`. The only valid `zod` import in client code is in `HttpClient` (the HTTP infrastructure layer).
 
 **`success` belongs exclusively in the response envelope.** The server wraps all responses in `{ success: true, data: <T> }` via `ResponseBuilder.success()`. The client's `AuthenticatedHttpClient` strips this envelope automatically. Data schemas (the `<T>` inside) must never include a `success` field — it would be redundant and create a second source of truth for operation outcome.
 
@@ -440,6 +444,7 @@ When infrastructure exists for a concern, use it. Never create a second way to d
 | Controller auth | `BaseController` helpers (`this.extractUserId(req)`, `this.extractLabId(req)`, `this.getAuthenticatedUser(req)`) | Raw `req.user` access |
 | Success responses | `ResponseBuilder.success(data)` | Raw `{ success: true, data }` objects |
 | Error handling | `handleControllerError` from `@presentation/utils/errorHandler` | Per-controller `handleError` methods |
+| Lab-scoped by-id access | repo scopes `lab_id` in SQL (`findById(id, labId)`); cross-lab is an explicit `findByIdAnyLab` / `findByIdForRequester` | bare `findById(id)` on a `lab_id`-bearing table |
 
 ### No Convenience Wrappers
 

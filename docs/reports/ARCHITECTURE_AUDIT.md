@@ -42,6 +42,8 @@ Ordered by leverage. **P0** is the single highest-value change; **P1** is struct
 
 ### P0 — Unify by-id lab scoping (correctness + consistency in one) `[VERIFIED]`
 
+> **✅ RESOLVED — 2026-07-07.** All confirmed cross-lab holes closed; the two camps converged to SQL-level lab scoping (one mechanism). Investigation grew the scope from 3 → 10 verified holes, plus the guarded-but-Camp-B convergence. See [`P0_LAB_SCOPING_REMEDIATION.md`](./P0_LAB_SCOPING_REMEDIATION.md) and commits `0982dd9d`→`1351aeca` on `audit/fixes`; backed by 49 two-lab integration tests.
+
 **The problem.** Two mechanisms for tenant-scoping a by-id lookup coexist, and the older one leaks:
 
 - **Camp A (correct):** repo bakes `labId` into SQL — `DonorRepository.findById(id, labId)` → `WHERE id = $1 AND lab_id = $2` (`server/src/infrastructure/repositories/DonorRepository.ts:24-28`). Also Tube, Equipment(×2), Supply(×3), LookupValue.
@@ -174,6 +176,8 @@ Most modules cohesive; dragged by the god-file, `tubes` as a client coupling hub
 ---
 
 ## AGENTS.md claims that no longer match the code
+
+> **Addressed 2026-07-07** — the doc fixes below (stale `HttpClient` name, incomplete client-domain and shared-module lists, and the repo exemplar — `ResearcherRepository` is now lab-scoped, so it's a valid exemplar again) have been applied to AGENTS.md.
 
 - **`AuthenticatedHttpClient` (line 112) doesn't exist** — renamed to `HttpClient.ts`. The "only valid zod import" rule points at a stale filename.
 - **Client domain list (lines 60-84) is incomplete** — omits `equipment`, `supplies`, `help`, `lab-management`.
