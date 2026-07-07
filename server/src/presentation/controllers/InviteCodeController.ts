@@ -6,8 +6,7 @@
 
 
 import type { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
-import type { ValidateInviteCodeQueryHandler } from '@application/queries/InviteCodeQueries';
-import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { ValidateInviteCodeQueryHandler, ListInviteCodesQueryHandler } from '@application/queries/InviteCodeQueries';
 import { logger } from '@infrastructure/logging/logger';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -20,7 +19,7 @@ export interface InviteCodeControllerDeps {
   createInviteCodeHandler: CreateInviteCodeCommandHandler;
   deactivateInviteCodeHandler: DeactivateInviteCodeCommandHandler;
   validateInviteCodeHandler: ValidateInviteCodeQueryHandler;
-  inviteCodeRepository: InviteCodeRepository;
+  listInviteCodesHandler: ListInviteCodesQueryHandler;
 }
 
 export class InviteCodeController extends BaseController {
@@ -50,10 +49,8 @@ export class InviteCodeController extends BaseController {
 
   private async listCodes(labId: string, res: Response): Promise<void> {
     try {
-      const codes = await this.deps.inviteCodeRepository.findByLabId(labId);
-      res.status(200).json(ResponseBuilder.success({
-        inviteCodes: codes.map(c => c.toData()),
-      }));
+      const inviteCodes = await this.deps.listInviteCodesHandler.handle({ labId });
+      res.status(200).json(ResponseBuilder.success({ inviteCodes }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to list invite codes');
     }

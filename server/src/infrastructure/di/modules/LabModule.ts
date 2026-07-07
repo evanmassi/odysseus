@@ -7,7 +7,8 @@
 import { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
 import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler } from '@application/commands/InviteCodeCommands';
 import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
-import { ValidateInviteCodeQueryHandler } from '@application/queries/InviteCodeQueries';
+import { ValidateInviteCodeQueryHandler, ListInviteCodesQueryHandler } from '@application/queries/InviteCodeQueries';
+import { LabApplicationService } from '@application/services/LabApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
@@ -22,6 +23,8 @@ export class LabModule {
   private createInviteCodeHandler?: CreateInviteCodeCommandHandler;
   private deactivateInviteCodeHandler?: DeactivateInviteCodeCommandHandler;
   private validateInviteCodeHandler?: ValidateInviteCodeQueryHandler;
+  private listInviteCodesHandler?: ListInviteCodesQueryHandler;
+  private labApplicationService?: LabApplicationService;
   private labController?: LabController;
   private inviteCodeController?: InviteCodeController;
 
@@ -129,6 +132,31 @@ export class LabModule {
     return this.validateInviteCodeHandler;
   }
 
+  getListInviteCodesHandler(): ListInviteCodesQueryHandler {
+    if (!this.listInviteCodesHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.listInviteCodesHandler = new ListInviteCodesQueryHandler(
+        repositories.inviteCodes
+      );
+    }
+    return this.listInviteCodesHandler;
+  }
+
+  getLabApplicationService(): LabApplicationService {
+    if (!this.labApplicationService) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.labApplicationService = new LabApplicationService({
+        labRepository: repositories.labs,
+        userRepository: repositories.users,
+        tubeRepository: repositories.tubes,
+        storageRepository: repositories.storage,
+        researcherRepository: repositories.researchers,
+        personRepository: repositories.persons,
+      });
+    }
+    return this.labApplicationService;
+  }
+
   // Controllers
 
   getLabController(): LabController {
@@ -139,12 +167,7 @@ export class LabModule {
         deactivateLabHandler: this.getDeactivateLabHandler(),
         activateLabHandler: this.getActivateLabHandler(),
         updateDemoLimitsHandler: this.getUpdateDemoLimitsHandler(),
-        labRepository: this.repositoryFactory.getLabRepository(),
-        userRepository: this.repositoryFactory.getUserRepository(),
-        tubeRepository: this.repositoryFactory.getTubeRepository(),
-        storageRepository: this.repositoryFactory.getStorageRepository(),
-        researcherRepository: this.repositoryFactory.getResearcherRepository(),
-        personRepository: this.repositoryFactory.getPersonRepository(),
+        labApplicationService: this.getLabApplicationService(),
       });
     }
     return this.labController;
@@ -156,7 +179,7 @@ export class LabModule {
         createInviteCodeHandler: this.getCreateInviteCodeHandler(),
         deactivateInviteCodeHandler: this.getDeactivateInviteCodeHandler(),
         validateInviteCodeHandler: this.getValidateInviteCodeHandler(),
-        inviteCodeRepository: this.repositoryFactory.getInviteCodeRepository(),
+        listInviteCodesHandler: this.getListInviteCodesHandler(),
       });
     }
     return this.inviteCodeController;

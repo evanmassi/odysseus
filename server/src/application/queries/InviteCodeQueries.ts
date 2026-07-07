@@ -13,6 +13,10 @@ export interface ValidateInviteCodeQuery {
   code: string;
 }
 
+export interface ListInviteCodesQuery {
+  labId: string;
+}
+
 // QUERY HANDLERS
 
 /** Public query — validates an invite code for the registration flow. */
@@ -38,5 +42,15 @@ export class ValidateInviteCodeQueryHandler {
     }
 
     return { valid: true, labName: lab.name, labId: lab.id, role: inviteCode.role, createResearcher: inviteCode.createResearcher };
+  }
+}
+
+/** Lists a lab's invite codes for the admin console. */
+export class ListInviteCodesQueryHandler {
+  constructor(private inviteCodeRepository: InviteCodeRepository) {}
+
+  async handle(query: ListInviteCodesQuery) {
+    const codes = await this.inviteCodeRepository.findByLabId(query.labId);
+    return codes.map(c => c.toData());
   }
 }

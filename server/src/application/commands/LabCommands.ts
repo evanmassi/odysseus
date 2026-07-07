@@ -49,7 +49,7 @@ export class CreateLabCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(command: CreateLabCommand): Promise<{ labId: string }> {
+  async handle(command: CreateLabCommand): Promise<Lab> {
     await requireSystemAdmin(this.userRepository, command.userId);
 
     if (!command.name || command.name.trim().length === 0) {
@@ -68,7 +68,7 @@ export class CreateLabCommandHandler {
 
     await this.eventBus.publish(new LabCreatedEvent(lab.id, lab.name));
 
-    return { labId: lab.id };
+    return lab;
   }
 }
 
@@ -79,7 +79,7 @@ export class UpdateLabCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async handle(command: UpdateLabCommand): Promise<void> {
+  async handle(command: UpdateLabCommand): Promise<Lab> {
     await requireSystemAdmin(this.userRepository, command.userId);
 
     const lab = await this.labRepository.findById(command.labId);
@@ -88,7 +88,7 @@ export class UpdateLabCommandHandler {
     }
 
     if (lab.name === command.name) {
-      return;
+      return lab;
     }
 
     const oldName = lab.name;
@@ -102,6 +102,8 @@ export class UpdateLabCommandHandler {
     await this.labRepository.save(lab);
 
     await this.eventBus.publish(new LabRenamedEvent(command.labId, oldName, command.name, command.userId));
+
+    return lab;
   }
 }
 
