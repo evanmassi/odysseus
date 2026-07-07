@@ -6,11 +6,12 @@
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
-
-import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import type { GetSystemMetricsQueryHandler } from '@application/queries/StorageQueries';
 import { GetUserStatisticsQuery } from '@application/queries/UserQueries';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import { logger } from '@infrastructure/logging/logger';
+import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
@@ -18,26 +19,23 @@ import type { SecurityConfig } from '@odysseus/shared-schemas';
 import type { Request, Response } from 'express';
 
 export interface AdminConfigControllerDeps {
+  securityConfigService: SecurityConfigApplicationService;
+  getSystemMetricsHandler: GetSystemMetricsQueryHandler;
   getUserStatsHandler: GetUserStatisticsQueryHandler;
-  configRepository: StorageRepository;
 }
 
-export class AdminConfigController {
-  constructor(private deps: AdminConfigControllerDeps) {}
+export class AdminConfigController extends BaseController {
+  constructor(private deps: AdminConfigControllerDeps) {
+    super();
+  }
 
   async getSecurityConfig(req: Request, res: Response): Promise<void> {
     try {
+      const config = await this.deps.securityConfigService.getSecurityConfig();
 
-      const securityConfig = await this.deps.configRepository.getSecurityConfig();
+      res.status(200).json(ResponseBuilder.success({ config }));
 
-      const response = ResponseBuilder.success({
-        config: securityConfig
-      });
-      res.status(200).json(response);
-
-      logger.debug('Security configuration retrieved', {
-        requestedBy: req.user?.username
-      });
+      logger.debug('Security configuration retrieved', { requestedBy: req.user?.username });
     } catch (error) {
       handleControllerError(error, res, 'Failed to get security config');
     }
@@ -45,37 +43,17 @@ export class AdminConfigController {
 
   async updateSecurityConfig(req: Request, res: Response): Promise<void> {
     try {
-
-      const adminUser = req.user;
-
-      if (!adminUser) {
-        handleControllerError(new Error('Admin user not found in request context'), res, 'Failed to update security config');
-        return;
-      }
-
-      if (adminUser.isDemo) {
-        res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Security configuration changes are restricted in the demo environment'));
-        return;
-      }
-
+      const user = this.getAuthenticatedUser(req);
       const updates: Partial<SecurityConfig> = req.body;
 
-      if (!updates || typeof updates !== 'object') {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'Request body must be an object'));
-        return;
-      }
-
-      const updatedConfig = await this.deps.configRepository.updateSecurityConfig(updates);
+      const config = await this.deps.securityConfigService.updateSecurityConfig(updates, user);
 
       logger.info('Security configuration updated', {
-        updatedBy: adminUser.username,
-        changes: Object.keys(updates)
+        updatedBy: user.username,
+        changes: Object.keys(updates),
       });
 
-      const response = ResponseBuilder.success({
-        config: updatedConfig
-      });
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success({ config }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to update security config');
     }
@@ -83,20 +61,17 @@ export class AdminConfigController {
 
   async getMetrics(req: Request, res: Response): Promise<void> {
     try {
-
       const labId = req.user?.labId;
       if (!labId) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required for metrics'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Lab context required for metrics'));
         return;
       }
-      const metrics = await this.deps.configRepository.getSystemMetrics(labId);
 
-      const response = ResponseBuilder.success(metrics);
-      res.status(200).json(response);
+      const metrics = await this.deps.getSystemMetricsHandler.handle({ labId });
 
-      logger.debug('System metrics retrieved', {
-        requestedBy: req.user?.username
-      });
+      res.status(200).json(ResponseBuilder.success(metrics));
+
+      logger.debug('System metrics retrieved', { requestedBy: req.user?.username });
     } catch (error) {
       handleControllerError(error, res, 'Failed to get metrics');
     }
@@ -104,14 +79,13 @@ export class AdminConfigController {
 
   async getUserStatistics(req: Request, res: Response): Promise<void> {
     try {
-      const user = req.user;
-      const isLabScoped = user && !user.isSystemAdmin() && user.labId;
+      const user = this.getAuthenticatedUser(req);
+      const labId = user.isSystemAdmin() ? undefined : user.labId;
 
-      const query = new GetUserStatisticsQuery(isLabScoped ? user.labId! : undefined);
+      const query = new GetUserStatisticsQuery(labId);
       const stats = await this.deps.getUserStatsHandler.handle(query);
 
-      const response = ResponseBuilder.success({ statistics: stats });
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success({ statistics: stats }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get user statistics');
     }

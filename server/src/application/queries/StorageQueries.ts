@@ -8,6 +8,8 @@ import type { Storage } from '@domain/entities/Storage';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import type { StorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
 
+import type { SystemMetrics } from '@odysseus/shared-schemas';
+
 // STORAGE QUERY CONTRACTS
 
 export interface GetCurrentStorageQuery {
@@ -22,6 +24,10 @@ export interface GetStorageHistoryQuery {
 export interface GetStorageByVersionQuery {
   labId: string;
   version: number;
+}
+
+export interface GetSystemMetricsQuery {
+  labId: string;
 }
 
 // STORAGE QUERY HANDLERS
@@ -116,6 +122,15 @@ export class CheckStorageHealthQueryHandler {
         version: 0
       };
     }
+  }
+}
+
+/** Aggregate lab metrics (tube/user/researcher counts, last backup) for the admin dashboard. */
+export class GetSystemMetricsQueryHandler {
+  constructor(private storageRepository: StorageRepository) {}
+
+  async handle(query: GetSystemMetricsQuery): Promise<SystemMetrics> {
+    return this.storageRepository.getSystemMetrics(query.labId);
   }
 }
 

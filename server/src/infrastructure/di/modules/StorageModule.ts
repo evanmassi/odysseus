@@ -12,9 +12,10 @@ import { InitializeStorageCommandHandler } from '@application/commands/Initializ
 import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
 import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
 import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
-import { GetCurrentStorageQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler } from '@application/queries/StorageQueries';
+import { GetCurrentStorageQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler, GetSystemMetricsQueryHandler } from '@application/queries/StorageQueries';
 import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
+import { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
@@ -59,9 +60,11 @@ export class StorageModule {
   private getStorageHistoryHandler?: GetStorageHistoryQueryHandler;
   private getStorageByVersionHandler?: GetStorageByVersionQueryHandler;
   private checkStorageHealthHandler?: CheckStorageHealthQueryHandler;
+  private getSystemMetricsHandler?: GetSystemMetricsQueryHandler;
 
   // Services
   private lookupValueApplicationService?: LookupValueApplicationService;
+  private securityConfigApplicationService?: SecurityConfigApplicationService;
 
   // Controllers
   private storageController?: StorageController;
@@ -404,7 +407,27 @@ export class StorageModule {
     return this.checkStorageHealthHandler;
   }
 
+  getGetSystemMetricsHandler(): GetSystemMetricsQueryHandler {
+    if (!this.getSystemMetricsHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.getSystemMetricsHandler = new GetSystemMetricsQueryHandler(
+        repositories.storage
+      );
+    }
+    return this.getSystemMetricsHandler;
+  }
+
   // Services
+
+  getSecurityConfigApplicationService(): SecurityConfigApplicationService {
+    if (!this.securityConfigApplicationService) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.securityConfigApplicationService = new SecurityConfigApplicationService({
+        storageRepository: repositories.storage,
+      });
+    }
+    return this.securityConfigApplicationService;
+  }
 
   getLookupValueApplicationService(): LookupValueApplicationService {
     if (!this.lookupValueApplicationService) {
@@ -460,8 +483,9 @@ export class StorageModule {
   getAdminConfigController(): AdminConfigController {
     if (!this.adminConfigController) {
       this.adminConfigController = new AdminConfigController({
+        securityConfigService: this.getSecurityConfigApplicationService(),
+        getSystemMetricsHandler: this.getGetSystemMetricsHandler(),
         getUserStatsHandler: this.crossModuleDeps.getGetUserStatsHandler(),
-        configRepository: this.repositoryFactory.getStorageRepository(),
       });
     }
     return this.adminConfigController;
