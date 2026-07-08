@@ -8,6 +8,7 @@ import { ChangeUserRoleCommandHandler, UpdateUserSettingsCommandHandler } from '
 import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
+import { SecurityMonitoringApplicationService } from '@application/services/SecurityMonitoringApplicationService';
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { UserSessionApplicationService } from '@application/services/UserSessionApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
@@ -30,6 +31,7 @@ export class UserModule {
   private researcherApplicationService?: ResearcherApplicationService;
   private personApplicationService?: PersonApplicationService;
   private userSessionApplicationService?: UserSessionApplicationService;
+  private securityMonitoringApplicationService?: SecurityMonitoringApplicationService;
   private userController?: UserController;
   private personController?: PersonController;
   private userSessionController?: UserSessionController;
@@ -162,6 +164,17 @@ export class UserModule {
     return this.userSessionApplicationService;
   }
 
+  getSecurityMonitoringApplicationService(): SecurityMonitoringApplicationService {
+    if (!this.securityMonitoringApplicationService) {
+      this.securityMonitoringApplicationService = new SecurityMonitoringApplicationService({
+        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+        refreshTokenRepository: this.repositoryFactory.getRefreshTokenRepository(),
+        auditRepository: this.repositoryFactory.getAuditRepository(),
+      });
+    }
+    return this.securityMonitoringApplicationService;
+  }
+
   // Controllers
 
   getUserController(): UserController {
@@ -205,9 +218,7 @@ export class UserModule {
   getSecurityMonitoringController(): SecurityMonitoringController {
     if (!this.securityMonitoringController) {
       this.securityMonitoringController = new SecurityMonitoringController({
-        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
-        refreshTokenRepository: this.repositoryFactory.getRefreshTokenRepository(),
-        auditRepository: this.repositoryFactory.getAuditRepository(),
+        securityMonitoringService: this.getSecurityMonitoringApplicationService(),
       });
     }
     return this.securityMonitoringController;
