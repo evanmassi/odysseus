@@ -1,47 +1,50 @@
 /**
- * Equipment Category Modal
+ * Category Modal
  *
- * Creates or renames an equipment category or subcategory via a compact dialog.
+ * Creates or renames an inventory category or subcategory via a compact dialog.
+ * Persistence is injected, so the same modal backs equipment and supplies.
  */
 
 import { useState, useEffect, useRef } from 'react';
 
 import { FolderOpen, Plus, SquarePen } from 'lucide-react';
 
-import {
-  useCreateEquipmentCategoryMutation,
-  useUpdateEquipmentCategoryMutation,
-} from '@domains/equipment/hooks/useEquipmentMutations';
-import { Button, Input } from '@shared/ui';
-import { FIELD_LABEL_STANDARD } from '@shared/ui/components/inputs/fieldLabelClass';
-import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
-import type { EquipmentCategory } from '@odysseus/shared-schemas';
+import { Button, Input } from '../../primitives';
+import { FIELD_LABEL_STANDARD } from '../inputs/fieldLabelClass';
+import { BaseModal } from '../overlays';
 
-interface EquipmentCategoryModalProps {
+interface CategoryModalProps {
   isOpen: boolean;
   parentId?: string;
   parentName?: string;
-  category?: EquipmentCategory;
+  category?: { id: string; name: string };
   onClose: () => void;
+  onCreate: (name: string, parentId?: string) => Promise<unknown>;
+  onRename: (id: string, name: string) => Promise<unknown>;
+  isPending: boolean;
+  categoryPlaceholder: string;
+  subcategoryPlaceholder: string;
 }
 
-export function EquipmentCategoryModal({
+export function CategoryModal({
   isOpen,
   parentId,
   parentName,
   category,
   onClose,
-}: EquipmentCategoryModalProps) {
+  onCreate,
+  onRename,
+  isPending,
+  categoryPlaceholder,
+  subcategoryPlaceholder,
+}: CategoryModalProps) {
   const [name, setName] = useState('');
-  const createMutation = useCreateEquipmentCategoryMutation();
-  const updateMutation = useUpdateEquipmentCategoryMutation();
   const prevIsOpenRef = useRef(isOpen);
 
   const isEditing = !!category;
   const isSubcategory = !!parentId;
-  const isPending = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
@@ -58,10 +61,10 @@ export function EquipmentCategoryModal({
 
     try {
       if (isEditing) {
-        await updateMutation.mutateAsync({ id: category.id, data: { name: trimmed } });
+        await onRename(category.id, trimmed);
         notifications.success(`Renamed to "${trimmed}"`);
       } else {
-        await createMutation.mutateAsync({ name: trimmed, parentId });
+        await onCreate(trimmed, parentId);
         notifications.success(`${isSubcategory ? 'Subcategory' : 'Category'} "${trimmed}" created`);
       }
       onClose();
@@ -105,7 +108,7 @@ export function EquipmentCategoryModal({
             value={name}
             onValueChange={setName}
             onKeyDown={handleKeyDown}
-            placeholder={isSubcategory ? 'e.g., Single Channel' : 'e.g., Pipettes'}
+            placeholder={isSubcategory ? subcategoryPlaceholder : categoryPlaceholder}
             maxLength={200}
             fullWidth
           />

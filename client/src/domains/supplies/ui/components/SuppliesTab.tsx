@@ -12,7 +12,11 @@ import { Plus, Eye, EyeOff, ArrowUp, ArrowDown, Package, MapPin, Layers } from '
 
 import { useAuthStore } from '@domains/authentication';
 import { useSupplyCategoriesQuery, useSupplyItemsQuery } from '@domains/supplies/hooks';
-import { useDeleteSupplyCategoryMutation } from '@domains/supplies/hooks/useSupplyMutations';
+import {
+  useCreateSupplyCategoryMutation,
+  useDeleteSupplyCategoryMutation,
+  useUpdateSupplyCategoryMutation,
+} from '@domains/supplies/hooks/useSupplyMutations';
 import {
   Button,
   HeaderStrip,
@@ -23,13 +27,13 @@ import {
   Select,
   Tooltip,
 } from '@shared/ui';
+import { CategoryModal } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
-import { SupplyCategoryModal } from './SupplyCategoryModal';
 import { SupplyCategoryPanel } from './SupplyCategoryPanel';
 import { SupplyItemForm } from './SupplyItemForm';
 import { SupplyItemInfoPanel } from './SupplyItemInfoPanel';
@@ -69,6 +73,8 @@ export function SuppliesTab() {
 
   const { data: categories = [] } = useSupplyCategoriesQuery();
   const { data: items = [] } = useSupplyItemsQuery();
+  const createCategoryMutation = useCreateSupplyCategoryMutation();
+  const updateCategoryMutation = useUpdateSupplyCategoryMutation();
   const deleteCategoryMutation = useDeleteSupplyCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
@@ -368,12 +374,17 @@ export function SuppliesTab() {
             })()}
         </div>
 
-        <SupplyCategoryModal
+        <CategoryModal
           isOpen={categoryModal.isOpen}
           parentId={categoryModal.parentId}
           parentName={categoryModal.parentName}
           category={categoryModal.category}
           onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
+          onCreate={(name, parentId) => createCategoryMutation.mutateAsync({ name, parentId })}
+          onRename={(id, name) => updateCategoryMutation.mutateAsync({ id, data: { name } })}
+          isPending={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+          categoryPlaceholder="e.g., Pipette Tips"
+          subcategoryPlaceholder="e.g., 15mL Conicals"
         />
 
         <ConfirmDialog

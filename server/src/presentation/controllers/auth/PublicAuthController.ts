@@ -20,9 +20,9 @@ import type {
 } from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { SessionService } from '@application/contracts/SessionService';
+import type { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
 import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
 import { CheckFirstTimeSetupQuery } from '@application/queries/UserQueries';
-import type { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
 import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';

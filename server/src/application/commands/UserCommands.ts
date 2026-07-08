@@ -4,10 +4,10 @@
  * Account lifecycle operations — registration, login, password changes, role changes, deletion.
  */
 
-import type { EventBus } from '@application/contracts/EventBus';
-import type { PasswordService } from '@application/contracts/PasswordService';
 import { verifyCurrentPassword, upgradePasswordHashIfNeeded } from '@application/authentication/passwordCredentials';
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
+import type { EventBus } from '@application/contracts/EventBus';
+import type { PasswordService } from '@application/contracts/PasswordService';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
 import { User } from '@domain/entities/User';

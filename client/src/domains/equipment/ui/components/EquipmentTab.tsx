@@ -11,7 +11,11 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useDeleteEquipmentCategoryMutation } from '@domains/equipment/hooks/useEquipmentMutations';
+import {
+  useCreateEquipmentCategoryMutation,
+  useDeleteEquipmentCategoryMutation,
+  useUpdateEquipmentCategoryMutation,
+} from '@domains/equipment/hooks/useEquipmentMutations';
 import {
   useEquipmentCategoriesQuery,
   useEquipmentItemsQuery,
@@ -25,13 +29,13 @@ import {
   Select,
   Tooltip,
 } from '@shared/ui';
+import { CategoryModal } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
 import { EquipmentBulkUpdateModal } from './EquipmentBulkUpdateModal';
-import { EquipmentCategoryModal } from './EquipmentCategoryModal';
 import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
 import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
 import { EquipmentEditForm } from './EquipmentEditForm';
@@ -66,6 +70,8 @@ export function EquipmentTab() {
 
   const { data: categories = [] } = useEquipmentCategoriesQuery();
   const { data: items = [] } = useEquipmentItemsQuery();
+  const createCategoryMutation = useCreateEquipmentCategoryMutation();
+  const updateCategoryMutation = useUpdateEquipmentCategoryMutation();
   const deleteCategoryMutation = useDeleteEquipmentCategoryMutation();
 
   const [selectedItemId, setSelectedItemId] = useState<string | undefined>();
@@ -362,12 +368,17 @@ export function EquipmentTab() {
           )}
         </div>
 
-        <EquipmentCategoryModal
+        <CategoryModal
           isOpen={categoryModal.isOpen}
           parentId={categoryModal.parentId}
           parentName={categoryModal.parentName}
           category={categoryModal.category}
           onClose={() => setCategoryModal(prev => ({ ...prev, isOpen: false }))}
+          onCreate={(name, parentId) => createCategoryMutation.mutateAsync({ name, parentId })}
+          onRename={(id, name) => updateCategoryMutation.mutateAsync({ id, data: { name } })}
+          isPending={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+          categoryPlaceholder="e.g., Pipettes"
+          subcategoryPlaceholder="e.g., Single Channel"
         />
 
         <ConfirmDialog
