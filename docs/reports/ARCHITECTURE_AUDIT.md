@@ -63,6 +63,15 @@ Ordered by leverage. **P0** is the single highest-value change; **P1** is struct
 
 ### P1a — Extract application services for the 12 fat controllers `[VERIFIED]`
 
+> **✅ RESOLVED — 2026-07-08.** All 12 controllers now depend on the application layer (a service or a
+> command/query handler); none imports `@domain/repositories`. The grep gate returns **0**. Investigation
+> reframed the work — most writes already delegated, so the bulk was giving read/aggregation paths an
+> application-layer home, plus four genuine inline write pipelines (Person profile, force-change-password,
+> security-config, session revoke cascade). Two real bugs were fixed en route: the `forceChangePassword`
+> session-revoke gap and the AdminConfig `FORBIDDEN`-code/`400`-status mismatch. See
+> [`P1A_FAT_CONTROLLERS.md`](./P1A_FAT_CONTROLLERS.md) and commits `ea7951f3`→`bdd365c5` on `audit/fixes`;
+> backed by new service-layer unit tests (834 unit / 36 integration green).
+
 12 of ~24 controllers inject `@domain/repositories` and orchestrate writes in the presentation layer. **Biggest offender:** `PersonController.updateMyProfile` (`PersonController.ts:46-121`) — password verification, a lazy PBKDF2→bcrypt re-hash + `userRepository.save` (76-79), email-uniqueness enforcement (104-107), and `personRepository.save` (112). Others: `UserSessionController`, `LabController` (6 repos), `PublicAuthController` (4 repos), `AuthController`, `InviteCodeController`, `LookupValueController`, `AdminConfigController`, `StorageController`, `UserController`, `SecurityMonitoringController`, `StorageAnalyticsController`.
 
 **Contrast:** `DonorController`/`TubeController`/`EquipmentController`/`SupplyController` take *only* an application service. The pattern is known — it's just applied to only half the controllers.

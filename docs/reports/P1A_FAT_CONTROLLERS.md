@@ -2,6 +2,14 @@
 
 **Date:** 2026-07-07 · **Branch:** `audit/fixes` · **Owner:** P1a from `ARCHITECTURE_AUDIT.md`
 
+> **✅ RESOLVED — 2026-07-08.** All six phases landed as seven commits (`ea7951f3`→`bdd365c5`); the grep
+> gate returns 0. New application services: `SecurityConfig`, `Person`, `UserSession`, `Lab`,
+> `StorageAnalytics`, `SecurityMonitoring`; new handlers: `GetSystemMetrics`, `ForceChangePassword`,
+> `GetSessionInfo`, `ListInviteCodes`; shared `application/authentication/passwordCredentials` helpers
+> adopted by the login + change-password handlers. Behaviour-preserving except two intentional, tested
+> fixes (force-change session revoke; AdminConfig error code) and in-file P2 cleanups. Verified:
+> typecheck · 834 unit · 36 integration.
+
 Removes every `@domain/repositories` dependency from the presentation layer: the 12 controllers that
 inject repositories directly must depend on the application layer (a service, or — in CQRS domains —
 a command/query handler) instead. Investigation (six parallel read-only trace agents + first-hand
