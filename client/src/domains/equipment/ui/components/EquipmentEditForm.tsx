@@ -27,12 +27,11 @@ import {
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
-
-import { EquipmentCategorySelect } from './EquipmentCategorySelect';
 
 import type {
   EquipmentItem,
@@ -167,7 +166,7 @@ export function EquipmentEditForm({
               name="categoryId"
               control={control}
               render={({ field: { value, onChange }, fieldState: { error } }) => (
-                <EquipmentCategorySelect
+                <CategoryHierarchySelect
                   categories={categories}
                   value={(value as string) ?? ''}
                   onChange={onChange}

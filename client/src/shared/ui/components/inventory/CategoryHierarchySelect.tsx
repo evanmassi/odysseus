@@ -1,21 +1,19 @@
 /**
- * Supply Category Select
+ * Category Hierarchy Select
  *
- * Category dropdown with a parent → subcategory hierarchy, shared by the item
- * form and the bulk reassign tab.
+ * Category dropdown with a parent → subcategory hierarchy, shared by the
+ * equipment and supplies item and bulk-reassign forms.
  */
 
 import { useMemo } from 'react';
 
-import { Select } from '@shared/ui';
-import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
-import type { SupplyCategory } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
+import { Select, type SelectOption } from '../../primitives';
+import { FIELD_LABEL_COMPACT } from '../inputs/fieldLabelClass';
 
-interface SupplyCategorySelectProps {
-  categories: SupplyCategory[];
+interface CategoryHierarchySelectProps {
+  categories: Array<{ id: string; name: string; parentId: string | null; sortOrder: number }>;
   value: string;
   onChange: (value: string) => void;
   labelId: string;
@@ -23,14 +21,14 @@ interface SupplyCategorySelectProps {
   placeholder?: string;
 }
 
-export function SupplyCategorySelect({
+export function CategoryHierarchySelect({
   categories,
   value,
   onChange,
   labelId,
   error,
   placeholder = 'Select category...',
-}: SupplyCategorySelectProps) {
+}: CategoryHierarchySelectProps) {
   const categoryOptions: SelectOption[] = useMemo(() => {
     const topLevel = categories.filter(c => !c.parentId).sort(compareByOrderThenName);
     const options: SelectOption[] = [{ value: '', label: placeholder }];

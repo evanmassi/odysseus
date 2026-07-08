@@ -33,13 +33,12 @@ import {
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { CategoryHierarchySelect } from '@shared/ui/components/inventory';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
-
-import { SupplyCategorySelect } from './SupplyCategorySelect';
 
 import type {
   SupplyCategory,
@@ -376,7 +375,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
             name="categoryId"
             control={control}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <SupplyCategorySelect
+              <CategoryHierarchySelect
                 categories={categories}
                 value={(value as string) ?? ''}
                 onChange={onChange}
