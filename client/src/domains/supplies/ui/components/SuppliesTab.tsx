@@ -16,6 +16,7 @@ import { useDeleteSupplyCategoryMutation } from '@domains/supplies/hooks/useSupp
 import {
   Button,
   HeaderStrip,
+  InfoPanelEmpty,
   OverflowMenu,
   PanelHeader,
   SearchInput,
@@ -30,7 +31,6 @@ import { notifications } from '@shared/utils/notifications';
 import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
 import { SupplyCategoryModal } from './SupplyCategoryModal';
 import { SupplyCategoryPanel } from './SupplyCategoryPanel';
-import { SupplyInfoPanelEmpty } from './SupplyInfoPanelEmpty';
 import { SupplyItemForm } from './SupplyItemForm';
 import { SupplyItemInfoPanel } from './SupplyItemInfoPanel';
 import { SupplyLocationModal } from './SupplyLocationModal';
@@ -319,7 +319,13 @@ export function SuppliesTab() {
           className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
-          {!rightPanel && <SupplyInfoPanelEmpty />}
+          {!rightPanel && (
+            <InfoPanelEmpty
+              title="Supply Information"
+              emptyIcon={Package}
+              emptyMessage="Select an item to view details"
+            />
+          )}
 
           {rightPanel?.type === 'info' && (
             <SupplyItemInfoPanel

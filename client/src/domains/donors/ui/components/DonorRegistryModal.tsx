@@ -13,13 +13,12 @@ import { useAuthStore } from '@domains/authentication';
 import { useDonorCollectionHistoryQuery } from '@domains/donors/hooks/useDonorCollectionHistoryQuery';
 import { useDeleteDonorMutation } from '@domains/donors/hooks/useDonorMutations';
 import { useDonorsQuery } from '@domains/donors/hooks/useDonorsQuery';
-import { LoadingSpinner } from '@shared/ui';
+import { InfoPanelEmpty, LoadingSpinner } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { DonorEditForm } from './DonorEditForm';
 import { DonorInfoPanel } from './DonorInfoPanel';
-import { DonorInfoPanelEmpty } from './DonorInfoPanelEmpty';
 import { DonorTable } from './DonorTable';
 
 interface DonorRegistryModalProps {
@@ -190,7 +189,13 @@ export function DonorRegistryModal({
                 isAdmin={isAdmin}
               />
             ) : (
-              <DonorInfoPanelEmpty />
+              <InfoPanelEmpty
+                title="Donor Information"
+                headerIcon={BookUser}
+                stripLabel="Collections"
+                emptyIcon={BookUser}
+                emptyMessage="Select a donor to view details"
+              />
             )}
           </div>
         </div>

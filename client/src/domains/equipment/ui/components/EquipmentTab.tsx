@@ -16,7 +16,15 @@ import {
   useEquipmentCategoriesQuery,
   useEquipmentItemsQuery,
 } from '@domains/equipment/hooks/useEquipmentQueries';
-import { Button, HeaderStrip, PanelHeader, SearchInput, Select, Tooltip } from '@shared/ui';
+import {
+  Button,
+  HeaderStrip,
+  InfoPanelEmpty,
+  PanelHeader,
+  SearchInput,
+  Select,
+  Tooltip,
+} from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
@@ -27,7 +35,6 @@ import { EquipmentCategoryModal } from './EquipmentCategoryModal';
 import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
 import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
 import { EquipmentEditForm } from './EquipmentEditForm';
-import { EquipmentInfoPanelEmpty } from './EquipmentInfoPanelEmpty';
 import { EquipmentItemInfoPanel } from './EquipmentItemInfoPanel';
 import { EquipmentMaintenanceAlertPanel } from './EquipmentMaintenanceAlertPanel';
 import { EquipmentMaintenanceForm } from './EquipmentMaintenanceForm';
@@ -305,7 +312,13 @@ export function EquipmentTab() {
           className="flex-shrink-0 flex flex-col min-h-0"
           style={{ width: 'clamp(420px, 35%, 530px)' }}
         >
-          {!rightPanel && <EquipmentInfoPanelEmpty />}
+          {!rightPanel && (
+            <InfoPanelEmpty
+              title="Equipment Information"
+              emptyIcon={Microscope}
+              emptyMessage="Select equipment to view details"
+            />
+          )}
 
           {rightPanel?.type === 'info' && (
             <EquipmentItemInfoPanel
