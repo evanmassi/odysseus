@@ -49,7 +49,6 @@ import type {
   GetStorageByVersionQueryHandler,
   CheckStorageHealthQueryHandler
 } from '@application/queries/StorageQueries';
-import type { LabRepository } from '@domain/repositories/LabRepository';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -84,7 +83,6 @@ export interface StorageControllerDeps {
   seedDemoHandler: SeedDemoCommandHandler;
   unseedDemoHandler: UnseedDemoCommandHandler;
   initializeConfigHandler: InitializeStorageCommandHandler;
-  labRepository: LabRepository;
 }
 
 export class StorageController extends BaseController {
@@ -100,14 +98,11 @@ export class StorageController extends BaseController {
       const user = this.getAuthenticatedUser(req);
       const labId = this.extractLabId(req);
 
-      const configuration = await this.deps.getCurrentStorageHandler.handle({ labId });
-      const configurationResponse = StorageDto.toResponse(configuration);
+      const { storage, demoLimits } = await this.deps.getCurrentStorageHandler.handle({ labId, includeDemoLimits: user.isDemo });
+      const configurationResponse = StorageDto.toResponse(storage);
 
-      if (user.isDemo) {
-        const lab = await this.deps.labRepository.findById(labId);
-        if (lab?.demoLimits) {
-          configurationResponse.configuration.currentLab.demoLimits = lab.demoLimits;
-        }
+      if (demoLimits) {
+        configurationResponse.configuration.currentLab.demoLimits = demoLimits;
       }
 
       res.json(ResponseBuilder.success(configurationResponse));
@@ -164,11 +159,11 @@ export class StorageController extends BaseController {
   async getStorageVersion(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
-      const configuration = await this.deps.getCurrentStorageHandler.handle({ labId });
+      const { storage } = await this.deps.getCurrentStorageHandler.handle({ labId });
 
       res.json(ResponseBuilder.success({
-        version: configuration.version,
-        updatedAt: configuration.updatedAt
+        version: storage.version,
+        updatedAt: storage.updatedAt
       }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get configuration version');

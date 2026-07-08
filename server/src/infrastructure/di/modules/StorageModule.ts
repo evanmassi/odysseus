@@ -16,6 +16,7 @@ import { GetCurrentStorageQueryHandler, GetStorageHistoryQueryHandler, GetStorag
 import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
+import { StorageAnalyticsApplicationService } from '@application/services/StorageAnalyticsApplicationService';
 import type { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
 import type { SharedServices } from '@infrastructure/di/SharedServices';
 import { AdminConfigController } from '@presentation/controllers/admin/AdminConfigController';
@@ -65,6 +66,7 @@ export class StorageModule {
   // Services
   private lookupValueApplicationService?: LookupValueApplicationService;
   private securityConfigApplicationService?: SecurityConfigApplicationService;
+  private storageAnalyticsApplicationService?: StorageAnalyticsApplicationService;
 
   // Controllers
   private storageController?: StorageController;
@@ -371,7 +373,8 @@ export class StorageModule {
     if (!this.getCurrentStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.getCurrentStorageHandler = new GetCurrentStorageQueryHandler(
-        repositories.storage
+        repositories.storage,
+        repositories.labs
       );
     }
     return this.getCurrentStorageHandler;
@@ -437,9 +440,22 @@ export class StorageModule {
         repositories.equipmentItems,
         repositories.donors,
         repositories.supplyItems,
+        repositories.storage,
       );
     }
     return this.lookupValueApplicationService;
+  }
+
+  getStorageAnalyticsApplicationService(): StorageAnalyticsApplicationService {
+    if (!this.storageAnalyticsApplicationService) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.storageAnalyticsApplicationService = new StorageAnalyticsApplicationService({
+        storageRepository: repositories.storage,
+        tubeRepository: repositories.tubes,
+        labRepository: repositories.labs,
+      });
+    }
+    return this.storageAnalyticsApplicationService;
   }
 
   // Controllers
@@ -474,7 +490,6 @@ export class StorageModule {
         seedDemoHandler: this.getSeedDemoHandler(),
         unseedDemoHandler: this.getUnseedDemoHandler(),
         initializeConfigHandler: this.getInitializeConfigHandler(),
-        labRepository: this.repositoryFactory.getLabRepository(),
       });
     }
     return this.storageController;
@@ -493,10 +508,8 @@ export class StorageModule {
 
   getLookupValueController(): LookupValueController {
     if (!this.lookupValueController) {
-      const repositories = this.repositoryFactory.getRepositories();
       this.lookupValueController = new LookupValueController({
         lookupValueService: this.getLookupValueApplicationService(),
-        storageRepository: repositories.storage,
       });
     }
     return this.lookupValueController;
@@ -504,11 +517,8 @@ export class StorageModule {
 
   getStorageAnalyticsController(): StorageAnalyticsController {
     if (!this.storageAnalyticsController) {
-      const repositories = this.repositoryFactory.getRepositories();
       this.storageAnalyticsController = new StorageAnalyticsController({
-        storageRepository: repositories.storage,
-        tubeRepository: repositories.tubes,
-        labRepository: repositories.labs,
+        storageAnalyticsService: this.getStorageAnalyticsApplicationService(),
       });
     }
     return this.storageAnalyticsController;

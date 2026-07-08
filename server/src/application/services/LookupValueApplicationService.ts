@@ -6,11 +6,13 @@
 
 import { LookupValue } from '@domain/entities/LookupValue';
 import type { LookupCategory } from '@domain/entities/LookupValue';
+import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 
 export class LookupValueApplicationService {
@@ -19,7 +21,19 @@ export class LookupValueApplicationService {
     private equipmentItemRepository?: EquipmentItemRepository,
     private donorRepository?: DonorRepository,
     private supplyItemRepository?: SupplyItemRepository,
+    private storageRepository?: StorageRepository,
   ) {}
+
+  /** Seeded demo labs lock the catalog to non-admins; system admins are exempt. */
+  private async rejectIfSeededDemo(labId: string, user: User): Promise<void> {
+    if (user.isSystemAdmin()) return;
+    if (!user.isDemo) return;
+
+    const config = await this.storageRepository?.getForLab(labId);
+    if (config?.hasAnySeededResources()) {
+      throw new ValidationError('Catalog is locked in seeded demo mode');
+    }
+  }
 
   async getActiveByCategory(labId: string, category: LookupCategory): Promise<ReturnType<LookupValue['toData']>[]> {
     const values = await this.lookupValueRepository.findActiveByCategoryForDropdown(category, labId);
@@ -65,7 +79,9 @@ export class LookupValueApplicationService {
     return this.lookupValueRepository.countTubesUsingValues(category, values, labId);
   }
 
-  async create(labId: string, category: LookupCategory, value: string): Promise<ReturnType<LookupValue['toData']>> {
+  async create(labId: string, category: LookupCategory, value: string, user: User): Promise<ReturnType<LookupValue['toData']>> {
+    await this.rejectIfSeededDemo(labId, user);
+
     const existing = await this.lookupValueRepository.findByCategoryAndValue(category, value.trim(), labId);
     if (existing) {
       throw new ValidationError(`A ${category} value "${value.trim()}" already exists`);
@@ -76,7 +92,9 @@ export class LookupValueApplicationService {
     return entity.toData();
   }
 
-  async rename(labId: string, id: string, newValue: string): Promise<ReturnType<LookupValue['toData']>> {
+  async rename(labId: string, id: string, newValue: string, user: User): Promise<ReturnType<LookupValue['toData']>> {
+    await this.rejectIfSeededDemo(labId, user);
+
     const entity = await this.lookupValueRepository.findById(id, labId);
     if (!entity) {
       throw new NotFoundError('Lookup value not found');
@@ -111,7 +129,9 @@ export class LookupValueApplicationService {
     return entity.toData();
   }
 
-  async delete(labId: string, id: string): Promise<void> {
+  async delete(labId: string, id: string, user: User): Promise<void> {
+    await this.rejectIfSeededDemo(labId, user);
+
     const entity = await this.lookupValueRepository.findById(id, labId);
     if (!entity) {
       throw new NotFoundError('Lookup value not found');

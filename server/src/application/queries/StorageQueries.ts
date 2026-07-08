@@ -6,14 +6,22 @@
 
 import type { Storage } from '@domain/entities/Storage';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
 
-import type { SystemMetrics } from '@odysseus/shared-schemas';
+import type { DemoLimits, SystemMetrics } from '@odysseus/shared-schemas';
 
 // STORAGE QUERY CONTRACTS
 
 export interface GetCurrentStorageQuery {
   labId: string;
+  /** Demo users get their lab's demo limits grafted onto the response. */
+  includeDemoLimits?: boolean;
+}
+
+export interface CurrentStorageResult {
+  storage: Storage;
+  demoLimits?: DemoLimits;
 }
 
 export interface GetStorageHistoryQuery {
@@ -34,16 +42,25 @@ export interface GetSystemMetricsQuery {
 
 /** Creates default configuration if none exists. */
 export class GetCurrentStorageQueryHandler {
-  constructor(private storageRepository: StorageRepository) {}
+  constructor(
+    private storageRepository: StorageRepository,
+    private labRepository: LabRepository
+  ) {}
 
-  async handle(query: GetCurrentStorageQuery): Promise<Storage> {
-    let configuration = await this.storageRepository.getForLab(query.labId);
+  async handle(query: GetCurrentStorageQuery): Promise<CurrentStorageResult> {
+    let storage = await this.storageRepository.getForLab(query.labId);
 
-    if (!configuration) {
-      configuration = await this.storageRepository.ensureDefaultForLab(query.labId);
+    if (!storage) {
+      storage = await this.storageRepository.ensureDefaultForLab(query.labId);
     }
 
-    return configuration;
+    let demoLimits: DemoLimits | undefined;
+    if (query.includeDemoLimits) {
+      const lab = await this.labRepository.findById(query.labId);
+      demoLimits = lab?.demoLimits;
+    }
+
+    return { storage, demoLimits };
   }
 }
 

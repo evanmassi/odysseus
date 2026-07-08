@@ -7,8 +7,6 @@
 
 import type { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import type { LookupCategory } from '@domain/entities/LookupValue';
-import { ValidationError } from '@domain/errors/ValidationError';
-import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
@@ -17,23 +15,11 @@ import type { Request, Response } from 'express';
 
 export interface LookupValueControllerDeps {
   lookupValueService: LookupValueApplicationService;
-  storageRepository: StorageRepository;
 }
 
 export class LookupValueController extends BaseController {
   constructor(private deps: LookupValueControllerDeps) {
     super();
-  }
-
-  private async rejectIfSeededDemo(req: Request): Promise<void> {
-    const user = this.getAuthenticatedUser(req);
-    if (user.isSystemAdmin()) return;
-    if (!user.isDemo) return;
-
-    const config = await this.deps.storageRepository.getForLab(this.extractLabId(req));
-    if (config?.hasAnySeededResources()) {
-      throw new ValidationError('Catalog is locked in seeded demo mode');
-    }
   }
 
   /** GET /api/lookups/:category — active values for form dropdowns */
@@ -63,10 +49,10 @@ export class LookupValueController extends BaseController {
   /** POST /api/admin/lookups — create new value */
   async createValue(req: Request, res: Response): Promise<void> {
     try {
-      await this.rejectIfSeededDemo(req);
       const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
       const { category, value } = req.body;
-      const created = await this.deps.lookupValueService.create(labId, category, value);
+      const created = await this.deps.lookupValueService.create(labId, category, value, user);
       res.status(201).json(ResponseBuilder.success(created));
     } catch (error) {
       handleControllerError(error, res, 'Failed to create lookup value', req.requestId);
@@ -76,11 +62,11 @@ export class LookupValueController extends BaseController {
   /** PUT /api/admin/lookups/:id/rename — rename value (cascades to tubes) */
   async renameValue(req: Request, res: Response): Promise<void> {
     try {
-      await this.rejectIfSeededDemo(req);
       const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
       const { id } = req.params;
       const { newValue } = req.body;
-      const updated = await this.deps.lookupValueService.rename(labId, id, newValue);
+      const updated = await this.deps.lookupValueService.rename(labId, id, newValue, user);
       res.json(ResponseBuilder.success(updated));
     } catch (error) {
       handleControllerError(error, res, 'Failed to rename lookup value', req.requestId);
@@ -90,10 +76,10 @@ export class LookupValueController extends BaseController {
   /** DELETE /api/admin/lookups/:id — delete value (blocked if tubes reference it) */
   async deleteValue(req: Request, res: Response): Promise<void> {
     try {
-      await this.rejectIfSeededDemo(req);
       const labId = this.extractLabId(req);
+      const user = this.getAuthenticatedUser(req);
       const { id } = req.params;
-      await this.deps.lookupValueService.delete(labId, id);
+      await this.deps.lookupValueService.delete(labId, id, user);
       res.json(ResponseBuilder.success({ deleted: true }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete lookup value', req.requestId);
