@@ -20,6 +20,7 @@ import { createAuthRateLimiter } from '@presentation/middleware/apiRateLimiter';
 import { createRateLimitMiddleware } from '@presentation/middleware/rateLimitMiddleware';
 import { validateBody } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 import {
   LoginBodySchema,
   RefreshTokenBodySchema,
@@ -139,27 +140,21 @@ export class PublicRouteModule implements RouteModule {
     );
 
     router.get('/health', async (req, res) => {
-      res.json({
-        success: true,
-        data: {
-          status: 'OK',
-          timestamp: new Date().toISOString(),
-          service: 'odysseus-api',
-          version: this.appVersion
-        }
-      });
+      res.json(ResponseBuilder.success({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        service: 'odysseus-api',
+        version: this.appVersion
+      }));
     });
 
     router.get('/version', async (req, res) => {
-      res.json({
-        success: true,
-        data: {
-          version: this.appVersion,
-          environment: this.environment,
-          nodeVersion: process.version,
-          platform: process.platform
-        }
-      });
+      res.json(ResponseBuilder.success({
+        version: this.appVersion,
+        environment: this.environment,
+        nodeVersion: process.version,
+        platform: process.platform
+      }));
     });
   }
 }

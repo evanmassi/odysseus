@@ -10,6 +10,7 @@ import { Router } from 'express';
 
 import { logger } from '@infrastructure/logging/logger';
 import type { RouteModule } from '@presentation/routes/RouteModule';
+import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
 import type { Application, Request, Response, NextFunction } from 'express';
 
@@ -79,13 +80,9 @@ export class RouteRegistry {
       const errorCode = typeof errorObj.code === 'string' ? errorObj.code : API_ERROR_CODES.INTERNAL_SERVER_ERROR;
       const context = errorObj.context as Record<string, unknown> | undefined;
 
-      // Send standardized error response (flat structure matching errorEnvelopeSchema)
+      // Canonical error envelope + a dev-only stack for debugging.
       res.status(statusCode).json({
-        success: false,
-        error: err.message || 'Internal server error',
-        code: errorCode,
-        details: context,
-        timestamp: new Date().toISOString(),
+        ...ResponseBuilder.error(errorCode, err.message || 'Internal server error', context),
         ...(this.isDevelopment && { stack: err.stack })
       });
     });
@@ -100,12 +97,9 @@ export class RouteRegistry {
         ip: req.ip
       });
 
-      res.status(404).json({
-        success: false,
-        error: `Route not found: ${req.method} ${req.originalUrl}`,
-        code: API_ERROR_CODES.RESOURCE_NOT_FOUND,
-        timestamp: new Date().toISOString()
-      });
+      res.status(404).json(
+        ResponseBuilder.error(API_ERROR_CODES.RESOURCE_NOT_FOUND, `Route not found: ${req.method} ${req.originalUrl}`)
+      );
     });
   }
 }
