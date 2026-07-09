@@ -95,6 +95,17 @@ The two domains are parallel implementations — 5+ near-identical component pai
 
 ### P2 — Hygiene (compounds if ignored)
 
+> **✅ RESOLVED — 2026-07-09.** All six concerns closed across nine commits (`002ffef2`→`0d367365`) on
+> `audit/fixes`: `search` barrel added; ~40 magic time literals centralized on `MS_PER_*`; the confirmed
+> dead set deleted (the "~90" lead ran down to **86 shared-schema exports + 4 passthrough**, zero-caller
+> proven, plus 5 dead server helpers); raw error codes routed through `API_ERROR_CODES`; the drifted DTOs
+> (5 fields) tightened to shared enums / the shared create type; raw `req.user` auth decisions routed
+> through `BaseController`; and `AuditController`'s retention/archival routes now enforce system-admin via
+> route middleware (an escalation gap had the inline gates been removed without it), pinned by a wiring
+> test. Several P2 items were already closed by P1a/P1b (the god-file, the AdminConfig/StorageAnalytics
+> error-code + `req.user` fixes). See [`P2_HYGIENE.md`](./P2_HYGIENE.md); typecheck · lint · Vitest (189) ·
+> Jest (835) · integration (36) green.
+
 - **Dead code `[VERIFIED clusters]`.** Delete: `BaseController.extractApiKey` (`BaseController.ts:38`, zero callers); 4 dead `ResponseBuilder` helpers (`validationError`, `unauthorized`, `notFound`, `conflict` — only `forbidden`/`success`/`error`/`internalError` are used); `tubeFormatters.ts` (4 dead fns: `formatTubeLocation`, `formatTubeLocationShort`, `formatTubeDate`, `parseConcentrationDisplay`); `tubeSchemas.ts` (`tubeDataArraySchema`, `bulkTubeOperationSchema`, `validateTubePosition`); 3 orphaned auth schemas (`verifyEmailRequestSchema`, `resendVerificationRequestSchema`, `systemAdminSetupSchema`). A review agent estimated **~90 dead shared-schema exports** total — `[AGENT / UNVERIFIED]`, treat as a lead, not a fact (its "26 dead route verticals" corollary was **disproven** — email verification is live on the client).
 - **DTO drift `[VERIFIED]`.** Server response DTOs hand-roll shapes that parallel shared schemas and have drifted: `EquipmentDto.ts:32` types `status: string` (looser than the shared enum); `ResearcherDto.ts:15` types `email?: string` (shared create schema requires it). Derive from shared schemas or reuse (`TubeDto.ts:18` shows how: `TubeResponse = TubeData`).
 - **Error-code drift `[VERIFIED]`.** `AdminConfigController.ts:89` returns a `FORBIDDEN` code with a **400** status (latent bug); `StorageAnalyticsController.ts:41` uses a raw `'MISSING_LAB_ID'` string; `SupplyController.ts:259` uses raw `'VALIDATION_ERROR'` — bypassing `API_ERROR_CODES`.
