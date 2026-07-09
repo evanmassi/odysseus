@@ -34,12 +34,4 @@ export abstract class BaseController {
     }
     return user.labId;
   }
-
-  protected extractApiKey(req: Request): string {
-    const user = req.user;
-    if (!user?.apiKey) {
-      throw new Error('Authentication required');
-    }
-    return user.apiKey;
-  }
 }
