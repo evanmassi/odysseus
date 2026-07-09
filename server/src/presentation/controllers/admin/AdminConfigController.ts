@@ -61,7 +61,7 @@ export class AdminConfigController extends BaseController {
 
   async getMetrics(req: Request, res: Response): Promise<void> {
     try {
-      const labId = req.user?.labId;
+      const labId = this.getAuthenticatedUser(req).labId;
       if (!labId) {
         res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Lab context required for metrics'));
         return;

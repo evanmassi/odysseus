@@ -38,7 +38,7 @@ export class AdminUserController extends BaseController {
 
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
-      const labId = req.user?.labId;
+      const labId = this.getAuthenticatedUser(req).labId;
       if (!labId) {
         res.status(403).json(ResponseBuilder.error(API_ERROR_CODES.FORBIDDEN, 'Lab context required'));
         return;
