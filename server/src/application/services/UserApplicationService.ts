@@ -10,8 +10,6 @@ import { nanoid } from 'nanoid';
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
-import { UserDto } from '@application/dto/UserDto';
-import type { AuthResponse, RegisterRequest, PasswordLoginRequest } from '@application/dto/UserDto';
 import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
 import { User } from '@domain/entities/User';
@@ -68,72 +66,6 @@ export class UserApplicationService {
     private passwordService?: PasswordService,
     private tubeRepository?: TubeRepository
   ) {}
-
-  /**
-   * First user: auto-approved as admin.
-   * Subsequent users: pending (requires admin approval).
-   */
-  async registerWithPassword(request: RegisterRequest): Promise<AuthResponse> {
-    const isFirstUser = await this.userRepository.isEmpty();
-    const targetRole = isFirstUser ? 'admin' : (request.role ?? 'user');
-    const status = isFirstUser ? 'approved' : 'pending';
-
-    const existingUser = await this.userRepository.findByUsername(request.username);
-    if (existingUser) {
-      throw new ValidationError('Username already exists');
-    }
-
-    const user = User.createWithPassword(
-      request.username,
-      request.password,
-      UserRole.create(targetRole),
-      undefined, // No researcher link
-      status
-    );
-
-    await this.userRepository.save(user);
-
-    return UserDto.toAuthResponse(user);
-  }
-
-  /** Accepts username or email as the identifier. */
-  async login(request: PasswordLoginRequest): Promise<AuthResponse> {
-    const input = request.username.trim();
-    const isEmail = input.includes('@');
-
-    const user = isEmail
-      ? await this.userRepository.findByEmail(input)
-      : await this.userRepository.findByUsername(input);
-
-    if (!user) {
-      throw new PermissionError('Invalid credentials');
-    }
-
-    if (user.isPending()) {
-      throw new PermissionError('Account is awaiting administrator approval');
-    }
-
-    if (user.isRejected()) {
-      throw new PermissionError('Account access has been denied');
-    }
-
-    if (user.isDeactivated()) {
-      throw new PermissionError('Account has been deactivated. Contact your lab administrator');
-    }
-
-    if (user.isSuspended()) {
-      throw new PermissionError('Account has been suspended. Contact your system administrator');
-    }
-
-    if (!user.isApproved()) {
-      throw new PermissionError('Account is not approved for access');
-    }
-
-    user.recordActivity();
-    await this.userRepository.save(user);
-
-    return UserDto.toAuthResponse(user);
-  }
 
   async isFirstTimeSetup(): Promise<{ isEmpty: boolean; needsSystemAdmin: boolean }> {
     const isEmpty = await this.userRepository.isEmpty();
