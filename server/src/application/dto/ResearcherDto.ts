@@ -7,13 +7,7 @@
 import type { Person } from '@domain/entities/Person';
 import type { Researcher, ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
 
-export interface CreateResearcherRequest {
-  firstName: string;
-  lastName: string;
-  position?: string;
-  department?: string;
-  email?: string;
-}
+export type { CreateResearcherProfile as CreateResearcherRequest } from '@odysseus/shared-schemas';
 
 export interface ResearcherResponse {
   id: string;

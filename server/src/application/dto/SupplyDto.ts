@@ -4,6 +4,8 @@
  * Maps between supply domain entities, row interfaces, and HTTP response shapes.
  */
 
+import type { SupplyItemStatus, SupplyBarcodeType, SupplyTransactionType } from '@odysseus/shared-schemas';
+
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
@@ -45,7 +47,7 @@ export interface SupplyItemResponse {
   currentLotNumber?: string;
   description?: string;
   notes?: string;
-  status: string;
+  status: SupplyItemStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -95,7 +97,7 @@ export interface SupplyBarcodeResponse {
   id: string;
   itemId: string;
   barcodeValue: string;
-  barcodeType: string;
+  barcodeType: SupplyBarcodeType;
   isPrimary: boolean;
   label?: string;
 }
@@ -113,7 +115,7 @@ export interface SupplyTransactionResponse {
   itemId: string;
   locationId: string;
   labId: string;
-  type: string;
+  type: SupplyTransactionType;
   quantityChange: number;
   quantityAfter: number;
   lotNumber?: string;
@@ -224,7 +226,7 @@ export class SupplyDto {
       id: barcode.id,
       itemId: barcode.itemId,
       barcodeValue: barcode.barcodeValue,
-      barcodeType: barcode.barcodeType,
+      barcodeType: barcode.barcodeType as SupplyBarcodeType,
       isPrimary: barcode.isPrimary,
       label: barcode.label,
     };
@@ -246,7 +248,7 @@ export class SupplyDto {
       itemId: txn.itemId,
       locationId: txn.locationId,
       labId: txn.labId,
-      type: txn.type,
+      type: txn.type as SupplyTransactionType,
       quantityChange: txn.quantityChange,
       quantityAfter: txn.quantityAfter,
       lotNumber: txn.lotNumber,

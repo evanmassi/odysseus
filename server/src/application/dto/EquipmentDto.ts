@@ -4,6 +4,8 @@
  * Maps between equipment domain entities and HTTP response shapes.
  */
 
+import type { EquipmentStatus } from '@odysseus/shared-schemas';
+
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
@@ -29,7 +31,7 @@ export interface EquipmentItemResponse {
   model?: string;
   description?: string;
   location?: string;
-  status: string;
+  status: EquipmentStatus;
   conditionNotes?: string;
   purchaseDate?: string;
   warrantyExpiration?: string;
