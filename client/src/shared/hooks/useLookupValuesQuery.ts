@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
 import { httpClient } from '@infra/api';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import type { LookupCategory } from '@odysseus/shared-schemas';
 
@@ -19,7 +20,7 @@ export function useLookupValuesQuery(category: LookupCategory) {
   return useQuery({
     queryKey: queryKeys.lookups.byCategory(labId, category),
     queryFn: () => httpClient.getArray(`/lookups/${category}`, lookupValueSchema),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * MS_PER_MINUTE,
     refetchOnMount: 'always',
   });
 }
