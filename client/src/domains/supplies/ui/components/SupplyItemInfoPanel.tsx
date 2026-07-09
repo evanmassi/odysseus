@@ -47,6 +47,7 @@ import {
   OverflowMenu,
   PanelHeader,
   SectionHeader,
+  StripLabel,
   Tooltip,
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -85,18 +86,6 @@ interface SupplyItemInfoPanelProps {
   ) => void;
   onDeleted: () => void;
   categoryName?: string;
-}
-
-function StripLabel({ children }: { children: string }) {
-  return (
-    <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
-      <span
-        aria-hidden
-        className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-      />
-      {children}
-    </span>
-  );
 }
 
 export function SupplyItemInfoPanel({

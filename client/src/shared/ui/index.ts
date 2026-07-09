@@ -16,7 +16,12 @@ export { LazyModalBoundary } from './components/boundaries/LazyModalBoundary';
 export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 
 // Info display components
-export { CompletenessMeter, DetailRow, InfoPanelEmpty } from './components/info-display';
+export {
+  CompletenessMeter,
+  DetailRow,
+  InfoPanelEmpty,
+  StripLabel,
+} from './components/info-display';
 
 // Loading components
 export { LoadingSkeleton, LoadingSpinner, ModalSkeleton } from './components/loading';
