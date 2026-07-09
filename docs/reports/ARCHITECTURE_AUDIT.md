@@ -80,6 +80,15 @@ Ordered by leverage. **P0** is the single highest-value change; **P1** is struct
 
 ### P1b — Collapse the `equipment` ↔ `supplies` twin `[VERIFIED]`
 
+> **✅ RESOLVED — 2026-07-08.** Seven shared components (`<InfoPanelEmpty>` — also donors —
+> `<CategoryModal>`, `<CategoryHierarchySelect>`, `<CategoryTreePanel>`, `<BulkCategoryTreeSelector>`,
+> `<StripLabel>`, `<ItemRowShell>`) in `shared/ui/components/inventory/` + `info-display/` now back both
+> domains; the 796-line equipment bulk-update god-file was split into `bulk-update-tabs/`. ~1,500 lines of
+> twin gone with no behavioural/visual change; each domain keeps only its genuinely-distinct wiring. The
+> item surface (ItemRow/ItemInfoPanel) and services/hooks only *looked* twinned and were correctly left
+> per-domain. See [`P1B_EQUIPMENT_SUPPLIES_TWIN.md`](./P1B_EQUIPMENT_SUPPLIES_TWIN.md) and commits
+> `8b78b7a6`→`1a236036`; a test per shared component (189 client tests green).
+
 The two domains are parallel implementations — 5+ near-identical component pairs, 1,000+ lines of copy-paste. **Verified worst case:** `EquipmentCategoryModal.tsx` and `SupplyCategoryModal.tsx` are both 132 lines and *character-for-character identical* from line 30 down, differing only in the type name, two hook imports, and two placeholder strings. Same twinning in `InfoPanelEmpty` (35/35), `CategoryPanel` (488/483), `CategorySelect`, `ItemRow`, `BulkUpdateModal`, and the services. This survived the recent per-file client audit — a per-file review reads each twin in isolation and can't see its sibling, so consolidation needs a deliberate cross-domain pass.
 
 **Done when:** shared `<CategoryModal>`, `<CategoryHierarchySelect>`, `<InfoPanelEmpty>`, and a `<CategoryTreePanel>` (parametrized by entity type + a status predicate) back both domains; each domain keeps only its genuinely-distinct wiring.

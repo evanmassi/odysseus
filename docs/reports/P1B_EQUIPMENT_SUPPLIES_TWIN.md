@@ -2,6 +2,18 @@
 
 **Date:** 2026-07-08 · **Branch:** `audit/fixes` · **Owner:** P1b from `ARCHITECTURE_AUDIT.md`
 
+> **✅ RESOLVED — 2026-07-08.** Eight refactor commits (`8b78b7a6`→`1a236036`) on `audit/fixes`. Seven
+> shared components now back both domains — `<InfoPanelEmpty>` (also donors), `<CategoryModal>`,
+> `<CategoryHierarchySelect>`, `<CategoryTreePanel>`, `<BulkCategoryTreeSelector>`, `<StripLabel>`,
+> `<ItemRowShell>` — living in `shared/ui/components/inventory/` + `info-display/`, each with its own test.
+> The 796-line equipment bulk-update god-file was split into `bulk-update-tabs/` (→ 254-line shell). ~1,500
+> lines of twin collapsed; each domain keeps only its genuinely-distinct wiring (the `ItemRow`/`ItemInfoPanel`
+> render-props, the divergent bulk action tabs, the per-domain services/hooks). Investigation reframed the
+> audit's headline: the **category surface** is genuinely twinned; the **item surface** and **services/hooks**
+> only *look* twinned. Deliberately **not** collapsed (divergent chrome → would force a visual change or a
+> config-heavy abstraction): the full ItemRow/ItemInfoPanel merge, `ItemDocumentsSection`, `InfoPanelShell`.
+> Behaviour/visual-preserving; verified throughout — typecheck · full lint · 189 client tests green.
+
 Collapses the parallel `equipment` and `supplies` client domains — 5+ near-identical component
 pairs, ~1,000+ lines of copy-paste — into shared, domain-agnostic components. Investigation (six
 parallel read-only diff agents + first-hand re-verification of every load-bearing pair at
