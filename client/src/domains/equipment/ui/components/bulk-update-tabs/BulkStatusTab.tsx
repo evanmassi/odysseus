@@ -1,0 +1,90 @@
+/**
+ * Bulk Status Tab
+ *
+ * Changes the status and optional condition notes of every selected item.
+ */
+
+import { useEffect } from 'react';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  equipmentBulkStatusValues,
+  equipmentBulkStatusRequestSchema,
+} from '@odysseus/shared-schemas';
+import { useForm, Controller } from 'react-hook-form';
+
+import { EQUIPMENT_STATUS_LABELS } from '@domains/equipment/utils/equipmentStatus';
+import { Select } from '@shared/ui';
+import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
+import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+
+import type { EquipmentBulkStatusRequest } from '@odysseus/shared-schemas';
+import type { SelectOption } from '@shared/ui';
+import type { FieldValues } from 'react-hook-form';
+
+const bulkStatusFormSchema = equipmentBulkStatusRequestSchema.shape.data;
+
+export function BulkStatusTab({
+  onSubmit,
+  onValidityChange,
+}: {
+  onSubmit: (data: EquipmentBulkStatusRequest['data']) => void;
+  onValidityChange: (valid: boolean) => void;
+}) {
+  const statusOptions: SelectOption[] = equipmentBulkStatusValues.map(s => ({
+    value: s,
+    label: EQUIPMENT_STATUS_LABELS[s],
+  }));
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { isValid },
+  } = useForm({
+    resolver: zodResolver(bulkStatusFormSchema) as never,
+    mode: 'onChange',
+  });
+
+  useEffect(() => {
+    onValidityChange(isValid);
+  }, [isValid, onValidityChange]);
+
+  const onFormSubmit = (data: FieldValues) => {
+    onSubmit(data as EquipmentBulkStatusRequest['data']);
+  };
+
+  return (
+    <form id="bulk-action-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3">
+      <Controller
+        name="status"
+        control={control}
+        render={({ field: { value, onChange }, fieldState: { error } }) => (
+          <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
+            <label id="bulk-status-label" className={FIELD_LABEL_COMPACT}>
+              Status
+            </label>
+            <Select
+              options={[{ value: '', label: 'Select status...' }, ...statusOptions]}
+              value={value ?? ''}
+              onChange={v => onChange(v)}
+              state={error ? 'error' : 'default'}
+              error={error?.message}
+              fullWidth
+              aria-labelledby="bulk-status-label"
+            />
+          </div>
+        )}
+      />
+
+      <ValidatedInput
+        label="Condition Notes"
+        labelStyle="compact"
+        type="textarea"
+        placeholder="Current condition or issues..."
+        registration={register('conditionNotes')}
+      />
+    </form>
+  );
+}
