@@ -25,7 +25,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '@domains/authentication';
 import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
-import { SearchPanel } from '@domains/search/ui/components/SearchPanel';
+import { SearchPanel } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { useUserProfile } from '@domains/users/hooks/useUserProfile';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
