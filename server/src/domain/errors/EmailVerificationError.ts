@@ -4,9 +4,11 @@
  * Email verification operation failure. Maps to HTTP 400.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 import { DomainError } from './DomainError';
 export class EmailVerificationError extends DomainError {
-  readonly code = 'EMAIL_VERIFICATION_ERROR';
+  readonly code = API_ERROR_CODES.VALIDATION_FAILED;
   readonly statusCode = 400;
 
   constructor(

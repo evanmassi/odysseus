@@ -4,9 +4,11 @@
  * Password reset token validation failure. Maps to HTTP 400.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 import { DomainError } from './DomainError';
 export class PasswordResetError extends DomainError {
-  readonly code = 'PASSWORD_RESET_ERROR';
+  readonly code = API_ERROR_CODES.VALIDATION_FAILED;
   readonly statusCode = 400;
 
   constructor(message: string, context?: Record<string, unknown>) {

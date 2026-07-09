@@ -4,9 +4,11 @@
  * Requested domain entity does not exist. Maps to HTTP 404.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 import { DomainError } from './DomainError';
 export class NotFoundError extends DomainError {
-  readonly code = 'NOT_FOUND_ERROR';
+  readonly code = API_ERROR_CODES.RESOURCE_NOT_FOUND;
   readonly statusCode = 404;
 
   constructor(

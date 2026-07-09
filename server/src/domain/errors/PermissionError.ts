@@ -4,9 +4,11 @@
  * User lacks permission for the requested action. Maps to HTTP 403.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 import { DomainError } from './DomainError';
 export class PermissionError extends DomainError {
-  readonly code = 'PERMISSION_ERROR';
+  readonly code = API_ERROR_CODES.FORBIDDEN;
   readonly statusCode = 403;
 
   constructor(

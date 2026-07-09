@@ -4,9 +4,11 @@
  * Thrown when optimistic locking detects concurrent modification. Maps to HTTP 409.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 import { DomainError } from './DomainError';
 export class ConflictError extends DomainError {
-  readonly code = 'CONFLICT_ERROR';
+  readonly code = API_ERROR_CODES.DATA_CONFLICT;
   readonly statusCode = 409;
 
   constructor(
