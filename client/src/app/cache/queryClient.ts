@@ -13,6 +13,7 @@ import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 import { notifications } from '@shared/utils/notifications';
+import { MS_PER_SECOND, MS_PER_MINUTE, MS_PER_HOUR, MS_PER_DAY } from '@shared/utils/timeConstants';
 
 import { CONFIG_VERSION_KEY, QUERY_CACHE_KEY } from './cacheStorageKeys';
 
@@ -73,28 +74,28 @@ function isMutation(mutation: unknown): mutation is { options: { mutationKey?: u
 
 export const CACHE_TIMES = {
   REAL_TIME: {
-    staleTime: 3 * 60 * 1000, // 3 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 3 * MS_PER_MINUTE,
+    gcTime: 15 * MS_PER_MINUTE,
   },
 
   MEDIUM: {
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 10 * MS_PER_MINUTE,
+    gcTime: 30 * MS_PER_MINUTE,
   },
 
   STABLE: {
-    staleTime: 30 * 60 * 1000, // 30 minutes
-    gcTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 30 * MS_PER_MINUTE,
+    gcTime: MS_PER_HOUR,
   },
 
   CONFIG: {
-    staleTime: 60 * 60 * 1000, // 1 hour
-    gcTime: 2 * 60 * 60 * 1000, // 2 hours
+    staleTime: MS_PER_HOUR,
+    gcTime: 2 * MS_PER_HOUR,
   },
 
   SEARCH: {
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * MS_PER_SECOND,
+    gcTime: 5 * MS_PER_MINUTE,
   },
 } as const;
 
@@ -314,7 +315,7 @@ export function setupQueryPersistence(): void {
   void persistQueryClient({
     queryClient,
     persister,
-    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    maxAge: MS_PER_DAY,
     dehydrateOptions: {
       shouldDehydrateQuery: query => {
         const defaultShouldDehydrate = query.state.status === 'success';

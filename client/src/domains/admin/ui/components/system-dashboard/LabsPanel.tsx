@@ -29,7 +29,7 @@ import {
   Well,
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { notifications } from '@shared/utils';
+import { MS_PER_HOUR, notifications } from '@shared/utils';
 
 import {
   useCreateLabMutation,
@@ -43,7 +43,7 @@ import { LabIdentityPanel } from './LabIdentityPanel';
 import { LabPowerToggle } from './LabPowerToggle';
 
 // 48-hour window gives lab admins time to register without codes lingering
-const LAB_ADMIN_CODE_EXPIRY_MS = 48 * 60 * 60 * 1000;
+const LAB_ADMIN_CODE_EXPIRY_MS = 48 * MS_PER_HOUR;
 
 interface LabsPanelProps {
   onSelectLab: (labId: string) => void;

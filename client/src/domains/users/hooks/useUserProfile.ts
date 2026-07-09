@@ -6,6 +6,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import { PersonService, type UpdatePersonProfileWithPassword } from '../services/PersonService';
 
@@ -15,7 +16,7 @@ function useUserProfileQuery() {
   return useQuery({
     queryKey: queryKeys.users.profile(),
     queryFn: () => PersonService.getMyProfile(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * MS_PER_MINUTE,
     meta: {
       errorMessage: 'Failed to load profile',
     },

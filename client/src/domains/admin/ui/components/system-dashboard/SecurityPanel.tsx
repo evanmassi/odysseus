@@ -34,7 +34,7 @@ import {
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
-import { formatRelativeTime, notifications } from '@shared/utils';
+import { MS_PER_SECOND, formatRelativeTime, notifications } from '@shared/utils';
 
 import {
   usePurgeExpiredSessionsMutation,
@@ -136,7 +136,7 @@ export function SecurityPanel() {
 
   useEffect(() => {
     if (autoRefresh) {
-      intervalRef.current = setInterval(doRefresh, 30_000);
+      intervalRef.current = setInterval(doRefresh, 30 * MS_PER_SECOND);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

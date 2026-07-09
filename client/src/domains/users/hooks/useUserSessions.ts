@@ -6,6 +6,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import { UserSessionService } from '../services/UserSessionService';
 
@@ -13,7 +14,7 @@ function useUserSessionsQuery() {
   return useQuery({
     queryKey: queryKeys.users.sessions(),
     queryFn: () => UserSessionService.getMySessions(),
-    staleTime: 60 * 1000,
+    staleTime: MS_PER_MINUTE,
   });
 }
 

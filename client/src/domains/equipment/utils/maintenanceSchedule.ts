@@ -6,6 +6,7 @@
  */
 
 import { normalizeDateString } from '@shared/utils/dateFormatters';
+import { MS_PER_DAY } from '@shared/utils/timeConstants';
 
 /**
  * Resolves a maintenance date to its normalized string and whole-day distance from
@@ -20,6 +21,6 @@ export function resolveMaintenanceDue(
   const target = new Date(y, m - 1, d);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const daysUntil = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const daysUntil = Math.round((target.getTime() - today.getTime()) / MS_PER_DAY);
   return { daysUntil, dateStr };
 }

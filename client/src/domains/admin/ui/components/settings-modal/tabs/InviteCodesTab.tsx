@@ -23,7 +23,7 @@ import {
   Toggle,
 } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { notifications } from '@shared/utils';
+import { MS_PER_DAY, notifications } from '@shared/utils';
 
 import { adminService } from '../../../../services/AdminService';
 
@@ -44,7 +44,6 @@ const EXPIRY_OPTIONS: SelectOption[] = [
 ];
 
 const DEFAULT_EXPIRY_DAYS = 7;
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   const [codes, setCodes] = useState<InviteCodeData[]>([]);

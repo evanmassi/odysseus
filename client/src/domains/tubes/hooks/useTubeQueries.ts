@@ -10,11 +10,12 @@ import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
 import { TubeService } from '@domains/tubes/services/TubeService';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import type { TubeData } from '@domains/tubes/types';
 
-const TUBE_STALE_TIME = 5 * 60 * 1000; // WebSocket keeps data fresh
-const TUBE_GC_TIME = 10 * 60 * 1000;
+const TUBE_STALE_TIME = 5 * MS_PER_MINUTE; // WebSocket keeps data fresh
+const TUBE_GC_TIME = 10 * MS_PER_MINUTE;
 
 export const useTubesByLocation = (
   tankId: string,
@@ -89,7 +90,7 @@ export const useTube = (
     initialData,
     enabled: !!id,
     staleTime: TUBE_STALE_TIME,
-    gcTime: 15 * 60 * 1000,
+    gcTime: 15 * MS_PER_MINUTE,
     ...options,
   });
 };

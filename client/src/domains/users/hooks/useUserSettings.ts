@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { userSettingsService } from '@domains/users/services/UserSettingsService';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import type { UserSettings } from '@odysseus/shared-schemas';
 
@@ -14,7 +15,7 @@ export function useUserSettingsQuery(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.users.settings(),
     queryFn: () => userSettingsService.getUserSettings(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * MS_PER_MINUTE,
     enabled: options?.enabled ?? true,
     meta: {
       errorMessage: 'Failed to load user settings',

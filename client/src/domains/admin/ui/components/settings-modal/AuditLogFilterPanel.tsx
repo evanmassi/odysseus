@@ -13,6 +13,7 @@ import {
   HEADER_TOP_EDGE,
 } from '@shared/ui/primitives/console-panel/consoleHeaderSurface';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { MS_PER_DAY } from '@shared/utils';
 
 export interface AuditFilterState {
   actions?: string[];
@@ -312,16 +313,16 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
         dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         break;
       case 'last7days':
-        dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        dateFrom = new Date(now.getTime() - 7 * MS_PER_DAY);
         break;
       case 'last30days':
-        dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        dateFrom = new Date(now.getTime() - 30 * MS_PER_DAY);
         break;
       case 'last6months':
-        dateFrom = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+        dateFrom = new Date(now.getTime() - 180 * MS_PER_DAY);
         break;
       case 'lastyear':
-        dateFrom = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        dateFrom = new Date(now.getTime() - 365 * MS_PER_DAY);
         break;
       case 'alltime':
         onChange({ ...filters, dateFrom: undefined, dateTo: undefined, datePreset: preset });

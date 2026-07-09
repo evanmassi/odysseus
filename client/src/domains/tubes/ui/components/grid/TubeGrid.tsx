@@ -12,6 +12,7 @@ import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore'
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { useUserSettings } from '@domains/users/hooks/useUserSettings';
 import { LoadingSpinner } from '@shared/ui';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import { TubeGridCell } from './TubeGridCell';
 import { TubeGridContextMenu } from './TubeGridContextMenu';
@@ -51,7 +52,7 @@ export function TubeGrid({
     isLoading,
     error,
   } = useTubesByLocation(tankId, rackId, boxId, {
-    staleTime: 2 * 60 * 1000,
+    staleTime: 2 * MS_PER_MINUTE,
   });
   const { getBox, currentLab } = useStorageData();
   const { settings } = useUserSettings();

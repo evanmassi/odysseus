@@ -6,6 +6,7 @@
 
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
+import { MS_PER_SECOND, MS_PER_MINUTE } from '@shared/utils/timeConstants';
 
 import type { SessionDebugInfo } from '@domains/authentication/types/debugTypes';
 import type { SessionHttpClient } from '@infra/api/SessionHttpClient';
@@ -152,7 +153,7 @@ export class SessionService implements TokenProvider {
     const expiresInMs = tokens.accessTokenExpiry.getTime() - now;
 
     return {
-      isValid: expiresInMs > 60000, // Valid if more than 1 minute remaining
+      isValid: expiresInMs > MS_PER_MINUTE, // Valid if more than 1 minute remaining
       expiresInMs,
     };
   }
@@ -262,7 +263,7 @@ export class SessionService implements TokenProvider {
 
     // Dynamic buffer: use configured buffer OR 20% of token lifetime, whichever is smaller
     // This prevents refresh loops when sessionTimeoutMinutes <= refreshBufferMinutes
-    const configuredBufferMs = this.config.refreshBufferMinutes * 60 * 1000;
+    const configuredBufferMs = this.config.refreshBufferMinutes * MS_PER_MINUTE;
     const dynamicBufferMs = Math.floor(tokenLifetimeMs * 0.2);
     const bufferMs = Math.min(configuredBufferMs, dynamicBufferMs);
 
@@ -270,7 +271,7 @@ export class SessionService implements TokenProvider {
     const delay = Math.max(0, refreshTime - now);
 
     // Minimum delay of 10 seconds to prevent rapid refresh loops
-    const MIN_REFRESH_DELAY_MS = 10000;
+    const MIN_REFRESH_DELAY_MS = 10 * MS_PER_SECOND;
     const safeDelay = Math.max(delay, MIN_REFRESH_DELAY_MS);
 
     this.state.nextRefreshTime = new Date(now + safeDelay);
@@ -398,7 +399,7 @@ export class SessionService implements TokenProvider {
         this.lastKnownTimeUntilTimeout = data.timeUntilIdleTimeoutMs;
       }
       if (data.idleWarningMinutes !== undefined) {
-        this.lastKnownWarningThresholdMs = data.idleWarningMinutes * 60 * 1000;
+        this.lastKnownWarningThresholdMs = data.idleWarningMinutes * MS_PER_MINUTE;
       }
 
       // Session no longer authenticated - server may have logged us out
@@ -561,9 +562,9 @@ export class SessionService implements TokenProvider {
     }
 
     const validation = this.validateTokens(tokens);
-    const timeUntilExpiry = Math.floor(validation.expiresInMs / 60000);
+    const timeUntilExpiry = Math.floor(validation.expiresInMs / MS_PER_MINUTE);
     const timeUntilRefresh = this.state.nextRefreshTime
-      ? Math.floor((this.state.nextRefreshTime.getTime() - Date.now()) / 60000)
+      ? Math.floor((this.state.nextRefreshTime.getTime() - Date.now()) / MS_PER_MINUTE)
       : null;
 
     return {

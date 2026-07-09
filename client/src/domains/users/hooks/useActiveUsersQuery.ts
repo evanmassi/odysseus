@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
+import { MS_PER_MINUTE } from '@shared/utils';
 
 import { userLookupService } from '../services/UserLookupService';
 
@@ -17,7 +18,7 @@ export function useActiveUsersQuery() {
     queryKey: queryKeys.users.list(labId),
     enabled: !!labId,
     queryFn: () => userLookupService.listActiveUsers(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: 5 * MS_PER_MINUTE,
+    gcTime: 30 * MS_PER_MINUTE,
   });
 }
