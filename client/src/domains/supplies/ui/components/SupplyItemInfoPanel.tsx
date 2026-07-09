@@ -481,7 +481,7 @@ export function SupplyItemInfoPanel({
                                   variant="ghost"
                                   size="xs"
                                   iconOnly
-                                  onClick={() => void regenerateBarcodeMutation.mutateAsync(itemId)}
+                                  onClick={() => regenerateBarcodeMutation.mutate(itemId)}
                                   isLoading={regenerateBarcodeMutation.isPending}
                                 >
                                   <RefreshCw className="h-3 w-3" />

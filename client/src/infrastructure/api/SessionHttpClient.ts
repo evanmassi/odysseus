@@ -14,8 +14,11 @@ export class SessionHttpClient {
   private readonly baseURL = env.apiBaseUrl();
   private readonly timeout = REQUEST_TIMEOUT_MS;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client, accepts any request body
-  async post<T = any>(path: string, data: any, headers?: Record<string, string>): Promise<T> {
+  async post<T = unknown>(
+    path: string,
+    data: unknown,
+    headers?: Record<string, string>
+  ): Promise<T> {
     return this.request<T>(path, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -23,8 +26,7 @@ export class SessionHttpClient {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client response type
-  async get<T = any>(path: string, headers?: Record<string, string>): Promise<T> {
+  async get<T = unknown>(path: string, headers?: Record<string, string>): Promise<T> {
     return this.request<T>(path, {
       method: 'GET',
       headers,

@@ -252,16 +252,19 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     const resolvedParent = newLevelParent ?? topOfChain;
     const addedUnit = newLevelUnit;
     if (isEditing && item) {
-      void addPackagingMutation
-        .mutateAsync({
+      addPackagingMutation.mutate(
+        {
           itemId: item.id,
           data: { unitName: newLevelUnit, quantity: qty, parentUnit: resolvedParent },
-        })
-        .then(() => {
-          setNewLevelQty('');
-          setNewLevelUnit('');
-          setNewLevelParent(addedUnit);
-        });
+        },
+        {
+          onSuccess: () => {
+            setNewLevelQty('');
+            setNewLevelUnit('');
+            setNewLevelParent(addedUnit);
+          },
+        }
+      );
     } else {
       setLocalPackagingLevels(prev => [
         ...prev,
@@ -284,7 +287,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const handleRemoveLevel = useCallback(
     (index: number, levelId?: string) => {
       if (isEditing && item && levelId) {
-        void removePackagingMutation.mutateAsync({ itemId: item.id, levelId });
+        removePackagingMutation.mutate({ itemId: item.id, levelId });
       } else {
         setLocalPackagingLevels(prev => prev.filter((_, i) => i !== index));
       }

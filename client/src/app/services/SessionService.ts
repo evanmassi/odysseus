@@ -192,7 +192,9 @@ export class SessionService implements TokenProvider {
 
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
-        const response = await this.sessionHttpClient.post('/public/auth/refresh', {
+        const response = await this.sessionHttpClient.post<
+          ApiEnvelope<{ accessToken: string; accessTokenExpiry: string }>
+        >('/public/auth/refresh', {
           refreshToken: tokens.refreshToken,
         });
 
