@@ -103,7 +103,7 @@ export class RouteRegistry {
       res.status(404).json({
         success: false,
         error: `Route not found: ${req.method} ${req.originalUrl}`,
-        code: 'ROUTE_NOT_FOUND',
+        code: API_ERROR_CODES.RESOURCE_NOT_FOUND,
         timestamp: new Date().toISOString()
       });
     });

@@ -5,6 +5,8 @@
  * barcodes, stock operations, and bulk actions.
  */
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 import type { SupplyApplicationService } from '@application/services/SupplyApplicationService';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -256,7 +258,7 @@ export class SupplyController extends BaseController {
       const labId = this.extractLabId(req);
       const value = req.query.value as string;
       if (!value) {
-        res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', 'Barcode value is required'));
+        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.REQUIRED_FIELD_MISSING, 'Barcode value is required'));
         return;
       }
       const item = await this.deps.supplyApplicationService.resolveBarcode(labId, value);
