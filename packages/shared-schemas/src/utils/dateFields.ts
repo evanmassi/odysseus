@@ -15,6 +15,3 @@ export const optionalDateField = z.coerce.date().optional();
 
 /** Nullable date — null stays null, strings/Dates coerced. Uses z.null().or() because z.coerce.date().nullable() turns null into epoch. */
 export const nullableDateField = z.null().or(z.coerce.date());
-
-/** Nullable + optional date */
-export const nullableOptionalDateField = z.null().or(z.coerce.date()).optional();

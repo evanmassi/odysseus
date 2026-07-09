@@ -40,5 +40,3 @@ export const renameLookupValueRequestSchema = z.object({
 
 export type LookupValue = z.infer<typeof lookupValueSchema>;
 export type LookupValueWithCount = z.infer<typeof lookupValueWithCountSchema>;
-export type CreateLookupValueRequest = z.infer<typeof createLookupValueRequestSchema>;
-export type RenameLookupValueRequest = z.infer<typeof renameLookupValueRequestSchema>;

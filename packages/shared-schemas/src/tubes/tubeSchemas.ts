@@ -20,9 +20,6 @@ import { EQUIPMENT_DEFAULTS } from '../constants/equipmentDefaults';
 export const CONCENTRATION_UNITS = ['c/v', 'c/mL'] as const;
 export type ConcentrationUnit = typeof CONCENTRATION_UNITS[number];
 
-/** Default display name for unresolved researcher IDs in optimistic updates. */
-export const UNKNOWN_RESEARCHER = 'Unknown' as const;
-
 export const tubeLocationSchema = z.object({
   tankId: z.string().min(1, 'Tank ID is required'),
   rackId: z.string().min(1, 'Rack ID is required'),
@@ -80,8 +77,6 @@ export const tubeDataSchema = z.object({
   sharedWithUserIds: z.array(z.string()).optional(),
   labId: z.string().optional(),
 });
-
-export const tubeDataArraySchema = z.array(tubeDataSchema);
 
 /**
  * Navigator field-map projections.
@@ -222,18 +217,6 @@ export const updateTubeRequestSchema = z.object({
   lockNote: z.string().max(100).optional()
 });
 
-export const bulkTubeOperationSchema = z.object({
-  action: z.enum(['create', 'update', 'delete']),
-  tubes: z.union([
-    z.array(createTubeRequestSchema),
-    z.array(z.object({
-      id: z.string().min(1),
-      data: updateTubeRequestSchema
-    })),
-    z.array(z.string().min(1))
-  ])
-});
-
 export const TUBE_FILTERABLE_FIELDS = [
   'tankId',
   'rackId',
@@ -264,32 +247,14 @@ export const tubeFilterOptionsResponseSchema = z.object({
 
 export type TubeFilterOptions = z.infer<typeof tubeFilterOptionsResponseSchema>;
 
-export const tubeValidationResultSchema = z.object({
-  isValid: z.boolean(),
-  errors: z.array(z.object({
-    field: z.string(),
-    message: z.string(),
-    code: z.string()
-  })),
-  warnings: z.array(z.object({
-    field: z.string(),
-    message: z.string()
-  })).optional()
-});
-
 export type TubeData = z.infer<typeof tubeDataSchema>;
 export type TubeLocation = z.infer<typeof tubeLocationSchema>;
-export type TubeSample = z.infer<typeof tubeSampleSchema>;
-export type TubeUpdateSample = z.infer<typeof tubeUpdateSampleSchema>;
-export type TubeTimestamps = z.infer<typeof tubeTimestampsSchema>;
-export type TubeValidationResult = z.infer<typeof tubeValidationResultSchema>;
 
 /**
  * Request types (output of preprocessing - normalized data)
  */
 export type CreateTubeRequest = z.output<typeof createTubeRequestSchema>;
 export type UpdateTubeRequest = z.output<typeof updateTubeRequestSchema>;
-export type BulkTubeOperation = z.infer<typeof bulkTubeOperationSchema>;
 
 /**
  * Form Input Types (input to preprocessing - raw form data)
@@ -302,12 +267,6 @@ export type BulkTubeOperation = z.infer<typeof bulkTubeOperationSchema>;
  */
 export type CreateTubeFormInput = z.input<typeof createTubeRequestSchema>;
 export type UpdateTubeFormInput = z.input<typeof updateTubeRequestSchema>;
-
-// UTILITY FUNCTIONS
-
-export const validateTubePosition = (position: number): boolean => {
-  return position >= 1 && position <= EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX;
-};
 
 // Response schemas
 

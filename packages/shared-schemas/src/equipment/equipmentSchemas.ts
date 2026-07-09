@@ -246,7 +246,6 @@ export const equipmentBulkResponseSchema = z.object({
 // Type exports
 
 export type EquipmentStatus = z.infer<typeof equipmentStatusSchema>;
-export type EquipmentBulkStatus = z.infer<typeof equipmentBulkStatusSchema>;
 export type EquipmentCategory = z.infer<typeof equipmentCategorySchema>;
 export type EquipmentItem = z.infer<typeof equipmentItemSchema>;
 export type EquipmentDocument = z.infer<typeof equipmentDocumentSchema>;
@@ -261,7 +260,6 @@ export type CreateEquipmentDocumentRequest = z.infer<typeof createEquipmentDocum
 export type UpdateEquipmentDocumentRequest = z.infer<typeof updateEquipmentDocumentRequestSchema>;
 export type CreateEquipmentMaintenanceLogRequest = z.infer<typeof createEquipmentMaintenanceLogRequestSchema>;
 export type UpdateEquipmentMaintenanceLogRequest = z.infer<typeof updateEquipmentMaintenanceLogRequestSchema>;
-export type EquipmentBulkMaintenanceRequest = z.infer<typeof equipmentBulkMaintenanceRequestSchema>;
 export type EquipmentBulkStatusRequest = z.infer<typeof equipmentBulkStatusRequestSchema>;
 export type EquipmentBulkRelocateRequest = z.infer<typeof equipmentBulkRelocateRequestSchema>;
 export type EquipmentBulkResponse = z.infer<typeof equipmentBulkResponseSchema>;

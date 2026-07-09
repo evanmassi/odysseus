@@ -37,8 +37,6 @@ export type MessageResponse = z.infer<typeof messageResponseSchema>;
 
 export const emptyResponseSchema = z.object({});
 
-export type EmptyResponse = z.infer<typeof emptyResponseSchema>;
-
 export const versionInfoSchema = z.object({
   version: z.string(),
   environment: z.string(),

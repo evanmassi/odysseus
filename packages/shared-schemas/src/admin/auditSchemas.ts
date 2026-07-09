@@ -35,14 +35,6 @@ export const auditLogFiltersSchema = z.object({
 
 export type AuditLogFilters = z.infer<typeof auditLogFiltersSchema>;
 
-export const auditStatisticsSchema = z.object({
-  total: z.number().int().min(0),
-  today: z.number().int().min(0),
-  thisWeek: z.number().int().min(0),
-});
-
-export type AuditStatistics = z.infer<typeof auditStatisticsSchema>;
-
 export const retentionMetricsSchema = z.object({
   activeTable: z.object({
     count: z.number().int().min(0),
@@ -97,35 +89,10 @@ export type AuditSearchResponse = z.infer<typeof auditSearchResponseSchema>;
 
 // Response data schemas
 
-export const auditLogDataSchema = z.object({
-  entries: z.array(auditLogEntrySchema),
-  pagination: paginationSchema,
-});
-
-export type AuditLogData = z.infer<typeof auditLogDataSchema>;
-
-export const entityHistoryResponseSchema = z.object({
-  entries: z.array(auditLogEntrySchema),
-  entityType: z.string(),
-  entityId: z.string(),
-});
-
-export type EntityHistoryResponse = z.infer<typeof entityHistoryResponseSchema>;
-
-export const auditStatisticsDataSchema = z.object({
-  statistics: auditStatisticsSchema,
-});
-
-export type AuditStatisticsData = z.infer<typeof auditStatisticsDataSchema>;
-
 export const retentionMetricsDataSchema = z.object({
   metrics: retentionMetricsSchema,
 });
 
-export type RetentionMetricsData = z.infer<typeof retentionMetricsDataSchema>;
-
 export const retentionPolicyDataSchema = z.object({
   policy: retentionPolicySchema,
 });
-
-export type RetentionPolicyData = z.infer<typeof retentionPolicyDataSchema>;

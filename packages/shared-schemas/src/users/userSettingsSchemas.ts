@@ -28,14 +28,6 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   // No defaults set - user preferences override everything when set
 };
 
-export const updateUserSettingsRequestSchema = z.object({
-  settings: userSettingsSchema,
-});
-
-export type UpdateUserSettingsRequest = z.infer<typeof updateUserSettingsRequestSchema>;
-
 export const userSettingsDataSchema = z.object({
   settings: userSettingsSchema,
 });
-
-export type UserSettingsData = z.infer<typeof userSettingsDataSchema>;

@@ -68,40 +68,11 @@ export const registerWithProfileSchema = z.object({
 export type RegisterWithProfileRequest = z.infer<typeof registerWithProfileSchema>;
 
 /**
- * System admin one-time setup
- *
- * Creates the initial system admin account. Only works when no system admin exists.
- * In production, requires a setup key from environment variable.
- */
-export const systemAdminSetupSchema = z.object({
-  username: z.string()
-    .min(1, 'Username is required')
-    .max(50, 'Username cannot exceed 50 characters')
-    .transform(val => val.trim()),
-
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password cannot exceed 128 characters'),
-
-  email: z.string()
-    .min(1, 'Email is required')
-    .email('Invalid email format')
-    .max(255, 'Email cannot exceed 255 characters')
-    .transform(val => val.trim()),
-
-  setupKey: z.string().optional(),
-});
-
-export type SystemAdminSetupRequest = z.infer<typeof systemAdminSetupSchema>;
-
-/**
  * Invite code validation (public endpoint for registration flow)
  */
 export const validateInviteCodeRequestSchema = z.object({
   code: z.string().min(1, 'Code is required'),
 });
-
-export type ValidateInviteCodeRequest = z.infer<typeof validateInviteCodeRequestSchema>;
 
 export const validateInviteCodeResponseSchema = z.object({
   valid: z.boolean(),
@@ -111,37 +82,6 @@ export const validateInviteCodeResponseSchema = z.object({
 });
 
 export type ValidateInviteCodeResponse = z.infer<typeof validateInviteCodeResponseSchema>;
-
-/**
- * Email verification token validation
- *
- * Tokens are 32+ character hashed strings generated server-side.
- * Used for email verification link clicked by user.
- */
-export const verifyEmailRequestSchema = z.object({
-  token: z.string()
-    .min(32, 'Invalid verification token')
-    .max(256, 'Token too long')
-});
-
-export type VerifyEmailRequest = z.infer<typeof verifyEmailRequestSchema>;
-
-/**
- * Resend verification email request
- *
- * No body needed - user ID extracted from JWT token.
- * Rate limited to prevent abuse (5 minute cooldown between requests).
- */
-export const resendVerificationRequestSchema = z.object({});
-
-export type ResendVerificationRequest = z.infer<typeof resendVerificationRequestSchema>;
-
-export const verificationStatusResponseSchema = z.object({
-  emailVerified: z.boolean(),
-  email: z.string().email()
-});
-
-export type VerificationStatusResponse = z.infer<typeof verificationStatusResponseSchema>;
 
 export const tokenPairSchema = z.object({
   accessToken: z.string(),
@@ -211,13 +151,9 @@ export const firstTimeResponseSchema = z.object({
   needsSystemAdmin: z.boolean().optional(),
 });
 
-export type FirstTimeResponse = z.infer<typeof firstTimeResponseSchema>;
-
 export const verifyEmailResponseSchema = z.object({
   emailVerified: z.boolean(),
 });
-
-export type VerifyEmailResponse = z.infer<typeof verifyEmailResponseSchema>;
 
 export const sessionInfoResponseSchema = z.object({
   isAuthenticated: z.boolean(),

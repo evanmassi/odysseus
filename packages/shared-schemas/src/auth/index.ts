@@ -6,18 +6,9 @@
 
 export {
   registerWithProfileSchema,
-  verifyEmailRequestSchema,
-  resendVerificationRequestSchema,
-  verificationStatusResponseSchema,
-  systemAdminSetupSchema,
   validateInviteCodeRequestSchema,
   validateInviteCodeResponseSchema,
   type RegisterWithProfileRequest,
-  type VerifyEmailRequest,
-  type ResendVerificationRequest,
-  type VerificationStatusResponse,
-  type SystemAdminSetupRequest,
-  type ValidateInviteCodeRequest,
   type ValidateInviteCodeResponse,
   USER_ROLES,
   USER_STATUSES,
@@ -38,8 +29,6 @@ export {
   type PasswordRequirementsResponse,
   firstTimeResponseSchema,
   verifyEmailResponseSchema,
-  type FirstTimeResponse,
-  type VerifyEmailResponse,
   sessionInfoResponseSchema,
   type SessionInfoResponse,
 } from './authSchemas';
@@ -57,9 +46,6 @@ export {
   resetPasswordWithTokenRequestSchema,
   forceChangePasswordRequestSchema,
   passwordChangeRequiredResponseSchema,
-  type AdminResetPasswordRequest,
   type GeneratePasswordResetTokenResponse,
-  type ResetPasswordWithTokenRequest,
-  type ForceChangePasswordRequest,
   type PasswordChangeRequiredResponse,
 } from './passwordResetSchemas';

@@ -24,8 +24,6 @@ export const adminResetPasswordRequestSchema = z.object({
     .default(true)
 });
 
-export type AdminResetPasswordRequest = z.infer<typeof adminResetPasswordRequestSchema>;
-
 /**
  * Admin generates password reset token response
  *
@@ -54,8 +52,6 @@ export const resetPasswordWithTokenRequestSchema = z.object({
   newPassword: passwordField,
 });
 
-export type ResetPasswordWithTokenRequest = z.infer<typeof resetPasswordWithTokenRequestSchema>;
-
 /**
  * Force Change Password Request
  *
@@ -69,8 +65,6 @@ export const forceChangePasswordRequestSchema = z.object({
 
   newPassword: passwordField,
 });
-
-export type ForceChangePasswordRequest = z.infer<typeof forceChangePasswordRequestSchema>;
 
 /**
  * Password Change Required Response

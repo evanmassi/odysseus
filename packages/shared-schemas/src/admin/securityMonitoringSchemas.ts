@@ -60,8 +60,6 @@ export const purgeExpiredResponseSchema = z.object({
   purgedTokens: z.number(),
 });
 
-export type SessionOverview = z.infer<typeof sessionOverviewSchema>;
-export type TokenHealth = z.infer<typeof tokenHealthSchema>;
 export type SecurityOverviewResponse = z.infer<typeof securityOverviewResponseSchema>;
 export type ActiveSessionEntry = z.infer<typeof activeSessionEntrySchema>;
 export type ActiveSessionsResponse = z.infer<typeof activeSessionsResponseSchema>;
@@ -98,9 +96,7 @@ export const sessionActivityResponseSchema = z.object({
   entries: z.array(sessionActivityEntrySchema),
 });
 
-export type BulkRevokeSessionsRequest = z.infer<typeof bulkRevokeSessionsRequestSchema>;
 export type BulkRevokeResponse = z.infer<typeof bulkRevokeResponseSchema>;
 export type FailedLoginEntry = z.infer<typeof failedLoginEntrySchema>;
 export type FailedLoginsResponse = z.infer<typeof failedLoginsResponseSchema>;
-export type SessionActivityEntry = z.infer<typeof sessionActivityEntrySchema>;
 export type SessionActivityResponse = z.infer<typeof sessionActivityResponseSchema>;

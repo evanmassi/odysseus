@@ -72,13 +72,8 @@ export const SearchResultSchema = z.object({
   metadata: SearchMetadataSchema.optional(),
 }).strict();
 
-export const SearchSuggestionsResponseSchema = z.object({
-  suggestions: z.array(z.string()),
-}).strict();
-
 export type SearchFilters = z.infer<typeof SearchFiltersSchema>;
 // Input shape: callers may omit limit/offset/sortOrder — the schema applies their defaults on parse.
 export type AdvancedSearchOptions = z.input<typeof AdvancedSearchOptionsSchema>;
 export type SearchResult = z.infer<typeof SearchResultSchema>;
 export type GroupedResult = z.infer<typeof GroupedResultSchema>;
-export type SearchSuggestionsResponse = z.infer<typeof SearchSuggestionsResponseSchema>;

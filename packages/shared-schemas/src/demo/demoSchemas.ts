@@ -34,6 +34,5 @@ export const unseedDemoResponseSchema = z.object({
 }).strict();
 
 export type DemoLimits = z.infer<typeof demoLimitsSchema>;
-export type UpdateDemoLimits = z.infer<typeof updateDemoLimitsSchema>;
 export type SeedDemoResponse = z.infer<typeof seedDemoResponseSchema>;
 export type UnseedDemoResponse = z.infer<typeof unseedDemoResponseSchema>;

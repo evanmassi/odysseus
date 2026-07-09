@@ -8,15 +8,11 @@ import { z } from 'zod';
 
 export const positionDisplayFormatSchema = z.enum(['numeric', 'alphanumeric']);
 
-export type PositionDisplayFormat = z.infer<typeof positionDisplayFormatSchema>;
-
 export const alphanumericConfigSchema = z.object({
   rowLabels: z.array(z.string()).min(1), // ['A', 'B', 'C', ...] or ['1', '2', '3', ...]
   colLabels: z.array(z.string()).min(1), // ['1', '2', '3', ...] or ['A', 'B', 'C', ...]
   format: z.enum(['row-col', 'col-row']).default('row-col'), // "A5" vs "5A"
 });
-
-export type AlphanumericConfig = z.infer<typeof alphanumericConfigSchema>;
 
 export const positionDisplayConfigSchema = z.object({
   format: positionDisplayFormatSchema,

@@ -66,7 +66,6 @@ export const crossLabStorageAnalyticsResponseSchema = z.object({
 export type BoxUtilization = z.infer<typeof boxUtilizationSchema>;
 export type RackUtilization = z.infer<typeof rackUtilizationSchema>;
 export type TankUtilization = z.infer<typeof tankUtilizationSchema>;
-export type NearCapacityBox = z.infer<typeof nearCapacityBoxSchema>;
 export type LabStorageAnalyticsResponse = z.infer<typeof labStorageAnalyticsResponseSchema>;
 export type LabStorageSummary = z.infer<typeof labStorageSummarySchema>;
 export type CrossLabStorageAnalyticsResponse = z.infer<typeof crossLabStorageAnalyticsResponseSchema>;

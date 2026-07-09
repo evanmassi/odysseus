@@ -104,13 +104,9 @@ export const securityConfigDataSchema = z.object({
   config: securityConfigSchema,
 });
 
-export type SecurityConfigData = z.infer<typeof securityConfigDataSchema>;
-
 export const adminUsersListSchema = z.object({
   users: z.array(adminUserSchema),
 });
-
-export type AdminUsersList = z.infer<typeof adminUsersListSchema>;
 
 export const adminResearchersListSchema = z.object({
   researchers: z.array(adminResearcherSchema),
@@ -123,10 +119,6 @@ export const inviteCodesListSchema = z.object({
   inviteCodes: z.array(inviteCodeDataSchema),
 });
 
-export type InviteCodesList = z.infer<typeof inviteCodesListSchema>;
-
 export const inviteCodeDataResponseSchema = z.object({
   inviteCode: inviteCodeDataSchema,
 });
-
-export type InviteCodeDataResponse = z.infer<typeof inviteCodeDataResponseSchema>;

@@ -23,17 +23,6 @@ export const labDataSchema = z.object({
 
 export type LabData = z.infer<typeof labDataSchema>;
 
-export const labPublicDataSchema = labDataSchema.pick({
-  id: true,
-  name: true,
-  slug: true,
-  isActive: true,
-  isDemo: true,
-  demoLimits: true,
-});
-
-export type LabPublicData = z.infer<typeof labPublicDataSchema>;
-
 export const inviteCodeDataSchema = z.object({
   id: z.string(),
   labId: z.string(),
@@ -58,8 +47,6 @@ export const createLabRequestSchema = z.object({
     .transform(val => val.trim()),
   isDemo: z.boolean().optional().default(false),
 });
-
-export type CreateLabRequest = z.infer<typeof createLabRequestSchema>;
 
 export const labDetailsUserSchema = z.object({
   id: z.string(),
@@ -126,8 +113,6 @@ const systemOverviewLabStatSchema = z.object({
   boxCount: z.number(),
 });
 
-export type SystemOverviewLabStat = z.infer<typeof systemOverviewLabStatSchema>;
-
 export const systemOverviewSchema = z.object({
   totalLabs: z.number(),
   activeLabs: z.number(),
@@ -155,13 +140,9 @@ export const labsListSchema = z.object({
   labs: z.array(labDataSchema),
 });
 
-export type LabsList = z.infer<typeof labsListSchema>;
-
 export const labDataResponseSchema = z.object({
   lab: labDataSchema,
 });
-
-export type LabDataResponse = z.infer<typeof labDataResponseSchema>;
 
 export const demoLimitsDataSchema = z.object({
   limits: demoLimitsSchema,

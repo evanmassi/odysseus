@@ -121,20 +121,6 @@ export function labelToPosition(
   return rowIndex * gridCols + colIndex + 1;
 }
 
-export function isValidPositionLabel(
-  label: string,
-  gridRows: number,
-  gridCols: number,
-  config: PositionDisplayConfig
-): boolean {
-  try {
-    labelToPosition(label, gridRows, gridCols, config);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 /**
  * Generates all position labels for a grid in row-major order.
  *
