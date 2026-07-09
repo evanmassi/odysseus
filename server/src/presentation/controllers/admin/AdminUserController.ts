@@ -124,7 +124,6 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.deactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'User deactivated successfully'
       });
 
@@ -142,7 +141,6 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'User activated successfully'
       });
 
@@ -182,7 +180,6 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.linkResearcherToUser(userId, targetResearcherId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
         researcherId: targetResearcherId,
         message: 'Researcher linked to user successfully'
       });
@@ -208,7 +205,6 @@ export class AdminUserController extends BaseController {
       await this.deps.userApplicationService.unlinkResearcherFromUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'Researcher unlinked from user successfully'
       });
 
@@ -248,7 +244,6 @@ export class AdminUserController extends BaseController {
       });
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'Password reset successfully'
       });
 

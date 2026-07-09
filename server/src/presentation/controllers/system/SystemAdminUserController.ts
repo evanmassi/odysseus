@@ -29,7 +29,6 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.reactivateUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'User activated successfully'
       });
 
@@ -47,7 +46,6 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.deactivateUser(userId, adminUser, labId);
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'User deactivated successfully'
       });
 
@@ -65,7 +63,6 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.suspendUser(userId, adminUser, labId);
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'User suspended successfully'
       });
 
@@ -83,7 +80,6 @@ export class SystemAdminUserController extends BaseController {
       await this.deps.userApplicationService.deleteUser(userId, adminUser);
 
       const response = ResponseBuilder.success({
-        success: true,
         message: 'User deleted successfully'
       });
 
