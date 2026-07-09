@@ -180,18 +180,22 @@ export class AdminRouteModule implements RouteModule {
     // AUDIT RETENTION ENDPOINTS
 
     router.get('/audit/retention/metrics',
+      this.authMiddleware.requireSystemAdmin,
       this.auditController.getRetentionMetrics.bind(this.auditController)
     );
 
     router.get('/audit/retention/policy',
+      this.authMiddleware.requireSystemAdmin,
       this.auditController.getRetentionPolicy.bind(this.auditController)
     );
 
     router.get('/audit/retention/export',
+      this.authMiddleware.requireSystemAdmin,
       this.auditController.exportArchivedLogs.bind(this.auditController)
     );
 
     router.post('/audit/retention/archive',
+      this.authMiddleware.requireSystemAdmin,
       this.auditController.runManualArchival.bind(this.auditController)
     );
 
