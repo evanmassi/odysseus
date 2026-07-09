@@ -11,3 +11,4 @@ export {
 export { CategoryHierarchySelect } from './CategoryHierarchySelect';
 export { CategoryModal } from './CategoryModal';
 export { CategoryTreePanel, type CategoryTreePanelLabels } from './CategoryTreePanel';
+export { ItemRowShell, type ItemRowStatusTone } from './ItemRowShell';
