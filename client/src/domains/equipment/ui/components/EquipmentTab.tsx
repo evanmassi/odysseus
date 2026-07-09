@@ -29,17 +29,21 @@ import {
   Select,
   Tooltip,
 } from '@shared/ui';
-import { CategoryModal } from '@shared/ui/components/inventory';
+import {
+  CategoryModal,
+  CategoryTreePanel,
+  type CategoryTreePanelLabels,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
 import { EquipmentBulkUpdateModal } from './EquipmentBulkUpdateModal';
-import { EquipmentCategoryPanel } from './EquipmentCategoryPanel';
 import { EquipmentDecommissionForm } from './EquipmentDecommissionForm';
 import { EquipmentEditForm } from './EquipmentEditForm';
 import { EquipmentItemInfoPanel } from './EquipmentItemInfoPanel';
+import { EquipmentItemRow } from './EquipmentItemRow';
 import { EquipmentMaintenanceAlertPanel } from './EquipmentMaintenanceAlertPanel';
 import { EquipmentMaintenanceForm } from './EquipmentMaintenanceForm';
 
@@ -57,6 +61,24 @@ const SORT_OPTIONS: SelectOption[] = [
   { value: 'manufacturer', label: 'Manufacturer' },
   { value: 'dateAdded', label: 'Date Added' },
 ];
+
+const isEquipmentHidden = (item: EquipmentItem) => item.status === 'decommissioned';
+
+const getEquipmentSearchFields = (item: EquipmentItem) => [
+  item.name,
+  item.manufacturer,
+  item.model,
+  item.serialNumber,
+  item.assetTag,
+  item.location,
+];
+
+const TREE_LABELS: CategoryTreePanelLabels = {
+  countNoun: ['unit', 'units'],
+  emptyCategories: 'No equipment categories yet.',
+  noSearchMatch: 'No equipment matching',
+  emptyCategoryBody: 'No equipment',
+};
 
 type RightPanelView =
   | { type: 'info'; itemId: string }
@@ -295,20 +317,29 @@ export function EquipmentTab() {
               onSelectItem={handleSelectItem}
             />
             <ScrollArea className="min-h-0 flex-1">
-              <EquipmentCategoryPanel
+              <CategoryTreePanel
                 categories={categories}
                 items={items}
-                selectedItemId={selectedItemId}
-                onSelectItem={handleSelectItem}
-                showDecommissioned={showDecommissioned}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                showHidden={showDecommissioned}
+                isHidden={isEquipmentHidden}
+                getSearchFields={getEquipmentSearchFields}
+                renderItem={item => (
+                  <EquipmentItemRow
+                    item={item}
+                    isSelected={item.id === selectedItemId}
+                    onSelect={handleSelectItem}
+                  />
+                )}
+                treeId="equipment"
+                labels={TREE_LABELS}
                 onAddCategory={handleAddCategory}
                 onAddSubcategory={handleAddSubcategory}
                 onRenameCategory={handleRenameCategory}
                 onDeleteCategory={handleDeleteCategory}
-                sortField={sortField}
-                sortDirection={sortDirection}
               />
             </ScrollArea>
           </div>

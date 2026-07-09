@@ -27,16 +27,20 @@ import {
   Select,
   Tooltip,
 } from '@shared/ui';
-import { CategoryModal } from '@shared/ui/components/inventory';
+import {
+  CategoryModal,
+  CategoryTreePanel,
+  type CategoryTreePanelLabels,
+} from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBulkUpdateModal } from './SupplyBulkUpdateModal';
-import { SupplyCategoryPanel } from './SupplyCategoryPanel';
 import { SupplyItemForm } from './SupplyItemForm';
 import { SupplyItemInfoPanel } from './SupplyItemInfoPanel';
+import { SupplyItemRow } from './SupplyItemRow';
 import { SupplyLocationModal } from './SupplyLocationModal';
 import { SupplyLowStockAlertPanel } from './SupplyLowStockAlertPanel';
 import { SupplyQuickScanBar } from './SupplyQuickScanBar';
@@ -54,6 +58,22 @@ const SORT_OPTIONS: SelectOption[] = [
   { value: 'manufacturer', label: 'Manufacturer' },
   { value: 'dateAdded', label: 'Date Added' },
 ];
+
+const isSupplyHidden = (item: SupplyItemWithStock) => item.status === 'archived';
+
+const getSupplySearchFields = (item: SupplyItemWithStock) => [
+  item.name,
+  item.manufacturer,
+  item.catalogNumber,
+  item.vendorName,
+];
+
+const TREE_LABELS: CategoryTreePanelLabels = {
+  countNoun: ['item', 'items'],
+  emptyCategories: 'No supply categories yet.',
+  noSearchMatch: 'No items matching',
+  emptyCategoryBody: 'No items',
+};
 
 type TransactionTab = 'received' | 'issued' | 'count' | 'disposed';
 
@@ -301,20 +321,29 @@ export function SuppliesTab() {
               onSelectItem={handleSelectItem}
             />
             <ScrollArea className="min-h-0 flex-1">
-              <SupplyCategoryPanel
+              <CategoryTreePanel
                 categories={categories}
                 items={items}
-                selectedItemId={selectedItemId}
-                onSelectItem={handleSelectItem}
-                showArchived={showArchived}
                 searchQuery={searchQuery}
                 isAdmin={isAdmin}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                showHidden={showArchived}
+                isHidden={isSupplyHidden}
+                getSearchFields={getSupplySearchFields}
+                renderItem={item => (
+                  <SupplyItemRow
+                    item={item}
+                    isSelected={item.id === selectedItemId}
+                    onSelect={handleSelectItem}
+                  />
+                )}
+                treeId="supplies"
+                labels={TREE_LABELS}
                 onAddCategory={handleAddCategory}
                 onAddSubcategory={handleAddSubcategory}
                 onRenameCategory={handleRenameCategory}
                 onDeleteCategory={handleDeleteCategory}
-                sortField={sortField}
-                sortDirection={sortDirection}
               />
             </ScrollArea>
           </div>

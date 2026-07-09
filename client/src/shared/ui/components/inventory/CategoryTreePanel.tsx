@@ -1,10 +1,12 @@
 /**
- * Supply Category Panel
+ * Category Tree Panel
  *
- * Collapsible category sections with nested subcategories and supply item cards.
+ * Collapsible category sections with nested subcategories and item cards, shared
+ * by the equipment and supplies inventories. Item rendering, the hidden-status
+ * predicate, the searchable fields, and the labels are injected per domain.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, type ReactNode } from 'react';
 
 import {
   ChevronRight,
@@ -16,36 +18,59 @@ import {
   Trash2,
 } from 'lucide-react';
 
-import { Button, OverflowMenu } from '@shared/ui';
-import { NavTreeLines } from '@shared/ui/components/tree-lines';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
-import { SupplyItemRow } from './SupplyItemRow';
+import { Button, OverflowMenu, type OverflowMenuItem } from '../../primitives';
+import { NavTreeLines } from '../tree-lines';
 
-import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
-import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
-
-interface SupplyCategoryPanelProps {
-  categories: SupplyCategory[];
-  items: SupplyItemWithStock[];
-  selectedItemId?: string;
-  onSelectItem: (id: string) => void;
-  showArchived: boolean;
-  searchQuery: string;
-  isAdmin: boolean;
-  onAddCategory: () => void;
-  onAddSubcategory: (parentId: string) => void;
-  onRenameCategory: (category: SupplyCategory) => void;
-  onDeleteCategory: (category: SupplyCategory) => void;
-  sortField: 'name' | 'manufacturer' | 'dateAdded';
-  sortDirection: 'asc' | 'desc';
+interface TreeCategory {
+  id: string;
+  name: string;
+  parentId: string | null;
+  sortOrder: number;
 }
 
-function buildCategoryMenuItems(
-  category: SupplyCategory,
+interface TreeItem {
+  id: string;
+  name: string;
+  categoryId: string;
+  manufacturer?: string;
+  createdAt: string | Date;
+}
+
+export interface CategoryTreePanelLabels {
+  /** Singular/plural count noun, e.g. ['unit', 'units']. */
+  countNoun: [string, string];
+  emptyCategories: string;
+  /** Prefix for the no-search-match line; the quoted query is appended. */
+  noSearchMatch: string;
+  emptyCategoryBody: string;
+}
+
+interface CategoryTreePanelProps<T extends TreeItem, C extends TreeCategory> {
+  categories: C[];
+  items: T[];
+  searchQuery: string;
+  isAdmin: boolean;
+  sortField: 'name' | 'manufacturer' | 'dateAdded';
+  sortDirection: 'asc' | 'desc';
+  showHidden: boolean;
+  isHidden: (item: T) => boolean;
+  getSearchFields: (item: T) => Array<string | undefined>;
+  renderItem: (item: T) => ReactNode;
+  treeId: string;
+  labels: CategoryTreePanelLabels;
+  onAddCategory: () => void;
+  onAddSubcategory: (parentId: string) => void;
+  onRenameCategory: (category: C) => void;
+  onDeleteCategory: (category: C) => void;
+}
+
+function buildCategoryMenuItems<C>(
+  category: C,
   hasItems: boolean,
-  onRename: (category: SupplyCategory) => void,
-  onDelete: (category: SupplyCategory) => void
+  onRename: (category: C) => void,
+  onDelete: (category: C) => void
 ): OverflowMenuItem[] {
   return [
     { icon: SquarePen, label: 'Rename', onClick: () => onRename(category) },
@@ -59,21 +84,24 @@ function buildCategoryMenuItems(
   ];
 }
 
-export function SupplyCategoryPanel({
+export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
   categories,
   items,
-  selectedItemId,
-  onSelectItem,
-  showArchived,
   searchQuery,
   isAdmin,
+  sortField,
+  sortDirection,
+  showHidden,
+  isHidden,
+  getSearchFields,
+  renderItem,
+  treeId,
+  labels,
   onAddCategory,
   onAddSubcategory,
   onRenameCategory,
   onDeleteCategory,
-  sortField,
-  sortDirection,
-}: SupplyCategoryPanelProps) {
+}: CategoryTreePanelProps<T, C>) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const topLevelCategories = useMemo(
@@ -82,7 +110,7 @@ export function SupplyCategoryPanel({
   );
 
   const subcategoriesByParent = useMemo(() => {
-    const map = new Map<string, SupplyCategory[]>();
+    const map = new Map<string, C[]>();
     categories
       .filter(c => c.parentId)
       .sort(compareByOrderThenName)
@@ -113,29 +141,24 @@ export function SupplyCategoryPanel({
   const filteredItems = useMemo(() => {
     let result = items;
 
-    if (!showArchived) {
-      result = result.filter(p => p.status !== 'archived');
+    if (!showHidden) {
+      result = result.filter(item => !isHidden(item));
     }
 
     if (isSearching) {
       const query = searchQuery.toLowerCase();
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Boolean OR for search matching */
       result = result.filter(
-        p =>
-          p.name.toLowerCase().includes(query) ||
-          p.manufacturer?.toLowerCase().includes(query) ||
-          p.catalogNumber?.toLowerCase().includes(query) ||
-          p.vendorName?.toLowerCase().includes(query) ||
-          matchingCategoryIds.has(p.categoryId)
+        item =>
+          getSearchFields(item).some(field => field?.toLowerCase().includes(query)) ||
+          matchingCategoryIds.has(item.categoryId)
       );
-      /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     }
 
     return result;
-  }, [items, showArchived, searchQuery, isSearching, matchingCategoryIds]);
+  }, [items, showHidden, isHidden, getSearchFields, searchQuery, isSearching, matchingCategoryIds]);
 
   const sortItems = useCallback(
-    (a: SupplyItemWithStock, b: SupplyItemWithStock): number => {
+    (a: T, b: T): number => {
       const dir = sortDirection === 'asc' ? 1 : -1;
       switch (sortField) {
         case 'name': {
@@ -161,7 +184,7 @@ export function SupplyCategoryPanel({
   );
 
   const itemsByCategoryId = useMemo(() => {
-    const map = new Map<string, SupplyItemWithStock[]>();
+    const map = new Map<string, T[]>();
     filteredItems.forEach(item => {
       const list = map.get(item.categoryId) ?? [];
       list.push(item);
@@ -211,10 +234,12 @@ export function SupplyCategoryPanel({
     return ids;
   }, [topLevelCategories, isSearching, getCategoryItemCount, expandedCategories]);
 
+  const [countSingular, countPlural] = labels.countNoun;
+
   if (topLevelCategories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
-        <p className="text-body-sm">No supply categories yet.</p>
+        <p className="text-body-sm">{labels.emptyCategories}</p>
         {isAdmin && (
           <Button
             variant="secondary"
@@ -247,12 +272,12 @@ export function SupplyCategoryPanel({
 
       {filteredItems.length === 0 && isSearching && (
         <p className="text-body-sm text-muted-foreground text-center py-6">
-          No items matching &ldquo;{searchQuery}&rdquo;
+          {labels.noSearchMatch} &ldquo;{searchQuery}&rdquo;
         </p>
       )}
 
-      <div data-tree-id="supplies" className="nav-tree relative flex flex-col gap-1">
-        <NavTreeLines treeId="supplies" expandedCategoryIds={expandedCategoryIds} />
+      <div data-tree-id={treeId} className="nav-tree relative flex flex-col gap-1">
+        <NavTreeLines treeId={treeId} expandedCategoryIds={expandedCategoryIds} />
         {topLevelCategories.map(category => {
           const subs = subcategoriesByParent.get(category.id) ?? [];
           const totalCount = getCategoryItemCount(category.id);
@@ -317,7 +342,9 @@ export function SupplyCategoryPanel({
                 </span>
                 <span className="nav-tree-row__count font-mono text-data-sm tracking-[0.04em]">
                   {totalCount}{' '}
-                  <span className="text-foreground/25">{totalCount === 1 ? 'item' : 'items'}</span>
+                  <span className="text-foreground/25">
+                    {totalCount === 1 ? countSingular : countPlural}
+                  </span>
                 </span>
                 <span className="flex-1" />
                 {isAdmin && (
@@ -350,11 +377,11 @@ export function SupplyCategoryPanel({
                         key={sub.id}
                         subcategory={sub}
                         items={subItems}
-                        selectedItemId={selectedItemId}
-                        onSelectItem={onSelectItem}
                         isAdmin={isAdmin}
                         onRename={onRenameCategory}
                         onDelete={onDeleteCategory}
+                        renderItem={renderItem}
+                        labels={labels}
                         forceExpanded={isSearching ? true : undefined}
                       />
                     );
@@ -365,11 +392,7 @@ export function SupplyCategoryPanel({
                     <div className="nav-tree-well">
                       {directItems.map(item => (
                         <div key={item.id} data-level="l2" data-id={item.id}>
-                          <SupplyItemRow
-                            item={item}
-                            isSelected={item.id === selectedItemId}
-                            onSelect={onSelectItem}
-                          />
+                          {renderItem(item)}
                         </div>
                       ))}
                     </div>
@@ -377,7 +400,7 @@ export function SupplyCategoryPanel({
 
                   {totalCount === 0 && (
                     <p className="text-caption text-card-foreground/30 italic text-center py-3">
-                      No items
+                      {labels.emptyCategoryBody}
                     </p>
                   )}
                 </div>
@@ -390,29 +413,30 @@ export function SupplyCategoryPanel({
   );
 }
 
-interface SubcategorySectionProps {
-  subcategory: SupplyCategory;
-  items: SupplyItemWithStock[];
-  selectedItemId?: string;
-  onSelectItem: (id: string) => void;
+interface SubcategorySectionProps<T extends TreeItem, C extends TreeCategory> {
+  subcategory: C;
+  items: T[];
   isAdmin: boolean;
-  onRename: (category: SupplyCategory) => void;
-  onDelete: (category: SupplyCategory) => void;
+  onRename: (category: C) => void;
+  onDelete: (category: C) => void;
+  renderItem: (item: T) => ReactNode;
+  labels: CategoryTreePanelLabels;
   forceExpanded?: boolean;
 }
 
-function SubcategorySection({
+function SubcategorySection<T extends TreeItem, C extends TreeCategory>({
   subcategory,
   items,
-  selectedItemId,
-  onSelectItem,
   isAdmin,
   onRename,
   onDelete,
+  renderItem,
+  labels,
   forceExpanded,
-}: SubcategorySectionProps) {
+}: SubcategorySectionProps<T, C>) {
   const [isExpanded, setIsExpanded] = useState(true);
   const effectiveExpanded = forceExpanded ?? isExpanded;
+  const [countSingular, countPlural] = labels.countNoun;
 
   return (
     <div data-level="l2" data-id={subcategory.id}>
@@ -455,7 +479,9 @@ function SubcategorySection({
         </span>
         <span className="nav-tree-row__count font-mono text-data-sm tracking-[0.04em]">
           {items.length}{' '}
-          <span className="text-foreground/25">{items.length === 1 ? 'item' : 'items'}</span>
+          <span className="text-foreground/25">
+            {items.length === 1 ? countSingular : countPlural}
+          </span>
         </span>
       </div>
 
@@ -464,11 +490,7 @@ function SubcategorySection({
           <div className="nav-tree-well">
             {items.map(item => (
               <div key={item.id} data-level="l3" data-id={item.id}>
-                <SupplyItemRow
-                  item={item}
-                  isSelected={item.id === selectedItemId}
-                  onSelect={onSelectItem}
-                />
+                {renderItem(item)}
               </div>
             ))}
           </div>
@@ -476,7 +498,9 @@ function SubcategorySection({
       )}
 
       {isExpanded && items.length === 0 && (
-        <p className="text-caption text-card-foreground/30 italic py-2 text-center">No items</p>
+        <p className="text-caption text-card-foreground/30 italic py-2 text-center">
+          {labels.emptyCategoryBody}
+        </p>
       )}
     </div>
   );
