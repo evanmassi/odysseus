@@ -6,7 +6,7 @@
  * tabs; row-based forms for receive/issue; transaction selector for void.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 import {
   Layers,
@@ -16,18 +16,17 @@ import {
   Archive,
   Ban,
   Printer,
-  FolderOpen,
-  CornerDownRight,
 } from 'lucide-react';
 
 import { useSupplyBulkUpdateMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, Checkbox, NubDivider, SearchInput, Tabs, Tab } from '@shared/ui';
+import { Button, Tabs, Tab } from '@shared/ui';
+import {
+  BulkCategoryTreeSelector,
+  type BulkCategoryTreeSelectorLabels,
+} from '@shared/ui/components/inventory';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
-import { BulkSelectTreeLines } from '@shared/ui/components/tree-lines';
-import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
-import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 import { notifications } from '@shared/utils/notifications';
 
 import { BulkArchiveTab } from './bulk-update-tabs/BulkArchiveTab';
@@ -54,6 +53,22 @@ interface SupplyBulkUpdateModalProps {
   items: SupplyItemWithStock[];
   categories: SupplyCategory[];
 }
+
+const isSupplySelectable = (item: SupplyItemWithStock) => item.status === 'active';
+
+const getSupplySecondaryText = (item: SupplyItemWithStock) => [
+  item.manufacturer,
+  item.catalogNumber,
+];
+
+const BULK_SELECTOR_LABELS: BulkCategoryTreeSelectorLabels = {
+  countNoun: ['item', 'items'],
+  filterPlaceholder: 'Filter items…',
+  filterAriaLabel: 'Filter items',
+  selectAllLabel: 'All Items',
+  selectAllAriaLabel: 'Select all items',
+  noMatch: 'No items matching',
+};
 
 export function SupplyBulkUpdateModal({
   isOpen,
@@ -221,13 +236,16 @@ export function SupplyBulkUpdateModal({
           {showSelector ? (
             <div className="flex flex-1 min-h-0">
               <div className="w-2/5 border-r border-border p-4 flex flex-col min-h-0 overflow-auto bg-muted/30">
-                <ItemSelector
+                <BulkCategoryTreeSelector
                   items={items}
                   categories={categories}
                   selectedIds={selectedIds}
                   onSelectionChange={setSelectedIds}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
+                  isSelectable={isSupplySelectable}
+                  getSecondaryText={getSupplySecondaryText}
+                  labels={BULK_SELECTOR_LABELS}
                 />
               </div>
 
@@ -283,285 +301,5 @@ export function SupplyBulkUpdateModal({
         />
       )}
     </>
-  );
-}
-
-interface CategoryGroup {
-  category: SupplyCategory;
-  items: SupplyItemWithStock[];
-  subcategories: Array<{
-    category: SupplyCategory;
-    items: SupplyItemWithStock[];
-  }>;
-}
-
-function buildCategoryGroups(
-  categories: SupplyCategory[],
-  items: SupplyItemWithStock[]
-): CategoryGroup[] {
-  const active = items.filter(p => p.status === 'active');
-  const topLevel = categories.filter(c => !c.parentId).sort(compareByOrderThenName);
-
-  return topLevel
-    .map(parent => {
-      const subs = categories.filter(c => c.parentId === parent.id).sort(compareByOrderThenName);
-
-      const directItems = active.filter(p => p.categoryId === parent.id);
-      const subcategories = subs.map(sub => ({
-        category: sub,
-        items: active.filter(p => p.categoryId === sub.id),
-      }));
-
-      return { category: parent, items: directItems, subcategories };
-    })
-    .filter(g => g.items.length > 0 || g.subcategories.some(s => s.items.length > 0));
-}
-
-function getAllItemIds(group: CategoryGroup): string[] {
-  return [
-    ...group.items.map(p => p.id),
-    ...group.subcategories.flatMap(s => s.items.map(p => p.id)),
-  ];
-}
-
-function ItemSelector({
-  items,
-  categories,
-  selectedIds,
-  onSelectionChange,
-  searchQuery,
-  onSearchChange,
-}: {
-  items: SupplyItemWithStock[];
-  categories: SupplyCategory[];
-  selectedIds: Set<string>;
-  onSelectionChange: (ids: Set<string>) => void;
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-}) {
-  const matchingCategoryIds = useMemo(() => {
-    if (!searchQuery) return new Set<string>();
-    const q = searchQuery.toLowerCase();
-    const directMatches = categories.filter(c => c.name.toLowerCase().includes(q));
-    const ids = new Set<string>();
-    for (const cat of directMatches) {
-      ids.add(cat.id);
-      if (!cat.parentId) {
-        categories.filter(c => c.parentId === cat.id).forEach(c => ids.add(c.id));
-      }
-    }
-    return ids;
-  }, [categories, searchQuery]);
-
-  const filteredItems = useMemo(() => {
-    if (!searchQuery) return items;
-    const q = searchQuery.toLowerCase();
-    return items.filter(
-      p =>
-        p.name.toLowerCase().includes(q) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR for search matching
-        (p.manufacturer && p.manufacturer.toLowerCase().includes(q)) ||
-        matchingCategoryIds.has(p.categoryId)
-    );
-  }, [items, searchQuery, matchingCategoryIds]);
-
-  const groups = useMemo(
-    () => buildCategoryGroups(categories, filteredItems),
-    [categories, filteredItems]
-  );
-
-  const allSelectableIds = useMemo(() => groups.flatMap(getAllItemIds), [groups]);
-
-  const allSelected =
-    allSelectableIds.length > 0 && allSelectableIds.every(id => selectedIds.has(id));
-  const someSelected = allSelectableIds.some(id => selectedIds.has(id));
-
-  const toggleAll = useCallback(() => {
-    if (allSelected) {
-      onSelectionChange(new Set());
-    } else {
-      onSelectionChange(new Set(allSelectableIds));
-    }
-  }, [allSelected, allSelectableIds, onSelectionChange]);
-
-  const toggleCategory = useCallback(
-    (categoryItemIds: string[]) => {
-      const next = new Set(selectedIds);
-      const allChecked = categoryItemIds.every(id => next.has(id));
-      categoryItemIds.forEach(id => (allChecked ? next.delete(id) : next.add(id)));
-      onSelectionChange(next);
-    },
-    [selectedIds, onSelectionChange]
-  );
-
-  const toggleItem = useCallback(
-    (itemId: string) => {
-      const next = new Set(selectedIds);
-      if (next.has(itemId)) next.delete(itemId);
-      else next.add(itemId);
-      onSelectionChange(next);
-    },
-    [selectedIds, onSelectionChange]
-  );
-
-  const selectedCount = allSelectableIds.filter(id => selectedIds.has(id)).length;
-
-  return (
-    <div className="flex flex-col h-full min-h-0">
-      <SearchInput
-        value={searchQuery}
-        onChange={onSearchChange}
-        placeholder="Filter items…"
-        size="sm"
-        className="mb-2 flex-shrink-0"
-        inputClassName="text-body-sm"
-        aria-label="Filter items"
-      />
-      <div className="mb-3 flex-shrink-0">
-        <div className="flex items-center gap-2 pb-2">
-          <Checkbox
-            checked={allSelected}
-            indeterminate={someSelected && !allSelected}
-            onChange={toggleAll}
-            aria-label="Select all items"
-          />
-          <span className="text-body-sm font-medium text-card-foreground flex-1">All Items</span>
-          <span className="text-caption text-muted-foreground">
-            {selectedCount}/{allSelectableIds.length} items
-          </span>
-        </div>
-        <NubDivider tone="neutral" className="relative" />
-      </div>
-      <ScrollArea className="flex-1 min-h-0">
-        <div data-tree-id="bulk-select" className="nav-tree-select relative space-y-2 pr-2">
-          <BulkSelectTreeLines />
-          {groups.length === 0 && searchQuery && (
-            <p className="text-body-sm text-muted-foreground text-center py-4">
-              No items matching &ldquo;{searchQuery}&rdquo;
-            </p>
-          )}
-          {groups.map(group => {
-            const groupIds = getAllItemIds(group);
-            const groupAllChecked = groupIds.every(id => selectedIds.has(id));
-            const groupSomeChecked = groupIds.some(id => selectedIds.has(id));
-            const hasChildren =
-              group.items.length > 0 || group.subcategories.some(s => s.items.length > 0);
-
-            return (
-              <div key={group.category.id} data-level="l1" data-id={group.category.id}>
-                <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
-                  <Checkbox
-                    checked={groupAllChecked}
-                    indeterminate={groupSomeChecked && !groupAllChecked}
-                    onChange={() => toggleCategory(groupIds)}
-                    aria-label={`Select all in ${group.category.name}`}
-                  />
-                  <FolderOpen size={14} className="flex-shrink-0 text-muted-foreground" />
-                  <span className="text-body-sm text-secondary-foreground">
-                    {group.category.name}
-                  </span>
-                  <span className="text-caption text-muted-foreground ml-auto">
-                    {groupIds.length} {groupIds.length === 1 ? 'item' : 'items'}
-                  </span>
-                </div>
-
-                {hasChildren && (
-                  <div className="ml-3">
-                    {group.items.map(item => (
-                      <BulkSelectItem
-                        key={item.id}
-                        item={item}
-                        level="l2"
-                        selected={selectedIds.has(item.id)}
-                        onToggle={() => toggleItem(item.id)}
-                      />
-                    ))}
-
-                    {group.subcategories.map(sub => {
-                      if (sub.items.length === 0) return null;
-                      const subIds = sub.items.map(p => p.id);
-                      const subAllChecked = subIds.every(id => selectedIds.has(id));
-                      const subSomeChecked = subIds.some(id => selectedIds.has(id));
-
-                      return (
-                        <div key={sub.category.id} data-level="l2" data-id={sub.category.id}>
-                          <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
-                            <Checkbox
-                              checked={subAllChecked}
-                              indeterminate={subSomeChecked && !subAllChecked}
-                              onChange={() => toggleCategory(subIds)}
-                              aria-label={`Select all in ${sub.category.name}`}
-                            />
-                            <CornerDownRight
-                              size={13}
-                              className="flex-shrink-0 text-muted-foreground"
-                            />
-                            <span className="text-body-sm text-secondary-foreground">
-                              {sub.category.name}
-                            </span>
-                            <span className="text-caption text-muted-foreground ml-auto">
-                              {subIds.length} {subIds.length === 1 ? 'item' : 'items'}
-                            </span>
-                          </div>
-                          <div className="ml-[30px]">
-                            {sub.items.map(item => (
-                              <BulkSelectItem
-                                key={item.id}
-                                item={item}
-                                level="l3"
-                                selected={selectedIds.has(item.id)}
-                                onToggle={() => toggleItem(item.id)}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </ScrollArea>
-    </div>
-  );
-}
-
-/** A single supply row in the selector — brighter than its containers, with mfr // cat#. */
-function BulkSelectItem({
-  item,
-  level,
-  selected,
-  onToggle,
-}: {
-  item: SupplyItemWithStock;
-  level: 'l2' | 'l3';
-  selected: boolean;
-  onToggle: () => void;
-}) {
-  const identity = [item.manufacturer, item.catalogNumber].filter(Boolean);
-
-  return (
-    <div data-level={level} data-id={item.id}>
-      <div className="bulk-select-row flex items-center gap-2 py-1 pl-3 pr-1">
-        <Checkbox checked={selected} onChange={onToggle} aria-label={`Select ${item.name}`} />
-        <div className="min-w-0 flex-1">
-          <span className="block truncate text-body-sm font-medium text-card-foreground">
-            {item.name}
-          </span>
-          {identity.length > 0 && (
-            <span className="block truncate text-caption text-muted-foreground">
-              {identity.map((part, i) => (
-                <span key={i}>
-                  {i > 0 && <span className="mx-1 text-foreground/30">{'//'}</span>}
-                  {part}
-                </span>
-              ))}
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
