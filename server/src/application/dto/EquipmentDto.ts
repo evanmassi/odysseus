@@ -4,16 +4,17 @@
  * Maps between equipment domain entities and HTTP response shapes.
  */
 
-import type {
-  EquipmentStatus,
-  EquipmentCategory as EquipmentCategoryData,
-  EquipmentDocument as EquipmentDocumentData,
-} from '@odysseus/shared-schemas';
 
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
+
+import type {
+  EquipmentStatus,
+  EquipmentCategory as EquipmentCategoryData,
+  EquipmentDocument as EquipmentDocumentData,
+} from '@odysseus/shared-schemas';
 
 export type EquipmentCategoryResponse = EquipmentCategoryData;
 

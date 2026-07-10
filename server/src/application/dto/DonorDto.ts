@@ -4,14 +4,15 @@
  * Maps between Donor domain entities and HTTP response shapes.
  */
 
+
+import type { Donor } from '@domain/entities/Donor';
+import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
+
 import type {
   Donor as DonorData,
   DonorWithTubeCount,
   DonorCollectionHistory as DonorCollectionHistoryData,
 } from '@odysseus/shared-schemas';
-
-import type { Donor } from '@domain/entities/Donor';
-import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 
 export type DonorResponse = DonorData;
 

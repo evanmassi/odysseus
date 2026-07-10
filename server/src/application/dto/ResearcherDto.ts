@@ -4,10 +4,11 @@
  * Researcher holds research-specific data; profile data (name, email) comes from Person entity.
  */
 
-import type { Researcher as ResearcherData } from '@odysseus/shared-schemas';
 
 import type { Person } from '@domain/entities/Person';
 import type { Researcher } from '@domain/entities/Researcher';
+
+import type { Researcher as ResearcherData } from '@odysseus/shared-schemas';
 
 export type { CreateResearcherProfile as CreateResearcherRequest } from '@odysseus/shared-schemas';
 

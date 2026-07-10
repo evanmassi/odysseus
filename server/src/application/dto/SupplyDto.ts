@@ -4,17 +4,6 @@
  * Maps between supply domain entities, row interfaces, and HTTP response shapes.
  */
 
-import type {
-  SupplyBarcodeType,
-  SupplyTransactionType,
-  SupplyCategory as SupplyCategoryData,
-  SupplyItem as SupplyItemData,
-  SupplyItemWithStock,
-  SupplyLocation as SupplyLocationData,
-  SupplyDocument as SupplyDocumentData,
-  SupplyBarcode,
-  SupplyPackagingLevel,
-} from '@odysseus/shared-schemas';
 
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -26,6 +15,18 @@ import type {
   SupplyTransactionRow,
   SupplyPackagingLevelRow,
 } from '@domain/repositories/SupplyItemRepository';
+
+import type {
+  SupplyBarcodeType,
+  SupplyTransactionType,
+  SupplyCategory as SupplyCategoryData,
+  SupplyItem as SupplyItemData,
+  SupplyItemWithStock,
+  SupplyLocation as SupplyLocationData,
+  SupplyDocument as SupplyDocumentData,
+  SupplyBarcode,
+  SupplyPackagingLevel,
+} from '@odysseus/shared-schemas';
 
 export type SupplyCategoryResponse = SupplyCategoryData;
 
