@@ -2,15 +2,18 @@
 
 **Date:** 2026-07-09 · **Branch:** `audit/fixes` · **Owner:** the audit's "Path to A+ per dimension" table
 
-> **STATUS: A · B · C · D DONE; E partial; F + logger-note deferred.** (2026-07-09, branch `audit/fixes`.)
+> **STATUS: A · B · C · D · E · F — ALL DONE. The Path to A+ tail is closed.** (2026-07-10, branch `audit/fixes`.)
 > Done + committed:
 > - **A — Type safety** (`c8c1b1e7`): `SessionHttpClient` `any`→`unknown`; 3 floating `void mutateAsync` → `.mutate({onSuccess})`.
 > - **B — Envelope consistency** (`ff4fc986` redundant `success` · `0c3d889d` dead `UserDto` removed · `a6a96eb8` hand-rolled `/health`,`/version`,404 → `ResponseBuilder`).
 > - **C — Canonical error codes** (`6544f0de` domain codes → `API_ERROR_CODES` + one-branch handler · `6a8f34cf` `ExpressAuthMiddleware` flat envelope + codes; **fixed a real client bug** — auth-error codes were being dropped, so session-terminal detection now works; added `LAB_DEACTIVATED`).
 > - **D — DTO derivation** (`cf5682bc`): 13 hand-rolled response DTOs → `z.infer` aliases (zero behaviour change).
-> - **E — Barrel-bypasses**: **only the `users` sub-batch** landed (`c54d63cf`); the rest is deferred — see the cycle rule in the Batch E section below.
+> - **E — Barrel-bypasses** (`c54d63cf` users · `cb4a099a` auth · `61d440fc` tubes · `b8b66c4b` storage · `a727c86f` tails): every cross-domain import now resolves through the target's public barrel or is a documented exception. The **only 5 remaining deep imports are the marked `tubes↔storage` cycle edges**; **zero cycles proven by a clean production build.** `TubeData` (a shared-schema type) was repathed to `@odysseus/shared-schemas` rather than a domain barrel; the dev-only `SurfacePreviewPage` was exempted with a one-line comment rather than bloating barrels; 5 latent intra-tubes self-barrel imports (surfaced by the promotion) were fixed to deep aliases. See the Batch E section for the final cycle rule.
+> - **F — Date-only correctness** (`2eaeb8f6` convention + pg fix · `ae07785e` DTO derivation): date-only fields typed `z.string()` via new `dateOnlyField`/`optionalDateOnlyField` helpers (7 fields + `collectionDate` retrofit). **Root-cause timezone fix:** `pg.types.setTypeParser(1082, v => v)` returns Postgres `DATE` columns as raw `"YYYY-MM-DD"` strings — no `Date`, no local/UTC round-trip, no day shift. The last 5 deferred DTOs collapsed to `z.infer` aliases. **Verified end-to-end in-app** (UI date edit round-tripped with no ±1 shift).
+> - **Logger port** (decision #1): consciously left as a documented ambient-infra exception. Recorded here; **no AGENTS.md change** — the logger is an application/infra dependency and violates no stated rule (the Cross-Layer rule targets `domain`), so a note there would be misplaced.
+> - Also `e22aa719`: fixed a pre-existing DTO import-order lint regression introduced by Batch D.
 >
-> **Remaining:** finish **Batch E** (per the documented cycle rule), **Batch F** (date-only schema retype — decision-gated correctness fix), and the **logger-exception note in AGENTS.md** (decision made: leave the port; note not yet written). All verified green throughout: typecheck · lint · client Vitest (189) · server Jest (838) · integration (36).
+> **Remaining: none.** All verified green throughout: typecheck · client lint · **client production build (no import cycles)** · client Vitest (189) · server Jest (838) · integration (36).
 
 P0–P2 closed the priority roadmap. This is the remaining B− → A+ polish the audit lists in its
 "Path to A+" table plus two items P2 deliberately deferred. Investigation **resized several items** —
@@ -97,29 +100,33 @@ schema-correctness cluster; the residual error-code drift is **provably client-s
 
 ### Batch E — Barrel-bypasses (the structural one) [client]
 
-> **STATUS: PARTIAL — deferred to a focused pass.** The `users` sub-batch landed (commit `c54d63cf`:
-> promoted `useUserProfile`/`useUserSettingsQuery` to the users barrel, repathed 5 static consumers, left
-> the lazy `UserSettingsModal` deep). The rest is deferred — see the cycle rule below.
+> **STATUS: DONE** (`c54d63cf` users · `cb4a099a` auth · `61d440fc` tubes · `b8b66c4b` storage · `a727c86f`
+> tails). Implemented as **option (a)**: keep each symbol in its home domain, barrelize every non-cyclic
+> cross-edge, and confine the `tubes↔storage` coupling to the minimal set of documented deep imports.
 >
-> **Load-bearing finding (proven, not guessed): `tubes ↔ storage` is a real import cycle.** `StorageNavigator`
-> (storage) → tube hooks → `useTubeMutations` → storage cache. So routing *both* directions through barrels
-> creates a `@domains/tubes ↔ @domains/storage` barrel cycle (typecheck tolerates it; runtime/bundler can
-> break on it). **The rule that makes E cycle-free:**
-> - **App-shell → domain (~49)** and **non-cycling domain→domain (search/help → tubes/storage types, ~20):**
->   barrelize (promote consumed symbols to the target barrel, repath, merge multi-imports to satisfy lint
->   `no-duplicates`).
-> - **The ~9 `tubes↔storage` cross-edges STAY DEEP**, each with a one-line `// deep import: avoids
->   @domains/tubes↔@domains/storage barrel cycle` comment. (tubes→storage: `useTubeMutations`,
->   `TubeGrid`/`TubeGridCell`/`TubeLocationDisplay` → storage utils/cache. storage→tubes: `useStorageSync`,
->   `useRackTubesByBox`, `BoxOccupancyMatrix`, `StorageNavigator` → tube store/hooks/color-util.)
-> - **Dynamic `import()` for lazy-loading STAYS DEEP** (intentional code-splitting, not a smell):
->   `AppHeader` StorageManagerModal/UserSettingsModal/DonorRegistryModal.
-> - **Per-symbol consumer check:** don't promote a symbol whose only consumer is a stay-deep edge (e.g.
->   `getStorageDataFromCache`/`getAxisLabelsForBox` are tube-only → leave deep, don't barrelize).
-> - **Verify with a production `build`** (not just typecheck) to prove no cycle.
-> - The 12 dev-only `SurfacePreviewPage` rows are lowest priority (exempt or clean last).
-> - `grid` domain in the audit's list does not exist; `donors`/`equipment`/`supplies`/`researchers` are clean
->   importers.
+> **The estimate resized: the irreducible deep set is 5 edges, not ~9.** Most storage→tubes consumers
+> (`StorageNavigator`, `BoxOccupancyMatrix`, `useRackTubesByBox`) only become cyclic once promoted onto the
+> storage barrel; promoting them forces exactly those three edges deep, plus `useStorageSync→tubeStore` and
+> `useTubeMutations→getStorageDataFromCache`. Each carries the uniform `// deep import: avoids
+> @domains/tubes↔@domains/storage barrel cycle` marker. Every *consumer* import (app-shell/help/search) goes
+> through a barrel; the marked exceptions are all genuine `tubes↔storage` cross-edges.
+>
+> **Why (a), not (b) [relocate the leaves to `@shared`]:** the cycle's irreducible legs are *stateful* —
+> `TubeInfoPanel→useStorageData` (React-Query hook) and `useStorageSync→useTubeStore` (Zustand store) —
+> neither can move to `@shared`. So (b) cannot dissolve the cycle *and* would misfile domain semantics
+> (`formatPositionForBox` reads storage-equipment config; `getTubeColorFromFields` reads tube fields) into the
+> generic bucket. (a) keeps each symbol in its home and marks the real coupling — the same "right-sized, not
+> maximally-abstracted" ethos as the logger exception (decision #1). **Zero cycles proven by a clean
+> production `build`.**
+>
+> **Other as-built decisions:** `TubeData` (a shared-schema type) repaths to `@odysseus/shared-schemas`, not
+> a domain barrel. Dynamic `import()` lazy-loads (StorageManagerModal/UserSettingsModal/DonorRegistryModal)
+> stay deep. `SurfacePreviewPage` (dev catalog) was **exempted** with a one-line comment rather than promoting
+> ~8 internals onto public barrels. Promoting the grid components surfaced 5 latent **intra-tubes** self-barrel
+> imports (a domain importing its own `@domains/tubes` barrel) → fixed to deep aliases.
+>
+> _The plan text below is the pre-flight estimate (68 in-scope edges, tentative E1–E5 split); the batches
+> actually shipped by target domain (auth/tubes/storage/tails) as summarised above._
 
 78 cross-domain deep imports → all through barrels. Sub-batched by target domain; each: promote the
 externally-consumed symbols onto the target barrel, then repath consumers. Behavior-preserving (repaths) —
@@ -136,7 +143,21 @@ cross-depend) per sub-batch.
 - **E5 — dev-only `SurfacePreviewPage` (12):** same mechanical repath (or exempt per decision #3).
 - **Verify:** typecheck · client Vitest · lint per sub-batch. **Commits:** ~5 (one per sub-batch).
 
-### Batch F — Date-only schema correctness [shared + client] — *decision-gated (see #2)*
+### Batch F — Date-only schema correctness [shared + server] — *decision-gated (see #2)*
+
+> **STATUS: DONE** (`2eaeb8f6` convention + runtime fix · `ae07785e` DTO derivation). Two refinements over the
+> plan: (1) it was **7** date-only fields, not 6 (`nextScheduledDate` was missed in the estimate), plus a
+> `collectionDate` retrofit; a named `dateOnlyField`/`optionalDateOnlyField` helper pair makes the convention
+> explicit and greppable. (2) **The root cause is runtime, not just the type.** Retyping the schema to
+> `z.string()` alone doesn't stop the shift — the mapper's `toISOString(localMidnightDate)` still shifted the
+> day. The real fix is `pg.types.setTypeParser(1082, v => v)` in `PostgresContext`: Postgres `DATE` columns
+> return raw `"YYYY-MM-DD"` strings, so no `Date` is ever constructed (no local/UTC round-trip). The 7 date-only
+> mapper reads were simplified to string pass-through and their row types made honest (`string | null`). All 5
+> deferred DTOs collapsed to `z.infer` aliases (`EquipmentItemResponse`, `EquipmentMaintenanceLogResponse`,
+> `EquipmentItemDetailResponse`, `SupplyTransactionResponse`, `SupplyItemDetailResponse`); `SupplyStockResponse`
+> stayed hand-rolled (no domain entity since P2) with `updatedAt: Date` so the composed alias typechecks.
+> **Verified end-to-end in-app** — a UI date edit round-tripped with no ±1-day shift.
+
 - Retype the 6 date-only shared fields from `optionalDateField`/`dateField` → `z.string()` in
   `equipmentSchemas.ts` + `supplySchemas.ts` (matches `donorSchemas.ts:37`), fixing the `z.coerce.date()`
   timezone shift. Then collapse the 3 previously-blocked DTOs (`EquipmentItemResponse`,
@@ -152,3 +173,7 @@ floating promises, no untyped generic defaults; one canonical envelope and one c
 (no hand-rolled envelopes or non-canonical codes reaching any path); response DTOs derive from shared schemas
 (no drift, no parallel hand-rolled shapes except the genuinely-distinct few); the date-only timezone bug fixed.
 Logger port consciously left as a documented ambient-infra exception. Each change zero-regression.
+
+**✓ Met (2026-07-10).** All bars cleared: cross-domain imports go through a barrel or one of the 5 marked
+`tubes↔storage` cycle exceptions (zero cycles proven by production build); the date-only bug fixed at the
+root and verified in-app; DTOs derive from shared schemas; logger left as-is by decision. Nothing outstanding.
