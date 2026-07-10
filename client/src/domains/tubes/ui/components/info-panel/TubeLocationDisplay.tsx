@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 
 import { useStorageData, useStorageLocationNames, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
-import { useUserSettings } from '@domains/users/hooks/useUserSettings';
+import { useUserSettings } from '@domains/users';
 
 interface SinglePositionProps {
   tankId: string;

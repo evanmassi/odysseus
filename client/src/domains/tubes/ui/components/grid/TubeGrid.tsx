@@ -10,7 +10,7 @@ import { getAxisLabelsForBox } from '@domains/storage/utils/positionDisplayUtils
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
-import { useUserSettings } from '@domains/users/hooks/useUserSettings';
+import { useUserSettings } from '@domains/users';
 import { LoadingSpinner } from '@shared/ui';
 import { MS_PER_MINUTE } from '@shared/utils';
 

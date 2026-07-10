@@ -7,7 +7,7 @@ import React, { memo, useMemo, useRef, useCallback, useEffect } from 'react';
 
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
-import { useUserSettings } from '@domains/users/hooks/useUserSettings';
+import { useUserSettings } from '@domains/users';
 
 import {
   getTubeColor,

@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 
 import { useTheme } from '@app/contexts/ThemeContext';
 import { useAuthStore } from '@domains/authentication';
-import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
+import { useUserSettingsQuery } from '@domains/users';
 
 export function useServerThemeSync(): void {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);

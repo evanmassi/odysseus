@@ -27,7 +27,7 @@ import { useAuthStore } from '@domains/authentication';
 import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
 import { SearchPanel } from '@domains/search';
 import { useStorageData } from '@domains/storage';
-import { useUserProfile } from '@domains/users/hooks/useUserProfile';
+import { useUserProfile } from '@domains/users';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { useResolvedTheme } from '@shared/hooks';
 import { DropdownMenu, LazyModalBoundary, MenuDivider, MenuItem } from '@shared/ui';
