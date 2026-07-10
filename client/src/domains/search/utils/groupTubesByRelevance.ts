@@ -4,8 +4,7 @@
  * Groups search result tubes by matched field and location for display.
  */
 
-import type { TubeData } from '@domains/tubes/types';
-import type { GroupedResult } from '@odysseus/shared-schemas';
+import type { TubeData, GroupedResult } from '@odysseus/shared-schemas';
 
 const getMediaString = (sample: TubeData['sample']): string => {
   return [sample.mediaType, sample.mediaSupplements, sample.mediaSelection]

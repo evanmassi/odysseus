@@ -7,7 +7,7 @@
 import { useCallback } from 'react';
 
 import { getGridTotalPositions } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { logger } from '@infra/logger';
 import { getSelectionRange } from '@shared/utils/gridCoordinates';

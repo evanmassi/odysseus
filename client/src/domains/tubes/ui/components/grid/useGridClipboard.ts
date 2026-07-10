@@ -10,8 +10,8 @@ import { tubeDataToCreateRequest } from '@odysseus/shared-schemas';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useStorageData } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { writeClipboardOS, readClipboardOS } from '@domains/tubes/utils/gridClipboard';
 import { validatePasteOperation } from '@domains/tubes/utils/gridPasteValidation';

@@ -29,7 +29,7 @@ import { highlightMatches, type DisplayResults } from '../../utils/searchFormatt
 
 import { SearchSortControls } from './SearchSortControls';
 
-import type { TubeData } from '@domains/tubes/types';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 interface SearchResultsPanelProps {
   results: DisplayResults | null;

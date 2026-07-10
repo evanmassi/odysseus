@@ -6,8 +6,7 @@
  */
 import { Lock, Notebook, ShieldCheck } from 'lucide-react';
 
-import { TubePropertyIndicator } from '@domains/tubes/ui/components/grid/TubePropertyIndicator';
-import { cellLineCategories } from '@domains/tubes/utils/tubeColorCoding';
+import { TubePropertyIndicator, cellLineCategories } from '@domains/tubes';
 import { Well } from '@shared/ui';
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 

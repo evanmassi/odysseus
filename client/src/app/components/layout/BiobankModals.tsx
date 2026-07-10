@@ -8,15 +8,17 @@
 import { useMemo } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { TubeBulkEditorModal } from '@domains/tubes/ui/components/editor/TubeBulkEditorModal';
-import { TubeEditorModal } from '@domains/tubes/ui/components/editor/TubeEditorModal';
-import { TubeLockModal } from '@domains/tubes/ui/components/locking/TubeLockModal';
-import { TubeShareAccessModal } from '@domains/tubes/ui/components/locking/TubeShareAccessModal';
+import {
+  TubeBulkEditorModal,
+  TubeEditorModal,
+  TubeLockModal,
+  TubeShareAccessModal,
+} from '@domains/tubes';
 import { LazyModalBoundary } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { UnsavedConfirmDialog } from '@shared/ui/components/overlays/UnsavedConfirmDialog';
 
-import type { TubeData } from '@domains/tubes/types';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 interface BiobankModalsProps {
   currentRack: string;

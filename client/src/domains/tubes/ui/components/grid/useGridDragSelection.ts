@@ -7,7 +7,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { getGridTotalPositions } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import {
   toPositionKey,
   type PositionContext,

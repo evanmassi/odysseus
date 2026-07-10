@@ -30,7 +30,7 @@ import {
 
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData } from '@domains/storage';
-import { useTubeFilterOptions } from '@domains/tubes/hooks';
+import { useTubeFilterOptions } from '@domains/tubes';
 import { Chip, DatePicker, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import {

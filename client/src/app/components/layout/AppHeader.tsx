@@ -37,8 +37,8 @@ import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 
 import { TubeSelectionToolbar, type GridController } from './TubeSelectionToolbar';
 
-import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import type { PositionKey } from '@domains/tubes';
+import type { TubeData } from '@odysseus/shared-schemas';
 import type { LucideIcon } from 'lucide-react';
 
 const AdminSettingsModal = lazy(() =>

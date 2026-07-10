@@ -22,7 +22,7 @@ import { Edit, Plus, Save, Trash2 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
-import { useTubesByLocation, useTube } from '@domains/tubes';
+import { useTubesByLocation, useTube } from '@domains/tubes/hooks';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useUpdateTubeMutation,

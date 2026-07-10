@@ -14,7 +14,7 @@ import { useStorageData } from '@domains/storage';
 import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
 import { useStoragePermissions } from '@domains/storage/hooks/useStoragePermissions';
 import { extractAssignedUserIds } from '@domains/storage/utils/extractAssignedUserIds';
-import { useLocationCounts } from '@domains/tubes/hooks';
+import { useLocationCounts } from '@domains/tubes';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';

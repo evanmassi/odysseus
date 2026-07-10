@@ -6,8 +6,7 @@
 
 import { groupTubesByRelevance } from './groupTubesByRelevance';
 
-import type { TubeData } from '@domains/tubes/types';
-import type { SearchResult, GroupedResult } from '@odysseus/shared-schemas';
+import type { TubeData, SearchResult, GroupedResult } from '@odysseus/shared-schemas';
 
 interface HighlightedSegment {
   text: string;

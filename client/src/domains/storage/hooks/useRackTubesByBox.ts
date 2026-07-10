@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 
-import { useTubesByRack } from '@domains/tubes/hooks';
+import { useTubesByRack } from '@domains/tubes';
 
 import type { RackTube } from '@odysseus/shared-schemas';
 

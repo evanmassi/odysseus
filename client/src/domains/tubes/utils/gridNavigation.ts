@@ -4,7 +4,7 @@
  * Coordinates location changes across the tube store with reentrancy protection.
  */
 
-import { useTubeStore } from '@domains/tubes';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { logger } from '@infra/logger';
 
 import type { PositionContext } from '@domains/tubes/types/gridSelectionTypes';

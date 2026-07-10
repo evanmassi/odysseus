@@ -22,21 +22,20 @@ import {
   StorageNavigator,
   buildStorageHierarchy,
 } from '@domains/storage/ui/components/storage-navigator';
-import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
 import {
+  useTubeStore,
+  TubeInfoPanel,
   useTubesByLocation,
   useTubeAccessControl,
   useUnlockTubesMutation,
-} from '@domains/tubes/hooks';
-import {
   useBulkDeleteTubesMutation,
   usePasteTubesMutation,
   useMoveTubesMutation,
-} from '@domains/tubes/hooks/useTubeMutations';
-import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
-import { useGridController } from '@domains/tubes/ui/components/grid/useGridController';
-import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
-import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
+  TubeGrid,
+  useGridController,
+  useGridSelectionAnalysis,
+  navigateToLocation,
+} from '@domains/tubes';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@infra/logger';
 import { ErrorBoundary, HeaderStrip, PanelHeader } from '@shared/ui';
@@ -51,7 +50,7 @@ import type {
   StorageHierarchy,
   SelectedLocation,
 } from '@domains/storage/ui/components/storage-navigator';
-import type { TubeData } from '@domains/tubes/types';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 import '@shared/styles/base/layout.css';
 

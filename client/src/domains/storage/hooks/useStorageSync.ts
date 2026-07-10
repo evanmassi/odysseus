@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { CONFIG_VERSION_KEY } from '@app/cache/cacheStorageKeys';
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
+// deep import: avoids @domains/tubes↔@domains/storage barrel cycle
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';

@@ -7,7 +7,7 @@
 
 import { firstTimeSetupQueryOptions, useAuthStore, sessionManager } from '@domains/authentication';
 import { useSearchStore } from '@domains/search';
-import { useTubeStore } from '@domains/tubes/stores/tubeStore';
+import { useTubeStore } from '@domains/tubes';
 import {
   initializeNetworkMonitor,
   cleanupNetworkMonitor,

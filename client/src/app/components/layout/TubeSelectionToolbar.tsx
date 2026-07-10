@@ -21,11 +21,11 @@ import {
   TestTubeDiagonal,
 } from 'lucide-react';
 
-import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
+import { useGridSelectionAnalysis } from '@domains/tubes';
 import { Button, Chip, Tooltip } from '@shared/ui';
 
-import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
+import type { PositionKey } from '@domains/tubes';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 export interface GridController {
   openModal: () => void;
