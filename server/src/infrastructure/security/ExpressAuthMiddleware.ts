@@ -6,6 +6,8 @@
  */
 
 
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
+
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { SessionService } from '@application/contracts/SessionService';
 import { logger } from '@infrastructure/logging/logger';
@@ -14,19 +16,15 @@ import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
 function errorResponse(
   res: Response,
-  req: Request,
   status: number,
   code: string,
   message: string
 ): void {
   res.status(status).json({
     success: false,
-    error: { code, message },
-    meta: {
-      timestamp: new Date().toISOString(),
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      requestId: req.headers['x-request-id'] || 'unknown'
-    }
+    error: message,
+    code,
+    timestamp: new Date().toISOString(),
   });
 }
 
@@ -37,7 +35,7 @@ function requireRoleMiddleware(
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       if (!req.user) {
-        errorResponse(res, req, 401, 'UNAUTHORIZED', 'Authentication required');
+        errorResponse(res, 401, API_ERROR_CODES.UNAUTHORIZED, 'Authentication required');
         return;
       }
 
@@ -50,7 +48,7 @@ function requireRoleMiddleware(
           method: req.method
         });
 
-        errorResponse(res, req, 403, 'FORBIDDEN', `${label} access required`);
+        errorResponse(res, 403, API_ERROR_CODES.FORBIDDEN, `${label} access required`);
         return;
       }
 
@@ -63,7 +61,7 @@ function requireRoleMiddleware(
         method: req.method
       });
 
-      errorResponse(res, req, 500, 'AUTHORIZATION_ERROR', 'Authorization service error');
+      errorResponse(res, 500, API_ERROR_CODES.INTERNAL_SERVER_ERROR, 'Authorization service error');
     }
   };
 }
@@ -79,7 +77,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          errorResponse(res, req, 401, 'UNAUTHORIZED', 'Authorization header required');
+          errorResponse(res, 401, API_ERROR_CODES.UNAUTHORIZED, 'Authorization header required');
           return;
         }
 
@@ -96,7 +94,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
             LAB_DEACTIVATED: 'Your lab has been deactivated. Contact your system administrator'
           };
 
-          errorResponse(res, req, 401, result.code, errorMessages[result.code] || 'Authentication failed');
+          errorResponse(res, 401, result.code, errorMessages[result.code] || 'Authentication failed');
           return;
         }
 
@@ -110,7 +108,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           };
           const message = statusMessages[result.user.status] || 'Account is not approved for access';
 
-          errorResponse(res, req, 403, 'ACCOUNT_INACTIVE', message);
+          errorResponse(res, 403, API_ERROR_CODES.FORBIDDEN, message);
           return;
         }
 
@@ -134,7 +132,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           method: req.method
         });
 
-        errorResponse(res, req, 500, 'AUTHENTICATION_ERROR', 'Authentication service error');
+        errorResponse(res, 500, API_ERROR_CODES.INTERNAL_SERVER_ERROR, 'Authentication service error');
       }
     };
   }
