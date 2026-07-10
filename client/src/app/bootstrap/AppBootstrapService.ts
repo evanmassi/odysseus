@@ -5,8 +5,7 @@
  * cache validation, network setup, and socket connection.
  */
 
-import { firstTimeSetupQueryOptions } from '@domains/authentication/hooks/useFirstTimeSetupQuery';
-import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
+import { firstTimeSetupQueryOptions, useAuthStore, sessionManager } from '@domains/authentication';
 import { useSearchStore } from '@domains/search';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import {

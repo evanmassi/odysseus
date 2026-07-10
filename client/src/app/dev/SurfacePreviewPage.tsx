@@ -14,6 +14,8 @@ import { useSearchParams } from 'react-router-dom';
 import { AppErrorBanner } from '@app/components/layout/AppErrorBanner';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { modalStore } from '@app/stores/modalStore';
+// Dev-only surface catalog: previews domain internals directly, so these imports
+// intentionally bypass the public barrels. Excluded from production builds.
 import { adminUserService } from '@domains/admin/services/AdminUserService';
 import { PasswordResetModal } from '@domains/admin/ui/components/settings-modal/PasswordResetModal';
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';

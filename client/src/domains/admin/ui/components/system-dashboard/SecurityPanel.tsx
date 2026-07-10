@@ -18,7 +18,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 
-import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useAuthStore } from '@domains/authentication';
 import { useResolvedTheme } from '@shared/hooks';
 import {
   Button,

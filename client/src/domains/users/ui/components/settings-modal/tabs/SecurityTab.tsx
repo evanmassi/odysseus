@@ -8,8 +8,11 @@ import { useState, useMemo } from 'react';
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound, Save } from 'lucide-react';
 
-import { useIsDemo, usePasswordRequirementsQuery } from '@domains/authentication';
-import { PasswordRequirements } from '@domains/authentication/ui/components/password/PasswordRequirements';
+import {
+  useIsDemo,
+  usePasswordRequirementsQuery,
+  PasswordRequirements,
+} from '@domains/authentication';
 import { usePasswordChange } from '@domains/users/hooks/usePasswordChange';
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';

@@ -8,7 +8,7 @@ import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 import { MS_PER_SECOND, MS_PER_MINUTE } from '@shared/utils/timeConstants';
 
-import type { SessionDebugInfo } from '@domains/authentication/types/debugTypes';
+import type { SessionDebugInfo } from '@domains/authentication';
 import type { SessionHttpClient } from '@infra/api/SessionHttpClient';
 import type { SessionInfoResponse } from '@odysseus/shared-schemas';
 import type {

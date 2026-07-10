@@ -9,7 +9,7 @@ import { Settings, Table2, UserRound, Shield } from 'lucide-react';
 
 import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
-import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useAuthStore } from '@domains/authentication';
 import { useUserSessions } from '@domains/users';
 import { useUserSettings, useUserSettingsActions } from '@domains/users/hooks/useUserSettings';
 import { logger } from '@infra/logger';

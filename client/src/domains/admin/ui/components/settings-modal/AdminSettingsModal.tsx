@@ -21,8 +21,7 @@ import {
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useModalStore } from '@app/stores/modalStore';
-import { useLabId } from '@domains/authentication';
-import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useLabId, useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import { logger } from '@infra/logger';
 import {
