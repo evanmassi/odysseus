@@ -24,7 +24,7 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '@domains/authentication';
-import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
+import { useDonorRegistryStore } from '@domains/donors';
 import { SearchPanel } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { useUserProfile } from '@domains/users';

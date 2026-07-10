@@ -6,7 +6,7 @@
 
 import { io } from 'socket.io-client';
 
-import { sessionManager, useAuthStore } from '@domains/authentication/stores/authStore';
+import { sessionManager, useAuthStore } from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 

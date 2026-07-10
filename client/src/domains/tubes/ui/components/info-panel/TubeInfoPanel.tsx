@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useDonorRegistryStore } from '@domains/donors/stores/donorRegistryStore';
+import { useDonorRegistryStore } from '@domains/donors';
 import { useResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,

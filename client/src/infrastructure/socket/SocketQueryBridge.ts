@@ -18,7 +18,7 @@ import { getNetworkMonitor } from '@infra/connection';
 import { logger } from '@infra/logger';
 import { notifications } from '@shared/utils/notifications';
 
-import type { TubeData } from '@domains/tubes/types';
+import type { TubeData } from '@odysseus/shared-schemas';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
 
