@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { dateField } from '../utils/dateFields';
+import { dateField, optionalDateOnlyField } from '../utils/dateFields';
 
 // Entity schema
 
@@ -34,8 +34,7 @@ export const donorWithTubeCountSchema = donorSchema.extend({
 export const donorCollectionHistorySchema = z.object({
   id: z.string(),
   donorId: z.string(),
-  // Date-only string, not a Date — coercing to a Date shifts the day across timezones.
-  collectionDate: z.string().optional(),
+  collectionDate: optionalDateOnlyField,
   specimenType: z.string().optional(),
   source: z.string().optional(),
   createdAt: dateField,

@@ -17,7 +17,7 @@ export interface SupplyTransactionDbRow {
   quantity_change: string;
   quantity_after: string;
   lot_number: string | null;
-  expiration_date: Date | string | null;
+  expiration_date: string | null;
   po_number: string | null;
   cost: string | null;
   performed_by: string;
@@ -41,7 +41,7 @@ export class SupplyTransactionMapper {
       quantityChange: parseFloat(row.quantity_change),
       quantityAfter: parseFloat(row.quantity_after),
       lotNumber: row.lot_number ?? undefined,
-      expirationDate: row.expiration_date ? toISOString(row.expiration_date) : undefined,
+      expirationDate: row.expiration_date ?? undefined,
       poNumber: row.po_number ?? undefined,
       cost: row.cost != null ? parseFloat(row.cost) : undefined,
       performedBy: row.performed_by,

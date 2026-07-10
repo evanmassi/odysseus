@@ -22,12 +22,12 @@ export interface EquipmentItemRow {
   location: string | null;
   status: string;
   condition_notes: string | null;
-  purchase_date: Date | string | null;
-  warranty_expiration: Date | string | null;
+  purchase_date: string | null;
+  warranty_expiration: string | null;
   purchase_cost: string | null;
   asset_tag: string | null;
-  next_maintenance_date: Date | string | null;
-  decommission_date: Date | string | null;
+  next_maintenance_date: string | null;
+  decommission_date: string | null;
   decommission_reason: string | null;
   disposal_method: string | null;
   notes: string | null;
@@ -77,12 +77,12 @@ export class EquipmentItemMapper {
       location: row.location ?? undefined,
       status: row.status as EquipmentStatus,
       conditionNotes: row.condition_notes ?? undefined,
-      purchaseDate: row.purchase_date ? toISOString(row.purchase_date) : undefined,
-      warrantyExpiration: row.warranty_expiration ? toISOString(row.warranty_expiration) : undefined,
+      purchaseDate: row.purchase_date ?? undefined,
+      warrantyExpiration: row.warranty_expiration ?? undefined,
       purchaseCost: row.purchase_cost != null ? parseFloat(row.purchase_cost) : undefined,
       assetTag: row.asset_tag ?? undefined,
-      nextMaintenanceDate: row.next_maintenance_date ? toISOString(row.next_maintenance_date) : undefined,
-      decommissionDate: row.decommission_date ? toISOString(row.decommission_date) : undefined,
+      nextMaintenanceDate: row.next_maintenance_date ?? undefined,
+      decommissionDate: row.decommission_date ?? undefined,
       decommissionReason: row.decommission_reason ?? undefined,
       disposalMethod: row.disposal_method ?? undefined,
       notes: row.notes ?? undefined,

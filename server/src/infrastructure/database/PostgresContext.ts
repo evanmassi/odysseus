@@ -4,7 +4,7 @@
  * Manages the PostgreSQL connection lifecycle and ensures schema is up-to-date on startup.
  */
 
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
 
 import { logger } from '@infrastructure/logging/logger';
 
@@ -23,6 +23,10 @@ export class PostgresContext {
   private initialized: boolean = false;
 
   constructor(config: DatabaseConnectionConfig) {
+    // DATE columns (OID 1082) are calendar dates: return the raw 'YYYY-MM-DD' string
+    // rather than a local-midnight Date, whose UTC serialization shifts the day.
+    types.setTypeParser(1082, (value) => value);
+
     this.pool = new Pool({
       connectionString: config.connectionString,
       ssl: config.ssl ? { rejectUnauthorized: false } : false,

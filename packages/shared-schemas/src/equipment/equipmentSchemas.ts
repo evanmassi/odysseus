@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { dateField, optionalDateField } from '../utils/dateFields';
+import { dateField, dateOnlyField, optionalDateOnlyField } from '../utils/dateFields';
 import { optionalText, patchText } from '../utils/stringFields';
 
 // Status and category enums
@@ -66,12 +66,12 @@ export const equipmentItemSchema = z.object({
   location: z.string().optional(),
   status: equipmentStatusSchema,
   conditionNotes: z.string().optional(),
-  purchaseDate: optionalDateField,
-  warrantyExpiration: optionalDateField,
+  purchaseDate: optionalDateOnlyField,
+  warrantyExpiration: optionalDateOnlyField,
   purchaseCost: z.number().optional(),
   assetTag: z.string().optional(),
-  nextMaintenanceDate: optionalDateField,
-  decommissionDate: optionalDateField,
+  nextMaintenanceDate: optionalDateOnlyField,
+  decommissionDate: optionalDateOnlyField,
   decommissionReason: z.string().optional(),
   disposalMethod: z.string().optional(),
   notes: z.string().optional(),
@@ -161,12 +161,12 @@ export const equipmentDocumentResponseSchema = z.object({
 export const equipmentMaintenanceLogSchema = z.object({
   id: z.string(),
   itemId: z.string(),
-  datePerformed: dateField,
+  datePerformed: dateOnlyField,
   maintenanceType: z.string(),
   performedBy: z.string().optional(),
   technician: z.string().optional(),
   description: z.string().optional(),
-  nextScheduledDate: optionalDateField,
+  nextScheduledDate: optionalDateOnlyField,
   cost: z.number().optional(),
   notes: z.string().optional(),
   createdAt: dateField,

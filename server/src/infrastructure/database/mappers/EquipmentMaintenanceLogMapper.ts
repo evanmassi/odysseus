@@ -11,12 +11,12 @@ import { toISOString } from '@infrastructure/database/PostgresContext';
 export interface EquipmentMaintenanceLogRow {
   id: string;
   item_id: string;
-  date_performed: Date | string;
+  date_performed: string;
   maintenance_type: string;
   performed_by: string | null;
   technician: string | null;
   description: string | null;
-  next_scheduled_date: Date | string | null;
+  next_scheduled_date: string | null;
   cost: string | null;
   notes: string | null;
   created_at: Date | string;
@@ -46,12 +46,12 @@ export class EquipmentMaintenanceLogMapper {
     return EquipmentMaintenanceLog.fromData({
       id: row.id,
       itemId: row.item_id,
-      datePerformed: toISOString(row.date_performed),
+      datePerformed: row.date_performed,
       maintenanceType: row.maintenance_type,
       performedBy: row.performed_by ?? undefined,
       technician: row.technician ?? undefined,
       description: row.description ?? undefined,
-      nextScheduledDate: row.next_scheduled_date ? toISOString(row.next_scheduled_date) : undefined,
+      nextScheduledDate: row.next_scheduled_date ?? undefined,
       cost: row.cost != null ? parseFloat(row.cost) : undefined,
       notes: row.notes ?? undefined,
       createdAt: toISOString(row.created_at),

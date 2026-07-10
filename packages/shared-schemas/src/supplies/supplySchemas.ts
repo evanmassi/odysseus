@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { dateField, optionalDateField } from '../utils/dateFields';
+import { dateField, optionalDateField, optionalDateOnlyField } from '../utils/dateFields';
 
 // Enums
 
@@ -213,7 +213,7 @@ export const supplyTransactionSchema = z.object({
   quantityChange: z.number(),
   quantityAfter: z.number(),
   lotNumber: z.string().optional(),
-  expirationDate: optionalDateField,
+  expirationDate: optionalDateOnlyField,
   poNumber: z.string().optional(),
   cost: z.number().optional(),
   performedBy: z.string(),
