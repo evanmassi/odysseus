@@ -4,25 +4,14 @@
  * Researcher holds research-specific data; profile data (name, email) comes from Person entity.
  */
 
+import type { Researcher as ResearcherData } from '@odysseus/shared-schemas';
+
 import type { Person } from '@domain/entities/Person';
-import type { Researcher, ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
+import type { Researcher } from '@domain/entities/Researcher';
 
 export type { CreateResearcherProfile as CreateResearcherRequest } from '@odysseus/shared-schemas';
 
-export interface ResearcherResponse {
-  id: string;
-  personId: string;
-  active: boolean;
-  createdAt: string;
-  approvalStatus: ResearcherApprovalStatus;
-  source: ResearcherSource;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  position?: string;
-  department?: string;
-  labId?: string;
-}
+export type ResearcherResponse = ResearcherData;
 
 export class ResearcherDto {
   /** Requires both Researcher and Person since profile data lives in Person. */
@@ -31,7 +20,7 @@ export class ResearcherDto {
       id: researcher.id,
       personId: researcher.personId,
       active: researcher.active,
-      createdAt: researcher.createdAt.toISOString(),
+      createdAt: researcher.createdAt,
       approvalStatus: researcher.approvalStatus,
       source: researcher.source,
       firstName: person.firstName,

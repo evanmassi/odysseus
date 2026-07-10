@@ -4,7 +4,17 @@
  * Maps between supply domain entities, row interfaces, and HTTP response shapes.
  */
 
-import type { SupplyItemStatus, SupplyBarcodeType, SupplyTransactionType } from '@odysseus/shared-schemas';
+import type {
+  SupplyBarcodeType,
+  SupplyTransactionType,
+  SupplyCategory as SupplyCategoryData,
+  SupplyItem as SupplyItemData,
+  SupplyItemWithStock,
+  SupplyLocation as SupplyLocationData,
+  SupplyDocument as SupplyDocumentData,
+  SupplyBarcode,
+  SupplyPackagingLevel,
+} from '@odysseus/shared-schemas';
 
 import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { SupplyDocument } from '@domain/entities/SupplyDocument';
@@ -17,53 +27,13 @@ import type {
   SupplyPackagingLevelRow,
 } from '@domain/repositories/SupplyItemRepository';
 
-export interface SupplyCategoryResponse {
-  id: string;
-  labId: string;
-  name: string;
-  parentId: string | null;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
+export type SupplyCategoryResponse = SupplyCategoryData;
 
-export interface SupplyItemResponse {
-  id: string;
-  labId: string;
-  categoryId: string;
-  name: string;
-  manufacturer?: string;
-  catalogNumber?: string;
-  vendorName?: string;
-  vendorCatalogNumber?: string;
-  stockUnit?: string;
-  baseItemName?: string;
-  reorderThreshold?: number;
-  reorderThresholdUnit?: string;
-  reorderQuantity?: number;
-  reorderUnit?: string;
-  unitPrice?: number;
-  properties: string[];
-  currentLotNumber?: string;
-  description?: string;
-  notes?: string;
-  status: SupplyItemStatus;
-  createdAt: string;
-  updatedAt: string;
-}
+export type SupplyItemResponse = SupplyItemData;
 
-export interface SupplyItemWithStockResponse extends SupplyItemResponse {
-  totalStock: number;
-  locationNames: string[];
-}
+export type SupplyItemWithStockResponse = SupplyItemWithStock;
 
-export interface SupplyPackagingLevelResponse {
-  id: string;
-  itemId: string;
-  unitName: string;
-  quantity: number;
-  parentUnit: string | null;
-}
+export type SupplyPackagingLevelResponse = SupplyPackagingLevel;
 
 export interface SupplyItemDetailResponse {
   item: SupplyItemResponse;
@@ -74,33 +44,11 @@ export interface SupplyItemDetailResponse {
   packagingLevels: SupplyPackagingLevelResponse[];
 }
 
-export interface SupplyLocationResponse {
-  id: string;
-  labId: string;
-  name: string;
-  description?: string;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
+export type SupplyLocationResponse = SupplyLocationData;
 
-export interface SupplyDocumentResponse {
-  id: string;
-  itemId: string;
-  label: string;
-  url: string;
-  notes?: string;
-  createdAt: string;
-}
+export type SupplyDocumentResponse = SupplyDocumentData;
 
-export interface SupplyBarcodeResponse {
-  id: string;
-  itemId: string;
-  barcodeValue: string;
-  barcodeType: SupplyBarcodeType;
-  isPrimary: boolean;
-  label?: string;
-}
+export type SupplyBarcodeResponse = SupplyBarcode;
 
 export interface SupplyStockResponse {
   id: string;
@@ -140,8 +88,8 @@ export class SupplyDto {
       name: category.name,
       parentId: category.parentId ?? null,
       sortOrder: category.sortOrder,
-      createdAt: category.createdAt.toISOString(),
-      updatedAt: category.updatedAt.toISOString(),
+      createdAt: category.createdAt,
+      updatedAt: category.updatedAt,
     };
   }
 
@@ -167,8 +115,8 @@ export class SupplyDto {
       description:item.description,
       notes:item.notes,
       status:item.status,
-      createdAt:item.createdAt.toISOString(),
-      updatedAt:item.updatedAt.toISOString(),
+      createdAt:item.createdAt,
+      updatedAt:item.updatedAt,
     };
   }
 
@@ -205,8 +153,8 @@ export class SupplyDto {
       name: location.name,
       description: location.description,
       sortOrder: location.sortOrder,
-      createdAt: location.createdAt.toISOString(),
-      updatedAt: location.updatedAt.toISOString(),
+      createdAt: location.createdAt,
+      updatedAt: location.updatedAt,
     };
   }
 
@@ -217,7 +165,7 @@ export class SupplyDto {
       label: document.label,
       url: document.url,
       notes: document.notes,
-      createdAt: document.createdAt.toISOString(),
+      createdAt: document.createdAt,
     };
   }
 

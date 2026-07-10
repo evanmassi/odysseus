@@ -4,22 +4,18 @@
  * Maps between equipment domain entities and HTTP response shapes.
  */
 
-import type { EquipmentStatus } from '@odysseus/shared-schemas';
+import type {
+  EquipmentStatus,
+  EquipmentCategory as EquipmentCategoryData,
+  EquipmentDocument as EquipmentDocumentData,
+} from '@odysseus/shared-schemas';
 
 import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 
-export interface EquipmentCategoryResponse {
-  id: string;
-  labId: string;
-  name: string;
-  parentId: string | null;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
+export type EquipmentCategoryResponse = EquipmentCategoryData;
 
 export interface EquipmentItemResponse {
   id: string;
@@ -52,14 +48,7 @@ export interface EquipmentItemDetailResponse {
   maintenanceLog: EquipmentMaintenanceLogResponse[];
 }
 
-export interface EquipmentDocumentResponse {
-  id: string;
-  itemId: string;
-  label: string;
-  url: string;
-  notes?: string;
-  createdAt: string;
-}
+export type EquipmentDocumentResponse = EquipmentDocumentData;
 
 export interface EquipmentMaintenanceLogResponse {
   id: string;
@@ -85,8 +74,8 @@ export class EquipmentDto {
       name: category.name,
       parentId: category.parentId ?? null,
       sortOrder: category.sortOrder,
-      createdAt: category.createdAt.toISOString(),
-      updatedAt: category.updatedAt.toISOString(),
+      createdAt: category.createdAt,
+      updatedAt: category.updatedAt,
     };
   }
 
@@ -136,7 +125,7 @@ export class EquipmentDto {
       label: document.label,
       url: document.url,
       notes: document.notes,
-      createdAt: document.createdAt.toISOString(),
+      createdAt: document.createdAt,
     };
   }
 
