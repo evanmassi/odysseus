@@ -26,6 +26,8 @@ import type {
   SupplyDocument as SupplyDocumentData,
   SupplyBarcode,
   SupplyPackagingLevel,
+  SupplyTransaction as SupplyTransactionData,
+  SupplyItemDetail as SupplyItemDetailData,
 } from '@odysseus/shared-schemas';
 
 export type SupplyCategoryResponse = SupplyCategoryData;
@@ -36,14 +38,7 @@ export type SupplyItemWithStockResponse = SupplyItemWithStock;
 
 export type SupplyPackagingLevelResponse = SupplyPackagingLevel;
 
-export interface SupplyItemDetailResponse {
-  item: SupplyItemResponse;
-  documents: SupplyDocumentResponse[];
-  barcodes: SupplyBarcodeResponse[];
-  stock: SupplyStockResponse[];
-  recentTransactions: SupplyTransactionResponse[];
-  packagingLevels: SupplyPackagingLevelResponse[];
-}
+export type SupplyItemDetailResponse = SupplyItemDetailData;
 
 export type SupplyLocationResponse = SupplyLocationData;
 
@@ -51,34 +46,16 @@ export type SupplyDocumentResponse = SupplyDocumentData;
 
 export type SupplyBarcodeResponse = SupplyBarcode;
 
+// Hand-rolled: SupplyStock has no domain entity (removed in P2); shape matches supplyStockSchema.
 export interface SupplyStockResponse {
   id: string;
   itemId: string;
   locationId: string;
   quantity: number;
-  updatedAt: string;
+  updatedAt: Date;
 }
 
-export interface SupplyTransactionResponse {
-  id: string;
-  itemId: string;
-  locationId: string;
-  labId: string;
-  type: SupplyTransactionType;
-  quantityChange: number;
-  quantityAfter: number;
-  lotNumber?: string;
-  expirationDate?: string;
-  poNumber?: string;
-  cost?: number;
-  performedBy: string;
-  notes?: string;
-  createdAt: string;
-  voidedAt?: string;
-  voidedBy?: string;
-  voidReason?: string;
-  relatedTransactionId?: string;
-}
+export type SupplyTransactionResponse = SupplyTransactionData;
 
 export class SupplyDto {
 
@@ -187,7 +164,7 @@ export class SupplyDto {
       itemId: stock.itemId,
       locationId: stock.locationId,
       quantity: stock.quantity,
-      updatedAt: typeof stock.updatedAt === 'string' ? stock.updatedAt : (stock.updatedAt as Date).toISOString(),
+      updatedAt: new Date(stock.updatedAt),
     };
   }
 
@@ -206,8 +183,8 @@ export class SupplyDto {
       cost: txn.cost,
       performedBy: txn.performedBy,
       notes: txn.notes,
-      createdAt: typeof txn.createdAt === 'string' ? txn.createdAt : (txn.createdAt as Date).toISOString(),
-      voidedAt: txn.voidedAt,
+      createdAt: new Date(txn.createdAt),
+      voidedAt: txn.voidedAt ? new Date(txn.voidedAt) : undefined,
       voidedBy: txn.voidedBy,
       voidReason: txn.voidReason,
       relatedTransactionId: txn.relatedTransactionId,

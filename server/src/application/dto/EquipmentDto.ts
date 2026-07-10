@@ -11,60 +11,22 @@ import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 
 import type {
-  EquipmentStatus,
   EquipmentCategory as EquipmentCategoryData,
   EquipmentDocument as EquipmentDocumentData,
+  EquipmentItem as EquipmentItemData,
+  EquipmentMaintenanceLog as EquipmentMaintenanceLogData,
+  EquipmentItemDetail as EquipmentItemDetailData,
 } from '@odysseus/shared-schemas';
 
 export type EquipmentCategoryResponse = EquipmentCategoryData;
 
-export interface EquipmentItemResponse {
-  id: string;
-  labId: string;
-  categoryId: string;
-  name: string;
-  serialNumber?: string;
-  manufacturer?: string;
-  model?: string;
-  description?: string;
-  location?: string;
-  status: EquipmentStatus;
-  conditionNotes?: string;
-  purchaseDate?: string;
-  warrantyExpiration?: string;
-  purchaseCost?: number;
-  assetTag?: string;
-  nextMaintenanceDate?: string;
-  decommissionDate?: string;
-  decommissionReason?: string;
-  disposalMethod?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface EquipmentItemDetailResponse {
-  item: EquipmentItemResponse;
-  documents: EquipmentDocumentResponse[];
-  maintenanceLog: EquipmentMaintenanceLogResponse[];
-}
+export type EquipmentItemResponse = EquipmentItemData;
 
 export type EquipmentDocumentResponse = EquipmentDocumentData;
 
-export interface EquipmentMaintenanceLogResponse {
-  id: string;
-  itemId: string;
-  datePerformed: string;
-  maintenanceType: string;
-  performedBy?: string;
-  technician?: string;
-  description?: string;
-  nextScheduledDate?: string;
-  cost?: number;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export type EquipmentMaintenanceLogResponse = EquipmentMaintenanceLogData;
+
+export type EquipmentItemDetailResponse = EquipmentItemDetailData;
 
 export class EquipmentDto {
 
@@ -102,8 +64,8 @@ export class EquipmentDto {
       decommissionReason: item.decommissionReason,
       disposalMethod: item.disposalMethod,
       notes: item.notes,
-      createdAt: item.createdAt.toISOString(),
-      updatedAt: item.updatedAt.toISOString(),
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
     };
   }
 
@@ -142,8 +104,8 @@ export class EquipmentDto {
       nextScheduledDate: entry.nextScheduledDate,
       cost: entry.cost,
       notes: entry.notes,
-      createdAt: entry.createdAt.toISOString(),
-      updatedAt: entry.updatedAt.toISOString(),
+      createdAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
     };
   }
 }
