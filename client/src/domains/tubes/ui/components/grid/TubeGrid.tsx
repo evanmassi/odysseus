@@ -5,8 +5,12 @@
  */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
-import { useStorageData, getGridTotalPositions, DEFAULT_GRID_CONFIG } from '@domains/storage';
-import { getAxisLabelsForBox } from '@domains/storage/utils/positionDisplayUtils';
+import {
+  useStorageData,
+  getGridTotalPositions,
+  DEFAULT_GRID_CONFIG,
+  getAxisLabelsForBox,
+} from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';

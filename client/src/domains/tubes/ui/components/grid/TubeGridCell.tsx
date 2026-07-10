@@ -5,8 +5,7 @@
  */
 import React, { memo, useMemo, useRef, useCallback, useEffect } from 'react';
 
-import { useStorageData } from '@domains/storage';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
+import { useStorageData, formatPositionForBox } from '@domains/storage';
 import { useUserSettings } from '@domains/users';
 
 import {

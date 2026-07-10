@@ -6,7 +6,8 @@
  * storage manager box rows.
  */
 
-import { getTubeColorFromFields } from '@domains/tubes';
+// deep import: avoids @domains/tubes↔@domains/storage barrel cycle
+import { getTubeColorFromFields } from '@domains/tubes/utils/tubeColorCoding';
 
 import type { GridConfiguration, RackTube } from '@odysseus/shared-schemas';
 

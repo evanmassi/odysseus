@@ -16,12 +16,10 @@ import {
   useStorageLocationNames,
   getGridTotalPositions,
   DEFAULT_GRID_CONFIG,
-} from '@domains/storage';
-import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
-import {
+  useStorageOwnership,
   StorageNavigator,
   buildStorageHierarchy,
-} from '@domains/storage/ui/components/storage-navigator';
+} from '@domains/storage';
 import {
   useTubeStore,
   TubeInfoPanel,
@@ -46,10 +44,7 @@ import { AppHeader } from './AppHeader';
 import { BiobankModals } from './BiobankModals';
 import { DashboardLoading } from './DashboardLoading';
 
-import type {
-  StorageHierarchy,
-  SelectedLocation,
-} from '@domains/storage/ui/components/storage-navigator';
+import type { StorageHierarchy, SelectedLocation } from '@domains/storage';
 import type { TubeData } from '@odysseus/shared-schemas';
 
 import '@shared/styles/base/layout.css';

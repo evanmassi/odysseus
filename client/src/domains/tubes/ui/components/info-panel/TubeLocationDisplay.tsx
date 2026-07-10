@@ -6,8 +6,12 @@
 
 import { useMemo } from 'react';
 
-import { useStorageData, useStorageLocationNames, DEFAULT_GRID_CONFIG } from '@domains/storage';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
+import {
+  useStorageData,
+  useStorageLocationNames,
+  DEFAULT_GRID_CONFIG,
+  formatPositionForBox,
+} from '@domains/storage';
 import { useUserSettings } from '@domains/users';
 
 interface SinglePositionProps {

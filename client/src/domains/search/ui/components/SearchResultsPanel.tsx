@@ -15,8 +15,7 @@ import {
 import { Download, MapPin, TestTubeDiagonal } from 'lucide-react';
 
 import { useResearchersQuery } from '@domains/researchers';
-import { useStorageData } from '@domains/storage';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
+import { useStorageData, formatPositionForBox } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettings, useUserLookupQuery } from '@domains/users';
 import { Button, Chip, LoadingSpinner, PanelEmptyState, Tooltip } from '@shared/ui';

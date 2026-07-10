@@ -9,8 +9,9 @@ import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
+import { formatPositionForBox } from '@domains/storage';
+// deep import: avoids @domains/tubes↔@domains/storage barrel cycle
 import { getStorageDataFromCache } from '@domains/storage/hooks/useStorageData';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { TubeService } from '@domains/tubes/services/TubeService';
 import { isConflictError } from '@infra/api';
 import { logger } from '@infra/logger';

@@ -7,7 +7,8 @@
 
 import { useMemo } from 'react';
 
-import { useTubesByRack } from '@domains/tubes';
+// deep import: avoids @domains/tubes↔@domains/storage barrel cycle
+import { useTubesByRack } from '@domains/tubes/hooks/useTubeQueries';
 
 import type { RackTube } from '@odysseus/shared-schemas';
 

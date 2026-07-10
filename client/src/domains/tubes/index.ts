@@ -15,7 +15,7 @@ export { TubeShareAccessModal } from './ui/components/locking/TubeShareAccessMod
 export { useTubeStore } from './stores/tubeStore';
 
 export { navigateToLocation } from './utils/gridNavigation';
-export { getTubeColorFromFields, cellLineCategories } from './utils/tubeColorCoding';
+export { cellLineCategories } from './utils/tubeColorCoding';
 
 export { toPositionKey } from './types/gridSelectionTypes';
 export type { PositionKey } from './types/gridSelectionTypes';

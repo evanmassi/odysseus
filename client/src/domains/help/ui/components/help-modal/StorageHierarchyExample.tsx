@@ -9,8 +9,7 @@ import { type ReactNode } from 'react';
 import { refrigeratorFreezer } from '@lucide/lab';
 import { ChevronRight, Icon, Rows3 } from 'lucide-react';
 
-import { DEFAULT_GRID_CONFIG } from '@domains/storage';
-import { BoxOccupancyMatrix } from '@domains/storage/ui/components/storage-navigator/BoxOccupancyMatrix';
+import { DEFAULT_GRID_CONFIG, BoxOccupancyMatrix } from '@domains/storage';
 import { Well } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 

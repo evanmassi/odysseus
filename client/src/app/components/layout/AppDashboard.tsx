@@ -9,7 +9,7 @@ import { lazy, type ReactNode } from 'react';
 
 import { Routes, Route } from 'react-router-dom';
 
-import { useStorageSync } from '@domains/storage/hooks/useStorageSync';
+import { useStorageSync } from '@domains/storage';
 import { SuspenseBoundary } from '@shared/ui';
 
 import { AppHeader } from './AppHeader';
