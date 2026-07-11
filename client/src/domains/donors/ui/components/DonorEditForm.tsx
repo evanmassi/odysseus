@@ -14,7 +14,14 @@ import {
   useUpdateDonorMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, CompletenessMeter, NubDivider, SectionHeader, Select } from '@shared/ui';
+import {
+  Button,
+  CompletenessMeter,
+  lookupOptions,
+  NubDivider,
+  SectionHeader,
+  Select,
+} from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -48,10 +55,7 @@ export function DonorEditForm({ donor, onSubmit, onCancel }: DonorEditFormProps)
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const speciesOptions = [
-    { value: '', label: 'Select species...' },
-    ...speciesValues.map(v => ({ value: v.value, label: v.value })),
-  ];
+  const speciesOptions = lookupOptions(speciesValues, 'Select species...');
 
   const {
     register,

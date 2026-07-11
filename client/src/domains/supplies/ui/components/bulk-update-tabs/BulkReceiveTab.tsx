@@ -11,7 +11,7 @@ import { Search } from 'lucide-react';
 import { useSupplyLocationsQuery } from '@domains/supplies/hooks';
 import { useSupplyBulkReceiveMutation } from '@domains/supplies/hooks/useSupplyMutations';
 import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompleteOptions';
-import { Autocomplete, Button, Input, NubDivider } from '@shared/ui';
+import { Autocomplete, Button, Input, NubDivider, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
@@ -24,7 +24,6 @@ import { SEARCH_INPUT_CLASS } from './searchInputStyle';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface ReceiveRow {
   itemId: string;
@@ -48,11 +47,12 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
   const { data: locations = [] } = useSupplyLocationsQuery();
   const bulkReceiveMutation = useSupplyBulkReceiveMutation();
 
-  const locationOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select...' },
-      ...locations.map(l => ({ value: l.id, label: l.name })),
-    ],
+  const locationOptions = useMemo(
+    () =>
+      withPlaceholder(
+        'Select...',
+        locations.map(l => ({ value: l.id, label: l.name }))
+      ),
     [locations]
   );
 

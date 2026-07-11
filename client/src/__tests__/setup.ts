@@ -1,3 +1,9 @@
+/**
+ * Vitest Test Setup
+ *
+ * Registers jest-dom matchers and stubs browser APIs (matchMedia, IntersectionObserver, ResizeObserver).
+ */
+
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 

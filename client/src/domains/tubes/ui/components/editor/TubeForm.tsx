@@ -14,7 +14,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Controller, useWatch } from 'react-hook-form';
 
 import { DonorIdAutocomplete } from '@domains/donors';
-import { DatePicker, SectionHeader, Select, ValidatedInput } from '@shared/ui';
+import { DatePicker, SectionHeader, Select, ValidatedInput, withPlaceholder } from '@shared/ui';
 
 import { TubeConcentrationField } from './TubeConcentrationField';
 
@@ -157,7 +157,7 @@ export const TubeForm = ({
               </span>
             </label>
             <Select
-              options={[{ value: '', label: placeholder }, ...options]}
+              options={withPlaceholder(placeholder, options)}
               value={(value as string | undefined) ?? ''}
               onChange={newValue => onChange(newValue ?? '')}
               disabled={isLoading}

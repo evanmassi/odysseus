@@ -70,7 +70,7 @@ export function DropdownMenu({
     } else if (visible) {
       closeTimeoutRef.current = setTimeout(() => setVisible(false), 200);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- visible is read but intentionally excluded to avoid canceling our own close timeout
   }, [isOpen]);
 
   useEffect(() => {

@@ -20,7 +20,7 @@ import { httpClient } from '@infra/api';
 
 import { buildAuditFilterParams } from '../utils/auditLogFilterParams';
 
-export class AuditService {
+class AuditService {
   async searchAuditLogs(
     options: AuditLogFilters = {},
     includeArchive: boolean = false

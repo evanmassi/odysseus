@@ -11,12 +11,11 @@ import { createEquipmentMaintenanceLogRequestSchema } from '@odysseus/shared-sch
 import { useForm, Controller } from 'react-hook-form';
 
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { DatePicker, Select } from '@shared/ui';
+import { DatePicker, lookupOptions, Select } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 
 import type { CreateEquipmentMaintenanceLogRequest } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui';
 import type { FieldValues } from 'react-hook-form';
 
 export function BulkMaintenanceTab({
@@ -28,10 +27,7 @@ export function BulkMaintenanceTab({
 }) {
   const { data: maintenanceTypes = [] } = useLookupValuesQuery('equipment_maintenance_type');
 
-  const typeOptions: SelectOption[] = [
-    { value: '', label: 'Select type...' },
-    ...maintenanceTypes.map(t => ({ value: t.value, label: t.value })),
-  ];
+  const typeOptions = lookupOptions(maintenanceTypes, 'Select type...');
 
   const {
     register,

@@ -20,7 +20,7 @@ export interface BulkUpdateResult {
   errors: BulkUpdateError[];
 }
 
-export interface BulkUpdateError {
+interface BulkUpdateError {
   tubeId: string;
   error: string;
 }

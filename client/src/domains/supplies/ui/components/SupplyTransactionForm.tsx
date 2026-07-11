@@ -20,7 +20,17 @@ import {
   computePackagingMultiplier,
   orderPackagingChain,
 } from '@domains/supplies/utils/packagingChain';
-import { Button, DatePicker, HeaderStrip, Input, NubDivider, Select, Tab, Tabs } from '@shared/ui';
+import {
+  Button,
+  DatePicker,
+  HeaderStrip,
+  Input,
+  NubDivider,
+  Select,
+  Tab,
+  Tabs,
+  withPlaceholder,
+} from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -28,8 +38,6 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
-
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';
 
@@ -76,11 +84,12 @@ export function SupplyTransactionForm({
   const recordTransactionMutation = useRecordSupplyTransactionMutation();
   const recordStockCountMutation = useRecordSupplyStockCountMutation();
 
-  const locationOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select location...' },
-      ...locations.map(l => ({ value: l.id, label: l.name })),
-    ],
+  const locationOptions = useMemo(
+    () =>
+      withPlaceholder(
+        'Select location...',
+        locations.map(l => ({ value: l.id, label: l.name }))
+      ),
     [locations]
   );
 

@@ -18,7 +18,7 @@ import type {
   GeneratePasswordResetTokenResponse,
 } from '@odysseus/shared-schemas';
 
-export class AdminUserService {
+class AdminUserService {
   async getUsers(): Promise<AdminUser[]> {
     const data = await httpClient.getData('/admin/users', adminUsersListSchema);
     return data.users;

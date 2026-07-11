@@ -40,7 +40,7 @@ const FORMAT_CARD_UNSELECTED =
 
 const PAPER_ORDER: Record<SheetTemplate['paperSize'], number> = { letter: 0, a4: 1 };
 
-export const CUSTOM_TEMPLATE_ID = 'custom';
+const CUSTOM_TEMPLATE_ID = 'custom';
 
 const PAPER_LABEL: Record<SheetTemplate['paperSize'], string> = { letter: 'Letter', a4: 'A4' };
 
@@ -69,7 +69,7 @@ const PAPER_DIMENSIONS: Record<SheetTemplate['paperSize'], { width: number; heig
   a4: { width: 8.27, height: 11.69 },
 };
 
-export interface CustomTemplateInputs {
+interface CustomTemplateInputs {
   paperSize: SheetTemplate['paperSize'];
   labelWidth: number;
   labelHeight: number;

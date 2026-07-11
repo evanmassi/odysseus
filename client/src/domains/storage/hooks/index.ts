@@ -7,7 +7,6 @@
 export { useStorageData } from './useStorageData';
 export { useStorageSync } from './useStorageSync';
 export { useStorageLocationNames } from './useStorageLocationNames';
-export { useStoragePermissions } from './useStoragePermissions';
 export { useStorageOwnership } from './useStorageOwnership';
 
 export {
@@ -24,6 +23,5 @@ export {
   useAssignBoxMutation,
   useBulkUnassignMutation,
   useBulkReassignMutation,
-  useInitializeConfigurationMutation,
   useUpdateResourceLabelMutation,
 } from './useStorageMutations';

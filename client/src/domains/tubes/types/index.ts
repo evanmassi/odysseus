@@ -10,10 +10,4 @@ export * from './bulkUpdateTypes';
 export * from './clipboardTypes';
 export * from './gridSelectionTypes';
 
-export type {
-  TubeData,
-  TubeLocation,
-  CreateTubeRequest,
-  UpdateTubeRequest,
-  ConcentrationUnit,
-} from '@odysseus/shared-schemas';
+export type { TubeData, CreateTubeRequest, UpdateTubeRequest } from '@odysseus/shared-schemas';

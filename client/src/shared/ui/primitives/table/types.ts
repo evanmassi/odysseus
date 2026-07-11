@@ -8,7 +8,7 @@ type TableDensity = 'compact' | 'default';
 
 export type RowState = 'success' | 'warning' | 'danger' | 'muted' | 'default';
 
-export type SortDirection = 'asc' | 'desc';
+type SortDirection = 'asc' | 'desc';
 
 export interface SortConfig {
   columnId: string;

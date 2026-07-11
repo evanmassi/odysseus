@@ -1,6 +1,9 @@
-/* Callout connector styles for the annotated tube diagram.
-   Connectors read as muted primary at rest and light up — brighter line,
-   glowing nubs and label — on hover, matching the app's lit-divider treatment. */
+/**
+ * Tube Diagram Callout Connectors
+ *
+ * Connectors read as muted primary at rest and light up — brighter line,
+ * glowing nubs and label — on hover, matching the app's lit-divider treatment.
+ */
 
 .callout-group {
   cursor: default;

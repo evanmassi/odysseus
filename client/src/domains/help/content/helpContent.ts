@@ -91,7 +91,7 @@ export interface HelpSectionMeta {
  * Every help section, keyed by a stable anchor id. The section component reads its
  * title/icon from here; search filters across title + keywords.
  */
-export const HELP_SECTIONS: HelpSectionMeta[] = [
+const HELP_SECTIONS: HelpSectionMeta[] = [
   // Getting Started
   {
     id: 'gs-grid',

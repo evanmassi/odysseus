@@ -17,7 +17,7 @@ import {
   useUpdateEquipmentMaintenanceEntryMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, DatePicker, NubDivider, Select } from '@shared/ui';
+import { Button, DatePicker, lookupOptions, NubDivider, Select } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -30,7 +30,6 @@ import type {
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
 } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface EquipmentMaintenanceFormProps {
   itemId: string;
@@ -50,10 +49,7 @@ export function EquipmentMaintenanceForm({
   const updateMutation = useUpdateEquipmentMaintenanceEntryMutation();
   const { data: maintenanceTypes = [] } = useLookupValuesQuery('equipment_maintenance_type');
 
-  const typeOptions: SelectOption[] = [
-    { value: '', label: 'Select type...' },
-    ...maintenanceTypes.map(t => ({ value: t.value, label: t.value })),
-  ];
+  const typeOptions = lookupOptions(maintenanceTypes, 'Select type...');
 
   const {
     register,

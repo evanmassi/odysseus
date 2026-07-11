@@ -14,14 +14,13 @@ import {
   useDeleteCollectionHistoryMutation,
 } from '@domains/donors/hooks/useDonorMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, Tooltip } from '@shared/ui';
+import { Button, lookupOptions, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { CollectionHistoryEntryForm } from './CollectionHistoryEntryForm';
 
 import type { DonorCollectionHistory } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface CollectionHistoryTimelineProps {
   history: DonorCollectionHistory[];
@@ -47,15 +46,8 @@ export function CollectionHistoryTimeline({
   const { data: specimenTypeValues = [] } = useLookupValuesQuery('specimen_type');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
 
-  const specimenTypeOptions: SelectOption[] = [
-    { value: '', label: 'Select specimen type...' },
-    ...specimenTypeValues.map(v => ({ value: v.value, label: v.value })),
-  ];
-
-  const sourceOptions: SelectOption[] = [
-    { value: '', label: 'Select source...' },
-    ...sourceValues.map(v => ({ value: v.value, label: v.value })),
-  ];
+  const specimenTypeOptions = lookupOptions(specimenTypeValues, 'Select specimen type...');
+  const sourceOptions = lookupOptions(sourceValues, 'Select source...');
 
   const addMutation = useAddCollectionHistoryMutation();
   const updateMutation = useUpdateCollectionHistoryMutation();

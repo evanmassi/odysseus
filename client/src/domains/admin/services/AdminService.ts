@@ -28,7 +28,7 @@ import type {
   VersionInfo,
 } from '@odysseus/shared-schemas';
 
-export class AdminService {
+class AdminService {
   async getMetrics(): Promise<SystemMetrics> {
     return await httpClient.getData('/admin/metrics', systemMetricsSchema);
   }

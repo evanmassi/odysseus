@@ -10,12 +10,11 @@ import { useMemo, useState } from 'react';
 import { Link } from 'lucide-react';
 
 import { useAddSupplyBarcodeMutation } from '@domains/supplies/hooks/useSupplyMutations';
-import { Button, Select } from '@shared/ui';
+import { Button, Select, withPlaceholder } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 interface SupplyBarcodeLinkDialogProps {
   isOpen: boolean;
@@ -35,16 +34,17 @@ export function SupplyBarcodeLinkDialog({
   const [linkItemId, setLinkItemId] = useState('');
   const addBarcodeMutation = useAddSupplyBarcodeMutation();
 
-  const itemOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select item...' },
-      ...items
-        .filter(p => p.status === 'active')
-        .map(p => ({
-          value: p.id,
-          label: `${p.name}${p.catalogNumber ? ` (${p.catalogNumber})` : ''}`,
-        })),
-    ],
+  const itemOptions = useMemo(
+    () =>
+      withPlaceholder(
+        'Select item...',
+        items
+          .filter(p => p.status === 'active')
+          .map(p => ({
+            value: p.id,
+            label: `${p.name}${p.catalogNumber ? ` (${p.catalogNumber})` : ''}`,
+          }))
+      ),
     [items]
   );
 

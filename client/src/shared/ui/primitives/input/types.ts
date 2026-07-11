@@ -8,7 +8,7 @@ export type InputSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export type InputState = 'default' | 'error' | 'warning' | 'success';
 
-export type InputType =
+type InputType =
   | 'text'
   | 'email'
   | 'password'
@@ -28,7 +28,7 @@ export interface ValidationResult {
   type?: 'error' | 'warning' | 'success';
 }
 
-export type ValidationFunction = (value: string) => ValidationResult | Promise<ValidationResult>;
+type ValidationFunction = (value: string) => ValidationResult | Promise<ValidationResult>;
 
 export interface InputProps extends Omit<ComponentProps<'input'>, 'size' | 'prefix'> {
   size?: InputSize;

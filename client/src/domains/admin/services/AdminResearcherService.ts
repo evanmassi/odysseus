@@ -14,7 +14,7 @@ import {
 
 import { httpClient } from '@infra/api';
 
-export class AdminResearcherService {
+class AdminResearcherService {
   async getResearchers(): Promise<AdminResearchersList> {
     return await httpClient.getData('/admin/researchers', adminResearchersListSchema);
   }

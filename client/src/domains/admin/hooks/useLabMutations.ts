@@ -19,50 +19,31 @@ import type {
 } from '@odysseus/shared-schemas';
 
 export function useCreateLabMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ name, isDemo }: { name: string; isDemo?: boolean }) =>
       labService.createLab(name, isDemo),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
-    },
+    meta: { invalidates: [queryKeys.labs.all] },
   });
 }
 
 export function useDeactivateLabMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (labId: string) => labService.deactivateLab(labId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
-    },
+    meta: { invalidates: [queryKeys.labs.all, queryKeys.storageAnalytics.all] },
   });
 }
 
 export function useActivateLabMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (labId: string) => labService.activateLab(labId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
-    },
+    meta: { invalidates: [queryKeys.labs.all, queryKeys.storageAnalytics.all] },
   });
 }
 
 export function useUpdateLabMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ id, name }: { id: string; name: string }) => labService.updateLab(id, name),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storageAnalytics.all });
-    },
+    meta: { invalidates: [queryKeys.labs.all, queryKeys.storageAnalytics.all] },
   });
 }
 

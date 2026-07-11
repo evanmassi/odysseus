@@ -4,9 +4,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 
-export type MenuIconComponent =
-  | LucideIcon
-  | React.ComponentType<{ size?: number; className?: string }>;
+type MenuIconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
 
 export interface MenuItemProps {
   icon?: MenuIconComponent;

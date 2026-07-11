@@ -33,7 +33,7 @@ import type {
   SystemOverview,
 } from '@odysseus/shared-schemas';
 
-export class LabService {
+class LabService {
   async getLabs(): Promise<LabData[]> {
     const data = await httpClient.getData('/system/labs', labsListSchema);
     return data.labs;

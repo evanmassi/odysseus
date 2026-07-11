@@ -27,9 +27,11 @@ import {
   Checkbox,
   CompletenessMeter,
   Input,
+  lookupOptions,
   NubDivider,
   SectionHeader,
   Select,
+  withPlaceholder,
 } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
@@ -134,39 +136,14 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const { data: stockUnits = [] } = useLookupValuesQuery('supply_stock_unit');
   const { data: itemProperties = [] } = useLookupValuesQuery('supply_item_property');
 
-  const manufacturerOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select...' },
-      ...manufacturers.map((m: { value: string }) => ({ value: m.value, label: m.value })),
-    ],
-    [manufacturers]
-  );
-
-  const vendorOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select...' },
-      ...vendors.map((v: { value: string }) => ({ value: v.value, label: v.value })),
-    ],
-    [vendors]
-  );
-
-  const stockUnitOptions: SelectOption[] = useMemo(
-    () => [
-      { value: '', label: 'Select...' },
-      ...stockUnits.map((u: { value: string }) => ({ value: u.value, label: u.value })),
-    ],
-    [stockUnits]
-  );
+  const manufacturerOptions = useMemo(() => lookupOptions(manufacturers), [manufacturers]);
+  const vendorOptions = useMemo(() => lookupOptions(vendors), [vendors]);
+  const stockUnitOptions = useMemo(() => lookupOptions(stockUnits), [stockUnits]);
 
   // Available units for the add-level "unit" dropdown (exclude already-used names)
-  const availableUnitOptions: SelectOption[] = useMemo(() => {
+  const availableUnitOptions = useMemo(() => {
     const usedNames = packagingLevels.map(l => l.unitName);
-    return [
-      { value: '', label: 'Select...' },
-      ...stockUnits
-        .filter((u: { value: string }) => !usedNames.includes(u.value))
-        .map((u: { value: string }) => ({ value: u.value, label: u.value })),
-    ];
+    return lookupOptions(stockUnits.filter(u => !usedNames.includes(u.value)));
   }, [stockUnits, packagingLevels]);
 
   // Parent options for the add-level "per" dropdown
@@ -188,10 +165,10 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
   const thresholdUnitOptions: SelectOption[] = useMemo(() => {
     const hasLevels = packagingLevels.length > 0;
     if (!hasLevels) return [];
-    return [
-      { value: '', label: 'stock unit' },
-      ...packagingLevels.map(l => ({ value: l.unitName, label: l.unitName })),
-    ];
+    return withPlaceholder(
+      'stock unit',
+      packagingLevels.map(l => ({ value: l.unitName, label: l.unitName }))
+    );
   }, [packagingLevels]);
 
   const computeThresholdMultiplier = useCallback(

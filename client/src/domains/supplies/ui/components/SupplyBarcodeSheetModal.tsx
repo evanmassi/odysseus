@@ -144,7 +144,7 @@ export function SupplyBarcodeSheetModal({
     return () => clearTimeout(timer);
     // Intentionally only reacting to the sheets-mounted transition; format is
     // stable per modal instance (changing it requires closing and reopening).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- format is stable per modal instance; only the sheets-mounted transition should trigger print
   }, [hasMountedSheets]);
 
   const handlePrint = useCallback(() => {

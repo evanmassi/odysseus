@@ -98,18 +98,6 @@ export function useUpdateSupplyLocationMutation() {
   });
 }
 
-export function useDeleteSupplyLocationMutation() {
-  const labId = useLabId();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => SupplyService.deleteLocation(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.locations(labId) });
-    },
-  });
-}
-
 // Items
 
 export function useCreateSupplyItemMutation() {
@@ -293,28 +281,6 @@ export function useAddSupplyPackagingLevelMutation() {
   return useMutation({
     mutationFn: ({ itemId, data }: { itemId: string; data: CreateSupplyPackagingLevelRequest }) =>
       SupplyService.addPackagingLevel(itemId, data),
-    onSuccess: (_, { itemId }) => {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.supplies.detail(labId, itemId),
-      });
-    },
-  });
-}
-
-export function useUpdateSupplyPackagingLevelMutation() {
-  const labId = useLabId();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      itemId,
-      levelId,
-      quantity,
-    }: {
-      itemId: string;
-      levelId: string;
-      quantity: number;
-    }) => SupplyService.updatePackagingLevel(itemId, levelId, quantity),
     onSuccess: (_, { itemId }) => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.supplies.detail(labId, itemId),

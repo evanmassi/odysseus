@@ -16,7 +16,7 @@ import type {
   CrossLabStorageAnalyticsResponse,
 } from '@odysseus/shared-schemas';
 
-export class StorageAnalyticsService {
+class StorageAnalyticsService {
   async getLabAnalytics(): Promise<LabStorageAnalyticsResponse> {
     return await httpClient.getData('/admin/storage/analytics', labStorageAnalyticsResponseSchema);
   }

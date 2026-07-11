@@ -6,7 +6,7 @@
 
 import { httpClient } from '@infra/api';
 
-export class ExportService {
+class ExportService {
   async exportTubes(format: 'csv' | 'json'): Promise<Blob> {
     return await httpClient.getBlob(`/admin/export/tubes?format=${format}`);
   }

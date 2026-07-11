@@ -40,6 +40,7 @@ export { ScrimHalo } from './scrim-halo/ScrimHalo';
 export { ScrollArea } from './scroll-area/ScrollArea';
 
 export { Select } from './select/Select';
+export { lookupOptions, withPlaceholder } from './select/selectOptions';
 export type { SelectOption } from './select/types';
 
 export { NubDivider } from './nub-divider/NubDivider';

@@ -26,7 +26,7 @@ import type {
   SessionActivityResponse,
 } from '@odysseus/shared-schemas';
 
-export class SecurityMonitoringService {
+class SecurityMonitoringService {
   async getSecurityOverview(): Promise<SecurityOverviewResponse> {
     return await httpClient.getData('/system/security/overview', securityOverviewResponseSchema);
   }

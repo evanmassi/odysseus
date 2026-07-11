@@ -14,7 +14,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 
 import { EQUIPMENT_STATUS_LABELS } from '@domains/equipment/utils/equipmentStatus';
-import { Select } from '@shared/ui';
+import { Select, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 
@@ -66,7 +66,7 @@ export function BulkStatusTab({
               Status
             </label>
             <Select
-              options={[{ value: '', label: 'Select status...' }, ...statusOptions]}
+              options={withPlaceholder('Select status...', statusOptions)}
               value={value ?? ''}
               onChange={v => onChange(v)}
               state={error ? 'error' : 'default'}

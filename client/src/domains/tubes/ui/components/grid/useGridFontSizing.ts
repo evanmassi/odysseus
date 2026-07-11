@@ -10,7 +10,7 @@ import { useState, useCallback, useRef } from 'react';
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';
 
-export interface GridFontSizes {
+interface GridFontSizes {
   cellFont: number;
   donorFont: number;
   positionFont: number;

@@ -11,8 +11,6 @@ import { MS_PER_SECOND, MS_PER_MINUTE } from '@shared/utils';
 
 import { labService } from '../services/LabService';
 
-import type { AuditLogFilters } from '@odysseus/shared-schemas';
-
 export function useLabsQuery() {
   return useQuery({
     queryKey: queryKeys.labs.list(),
@@ -44,18 +42,5 @@ export function useDemoLimitsQuery(labId: string | null) {
     queryFn: () => labService.getDemoLimits(labId!),
     enabled: !!labId,
     staleTime: MS_PER_MINUTE,
-  });
-}
-
-export function useLabAuditLogsQuery(
-  labId: string | null,
-  filters: AuditLogFilters = {},
-  includeArchive: boolean = false
-) {
-  return useQuery({
-    queryKey: [...queryKeys.labs.audit(labId ?? ''), filters, includeArchive],
-    queryFn: () => labService.getLabAuditLog(labId!, filters, includeArchive),
-    enabled: !!labId,
-    staleTime: 30 * MS_PER_SECOND,
   });
 }

@@ -6,7 +6,7 @@
  * isolation so both modes stay in sync.
  */
 
-export type PrintPageSize =
+type PrintPageSize =
   | { kind: 'label'; width: number; height: number }
   | { kind: 'sheet'; paperSize: 'letter' | 'a4' };
 

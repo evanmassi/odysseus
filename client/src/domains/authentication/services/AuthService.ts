@@ -36,7 +36,7 @@ interface LoginRequest {
   password: string;
 }
 
-export class AuthService {
+class AuthService {
   /**
    * First user: auto-approved as admin (returns tokens).
    * Subsequent users: pending approval (no tokens).

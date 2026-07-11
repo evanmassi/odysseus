@@ -29,7 +29,7 @@ export interface UseGridSelectionProps {
   lockContext?: LockContext;
 }
 
-export interface SelectionCounts {
+interface SelectionCounts {
   hasFilledSelection: boolean;
   isMixed: boolean;
   allFilled: boolean;

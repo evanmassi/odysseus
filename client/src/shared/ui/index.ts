@@ -24,4 +24,4 @@ export {
 } from './components/info-display';
 
 // Loading components
-export { LoadingSkeleton, LoadingSpinner, ModalSkeleton } from './components/loading';
+export { LoadingSkeleton, LoadingSpinner } from './components/loading';

@@ -129,10 +129,6 @@ export class SupplyService {
     return response.location;
   }
 
-  static async deleteLocation(id: string): Promise<void> {
-    await httpClient.deleteData(`${this.BASE_PATH}/locations/${id}`);
-  }
-
   // Items
 
   static async listItems(): Promise<SupplyItemWithStock[]> {
@@ -258,18 +254,6 @@ export class SupplyService {
       supplyPackagingLevelResponseSchema
     );
     return response.packagingLevel;
-  }
-
-  static async updatePackagingLevel(
-    itemId: string,
-    levelId: string,
-    quantity: number
-  ): Promise<void> {
-    await httpClient.putData(
-      `${this.BASE_PATH}/${itemId}/packaging-levels/${levelId}`,
-      { quantity },
-      messageResponseSchema
-    );
   }
 
   static async removePackagingLevel(itemId: string, levelId: string): Promise<void> {

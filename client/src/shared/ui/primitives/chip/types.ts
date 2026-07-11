@@ -4,7 +4,7 @@
 
 import type { HTMLAttributes, ReactNode } from 'react';
 
-export type ChipBehavior = 'static' | 'selectable' | 'removable' | 'action';
+type ChipBehavior = 'static' | 'selectable' | 'removable' | 'action';
 
 export type ChipColor =
   | 'default'

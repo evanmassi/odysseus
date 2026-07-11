@@ -11,7 +11,7 @@ import { getGridTotalPositions } from '../../../utils/gridHelpers';
 import type { StorageHierarchy } from './storageNavigatorTypes';
 import type { TubeLocationCount } from '@odysseus/shared-schemas';
 
-export interface Occupancy {
+interface Occupancy {
   filled: number;
   capacity: number;
 }

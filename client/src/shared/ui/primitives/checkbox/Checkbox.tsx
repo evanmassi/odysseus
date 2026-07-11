@@ -8,7 +8,7 @@ import { forwardRef, useEffect, useRef } from 'react';
 
 import { useMergedRef } from '@shared/hooks';
 
-export type CheckboxTone = 'primary' | 'success';
+type CheckboxTone = 'primary' | 'success';
 
 export interface CheckboxProps {
   checked: boolean;
