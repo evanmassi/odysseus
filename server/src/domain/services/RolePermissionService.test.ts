@@ -59,38 +59,6 @@ describe('RolePermissionService', () => {
     });
   });
 
-  describe('hasAnyPermission', () => {
-    it('should return true if role has at least one permission', () => {
-      expect(RolePermissionService.hasAnyPermission('user', [
-        Permission.MANAGE_USERS,
-        Permission.VIEW_TUBES,
-      ])).toBe(true);
-    });
-
-    it('should return false if role has none of the permissions', () => {
-      expect(RolePermissionService.hasAnyPermission('user', [
-        Permission.MANAGE_USERS,
-        Permission.MANAGE_LABS,
-      ])).toBe(false);
-    });
-  });
-
-  describe('hasAllPermissions', () => {
-    it('should return true if role has all permissions', () => {
-      expect(RolePermissionService.hasAllPermissions('user', [
-        Permission.VIEW_TUBES,
-        Permission.CREATE_TUBES,
-      ])).toBe(true);
-    });
-
-    it('should return false if role is missing any permission', () => {
-      expect(RolePermissionService.hasAllPermissions('user', [
-        Permission.VIEW_TUBES,
-        Permission.MANAGE_USERS,
-      ])).toBe(false);
-    });
-  });
-
   describe('getPermissionsForRole', () => {
     it('should return 4 permissions for user', () => {
       expect(RolePermissionService.getPermissionsForRole('user').length).toBe(4);
@@ -127,34 +95,6 @@ describe('RolePermissionService', () => {
     it('should reject invalid roles', () => {
       expect(RolePermissionService.isValidRole('admin')).toBe(false);
       expect(RolePermissionService.isValidRole('')).toBe(false);
-    });
-  });
-
-  describe('getAllRoles', () => {
-    it('should return all three roles', () => {
-      const roles = RolePermissionService.getAllRoles();
-      expect(roles).toEqual(['system_admin', 'lab_admin', 'user']);
-    });
-  });
-
-  describe('getRolesWithPermission', () => {
-    it('should return all roles for view_tubes', () => {
-      const roles = RolePermissionService.getRolesWithPermission(Permission.VIEW_TUBES);
-      expect(roles).toContain('system_admin');
-      expect(roles).toContain('lab_admin');
-      expect(roles).toContain('user');
-    });
-
-    it('should return only admins for manage_users', () => {
-      const roles = RolePermissionService.getRolesWithPermission(Permission.MANAGE_USERS);
-      expect(roles).toContain('system_admin');
-      expect(roles).toContain('lab_admin');
-      expect(roles).not.toContain('user');
-    });
-
-    it('should return only system_admin for manage_labs', () => {
-      const roles = RolePermissionService.getRolesWithPermission(Permission.MANAGE_LABS);
-      expect(roles).toEqual(['system_admin']);
     });
   });
 

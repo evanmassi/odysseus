@@ -6,19 +6,13 @@ import { AccessControlService } from './AccessControlService';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { createTestUser, createTestAdmin, createTestSystemAdmin, createTestTube } from '@domain/__tests__/helpers';
 
-const mockUserRepository = {
-  countByRole: jest.fn(),
-  countByRoleInLab: jest.fn(),
-} as any;
-
 const mockTubeRepository = {
   findById: jest.fn(),
-  countByResearcher: jest.fn(),
   countByTank: jest.fn(),
 } as any;
 
 function createService() {
-  return new AccessControlService(mockUserRepository, mockTubeRepository);
+  return new AccessControlService(mockTubeRepository);
 }
 
 beforeEach(() => {
@@ -352,18 +346,6 @@ describe('AccessControlService', () => {
     });
   });
 
-  describe('canAssignResource', () => {
-    it('should allow admin', () => {
-      const admin = createTestAdmin();
-      expect(createService().canAssignResource(admin)).toBe(true);
-    });
-
-    it('should deny regular user', () => {
-      const user = createTestUser();
-      expect(createService().canAssignResource(user)).toBe(false);
-    });
-  });
-
   describe('canEditResource', () => {
     it('should allow admin to edit any resource', () => {
       const admin = createTestAdmin();
@@ -390,29 +372,6 @@ describe('AccessControlService', () => {
       const box = { assignedUserId: undefined };
       const rack = { assignedUserId: user.id };
       expect(createService().canEditResource(user, box, rack)).toBe(true);
-    });
-  });
-
-  describe('canPerformMaintenance', () => {
-    it('should deny non-admin', async () => {
-      const user = createTestUser();
-      const result = await createService().canPerformMaintenance(user);
-      expect(result.allowed).toBe(false);
-    });
-
-    it('should deny when fewer than 2 admins', async () => {
-      const admin = createTestAdmin();
-      mockUserRepository.countByRole.mockResolvedValue(1);
-      const result = await createService().canPerformMaintenance(admin);
-      expect(result.allowed).toBe(false);
-      expect(result.reason).toContain('at least 2');
-    });
-
-    it('should allow when 2+ admins exist', async () => {
-      const admin = createTestAdmin();
-      mockUserRepository.countByRole.mockResolvedValue(2);
-      const result = await createService().canPerformMaintenance(admin);
-      expect(result.allowed).toBe(true);
     });
   });
 

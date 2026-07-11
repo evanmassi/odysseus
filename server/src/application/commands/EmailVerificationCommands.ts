@@ -17,8 +17,6 @@ import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { EmailService } from '@domain/services/EmailService';
 
-// COMMAND INTERFACES
-
 export interface SendVerificationEmailCommand {
   userId: string;
 }
@@ -30,8 +28,6 @@ export interface VerifyEmailCommand {
 export interface ResendVerificationEmailCommand {
   userId: string;
 }
-
-// COMMAND HANDLERS
 
 export class SendVerificationEmailCommandHandler {
   constructor(

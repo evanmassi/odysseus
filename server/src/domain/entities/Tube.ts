@@ -9,6 +9,52 @@ import { generateId } from '@domain/utils/generateId';
 import { Location } from '@domain/value-objects/Location';
 import { SampleData } from '@domain/value-objects/SampleData';
 
+interface TubeLocationData {
+  tankId: string;
+  rackId: string;
+  boxId: string;
+  position: number;
+}
+
+interface TubeSampleData {
+  cellType?: string;
+  species?: string;
+  donorInternalId?: string;
+  donorSourceId?: string;
+  concentration?: number;
+  concentrationUnit?: 'c/v' | 'c/mL';
+  date?: string;
+  mediaType?: string;
+  mediaSupplements?: string;
+  mediaSelection?: string;
+  cultureCondition?: string;
+  lotNumber?: string;
+  source?: string;
+  catalogNumber?: string;
+  passageNumber?: number;
+  notes?: string;
+}
+
+/** PATCH tri-state variant of {@link TubeSampleData}: null = clear the field. */
+interface TubeSampleUpdate {
+  cellType?: string;
+  species?: string | null;
+  donorInternalId?: string | null;
+  donorSourceId?: string | null;
+  concentration?: number | null;
+  concentrationUnit?: 'c/v' | 'c/mL' | null;
+  date?: string | null;
+  mediaType?: string | null;
+  mediaSupplements?: string | null;
+  mediaSelection?: string | null;
+  cultureCondition?: string | null;
+  lotNumber?: string | null;
+  source?: string | null;
+  catalogNumber?: string | null;
+  passageNumber?: number | null;
+  notes?: string | null;
+}
+
 export class Tube {
   private constructor(
     private readonly _id: string,
@@ -19,7 +65,6 @@ export class Tube {
     private _updatedAt: Date,
     private readonly _createdByName?: string,
     private _version: number = 1,
-    // Lock fields
     private _isLocked: boolean = false,
     private _lockedBy?: string,
     private _lockNote?: string,
@@ -32,25 +77,8 @@ export class Tube {
 
   static create(data: {
     id?: string;
-    location: { tankId: string; rackId: string; boxId: string; position: number } | Location;
-    sample: {
-      cellType?: string;
-      species?: string;
-      donorInternalId?: string;
-      donorSourceId?: string;
-      concentration?: number;
-      concentrationUnit?: 'c/v' | 'c/mL';
-      date?: string;
-      mediaType?: string;
-      mediaSupplements?: string;
-      mediaSelection?: string;
-      cultureCondition?: string;
-      lotNumber?: string;
-      source?: string;
-      catalogNumber?: string;
-      passageNumber?: number;
-      notes?: string;
-    } | SampleData;
+    location: TubeLocationData | Location;
+    sample: TubeSampleData | SampleData;
     researcherId?: string;
     createdByName?: string;
     labId?: string;
@@ -87,25 +115,8 @@ export class Tube {
 
   static fromData(data: {
     id: string;
-    location: { tankId: string; rackId: string; boxId: string; position: number };
-    sample: {
-      cellType?: string;
-      species?: string;
-      donorInternalId?: string;
-      donorSourceId?: string;
-      concentration?: number;
-      concentrationUnit?: 'c/v' | 'c/mL';
-      date?: string;
-      mediaType?: string;
-      mediaSupplements?: string;
-      mediaSelection?: string;
-      cultureCondition?: string;
-      lotNumber?: string;
-      source?: string;
-      catalogNumber?: string;
-      passageNumber?: number;
-      notes?: string;
-    };
+    location: TubeLocationData;
+    sample: TubeSampleData;
     researcherId?: string;
     createdByName?: string;
     timestamps: {
@@ -113,7 +124,6 @@ export class Tube {
       updatedAt: string | Date;
     };
     version?: number;
-    // Lock fields
     isLocked?: boolean;
     lockedBy?: string;
     lockNote?: string;
@@ -162,37 +172,7 @@ export class Tube {
     }
 
     this._location = newLocation;
-    this.touch(); // Update timestamp
-  }
-
-  /** PATCH tri-state semantics: omitted = preserve, value = update, null = clear */
-  updateSample(updates: {
-    cellType?: string;
-    species?: string | null;
-    donorInternalId?: string | null;
-    donorSourceId?: string | null;
-    concentration?: number | null;
-    concentrationUnit?: 'c/v' | 'c/mL' | null;
-    date?: string | null;
-    mediaType?: string | null;
-    mediaSupplements?: string | null;
-    mediaSelection?: string | null;
-    cultureCondition?: string | null;
-    lotNumber?: string | null;
-    source?: string | null;
-    catalogNumber?: string | null;
-    passageNumber?: number | null;
-    notes?: string | null;
-  }): void {
-    this._sample = this._sample.update(updates);
-    this.touch(); // Update timestamp
-  }
-
-  assignToResearcher(researcherId: string | undefined): void {
-    if (this._researcherId !== researcherId) {
-      this._researcherId = researcherId;
-      this.touch(); // Update timestamp
-    }
+    this.touch();
   }
 
   lock(userId: string, note?: string): Tube {
@@ -306,38 +286,10 @@ export class Tube {
     );
   }
 
-  isLockedBy(userId: string): boolean {
-    return this._isLocked && this._lockedBy === userId;
-  }
-
-  canBeAccessedBy(userId: string): boolean {
-    if (!this._isLocked) return true;
-    if (this._lockedBy === userId) return true;
-    if (this._sharedWithUserIds.includes(userId)) return true;
-    return false;
-  }
-
   /** PATCH tri-state semantics: omitted = preserve, value = update, null = clear */
   update(updates: {
-    location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
-    sample?: {
-      cellType?: string;
-      species?: string | null;
-      donorInternalId?: string | null;
-      donorSourceId?: string | null;
-      concentration?: number | null;
-      concentrationUnit?: 'c/v' | 'c/mL' | null;
-      date?: string | null;
-      mediaType?: string | null;
-      mediaSupplements?: string | null;
-      mediaSelection?: string | null;
-      cultureCondition?: string | null;
-      lotNumber?: string | null;
-      source?: string | null;
-      catalogNumber?: string | null;
-      passageNumber?: number | null;
-      notes?: string | null;
-    };
+    location?: Partial<TubeLocationData>;
+    sample?: TubeSampleUpdate;
     researcherId?: string | null;
   }): Tube {
     const newLocation = updates.location
@@ -376,51 +328,10 @@ export class Tube {
     this._updatedAt = new Date();
   }
 
-  isExpired(): boolean {
-    return this._sample.isExpired();
-  }
-
-  hasCompleteSampleData(): boolean {
-    return this._sample.isComplete();
-  }
-
-  hasConcentrationData(): boolean {
-    return this._sample.hasConcentration();
-  }
-
-  isInSameLocationAs(other: Tube): boolean {
-    return this._location.equals(other._location);
-  }
-
-  isInSameRackAs(other: Tube): boolean {
-    return this._location.isInSameRack(other._location);
-  }
-
-  getLocationDescription(): string {
-    return this._location.toString();
-  }
-
   toData(): {
     id: string;
-    location: { tankId: string; rackId: string; boxId: string; position: number };
-    sample: {
-      cellType?: string;
-      species?: string;
-      donorInternalId?: string;
-      donorSourceId?: string;
-      concentration?: number;
-      concentrationUnit?: 'c/v' | 'c/mL';
-      date?: string;
-      mediaType?: string;
-      mediaSupplements?: string;
-      mediaSelection?: string;
-      cultureCondition?: string;
-      lotNumber?: string;
-      source?: string;
-      catalogNumber?: string;
-      passageNumber?: number;
-      notes?: string;
-    };
+    location: TubeLocationData;
+    sample: TubeSampleData;
     researcherId?: string;
     createdByName?: string;
     timestamps: {
@@ -455,15 +366,6 @@ export class Tube {
     };
   }
 
-  equals(other: Tube): boolean {
-    if (!other) return false;
-    return this._id === other._id;
-  }
-
-  toString(): string {
-    return `Tube(${this._id}) at ${this._location.toString()}`;
-  }
-
   // GETTERS
 
   get id(): string {
@@ -475,11 +377,11 @@ export class Tube {
   }
 
   get location(): Location {
-    return this._location; 
+    return this._location;
   }
 
   get sample(): SampleData {
-    return this._sample; 
+    return this._sample;
   }
 
   get researcherId(): string | undefined {

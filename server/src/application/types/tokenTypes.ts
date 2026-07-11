@@ -49,18 +49,3 @@ export interface RefreshTokenResponse {
   accessTokenExpiry: Date;
   tokenType: 'Bearer';
 }
-
-export interface TokenConfiguration {
-  // Access token settings
-  accessTokenExpiry: string;    // e.g. '30m'
-  accessTokenSecret: string;
-
-  // Refresh token settings
-  refreshTokenExpiry: string;   // e.g. '7d'
-  refreshTokenLength: number;   // Bytes (32-64)
-
-  // Security settings
-  allowConcurrentSessions: boolean;
-  maxConcurrentSessions: number;
-  rotateRefreshTokens: boolean; // New refresh token on each renewal
-}

@@ -13,8 +13,6 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 
 import type { UserSettings } from '@odysseus/shared-schemas';
 
-// GET USER BY ID QUERY
-
 export class GetUserByIdQuery extends BaseQuery {
   constructor(
     public readonly userId: string,
@@ -41,8 +39,6 @@ export class GetUserByIdQueryHandler implements QueryHandler<GetUserByIdQuery, U
   }
 }
 
-// CHECK FIRST TIME SETUP QUERY
-
 export class CheckFirstTimeSetupQuery extends BaseQuery {
   constructor(requestedBy?: string) {
     super(requestedBy);
@@ -63,8 +59,6 @@ export class CheckFirstTimeSetupQueryHandler implements QueryHandler<CheckFirstT
     return { isFirstTime: isEmpty, needsSystemAdmin: systemAdminCount === 0 };
   }
 }
-
-// GET USER STATISTICS QUERY
 
 export class GetUserStatisticsQuery extends BaseQuery {
   constructor(
@@ -108,8 +102,6 @@ export class GetUserStatisticsQueryHandler implements QueryHandler<GetUserStatis
     };
   }
 }
-
-// GET USER SETTINGS QUERY
 
 export interface GetUserSettingsQuery {
   userId: string;

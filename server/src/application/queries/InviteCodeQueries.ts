@@ -7,8 +7,6 @@
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 
-// QUERY INTERFACES
-
 export interface ValidateInviteCodeQuery {
   code: string;
 }
@@ -16,8 +14,6 @@ export interface ValidateInviteCodeQuery {
 export interface ListInviteCodesQuery {
   labId: string;
 }
-
-// QUERY HANDLERS
 
 /** Public query — validates an invite code for the registration flow. */
 export class ValidateInviteCodeQueryHandler {

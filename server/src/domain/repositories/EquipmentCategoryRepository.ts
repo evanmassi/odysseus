@@ -15,9 +15,6 @@ export interface EquipmentCategoryRepository {
   /** Checks if this category has subcategories. */
   hasChildren(id: string, labId: string): Promise<boolean>;
 
-  /** Checks if this category has items directly assigned to it. */
-  hasItems(id: string, labId: string): Promise<boolean>;
-
   /** Checks if this category or any of its subcategories have items. */
   hasItemsIncludingChildren(id: string, labId: string): Promise<boolean>;
 }

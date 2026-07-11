@@ -116,20 +116,6 @@ describe('Location', () => {
     });
   });
 
-  describe('isInSameBox', () => {
-    it('should return true for same tank, rack, and box', () => {
-      const a = Location.create('T1', 'R1', 'A', 1);
-      const b = Location.create('T1', 'R1', 'a', 5);
-      expect(a.isInSameBox(b)).toBe(true);
-    });
-
-    it('should return false for different boxes', () => {
-      const a = Location.create('T1', 'R1', 'A', 1);
-      const b = Location.create('T1', 'R1', 'B', 1);
-      expect(a.isInSameBox(b)).toBe(false);
-    });
-  });
-
   describe('update', () => {
     it('should return new location with updated fields', () => {
       const original = Location.create('T1', 'R1', 'A', 1);
@@ -164,11 +150,6 @@ describe('Location', () => {
     it('should format toString correctly', () => {
       const loc = Location.create('T1', 'R1', 'A', 3);
       expect(loc.toString()).toBe('Tank-T1/Rack-R1/Box-A/Pos-3');
-    });
-
-    it('should format toKey correctly', () => {
-      const loc = Location.create('T1', 'R1', 'a', 3);
-      expect(loc.toKey()).toBe('T1-R1-A-3');
     });
   });
 });

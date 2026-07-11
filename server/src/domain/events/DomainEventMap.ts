@@ -36,8 +36,7 @@ import type {
   LabRenamedEvent,
   LabActivatedEvent,
   LabDeactivatedEvent,
-  InviteCodeCreatedEvent,
-  InviteCodeUsedEvent
+  InviteCodeCreatedEvent
 } from './LabEvents';
 import type {
   PasswordResetByAdminEvent,
@@ -49,8 +48,7 @@ import type {
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
   ResearcherReactivatedEvent,
-  ResearcherDeletedEvent,
-  ResearcherApprovedEvent
+  ResearcherDeletedEvent
 } from './ResearcherEvents';
 import type {
   StorageUpdatedEvent,
@@ -179,7 +177,6 @@ export interface DomainEventMap {
   'ResearcherDeactivated': ResearcherDeactivatedEvent;
   'ResearcherReactivated': ResearcherReactivatedEvent;
   'ResearcherDeleted': ResearcherDeletedEvent;
-  'ResearcherApproved': ResearcherApprovedEvent;
 
   // Email verification events
   'VerificationEmailSent': VerificationEmailSentEvent;
@@ -240,7 +237,6 @@ export interface DomainEventMap {
   'LabActivated': LabActivatedEvent;
   'LabDeactivated': LabDeactivatedEvent;
   'InviteCodeCreated': InviteCodeCreatedEvent;
-  'InviteCodeUsed': InviteCodeUsedEvent;
 }
 
 export type DomainEventName = keyof DomainEventMap;

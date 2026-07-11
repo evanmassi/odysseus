@@ -35,15 +35,6 @@ export class PersonRepository implements IPersonRepository {
     return row ? PersonMapper.fromRow(row) : null;
   }
 
-  async emailExists(email: string): Promise<boolean> {
-    const normalizedEmail = email.toLowerCase().trim();
-    const row = await this.context.queryOne<{ exists: boolean }>(
-      'SELECT EXISTS(SELECT 1 FROM persons WHERE LOWER(email) = $1) as exists',
-      [normalizedEmail]
-    );
-    return row?.exists ?? false;
-  }
-
   async save(person: Person): Promise<void> {
     const row = PersonMapper.toRow(person);
 
@@ -70,13 +61,6 @@ export class PersonRepository implements IPersonRepository {
       [id]
     );
     return (result.rowCount ?? 0) > 0;
-  }
-
-  async findAll(): Promise<Person[]> {
-    const rows = await this.context.queryMany<PersonRow>(
-      `SELECT ${PERSON_COLUMNS} FROM persons ORDER BY last_name, first_name`
-    );
-    return PersonMapper.fromRows(rows);
   }
 
   async findByIds(ids: string[]): Promise<Person[]> {

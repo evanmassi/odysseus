@@ -10,7 +10,7 @@ import { Storage } from '@domain/entities/Storage';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import type { StorageRepository as IStorageRepository, StorageHistory, StorageExport, StorageValidationResult } from '@domain/repositories/StorageRepository';
+import type { StorageRepository as IStorageRepository, StorageHistory } from '@domain/repositories/StorageRepository';
 import type { Box } from '@domain/value-objects/Equipment';
 import type { Location } from '@domain/value-objects/Location';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
@@ -138,40 +138,6 @@ export class StorageRepository implements IStorageRepository {
     }
   }
 
-  async saveWithVersioning(labId: string, configuration: Storage, changeDescription: string = 'Storage configuration updated', changedBy: string = 'system'): Promise<number> {
-    try {
-      let newVersion = 0;
-      await this.context.transaction(async (client) => {
-        const now = new Date();
-        const configJson = JSON.stringify(configuration.toData());
-
-        const versionResult = await client.query<{ version: number }>(
-          `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
-           VALUES ($1, $2, $3, $4, $5)
-           RETURNING version`,
-          [labId, now, changeDescription, changedBy, configJson]
-        );
-
-        newVersion = versionResult.rows[0].version;
-
-        await client.query(
-          `UPDATE storage_current
-           SET version = $1, updated_at = $2, config_json = $3
-           WHERE lab_id = $4`,
-          [newVersion, now, configJson, labId]
-        );
-
-        logger.info(`Storage configuration saved with version ${newVersion}: ${changeDescription}`);
-      });
-
-      return newVersion;
-
-    } catch (error) {
-      logger.error('Failed to save configuration with versioning:', { error, labId });
-      throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
   async saveWithOptimisticLock(
     labId: string,
     configuration: Storage,
@@ -260,94 +226,9 @@ export class StorageRepository implements IStorageRepository {
     return rack.boxes.some(box => box.name.toLowerCase() === boxId.toLowerCase());
   }
 
-  async getAvailablePositions(labId: string, tankId: string, rackId: string, boxId: string, occupiedPositions: number[]): Promise<number[]> {
-    const maxPosition = await this.getMaxPosition(labId, tankId, rackId, boxId);
-    const allPositions: number[] = [];
-    for (let i = 1; i <= maxPosition; i++) {
-      if (!occupiedPositions.includes(i)) {
-        allPositions.push(i);
-      }
-    }
-    return allPositions;
-  }
-
   async getMaxPosition(labId: string, tankId: string, rackId: string, boxId: string): Promise<number> {
     const box = await this.getBoxByName(labId, tankId, rackId, boxId);
     return box ? box.maxPositions : 0;
-  }
-
-  async validateStorage(labId: string, configuration: Storage): Promise<StorageValidationResult> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const recommendations: string[] = [];
-
-    if (configuration.equipment.tanks.length === 0) {
-      errors.push('No tanks configured');
-    }
-
-    const totalRacks = configuration.equipment.tanks.reduce((sum, tank) => sum + tank.racks.length, 0);
-    if (totalRacks === 0) {
-      errors.push('No racks configured');
-    }
-
-    const totalBoxes = configuration.equipment.tanks.reduce(
-      (sum, tank) => sum + tank.racks.reduce((rackSum, rack) => rackSum + rack.boxes.length, 0),
-      0
-    );
-    if (totalBoxes === 0) {
-      errors.push('No boxes configured');
-    }
-
-    if (configuration.equipment.tanks.filter(t => t.isActive).length === 0) {
-      warnings.push('No active tanks available');
-    }
-
-    if (configuration.equipment.tanks.length < 2) {
-      recommendations.push('Consider configuring backup tanks for redundancy');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-      recommendations
-    };
-  }
-
-  async exportStorage(labId: string): Promise<StorageExport> {
-    const config = await this.getForLab(labId);
-    if (!config) {
-      throw new ValidationError('No configuration to export');
-    }
-
-    return {
-      version: '1.0',
-      timestamp: new Date(),
-      storage: config,
-      metadata: {
-        exportedBy: 'system',
-        description: 'Storage configuration export',
-        systemInfo: {
-          appVersion: '2.0.0',
-          platform: process.platform
-        }
-      }
-    };
-  }
-
-  async importStorage(labId: string, configExport: StorageExport): Promise<Storage> {
-    if (!configExport?.storage) {
-      throw new ValidationError('Invalid configuration export provided');
-    }
-
-    const validationResult = await this.validateStorage(labId, configExport.storage);
-    if (!validationResult.isValid) {
-      throw new ValidationError(`Storage configuration import failed: ${validationResult.errors.join(', ')}`);
-    }
-
-    await this.saveWithVersioning(labId, configExport.storage, 'Storage configuration imported');
-
-    return configExport.storage;
   }
 
   async isHealthy(): Promise<boolean> {

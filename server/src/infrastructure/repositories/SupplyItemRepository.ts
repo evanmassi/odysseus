@@ -58,14 +58,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     return row ? SupplyItemMapper.fromRow(row) : null;
   }
 
-  async findByLabId(labId: string): Promise<SupplyItem[]> {
-    const rows = await this.db.queryMany<SupplyItemRow>(
-      `SELECT ${ITEM_COLUMNS} FROM supply_items WHERE lab_id = $1 ORDER BY name`,
-      [labId]
-    );
-    return SupplyItemMapper.fromRows(rows);
-  }
-
   async findByLabIdWithStock(labId: string): Promise<ItemWithStock[]> {
     const rows = await this.db.queryMany<SupplyItemRow & { total_stock: string; location_names: string[] }>(
       `SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
@@ -86,14 +78,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
       totalStock: parseFloat(row.total_stock),
       locationNames: row.location_names ?? [],
     }));
-  }
-
-  async findByCategoryId(categoryId: string, labId: string): Promise<SupplyItem[]> {
-    const rows = await this.db.queryMany<SupplyItemRow>(
-      `SELECT ${ITEM_COLUMNS} FROM supply_items WHERE category_id = $1 AND lab_id = $2 ORDER BY name`,
-      [categoryId, labId]
-    );
-    return SupplyItemMapper.fromRows(rows);
   }
 
   async save(item: SupplyItem): Promise<void> {
@@ -272,14 +256,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
       [itemId]
     );
     return SupplyStockMapper.fromRows(rows);
-  }
-
-  async getTotalStock(itemId: string): Promise<number> {
-    const row = await this.db.queryOne<{ total: string }>(
-      'SELECT COALESCE(SUM(quantity), 0) as total FROM supply_stock WHERE item_id = $1',
-      [itemId]
-    );
-    return parseFloat(row?.total ?? '0');
   }
 
   // Transactions — atomic: UPSERT stock RETURNING quantity → INSERT transaction

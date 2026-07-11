@@ -49,29 +49,3 @@ export class InvalidCredentialsError extends DomainError {
   }
 }
 
-export class UserInactiveError extends DomainError {
-  readonly code = API_ERROR_CODES.FORBIDDEN;
-  readonly statusCode = 403;
-
-  constructor(username: string) {
-    super(`User '${username}' is inactive`, { username });
-  }
-}
-
-export class SessionExpiredError extends DomainError {
-  readonly code = API_ERROR_CODES.SESSION_EXPIRED;
-  readonly statusCode = 401;
-
-  constructor() {
-    super('Session has expired');
-  }
-}
-
-export class TooManyLoginAttemptsError extends DomainError {
-  readonly code = API_ERROR_CODES.RATE_LIMITED;
-  readonly statusCode = 429;
-
-  constructor(lockoutDuration: number) {
-    super(`Too many failed login attempts. Account locked for ${lockoutDuration} minutes.`, { lockoutDuration });
-  }
-}

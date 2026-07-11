@@ -15,7 +15,7 @@ export class EquipmentItemCreatedEvent extends DomainEvent {
     public readonly createdBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -24,15 +24,6 @@ export class EquipmentItemCreatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.itemId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      name: this.name,
-      categoryId: this.categoryId,
-      createdBy: this.createdBy,
-    };
   }
 }
 
@@ -43,7 +34,7 @@ export class EquipmentItemUpdatedEvent extends DomainEvent {
     public readonly updatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -52,14 +43,6 @@ export class EquipmentItemUpdatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.itemId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      changes: this.changes,
-      updatedBy: this.updatedBy,
-    };
   }
 }
 
@@ -70,7 +53,7 @@ export class EquipmentItemDecommissionedEvent extends DomainEvent {
     public readonly decommissionedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -79,14 +62,6 @@ export class EquipmentItemDecommissionedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.itemId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      reason: this.reason,
-      decommissionedBy: this.decommissionedBy,
-    };
   }
 }
 
@@ -97,7 +72,7 @@ export class EquipmentItemDeletedEvent extends DomainEvent {
     public readonly deletedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -106,14 +81,6 @@ export class EquipmentItemDeletedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.itemId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      name: this.name,
-      deletedBy: this.deletedBy,
-    };
   }
 }
 
@@ -125,7 +92,7 @@ export class EquipmentCategoryCreatedEvent extends DomainEvent {
     public readonly createdBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -134,15 +101,6 @@ export class EquipmentCategoryCreatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.categoryId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      categoryId: this.categoryId,
-      name: this.name,
-      parentId: this.parentId,
-      createdBy: this.createdBy,
-    };
   }
 }
 
@@ -153,7 +111,7 @@ export class EquipmentCategoryUpdatedEvent extends DomainEvent {
     public readonly updatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -162,14 +120,6 @@ export class EquipmentCategoryUpdatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.categoryId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      categoryId: this.categoryId,
-      name: this.name,
-      updatedBy: this.updatedBy,
-    };
   }
 }
 
@@ -180,7 +130,7 @@ export class EquipmentCategoryDeletedEvent extends DomainEvent {
     public readonly deletedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -189,14 +139,6 @@ export class EquipmentCategoryDeletedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.categoryId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      categoryId: this.categoryId,
-      name: this.name,
-      deletedBy: this.deletedBy,
-    };
   }
 }
 
@@ -207,7 +149,7 @@ export class EquipmentDocumentAddedEvent extends DomainEvent {
     public readonly addedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -217,14 +159,6 @@ export class EquipmentDocumentAddedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.itemId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      label: this.label,
-      addedBy: this.addedBy,
-    };
-  }
 }
 
 export class EquipmentDocumentRemovedEvent extends DomainEvent {
@@ -233,7 +167,7 @@ export class EquipmentDocumentRemovedEvent extends DomainEvent {
     public readonly removedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -242,13 +176,6 @@ export class EquipmentDocumentRemovedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.itemId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      removedBy: this.removedBy,
-    };
   }
 }
 
@@ -259,7 +186,7 @@ export class EquipmentMaintenanceUpdatedEvent extends DomainEvent {
     public readonly updatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -268,14 +195,6 @@ export class EquipmentMaintenanceUpdatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.itemId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      maintenanceType: this.maintenanceType,
-      updatedBy: this.updatedBy,
-    };
   }
 }
 
@@ -286,7 +205,7 @@ export class EquipmentMaintenanceDeletedEvent extends DomainEvent {
     public readonly deletedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -295,14 +214,6 @@ export class EquipmentMaintenanceDeletedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.itemId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      maintenanceType: this.maintenanceType,
-      deletedBy: this.deletedBy,
-    };
   }
 }
 
@@ -314,7 +225,7 @@ export class EquipmentBulkMaintenanceLoggedEvent extends DomainEvent {
     public readonly loggedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -323,15 +234,6 @@ export class EquipmentBulkMaintenanceLoggedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return `bulk-${this.itemIds.length}`;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemIds: this.itemIds,
-      maintenanceType: this.maintenanceType,
-      datePerformed: this.datePerformed,
-      loggedBy: this.loggedBy,
-    };
   }
 }
 
@@ -342,7 +244,7 @@ export class EquipmentBulkStatusChangedEvent extends DomainEvent {
     public readonly changedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -351,14 +253,6 @@ export class EquipmentBulkStatusChangedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return `bulk-${this.itemIds.length}`;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemIds: this.itemIds,
-      status: this.status,
-      changedBy: this.changedBy,
-    };
   }
 }
 
@@ -369,7 +263,7 @@ export class EquipmentBulkRelocatedEvent extends DomainEvent {
     public readonly relocatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -378,14 +272,6 @@ export class EquipmentBulkRelocatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return `bulk-${this.itemIds.length}`;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemIds: this.itemIds,
-      categoryId: this.categoryId,
-      relocatedBy: this.relocatedBy,
-    };
   }
 }
 
@@ -397,7 +283,7 @@ export class EquipmentMaintenanceLoggedEvent extends DomainEvent {
     public readonly loggedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -406,14 +292,5 @@ export class EquipmentMaintenanceLoggedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.itemId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      itemId: this.itemId,
-      maintenanceType: this.maintenanceType,
-      datePerformed: this.datePerformed,
-      loggedBy: this.loggedBy,
-    };
   }
 }

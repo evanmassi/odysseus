@@ -86,9 +86,7 @@ export interface SupplyItemRepository {
   // Items
 
   findById(id: string, labId: string): Promise<SupplyItem | null>;
-  findByLabId(labId: string): Promise<SupplyItem[]>;
   findByLabIdWithStock(labId: string): Promise<ItemWithStock[]>;
-  findByCategoryId(categoryId: string, labId: string): Promise<SupplyItem[]>;
   save(item: SupplyItem): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
   hasTransactions(id: string): Promise<boolean>;
@@ -112,7 +110,6 @@ export interface SupplyItemRepository {
   // Stock
 
   findStockByItemId(itemId: string): Promise<SupplyStockRow[]>;
-  getTotalStock(itemId: string): Promise<number>;
 
   // Transactions — recordTransaction is atomic: UPSERT stock RETURNING → INSERT transaction
 

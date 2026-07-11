@@ -74,42 +74,6 @@ describe('Tube', () => {
     });
   });
 
-  describe('updateSample', () => {
-    it('should update sample fields', () => {
-      const tube = createTestTube({ sample: { cellType: 'HeLa', notes: 'old' } });
-      tube.updateSample({ notes: 'new note' });
-      expect(tube.sample.notes).toBe('new note');
-      expect(tube.sample.cellType).toBe('HeLa');
-    });
-
-    it('should clear field when set to null (tri-state)', () => {
-      const tube = createTestTube({ sample: { cellType: 'HeLa', notes: 'remove me' } });
-      tube.updateSample({ notes: null });
-      expect(tube.sample.notes).toBeUndefined();
-    });
-
-    it('should preserve field when omitted', () => {
-      const tube = createTestTube({ sample: { cellType: 'HeLa', notes: 'keep' } });
-      tube.updateSample({ cellType: 'iPSC' });
-      expect(tube.sample.notes).toBe('keep');
-      expect(tube.sample.cellType).toBe('iPSC');
-    });
-  });
-
-  describe('assignToResearcher', () => {
-    it('should assign researcher', () => {
-      const tube = createTestTube();
-      tube.assignToResearcher('res_1');
-      expect(tube.researcherId).toBe('res_1');
-    });
-
-    it('should clear researcher with undefined', () => {
-      const tube = createTestTube({ researcherId: 'res_1' });
-      tube.assignToResearcher(undefined);
-      expect(tube.researcherId).toBeUndefined();
-    });
-  });
-
   describe('lock / unlock', () => {
     it('should return a new locked tube', () => {
       const tube = createTestTube();
@@ -194,35 +158,6 @@ describe('Tube', () => {
     });
   });
 
-  describe('access checks', () => {
-    it('should allow access to unlocked tube', () => {
-      const tube = createTestTube();
-      expect(tube.canBeAccessedBy('anyone')).toBe(true);
-    });
-
-    it('should allow lock owner to access', () => {
-      const locked = createTestTube().lock('user_1');
-      expect(locked.canBeAccessedBy('user_1')).toBe(true);
-    });
-
-    it('should allow shared user to access', () => {
-      const locked = createTestTube().lock('user_1');
-      const shared = locked.shareWith(['user_2']);
-      expect(shared.canBeAccessedBy('user_2')).toBe(true);
-    });
-
-    it('should deny non-shared user access to locked tube', () => {
-      const locked = createTestTube().lock('user_1');
-      expect(locked.canBeAccessedBy('user_3')).toBe(false);
-    });
-
-    it('isLockedBy should identify lock owner', () => {
-      const locked = createTestTube().lock('user_1');
-      expect(locked.isLockedBy('user_1')).toBe(true);
-      expect(locked.isLockedBy('user_2')).toBe(false);
-    });
-  });
-
   describe('update method (PATCH)', () => {
     it('should update location partially', () => {
       const tube = createTestTube();
@@ -252,53 +187,6 @@ describe('Tube', () => {
     });
   });
 
-  describe('location queries', () => {
-    it('should detect same location', () => {
-      const tube1 = createTestTube();
-      const tube2 = createTestTube();
-      expect(tube1.isInSameLocationAs(tube2)).toBe(true);
-    });
-
-    it('should detect different location', () => {
-      const tube1 = createTestTube();
-      const tube2 = createTestTube({ location: { tankId: 'T2', rackId: 'R1', boxId: 'A', position: 1 } });
-      expect(tube1.isInSameLocationAs(tube2)).toBe(false);
-    });
-
-    it('should detect same rack', () => {
-      const tube1 = createTestTube({ location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 1 } });
-      const tube2 = createTestTube({ location: { tankId: 'T1', rackId: 'R1', boxId: 'B', position: 2 } });
-      expect(tube1.isInSameRackAs(tube2)).toBe(true);
-    });
-
-    it('should return location description', () => {
-      const tube = createTestTube();
-      const desc = tube.getLocationDescription();
-      expect(desc).toContain('T1');
-      expect(desc).toContain('R1');
-    });
-  });
-
-  describe('sample queries', () => {
-    it('should check concentration data', () => {
-      const withConc = createTestTube({ sample: { cellType: 'HeLa', concentration: 1.5, concentrationUnit: 'c/mL' } });
-      expect(withConc.hasConcentrationData()).toBe(true);
-
-      const without = createTestTube();
-      expect(without.hasConcentrationData()).toBe(false);
-    });
-
-    it('should check complete sample data', () => {
-      const complete = createTestTube({
-        sample: { cellType: 'HeLa', donorInternalId: 'D1', date: '2024-01-01' },
-      });
-      expect(complete.hasCompleteSampleData()).toBe(true);
-
-      const incomplete = createTestTube({ sample: { cellType: 'HeLa' } });
-      expect(incomplete.hasCompleteSampleData()).toBe(false);
-    });
-  });
-
   describe('toData / fromData roundtrip', () => {
     it('should preserve all fields', () => {
       const original = createTestTube({ labId: 'lab_1', researcherId: 'res_1' });
@@ -323,20 +211,6 @@ describe('Tube', () => {
       expect(restored.lockedBy).toBe('user_1');
       expect(restored.lockNote).toBe('reason');
       expect(restored.sharedWithUserIds).toContain('user_2');
-    });
-  });
-
-  describe('equality', () => {
-    it('should be equal by id', () => {
-      const tube = createTestTube();
-      const same = Tube.fromData(tube.toData());
-      expect(tube.equals(same)).toBe(true);
-    });
-
-    it('should not be equal for different tubes', () => {
-      const tube1 = createTestTube();
-      const tube2 = createTestTube();
-      expect(tube1.equals(tube2)).toBe(false);
     });
   });
 

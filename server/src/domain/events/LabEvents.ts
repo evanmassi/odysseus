@@ -11,7 +11,7 @@ export class LabCreatedEvent extends DomainEvent {
     public readonly labId: string,
     public readonly name: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -20,13 +20,6 @@ export class LabCreatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.labId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      labId: this.labId,
-      name: this.name,
-    };
   }
 }
 
@@ -37,7 +30,7 @@ export class LabRenamedEvent extends DomainEvent {
     public readonly newName: string,
     public readonly renamedBy: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -47,15 +40,6 @@ export class LabRenamedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.labId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      labId: this.labId,
-      oldName: this.oldName,
-      newName: this.newName,
-      renamedBy: this.renamedBy,
-    };
-  }
 }
 
 export class LabActivatedEvent extends DomainEvent {
@@ -63,7 +47,7 @@ export class LabActivatedEvent extends DomainEvent {
     public readonly labId: string,
     public readonly activatedBy: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -73,13 +57,6 @@ export class LabActivatedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.labId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      labId: this.labId,
-      activatedBy: this.activatedBy,
-    };
-  }
 }
 
 export class LabDeactivatedEvent extends DomainEvent {
@@ -87,7 +64,7 @@ export class LabDeactivatedEvent extends DomainEvent {
     public readonly labId: string,
     public readonly deactivatedBy: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -97,13 +74,6 @@ export class LabDeactivatedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.labId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      labId: this.labId,
-      deactivatedBy: this.deactivatedBy,
-    };
-  }
 }
 
 export class InviteCodeCreatedEvent extends DomainEvent {
@@ -112,7 +82,7 @@ export class InviteCodeCreatedEvent extends DomainEvent {
     public readonly labId: string,
     public readonly createdBy: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -121,39 +91,5 @@ export class InviteCodeCreatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.codeId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      codeId: this.codeId,
-      labId: this.labId,
-      createdBy: this.createdBy,
-    };
-  }
-}
-
-export class InviteCodeUsedEvent extends DomainEvent {
-  constructor(
-    public readonly codeId: string,
-    public readonly labId: string,
-    public readonly userId: string
-  ) {
-    super(1, labId);
-  }
-
-  eventName(): string {
-    return 'InviteCodeUsed';
-  }
-
-  getAggregateId(): string {
-    return this.codeId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      codeId: this.codeId,
-      labId: this.labId,
-      userId: this.userId,
-    };
   }
 }

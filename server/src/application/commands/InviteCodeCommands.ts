@@ -4,6 +4,7 @@
  * Manages invite code lifecycle for lab registration.
  */
 
+import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import { requireUser } from '@application/guards/UserGuards';
 import { InviteCode } from '@domain/entities/InviteCode';
@@ -15,8 +16,6 @@ import type { InviteCodeRepository } from '@domain/repositories/InviteCodeReposi
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-
-// COMMAND INTERFACES
 
 export interface CreateInviteCodeCommand {
   userId: string;
@@ -31,8 +30,6 @@ export interface DeactivateInviteCodeCommand {
   userId: string;
   codeId: string;
 }
-
-// COMMAND HANDLERS
 
 export class CreateInviteCodeCommandHandler {
   constructor(
@@ -112,19 +109,16 @@ export class DeactivateInviteCodeCommandHandler {
   async handle(command: DeactivateInviteCodeCommand): Promise<void> {
     const user = await requireUser(this.userRepository, command.userId);
 
-    const inviteCode = await this.inviteCodeRepository.findById(command.codeId);
-    if (!inviteCode) {
-      throw NotFoundError.forEntity('InviteCode', command.codeId);
+    if (!user.isSystemAdmin() && !user.isLabAdmin()) {
+      throw new PermissionError('Only admins can manage invite codes', { userId: command.userId });
     }
 
-    if (!user.isSystemAdmin()) {
-      if (user.isLabAdmin()) {
-        if (user.labId !== inviteCode.labId) {
-          throw NotFoundError.forEntity('InviteCode', command.codeId);
-        }
-      } else {
-        throw new PermissionError('Only admins can manage invite codes', { userId: command.userId });
-      }
+    const inviteCode = await findByIdForRequester(this.inviteCodeRepository, command.codeId, {
+      labId: user.labId,
+      isSystemAdmin: user.isSystemAdmin(),
+    });
+    if (!inviteCode) {
+      throw NotFoundError.forEntity('InviteCode', command.codeId);
     }
 
     if (!inviteCode.isActive) {

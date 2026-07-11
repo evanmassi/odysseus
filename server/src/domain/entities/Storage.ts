@@ -12,6 +12,7 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { ValidationError } from '@domain/errors/ValidationError';
+import type { StorageImportData } from '@domain/types/storageTypes';
 import { generateId } from '@domain/utils/generateId';
 import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/value-objects/Equipment';
 import type { Location } from '@domain/value-objects/Location';
@@ -55,50 +56,35 @@ export class Storage {
     return new Storage(equipment, systemSettings, new Date(), 1);
   }
 
-  static fromData(data: {
-    tanks: Array<{
-      id: string;
-      name: string;
-      location?: string;
-      racks: Array<{
-        id: number | string;
-        name: string;
-        boxes: Array<{
-          name: string;
-          gridConfig?: { rows: number; cols: number };
-          maxPositions?: number;
-          positionDisplay?: PositionDisplayConfig;
-          isActive?: boolean;
-          assignedUserId?: string | null;
-          customLabel?: string;
-          sharedWithUserIds?: string[];
-          isSeeded?: boolean;
-        }>;
-        maxBoxes?: number;
-        capacity?: number;
-        isActive?: boolean;
-        assignedUserId?: string;
-        customLabel?: string;
-        sharedWithUserIds?: string[];
-        isSeeded?: boolean;
-      }>;
-      maxRacks?: number;
-      isActive?: boolean;
-      isSeeded?: boolean;
-    }>;
-    systemSettings: {
-      labName: string;
-      defaultResearcher: string;
-      autoSave: boolean;
-      auditTrailEnabled: boolean;
-      syncEnabled: boolean;
-      defaultPositionDisplay?: PositionDisplayConfig;
-    };
-    updatedAt?: string;
-    version?: number;
-  }): Storage {
-    // Reconstruct tanks with nested racks and boxes
-    const tanks = data.tanks.map(tankData => {
+  static fromData(data: StorageImportData): Storage {
+    const equipment = EquipmentConfiguration.create(Storage.reconstructTanks(data.tanks));
+    const systemSettings = SystemSettings.fromData(data.systemSettings);
+
+    return new Storage(
+      equipment,
+      systemSettings,
+      data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      data.version ?? 1
+    );
+  }
+
+  private validate(): void {
+    if (this._version < 1) {
+      throw new ValidationError('Storage configuration version must be at least 1');
+    }
+  }
+
+  /** Handles legacy data migration where old capacity=9 but new boxes.length=10 */
+  private static effectiveRackCapacity(
+    boxCount: number,
+    maxBoxes: number | undefined,
+    capacity: number | undefined
+  ): number {
+    return Math.max(boxCount, maxBoxes ?? 0, capacity ?? 0, EQUIPMENT_DEFAULTS.BOXES_PER_RACK);
+  }
+
+  private static reconstructTanks(tanksData: StorageImportData['tanks']): Tank[] {
+    return tanksData.map(tankData => {
       const racks = tankData.racks.map(rackData => {
         const boxes = rackData.boxes.map(boxData =>
           Box.create({
@@ -134,38 +120,13 @@ export class Storage {
         id: tankData.id,
         name: tankData.name,
         racks,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- 0/empty maxRacks and empty racks array must fall through to the default
         maxRacks: tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
         isActive: tankData.isActive,
         location: tankData.location,
         isSeeded: tankData.isSeeded,
       });
     });
-
-    const equipment = EquipmentConfiguration.create(tanks);
-    const systemSettings = SystemSettings.fromData(data.systemSettings);
-
-    return new Storage(
-      equipment,
-      systemSettings,
-      data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      data.version ?? 1
-    );
-  }
-
-  private validate(): void {
-    if (this._version < 1) {
-      throw new ValidationError('Storage configuration version must be at least 1');
-    }
-  }
-
-  /** Handles legacy data migration where old capacity=9 but new boxes.length=10 */
-  private static effectiveRackCapacity(
-    boxCount: number,
-    maxBoxes: number | undefined,
-    capacity: number | undefined
-  ): number {
-    return Math.max(boxCount, maxBoxes ?? 0, capacity ?? 0, EQUIPMENT_DEFAULTS.BOXES_PER_RACK);
   }
 
   addTank(id: string, name: string, maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK): Tank {
@@ -176,7 +137,6 @@ export class Storage {
       throw new ValidationError(`Tank with ID '${id}' already exists`);
     }
 
-    // Recreate equipment configuration with new tank
     const newTanks = [...this._equipment.tanks, newTank];
     this._equipment = EquipmentConfiguration.create(newTanks);
 
@@ -212,7 +172,6 @@ export class Storage {
     const newRacks = [...tank.racks, newRack] as Rack[];
     const newMaxRacks = Math.max(tank.maxRacks, newRacks.length);
 
-    // Recreate tank with new rack
     const updatedTank = Tank.create({
       id: tank.id,
       name: tank.name,
@@ -223,7 +182,6 @@ export class Storage {
       isSeeded: tank.isSeeded,
     });
 
-    // Recreate equipment with updated tank
     const newTanks = [...this._equipment.tanks];
     newTanks[tankIndex] = updatedTank;
     this._equipment = EquipmentConfiguration.create(newTanks);
@@ -260,7 +218,6 @@ export class Storage {
     const newBoxes = [...rack.boxes, newBox] as Box[];
     const newCapacity = Math.max(rack.maxBoxes, newBoxes.length);
 
-    // Recreate rack with new box
     const updatedRack = Rack.create({
       id: rack.id,
       name: rack.name,
@@ -274,7 +231,6 @@ export class Storage {
       isSeeded: rack.isSeeded,
     });
 
-    // Recreate tank with updated rack
     const newRacks = [...tank.racks];
     newRacks[rackIndex] = updatedRack;
     const updatedTank = Tank.create({
@@ -287,26 +243,12 @@ export class Storage {
       isSeeded: tank.isSeeded,
     });
 
-    // Recreate equipment with updated tank
     const newTanks = [...this._equipment.tanks];
     newTanks[tankIndex] = updatedTank;
     this._equipment = EquipmentConfiguration.create(newTanks);
 
     this.touch();
     return newBox;
-  }
-
-  removeTank(tankId: string): void {
-    const tank = this._equipment.tanks.find(t => t.id === tankId);
-    if (!tank) {
-      throw new ValidationError(`Tank '${tankId}' not found`);
-    }
-
-    // Remove tank (racks and boxes are automatically removed via composition)
-    const remainingTanks = this._equipment.tanks.filter(t => t.id !== tankId);
-    this._equipment = EquipmentConfiguration.create(remainingTanks);
-
-    this.touch();
   }
 
   updateSystemSettings(updates: {
@@ -320,96 +262,6 @@ export class Storage {
     return new Storage(
       this._equipment,
       newSystemSettings,
-      new Date(),
-      this._version
-    );
-  }
-
-  updateTanks(tanks: Tank[]): Storage {
-    const newEquipment = EquipmentConfiguration.create(tanks);
-    return new Storage(
-      newEquipment,
-      this._systemSettings,
-      new Date(),
-      this._version
-    );
-  }
-
-  updateRacks(tankId: string, racks: Rack[]): Storage {
-    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
-    if (tankIndex === -1) {
-      throw new ValidationError(`Tank '${tankId}' not found`);
-    }
-
-    const tank = this._equipment.tanks[tankIndex];
-    const updatedTank = Tank.create({
-      id: tank.id,
-      name: tank.name,
-      racks,
-      maxRacks: tank.maxRacks,
-      isActive: tank.isActive,
-      location: tank.location,
-      isSeeded: tank.isSeeded,
-    });
-
-    const newTanks = [...this._equipment.tanks];
-    newTanks[tankIndex] = updatedTank;
-
-    const newEquipment = EquipmentConfiguration.create(newTanks);
-    return new Storage(
-      newEquipment,
-      this._systemSettings,
-      new Date(),
-      this._version
-    );
-  }
-
-  updateBoxes(tankId: string, rackId: string, boxes: Box[]): Storage {
-    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
-    if (tankIndex === -1) {
-      throw new ValidationError(`Tank '${tankId}' not found`);
-    }
-
-    const tank = this._equipment.tanks[tankIndex];
-    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
-    if (rackIndex === -1) {
-      throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
-    }
-
-    const rack = tank.racks[rackIndex];
-    const updatedRack = Rack.create({
-      id: rack.id,
-      name: rack.name,
-      boxes,
-      maxBoxes: rack.maxBoxes,
-      capacity: rack.capacity,
-      isActive: rack.isActive,
-      assignedUserId: rack.assignedUserId,
-      customLabel: rack.customLabel,
-      sharedWithUserIds: rack.sharedWithUserIds,
-      isSeeded: rack.isSeeded,
-    });
-
-    const newRacks = [...tank.racks];
-    newRacks[rackIndex] = updatedRack;
-
-    const updatedTank = Tank.create({
-      id: tank.id,
-      name: tank.name,
-      racks: newRacks as Rack[],
-      maxRacks: tank.maxRacks,
-      isActive: tank.isActive,
-      location: tank.location,
-      isSeeded: tank.isSeeded,
-    });
-
-    const newTanks = [...this._equipment.tanks];
-    newTanks[tankIndex] = updatedTank;
-
-    const newEquipment = EquipmentConfiguration.create(newTanks);
-    return new Storage(
-      newEquipment,
-      this._systemSettings,
       new Date(),
       this._version
     );
@@ -483,14 +335,11 @@ export class Storage {
       isSeeded: tank.isSeeded,
     });
 
-    // Create new tanks array with updated tank
     const newTanks = [...this._equipment.tanks];
     newTanks[tankIndex] = updatedTank;
 
-    // Create new equipment configuration
     const newEquipment = EquipmentConfiguration.create(newTanks);
 
-    // Return new Storage instance (immutability)
     return new Storage(
       newEquipment,
       this._systemSettings,
@@ -513,7 +362,6 @@ export class Storage {
 
     const rack = tank.racks[rackIndex];
 
-    // Check if any boxes need label clearing
     const hasInheritingBoxesWithLabels = rack.boxes.some(
       box => !box.assignedUserId && box.customLabel
     );
@@ -563,7 +411,6 @@ export class Storage {
       isSeeded: tank.isSeeded,
     });
 
-    // Rebuild equipment with updated tank
     const updatedTanks = [...this._equipment.tanks];
     updatedTanks[tankIndex] = updatedTank;
 
@@ -703,7 +550,7 @@ export class Storage {
     }
 
     const rack = tank.racks[rackIndex];
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- an empty trimmed string must become undefined, not stay ''
     const normalizedLabel = customLabel?.trim() || undefined;
 
     if (resourceType === 'rack') {
@@ -850,115 +697,8 @@ export class Storage {
     );
   }
 
-  locationExists(tankId: string, rackId: string, boxId: string, position: number): boolean {
-    return this._equipment.isLocationValid(tankId, rackId, boxId, position);
-  }
-
-  getAvailablePositions(tankId: string, rackId: string, boxId: string, occupiedPositions: number[]): number[] {
-    const tank = this._equipment.tanks.find(t => t.id === tankId);
-    if (!tank) return [];
-
-    const rack = tank.racks.find(r => r.id === rackId);
-    if (!rack) return [];
-
-    const box = rack.boxes.find(b => b.name === boxId.toUpperCase() && b.isActive);
-    if (!box) return [];
-
-    const allPositions: number[] = [];
-    for (let i = 1; i <= box.maxPositions; i++) {
-      if (!occupiedPositions.includes(i)) {
-        allPositions.push(i);
-      }
-    }
-
-    return allPositions;
-  }
-
-  public updateFromData(data: {
-    tanks: Array<{
-      id: string;
-      name: string;
-      location?: string;
-      racks: Array<{
-        id: number | string;
-        name: string;
-        boxes: Array<{
-          name: string;
-          gridConfig?: { rows: number; cols: number };
-          maxPositions?: number;
-          positionDisplay?: PositionDisplayConfig;
-          isActive?: boolean;
-          assignedUserId?: string | null;
-          customLabel?: string;
-          sharedWithUserIds?: string[];
-          isSeeded?: boolean;
-        }>;
-        maxBoxes?: number;
-        capacity?: number;
-        isActive?: boolean;
-        assignedUserId?: string;
-        customLabel?: string;
-        sharedWithUserIds?: string[];
-        isSeeded?: boolean;
-      }>;
-      maxRacks?: number;
-      isActive?: boolean;
-      isSeeded?: boolean;
-    }>;
-    systemSettings: {
-      labName: string;
-      defaultResearcher: string;
-      autoSave: boolean;
-      auditTrailEnabled: boolean;
-      syncEnabled: boolean;
-      defaultPositionDisplay?: PositionDisplayConfig;
-    };
-  }): void {
-    const tanks = data.tanks.map(tankData => {
-      const racks = tankData.racks.map(rackData => {
-        const boxes = rackData.boxes.map(boxData =>
-          Box.create({
-            name: boxData.name,
-            gridConfig: boxData.gridConfig,
-            maxPositions: boxData.maxPositions,
-            positionDisplay: boxData.positionDisplay,
-            isActive: boxData.isActive,
-            assignedUserId: boxData.assignedUserId,
-            customLabel: boxData.customLabel,
-            sharedWithUserIds: boxData.sharedWithUserIds,
-            isSeeded: boxData.isSeeded,
-          })
-        );
-
-        const effectiveCapacity = Storage.effectiveRackCapacity(boxes.length, rackData.maxBoxes, rackData.capacity);
-
-        return Rack.create({
-          id: rackData.id,
-          name: rackData.name,
-          boxes,
-          maxBoxes: effectiveCapacity,
-          capacity: effectiveCapacity,
-          isActive: rackData.isActive,
-          assignedUserId: rackData.assignedUserId,
-          customLabel: rackData.customLabel,
-          sharedWithUserIds: rackData.sharedWithUserIds,
-          isSeeded: rackData.isSeeded,
-        });
-      });
-
-      return Tank.create({
-        id: tankData.id,
-        name: tankData.name,
-        racks,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        maxRacks: tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-        isActive: tankData.isActive,
-        location: tankData.location,
-        isSeeded: tankData.isSeeded,
-      });
-    });
-
-    this._equipment = EquipmentConfiguration.create(tanks);
+  public updateFromData(data: Omit<StorageImportData, 'updatedAt' | 'version'>): void {
+    this._equipment = EquipmentConfiguration.create(Storage.reconstructTanks(data.tanks));
     this._systemSettings = SystemSettings.fromData(data.systemSettings);
 
     this.touch();
@@ -1111,44 +851,12 @@ export class Storage {
     };
   }
 
-  toApiData(): {
-    equipment: {
-      tanks: ReturnType<Tank['toData']>[];
-    };
-    systemSettings: {
-      labName: string;
-      defaultResearcher: string;
-      autoSave: boolean;
-      auditTrailEnabled: boolean;
-      syncEnabled: boolean;
-      defaultPositionDisplay?: PositionDisplayConfig;
-    };
-    metadata: {
-      updatedAt: string;
-      version: number;
-    };
-  } {
-    const data = this.toData();
-
-    return {
-      equipment: {
-        tanks: data.tanks
-      },
-      systemSettings: data.systemSettings,
-      metadata: {
-        updatedAt: data.updatedAt,
-        version: data.version
-      }
-    };
-  }
-
   // Getters
   get equipment(): EquipmentConfiguration { return this._equipment; }
   get systemSettings(): SystemSettings { return this._systemSettings; }
   get updatedAt(): Date { return new Date(this._updatedAt); }
   get version(): number { return this._version; }
 
-  // Convenience getter for tanks
   get tanks(): readonly Tank[] { return this._equipment.tanks; }
 }
 

@@ -24,7 +24,7 @@ export class StorageUpdatedEvent extends DomainEvent {
     },
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -44,7 +44,7 @@ export class TankUpdatedEvent extends DomainEvent {
     public readonly changes: FieldChange[],
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -63,7 +63,7 @@ export class TankAddedEvent extends DomainEvent {
     public readonly tankName: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -82,7 +82,7 @@ export class TankDeletedEvent extends DomainEvent {
     public readonly tankName: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -103,7 +103,7 @@ export class RackAddedEvent extends DomainEvent {
     public readonly rackName: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -124,7 +124,7 @@ export class RackDeletedEvent extends DomainEvent {
     public readonly rackName: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -146,7 +146,7 @@ export class RackUpdatedEvent extends DomainEvent {
     public readonly changes: FieldChange[],
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -169,7 +169,7 @@ export class BoxAddedEvent extends DomainEvent {
     public readonly boxName: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -192,7 +192,7 @@ export class BoxDeletedEvent extends DomainEvent {
     public readonly boxName: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -216,7 +216,7 @@ export class BoxUpdatedEvent extends DomainEvent {
     public readonly changes: FieldChange[],
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -235,7 +235,7 @@ export class LabNameChangedEvent extends DomainEvent {
     public readonly newName: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -258,7 +258,7 @@ export class RackAssignedEvent extends DomainEvent {
     public readonly assignedUsername: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -281,7 +281,7 @@ export class RackUnassignedEvent extends DomainEvent {
     public readonly previousUsername: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -306,7 +306,7 @@ export class RackReassignedEvent extends DomainEvent {
     public readonly newUsername: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -331,7 +331,7 @@ export class BoxAssignedEvent extends DomainEvent {
     public readonly assignedUsername: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -356,7 +356,7 @@ export class BoxUnassignedEvent extends DomainEvent {
     public readonly previousUsername: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -383,7 +383,7 @@ export class BoxReassignedEvent extends DomainEvent {
     public readonly newUsername: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -406,7 +406,7 @@ export class RackLabelUpdatedEvent extends DomainEvent {
     public readonly newLabel: string | undefined,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -431,7 +431,7 @@ export class BoxLabelUpdatedEvent extends DomainEvent {
     public readonly newLabel: string | undefined,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -452,7 +452,7 @@ export class BulkResourcesUnassignedEvent extends DomainEvent {
     public readonly boxesAffected: number,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -475,7 +475,7 @@ export class BulkResourcesReassignedEvent extends DomainEvent {
     public readonly boxesAffected: number,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {

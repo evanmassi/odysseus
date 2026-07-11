@@ -157,18 +157,4 @@ describe('InviteCode', () => {
       expect(restored.expiresAt).toBeUndefined();
     });
   });
-
-  describe('equals', () => {
-    it('should be equal when IDs match', () => {
-      const code = InviteCode.create('lab_1', 'user_admin');
-      const same = InviteCode.fromData(code.toData());
-      expect(code.equals(same)).toBe(true);
-    });
-
-    it('should not be equal for different invite codes', () => {
-      const code1 = InviteCode.create('lab_1', 'user_admin');
-      const code2 = InviteCode.create('lab_1', 'user_admin');
-      expect(code1.equals(code2)).toBe(false);
-    });
-  });
 });

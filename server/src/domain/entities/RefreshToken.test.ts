@@ -142,32 +142,6 @@ describe('RefreshToken', () => {
     });
   });
 
-  describe('isRecentlyUsed', () => {
-    it('should return false when never used', () => {
-      const token = RefreshToken.create('user_123');
-      expect(token.isRecentlyUsed()).toBe(false);
-    });
-
-    it('should return true immediately after usage', () => {
-      const token = RefreshToken.create('user_123');
-      token.recordUsage();
-      expect(token.isRecentlyUsed()).toBe(true);
-    });
-
-    it('should return false when lastUsedAt is older than 5 minutes', () => {
-      const now = new Date();
-      const token = RefreshToken.fromData({
-        id: 'refresh_test',
-        userId: 'user_123',
-        token: 'a'.repeat(64),
-        expiresAt: new Date(now.getTime() + 86400000),
-        createdAt: new Date(now.getTime() - 86400000),
-        lastUsedAt: new Date(now.getTime() - 6 * 60 * 1000),
-      });
-      expect(token.isRecentlyUsed()).toBe(false);
-    });
-  });
-
   describe('recordUsage', () => {
     it('should update lastUsedAt', () => {
       const token = RefreshToken.create('user_123');
@@ -201,46 +175,6 @@ describe('RefreshToken', () => {
       expect(token.isRevoked).toBe(false);
       token.revoke();
       expect(token.isRevoked).toBe(true);
-    });
-  });
-
-  describe('isNearingExpiry', () => {
-    it('should return false for token with many days left', () => {
-      const token = RefreshToken.create('user_123', 30);
-      expect(token.isNearingExpiry()).toBe(false);
-    });
-
-    it('should return true for token expiring within 24 hours', () => {
-      const now = new Date();
-      const token = RefreshToken.fromData({
-        id: 'refresh_test',
-        userId: 'user_123',
-        token: 'a'.repeat(64),
-        expiresAt: new Date(now.getTime() + 12 * 60 * 60 * 1000), // 12 hours
-        createdAt: new Date(now.getTime() - 86400000),
-      });
-      expect(token.isNearingExpiry()).toBe(true);
-    });
-  });
-
-  describe('timeUntilExpiry / daysUntilExpiry', () => {
-    it('should return positive values for valid token', () => {
-      const token = RefreshToken.create('user_123', 7);
-      expect(token.timeUntilExpiry).toBeGreaterThan(0);
-      expect(token.daysUntilExpiry).toBeGreaterThanOrEqual(6);
-    });
-
-    it('should return 0 for expired token', () => {
-      const now = new Date();
-      const token = RefreshToken.fromData({
-        id: 'refresh_test',
-        userId: 'user_123',
-        token: 'a'.repeat(64),
-        expiresAt: new Date(now.getTime() - 1000),
-        createdAt: new Date(now.getTime() - 86400000),
-      });
-      expect(token.timeUntilExpiry).toBe(0);
-      expect(token.daysUntilExpiry).toBe(0);
     });
   });
 
@@ -285,33 +219,6 @@ describe('RefreshToken', () => {
     });
   });
 
-  describe('toSecureData', () => {
-    it('should omit the token value', () => {
-      const token = RefreshToken.create('user_123');
-      const secure = token.toSecureData();
-      expect(secure).not.toHaveProperty('token');
-      expect(secure.id).toBe(token.id);
-      expect(secure.userId).toBe('user_123');
-      expect(secure.isValid).toBe(true);
-      expect(secure.daysUntilExpiry).toBeGreaterThanOrEqual(6);
-    });
-  });
-
-  describe('equals', () => {
-    it('should return true for same id and token', () => {
-      const token = RefreshToken.create('user_123');
-      const data = token.toData();
-      const same = RefreshToken.fromData(data);
-      expect(token.equals(same)).toBe(true);
-    });
-
-    it('should return false for different tokens', () => {
-      const a = RefreshToken.create('user_123');
-      const b = RefreshToken.create('user_123');
-      expect(a.equals(b)).toBe(false);
-    });
-  });
-
   describe('date immutability', () => {
     it('should return copies of expiresAt', () => {
       const token = RefreshToken.create('user_123');
@@ -336,17 +243,6 @@ describe('RefreshToken', () => {
       const date2 = token.lastUsedAt;
       expect(date1).not.toBe(date2);
       expect(date1!.getTime()).toBe(date2!.getTime());
-    });
-  });
-
-  describe('toString', () => {
-    it('should include id, userId, validity, and expiry', () => {
-      const token = RefreshToken.create('user_123');
-      const str = token.toString();
-      expect(str).toContain('RefreshToken(');
-      expect(str).toContain(token.id);
-      expect(str).toContain('user_123');
-      expect(str).toContain('valid=true');
     });
   });
 });

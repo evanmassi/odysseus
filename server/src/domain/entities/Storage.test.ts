@@ -3,7 +3,6 @@
  */
 
 import { Storage } from './Storage';
-import { Box, Rack, Tank } from '@domain/value-objects/Equipment';
 import { generateId } from '@domain/utils/generateId';
 
 function createMinimalStorage(): Storage {
@@ -183,21 +182,6 @@ describe('Storage', () => {
     });
   });
 
-  describe('removeTank', () => {
-    it('should remove an existing tank', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      storage.removeTank(tankId);
-      expect(storage.tanks).toHaveLength(0);
-    });
-
-    it('should throw for non-existent tank', () => {
-      const storage = createMinimalStorage();
-      expect(() => storage.removeTank('bad_id'))
-        .toThrow("Tank 'bad_id' not found");
-    });
-  });
-
   describe('updateSystemSettings', () => {
     it('should return new Storage with updated settings', () => {
       const storage = createMinimalStorage();
@@ -212,57 +196,6 @@ describe('Storage', () => {
       const updated = storage.updateSystemSettings({ labName: 'New Lab' });
       expect(updated.systemSettings.autoSave).toBe(true);
       expect(updated.systemSettings.syncEnabled).toBe(true);
-    });
-  });
-
-  describe('updateTanks', () => {
-    it('should return new Storage with replaced tanks', () => {
-      const storage = createMinimalStorage();
-      const newTank = Tank.create({ id: generateId('tank'), name: 'Custom Tank' });
-      const updated = storage.updateTanks([newTank]);
-      expect(updated.tanks).toHaveLength(1);
-      expect(updated.tanks[0].name).toBe('Custom Tank');
-    });
-  });
-
-  describe('updateRacks', () => {
-    it('should return new Storage with replaced racks for a tank', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const newRack = Rack.create({ id: generateId('rack'), name: 'Custom Rack' });
-      const updated = storage.updateRacks(tankId, [newRack]);
-      expect(updated.tanks[0].racks).toHaveLength(1);
-      expect(updated.tanks[0].racks[0].name).toBe('Custom Rack');
-    });
-
-    it('should throw for non-existent tank', () => {
-      const storage = createMinimalStorage();
-      expect(() => storage.updateRacks('bad_id', []))
-        .toThrow("Tank 'bad_id' not found");
-    });
-  });
-
-  describe('updateBoxes', () => {
-    it('should return new Storage with replaced boxes for a rack', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const newBox = Box.create({ name: 'A' });
-      const updated = storage.updateBoxes(tankId, rackId, [newBox]);
-      expect(updated.tanks[0].racks[0].boxes).toHaveLength(1);
-    });
-
-    it('should throw for non-existent tank', () => {
-      const storage = createMinimalStorage();
-      expect(() => storage.updateBoxes('bad', 'bad', []))
-        .toThrow("Tank 'bad' not found");
-    });
-
-    it('should throw for non-existent rack', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      expect(() => storage.updateBoxes(tankId, 'bad', []))
-        .toThrow('not found');
     });
   });
 
@@ -546,61 +479,6 @@ describe('Storage', () => {
     });
   });
 
-  describe('isLocationValid / locationExists', () => {
-    it('should validate a valid location', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      expect(storage.locationExists(tankId, rackId, 'A', 1)).toBe(true);
-    });
-
-    it('should reject invalid tank', () => {
-      const storage = createMinimalStorage();
-      expect(storage.locationExists('bad', 'bad', 'A', 1)).toBe(false);
-    });
-  });
-
-  describe('getAvailablePositions', () => {
-    it('should return all positions when none occupied', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const positions = storage.getAvailablePositions(tankId, rackId, 'A', []);
-      expect(positions).toHaveLength(81); // 9x9
-      expect(positions[0]).toBe(1);
-      expect(positions[80]).toBe(81);
-    });
-
-    it('should exclude occupied positions', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const positions = storage.getAvailablePositions(tankId, rackId, 'A', [1, 5, 10]);
-      expect(positions).toHaveLength(78);
-      expect(positions).not.toContain(1);
-      expect(positions).not.toContain(5);
-      expect(positions).not.toContain(10);
-    });
-
-    it('should return empty array for non-existent tank', () => {
-      const storage = createMinimalStorage();
-      expect(storage.getAvailablePositions('bad', 'bad', 'A', [])).toEqual([]);
-    });
-
-    it('should return empty array for non-existent rack', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      expect(storage.getAvailablePositions(tankId, 'bad', 'A', [])).toEqual([]);
-    });
-
-    it('should return empty array for non-existent box', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      expect(storage.getAvailablePositions(tankId, rackId, 'Z', [])).toEqual([]);
-    });
-  });
-
   describe('updateFromData', () => {
     it('should replace equipment and system settings', () => {
       const storage = createMinimalStorage();
@@ -706,18 +584,6 @@ describe('Storage', () => {
       expect(storage.version).toBe(1);
       storage.applyPersistedVersion(42);
       expect(storage.version).toBe(42);
-    });
-  });
-
-  describe('toApiData', () => {
-    it('should return structured API response format', () => {
-      const storage = createMinimalStorage();
-      const api = storage.toApiData();
-
-      expect(api.equipment.tanks).toHaveLength(1);
-      expect(api.systemSettings.labName).toBe('Standard Laboratory');
-      expect(api.metadata.version).toBe(1);
-      expect(api.metadata.updatedAt).toBeDefined();
     });
   });
 

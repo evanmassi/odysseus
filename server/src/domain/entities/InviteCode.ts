@@ -160,11 +160,6 @@ export class InviteCode {
     };
   }
 
-  equals(other: InviteCode): boolean {
-    if (!other) return false;
-    return this._id === other._id;
-  }
-
   get id(): string { return this._id; }
   get labId(): string { return this._labId; }
   get code(): string { return this._code; }

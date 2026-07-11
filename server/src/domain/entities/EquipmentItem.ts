@@ -5,12 +5,10 @@
  * and decommission lifecycle support.
  */
 
+import { equipmentStatusValues, type EquipmentStatus } from '@odysseus/shared-schemas';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
-
-import type { EquipmentStatus } from '@odysseus/shared-schemas';
-
-const VALID_STATUSES: EquipmentStatus[] = ['active', 'inactive', 'under_maintenance', 'out_of_service', 'decommissioned'];
 
 interface ItemCreateData {
   labId: string;
@@ -162,7 +160,7 @@ export class EquipmentItem {
     if (!this._categoryId) {
       throw new ValidationError('Category is required');
     }
-    if (!VALID_STATUSES.includes(this._status)) {
+    if (!equipmentStatusValues.includes(this._status)) {
       throw new ValidationError(`Invalid equipment status: ${this._status}`);
     }
   }

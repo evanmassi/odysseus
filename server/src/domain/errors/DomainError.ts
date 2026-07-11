@@ -20,6 +20,7 @@ export abstract class DomainError extends Error {
     }
   }
 
+  // Invoked implicitly when a domain error is JSON.stringify'd into log meta (see infrastructure/logging/logger.ts printf).
   toJSON(): {
     error: string;
     code: string;

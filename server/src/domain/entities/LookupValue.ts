@@ -1,7 +1,7 @@
 /**
  * Admin-Managed Dropdown Option
  *
- * Represents a selectable value for tube metadata fields (species, source, media).
+ * Represents a selectable value for a lab-managed metadata field (tube species, supply vendor, maintenance type, etc.).
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';

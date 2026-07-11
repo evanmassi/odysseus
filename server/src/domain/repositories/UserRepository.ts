@@ -8,16 +8,11 @@ import type { User } from '@domain/entities/User';
 
 export interface UserRepository {
 
-  // BASIC CRUD OPERATIONS
-
   /** Lab-scoped lookup — the default. Returns null for a user in another lab. */
   findById(id: string, labId: string): Promise<User | null>;
 
   /** Cross-lab lookup for identity/auth and system-admin paths only. Prefer findById. */
   findByIdAnyLab(id: string): Promise<User | null>;
-
-  /** Primary authentication lookup. */
-  findByApiKey(apiKey: string): Promise<User | null>;
 
   findByUsername(username: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
@@ -36,9 +31,6 @@ export interface UserRepository {
 
   delete(id: string, labId: string): Promise<boolean>;
 
-  // AUTHENTICATION OPERATIONS
-
-  apiKeyExists(apiKey: string): Promise<boolean>;
   usernameExists(username: string): Promise<boolean>;
   emailExists(email: string): Promise<boolean>;
 
@@ -52,8 +44,6 @@ export interface UserRepository {
   findByLabId(labId: string): Promise<User[]>;
   findByStatusInLab(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended', labId: string): Promise<User[]>;
   countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number>;
-
-  // MAINTENANCE OPERATIONS
 
   isHealthy(): Promise<boolean>;
 }

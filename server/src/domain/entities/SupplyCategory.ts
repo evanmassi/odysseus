@@ -81,11 +81,6 @@ export class SupplyCategory {
     this._updatedAt = new Date();
   }
 
-  reorder(sortOrder: number): void {
-    this._sortOrder = sortOrder;
-    this._updatedAt = new Date();
-  }
-
   get id(): string { return this._id; }
   get labId(): string { return this._labId; }
   get name(): string { return this._name; }

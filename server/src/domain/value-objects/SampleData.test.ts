@@ -23,7 +23,7 @@ describe('SampleData', () => {
     });
 
     it('should create empty sample', () => {
-      const sample = SampleData.empty();
+      const sample = SampleData.create({});
       expect(sample.cellType).toBeUndefined();
       expect(sample.concentration).toBeUndefined();
     });
@@ -200,53 +200,6 @@ describe('SampleData', () => {
       const updated = base.update({ cellType: 'Jurkat' });
       expect(base.cellType).toBe('HeLa');
       expect(updated.cellType).toBe('Jurkat');
-    });
-  });
-
-  describe('hasConcentration', () => {
-    it('should return true when both concentration and unit are set', () => {
-      const sample = SampleData.create({ concentration: 10, concentrationUnit: 'c/mL' });
-      expect(sample.hasConcentration()).toBe(true);
-    });
-
-    it('should return false for empty sample', () => {
-      expect(SampleData.empty().hasConcentration()).toBe(false);
-    });
-  });
-
-  describe('isExpired', () => {
-    it('should return false when no date', () => {
-      expect(SampleData.empty().isExpired()).toBe(false);
-    });
-
-    it('should return true for sample older than 2 years', () => {
-      const oldDate = new Date();
-      oldDate.setFullYear(oldDate.getFullYear() - 3);
-      const sample = SampleData.create({ date: oldDate.toISOString() });
-      expect(sample.isExpired()).toBe(true);
-    });
-
-    it('should return false for recent sample', () => {
-      const recent = new Date();
-      recent.setMonth(recent.getMonth() - 6);
-      const sample = SampleData.create({ date: recent.toISOString() });
-      expect(sample.isExpired()).toBe(false);
-    });
-  });
-
-  describe('isComplete', () => {
-    it('should return true when cellType, donorInternalId, and date are set', () => {
-      const sample = SampleData.create({
-        cellType: 'HeLa',
-        donorInternalId: 'D001',
-        date: '2024-01-01',
-      });
-      expect(sample.isComplete()).toBe(true);
-    });
-
-    it('should return false when missing required fields', () => {
-      const sample = SampleData.create({ cellType: 'HeLa' });
-      expect(sample.isComplete()).toBe(false);
     });
   });
 

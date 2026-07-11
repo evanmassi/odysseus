@@ -167,26 +167,6 @@ describe('Person', () => {
     });
   });
 
-  describe('equals', () => {
-    it('should return true for same id', () => {
-      const person = Person.create('John', 'Doe', 'john@test.com');
-      const data = person.toData();
-      const same = Person.fromData(data);
-      expect(person.equals(same)).toBe(true);
-    });
-
-    it('should return false for different id', () => {
-      const a = Person.create('John', 'Doe', 'john@test.com');
-      const b = Person.create('John', 'Doe', 'john@test.com');
-      expect(a.equals(b)).toBe(false);
-    });
-
-    it('should return false for null', () => {
-      const person = Person.create('John', 'Doe', 'john@test.com');
-      expect(person.equals(null as any)).toBe(false);
-    });
-  });
-
   describe('date immutability', () => {
     it('should return copies of createdAt to prevent mutation', () => {
       const person = Person.create('John', 'Doe', 'john@test.com');
@@ -202,13 +182,6 @@ describe('Person', () => {
       const date2 = person.updatedAt;
       expect(date1).not.toBe(date2);
       expect(date1.getTime()).toBe(date2.getTime());
-    });
-  });
-
-  describe('toString', () => {
-    it('should include name and email', () => {
-      const person = Person.create('John', 'Doe', 'john@test.com');
-      expect(person.toString()).toBe('Person(John Doe) - john@test.com');
     });
   });
 });

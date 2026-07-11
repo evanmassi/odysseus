@@ -6,7 +6,7 @@
 
 import { randomUUID } from 'crypto';
 
-export interface Query {
+interface Query {
   readonly queryId: string;
   readonly createdAt: Date;
   readonly requestedBy?: string;

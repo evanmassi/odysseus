@@ -115,14 +115,6 @@ export class RefreshToken {
     return new Date() > this._expiresAt;
   }
 
-  /** 5-minute window helps detect token replay attacks */
-  isRecentlyUsed(): boolean {
-    if (!this._lastUsedAt) return false;
-    
-    const fiveMinutesAgo = new Date(Date.now() - (5 * 60 * 1000));
-    return this._lastUsedAt > fiveMinutesAgo;
-  }
-
   recordUsage(): void {
     if (!this.isValid()) {
       throw new ValidationError('Cannot record usage on invalid refresh token');
@@ -133,11 +125,6 @@ export class RefreshToken {
 
   revoke(): void {
     this._isRevoked = true;
-  }
-
-  isNearingExpiry(): boolean {
-    const oneDayFromNow = new Date(Date.now() + (24 * 60 * 60 * 1000));
-    return this._expiresAt <= oneDayFromNow;
   }
 
   // Getters
@@ -151,14 +138,6 @@ export class RefreshToken {
   get isRevoked(): boolean { return this._isRevoked; }
   get userAgent(): string | undefined { return this._userAgent; }
   get ipAddress(): string | undefined { return this._ipAddress; }
-
-  get timeUntilExpiry(): number {
-    return Math.max(0, this._expiresAt.getTime() - Date.now());
-  }
-
-  get daysUntilExpiry(): number {
-    return Math.floor(this.timeUntilExpiry / (24 * 60 * 60 * 1000));
-  }
 
   // SERIALIZATION
 
@@ -184,36 +163,5 @@ export class RefreshToken {
       userAgent: this._userAgent,
       ipAddress: this._ipAddress
     };
-  }
-
-  /** Omits the token value for safe client exposure */
-  toSecureData(): {
-    id: string;
-    userId: string;
-    expiresAt: Date;
-    createdAt: Date;
-    lastUsedAt: Date | null;
-    isRevoked: boolean;
-    isValid: boolean;
-    daysUntilExpiry: number;
-  } {
-    return {
-      id: this._id,
-      userId: this._userId,
-      expiresAt: this._expiresAt,
-      createdAt: this._createdAt,
-      lastUsedAt: this._lastUsedAt,
-      isRevoked: this._isRevoked,
-      isValid: this.isValid(),
-      daysUntilExpiry: this.daysUntilExpiry
-    };
-  }
-
-  toString(): string {
-    return `RefreshToken(id=${this._id}, userId=${this._userId}, valid=${this.isValid()}, expires=${this._expiresAt.toISOString()})`;
-  }
-
-  equals(other: RefreshToken): boolean {
-    return this._id === other._id && this._token === other._token;
   }
 }

@@ -1,3 +1,7 @@
+/**
+ * Supplies Barrel
+ */
+
 export {
   supplyItemStatusValues,
   supplyItemStatusSchema,

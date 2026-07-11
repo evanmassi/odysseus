@@ -102,33 +102,6 @@ describe('Lab', () => {
     });
   });
 
-  describe('equals', () => {
-    it('should be equal when IDs match', () => {
-      const lab = Lab.create('Test');
-      const data = lab.toData();
-      const same = Lab.fromData(data);
-      expect(lab.equals(same)).toBe(true);
-    });
-
-    it('should not be equal for different labs', () => {
-      const lab1 = Lab.create('Lab 1');
-      const lab2 = Lab.create('Lab 2');
-      expect(lab1.equals(lab2)).toBe(false);
-    });
-  });
-
-  describe('toPublicData', () => {
-    it('should return public fields without timestamps', () => {
-      const lab = Lab.create('Public Lab');
-      const publicData = lab.toPublicData();
-      expect(publicData.id).toBe(lab.id);
-      expect(publicData.name).toBe('Public Lab');
-      expect(publicData.slug).toBe('public-lab');
-      expect(publicData.isActive).toBe(true);
-      expect((publicData as any).createdAt).toBeUndefined();
-    });
-  });
-
   describe('createDemo', () => {
     it('should create a demo lab with default limits', () => {
       const lab = Lab.createDemo('Demo Lab');

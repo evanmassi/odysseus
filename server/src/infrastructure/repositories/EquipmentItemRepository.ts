@@ -42,14 +42,6 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     return EquipmentItemMapper.fromRows(rows);
   }
 
-  async findByCategoryId(categoryId: string, labId: string): Promise<EquipmentItem[]> {
-    const rows = await this.db.queryMany<EquipmentItemRow>(
-      `SELECT ${ITEM_COLUMNS} FROM equipment_items WHERE category_id = $1 AND lab_id = $2 ORDER BY name`,
-      [categoryId, labId]
-    );
-    return EquipmentItemMapper.fromRows(rows);
-  }
-
   async save(item: EquipmentItem): Promise<void> {
     const row = EquipmentItemMapper.toRow(item);
     await this.db.execute(`

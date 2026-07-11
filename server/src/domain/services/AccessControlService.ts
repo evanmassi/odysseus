@@ -4,26 +4,20 @@
  * Context-aware permission checks that combine role, ownership, and resource assignment rules.
  */
 
-import type { Researcher } from '@domain/entities/Researcher';
 import type { Tube } from '@domain/entities/Tube';
 import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
 import type { Location } from '@domain/value-objects/Location';
 
-/**
- * Minimal interface for resource ownership checking.
- * Only requires assignedUserId since that's all canEditResource uses.
- */
+/** Minimal ownership shape for containers (racks/boxes): only assignedUserId is consulted. */
 export interface ResourceWithOwnership {
   assignedUserId?: string | null;
 }
 export class AccessControlService {
-  
+
   constructor(
-    private userRepository: UserRepository,
     private tubeRepository: TubeRepository
   ) {}
 
@@ -53,11 +47,11 @@ export class AccessControlService {
       return this.createAllowedResult('Admin access');
     }
 
-    if (tube.researcherId && tube.researcherId === user.researcherId) {
+    if (this.isOwnedBy(tube, user)) {
       return this.createAllowedResult('Owner access');
     }
 
-    if (!tube.researcherId || tube.researcherId.trim() === '') {
+    if (this.isUnassigned(tube)) {
       return this.createAllowedResult('Unassigned tube');
     }
 
@@ -73,7 +67,7 @@ export class AccessControlService {
       return this.createAllowedResult('Admin access');
     }
 
-    if (tube.researcherId && tube.researcherId === user.researcherId) {
+    if (this.isOwnedBy(tube, user)) {
       const daysSinceCreation = (Date.now() - tube.createdAt.getTime()) / (1000 * 60 * 60 * 24);
       // Prevent accidental deletion of old data — admins can still delete
       if (daysSinceCreation > 365) {
@@ -84,7 +78,7 @@ export class AccessControlService {
     }
 
     // Unassigned tubes can only be deleted within 7 days of creation
-    if (!tube.researcherId || tube.researcherId.trim() === '') {
+    if (this.isUnassigned(tube)) {
       const daysSinceCreation = (Date.now() - tube.createdAt.getTime()) / (1000 * 60 * 60 * 24);
       if (daysSinceCreation <= 7) {
         return this.createAllowedResult('Recent unassigned tube');
@@ -281,34 +275,6 @@ export class AccessControlService {
     return this.createAllowedResult();
   }
 
-  async canEditResearcher(user: User, researcher: Researcher): Promise<AccessResult> {
-    const manageCheck = await this.canManageResearchers(user);
-    if (!manageCheck.allowed) {
-      return manageCheck;
-    }
-
-    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id, user.labId ?? '');
-    if (tubeCount > 0) {
-      return this.createAllowedResult(`Researcher has ${tubeCount} tubes`, { tubeCount });
-    }
-
-    return this.createAllowedResult();
-  }
-
-  async canDeleteResearcher(user: User, researcher: Researcher): Promise<AccessResult> {
-    const manageCheck = await this.canManageResearchers(user);
-    if (!manageCheck.allowed) {
-      return manageCheck;
-    }
-
-    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id, user.labId ?? '');
-    if (tubeCount > 0) {
-      return this.createDeniedResult(`Cannot delete researcher with ${tubeCount} active tubes. Reassign or delete tubes first.`);
-    }
-
-    return this.createAllowedResult();
-  }
-
   // USER MANAGEMENT
 
   async canManageUsers(user: User): Promise<AccessResult> {
@@ -395,10 +361,6 @@ export class AccessControlService {
     return this.createAllowedResult(hasContainerAccess ? containerAccess.reason : 'Shared access to tube');
   }
 
-  canAssignResource(user: User): boolean {
-    return user.isAdmin();
-  }
-
   /**
    * Ownership cascade: explicit assignment → rack inheritance → common space.
    * Pass parentRack for boxes with undefined (inherited) assignment.
@@ -438,21 +400,15 @@ export class AccessControlService {
     return this.createAllowedResult();
   }
 
-  async canPerformMaintenance(user: User): Promise<AccessResult> {
-    const adminCheck = await this.canAccessAdminFeatures(user);
-    if (!adminCheck.allowed) {
-      return adminCheck;
-    }
+  // HELPER METHODS
 
-    const labAdminCount = await this.userRepository.countByRole('lab_admin');
-    if (labAdminCount < 2) {
-      return this.createDeniedResult('System maintenance requires at least 2 active administrators');
-    }
-
-    return this.createAllowedResult();
+  private isOwnedBy(tube: Tube, user: User): boolean {
+    return !!tube.researcherId && tube.researcherId === user.researcherId;
   }
 
-  // HELPER METHODS
+  private isUnassigned(tube: Tube): boolean {
+    return !tube.researcherId || tube.researcherId.trim() === '';
+  }
 
   private checkActiveResearcher(user: User): AccessResult | null {
     if (!user.hasResearcherProfile()) {
@@ -466,19 +422,17 @@ export class AccessControlService {
     return null;
   }
 
-  private createAllowedResult(reason?: string, metadata?: Record<string, unknown>): AccessResult {
+  private createAllowedResult(reason?: string): AccessResult {
     return {
       allowed: true,
-      reason: reason ?? 'Access granted',
-      metadata
+      reason: reason ?? 'Access granted'
     };
   }
 
-  private createDeniedResult(reason: string, metadata?: Record<string, unknown>): AccessResult {
+  private createDeniedResult(reason: string): AccessResult {
     return {
       allowed: false,
-      reason,
-      metadata
+      reason
     };
   }
 

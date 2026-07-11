@@ -48,14 +48,6 @@ export class UserRepository implements IUserRepository {
     return row ? UserMapper.fromRow(row) : null;
   }
 
-  async findByApiKey(apiKey: string): Promise<User | null> {
-    const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.api_key = $1`,
-      [apiKey]
-    );
-    return row ? UserMapper.fromRow(row) : null;
-  }
-
   async findByUsername(username: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
       `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.username = $1`,
@@ -175,14 +167,6 @@ export class UserRepository implements IUserRepository {
   }
 
   // AUTHENTICATION OPERATIONS
-
-  async apiKeyExists(apiKey: string): Promise<boolean> {
-    const result = await this.context.queryOne<{ exists: boolean }>(
-      'SELECT EXISTS(SELECT 1 FROM users WHERE api_key = $1) as exists',
-      [apiKey]
-    );
-    return result?.exists ?? false;
-  }
 
   async usernameExists(username: string): Promise<boolean> {
     const result = await this.context.queryOne<{ exists: boolean }>(

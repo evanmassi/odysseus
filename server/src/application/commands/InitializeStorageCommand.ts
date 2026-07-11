@@ -17,8 +17,6 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import { generateId } from '@domain/utils/generateId';
 import { Tank, Rack, Box } from '@domain/value-objects/Equipment';
 
-// COMMAND INTERFACE
-
 export interface InitializeStorageCommand {
   userId: string;
   labId: string;
@@ -27,8 +25,6 @@ export interface InitializeStorageCommand {
   racksPerTank?: number;
   boxesPerRack?: number;
 }
-
-// COMMAND HANDLER
 
 /** Creates default configuration for fresh installs. Only runs if no configuration exists. */
 export class InitializeStorageCommandHandler {

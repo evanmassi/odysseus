@@ -15,8 +15,6 @@ import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 
-// COMMAND INTERFACES
-
 export interface CreateLabCommand {
   userId: string;
   name: string;
@@ -38,8 +36,6 @@ export interface ActivateLabCommand {
   userId: string;
   labId: string;
 }
-
-// COMMAND HANDLERS
 
 export class CreateLabCommandHandler {
   constructor(

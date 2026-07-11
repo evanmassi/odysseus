@@ -1,7 +1,5 @@
 /**
  * Tube Domain Events
- * 
- * Events that occur within the Tube aggregate.
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
@@ -41,7 +39,7 @@ export class TubeCreatedEvent extends DomainEvent {
     public readonly createdBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -50,15 +48,6 @@ export class TubeCreatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.tubeId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeId: this.tubeId,
-      location: this.location.toData(),
-      sampleData: this.sampleData.toData(),
-      createdBy: this.createdBy
-    };
   }
 }
 
@@ -72,7 +61,7 @@ export class TubeUpdatedEvent extends DomainEvent {
     public readonly updatedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -81,17 +70,6 @@ export class TubeUpdatedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.tubeId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeId: this.tubeId,
-      oldLocation: this.oldLocation.toData(),
-      newLocation: this.newLocation.toData(),
-      oldSampleData: this.oldSampleData.toData(),
-      newSampleData: this.newSampleData.toData(),
-      updatedBy: this.updatedBy
-    };
   }
 }
 
@@ -103,7 +81,7 @@ export class TubeLocationChangedEvent extends DomainEvent {
     public readonly movedBy: string,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -112,15 +90,6 @@ export class TubeLocationChangedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.tubeId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeId: this.tubeId,
-      oldLocation: this.oldLocation.toData(),
-      newLocation: this.newLocation.toData(),
-      movedBy: this.movedBy
-    };
   }
 }
 
@@ -132,7 +101,7 @@ export class TubeDeletedEvent extends DomainEvent {
     public readonly sampleData: SampleData,
     labId: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -142,26 +111,16 @@ export class TubeDeletedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.tubeId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeId: this.tubeId,
-      location: this.location.toData(),
-      deletedBy: this.deletedBy,
-      sampleData: this.sampleData.toData(),
-    };
-  }
 }
 
 export class BulkTubesCreatedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
-    public readonly tankIds: string[],
     public readonly createdBy: string,
     labId: string,
     public readonly perItemData: BulkTubeCreatedDetail[] = []
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -171,25 +130,16 @@ export class BulkTubesCreatedEvent extends DomainEvent {
   getAggregateId(): string {
     return `bulk-${this.tubeIds.join(',')}`;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeIds: this.tubeIds,
-      tankIds: this.tankIds,
-      createdBy: this.createdBy
-    };
-  }
 }
 
 export class BulkTubesDeletedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
-    public readonly tankIds: string[],
     public readonly deletedBy: string,
     labId: string,
     public readonly perItemData: BulkTubeDeletedDetail[] = []
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -199,26 +149,16 @@ export class BulkTubesDeletedEvent extends DomainEvent {
   getAggregateId(): string {
     return `bulk-${this.tubeIds.join(',')}`;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeIds: this.tubeIds,
-      tankIds: this.tankIds,
-      deletedBy: this.deletedBy
-    };
-  }
 }
 
 export class BulkTubesMovedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
-    public readonly sourceTankIds: string[],
-    public readonly destinationTankIds: string[],
     public readonly movedBy: string,
     labId: string,
     public readonly perItemData: BulkTubeMovedDetail[] = []
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -228,27 +168,17 @@ export class BulkTubesMovedEvent extends DomainEvent {
   getAggregateId(): string {
     return `bulk-${this.tubeIds.join(',')}`;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeIds: this.tubeIds,
-      sourceTankIds: this.sourceTankIds,
-      destinationTankIds: this.destinationTankIds,
-      movedBy: this.movedBy
-    };
-  }
 }
 
 export class BulkTubesUpdatedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
-    public readonly tankIds: string[],
     public readonly updatedBy: string,
     public readonly changesSummary: Record<string, unknown>,
     labId: string,
     public readonly perItemData: BulkTubeUpdatedDetail[] = []
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -256,16 +186,6 @@ export class BulkTubesUpdatedEvent extends DomainEvent {
   }
 
   getAggregateId(): string {
-    // For bulk operations, we use a composite identifier
     return `bulk-${this.tubeIds.join(',')}`;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      tubeIds: this.tubeIds,
-      tankIds: this.tankIds,
-      updatedBy: this.updatedBy,
-      changesSummary: this.changesSummary
-    };
   }
 }

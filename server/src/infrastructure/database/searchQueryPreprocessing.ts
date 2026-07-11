@@ -26,7 +26,7 @@ export function normalizeSearchQuery(query: string): string {
  * "HEK293" → ["hek293", "hek-293", "hek 293"]
  * "human" → ["human"] (no boundaries, unchanged)
  */
-export function generateAlphanumericVariants(term: string): string[] {
+function generateAlphanumericVariants(term: string): string[] {
   const normalized = term.toLowerCase().trim();
   if (!normalized) return [];
 
@@ -195,7 +195,7 @@ export enum SearchRankTier {
  * Scales tolerance with word length: shorter words match stricter
  * to avoid false positives, longer words allow more typo tolerance.
  */
-export function getFuzzyThreshold(termLength: number): number {
+function getFuzzyThreshold(termLength: number): number {
   if (termLength <= 2) return 0.7;
   if (termLength <= 4) return 0.6;
   if (termLength <= 6) return 0.4;

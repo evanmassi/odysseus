@@ -1,3 +1,7 @@
+/**
+ * Equipment Barrel
+ */
+
 export {
   equipmentStatusValues,
   equipmentStatusSchema,

@@ -24,11 +24,4 @@ export class ConsoleEmailService implements EmailService {
       expiresIn: '48 hours'
     });
   }
-
-  async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    logger.debug('Password reset email (dev mode)', {
-      to: email,
-      tokenProvided: !!token
-    });
-  }
 }

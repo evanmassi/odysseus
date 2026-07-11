@@ -1,11 +1,12 @@
-import { ValidationError } from '@domain/errors/ValidationError';
-import { generateId } from '@domain/utils/generateId';
-
 /**
  * User Session Tracking
  *
  * Tracks active sessions per user to enforce maxConcurrentSessions security policy.
  */
+
+import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
+
 export class UserSession {
   private constructor(
     private readonly _id: string,
@@ -110,35 +111,8 @@ export class UserSession {
 
   // BUSINESS LOGIC
 
-  isValid(): boolean {
-    return this._isActive && !this.isExpired();
-  }
-
   isExpired(): boolean {
     return new Date() > this._expiresAt;
-  }
-
-  recordActivity(): void {
-    this._lastUsedAt = new Date();
-  }
-
-  revoke(): void {
-    this._isActive = false;
-  }
-
-  getAgeInMinutes(): number {
-    const now = new Date();
-    return Math.floor((now.getTime() - this._createdAt.getTime()) / (1000 * 60));
-  }
-
-  getInactiveMinutes(): number {
-    const now = new Date();
-    return Math.floor((now.getTime() - this._lastUsedAt.getTime()) / (1000 * 60));
-  }
-
-  getMinutesUntilExpiration(): number {
-    const now = new Date();
-    return Math.floor((this._expiresAt.getTime() - now.getTime()) / (1000 * 60));
   }
 
   // GETTERS
@@ -181,31 +155,5 @@ export class UserSession {
 
   get userAgent(): string | undefined {
     return this._userAgent;
-  }
-
-  toJSON(): {
-    id: string;
-    userId: string;
-    createdAt: string;
-    lastUsedAt: string;
-    expiresAt: string;
-    isActive: boolean;
-    isExpired: boolean;
-    deviceInfo?: string;
-    ipAddress?: string;
-    userAgent?: string;
-  } {
-    return {
-      id: this._id,
-      userId: this._userId,
-      createdAt: this._createdAt.toISOString(),
-      lastUsedAt: this._lastUsedAt.toISOString(),
-      expiresAt: this._expiresAt.toISOString(),
-      isActive: this._isActive,
-      isExpired: this.isExpired(),
-      deviceInfo: this._deviceInfo,
-      ipAddress: this._ipAddress,
-      userAgent: this._userAgent
-    };
   }
 }

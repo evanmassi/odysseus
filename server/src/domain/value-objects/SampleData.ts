@@ -65,10 +65,6 @@ export class SampleData {
     );
   }
 
-  static empty(): SampleData {
-    return new SampleData();
-  }
-
   private validate(): void {
     this.validateConcentration();
     this.validateDate();
@@ -249,25 +245,6 @@ export class SampleData {
       notes: updates.notes === null ? undefined : (updates.notes !== undefined ? updates.notes : this._notes)
     });
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-  }
-
-  hasConcentration(): boolean {
-    return this._concentration !== undefined && this._concentrationUnit !== undefined;
-  }
-
-  isExpired(): boolean {
-    if (!this._date) return false;
-    
-    // Business rule: Samples are considered expired after 2 years
-    const sampleDate = new Date(this._date);
-    const twoYearsAgo = new Date();
-    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-    
-    return sampleDate < twoYearsAgo;
-  }
-
-  isComplete(): boolean {
-    return !!(this._cellType && this._donorInternalId && this._date);
   }
 
   toData(): {

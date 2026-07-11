@@ -171,7 +171,6 @@ export class ServiceContainer {
     if (!this.accessControlService) {
       const repositories = this.repositoryFactory.getRepositories();
       this.accessControlService = new AccessControlService(
-        repositories.users,
         repositories.tubes
       );
     }
@@ -183,11 +182,6 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.validationService = new ValidationService(
         repositories.tubes,
-        repositories.users,
-        repositories.researchers,
-        repositories.storage,
-        repositories.persons,
-        this.getTubePositionService(),
         this.getAccessControlService()
       );
     }

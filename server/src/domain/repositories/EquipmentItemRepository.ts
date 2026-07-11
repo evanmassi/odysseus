@@ -14,7 +14,6 @@ export interface EquipmentItemRepository {
 
   findById(id: string, labId: string): Promise<EquipmentItem | null>;
   findByLabId(labId: string): Promise<EquipmentItem[]>;
-  findByCategoryId(categoryId: string, labId: string): Promise<EquipmentItem[]>;
   save(item: EquipmentItem): Promise<void>;
   delete(id: string, labId: string): Promise<boolean>;
 

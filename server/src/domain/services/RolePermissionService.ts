@@ -16,8 +16,6 @@ export class RolePermissionService {
     user: Permission.USER_PERMISSIONS,
   } as const;
 
-  // PERMISSION CHECKING
-
   static hasPermission(role: UserRole, permission: Permission): boolean {
     try {
       this.validateRole(role);
@@ -39,16 +37,6 @@ export class RolePermissionService {
     return this.hasPermission(role, permission);
   }
 
-  static hasAnyPermission(role: UserRole, permissions: readonly Permission[]): boolean {
-    return permissions.some(permission => this.hasPermission(role, permission));
-  }
-
-  static hasAllPermissions(role: UserRole, permissions: readonly Permission[]): boolean {
-    return permissions.every(permission => this.hasPermission(role, permission));
-  }
-
-  // ROLE MANAGEMENT
-
   static getPermissionsForRole(role: UserRole): readonly Permission[] {
     this.validateRole(role);
     return this.ROLE_PERMISSION_MATRIX[role];
@@ -61,18 +49,6 @@ export class RolePermissionService {
   static isValidRole(role: string): role is UserRole {
     return this.ROLES.includes(role as UserRole);
   }
-
-  static getAllRoles(): readonly UserRole[] {
-    return this.ROLES;
-  }
-
-  // PERMISSION ANALYSIS
-
-  static getRolesWithPermission(permission: Permission): readonly UserRole[] {
-    return this.ROLES.filter(role => this.hasPermission(role, permission));
-  }
-
-  // VALIDATION
 
   /** @throws ValidationError if role is invalid */
   private static validateRole(role: UserRole): void {

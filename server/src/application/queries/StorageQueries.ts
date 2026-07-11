@@ -11,8 +11,6 @@ import type { StorageRepository, StorageHistory } from '@domain/repositories/Sto
 
 import type { DemoLimits, SystemMetrics } from '@odysseus/shared-schemas';
 
-// STORAGE QUERY CONTRACTS
-
 export interface GetCurrentStorageQuery {
   labId: string;
   /** Demo users get their lab's demo limits grafted onto the response. */
@@ -37,8 +35,6 @@ export interface GetStorageByVersionQuery {
 export interface GetSystemMetricsQuery {
   labId: string;
 }
-
-// STORAGE QUERY HANDLERS
 
 /** Creates default configuration if none exists. */
 export class GetCurrentStorageQueryHandler {
@@ -150,8 +146,6 @@ export class GetSystemMetricsQueryHandler {
     return this.storageRepository.getSystemMetrics(query.labId);
   }
 }
-
-// RESPONSE TYPES
 
 export interface StorageHealthReport {
   isHealthy: boolean;

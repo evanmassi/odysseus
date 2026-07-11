@@ -27,7 +27,7 @@ export const tubeLocationSchema = z.object({
   position: z.number().int().min(1).max(EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX, `Position must be between 1-${EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX}`)
 });
 
-export const concentrationUnitSchema = z.enum(CONCENTRATION_UNITS);
+const concentrationUnitSchema = z.enum(CONCENTRATION_UNITS);
 
 /**
  * Domain schema with strict types used for API responses and domain entities.
@@ -105,7 +105,7 @@ export type TubeLocationCount = z.infer<typeof tubeLocationCountSchema>;
  * - Scientific notation → number (unified parser)
  * - Business rule: concentration + unit together or both absent
  */
-export const createTubeRequestSampleSchema = concentrationUnitRefinement(
+const createTubeRequestSampleSchema = concentrationUnitRefinement(
   z.object({
     cellType: z.preprocess(
       (val) => {
@@ -160,7 +160,7 @@ export const createTubeRequestSchema = z.object({
  * Business rule: concentration + unit must both be present or both absent.
  * cellType must not be empty if provided.
  */
-export const tubeUpdateSampleSchema = concentrationUnitRefinement(
+const tubeUpdateSampleSchema = concentrationUnitRefinement(
   z.object({
     cellType: z.preprocess(
       (val) => {

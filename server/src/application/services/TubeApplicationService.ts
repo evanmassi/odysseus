@@ -149,8 +149,7 @@ export class TubeApplicationService {
 
       if (!positionResult.isValid) {
         throw new ValidationError(`Position conflict: ${positionResult.reason}`, {
-          position: `${tubeData.location.tankId}-${tubeData.location.rackId}-${tubeData.location.boxId}-${tubeData.location.position}`,
-          conflicts: positionResult.conflicts
+          position: `${tubeData.location.tankId}-${tubeData.location.rackId}-${tubeData.location.boxId}-${tubeData.location.position}`
         });
       }
     }
@@ -280,7 +279,6 @@ export class TubeApplicationService {
     );
 
     if (created.length > 0) {
-      const tankIds = [...new Set(created.map(t => t.location.tankId))];
       const perItemData: BulkTubeCreatedDetail[] = created.map(t => ({
         tubeId: t.id,
         location: t.location as BulkTubeCreatedDetail['location'],
@@ -288,7 +286,6 @@ export class TubeApplicationService {
       }));
       const bulkCreatedEvent = new BulkTubesCreatedEvent(
         created.map(t => t.id),
-        tankIds,
         authenticatedUser.id,
         authenticatedUser.labId!,
         perItemData
@@ -525,8 +522,7 @@ export class TubeApplicationService {
 
         if (!positionResult.isValid) {
           throw new ValidationError(`Position conflict: ${positionResult.reason}`, {
-            position: `${newTankId}-${newRackId}-${newBoxId}-${newPosition}`,
-            conflicts: positionResult.conflicts
+            position: `${newTankId}-${newRackId}-${newBoxId}-${newPosition}`
           });
         }
       }
@@ -668,7 +664,6 @@ export class TubeApplicationService {
     );
 
     if (updated.length > 0) {
-      const tankIds = [...new Set(updated.map(id => tubeMap.get(id)!.location.tankId))];
       const updateMap = new Map(request.updates.map(u => [u.id, u.updates]));
       const perItemData: BulkTubeUpdatedDetail[] = updated.map(id => {
         const tube = tubeMap.get(id)!;
@@ -680,7 +675,6 @@ export class TubeApplicationService {
       });
       const bulkUpdateEvent = new BulkTubesUpdatedEvent(
         updated,
-        tankIds,
         authenticatedUser.id,
         { updated: updated.length, failed: failed.length },
         authenticatedUser.labId!,
@@ -765,7 +759,6 @@ export class TubeApplicationService {
         await this.eventBus.publish(deleteEvent);
       }
 
-      const tankIds = [...new Set(validatedTubes.map(t => t.location.tankId))];
       const perItemData: BulkTubeDeletedDetail[] = validatedTubes.map(tube => ({
         tubeId: tube.id,
         location: tube.location.toData(),
@@ -773,7 +766,6 @@ export class TubeApplicationService {
       }));
       const bulkDeletedEvent = new BulkTubesDeletedEvent(
         validatedIds,
-        tankIds,
         authenticatedUser.id,
         authenticatedUser.labId!,
         perItemData
@@ -805,8 +797,6 @@ export class TubeApplicationService {
     const moved: TubeResponse[] = [];
     const failed: Array<{ tubeId: string; error: string }> = [];
     const moveDetails: BulkTubeMovedDetail[] = [];
-    const sourceTankIds = new Set<string>();
-    const destinationTankIds = new Set<string>();
 
     for (const move of moves) {
       const tube = tubeMap.get(move.tubeId);
@@ -867,9 +857,6 @@ export class TubeApplicationService {
 
         await this.tubeRepository.saveWithOptimisticLock(tube, move.version);
 
-        sourceTankIds.add(oldLocation.tankId);
-        destinationTankIds.add(newLocation.tankId);
-
         const locationEvent = new TubeLocationChangedEvent(
           tube.id, oldLocation, newLocation, authenticatedUser.id, labId
         );
@@ -894,8 +881,6 @@ export class TubeApplicationService {
     if (moved.length > 1) {
       const bulkMovedEvent = new BulkTubesMovedEvent(
         moved.map(t => t.id),
-        [...sourceTankIds],
-        [...destinationTankIds],
         authenticatedUser.id,
         labId,
         moveDetails

@@ -8,11 +8,8 @@ import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 import type { Person } from '../persons/personSchemas';
 
-export const researcherApprovalStatusSchema = z.enum(['pending', 'approved']);
-export const researcherSourceSchema = z.enum(['registration', 'admin']);
-
-export type ResearcherApprovalStatus = z.infer<typeof researcherApprovalStatusSchema>;
-export type ResearcherSource = z.infer<typeof researcherSourceSchema>;
+const researcherApprovalStatusSchema = z.enum(['pending', 'approved']);
+const researcherSourceSchema = z.enum(['registration', 'admin']);
 
 export const researcherSchema = z.object({
   id: z.string(),

@@ -156,16 +156,6 @@ describe('User', () => {
       expect(user.hasPermission('view_tubes')).toBe(true);
       expect(user.hasPermission('manage_users')).toBe(false);
     });
-
-    it('requirePermission should throw when denied', () => {
-      const user = createTestUser();
-      expect(() => user.requirePermission('manage_users')).toThrow('Permission denied');
-    });
-
-    it('requirePermission should not throw when allowed', () => {
-      const user = createTestUser();
-      expect(() => user.requirePermission('view_tubes')).not.toThrow();
-    });
   });
 
   describe('canManage', () => {
@@ -346,18 +336,6 @@ describe('User', () => {
       const user = createTestUser();
       expect(user.isUser()).toBe(true);
       expect(user.isAdmin()).toBe(false);
-    });
-  });
-
-  describe('hasHigherPrivilegesThan', () => {
-    it('should compare privilege levels correctly', () => {
-      const sysAdmin = createTestSystemAdmin();
-      const labAdmin = createTestAdmin();
-      const user = createTestUser();
-
-      expect(sysAdmin.hasHigherPrivilegesThan(labAdmin)).toBe(true);
-      expect(labAdmin.hasHigherPrivilegesThan(user)).toBe(true);
-      expect(user.hasHigherPrivilegesThan(labAdmin)).toBe(false);
     });
   });
 
@@ -567,18 +545,7 @@ describe('User', () => {
     });
   });
 
-  describe('toData / fromData roundtrip', () => {
-    it('should preserve core fields', () => {
-      const original = createTestUser({ labId: 'lab_1', researcherId: 'res_1' });
-      const data = original.toData();
-      expect(data.id).toBe(original.id);
-      expect(data.username).toBe(original.username);
-      expect(data.role).toBe('user');
-      expect(data.labId).toBe('lab_1');
-      expect(data.researcherId).toBe('res_1');
-      expect(data.status).toBe('approved');
-    });
-
+  describe('fromData', () => {
     it('should reconstitute from data', () => {
       const original = createTestUser({ labId: 'lab_1' });
       const fromDataUser = User.fromData({
@@ -653,14 +620,6 @@ describe('User', () => {
       const user1 = createTestUser({ username: 'user1' });
       const user2 = createTestUser({ username: 'user2' });
       expect(user1.equals(user2)).toBe(false);
-    });
-  });
-
-  describe('toString', () => {
-    it('should include username and role', () => {
-      const user = createTestUser({ username: 'johndoe' });
-      expect(user.toString()).toContain('johndoe');
-      expect(user.toString()).toContain('user');
     });
   });
 

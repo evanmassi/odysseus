@@ -263,6 +263,10 @@ export class User {
     return 'api_' + crypto.randomBytes(32).toString('hex');
   }
 
+  private static hashToken(token: string, salt: string): string {
+    return crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+  }
+
   private validate(): void {
     this.validateUsername();
     this.validateApiKey();
@@ -337,18 +341,6 @@ export class User {
     return this._role.hasPermission(action);
   }
 
-  /** @throws PermissionError if user lacks the given permission */
-  requirePermission(action: string): void {
-    if (!this.hasPermission(action)) {
-      throw new PermissionError(`Permission denied for action: ${action}`, {
-        userId: this._id,
-        username: this._username,
-        role: this._role.value,
-        action
-      });
-    }
-  }
-
   canManage(other: User): boolean {
     if (!this.isAdmin()) {
       return false;
@@ -402,10 +394,6 @@ export class User {
 
   isUser(): boolean {
     return this._role.isUser();
-  }
-
-  hasHigherPrivilegesThan(other: User): boolean {
-    return this._role.hasHigherPrivilegesThan(other._role);
   }
 
   reactivate(reactivatedBy: User): void {
@@ -482,46 +470,6 @@ export class User {
     return this._researcherId != null;
   }
 
-  getPermissions(): string[] {
-    const allPermissions = [
-      'create_tubes', 'edit_tubes', 'delete_tubes',
-      'manage_users', 'admin_settings', 'manage_configuration',
-      'view_audit_trails', 'export_data', 'import_data',
-      'manage_backups', 'delete_tanks', 'manage_researchers',
-      'manage_sync'
-    ];
-
-    return allPermissions.filter(permission => this.hasPermission(permission));
-  }
-
-  toData(): {
-    id: string;
-    username: string;
-    apiKey: string;
-    role: 'system_admin' | 'lab_admin' | 'user';
-    createdAt: string;
-    lastActivity: string;
-    researcherId?: string;
-    personId?: string;
-    status: UserStatus;
-    settings: UserSettings;
-    labId?: string;
-  } {
-    return {
-      id: this._id,
-      username: this._username,
-      apiKey: this._apiKey,
-      role: this._role.value,
-      createdAt: this._createdAt.toISOString(),
-      lastActivity: this._lastActivity.toISOString(),
-      researcherId: this._researcherId,
-      personId: this._personId,
-      status: this._status,
-      settings: this._settings,
-      labId: this._labId,
-    };
-  }
-
   toPublicData(): {
     id: string;
     username: string;
@@ -553,10 +501,6 @@ export class User {
   equals(other: User): boolean {
     if (!other) return false;
     return this._id === other._id;
-  }
-
-  toString(): string {
-    return `User(${this._username}) - ${this._role.toString()}`;
   }
 
   // GETTERS
@@ -601,7 +545,7 @@ export class User {
     const token = crypto.randomBytes(32).toString('hex');
 
     const salt = crypto.randomBytes(16).toString('hex');
-    const hashedToken = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+    const hashedToken = User.hashToken(token, salt);
 
     // Store as salt:hash so verification can re-derive the hash
     this._emailVerificationToken = `${salt}:${hashedToken}`;
@@ -625,15 +569,13 @@ export class User {
       throw EmailVerificationError.invalid();
     }
 
-    const providedHash = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+    const providedHash = User.hashToken(token, salt);
 
     if (providedHash !== storedHash) {
       throw EmailVerificationError.invalid();
     }
 
-    this._emailVerified = true;
-    this._emailVerificationToken = undefined;
-    this._emailVerificationExpiry = undefined;
+    this.markEmailVerified();
   }
 
   markEmailVerified(): void {
@@ -673,7 +615,7 @@ export class User {
     const token = crypto.randomBytes(32).toString('hex');
 
     const salt = crypto.randomBytes(16).toString('hex');
-    const hashedToken = crypto.pbkdf2Sync(token, salt, 10000, 64, 'sha512').toString('hex');
+    const hashedToken = User.hashToken(token, salt);
 
     this._passwordResetToken = `${salt}:${hashedToken}`;
     this._passwordResetExpiry = new Date(Date.now() + 15 * 60 * 1000);
@@ -696,7 +638,7 @@ export class User {
       throw new ValidationError('Invalid password reset token format');
     }
 
-    const testHash = crypto.pbkdf2Sync(token, storedSalt, 10000, 64, 'sha512').toString('hex');
+    const testHash = User.hashToken(token, storedSalt);
     if (testHash !== storedHash) {
       throw new ValidationError('Invalid password reset token');
     }

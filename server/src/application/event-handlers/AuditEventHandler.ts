@@ -34,16 +34,14 @@ import type {
   LabRenamedEvent,
   LabActivatedEvent,
   LabDeactivatedEvent,
-  InviteCodeCreatedEvent,
-  InviteCodeUsedEvent
+  InviteCodeCreatedEvent
 } from '@domain/events/LabEvents';
 import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
   ResearcherReactivatedEvent,
-  ResearcherDeletedEvent,
-  ResearcherApprovedEvent
+  ResearcherDeletedEvent
 } from '@domain/events/ResearcherEvents';
 import type {
   TankUpdatedEvent,
@@ -279,7 +277,6 @@ export class AuditEventHandler {
     this.eventBus.subscribe('ResearcherDeactivated', (e) => this.handleResearcherDeactivated(e));
     this.eventBus.subscribe('ResearcherReactivated', (e) => this.handleResearcherReactivated(e));
     this.eventBus.subscribe('ResearcherDeleted', (e) => this.handleResearcherDeleted(e));
-    this.eventBus.subscribe('ResearcherApproved', (e) => this.handleResearcherApproved(e));
 
     // Donor events
     this.eventBus.subscribe('DonorCreated', (e) => this.handleDonorCreated(e));
@@ -330,7 +327,6 @@ export class AuditEventHandler {
     this.eventBus.subscribe('LabActivated', (e) => this.handleLabActivated(e));
     this.eventBus.subscribe('LabDeactivated', (e) => this.handleLabDeactivated(e));
     this.eventBus.subscribe('InviteCodeCreated', (e) => this.handleInviteCodeCreated(e));
-    this.eventBus.subscribe('InviteCodeUsed', (e) => this.handleInviteCodeUsed(e));
   }
 
   // TUBE EVENT HANDLERS
@@ -1255,15 +1251,6 @@ export class AuditEventHandler {
   }
 
 
-  private async handleResearcherApproved(event: ResearcherApprovedEvent): Promise<void> {
-    await this.logAuditEvent({
-      eventName: 'researcher approved', context: { researcherId: event.researcherId },
-      actorId: event.approvedBy, action: 'researcher_approved', entityType: 'researcher',
-      entityId: event.researcherId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ researcherName: `${event.firstName} ${event.lastName}`, linkedUserId: event.linkedUserId, approvedBy: username }),
-    });
-  }
-
   private async handleLabCreated(event: LabCreatedEvent): Promise<void> {
     await this.safeLogAudit('lab created', { labId: event.labId }, async () => {
       await this.auditService.logAction({
@@ -1317,15 +1304,6 @@ export class AuditEventHandler {
       actorId: event.createdBy, action: 'invite_code_created', entityType: 'lab',
       entityId: event.codeId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({ labName, codeId: event.codeId, createdBy: username }),
-    });
-  }
-
-  private async handleInviteCodeUsed(event: InviteCodeUsedEvent): Promise<void> {
-    await this.logAuditEvent({
-      eventName: 'invite code used', context: { codeId: event.codeId },
-      actorId: event.userId, action: 'invite_code_used', entityType: 'lab',
-      entityId: event.codeId, occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ codeId: event.codeId, usedBy: username }),
     });
   }
 

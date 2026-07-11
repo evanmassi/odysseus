@@ -6,7 +6,6 @@
 
 import { userLookupRequestSchema } from '@odysseus/shared-schemas';
 
-
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { PersonController } from '@presentation/controllers/PersonController';
 import type { UserController } from '@presentation/controllers/UserController';
@@ -35,7 +34,6 @@ export class UserRouteModule implements RouteModule {
   }
 
   configure(router: Router): void {
-    // PROFILE
 
     router.get('/me/profile',
       this.personController.getMyProfile.bind(this.personController)
@@ -45,8 +43,6 @@ export class UserRouteModule implements RouteModule {
       this.personController.updateMyProfile.bind(this.personController)
     );
 
-    // SETTINGS
-
     router.get('/me/settings',
       this.userController.getCurrentUserSettings.bind(this.userController)
     );
@@ -55,8 +51,6 @@ export class UserRouteModule implements RouteModule {
       this.userController.updateCurrentUserSettings.bind(this.userController)
     );
 
-    // SESSIONS
-
     router.get('/me/sessions',
       this.sessionController.getUserSessions.bind(this.sessionController)
     );
@@ -64,8 +58,6 @@ export class UserRouteModule implements RouteModule {
     router.delete('/me/sessions/:id',
       this.sessionController.revokeSession.bind(this.sessionController)
     );
-
-    // USER LOOKUP
 
     router.post('/lookup',
       validateBody(userLookupRequestSchema),

@@ -6,10 +6,9 @@
 
 import type { Storage } from '@domain/entities/Storage';
 import type { Tube } from '@domain/entities/Tube';
-import { ValidationError } from '@domain/errors/ValidationError';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { PositionConflict, PositionValidation, PositionValidationWithWarnings, PositionValidationResult, BoxStatistics } from '@domain/types/services';
+import type { PositionValidation, PositionValidationWithWarnings, PositionValidationResult } from '@domain/types/services';
 import { Location } from '@domain/value-objects/Location';
 
 export class TubePositionService {
@@ -153,41 +152,6 @@ export class TubePositionService {
     return result;
   }
 
-  // TUBE MOVEMENT OPERATIONS
-
-  async canMoveTubeTo(tube: Tube, newLocation: Location, labId: string): Promise<PositionValidationResult> {
-    return this.canPlaceTubeAt(newLocation, labId, tube.id);
-  }
-
-  async getSuggestedAlternativePositions(location: Location, labId: string, limit: number = 5): Promise<Location[]> {
-    try {
-      const occupiedPositions = await this.tubeRepository.getOccupiedPositions(
-        location.tankId,
-        location.rackId,
-        location.boxId,
-        labId
-      );
-
-      const availablePositions = await this.storageRepository.getAvailablePositions(
-        labId,
-        location.tankId,
-        location.rackId,
-        location.boxId,
-        occupiedPositions
-      );
-
-      const sortedPositions = availablePositions
-        .sort((a, b) => Math.abs(a - location.position) - Math.abs(b - location.position))
-        .slice(0, limit);
-
-      return sortedPositions.map(position =>
-        Location.create(location.tankId, location.rackId, location.boxId, position)
-      );
-    } catch (error) {
-      return [];
-    }
-  }
-
   // POSITION ANALYSIS
 
   private async getNearbyTubes(location: Location, labId: string): Promise<Tube[]> {
@@ -203,82 +167,6 @@ export class TubePositionService {
       return nearbyTubes;
     } catch (error) {
       return [];
-    }
-  }
-
-  async getBoxStatistics(tankId: string, rackId: string, boxId: string, labId: string): Promise<BoxStatistics> {
-    try {
-      const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId, labId);
-      const boxTubes = tubes.filter(tube => tube.location.tankId === tankId);
-      const maxPosition = await this.storageRepository.getMaxPosition(labId, tankId, rackId, boxId);
-
-      const researchers = new Set(boxTubes.map(tube => tube.researcherId).filter(r => r));
-      const cellTypes = new Set(boxTubes.map(tube => tube.sample.cellType).filter(ct => ct));
-
-      const occupiedPositions = boxTubes.map(tube => tube.location.position);
-      const availablePositions = [];
-      for (let i = 1; i <= maxPosition; i++) {
-        if (!occupiedPositions.includes(i)) {
-          availablePositions.push(i);
-        }
-      }
-
-      return {
-        totalCapacity: maxPosition,
-        occupiedCount: boxTubes.length,
-        availableCount: availablePositions.length,
-        occupancyRate: boxTubes.length / maxPosition,
-        researcherCount: researchers.size,
-        cellTypeCount: cellTypes.size,
-        availablePositions,
-        occupiedPositions: occupiedPositions.sort((a, b) => a - b)
-      };
-    } catch (error) {
-      throw new ValidationError(`Unable to calculate statistics for box ${boxId}`);
-    }
-  }
-
-  async findOptimalPosition(
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    labId: string,
-    researcher?: string
-  ): Promise<Location | null> {
-    try {
-      const stats = await this.getBoxStatistics(tankId, rackId, boxId, labId);
-
-      if (stats.availableCount === 0) {
-        return null;
-      }
-
-      let optimalPosition: number;
-
-      if (researcher) {
-        const researcherTubes = await this.tubeRepository.findByResearcher(researcher, labId);
-        const sameBoxTubes = researcherTubes.filter(tube =>
-          tube.location.tankId === tankId &&
-          tube.location.rackId === rackId &&
-          tube.location.boxId === boxId
-        );
-
-        if (sameBoxTubes.length > 0) {
-          const researcherPositions = sameBoxTubes.map(tube => tube.location.position);
-          const avgPosition = researcherPositions.reduce((a, b) => a + b, 0) / researcherPositions.length;
-
-          optimalPosition = stats.availablePositions.reduce((closest, current) =>
-            Math.abs(current - avgPosition) < Math.abs(closest - avgPosition) ? current : closest
-          );
-        } else {
-          optimalPosition = Math.min(...stats.availablePositions);
-        }
-      } else {
-        optimalPosition = Math.min(...stats.availablePositions);
-      }
-
-      return Location.create(tankId, rackId, boxId, optimalPosition);
-    } catch (error) {
-      return null;
     }
   }
 
@@ -359,7 +247,7 @@ export class TubePositionService {
     position: number,
     excludeTubeId: string | undefined,
     labId: string
-  ): Promise<{ isValid: boolean; reason?: string; conflicts?: PositionConflict[] }> {
+  ): Promise<{ isValid: boolean; reason?: string }> {
     const location = Location.create(tankId, rackId, boxId, position);
     const result = await this.canPlaceTubeAt(location, labId, excludeTubeId);
 
@@ -368,8 +256,7 @@ export class TubePositionService {
     } else {
       return {
         isValid: false,
-        reason: result.errors.join('; '),
-        conflicts: undefined
+        reason: result.errors.join('; ')
       };
     }
   }

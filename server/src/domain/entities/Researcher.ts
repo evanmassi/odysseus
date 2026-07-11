@@ -74,10 +74,6 @@ export class Researcher {
     }
   }
 
-  isActive(): boolean {
-    return this._active;
-  }
-
   activate(): void {
     this._active = true;
   }
@@ -104,19 +100,6 @@ export class Researcher {
       source: this._source,
       labId: this._labId
     };
-  }
-
-  equals(other: Researcher): boolean {
-    if (!other) return false;
-    return this._id === other._id;
-  }
-
-  toString(): string {
-    const statusParts: string[] = [];
-    if (!this._active) statusParts.push('Inactive');
-    if (this._approvalStatus === 'pending') statusParts.push('Pending Approval');
-    const statusStr = statusParts.length > 0 ? ` [${statusParts.join(', ')}]` : '';
-    return `Researcher(${this._id})${statusStr}`;
   }
 
   get id(): string { return this._id; }

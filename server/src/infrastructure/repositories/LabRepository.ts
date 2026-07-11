@@ -39,13 +39,6 @@ export class LabRepository implements ILabRepository {
     return LabMapper.fromRows(rows);
   }
 
-  async findActive(): Promise<Lab[]> {
-    const rows = await this.context.queryMany<LabRow>(
-      `SELECT ${LAB_COLUMNS} FROM labs WHERE is_active = TRUE ORDER BY name ASC`
-    );
-    return LabMapper.fromRows(rows);
-  }
-
   async save(lab: Lab): Promise<void> {
     const row = LabMapper.toRow(lab);
     await this.context.execute(
@@ -63,19 +56,4 @@ export class LabRepository implements ILabRepository {
     );
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute(
-      'DELETE FROM labs WHERE id = $1',
-      [id]
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  async exists(id: string): Promise<boolean> {
-    const row = await this.context.queryOne<{ exists: boolean }>(
-      'SELECT EXISTS(SELECT 1 FROM labs WHERE id = $1) as exists',
-      [id]
-    );
-    return row?.exists ?? false;
-  }
 }

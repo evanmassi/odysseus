@@ -11,7 +11,6 @@ const mockTubeRepository = {
   findByLocation: jest.fn(),
   getOccupiedPositions: jest.fn(),
   findByRackAndBox: jest.fn(),
-  findByResearcher: jest.fn(),
 } as any;
 
 const mockStorageRepository = {
@@ -20,7 +19,6 @@ const mockStorageRepository = {
   rackExists: jest.fn(),
   boxExists: jest.fn(),
   getMaxPosition: jest.fn(),
-  getAvailablePositions: jest.fn(),
 } as any;
 
 function createService() {
@@ -160,35 +158,6 @@ describe('TubePositionService', () => {
     });
   });
 
-  describe('getBoxStatistics', () => {
-    it('should calculate correct statistics', async () => {
-      const tubes = [
-        createTestTube({ location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 1 }, researcherId: 'res_1' }),
-        createTestTube({ location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 5 }, researcherId: 'res_2' }),
-      ];
-      mockTubeRepository.findByRackAndBox.mockResolvedValue(tubes);
-      mockStorageRepository.getMaxPosition.mockResolvedValue(81);
-
-      const stats = await createService().getBoxStatistics('T1', 'R1', 'A', 'lab_1');
-      expect(stats.totalCapacity).toBe(81);
-      expect(stats.occupiedCount).toBe(2);
-      expect(stats.availableCount).toBe(79);
-      expect(stats.researcherCount).toBe(2);
-    });
-
-    it('should return sorted occupied positions', async () => {
-      const tubes = [
-        createTestTube({ location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 5 } }),
-        createTestTube({ location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 2 } }),
-      ];
-      mockTubeRepository.findByRackAndBox.mockResolvedValue(tubes);
-      mockStorageRepository.getMaxPosition.mockResolvedValue(10);
-
-      const stats = await createService().getBoxStatistics('T1', 'R1', 'A', 'lab_1');
-      expect(stats.occupiedPositions).toEqual([2, 5]);
-    });
-  });
-
   describe('validatePositionBulk', () => {
     const config = Storage.fromData({
       tanks: [{ id: 'T1', name: 'Tank 1', racks: [{ id: '1', name: 'R1', boxes: [{ name: 'A', gridConfig: { rows: 9, cols: 9 } }] }] }],
@@ -241,42 +210,6 @@ describe('TubePositionService', () => {
       const preloaded = { config, occupiedPositions: new Set<number>(), maxPosition: 81, tubesInBox: [] };
       const results = createService().validatePositionBulk([], preloaded);
       expect(results.size).toBe(0);
-    });
-  });
-
-  describe('findOptimalPosition', () => {
-    it('should return null for full box', async () => {
-      const tubes = new Array(81).fill(null).map((_, i) =>
-        createTestTube({ location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: i + 1 } })
-      );
-      mockTubeRepository.findByRackAndBox.mockResolvedValue(tubes);
-      mockStorageRepository.getMaxPosition.mockResolvedValue(81);
-
-      const result = await createService().findOptimalPosition('T1', 'R1', 'A', 'lab_1');
-      expect(result).toBeNull();
-    });
-
-    it('should return first available position without researcher', async () => {
-      mockTubeRepository.findByRackAndBox.mockResolvedValue([]);
-      mockStorageRepository.getMaxPosition.mockResolvedValue(10);
-
-      const result = await createService().findOptimalPosition('T1', 'R1', 'A', 'lab_1');
-      expect(result).not.toBeNull();
-      expect(result!.position).toBe(1);
-    });
-
-    it('should place near existing researcher tubes', async () => {
-      const existingTubes = [
-        createTestTube({ location: { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 5 }, researcherId: 'res_1' }),
-      ];
-      mockTubeRepository.findByRackAndBox.mockResolvedValue(existingTubes);
-      mockStorageRepository.getMaxPosition.mockResolvedValue(10);
-      mockTubeRepository.findByResearcher.mockResolvedValue(existingTubes);
-
-      const result = await createService().findOptimalPosition('T1', 'R1', 'A', 'lab_1', 'res_1');
-      expect(result).not.toBeNull();
-      // Should pick position closest to 5 (the researcher's existing tube)
-      expect(Math.abs(result!.position - 5)).toBeLessThanOrEqual(2);
     });
   });
 });

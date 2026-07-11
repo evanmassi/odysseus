@@ -243,46 +243,12 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
-  async findByTank(tankId: string, labId: string): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND lab_id = $2 ORDER BY rack_id, box_id, position`,
-      [tankId, labId]
-    );
-    return TubeMapper.fromRows(rows);
-  }
-
-  async findByTankIds(tankIds: string[], labId: string): Promise<Tube[]> {
-    if (tankIds.length === 0) return [];
-
-    const placeholders = tankIds.map((_, i) => `$${i + 1}`).join(',');
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id IN (${placeholders}) AND lab_id = $${tankIds.length + 1} ORDER BY tank_id, rack_id, box_id, position`,
-      [...tankIds, labId]
-    );
-    return TubeMapper.fromRows(rows);
-  }
-
-  async isPositionAvailable(location: Location, labId: string): Promise<boolean> {
-    const tube = await this.findByLocation(location, labId);
-    return tube === null;
-  }
-
   async getOccupiedPositions(tankId: string, rackId: string, boxId: string, labId: string): Promise<number[]> {
     const rows = await this.context.queryMany<{ position: number }>(
       'SELECT position FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND lab_id = $4 ORDER BY position',
       [tankId, rackId, boxId, labId]
     );
     return rows.map((row: { position: number }) => row.position);
-  }
-
-  // RESEARCHER-BASED QUERIES
-
-  async findByResearcher(researcher: string, labId: string): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE researcher_id ILIKE $1 AND lab_id = $2 ORDER BY created_at DESC`,
-      [`%${researcher}%`, labId]
-    );
-    return TubeMapper.fromRows(rows);
   }
 
   // LOCK-BASED QUERIES
@@ -313,14 +279,6 @@ export class TubeRepository implements ITubeRepository {
       labIds
     );
     return new Map(rows.map(r => [r.lab_id, parseCount(r)]));
-  }
-
-  async countByResearcher(researcher: string, labId: string): Promise<number> {
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1 AND lab_id = $2',
-      [researcher, labId]
-    );
-    return parseCount(result);
   }
 
   async countByTank(tankId: string, labId: string): Promise<number> {
@@ -872,65 +830,6 @@ export class TubeRepository implements ITubeRepository {
   }
 
   // BULK OPERATIONS
-
-  /** Skips optimistic locking — used for imports where conflicts are pre-validated. */
-  async saveMany(tubes: Tube[]): Promise<void> {
-    await this.context.transaction(async (client) => {
-      for (const tube of tubes) {
-        const row = TubeMapper.toRow(tube);
-        await client.query(`
-          INSERT INTO tubes (
-            id, tank_id, rack_id, box_id, position, cell_type, donor_internal_id,
-            donor_source_id, concentration, concentration_unit, date, researcher_id, created_by_name,
-            media_type, media_supplements, media_selection, culture_condition, lot_number,
-            species, source, catalog_number, passage_number,
-            notes, created_at, updated_at,
-            is_locked, locked_by, lock_note, locked_at, shared_with_user_ids, lab_id
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
-          ON CONFLICT (id) DO UPDATE SET
-            tank_id = EXCLUDED.tank_id,
-            rack_id = EXCLUDED.rack_id,
-            box_id = EXCLUDED.box_id,
-            position = EXCLUDED.position,
-            cell_type = EXCLUDED.cell_type,
-            donor_internal_id = EXCLUDED.donor_internal_id,
-            donor_source_id = EXCLUDED.donor_source_id,
-            concentration = EXCLUDED.concentration,
-            concentration_unit = EXCLUDED.concentration_unit,
-            date = EXCLUDED.date,
-            researcher_id = EXCLUDED.researcher_id,
-            created_by_name = EXCLUDED.created_by_name,
-            media_type = EXCLUDED.media_type,
-            media_supplements = EXCLUDED.media_supplements,
-            media_selection = EXCLUDED.media_selection,
-            culture_condition = EXCLUDED.culture_condition,
-            lot_number = EXCLUDED.lot_number,
-            species = EXCLUDED.species,
-            source = EXCLUDED.source,
-            catalog_number = EXCLUDED.catalog_number,
-            passage_number = EXCLUDED.passage_number,
-            notes = EXCLUDED.notes,
-            updated_at = EXCLUDED.updated_at,
-            is_locked = EXCLUDED.is_locked,
-            locked_by = EXCLUDED.locked_by,
-            lock_note = EXCLUDED.lock_note,
-            locked_at = EXCLUDED.locked_at,
-            shared_with_user_ids = EXCLUDED.shared_with_user_ids,
-            lab_id = EXCLUDED.lab_id
-        `, [
-          row.id, row.tank_id, row.rack_id, row.box_id, row.position,
-          row.cell_type, row.donor_internal_id, row.donor_source_id,
-          row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
-          row.media_type, row.media_supplements, row.media_selection, row.culture_condition, row.lot_number,
-          row.species, row.source, row.catalog_number, row.passage_number,
-          row.notes,
-          row.created_at, row.updated_at,
-          row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
-          row.lab_id
-        ]);
-      }
-    });
-  }
 
   async deleteMany(ids: string[], labId: string): Promise<number> {
     if (ids.length === 0) return 0;

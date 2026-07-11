@@ -120,14 +120,6 @@ export class AuditRepository implements IAuditRepository {
 
   // MAINTENANCE OPERATIONS
 
-  async deleteOlderThan(date: Date): Promise<number> {
-    const result = await this.context.execute(
-      'DELETE FROM audit_log WHERE timestamp < $1',
-      [date]
-    );
-    return result.rowCount ?? 0;
-  }
-
   async deleteByLabId(labId: string): Promise<number> {
     const result = await this.context.execute(
       'DELETE FROM audit_log WHERE lab_id = $1',

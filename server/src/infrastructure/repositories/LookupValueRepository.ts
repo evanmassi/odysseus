@@ -73,16 +73,6 @@ export class LookupValueRepository implements ILookupValueRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async countTubesUsingValue(category: LookupCategory, value: string, labId: string): Promise<number> {
-    const column = CATEGORY_COLUMN_MAP[category];
-    if (!column) return 0;
-    const result = await this.context.queryOne<{ count: string }>(
-      `SELECT COUNT(*) as count FROM tubes WHERE ${column} = $1 AND lab_id = $2`,
-      [value, labId]
-    );
-    return parseCount(result);
-  }
-
   async countTubesUsingValues(category: LookupCategory, values: string[], labId: string): Promise<Map<string, number>> {
     if (values.length === 0) return new Map();
 

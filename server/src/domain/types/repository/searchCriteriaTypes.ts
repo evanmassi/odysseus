@@ -61,7 +61,6 @@ export interface TubeSearchCriteria {
   // Status
   hasConcentration?: boolean;
   isComplete?: boolean;
-  isExpired?: boolean;
 
   // Pagination
   limit?: number;
@@ -70,8 +69,5 @@ export interface TubeSearchCriteria {
   // Sorting
   sortBy?: 'createdAt' | 'updatedAt' | 'position' | 'researcherId' | 'cellType';
   sortOrder?: 'asc' | 'desc';
-
-  // Grouping
-  groupBy?: 'auto' | 'none' | 'donor' | 'cellType' | 'researcher' | 'lotNumber' | 'media' | 'location';
 }
 

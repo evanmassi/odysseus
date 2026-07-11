@@ -1,7 +1,5 @@
 /**
  * Password Reset Domain Events
- *
- * Events emitted during password reset operations.
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
@@ -13,7 +11,7 @@ export class PasswordResetByAdminEvent extends DomainEvent {
     public readonly requirePasswordChange: boolean,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -22,14 +20,6 @@ export class PasswordResetByAdminEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      adminUserId: this.adminUserId,
-      requirePasswordChange: this.requirePasswordChange
-    };
   }
 }
 
@@ -40,7 +30,7 @@ export class PasswordResetTokenGeneratedEvent extends DomainEvent {
     public readonly expiresAt: Date,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -50,14 +40,6 @@ export class PasswordResetTokenGeneratedEvent extends DomainEvent {
   getAggregateId(): string {
     return this.userId;
   }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId,
-      adminUserId: this.adminUserId,
-      expiresAt: this.expiresAt.toISOString()
-    };
-  }
 }
 
 export class PasswordResetCompletedEvent extends DomainEvent {
@@ -65,7 +47,7 @@ export class PasswordResetCompletedEvent extends DomainEvent {
     public readonly userId: string,
     labId?: string
   ) {
-    super(1, labId);
+    super(labId);
   }
 
   eventName(): string {
@@ -74,11 +56,5 @@ export class PasswordResetCompletedEvent extends DomainEvent {
 
   getAggregateId(): string {
     return this.userId;
-  }
-
-  protected getEventData(): Record<string, unknown> {
-    return {
-      userId: this.userId
-    };
   }
 }

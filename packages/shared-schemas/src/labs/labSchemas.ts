@@ -69,7 +69,7 @@ export const labDetailsUserSchema = z.object({
 
 export type LabDetailsUser = z.infer<typeof labDetailsUserSchema>;
 
-export const labDetailsResearcherSchema = z.object({
+const labDetailsResearcherSchema = z.object({
   id: z.string(),
   firstName: z.string(),
   lastName: z.string(),

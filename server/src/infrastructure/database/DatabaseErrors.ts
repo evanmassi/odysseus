@@ -30,7 +30,7 @@ function hasMessage(value: unknown): value is { message: string } {
  * - 23514: check_violation
  * - 23000: integrity_constraint_violation (generic)
  */
-export function isDatabaseConstraintError(error: unknown): boolean {
+function isDatabaseConstraintError(error: unknown): boolean {
   if (!error) return false;
 
   if (hasCode(error) && error.code.startsWith('23')) {
@@ -51,7 +51,7 @@ export function isDatabaseConstraintError(error: unknown): boolean {
   return false;
 }
 
-export function isUniqueConstraintError(error: unknown): boolean {
+function isUniqueConstraintError(error: unknown): boolean {
   return hasCode(error) && error.code === '23505';
 }
 

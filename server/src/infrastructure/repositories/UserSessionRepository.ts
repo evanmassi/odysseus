@@ -86,14 +86,6 @@ export class UserSessionRepositoryImpl implements UserSessionRepository {
     ]);
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute(
-      'DELETE FROM user_sessions WHERE id = $1',
-      [id]
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
   // SESSION MANAGEMENT OPERATIONS
 
   async countActiveSessions(userId: string): Promise<number> {

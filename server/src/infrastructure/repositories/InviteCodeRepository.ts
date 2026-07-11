@@ -16,7 +16,15 @@ export class InviteCodeRepository implements IInviteCodeRepository {
 
   constructor(private context: PostgresContext) {}
 
-  async findById(id: string): Promise<InviteCode | null> {
+  async findById(id: string, labId: string): Promise<InviteCode | null> {
+    const row = await this.context.queryOne<InviteCodeRow>(
+      `SELECT ${INVITE_CODE_COLUMNS} FROM invite_codes WHERE id = $1 AND lab_id = $2`,
+      [id, labId]
+    );
+    return row ? InviteCodeMapper.fromRow(row) : null;
+  }
+
+  async findByIdAnyLab(id: string): Promise<InviteCode | null> {
     const row = await this.context.queryOne<InviteCodeRow>(
       `SELECT ${INVITE_CODE_COLUMNS} FROM invite_codes WHERE id = $1`,
       [id]
@@ -35,19 +43,6 @@ export class InviteCodeRepository implements IInviteCodeRepository {
   async findByLabId(labId: string): Promise<InviteCode[]> {
     const rows = await this.context.queryMany<InviteCodeRow>(
       `SELECT ${INVITE_CODE_COLUMNS} FROM invite_codes WHERE lab_id = $1 ORDER BY created_at DESC`,
-      [labId]
-    );
-    return InviteCodeMapper.fromRows(rows);
-  }
-
-  async findActiveByLabId(labId: string): Promise<InviteCode[]> {
-    const rows = await this.context.queryMany<InviteCodeRow>(
-      `SELECT ${INVITE_CODE_COLUMNS} FROM invite_codes
-       WHERE lab_id = $1
-         AND is_active = TRUE
-         AND (expires_at IS NULL OR expires_at > NOW())
-         AND (max_uses IS NULL OR use_count < max_uses)
-       ORDER BY created_at DESC`,
       [labId]
     );
     return InviteCodeMapper.fromRows(rows);

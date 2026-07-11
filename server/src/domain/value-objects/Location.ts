@@ -94,10 +94,6 @@ export class Location {
     return `Tank-${this._tankId}/Rack-${this._rackId}/Box-${this._boxId}/Pos-${this._position}`;
   }
 
-  toKey(): string {
-    return `${this._tankId}-${this._rackId}-${this._boxId.toUpperCase()}-${this._position}`;
-  }
-
   toData(): {tankId: string, rackId: string, boxId: string, position: number} {
     return {
       tankId: this._tankId,
@@ -107,7 +103,6 @@ export class Location {
     };
   }
 
-  // Getters
   get tankId(): string { return this._tankId; }
   get rackId(): string { return this._rackId; }
   get boxId(): string { return this._boxId.toUpperCase(); }
@@ -115,10 +110,6 @@ export class Location {
 
   isInSameRack(other: Location): boolean {
     return this._tankId === other._tankId && this._rackId === other._rackId;
-  }
-
-  isInSameBox(other: Location): boolean {
-    return this.isInSameRack(other) && this._boxId.toUpperCase() === other._boxId.toUpperCase();
   }
 
   update(updates: {
