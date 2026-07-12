@@ -6,10 +6,28 @@ deliberately skipped — see the `*_FINDINGS.md` ledgers in this directory).
 This captures the larger, out-of-scope items worth investigating later — the "real work," not
 polish. Each has a starting point so it can be picked up cold. Ranked roughly by ongoing cost.
 
-**If you only do three:** #1 (transactions), #2 (wire-contract tests), #3 (the twins decision).
+**If you only do three:** #0 (vulnerable dependencies), #1 (transactions), #3 (the twins decision).
 Those carry real ongoing cost today; the rest are missing coverage or deferred decisions.
 
+> **Revised 2026-07-12** after verifying each item against the code. Several starting points in the
+> original draft were wrong — corrections are inline. #2 is now largely closed; #0 is new and was
+> the most urgent thing here, mis-filed as a footnote under #7.
+
 ---
+
+## 0. Vulnerable production dependencies
+
+**What:** `npm audit --omit=dev` reports 16 vulnerabilities (8 high) in *shipped* dependencies.
+
+**Why it matters:** It undercuts the security pass. `jsonwebtoken` depends on `jws`, which has an
+advisory for *improperly verifying HMAC signatures* — the library that validates the tokens the
+security pass just hardened. Also: `express-rate-limit` (IPv4-mapped IPv6 addresses bypass
+per-client limiting), `path-to-regexp` via `express` (ReDoS), `ws` via `socket.io` (uninitialized
+memory disclosure, memory-exhaustion DoS), `react-router-dom` (XSS via open redirect).
+
+**Where to start:** Every one of these reports `fixAvailable: true` with no breaking change. Run
+`npm audit fix`, re-run the suites, done. This is an afternoon, not a project. The knip pass covered
+*dead* dependencies; it never looked at *vulnerable* ones.
 
 ## 1. Transaction integrity across multi-write flows
 
@@ -18,27 +36,58 @@ so a mid-flow failure leaves inconsistent state.
 
 **Why it matters:** Data-integrity risk — the highest-severity class of issue that remains.
 
-**Where to start:** The refresh-token rotation added in `JwtSessionService.refreshAccessToken`
-(revoke old token → save new token → repoint session) is a concrete example — three sequential
-writes, no transaction. Then audit the other multi-write paths: bulk tube operations
-(`TubeApplicationService` / `TubeRepository`), storage import (`ImportStorageCommandHandler`),
-password-reset (revokes sessions + tokens), and login (creates session + refresh token). First
-check whether `PostgresContext` exposes a transaction/`withTransaction` wrapper; if not, that
-helper is the prerequisite. Wrap the flows that must be atomic.
+**Where to start:** ~~First check whether `PostgresContext` exposes a transaction wrapper.~~ **It
+already does** — `transaction()` and `transactionSerializable()` (`PostgresContext.ts:111`, `:131`),
+used today by four repositories. The helper is not the prerequisite, and the real blocker is bigger
+than the original draft implied: the wrapper hands the callback a `PoolClient`, but repository
+methods query the pool directly, so there is **no way to enlist a cross-repository flow in one
+transaction** without threading an optional client through repository signatures. That plumbing
+decision is the actual work.
 
-## 2. Client-validated wire-contract test gap
+The concrete flows: refresh-token rotation in `JwtSessionService.refreshAccessToken` (revoke old →
+save new → repoint session — three sequential writes), bulk tube operations, storage import
+(`ImportStorageCommandHandler`), password-reset (revokes sessions + tokens), login (creates session
++ refresh token). Note `PostgresContext.getClient()` (`:146`) has zero callers — dead code.
 
-**What:** Nothing tests that the server's actual response shapes match the Zod schemas the client
-validates them against.
+## 2. Wire-contract enforcement — *largely closed 2026-07-12*
 
-**Why it matters:** This is a structural blind spot — it's exactly what produced the login
-regression mid-review (removing a field the client's `authResponseSchema` still required). A whole
-class of silent breakage has no guard.
+**What it was:** Nothing bound the server's response shapes to the Zod schemas the client validates
+them against. This produced the login regression mid-review (`db403874`): the application-layer
+cleanup dropped a field the client's `authResponseSchema` still required, and it compiled fine.
 
-**Where to start:** A test layer that runs representative server responses (or contract fixtures)
-through the client response schemas in `@odysseus/shared-schemas`. Highest-value coverage: the auth
-responses (`authResponseSchema`, `loginResponseSchema`), the refresh response (currently typed
-inline in the client `SessionService`, not even schema-validated), and the list/data wrappers.
+**What was done** (commit `ccc3a81a`): the auth surface is now bound at the type level. Every auth
+response declares the shared-schemas type the client parses it with, so a dropped or added field is
+a `tsc` failure. Verified by re-introducing the original bug and watching it fail to compile.
+Alongside that: `refreshTokenResponseSchema` is new (the refresh payload previously had *no* schema
+and two independent hand-rolled shapes — a server interface and a client inline generic);
+`sessionToken` was deleted (required by the schema, sent in three places, read by nobody, and only a
+copy of `tokens.accessToken`); and `SessionService` now parses its refresh and session-info
+responses instead of casting them. `User.toPublicData()` returns `Date` rather than pre-stringifying
+— the wire bytes are identical, but the schema's inferred type now matches what the server produces.
+
+**What remains:**
+
+- **Runtime serialization checks.** Types cannot see the wire. `dateField` is `z.coerce.date()`,
+  which accepts `Date` *and* `string`, so no type-level bind can catch a date that serializes wrong,
+  nor an envelope change. Only a test that round-trips through real JSON can. **Any such test must
+  `JSON.parse(JSON.stringify(...))` before `.parse()`** — validating the controller's return object
+  instead of its serialized form passes vacuously.
+- **The prerequisite the original draft missed:** there is no way to boot the app in a test.
+  `index.ts` constructs Express inside a non-exported class whose constructor wires sockets, DB,
+  services and routes as side effects, and the module's last line instantiates it and binds a TCP
+  port. The existing integration harness (`tests/integration/setup/`) is repository-level only — real
+  Postgres, no HTTP. `supertest` is installed but only used against a throwaway bare `express()` app.
+  So this is an `index.ts` refactor (extract a `createApp()` factory that returns the app without
+  `.listen()`), not a test-writing task. A login-through-HTTP test would additionally trip on
+  `createTestUser` (`domain/__tests__/helpers.ts:11`), which seeds a **fake** bcrypt hash that won't
+  verify against any plaintext.
+- **Extend the binding past auth.** `ResponseBuilder.success<T>(data: T)` infers `T` from its
+  argument — zero constraint. Every non-auth controller is still unbound.
+- **25 raw unvalidated client calls** — `httpClient.post/put/delete` instead of the schema-taking
+  `postData/putData/deleteWithData`. Ten are in `StorageService`; the rest are in `AdminUserService`,
+  `AdminResearcherService`, `LabService`, `SecurityMonitoringService`. All are mutations whose
+  response bodies are currently discarded, so the blast radius is small, but it's a systematic
+  bypass of the rule in AGENTS.md.
 
 ## 3. The equipment ↔ supplies twin decision
 
@@ -49,11 +98,17 @@ documents, bulk responses, item-id fields).
 **Why it matters:** The biggest remaining architectural/DRY question. It was deferred at every layer
 of the review. Leaving it *undecided* is the cost — the two copies will drift.
 
-**Where to start:** Decide the fork explicitly: (a) consolidate behind a shared generic
-"inventory item" abstraction, or (b) formally accept them as permanently separate and document why.
-The domain-layer ledger (C11) and the shared-schemas "Twins" note track the specific pairs. Note
-that AGENTS.md marks both domains as *un-audited* exemplars — resolving this is also what would let
-them become reference-quality.
+**Where to start:** First read `P1B_EQUIPMENT_SUPPLIES_TWIN.md` — the **client** half of this was
+already resolved (2026-07-08): seven shared components, ~1,500 lines collapsed. The original draft
+didn't reference it, so anyone picking this up cold would re-tread solved ground.
+
+What actually remains is the **server** twin: `EquipmentCategoryRepository` and
+`SupplyCategoryRepository` are both exactly 77 lines; the application services are 632 vs 810; plus
+the ~9 byte-identical schema pairs. Decide the fork explicitly: (a) consolidate behind a shared
+generic "inventory item" abstraction, or (b) formally accept them as permanently separate and
+document why. The domain-layer ledger (C11) and the shared-schemas "Twins" note track the pairs.
+AGENTS.md marks both domains as *un-audited* exemplars — resolving this is what would let them
+become reference-quality.
 
 ## 4. Frontend audit + code-splitting
 
@@ -63,10 +118,14 @@ bundle is large.
 
 **Why it matters:** Real load-time cost, and likely undiscovered component-level debt.
 
-**Where to start:** The production build reports a ~1 MB main chunk (~317 kB gzipped) with only the
-admin tabs lazy-loaded (`AdminSettingsModal`'s `lazy()` imports). Split by domain / route. Then a
-proper component-quality pass (prop-drilling, near-duplicate components, hook boundaries) using the
-same rubric the server got (`docs/audit-rubric.md`).
+**Where to start:** The production build reports a ~1 MB main chunk (~317 kB gzipped). ~~Only the
+admin tabs are lazy-loaded.~~ Correction: `lazy()` is used in **seven** files (`App.tsx`,
+`AppDashboard`, `AppHeader`, `AdminSettingsModal`, `SystemAdminDashboard`, `HelpModal`,
+`UserSettingsModal`) — so the low-hanging fruit is already picked, and the remaining 1 MB is the
+*core* bundle. Note also `client/vite.config.ts:40` sets `chunkSizeWarningLimit: 1100`, i.e. the
+warning was **silenced, not fixed**. Split by domain / route. Then a proper component-quality pass
+(prop-drilling, near-duplicate components, hook boundaries) using the same rubric the server got
+(`docs/audit-rubric.md`).
 
 ## 5. Accessibility
 
@@ -76,9 +135,15 @@ actual a11y pass.
 **Why it matters:** Probably the widest gap between the documented standard and the real state, given
 how modal- and form-driven the UI is.
 
-**Where to start:** Focus management on the modals (`BaseModal` and everything built on it), keyboard
-traps, ARIA roles/labels on custom interactive elements (the `role="button"` + `onKeyDown` pattern in
-AGENTS.md), and tab order. An automated pass (axe) plus manual keyboard-only testing of the main flows.
+**Where to start:** ~~Focus management on the modals.~~ Correction: `BaseModal.tsx` already has
+`useFocusTrap`, `role="dialog"`, `aria-modal`, `aria-labelledby`, Escape scoped for nested modals,
+and an `aria-label` on close — the starting point the original draft named is already built.
+
+One **real bug** lurks there: `id="modal-title"` is a hardcoded literal (`BaseModal.tsx:146`) in a
+component that explicitly supports nesting, so two open modals produce duplicate DOM ids and
+`aria-labelledby` resolves to the wrong one. Should be `useId()`. Beyond that, the open work is ARIA
+roles/labels on custom interactive elements (the `role="button"` + `onKeyDown` pattern), tab order,
+and an automated axe pass plus manual keyboard-only testing of the main flows.
 
 ## 6. Performance under data volume
 
@@ -98,10 +163,10 @@ loaded tube-search path with `EXPLAIN`. Seed a realistic dataset first.
 **Why it matters:** Fine for a for-fun project; a prerequisite before any real use.
 
 **Where to start:** Structured error tracking (winston logs to console/file today — no
-Sentry-equivalent); metrics/health beyond the basic health check; a documented, hardened deploy
+Sentry-equivalent); metrics/health beyond the basic health check; and a documented, hardened deploy
 (the `NODE_ENV` fail-open fixed in the security pass hinted the deploy path is thin — secrets
-management, env handling); and a plain `npm audit` / dependency-freshness check — the knip pass
-covered *dead* dependencies, not *vulnerable or stale* ones.
+management, env handling). The dependency-vulnerability half of this item was promoted to **#0** —
+it turned out to be the most urgent thing in this document.
 
 ---
 
