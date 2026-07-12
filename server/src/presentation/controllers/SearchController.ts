@@ -41,7 +41,6 @@ export class SearchController extends BaseController {
       const searchCriteria = SearchCriteriaMapper.toTubeSearchCriteria(filters, {
         query: query || '',
         limit: undefined,
-        offset: undefined,
         sortBy,
         sortOrder
       });

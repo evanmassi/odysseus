@@ -1,13 +1,13 @@
 /**
  * Search Domain Schemas
  *
- * Schemas for advanced search filters, results, and saved searches.
+ * Schemas for advanced search filters, options, and results.
  */
 
 import { z } from 'zod';
-import { tubeDataSchema } from '../tubes/tubeSchemas';
+import { tubeDataSchema, TUBE_SORT_FIELDS } from '../tubes/tubeSchemas';
 
-export const SearchFiltersSchema = z.object({
+const SearchFiltersSchema = z.object({
   // Location filters — arrays use OR logic (e.g. tankIds: ['a','b'] = tank a OR tank b)
   tankIds: z.array(z.string()).optional(),
   rackIds: z.array(z.string()).optional(),
@@ -38,8 +38,7 @@ export const AdvancedSearchOptionsSchema = z.object({
   query: z.string().optional(),
   filters: SearchFiltersSchema.optional(),
   limit: z.number().min(1).max(1000).default(50),
-  offset: z.number().min(0).default(0),
-  sortBy: z.string().optional(),
+  sortBy: z.enum(TUBE_SORT_FIELDS).optional(),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 }).strict();
 
@@ -56,7 +55,7 @@ const SearchMetadataSchema = z.object({
   totalMatches: z.number(),
 }).strict();
 
-export const GroupedResultSchema = z.object({
+const GroupedResultSchema = z.object({
   groupKey: z.string(),
   groupType: z.enum(['cellType', 'researcher', 'donor', 'lotNumber', 'media', 'batch']),
   tubes: z.array(tubeDataSchema),
@@ -73,7 +72,7 @@ export const SearchResultSchema = z.object({
 }).strict();
 
 export type SearchFilters = z.infer<typeof SearchFiltersSchema>;
-// Input shape: callers may omit limit/offset/sortOrder — the schema applies their defaults on parse.
+// Input shape: callers may omit limit/sortOrder — the schema applies their defaults on parse.
 export type AdvancedSearchOptions = z.input<typeof AdvancedSearchOptionsSchema>;
 export type SearchResult = z.infer<typeof SearchResultSchema>;
 export type GroupedResult = z.infer<typeof GroupedResultSchema>;

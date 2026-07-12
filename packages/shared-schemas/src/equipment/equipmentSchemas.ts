@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { dateField, dateOnlyField, optionalDateOnlyField } from '../utils/dateFields';
 import { optionalText, patchText } from '../utils/stringFields';
 
-// Status and category enums
+// Status enum
 
 export const equipmentStatusValues = [
   'active',
@@ -216,12 +216,8 @@ export const equipmentBulkMaintenanceRequestSchema = z.object({
   data: createEquipmentMaintenanceLogRequestSchema,
 });
 
-export const equipmentBulkStatusValues = equipmentStatusValues.filter(
-  (s): s is Exclude<(typeof equipmentStatusValues)[number], 'decommissioned'> => s !== 'decommissioned'
-);
-export const equipmentBulkStatusSchema = z.enum(
-  equipmentBulkStatusValues as unknown as [string, ...string[]]
-);
+export const equipmentBulkStatusSchema = equipmentStatusSchema.exclude(['decommissioned']);
+export const equipmentBulkStatusValues = equipmentBulkStatusSchema.options;
 
 export const equipmentBulkStatusRequestSchema = z.object({
   itemIds: itemIdsField,

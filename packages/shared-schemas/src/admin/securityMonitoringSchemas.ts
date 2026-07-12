@@ -1,19 +1,19 @@
 /**
  * Security Monitoring Schemas
  *
- * Zod schemas for security monitoring API responses — session stats, token health, and IP activity.
+ * Request and response schemas for the admin security monitoring API.
  */
 
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 
-export const sessionOverviewSchema = z.object({
+const sessionOverviewSchema = z.object({
   activeSessions: z.number(),
   expiredAwaitingCleanup: z.number(),
   avgSessionDurationMinutes: z.number(),
 });
 
-export const tokenHealthSchema = z.object({
+const tokenHealthSchema = z.object({
   activeTokens: z.number(),
   expiredTokens: z.number(),
   revokedTokens: z.number(),
@@ -87,7 +87,7 @@ export const failedLoginsResponseSchema = z.object({
   total: z.number(),
 });
 
-export const sessionActivityEntrySchema = z.object({
+const sessionActivityEntrySchema = z.object({
   hour: z.string(),
   count: z.number(),
 });

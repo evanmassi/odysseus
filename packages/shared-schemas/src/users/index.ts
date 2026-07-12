@@ -22,8 +22,6 @@ export {
 } from './userLookupSchemas';
 
 export {
-  userSessionSchema,
   activeSessionSchema,
-  type UserSession,
   type ActiveSession,
 } from './userSessionSchemas';

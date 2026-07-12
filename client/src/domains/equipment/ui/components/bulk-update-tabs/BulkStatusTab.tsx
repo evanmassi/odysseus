@@ -20,7 +20,6 @@ import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
 
 import type { EquipmentBulkStatusRequest } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui';
-import type { FieldValues } from 'react-hook-form';
 
 const bulkStatusFormSchema = equipmentBulkStatusRequestSchema.shape.data;
 
@@ -41,8 +40,8 @@ export function BulkStatusTab({
     handleSubmit,
     control,
     formState: { isValid },
-  } = useForm({
-    resolver: zodResolver(bulkStatusFormSchema) as never,
+  } = useForm<EquipmentBulkStatusRequest['data']>({
+    resolver: zodResolver(bulkStatusFormSchema),
     mode: 'onChange',
   });
 
@@ -50,12 +49,8 @@ export function BulkStatusTab({
     onValidityChange(isValid);
   }, [isValid, onValidityChange]);
 
-  const onFormSubmit = (data: FieldValues) => {
-    onSubmit(data as EquipmentBulkStatusRequest['data']);
-  };
-
   return (
-    <form id="bulk-action-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3">
+    <form id="bulk-action-form" onSubmit={handleSubmit(onSubmit)} className="space-y-3">
       <Controller
         name="status"
         control={control}

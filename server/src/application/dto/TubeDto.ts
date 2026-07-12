@@ -8,7 +8,8 @@ import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type TubeData,
-  type RackTube
+  type RackTube,
+  type ConcentrationUnit
 } from '@odysseus/shared-schemas';
 
 import type { Tube } from '@domain/entities/Tube';
@@ -41,7 +42,7 @@ type TubeUpdateData = {
     donorInternalId?: string | null;
     donorSourceId?: string | null;
     concentration?: number | null;
-    concentrationUnit?: 'c/v' | 'c/mL' | null;
+    concentrationUnit?: ConcentrationUnit | null;
     date?: string | null;
     mediaType?: string | null;
     mediaSupplements?: string | null;
@@ -96,7 +97,7 @@ export class TubeDto {
       donorInternalId?: string;
       donorSourceId?: string;
       concentration?: number;
-      concentrationUnit?: 'c/v' | 'c/mL';
+      concentrationUnit?: ConcentrationUnit;
       date?: string;
       mediaType?: string;
       mediaSupplements?: string;

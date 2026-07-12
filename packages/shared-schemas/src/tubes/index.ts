@@ -7,16 +7,16 @@
 export {
   CONCENTRATION_UNITS,
   tubeLocationSchema,
-  tubeSampleSchema,
-  tubeTimestampsSchema,
   tubeDataSchema,
   rackTubeSchema,
   tubeLocationCountSchema,
   createTubeRequestSchema,
   updateTubeRequestSchema,
   TUBE_FILTERABLE_FIELDS,
+  TUBE_SORT_FIELDS,
   tubeFilterOptionsResponseSchema,
   type TubeData,
+  type TubeSample,
   type TubeLocation,
   type RackTube,
   type TubeLocationCount,
@@ -41,18 +41,6 @@ export {
 } from './tubeSchemas';
 
 export {
-  parseConcentrationInput,
-  concentrationPreprocessor,
-  concentrationPreprocessorNullable,
-  parseDate,
-  datePreprocessor,
-  datePreprocessorNullable,
-  optionalFromEmpty,
-  nullableOptionalFromEmpty,
-  concentrationUnitRefinement,
-} from './tubeValidation';
-
-export {
   formatConcentrationDisplay,
 } from './tubeFormatters';
 
@@ -65,7 +53,6 @@ export {
   unlockTubesRequestSchema,
   shareTubeAccessRequestSchema,
   revokeTubeAccessRequestSchema,
-  skippedTubeSchema,
   bulkLockResultSchema,
   bulkUnlockResultSchema,
   shareAccessResultSchema,

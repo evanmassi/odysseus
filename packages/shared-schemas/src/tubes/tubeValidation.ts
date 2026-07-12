@@ -43,7 +43,7 @@ type ConcentrationParseResult =
  * - { success: true, value: undefined } for empty input (optional field)
  * - { success: false, error: string } for malformed input
  */
-export function parseConcentrationInput(value: unknown): ConcentrationParseResult {
+function parseConcentrationInput(value: unknown): ConcentrationParseResult {
   if (value === undefined || value === null || value === '') {
     return { success: true, value: undefined };
   }
@@ -316,20 +316,8 @@ export const nullableOptionalFromEmpty = <S extends z.ZodTypeAny>(schema: S) =>
   );
 
 /**
- * Business Rule: concentration and unit must both be present or both absent.
- */
-function validateConcentrationUnit(
-  concentration: number | undefined | null,
-  unit: ConcentrationUnit | undefined | null
-): boolean {
-  const hasConcentration = concentration !== undefined && concentration !== null;
-  const hasUnit = unit !== undefined && unit !== null;
-  return (hasConcentration && hasUnit) || (!hasConcentration && !hasUnit);
-}
-
-/**
  * Zod refinement for concentration + unit invariant
- * Apply to sample schemas to enforce business rule
+ * Business rule: concentration and unit must both be present or both absent.
  */
 export const concentrationUnitRefinement = <T extends {
   concentration?: number | null;
@@ -339,7 +327,7 @@ export const concentrationUnitRefinement = <T extends {
     const hasConcentration = data.concentration !== undefined && data.concentration !== null;
     const hasUnit = data.concentrationUnit !== undefined && data.concentrationUnit !== null;
 
-    if (validateConcentrationUnit(data.concentration, data.concentrationUnit)) {
+    if ((hasConcentration && hasUnit) || (!hasConcentration && !hasUnit)) {
       return;
     }
 

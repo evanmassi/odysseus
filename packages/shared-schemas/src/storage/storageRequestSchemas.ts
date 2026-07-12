@@ -3,16 +3,20 @@
  *
  * Zod validation for tank/rack/box/label write requests. Optional text is
  * trimmed (globally, via sanitizeStrings) and blank-normalized here at the
- * schema boundary, matching the equipment domain.
+ * schema boundary.
  */
 
 import { z } from 'zod';
 
+import { VALIDATION_LIMITS } from '../constants/validationLimits';
 import { patchText } from '../utils/stringFields';
 import { positionDisplayConfigSchema } from './positionSchemas';
 import { GridConfigurationSchema } from './storageSchemas';
 
-const NAME_MAX = 200;
+const TANK_NAME_MAX = VALIDATION_LIMITS.TANK.NAME_MAX_LENGTH;
+// Rack/box names have no domain-level limit; keep the prior HTTP request cap.
+const RACK_NAME_MAX = 200;
+const BOX_NAME_MAX = 200;
 const LOCATION_MAX = 500;
 const LABEL_MAX = 50;
 const LAB_NAME_MAX = 200;
@@ -22,11 +26,11 @@ const count = z.number().int().positive().max(COUNT_MAX).optional();
 const assignedUserId = z.string().min(1).nullish();
 
 export const addTankRequestSchema = z.object({
-  name: z.string().min(1, 'Tank name is required').max(NAME_MAX),
+  name: z.string().min(1, 'Tank name is required').max(TANK_NAME_MAX),
 });
 
 export const updateTankRequestSchema = z.object({
-  name: z.string().min(1, 'Tank name is required').max(NAME_MAX).optional(),
+  name: z.string().min(1, 'Tank name is required').max(TANK_NAME_MAX).optional(),
   location: z.string().max(LOCATION_MAX).optional(),
   isActive: z.boolean().optional(),
 });
@@ -34,7 +38,7 @@ export const updateTankRequestSchema = z.object({
 export const addRacksRequestSchema = z.object({ count });
 
 export const updateRackRequestSchema = z.object({
-  name: z.string().min(1, 'Rack name is required').max(NAME_MAX).optional(),
+  name: z.string().min(1, 'Rack name is required').max(RACK_NAME_MAX).optional(),
   capacity: z.number().int().positive().optional(),
   isActive: z.boolean().optional(),
 });
@@ -44,7 +48,7 @@ export const assignRackRequestSchema = z.object({ assignedUserId });
 export const addBoxesRequestSchema = z.object({ count });
 
 export const updateBoxRequestSchema = z.object({
-  name: z.string().min(1, 'Box name is required').max(NAME_MAX).optional(),
+  name: z.string().min(1, 'Box name is required').max(BOX_NAME_MAX).optional(),
   gridConfig: GridConfigurationSchema.optional(),
   positionDisplay: positionDisplayConfigSchema.nullable().optional(),
   isActive: z.boolean().optional(),

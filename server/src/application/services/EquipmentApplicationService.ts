@@ -55,9 +55,9 @@ import type {
   UpdateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
+  EquipmentBulkStatusRequest,
   EquipmentBulkRelocateRequest,
   EquipmentBulkResponse,
-  EquipmentStatus,
 } from '@odysseus/shared-schemas';
 
 export class EquipmentApplicationService {
@@ -532,7 +532,7 @@ export class EquipmentApplicationService {
   async bulkChangeStatus(
     labId: string,
     itemIds: string[],
-    data: { status: EquipmentStatus; conditionNotes?: string },
+    data: EquipmentBulkStatusRequest['data'],
     user: User
   ): Promise<EquipmentBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);

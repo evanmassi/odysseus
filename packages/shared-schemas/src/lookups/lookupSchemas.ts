@@ -1,7 +1,7 @@
 /**
  * Lookup Value Schemas
  *
- * Validation for admin-managed dropdown values (species, source, media, specimen type).
+ * Validation for admin-managed dropdown values; LOOKUP_CATEGORIES is the canonical category list.
  */
 
 import { z } from 'zod';

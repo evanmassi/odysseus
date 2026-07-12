@@ -36,24 +36,18 @@ export const revokeTubeAccessRequestSchema = z.object({
 /**
  * Skipped tube info for partial success responses
  */
-export const skippedTubeSchema = z.object({
+const skippedTubeSchema = z.object({
   tubeId: z.string(),
   reason: z.string(),
 });
 
-/**
- * Bulk lock result schema
- * Supports partial success pattern
- */
+/** Supports partial success pattern. */
 export const bulkLockResultSchema = z.object({
   locked: z.array(z.string()),
   skipped: z.array(skippedTubeSchema),
 });
 
-/**
- * Bulk unlock result schema
- * Supports partial success pattern
- */
+/** Supports partial success pattern. */
 export const bulkUnlockResultSchema = z.object({
   unlocked: z.array(z.string()),
   skipped: z.array(skippedTubeSchema),

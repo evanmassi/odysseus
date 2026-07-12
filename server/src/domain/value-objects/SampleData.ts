@@ -4,6 +4,8 @@
  * Immutable value object for biological sample information with domain validation.
  */
 
+import { CONCENTRATION_UNITS, type ConcentrationUnit, type TubeSample } from '@odysseus/shared-schemas';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 export class SampleData {
   private constructor(
@@ -12,7 +14,7 @@ export class SampleData {
     private readonly _donorInternalId?: string,
     private readonly _donorSourceId?: string,
     private readonly _concentration?: number,
-    private readonly _concentrationUnit?: 'c/v' | 'c/mL',
+    private readonly _concentrationUnit?: ConcentrationUnit,
     private readonly _date?: string,
     private readonly _mediaType?: string,
     private readonly _mediaSupplements?: string,
@@ -27,24 +29,7 @@ export class SampleData {
     this.validate();
   }
 
-  static create(data: {
-    cellType?: string;
-    species?: string;
-    donorInternalId?: string;
-    donorSourceId?: string;
-    concentration?: number;
-    concentrationUnit?: 'c/v' | 'c/mL';
-    date?: string;
-    mediaType?: string;
-    mediaSupplements?: string;
-    mediaSelection?: string;
-    cultureCondition?: string;
-    lotNumber?: string;
-    source?: string;
-    catalogNumber?: string;
-    passageNumber?: number;
-    notes?: string;
-  }): SampleData {
+  static create(data: TubeSample): SampleData {
     return new SampleData(
       data.cellType,
       data.species,
@@ -100,7 +85,7 @@ export class SampleData {
     }
 
     // Validate unit values
-    if (hasUnit && !['c/v', 'c/mL'].includes(this._concentrationUnit!)) {
+    if (hasUnit && !CONCENTRATION_UNITS.includes(this._concentrationUnit!)) {
       throw new ValidationError('Concentration unit must be "c/v" or "c/mL"');
     }
   }
@@ -200,7 +185,7 @@ export class SampleData {
     donorInternalId?: string | null;
     donorSourceId?: string | null;
     concentration?: number | null;
-    concentrationUnit?: 'c/v' | 'c/mL' | null;
+    concentrationUnit?: ConcentrationUnit | null;
     date?: string | null;
     mediaType?: string | null;
     mediaSupplements?: string | null;
@@ -247,24 +232,7 @@ export class SampleData {
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
   }
 
-  toData(): {
-    cellType?: string;
-    species?: string;
-    donorInternalId?: string;
-    donorSourceId?: string;
-    concentration?: number;
-    concentrationUnit?: 'c/v' | 'c/mL';
-    date?: string;
-    mediaType?: string;
-    mediaSupplements?: string;
-    mediaSelection?: string;
-    cultureCondition?: string;
-    lotNumber?: string;
-    source?: string;
-    catalogNumber?: string;
-    passageNumber?: number;
-    notes?: string;
-  } {
+  toData(): TubeSample {
     return {
       cellType: this._cellType,
       species: this._species,
@@ -290,7 +258,7 @@ export class SampleData {
   get donorInternalId(): string | undefined { return this._donorInternalId; }
   get donorSourceId(): string | undefined { return this._donorSourceId; }
   get concentration(): number | undefined { return this._concentration; }
-  get concentrationUnit(): 'c/v' | 'c/mL' | undefined { return this._concentrationUnit; }
+  get concentrationUnit(): ConcentrationUnit | undefined { return this._concentrationUnit; }
   get date(): string | undefined { return this._date; }
   get mediaType(): string | undefined { return this._mediaType; }
   get mediaSupplements(): string | undefined { return this._mediaSupplements; }

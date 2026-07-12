@@ -7,7 +7,6 @@
 import type { TubeData, CreateTubeRequest, TubeLocation } from './tubeSchemas';
 import { parseDate } from './tubeValidation';
 
-/** Transforms a tube response into a create request for client-side paste operations. */
 export function tubeDataToCreateRequest(
   tube: TubeData,
   newLocation: TubeLocation

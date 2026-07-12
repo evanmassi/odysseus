@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 
-const passwordField = z.string()
+export const passwordField = z.string()
   .min(4, 'Password must be at least 4 characters')
   .max(128, 'Password cannot exceed 128 characters');
 

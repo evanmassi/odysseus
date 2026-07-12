@@ -42,8 +42,6 @@ export {
 } from './auditSchemas';
 
 export {
-  sessionOverviewSchema,
-  tokenHealthSchema,
   securityOverviewResponseSchema,
   activeSessionEntrySchema,
   activeSessionsResponseSchema,
@@ -63,7 +61,6 @@ export {
   failedLoginsResponseSchema,
   type FailedLoginEntry,
   type FailedLoginsResponse,
-  sessionActivityEntrySchema,
   sessionActivityResponseSchema,
   type SessionActivityResponse,
 } from './securityMonitoringSchemas';
@@ -72,7 +69,6 @@ export {
   boxUtilizationSchema,
   rackUtilizationSchema,
   tankUtilizationSchema,
-  nearCapacityBoxSchema,
   labStorageAnalyticsResponseSchema,
   labStorageSummarySchema,
   crossLabStorageAnalyticsResponseSchema,

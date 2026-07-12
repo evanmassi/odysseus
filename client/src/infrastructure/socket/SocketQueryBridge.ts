@@ -327,7 +327,6 @@ class SocketQueryBridge {
       event: keyof typeof userEventSchemas;
       invalidate: ReadonlyArray<readonly unknown[]>;
     }[] = [
-      { event: 'user_approved', invalidate: userListAndAdmin },
       { event: 'user_deleted', invalidate: userListAndAdmin },
       { event: 'user_role_changed', invalidate: userListAndAdmin },
       { event: 'user_created', invalidate: [queryKeys.admin.users(this.labId)] },

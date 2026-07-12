@@ -42,8 +42,7 @@ export const tubeSampleSchema = z.object({
   concentrationUnit: concentrationUnitSchema.optional(),
   date: z.union([
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
-    z.string().datetime('Invalid date format'),
-    z.date()
+    z.string().datetime('Invalid date format')
   ]).optional(),
   mediaType: z.string().optional(),
   mediaSupplements: z.string().optional(),
@@ -56,7 +55,9 @@ export const tubeSampleSchema = z.object({
   notes: z.string().optional()
 });
 
-export const tubeTimestampsSchema = z.object({
+export type TubeSample = z.infer<typeof tubeSampleSchema>;
+
+const tubeTimestampsSchema = z.object({
   createdAt: dateField,
   updatedAt: dateField,
 });
@@ -232,6 +233,8 @@ export const TUBE_FILTERABLE_FIELDS = [
 
 export type TubeFilterableField = typeof TUBE_FILTERABLE_FIELDS[number];
 
+export const TUBE_SORT_FIELDS = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
+
 export const tubeFilterOptionsResponseSchema = z.object({
   tankId: z.array(z.string()).optional(),
   rackId: z.array(z.string()).optional(),
@@ -267,8 +270,6 @@ export type UpdateTubeRequest = z.output<typeof updateTubeRequestSchema>;
  */
 export type CreateTubeFormInput = z.input<typeof createTubeRequestSchema>;
 export type UpdateTubeFormInput = z.input<typeof updateTubeRequestSchema>;
-
-// Response schemas
 
 export const bulkDeleteResponseSchema = z.object({
   deleted: z.array(z.string()),

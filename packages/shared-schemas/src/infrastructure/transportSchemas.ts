@@ -8,7 +8,6 @@ import { z } from 'zod';
 
 // Envelope schemas
 
-// Maps to ErrorDto.success
 export const successEnvelopeSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   z.object({
     success: z.literal(true),
@@ -18,7 +17,6 @@ export const successEnvelopeSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
     requestId: z.string().optional()
   });
 
-// Maps to ErrorDto.fromDomainError
 export const errorEnvelopeSchema = z.object({
   success: z.literal(false),
   error: z.string(),

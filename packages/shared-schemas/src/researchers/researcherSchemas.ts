@@ -6,7 +6,6 @@
 
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
-import type { Person } from '../persons/personSchemas';
 
 const researcherApprovalStatusSchema = z.enum(['pending', 'approved']);
 const researcherSourceSchema = z.enum(['registration', 'admin']);
@@ -35,13 +34,8 @@ export const createResearcherProfileSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email format')
 });
 
-export const updateResearcherProfileSchema = createResearcherProfileSchema.partial().extend({
-  active: z.boolean().optional()
-});
-
 export type Researcher = z.infer<typeof researcherSchema>;
 export type CreateResearcherProfile = z.infer<typeof createResearcherProfileSchema>;
-export type UpdateResearcherProfile = z.infer<typeof updateResearcherProfileSchema>;
 
 /**
  * Extended researcher view with admin metadata.
@@ -59,13 +53,3 @@ export const adminResearcherSchema = researcherSchema.extend({
 });
 
 export type AdminResearcher = z.infer<typeof adminResearcherSchema>;
-
-/** Format for display in lists: "Last, First" */
-export const formatResearcherListDisplay = (person: Pick<Person, 'firstName' | 'lastName'>): string => {
-  return `${person.lastName}, ${person.firstName}`;
-};
-
-/** Format for display in dropdowns: "First Last" */
-export const formatResearcherDropdownDisplay = (person: Pick<Person, 'firstName' | 'lastName'>): string => {
-  return `${person.firstName} ${person.lastName}`;
-};

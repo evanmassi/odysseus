@@ -1,7 +1,7 @@
 /**
  * Audit Log Schemas
  *
- * Audit logging, filters, statistics, retention, and archive schemas.
+ * Audit logging, filters, retention, and archive schemas.
  */
 
 import { z } from 'zod';

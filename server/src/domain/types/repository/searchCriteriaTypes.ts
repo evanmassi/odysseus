@@ -6,6 +6,8 @@
 
 import type { Tube } from '@domain/entities/Tube';
 
+import type { TUBE_SORT_FIELDS } from '@odysseus/shared-schemas';
+
 /**
  * Enhanced search result with matched terms for highlighting
  *
@@ -17,8 +19,6 @@ export interface TubeSearchResult {
   tubes: Tube[];
   matchedTerms: string[];
 }
-
-export const TUBE_SORT_FIELDS = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
 
 export interface TubeSearchCriteria {
   query?: string;

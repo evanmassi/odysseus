@@ -1,7 +1,7 @@
 /**
  * Naming Patterns and Conventions
  *
- * Default display names and ID generators for storage equipment (tanks globally, racks/boxes scoped to parent).
+ * Default display names for storage equipment (tanks globally, racks/boxes scoped to parent).
  */
 
 export const NAMING_PATTERNS = {

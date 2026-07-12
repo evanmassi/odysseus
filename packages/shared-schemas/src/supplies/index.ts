@@ -45,7 +45,6 @@ export {
   supplyDocumentResponseSchema,
   supplyPackagingLevelSchema,
   createSupplyPackagingLevelRequestSchema,
-  updateSupplyPackagingLevelRequestSchema,
   supplyPackagingLevelResponseSchema,
   supplyItemDetailResponseSchema,
   supplyBulkReceiveRequestSchema,

@@ -1,7 +1,5 @@
 /**
  * Constants Barrel
- *
- * Equipment defaults, validation limits, naming patterns, and grid templates.
  */
 
 export { EQUIPMENT_DEFAULTS } from './equipmentDefaults';

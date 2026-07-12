@@ -312,10 +312,6 @@ export const createSupplyPackagingLevelRequestSchema = z.object({
   parentUnit: z.string().nullable(),
 });
 
-export const updateSupplyPackagingLevelRequestSchema = z.object({
-  quantity: z.number().positive('Quantity must be greater than 0'),
-});
-
 export const supplyPackagingLevelResponseSchema = z.object({
   packagingLevel: supplyPackagingLevelSchema,
 });

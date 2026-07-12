@@ -4,7 +4,7 @@
  * Maps HTTP search filters to domain-layer TubeSearchCriteria.
  */
 
-import { TUBE_SORT_FIELDS, type TubeSearchCriteria } from '@domain/types/repository';
+import { type TubeSearchCriteria } from '@domain/types/repository';
 
 import type { SearchFilters } from '@odysseus/shared-schemas';
 
@@ -16,19 +16,15 @@ export class SearchCriteriaMapper {
       query?: string;
       limit?: number;
       offset?: number;
-      sortBy?: string;
+      sortBy?: TubeSearchCriteria['sortBy'];
       sortOrder?: 'asc' | 'desc';
     }
   ): TubeSearchCriteria {
-    const sortBy = baseOptions?.sortBy && (TUBE_SORT_FIELDS as readonly string[]).includes(baseOptions.sortBy)
-      ? (baseOptions.sortBy as TubeSearchCriteria['sortBy'])
-      : undefined;
-
     return {
       query: baseOptions?.query,
       limit: baseOptions?.limit,
       offset: baseOptions?.offset,
-      sortBy,
+      sortBy: baseOptions?.sortBy,
       sortOrder: baseOptions?.sortOrder,
       tankIds: filters?.tankIds,
       rackIds: filters?.rackIds,

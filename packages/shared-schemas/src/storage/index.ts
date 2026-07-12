@@ -54,11 +54,8 @@ export {
   alphanumericConfigSchema,
   positionDisplayConfigSchema,
   positionDisplayPreferenceSchema,
-  POSITION_DISPLAY_PRESETS,
   type PositionDisplayConfig,
   type PositionDisplayPreference,
-  generateAlphabeticLabels,
-  generateNumericLabels,
   createAlphanumericConfig,
   createNumericConfig,
   getDefaultPositionDisplay,
@@ -67,5 +64,4 @@ export {
 export {
   positionToLabel,
   labelToPosition,
-  generatePositionLabels,
 } from './positionFormatters';

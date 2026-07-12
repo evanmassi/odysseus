@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
-import { passwordChangeRequiredResponseSchema } from './passwordResetSchemas';
+import { passwordChangeRequiredResponseSchema, passwordField } from './passwordResetSchemas';
 
 export const USER_ROLES = ['system_admin', 'lab_admin', 'user'] as const;
 export const USER_STATUSES = ['pending', 'approved', 'rejected', 'deactivated', 'suspended'] as const;
@@ -16,10 +16,6 @@ export type UserStatus = (typeof USER_STATUSES)[number];
 export function isAdminRole(role?: string): role is 'system_admin' | 'lab_admin' {
   return role === 'system_admin' || role === 'lab_admin';
 }
-
-const passwordField = z.string()
-  .min(4, 'Password must be at least 4 characters')
-  .max(128, 'Password cannot exceed 128 characters');
 
 /**
  * User Registration With Profile
@@ -143,8 +139,6 @@ export const passwordRequirementsResponseSchema = z.object({
 });
 
 export type PasswordRequirementsResponse = z.infer<typeof passwordRequirementsResponseSchema>;
-
-// Response schemas
 
 export const firstTimeResponseSchema = z.object({
   isFirstTime: z.boolean(),

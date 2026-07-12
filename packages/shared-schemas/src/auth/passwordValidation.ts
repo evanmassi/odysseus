@@ -44,7 +44,6 @@ export class PasswordValidator {
       isMet: password.length >= config.passwordMinLength
     });
 
-    // Strong password requirements (uppercase, lowercase, number)
     if (config.requireStrongPasswords) {
       requirements.push({
         id: 'uppercase',
@@ -65,7 +64,6 @@ export class PasswordValidator {
       });
     }
 
-    // Special characters requirement
     if (config.passwordRequireSpecialChars) {
       requirements.push({
         id: 'special',

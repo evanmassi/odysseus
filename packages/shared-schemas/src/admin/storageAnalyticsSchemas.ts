@@ -31,7 +31,7 @@ export const tankUtilizationSchema = z.object({
   racks: z.array(rackUtilizationSchema),
 });
 
-export const nearCapacityBoxSchema = z.object({
+const nearCapacityBoxSchema = z.object({
   tankName: z.string(),
   rackName: z.string(),
   boxName: z.string(),

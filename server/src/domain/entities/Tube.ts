@@ -4,6 +4,8 @@
  * Aggregate root for a physical tube with location, sample data, and locking.
  */
 
+import { type ConcentrationUnit } from '@odysseus/shared-schemas';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 import { Location } from '@domain/value-objects/Location';
@@ -22,7 +24,7 @@ interface TubeSampleData {
   donorInternalId?: string;
   donorSourceId?: string;
   concentration?: number;
-  concentrationUnit?: 'c/v' | 'c/mL';
+  concentrationUnit?: ConcentrationUnit;
   date?: string;
   mediaType?: string;
   mediaSupplements?: string;
@@ -42,7 +44,7 @@ interface TubeSampleUpdate {
   donorInternalId?: string | null;
   donorSourceId?: string | null;
   concentration?: number | null;
-  concentrationUnit?: 'c/v' | 'c/mL' | null;
+  concentrationUnit?: ConcentrationUnit | null;
   date?: string | null;
   mediaType?: string | null;
   mediaSupplements?: string | null;

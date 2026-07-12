@@ -1,8 +1,8 @@
 /**
  * Shared Date Field Helpers
  *
- * Zod primitives for response schema date fields. Coerce ISO strings to Date objects
- * at parse time so the transformer registry and URL routing table are unnecessary.
+ * Zod primitives for schema date fields: timestamps coerce ISO strings to Date
+ * at parse time; calendar date-only fields stay "YYYY-MM-DD" strings.
  */
 
 import { z } from 'zod';

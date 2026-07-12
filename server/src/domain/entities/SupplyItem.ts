@@ -5,12 +5,10 @@
  * Supports manufacturer/vendor info, stock configuration, and flexible lab-defined properties.
  */
 
+import { supplyItemStatusValues, type SupplyItemStatus } from '@odysseus/shared-schemas';
+
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
-
-import type { SupplyItemStatus } from '@odysseus/shared-schemas';
-
-const VALID_STATUSES: SupplyItemStatus[] = ['active', 'discontinued', 'archived'];
 
 interface ItemCreateData {
   labId: string;
@@ -165,7 +163,7 @@ export class SupplyItem {
     if (!this._categoryId) {
       throw new ValidationError('Category is required');
     }
-    if (!VALID_STATUSES.includes(this._status)) {
+    if (!supplyItemStatusValues.includes(this._status)) {
       throw new ValidationError(`Invalid item status: ${this._status}`);
     }
   }

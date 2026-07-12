@@ -57,7 +57,7 @@ export type PositionDisplayPreference = z.infer<typeof positionDisplayPreference
  * generateAlphabeticLabels(3)  // ['A', 'B', 'C']
  * generateAlphabeticLabels(27) // ['A', 'B', ..., 'Z', 'AA']
  */
-export function generateAlphabeticLabels(count: number): string[] {
+function generateAlphabeticLabels(count: number): string[] {
   const labels: string[] = [];
 
   for (let i = 0; i < count; i++) {
@@ -80,7 +80,7 @@ export function generateAlphabeticLabels(count: number): string[] {
  * generateNumericLabels(5)   // ['1', '2', '3', '4', '5']
  * generateNumericLabels(100) // ['1', '2', ..., '100']
  */
-export function generateNumericLabels(count: number): string[] {
+function generateNumericLabels(count: number): string[] {
   return Array.from({ length: count }, (_, i) => String(i + 1));
 }
 
@@ -118,24 +118,6 @@ export function createNumericConfig(): PositionDisplayConfig {
     format: 'numeric',
   };
 }
-
-/**
- * Preset configurations for common laboratory freezer box formats
- *
- * Note: These are examples for 9x9 grids. For other grid sizes,
- * use createAlphanumericConfig(rows, cols, format) instead.
- */
-export const POSITION_DISPLAY_PRESETS = {
-  // Simple numeric labels: 1, 2, 3, ..., 81
-  NUMERIC: createNumericConfig(),
-
-  // Standard freezer box format: A1, A2, B1, B2, ..., I9 (9x9 grid)
-  // Most common for commercial laboratory freezer boxes
-  ALPHANUMERIC_STANDARD: createAlphanumericConfig(9, 9, 'row-col'),
-
-  // Reverse format: 1A, 2A, 1B, 2B, ..., 9I (9x9 grid)
-  ALPHANUMERIC_REVERSE: createAlphanumericConfig(9, 9, 'col-row'),
-} as const;
 
 /**
  * Returns alphanumeric (row-col) format by default.

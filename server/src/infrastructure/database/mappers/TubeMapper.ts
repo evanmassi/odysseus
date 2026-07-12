@@ -4,6 +4,8 @@
  * Converts between database rows and Tube domain entities.
  */
 
+import { type ConcentrationUnit } from '@odysseus/shared-schemas';
+
 import { Tube } from '@domain/entities/Tube';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
@@ -21,7 +23,7 @@ export interface TubeRow {
   donor_internal_id?: string;
   donor_source_id?: string;
   concentration?: string;
-  concentration_unit?: 'c/v' | 'c/mL';
+  concentration_unit?: ConcentrationUnit;
   date?: string;
   researcher_id?: string;
   created_by_name?: string;

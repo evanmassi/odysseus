@@ -4,12 +4,14 @@
  * Type definitions for tube creation, update, and validation operations.
  */
 
+import { type ConcentrationUnit } from '@odysseus/shared-schemas';
+
 export interface TubeSampleInput {
   cellType?: string;
   donorInternalId?: string;
   donorSourceId?: string;
   concentration?: number;
-  concentrationUnit?: 'c/v' | 'c/mL';
+  concentrationUnit?: ConcentrationUnit;
   date?: string;
   mediaType?: string;
   mediaSupplements?: string;
@@ -32,7 +34,7 @@ export interface TubeCreationData {
 
 interface SampleValidationFields {
   concentration?: number;
-  concentrationUnit?: 'c/v' | 'c/mL';
+  concentrationUnit?: ConcentrationUnit;
   date?: string;
   donorInternalId?: string;
 }
