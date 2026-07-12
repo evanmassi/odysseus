@@ -1,3 +1,0 @@
-/**
- * CQRS Query Base
- */
