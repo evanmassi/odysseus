@@ -6,6 +6,7 @@
 
 import type { UserSession } from '@domain/entities/UserSession';
 import type { UserSessionRepository as IUserSessionRepository, ActiveSessionWithUser, IpSessionCount } from '@domain/repositories/UserSessionRepository';
+import { hashToken } from '@domain/utils/tokenHash';
 import type { UserSessionRow } from '@infrastructure/database/mappers/UserSessionMapper';
 import { UserSessionMapper } from '@infrastructure/database/mappers/UserSessionMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -44,7 +45,7 @@ export class UserSessionRepository implements IUserSessionRepository {
   async findByRefreshToken(refreshToken: string): Promise<UserSession | null> {
     const row = await this.context.queryOne<UserSessionRow>(
       `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE refresh_token = $1`,
-      [refreshToken]
+      [hashToken(refreshToken)]
     );
     return row ? UserSessionMapper.fromRow(row) : null;
   }

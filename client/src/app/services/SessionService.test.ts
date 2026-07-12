@@ -116,6 +116,8 @@ describe('SessionService', () => {
         data: {
           accessToken: 'new-access-token',
           accessTokenExpiry: new Date(Date.now() + 30 * 60 * 1000),
+          refreshToken: 'rotated-refresh-token',
+          refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           tokenType: 'Bearer',
         },
       });
@@ -164,6 +166,8 @@ describe('SessionService', () => {
         data: {
           accessToken: 'new-token',
           accessTokenExpiry: new Date(Date.now() + 30 * 60 * 1000),
+          refreshToken: 'rotated-refresh-token',
+          refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           tokenType: 'Bearer',
         },
       });
@@ -189,6 +193,8 @@ describe('SessionService', () => {
           data: {
             accessToken: 'new-token',
             accessTokenExpiry: new Date(Date.now() + 30 * 60 * 1000),
+            refreshToken: 'rotated-refresh-token',
+            refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             tokenType: 'Bearer',
           },
         });
@@ -266,6 +272,8 @@ describe('SessionService', () => {
         data: {
           accessToken: 'refreshed-token',
           accessTokenExpiry: new Date(Date.now() + 30 * 60 * 1000),
+          refreshToken: 'rotated-refresh-token',
+          refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           tokenType: 'Bearer',
         },
       });
@@ -350,6 +358,8 @@ describe('SessionService', () => {
         data: {
           accessToken: 'new-token',
           accessTokenExpiry: new Date(Date.now() + 30 * 60 * 1000),
+          refreshToken: 'rotated-refresh-token',
+          refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           tokenType: 'Bearer',
         },
       });

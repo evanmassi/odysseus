@@ -1,11 +1,14 @@
 # Security Pass Findings — Bucket 4
 
-**Date:** 2026-07-12 · **Branch:** `audit/fixes` · **Status: FIX-NOW TIER APPLIED + VERIFIED (uncommitted); D1–D3 deferred**
+**Date:** 2026-07-12 · **Branch:** `audit/fixes` · **Status: FIX-NOW TIER COMMITTED; D1–D3 APPLIED + VERIFIED (uncommitted)**
 
-Applied: H1, M1–M11, L1–L4, L6(note)/L7 — 29 files, +189/−37, all suites green (Jest 675 ·
-integration 31 · client Vitest 189 · tsc ×2 · lint ×3 · client build). Deferred by decision:
-D1 (refresh rotation), D2 (plaintext-token hashing + migration), D3 (error-context allowlist) —
-the wire-contract/migration set. Optional hardening (L5, L8–L10, I1–I3) left as noted.
+Fix-now tier (H1, M1–M11, L1–L4, L6/L7) committed: `795b0a50` + docs `7f7d4c45`.
+D1–D3 then applied (the user opted to close all findings for an A+): D1 refresh-token rotation +
+reuse detection, D2 hash refresh tokens at rest (both `refresh_tokens` and `user_sessions`), D3
+allowlist for client-facing error context. All suites green: Jest 675 · integration 33 (added a
+refresh-token-hashing round-trip test) · client Vitest 189 · tsc ×2 · lint ×3 · client build.
+Remaining: only the optional hardening (L5, L8–L10, I1–I3) and the redundant now-locked
+`/admin/security-config` PUT cleanup.
 
 Seven parallel finder agents, one security dimension each (authN/token lifecycle, authZ/lab-scoping,
 input-validation, SQL, transport/CORS/rate-limiting/sockets, secrets/config, data-exposure). Every
@@ -197,6 +200,18 @@ or defer.
   `validateBody`. **M5/L4** — audit-search + security-monitoring query bounds via `validateQuery`
   (`action`/`entityType` kept string-or-array for repeated params). **L2** — `authLimiter` on force-change-password.
 
-**Deferred (wire-contract / migration — the login-regression risk class):** D1 (refresh rotation),
-D2 (hash refresh tokens at rest + migration), D3 (allowlist `DomainError.context` keys). Optional
-hardening L5/L8/L9/L10 + I1–I3 left as noted above.
+**D1–D3 applied (implementation notes):**
+- **D1 rotation** — `refreshAccessToken` now revokes the presented token, issues a new one inheriting
+  the session's remaining lifetime, and repoints the session (`UserSession.rotateRefreshToken`). The
+  refresh response returns the new token; the client (`SessionService`) persists it. Replaying an
+  already-rotated (revoked) token triggers `revokeUserTokenFamily` (all sessions + refresh tokens).
+- **D2 hash-at-rest** — refresh tokens are stored as SHA-256 hashes in both `refresh_tokens.token`
+  and `user_sessions.refresh_token` (`domain/utils/tokenHash.ts`). The `RefreshToken` entity persists
+  the hash and exposes the raw value transiently (client response only); both repo lookups hash their
+  input. Migration 023 clears the now-stale plaintext rows. New integration test proves the round-trip.
+- **D3 error-context** — `filterPublicContext` (an explicit client-safe key allowlist) gates what
+  `handleControllerError` and the global handler return; full context is still logged server-side.
+
+**Remaining (optional hardening):** L5 (storage-import validateBody), L8/L9 (LIKE escaping),
+L10 (staging setup-key + timing-safe compare), I1 (constant-time hash compare), I2/I3 (cosmetic),
+and the redundant now-locked `/admin/security-config` PUT + its dead client method.

@@ -8,6 +8,7 @@ import * as crypto from 'crypto';
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
+import { hashToken } from '@domain/utils/tokenHash';
 
 export class RefreshToken {
   private constructor(
@@ -19,7 +20,10 @@ export class RefreshToken {
     private _lastUsedAt: Date | null = null,
     private _isRevoked: boolean = false,
     private readonly _userAgent?: string,
-    private readonly _ipAddress?: string
+    private readonly _ipAddress?: string,
+    // The raw token is only available on freshly-created tokens (returned to the client once).
+    // Persisted/loaded tokens carry only the hash in `_token`.
+    private readonly _rawToken?: string
   ) {
     this.validate();
   }
@@ -30,21 +34,22 @@ export class RefreshToken {
     userAgent?: string,
     ipAddress?: string
   ): RefreshToken {
-    const token = crypto.randomBytes(32).toString('hex');
+    const rawToken = crypto.randomBytes(32).toString('hex');
     const id = generateId('refresh');
     const now = new Date();
     const expiresAt = new Date(now.getTime() + (expirationDays * 24 * 60 * 60 * 1000));
-    
+
     return new RefreshToken(
       id,
       userId,
-      token,
+      hashToken(rawToken),
       expiresAt,
       now,
       null,
       false,
       userAgent,
-      ipAddress
+      ipAddress,
+      rawToken
     );
   }
 
@@ -131,7 +136,10 @@ export class RefreshToken {
 
   get id(): string { return this._id; }
   get userId(): string { return this._userId; }
+  /** The stored hash. Use `rawToken` for the value handed to the client at creation. */
   get token(): string { return this._token; }
+  /** The plaintext token — only present on a freshly created token, for the one-time client response. */
+  get rawToken(): string | undefined { return this._rawToken; }
   get expiresAt(): Date { return new Date(this._expiresAt); }
   get createdAt(): Date { return new Date(this._createdAt); }
   get lastUsedAt(): Date | null { return this._lastUsedAt ? new Date(this._lastUsedAt) : null; }

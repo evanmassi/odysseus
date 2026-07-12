@@ -6,6 +6,7 @@
 
 import type { RefreshToken } from '@domain/entities/RefreshToken';
 import type { RefreshTokenRepository as IRefreshTokenRepository, IpTokenCount } from '@domain/repositories/RefreshTokenRepository';
+import { hashToken } from '@domain/utils/tokenHash';
 import type { RefreshTokenRow } from '@infrastructure/database/mappers/RefreshTokenMapper';
 import { RefreshTokenMapper } from '@infrastructure/database/mappers/RefreshTokenMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -26,7 +27,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
   async findByToken(token: string): Promise<RefreshToken | null> {
     const row = await this.context.queryOne<RefreshTokenRow>(
       `SELECT ${REFRESH_TOKEN_COLUMNS} FROM refresh_tokens WHERE token = $1`,
-      [token]
+      [hashToken(token)]
     );
     return row ? RefreshTokenMapper.fromRow(row) : null;
   }

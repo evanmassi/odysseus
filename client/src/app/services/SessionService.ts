@@ -193,7 +193,12 @@ export class SessionService implements TokenProvider {
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
         const response = await this.sessionHttpClient.post<
-          ApiEnvelope<{ accessToken: string; accessTokenExpiry: string }>
+          ApiEnvelope<{
+            accessToken: string;
+            accessTokenExpiry: string;
+            refreshToken: string;
+            refreshTokenExpiry: string;
+          }>
         >('/public/auth/refresh', {
           refreshToken: tokens.refreshToken,
         });
@@ -201,15 +206,23 @@ export class SessionService implements TokenProvider {
         if (response.success) {
           const refreshData = response.data;
 
-          if (!refreshData.accessToken || !refreshData.accessTokenExpiry) {
+          if (
+            !refreshData.accessToken ||
+            !refreshData.accessTokenExpiry ||
+            !refreshData.refreshToken ||
+            !refreshData.refreshTokenExpiry
+          ) {
             throw new Error('Invalid refresh response format');
           }
 
-          // SessionHttpClient returns raw JSON — coerce date string manually since there's no Zod layer
+          // SessionHttpClient returns raw JSON — coerce date strings manually since there's no Zod
+          // layer. The refresh token rotates on every use, so persist the newly issued one.
           const updatedTokens: TokenPair = {
             ...tokens,
             accessToken: refreshData.accessToken,
             accessTokenExpiry: new Date(refreshData.accessTokenExpiry),
+            refreshToken: refreshData.refreshToken,
+            refreshTokenExpiry: new Date(refreshData.refreshTokenExpiry),
           };
 
           this.setTokens(updatedTokens);

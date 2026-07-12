@@ -11,7 +11,7 @@ export class UserSession {
   private constructor(
     private readonly _id: string,
     private readonly _userId: string,
-    private readonly _refreshToken: string,
+    private _refreshToken: string,
     private readonly _createdAt: Date,
     private _lastUsedAt: Date,
     private readonly _expiresAt: Date,
@@ -113,6 +113,12 @@ export class UserSession {
 
   isExpired(): boolean {
     return new Date() > this._expiresAt;
+  }
+
+  /** Points the session at a rotated refresh token (stored as a hash). Keeps the absolute expiry. */
+  rotateRefreshToken(refreshTokenHash: string): void {
+    this._refreshToken = refreshTokenHash;
+    this._lastUsedAt = new Date();
   }
 
   // GETTERS

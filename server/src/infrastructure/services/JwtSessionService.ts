@@ -12,7 +12,6 @@ import type { ConfigurationService } from '@application/contracts/ConfigurationS
 import type { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/contracts/SessionService';
 import type {
   TokenPair,
-  RefreshTokenRecord,
   AccessTokenPayload,
   EnhancedLoginResponse,
   RefreshTokenResponse,
@@ -255,8 +254,13 @@ export class JwtSessionService implements SessionService {
       : new Date(Date.now() + (JwtSessionService.REAL_USER_REFRESH_EXPIRY_DAYS * 24 * 60 * 60 * 1000));
 
     const refreshToken = await this.createRefreshToken(user);
+    const rawRefreshToken = refreshToken.rawToken;
+    if (!rawRefreshToken) {
+      throw new Error('Refresh token is missing its raw value immediately after creation');
+    }
 
-    // Create session FIRST — its ID will be embedded in the JWT
+    // Create session FIRST — its ID will be embedded in the JWT. The session stores the token
+    // hash so `findByRefreshToken` matches (hashing its input) without persisting the raw token.
     const userSession = UserSession.create(
       user.id,
       refreshToken.token,
@@ -281,7 +285,7 @@ export class JwtSessionService implements SessionService {
 
     const tokenPair: TokenPair = {
       accessToken,
-      refreshToken: refreshToken.token,
+      refreshToken: rawRefreshToken,
       accessTokenExpiry,
       refreshTokenExpiry,
       tokenType: 'Bearer',
@@ -322,7 +326,7 @@ export class JwtSessionService implements SessionService {
     return this.signToken(payload);
   }
 
-  private async createRefreshToken(user: User): Promise<RefreshTokenRecord> {
+  private async createRefreshToken(user: User): Promise<RefreshToken> {
     // Demo users get shorter refresh token expiry
     const expiryDays = user.isDemo
       ? JwtSessionService.DEMO_SESSION_EXPIRY_HOURS / 24
@@ -331,19 +335,22 @@ export class JwtSessionService implements SessionService {
     const refreshTokenEntity = RefreshToken.create(user.id, expiryDays);
     await this.refreshTokenRepository.save(refreshTokenEntity);
 
-    // RefreshTokenRecord shape expected by callers
-    return {
-      id: refreshTokenEntity.id,
-      userId: refreshTokenEntity.userId,
-      token: refreshTokenEntity.token,
-      expiresAt: refreshTokenEntity.expiresAt,
-      createdAt: refreshTokenEntity.createdAt,
-      lastUsedAt: refreshTokenEntity.lastUsedAt,
-      isRevoked: refreshTokenEntity.isRevoked
-    };
+    return refreshTokenEntity;
   }
 
-  /** OAuth 2.0 token rotation — issues new access token from a valid refresh token. */
+  /** Revokes every refresh token and active session for a user — the response to token reuse. */
+  private async revokeUserTokenFamily(userId: string): Promise<void> {
+    const sessions = await this.userSessionRepository.findActiveSessionsByUserId(userId);
+    if (sessions.length > 0) {
+      await this.userSessionRepository.bulkRevoke(sessions.map(session => session.id));
+    }
+    await this.refreshTokenRepository.revokeAllForUser(userId);
+  }
+
+  /**
+   * Rotates the refresh token on every use: issues a fresh access + refresh token, revokes the
+   * presented one, and treats replay of an already-rotated token as compromise (revokes the family).
+   */
   async refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponse> {
     try {
       const tokenRecord = await this.refreshTokenRepository.findByToken(refreshToken);
@@ -351,13 +358,16 @@ export class JwtSessionService implements SessionService {
         throw new Error('INVALID_REFRESH_TOKEN');
       }
 
+      if (tokenRecord.isRevoked) {
+        // The token was rotated away earlier; replaying it signals theft — revoke the whole
+        // family (all of the user's refresh tokens and active sessions) as a precaution.
+        await this.revokeUserTokenFamily(tokenRecord.userId);
+        throw new Error('REVOKED_REFRESH_TOKEN');
+      }
+
       if (tokenRecord.isExpired()) {
         await this.refreshTokenRepository.delete(tokenRecord.id);
         throw new Error('EXPIRED_REFRESH_TOKEN');
-      }
-
-      if (tokenRecord.isRevoked) {
-        throw new Error('REVOKED_REFRESH_TOKEN');
       }
 
       const user = await this.userRepository.findByIdAnyLab(tokenRecord.userId);
@@ -365,9 +375,6 @@ export class JwtSessionService implements SessionService {
         await this.refreshTokenRepository.delete(tokenRecord.id);
         throw new Error('USER_NOT_FOUND');
       }
-
-      tokenRecord.recordUsage();
-      await this.refreshTokenRepository.save(tokenRecord);
 
       const userSession = await this.userSessionRepository.findByRefreshToken(refreshToken);
       if (!userSession) {
@@ -378,15 +385,34 @@ export class JwtSessionService implements SessionService {
         throw new Error('REVOKED_REFRESH_TOKEN');
       }
 
-      // Don't update lastUsedAt — token refresh is automatic, not user activity
+      // Rotate: revoke the presented token (kept, not deleted, so a later replay is detected as
+      // reuse), issue a new token that inherits the session's remaining lifetime, and point the
+      // session at it so the old token can never mint again.
+      tokenRecord.revoke();
+      await this.refreshTokenRepository.save(tokenRecord);
+
+      const remainingDays = (userSession.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
+      const rotatedToken = RefreshToken.create(user.id, remainingDays);
+      await this.refreshTokenRepository.save(rotatedToken);
+
+      userSession.rotateRefreshToken(rotatedToken.token);
+      await this.userSessionRepository.save(userSession);
+
       const newAccessToken = await this.createAccessToken(user, userSession.id);
       const accessTokenExpiryMs = await this.getAccessTokenExpiryMs();
       const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);
 
+      const rotatedRawToken = rotatedToken.rawToken;
+      if (!rotatedRawToken) {
+        throw new Error('Rotated refresh token is missing its raw value');
+      }
+
       return {
         accessToken: newAccessToken,
         accessTokenExpiry,
-        tokenType: 'Bearer'
+        tokenType: 'Bearer',
+        refreshToken: rotatedRawToken,
+        refreshTokenExpiry: rotatedToken.expiresAt,
       };
 
     } catch (error) {

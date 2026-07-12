@@ -9,18 +9,6 @@ import type { User } from '@domain/entities/User';
 import type { TokenPair } from '@odysseus/shared-schemas';
 export type { TokenPair };
 
-/** Stored in database as refresh_tokens row. */
-export interface RefreshTokenRecord {
-  id: string;
-  userId: string;
-  token: string;
-  expiresAt: Date;
-  createdAt: Date;
-  lastUsedAt: Date | null;  // null = never used
-  isRevoked: boolean;
-  deviceFingerprint?: string;
-}
-
 export interface AccessTokenPayload {
   // Standard JWT claims (RFC 7519)
   sub: string;              // Subject (user ID)
@@ -47,4 +35,7 @@ export interface RefreshTokenResponse {
   accessToken: string;
   accessTokenExpiry: Date;
   tokenType: 'Bearer';
+  // Rotation: each refresh issues a new refresh token that the client must persist.
+  refreshToken: string;
+  refreshTokenExpiry: Date;
 }

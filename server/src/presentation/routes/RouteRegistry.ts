@@ -10,6 +10,7 @@ import { Router } from 'express';
 
 import { logger } from '@infrastructure/logging/logger';
 import type { RouteModule } from '@presentation/routes/RouteModule';
+import { filterPublicContext } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
 import type { Application, Request, Response, NextFunction } from 'express';
@@ -83,7 +84,9 @@ export class RouteRegistry {
       // server errors, stay generic so internals (SQL text, stack paths) never reach the client.
       const isClientError = statusCode < 500;
       const message = isClientError ? (err.message || 'Request failed') : 'Internal server error';
-      const context = isClientError ? (errorObj.context as Record<string, unknown> | undefined) : undefined;
+      const context = isClientError
+        ? filterPublicContext(errorObj.context as Record<string, unknown> | undefined)
+        : undefined;
 
       // Canonical error envelope + a dev-only stack for debugging.
       res.status(statusCode).json({
