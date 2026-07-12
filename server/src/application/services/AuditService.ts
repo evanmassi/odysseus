@@ -7,7 +7,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
-import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
+import type { PaginatedResult } from '@domain/types/repository';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
@@ -84,14 +84,6 @@ export class AuditService {
 
   async getEntityHistoryForLab(entityId: string, entityType: string, labId: string): Promise<AuditLogEntry[]> {
     return await this.auditRepository.findByEntityIdForLab(entityId, entityType, labId);
-  }
-
-  async getUserActivity(userId: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
-    return await this.auditRepository.findByUserId(userId, options);
-  }
-
-  async getActionLog(action: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
-    return await this.auditRepository.findByAction(action, options);
   }
 
   async getStatistics(): Promise<{

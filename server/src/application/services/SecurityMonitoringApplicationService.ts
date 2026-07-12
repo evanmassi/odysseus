@@ -5,6 +5,7 @@
  * cleanup/revocation (revoking a session also revokes its refresh token).
  */
 
+import type { UserSession } from '@domain/entities/UserSession';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { RefreshTokenRepository, IpTokenCount } from '@domain/repositories/RefreshTokenRepository';
@@ -86,13 +87,7 @@ export class SecurityMonitoringApplicationService {
 
     await this.deps.userSessionRepository.revokeSession(sessionId);
 
-    if (session.refreshToken) {
-      const refreshToken = await this.deps.refreshTokenRepository.findByToken(session.refreshToken);
-      if (refreshToken) {
-        refreshToken.revoke();
-        await this.deps.refreshTokenRepository.save(refreshToken);
-      }
-    }
+    await this.revokeAssociatedToken(session);
   }
 
   async bulkRevokeSessions(sessionIds: string[]): Promise<{ revokedCount: number }> {
@@ -104,16 +99,20 @@ export class SecurityMonitoringApplicationService {
     const revokedCount = await this.deps.userSessionRepository.bulkRevoke(sessions.map(s => s.id));
 
     for (const session of sessions) {
-      if (session.refreshToken) {
-        const refreshToken = await this.deps.refreshTokenRepository.findByToken(session.refreshToken);
-        if (refreshToken) {
-          refreshToken.revoke();
-          await this.deps.refreshTokenRepository.save(refreshToken);
-        }
-      }
+      await this.revokeAssociatedToken(session);
     }
 
     return { revokedCount };
+  }
+
+  private async revokeAssociatedToken(session: UserSession): Promise<void> {
+    if (session.refreshToken) {
+      const refreshToken = await this.deps.refreshTokenRepository.findByToken(session.refreshToken);
+      if (refreshToken) {
+        refreshToken.revoke();
+        await this.deps.refreshTokenRepository.save(refreshToken);
+      }
+    }
   }
 
   async getFailedLogins(limit: number, startDate?: Date, endDate?: Date) {

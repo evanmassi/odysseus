@@ -36,19 +36,6 @@ export class InMemoryEventBus implements EventBus {
     }
   }
 
-  async publishAll(events: DomainEvent[]): Promise<void> {
-    logger.debug('Publishing multiple domain events', {
-      eventCount: events.length,
-      eventNames: events.map(e => e.eventName())
-    });
-
-    this.eventQueue.push(...events);
-
-    if (!this.isProcessing) {
-      await this.processQueue();
-    }
-  }
-
   private async processQueue(): Promise<void> {
     this.isProcessing = true;
 
@@ -129,33 +116,4 @@ export class InMemoryEventBus implements EventBus {
     });
   }
 
-  unsubscribe<K extends DomainEventName>(
-    eventName: K,
-    handler: EventHandler<DomainEventMap[K]>
-  ): void {
-    const existingHandlers = this.handlers.get(eventName) ?? [];
-    const updatedHandlers = existingHandlers.filter(h => h !== handler);
-
-    if (updatedHandlers.length === 0) {
-      this.handlers.delete(eventName);
-    } else {
-      this.handlers.set(eventName, updatedHandlers);
-    }
-
-    logger.debug('Event handler unsubscribed', {
-      eventName,
-      handler: handlerName(handler as AnyEventHandler),
-      remainingHandlers: updatedHandlers.length
-    });
-  }
-
-  getSubscriptions(): Map<string, number> {
-    const subscriptions = new Map<string, number>();
-
-    for (const [eventName, handlers] of this.handlers.entries()) {
-      subscriptions.set(eventName, handlers.length);
-    }
-
-    return subscriptions;
-  }
 }

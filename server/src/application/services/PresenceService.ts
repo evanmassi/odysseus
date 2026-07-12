@@ -88,8 +88,4 @@ export class PresenceService {
   getOnlineCount(): number {
     return this.connectedUsers.size;
   }
-
-  getConnectedUsers(): ConnectedUser[] {
-    return Array.from(this.connectedUsers.values());
-  }
 }

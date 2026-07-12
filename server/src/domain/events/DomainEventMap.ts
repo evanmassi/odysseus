@@ -61,7 +61,6 @@ import type {
   BoxAddedEvent,
   BoxDeletedEvent,
   BoxUpdatedEvent,
-  LabNameChangedEvent,
   RackAssignedEvent,
   RackUnassignedEvent,
   RackReassignedEvent,
@@ -139,7 +138,6 @@ export interface DomainEventMap {
   'BoxAdded': BoxAddedEvent;
   'BoxDeleted': BoxDeletedEvent;
   'BoxUpdated': BoxUpdatedEvent;
-  'LabNameChanged': LabNameChangedEvent;
 
   // Assignment events
   'RackAssigned': RackAssignedEvent;

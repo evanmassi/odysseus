@@ -53,7 +53,6 @@ import type {
   BoxAddedEvent,
   BoxDeletedEvent,
   BoxUpdatedEvent,
-  LabNameChangedEvent,
   RackAssignedEvent,
   RackUnassignedEvent,
   RackReassignedEvent,
@@ -127,6 +126,9 @@ import { logger } from '@infrastructure/logging/logger';
 /** Above this batch size, bulk operations record only the summary row — per-item entries
     would flood the audit log without adding much signal. */
 const BULK_AUDIT_PER_ITEM_LIMIT = 10;
+
+/** Lock/share audit entries list at most this many tube IDs, flagging the rest via hasMore. */
+const AUDIT_TUBE_ID_PREVIEW_LIMIT = 10;
 
 export class AuditEventHandler {
   constructor(
@@ -239,7 +241,6 @@ export class AuditEventHandler {
     this.eventBus.subscribe('BoxAdded', (e) => this.handleBoxAdded(e));
     this.eventBus.subscribe('BoxDeleted', (e) => this.handleBoxDeleted(e));
     this.eventBus.subscribe('BoxUpdated', (e) => this.handleBoxUpdated(e));
-    this.eventBus.subscribe('LabNameChanged', (e) => this.handleLabNameChanged(e));
 
     // Assignment events
     this.eventBus.subscribe('RackAssigned', (e) => this.handleRackAssigned(e));
@@ -339,6 +340,11 @@ export class AuditEventHandler {
       logger.warn('Failed to get display location, using fallback', { error });
       return location.toString();
     }
+  }
+
+  /** Formats a raw location as the `tankId/rackId/boxId/position` audit path. */
+  private formatRawLocation(loc: { tankId: string; rackId: string; boxId: string; position: number }): string {
+    return `${loc.tankId}/${loc.rackId}/${loc.boxId}/${loc.position}`;
   }
 
   /** Resolves a location to human-readable tank/rack/box/position names from a preloaded
@@ -534,7 +540,7 @@ export class AuditEventHandler {
       // Beyond the per-item limit, keep only the summary so a huge paste can't flood the log.
       if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
         const perItem: LogActionParams[] = event.perItemData.map(item => {
-          const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+          const rawLocation = this.formatRawLocation(item.location);
           return {
             userId: event.createdBy,
             username,
@@ -592,7 +598,7 @@ export class AuditEventHandler {
 
       if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
         const perItem: LogActionParams[] = event.perItemData.map(item => {
-          const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+          const rawLocation = this.formatRawLocation(item.location);
           return {
             userId: event.updatedBy,
             username,
@@ -647,7 +653,7 @@ export class AuditEventHandler {
 
       if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
         const perItem: LogActionParams[] = event.perItemData.map(item => {
-          const rawLocation = `${item.location.tankId}/${item.location.rackId}/${item.location.boxId}/${item.location.position}`;
+          const rawLocation = this.formatRawLocation(item.location);
           return {
             userId: event.deletedBy,
             username,
@@ -703,8 +709,8 @@ export class AuditEventHandler {
 
       if (count <= BULK_AUDIT_PER_ITEM_LIMIT) {
         const perItem: LogActionParams[] = event.perItemData.map(item => {
-          const rawOldLocation = `${item.oldLocation.tankId}/${item.oldLocation.rackId}/${item.oldLocation.boxId}/${item.oldLocation.position}`;
-          const rawNewLocation = `${item.newLocation.tankId}/${item.newLocation.rackId}/${item.newLocation.boxId}/${item.newLocation.position}`;
+          const rawOldLocation = this.formatRawLocation(item.oldLocation);
+          const rawNewLocation = this.formatRawLocation(item.newLocation);
           return {
             userId: event.movedBy,
             username,
@@ -769,8 +775,8 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: (username) => ({
         tubeCount: event.tubeIds.length,
-        tubeIds: event.tubeIds.slice(0, 10),
-        hasMore: event.tubeIds.length > 10,
+        tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
+        hasMore: event.tubeIds.length > AUDIT_TUBE_ID_PREVIEW_LIMIT,
         lockNote: event.lockNote,
         lockedBy: username,
       }),
@@ -788,8 +794,8 @@ export class AuditEventHandler {
       labId: event.labId,
       buildDetails: (username) => ({
         tubeCount: event.tubeIds.length,
-        tubeIds: event.tubeIds.slice(0, 10),
-        hasMore: event.tubeIds.length > 10,
+        tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
+        hasMore: event.tubeIds.length > AUDIT_TUBE_ID_PREVIEW_LIMIT,
         unlockedBy: username,
       }),
     });
@@ -804,8 +810,8 @@ export class AuditEventHandler {
       buildDetails: async (username) => {
         const sharedWithUsers = await this.resolveUsernames(event.addedUserIds);
         return {
-          tubeCount: event.tubeIds.length, tubeIds: event.tubeIds.slice(0, 10),
-          hasMoreTubes: event.tubeIds.length > 10,
+          tubeCount: event.tubeIds.length, tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
+          hasMoreTubes: event.tubeIds.length > AUDIT_TUBE_ID_PREVIEW_LIMIT,
           sharedWithUsers, sharedWithCount: event.addedUserIds.length, sharedBy: username,
         };
       },
@@ -821,8 +827,8 @@ export class AuditEventHandler {
       buildDetails: async (username) => {
         const revokedUsers = await this.resolveUsernames(event.revokedUserIds);
         return {
-          tubeCount: event.tubeIds.length, tubeIds: event.tubeIds.slice(0, 10),
-          hasMoreTubes: event.tubeIds.length > 10,
+          tubeCount: event.tubeIds.length, tubeIds: event.tubeIds.slice(0, AUDIT_TUBE_ID_PREVIEW_LIMIT),
+          hasMoreTubes: event.tubeIds.length > AUDIT_TUBE_ID_PREVIEW_LIMIT,
           revokedUsers, revokedCount: event.revokedUserIds.length, revokedBy: username,
         };
       },
@@ -909,15 +915,6 @@ export class AuditEventHandler {
       actorId: event.userId, action: 'box_updated', entityType: 'box',
       entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, boxId: event.boxId, boxName: event.boxName, changes: event.changes, username }),
-    });
-  }
-
-  private async handleLabNameChanged(event: LabNameChangedEvent): Promise<void> {
-    await this.logAuditEvent({
-      eventName: 'lab name changed', context: {},
-      actorId: event.userId, action: 'lab_name_changed', entityType: 'lab',
-      occurredOn: event.occurredOn, labId: event.labId,
-      buildDetails: (username) => ({ oldName: event.oldName, newName: event.newName, username }),
     });
   }
 

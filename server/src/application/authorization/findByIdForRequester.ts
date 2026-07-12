@@ -6,12 +6,12 @@
  * reads are lab-scoped expose findById(id, labId) + findByIdAnyLab(id) and satisfy ScopedByIdReader.
  */
 
-export interface ScopedByIdReader<T> {
+interface ScopedByIdReader<T> {
   findById(id: string, labId: string): Promise<T | null>;
   findByIdAnyLab(id: string): Promise<T | null>;
 }
 
-export interface RequesterScope {
+interface RequesterScope {
   labId?: string;
   isSystemAdmin: boolean;
 }

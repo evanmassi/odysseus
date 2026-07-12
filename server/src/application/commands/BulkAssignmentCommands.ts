@@ -6,6 +6,8 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import { requireUser } from '@application/guards/UserGuards';
+import type { Storage } from '@domain/entities/Storage';
+import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -33,6 +35,56 @@ export interface BulkReassignResourcesCommand {
 
 // COMMAND HANDLERS
 
+/** Applies `apply` to every rack and box currently assigned to `fromUserId` (skipping seeded
+    resources for demo users) and persists the config when anything changed. Returns counts. */
+async function applyBulkAssignment(
+  storageRepository: StorageRepository,
+  currentConfig: Storage,
+  user: User,
+  command: { userId: string; labId: string; fromUserId: string },
+  saveMessage: string,
+  apply: (holder: { assignedUserId?: string | null }) => void
+): Promise<{ racksAffected: number; boxesAffected: number }> {
+  const configData = currentConfig.toData();
+  let racksAffected = 0;
+  let boxesAffected = 0;
+
+  for (const tank of configData.tanks) {
+    for (const rack of tank.racks) {
+      if (rack.assignedUserId === command.fromUserId && !(user.isDemo && rack.isSeeded)) {
+        apply(rack);
+        racksAffected++;
+      }
+      for (const box of rack.boxes) {
+        if (box.assignedUserId === command.fromUserId && !(user.isDemo && box.isSeeded)) {
+          apply(box);
+          boxesAffected++;
+        }
+      }
+    }
+  }
+
+  if (racksAffected === 0 && boxesAffected === 0) {
+    return { racksAffected: 0, boxesAffected: 0 };
+  }
+
+  const expectedVersion = currentConfig.version;
+  currentConfig.updateFromData({
+    tanks: configData.tanks,
+    systemSettings: configData.systemSettings
+  });
+  const newVersion = await storageRepository.saveWithOptimisticLock(
+    command.labId,
+    currentConfig,
+    expectedVersion,
+    saveMessage,
+    command.userId
+  );
+  currentConfig.applyPersistedVersion(newVersion);
+
+  return { racksAffected, boxesAffected };
+}
+
 /** Unassigns all resources (racks and boxes) from a user. */
 export class BulkUnassignResourcesCommandHandler {
   constructor(
@@ -57,42 +109,18 @@ export class BulkUnassignResourcesCommandHandler {
       throw new NotFoundError(`User '${command.fromUserId}' not found`);
     }
 
-    const configData = currentConfig.toData();
-    let racksAffected = 0;
-    let boxesAffected = 0;
-
-    for (const tank of configData.tanks) {
-      for (const rack of tank.racks) {
-        if (rack.assignedUserId === command.fromUserId && !(user.isDemo && rack.isSeeded)) {
-          rack.assignedUserId = undefined;
-          racksAffected++;
-        }
-        for (const box of rack.boxes) {
-          if (box.assignedUserId === command.fromUserId && !(user.isDemo && box.isSeeded)) {
-            box.assignedUserId = undefined;
-            boxesAffected++;
-          }
-        }
-      }
-    }
+    const { racksAffected, boxesAffected } = await applyBulkAssignment(
+      this.storageRepository,
+      currentConfig,
+      user,
+      command,
+      `Bulk unassigned all resources from user '${fromUser.username}'`,
+      (holder) => { holder.assignedUserId = undefined; }
+    );
 
     if (racksAffected === 0 && boxesAffected === 0) {
       return { racksAffected: 0, boxesAffected: 0 };
     }
-
-    const expectedVersion = currentConfig.version;
-    currentConfig.updateFromData({
-      tanks: configData.tanks,
-      systemSettings: configData.systemSettings
-    });
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
-      currentConfig,
-      expectedVersion,
-      `Bulk unassigned all resources from user '${fromUser.username}'`,
-      command.userId
-    );
-    currentConfig.applyPersistedVersion(newVersion);
 
     const event = new BulkResourcesUnassignedEvent(
       command.userId,
@@ -141,43 +169,18 @@ export class BulkReassignResourcesCommandHandler {
       throw new NotFoundError(`User '${command.toUserId}' not found`);
     }
 
-    const configData = currentConfig.toData();
-    let racksAffected = 0;
-    let boxesAffected = 0;
-
-    for (const tank of configData.tanks) {
-      for (const rack of tank.racks) {
-        if (rack.assignedUserId === command.fromUserId && !(user.isDemo && rack.isSeeded)) {
-          rack.assignedUserId = command.toUserId;
-          racksAffected++;
-        }
-        for (const box of rack.boxes) {
-          if (box.assignedUserId === command.fromUserId && !(user.isDemo && box.isSeeded)) {
-            box.assignedUserId = command.toUserId;
-            boxesAffected++;
-          }
-        }
-      }
-    }
+    const { racksAffected, boxesAffected } = await applyBulkAssignment(
+      this.storageRepository,
+      currentConfig,
+      user,
+      command,
+      `Bulk reassigned resources from '${fromUser.username}' to '${toUser.username}'`,
+      (holder) => { holder.assignedUserId = command.toUserId; }
+    );
 
     if (racksAffected === 0 && boxesAffected === 0) {
       return { racksAffected: 0, boxesAffected: 0 };
     }
-
-    const expectedVersion = currentConfig.version;
-    currentConfig.updateFromData({
-      tanks: configData.tanks,
-      systemSettings: configData.systemSettings
-    });
-
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
-      currentConfig,
-      expectedVersion,
-      `Bulk reassigned resources from '${fromUser.username}' to '${toUser.username}'`,
-      command.userId
-    );
-    currentConfig.applyPersistedVersion(newVersion);
 
     const event = new BulkResourcesReassignedEvent(
       command.userId,

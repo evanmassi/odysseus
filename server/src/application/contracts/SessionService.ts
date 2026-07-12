@@ -1,7 +1,7 @@
 /**
  * Session Service Contract
  *
- * Interface for session management — token creation, validation, and revocation.
+ * Interface for session management — token creation and validation.
  */
 
 import type { EnhancedLoginResponse, RefreshTokenResponse } from '@application/types/tokenTypes';
@@ -18,7 +18,6 @@ export type SessionValidationOutcome =
 
 export interface SessionService {
   validateSession(token: string): Promise<SessionValidationResult | null>;
-  revokeSession(token: string): Promise<void>;
   createTokenPair(user: User, userAgent?: string, ipAddress?: string, deviceInfo?: string): Promise<EnhancedLoginResponse>;
   refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponse>;
 

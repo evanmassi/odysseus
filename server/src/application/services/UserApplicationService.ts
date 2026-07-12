@@ -4,12 +4,13 @@
  * Orchestrates user CRUD, authentication, registration, and approval workflows.
  */
 
-import { PasswordValidator } from '@odysseus/shared-schemas';
 import { nanoid } from 'nanoid';
 
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
+import { rejectDemoManagementOperation } from '@application/guards/DemoGuards';
+import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
 import { User } from '@domain/entities/User';
@@ -66,12 +67,6 @@ export class UserApplicationService {
     private passwordService?: PasswordService,
     private tubeRepository?: TubeRepository
   ) {}
-
-  async isFirstTimeSetup(): Promise<{ isEmpty: boolean; needsSystemAdmin: boolean }> {
-    const isEmpty = await this.userRepository.isEmpty();
-    const systemAdminCount = await this.userRepository.countByRole('system_admin');
-    return { isEmpty, needsSystemAdmin: systemAdminCount === 0 };
-  }
 
   /**
    * Returns non-pending lab users enriched with Person names.
@@ -184,11 +179,10 @@ export class UserApplicationService {
   async deleteUser(userId: string, admin: User): Promise<void> {
     const targetUser = await this.getUserOrThrow(userId, admin);
 
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
     admin.requireCanManage(targetUser);
 
-    await this.ensureNotLastAdmin(targetUser, 'delete');
+    await this.ensureNotLastAdmin(targetUser);
 
     const username = targetUser.username;
     const personId = targetUser.personId;
@@ -262,10 +256,9 @@ export class UserApplicationService {
     }
   }
 
-  private rejectIfDemoLab(admin: User): void {
-    if (admin.isDemo) {
-      throw new PermissionError('User management is restricted in the demo environment');
-    }
+  private async requireUserManagementAllowed(admin: User): Promise<void> {
+    await this.accessControlService.requireCanManageUsers(admin);
+    rejectDemoManagementOperation(admin, 'User management');
   }
 
   private async getUserOrThrow(id: string, admin: User): Promise<User> {
@@ -279,11 +272,11 @@ export class UserApplicationService {
     return user;
   }
 
-  private async ensureNotLastAdmin(user: User, action: string): Promise<void> {
+  private async ensureNotLastAdmin(user: User): Promise<void> {
     if (user.isAdmin() && user.labId) {
       const adminCount = await this.userRepository.countByRoleInLab('lab_admin', user.labId);
       if (adminCount <= 1) {
-        throw new ValidationError(`Cannot ${action} the last admin user`, { adminCount });
+        throw new ValidationError('Cannot delete the last admin user', { adminCount });
       }
     }
   }
@@ -294,8 +287,7 @@ export class UserApplicationService {
     action: 'deactivate' | 'suspend',
     expectedLabId?: string
   ): Promise<void> {
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
 
     if (admin.id === userId) {
       throw new PermissionError(`Cannot ${action} yourself`, { userId: admin.id });
@@ -415,7 +407,7 @@ export class UserApplicationService {
       );
     }
 
-    await this.validatePasswordPolicy(request.password);
+    await validatePasswordPolicy(this.storageRepository, request.password);
 
     if (!this.passwordService) {
       throw new Error('PasswordService is required for registration');
@@ -514,24 +506,8 @@ export class UserApplicationService {
     return `${first}.${last}.${nanoid(6)}`;
   }
 
-  /** Uses shared PasswordValidator for consistent validation across client/server. */
-  private async validatePasswordPolicy(password: string): Promise<void> {
-    if (!this.storageRepository) {
-      throw new Error('StorageRepository is required for password validation');
-    }
-
-    const securityConfig = await this.storageRepository.getSecurityConfig();
-
-    try {
-      PasswordValidator.enforce(password, securityConfig);
-    } catch (error) {
-      throw new ValidationError((error as Error).message);
-    }
-  }
-
   async reactivateUser(userId: string, admin: User): Promise<void> {
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
 
     const user = await this.getUserOrThrow(userId, admin);
     const previousStatus = user.status as 'deactivated' | 'suspended';
@@ -568,8 +544,7 @@ export class UserApplicationService {
       throw new Error('ResearcherRepository is required for this operation');
     }
 
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
 
     const user = await this.getUserOrThrow(userId, admin);
     admin.requireCanManage(user);
@@ -612,8 +587,7 @@ export class UserApplicationService {
    * @throws ValidationError if user has no linked researcher
    */
   async unlinkResearcherFromUser(userId: string, admin: User): Promise<void> {
-    await this.accessControlService.requireCanManageUsers(admin);
-    this.rejectIfDemoLab(admin);
+    await this.requireUserManagementAllowed(admin);
 
     const user = await this.getUserOrThrow(userId, admin);
     admin.requireCanManage(user);
@@ -672,16 +646,10 @@ export class UserApplicationService {
     }
   }
 
-  /**
-   * Get user by username (public helper for resend verification)
-   */
   async getUserByUsername(username: string): Promise<User | null> {
     return await this.userRepository.findByUsername(username);
   }
 
-  /**
-   * Get user by email (public helper for resend verification)
-   */
   async getUserByEmail(email: string): Promise<User | null> {
     return await this.userRepository.findByEmail(email);
   }

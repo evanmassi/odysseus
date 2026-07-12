@@ -20,13 +20,12 @@ export interface BlockStatus {
 
 export class RateLimitingService {
   private attempts: Map<string, RateLimitAttempt> = new Map();
-  private cleanupInterval: NodeJS.Timeout;
   private readonly CLEANUP_INTERVAL_MS = 60000;
   private readonly TIME_WINDOW_MS = 60000;
 
   constructor(private readonly storageRepository: StorageRepository) {
     // Prevents unbounded memory growth from abandoned attempts
-    this.cleanupInterval = setInterval(() => {
+    setInterval(() => {
       this.cleanup();
     }, this.CLEANUP_INTERVAL_MS);
   }

@@ -491,10 +491,6 @@ class SocketQueryBridge {
         return 'Box updated';
       }
 
-      if (eventType === 'LabNameChanged') {
-        return 'Lab name updated';
-      }
-
       return 'Configuration updated';
     }
 

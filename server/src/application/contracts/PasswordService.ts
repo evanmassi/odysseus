@@ -1,9 +1,7 @@
 /**
  * Password Service Interface
  *
- * Defines the contract for password hashing and verification operations.
- * This abstraction allows for different password hashing implementations
- * (bcrypt, argon2, etc.) without changing application logic.
+ * Password hashing and verification, decoupled from the hashing algorithm.
  */
 
 export interface PasswordService {

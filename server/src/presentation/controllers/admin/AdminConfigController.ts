@@ -7,7 +7,6 @@
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
 import type { GetSystemMetricsQueryHandler } from '@application/queries/StorageQueries';
-import { GetUserStatisticsQuery } from '@application/queries/UserQueries';
 import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import { logger } from '@infrastructure/logging/logger';
@@ -82,8 +81,7 @@ export class AdminConfigController extends BaseController {
       const user = this.getAuthenticatedUser(req);
       const labId = user.isSystemAdmin() ? undefined : user.labId;
 
-      const query = new GetUserStatisticsQuery(labId);
-      const stats = await this.deps.getUserStatsHandler.handle(query);
+      const stats = await this.deps.getUserStatsHandler.handle({ labId });
 
       res.status(200).json(ResponseBuilder.success({ statistics: stats }));
     } catch (error) {

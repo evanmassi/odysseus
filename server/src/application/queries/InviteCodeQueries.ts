@@ -1,7 +1,7 @@
 /**
- * Invite Code CQRS Queries
+ * Invite Code Queries
  *
- * Read-only operations for invite code validation during registration.
+ * Read-only operations — invite code validation for registration and listing for the admin console.
  */
 
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';

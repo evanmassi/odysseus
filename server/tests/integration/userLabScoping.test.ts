@@ -6,7 +6,7 @@
  * system admin span labs.
  */
 
-import { GetUserByIdQuery, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
+import { GetUserByIdQueryHandler } from '@application/queries/UserQueries';
 import { UserNotFoundError } from '@domain/errors/UserErrors';
 import { UserRepository } from '@infrastructure/repositories/UserRepository';
 
@@ -73,7 +73,7 @@ describe('user lab-scoping', () => {
       const userB = await seed.user({ labId: labB.id });
 
       await expect(
-        handler.handle(new GetUserByIdQuery(userB.id, labA.id, false))
+        handler.handle({ userId: userB.id, requesterLabId: labA.id, requesterIsSystemAdmin: false })
       ).rejects.toThrow(UserNotFoundError);
     });
 
@@ -81,7 +81,11 @@ describe('user lab-scoping', () => {
       const labB = await seed.lab();
       const userB = await seed.user({ labId: labB.id });
 
-      const found = await handler.handle(new GetUserByIdQuery(userB.id, undefined, true));
+      const found = await handler.handle({
+        userId: userB.id,
+        requesterLabId: undefined,
+        requesterIsSystemAdmin: true,
+      });
       expect(found.id).toBe(userB.id);
     });
 
@@ -89,7 +93,11 @@ describe('user lab-scoping', () => {
       const labA = await seed.lab();
       const userA = await seed.user({ labId: labA.id });
 
-      const found = await handler.handle(new GetUserByIdQuery(userA.id, labA.id, false));
+      const found = await handler.handle({
+        userId: userA.id,
+        requesterLabId: labA.id,
+        requesterIsSystemAdmin: false,
+      });
       expect(found.id).toBe(userA.id);
     });
   });

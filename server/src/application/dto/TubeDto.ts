@@ -33,6 +33,30 @@ export interface TubeSearchResponse {
   matchedTerms: string[];
 }
 
+/** Tri-state PATCH payload produced by fromUpdateRequest: null = clear field, undefined = no change. */
+type TubeUpdateData = {
+  location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
+  sample?: {
+    cellType?: string;
+    donorInternalId?: string | null;
+    donorSourceId?: string | null;
+    concentration?: number | null;
+    concentrationUnit?: 'c/v' | 'c/mL' | null;
+    date?: string | null;
+    mediaType?: string | null;
+    mediaSupplements?: string | null;
+    mediaSelection?: string | null;
+    cultureCondition?: string | null;
+    lotNumber?: string | null;
+    species?: string | null;
+    source?: string | null;
+    catalogNumber?: string | null;
+    passageNumber?: number | null;
+    notes?: string | null;
+  };
+  researcherId?: string | null;
+};
+
 export class TubeDto {
   static toResponse(tube: Tube): TubeResponse {
     const data = tube.toData();
@@ -114,50 +138,8 @@ export class TubeDto {
   /**
    * Tri-state PATCH semantics: null = clear field, undefined = no change, value = set field.
    */
-  static fromUpdateRequest(request: UpdateTubeRequest): {
-    location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
-    sample?: {
-      cellType?: string;
-      donorInternalId?: string | null;
-      donorSourceId?: string | null;
-      concentration?: number | null;
-      concentrationUnit?: 'c/v' | 'c/mL' | null;
-      date?: string | null;
-      mediaType?: string | null;
-      mediaSupplements?: string | null;
-      mediaSelection?: string | null;
-      cultureCondition?: string | null;
-      lotNumber?: string | null;
-      species?: string | null;
-      source?: string | null;
-      catalogNumber?: string | null;
-      passageNumber?: number | null;
-      notes?: string | null;
-    };
-    researcherId?: string | null;
-  } {
-    const result: {
-      location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
-      sample?: {
-        cellType?: string;
-        donorInternalId?: string | null;
-        donorSourceId?: string | null;
-        concentration?: number | null;
-        concentrationUnit?: 'c/v' | 'c/mL' | null;
-        date?: string | null;
-        mediaType?: string | null;
-        mediaSupplements?: string | null;
-        mediaSelection?: string | null;
-        cultureCondition?: string | null;
-        lotNumber?: string | null;
-        species?: string | null;
-        source?: string | null;
-        catalogNumber?: string | null;
-        passageNumber?: number | null;
-        notes?: string | null;
-      };
-      researcherId?: string | null;
-    } = {};
+  static fromUpdateRequest(request: UpdateTubeRequest): TubeUpdateData {
+    const result: TubeUpdateData = {};
 
     if (request.location) {
       result.location = request.location;

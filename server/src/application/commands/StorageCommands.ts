@@ -1,7 +1,7 @@
 /**
  * Storage CQRS Commands
  *
- * System-wide storage operations — settings, reset, import, position display, and resource labels.
+ * System-wide storage operations not tied to a single tank, rack, or box.
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
@@ -29,15 +29,7 @@ import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 export interface UpdateSystemStorageCommand {
   userId: string;
   labId: string;
-  systemSettings: {
-    labName?: string;
-    timezone?: string;
-    dateFormat?: string;
-    temperatureUnit?: 'celsius' | 'fahrenheit';
-    enableAuditTrail?: boolean;
-    autoBackupEnabled?: boolean;
-    backupRetentionDays?: number;
-  };
+  systemSettings: { labName?: string };
 }
 
 export interface ResetStorageToDefaultCommand {
@@ -457,7 +449,7 @@ export class UpdateResourceLabelCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty/whitespace label must coerce to undefined; ?? would keep ''
     const newLabel = command.customLabel?.trim() || undefined;
     if (oldLabel !== newLabel) {
       if (command.resourceType === 'rack') {

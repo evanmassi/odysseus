@@ -228,25 +228,6 @@ export class BoxUpdatedEvent extends DomainEvent {
   }
 }
 
-export class LabNameChangedEvent extends DomainEvent {
-  constructor(
-    public readonly userId: string,
-    public readonly oldName: string,
-    public readonly newName: string,
-    labId: string
-  ) {
-    super(labId);
-  }
-
-  eventName(): string {
-    return 'LabNameChanged';
-  }
-
-  getAggregateId(): string {
-    return 'system-storage';
-  }
-}
-
 export class RackAssignedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,

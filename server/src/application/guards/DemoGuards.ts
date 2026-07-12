@@ -88,3 +88,11 @@ export function rejectDemoConfigOperation(
   if (!user.isDemo) return;
   throw new PermissionError(`${operation} is not allowed in the demo environment`);
 }
+
+export function rejectDemoManagementOperation(
+  user: User,
+  subject: string
+): void {
+  if (!user.isDemo) return;
+  throw new PermissionError(`${subject} is restricted in the demo environment`);
+}

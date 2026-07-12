@@ -13,7 +13,6 @@ export interface AuditRepository {
   save(entry: AuditLogEntry): Promise<void>;
   saveMany(entries: AuditLogEntry[]): Promise<void>;
 
-  findByUserId(userId: string, options?: QueryOptions): Promise<AuditLogEntry[]>;
   findByEntityId(entityId: string, entityType: string): Promise<AuditLogEntry[]>;
   findByEntityIdForLab(entityId: string, entityType: string, labId: string): Promise<AuditLogEntry[]>;
   findByAction(action: string, options?: QueryOptions): Promise<AuditLogEntry[]>;

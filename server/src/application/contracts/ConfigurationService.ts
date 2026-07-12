@@ -43,7 +43,5 @@ export interface Configuration {
 
 export interface ConfigurationService {
   get<K extends keyof Configuration>(key: K): Configuration[K];
-  getAll(): Configuration;
   isDevelopment(): boolean;
-  isProduction(): boolean;
 }

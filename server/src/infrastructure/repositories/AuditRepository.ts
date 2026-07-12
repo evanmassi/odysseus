@@ -77,10 +77,6 @@ export class AuditRepository implements IAuditRepository {
 
   // READ OPERATIONS
 
-  async findByUserId(userId: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
-    return this.findWithOptions(['user_id = $1'], [userId], options);
-  }
-
   async findByEntityId(entityId: string, entityType: string): Promise<AuditLogEntry[]> {
     const rows = await this.context.queryMany<AuditLogRow>(
       `SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log

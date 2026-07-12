@@ -57,6 +57,8 @@ import type { FieldChange } from '@domain/types/fieldChangeTypes';
 import { generateId } from '@domain/utils/generateId';
 import { logger } from '@infrastructure/logging/logger';
 
+import { executeBulk } from './executeBulk';
+
 import type {
   CreateSupplyCategoryRequest,
   UpdateSupplyCategoryRequest,
@@ -75,13 +77,9 @@ import type {
   SupplyBulkIssueRequest,
   VoidSupplyTransactionRequest,
   SupplyBulkVoidRequest,
+  SupplyBulkResponse,
   SupplyBulkBarcodesResponse,
 } from '@odysseus/shared-schemas';
-
-interface BulkResult {
-  succeeded: string[];
-  failed: Array<{ id: string; error: string }>;
-}
 
 export class SupplyApplicationService {
   constructor(
@@ -568,10 +566,10 @@ export class SupplyApplicationService {
 
   // Bulk operations
 
-  async bulkReceive(labId: string, data: SupplyBulkReceiveRequest, user: User): Promise<BulkResult> {
+  async bulkReceive(labId: string, data: SupplyBulkReceiveRequest, user: User): Promise<SupplyBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       data.items,
       async (item) => {
         await this.recordTransaction(labId, {
@@ -600,10 +598,10 @@ export class SupplyApplicationService {
     return result;
   }
 
-  async bulkIssue(labId: string, data: SupplyBulkIssueRequest, user: User): Promise<BulkResult> {
+  async bulkIssue(labId: string, data: SupplyBulkIssueRequest, user: User): Promise<SupplyBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       data.items,
       async (item) => {
         await this.recordTransaction(labId, {
@@ -627,13 +625,13 @@ export class SupplyApplicationService {
     return result;
   }
 
-  async bulkReassignCategory(labId: string, itemIds: string[], categoryId: string, user: User): Promise<BulkResult> {
+  async bulkReassignCategory(labId: string, itemIds: string[], categoryId: string, user: User): Promise<SupplyBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
     const category = await this.categoryRepository.findById(categoryId, labId);
     if (!category) throw new NotFoundError('Target category not found');
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       itemIds,
       async (itemId) => {
         await this.updateItem(labId, itemId, { categoryId }, user, { bulkOperation: true });
@@ -649,10 +647,10 @@ export class SupplyApplicationService {
     return result;
   }
 
-  async bulkArchive(labId: string, itemIds: string[], user: User): Promise<BulkResult> {
+  async bulkArchive(labId: string, itemIds: string[], user: User): Promise<SupplyBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       itemIds,
       async (itemId) => {
         await this.archiveItem(labId, itemId, user, { bulkOperation: true });
@@ -668,11 +666,11 @@ export class SupplyApplicationService {
     return result;
   }
 
-  async bulkVoidTransactions(labId: string, data: SupplyBulkVoidRequest, user: User): Promise<BulkResult> {
+  async bulkVoidTransactions(labId: string, data: SupplyBulkVoidRequest, user: User): Promise<SupplyBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
     const perItemData: BulkVoidItemDetail[] = [];
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       data.transactionIds,
       async (transactionId) => {
         const { original, reversal } = await this.voidTransaction(
@@ -704,25 +702,6 @@ export class SupplyApplicationService {
   }
 
   // Helpers
-
-  private async executeBulk<TItem, TSuccess, TFailure>(
-    items: TItem[],
-    operation: (item: TItem, index: number) => Promise<TSuccess>,
-    onFailure: (item: TItem, index: number, error: string) => TFailure
-  ): Promise<{ succeeded: TSuccess[]; failed: TFailure[] }> {
-    const succeeded: TSuccess[] = [];
-    const failed: TFailure[] = [];
-
-    for (let i = 0; i < items.length; i++) {
-      try {
-        succeeded.push(await operation(items[i], i));
-      } catch (error) {
-        failed.push(onFailure(items[i], i, error instanceof Error ? error.message : 'Unknown error'));
-      }
-    }
-
-    return { succeeded, failed };
-  }
 
   private async getItemOrThrow(id: string, labId: string): Promise<SupplyItem> {
     const item = await this.itemRepository.findById(id, labId);

@@ -22,7 +22,6 @@ import type { EventBus } from '@application/contracts/EventBus';
 import type { SessionService } from '@application/contracts/SessionService';
 import type { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
 import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
-import { CheckFirstTimeSetupQuery } from '@application/queries/UserQueries';
 import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
@@ -60,8 +59,7 @@ export class PublicAuthController {
   async checkFirstTime(req: Request, res: Response): Promise<void> {
     try {
 
-      const query = new CheckFirstTimeSetupQuery();
-      const result = await this.deps.checkFirstTimeHandler.handle(query);
+      const result = await this.deps.checkFirstTimeHandler.handle();
 
       logger.info('First-time setup check completed', { isFirstTime: result.isFirstTime });
 

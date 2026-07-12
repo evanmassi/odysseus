@@ -9,6 +9,8 @@ import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 
+import type { CrossLabStorageAnalyticsResponse, LabStorageAnalyticsResponse } from '@odysseus/shared-schemas';
+
 interface LocationCount {
   tankId: string;
   rackId: string;
@@ -27,7 +29,7 @@ export interface StorageAnalyticsApplicationServiceDeps {
 export class StorageAnalyticsApplicationService {
   constructor(private deps: StorageAnalyticsApplicationServiceDeps) {}
 
-  async getLabAnalytics(labId: string) {
+  async getLabAnalytics(labId: string): Promise<LabStorageAnalyticsResponse> {
     const storage = await this.deps.storageRepository.getForLab(labId);
     if (!storage) {
       return {
@@ -43,7 +45,7 @@ export class StorageAnalyticsApplicationService {
     return this.computeLabUtilization(storage, locationCounts);
   }
 
-  async getCrossLabAnalytics() {
+  async getCrossLabAnalytics(): Promise<CrossLabStorageAnalyticsResponse> {
     const labs = await this.deps.labRepository.findAll();
     const labIds = labs.map(l => l.id);
 
@@ -100,19 +102,7 @@ export class StorageAnalyticsApplicationService {
   private computeLabUtilization(
     storage: Storage,
     locationCounts: LocationCount[]
-  ): {
-    totalPositions: number;
-    totalOccupied: number;
-    utilizationPercent: number;
-    tanks: Array<{
-      tankId: string; tankName: string; totalPositions: number; occupied: number; utilizationPercent: number;
-      racks: Array<{
-        rackId: string; rackName: string; totalPositions: number; occupied: number; utilizationPercent: number;
-        boxes: Array<{ boxName: string; maxPositions: number; occupied: number; utilizationPercent: number }>;
-      }>;
-    }>;
-    nearCapacityBoxes: Array<{ tankName: string; rackName: string; boxName: string; occupied: number; maxPositions: number; utilizationPercent: number }>;
-  } {
+  ): LabStorageAnalyticsResponse {
     const countMap = new Map<string, number>();
     for (const lc of locationCounts) {
       countMap.set(`${lc.tankId}|${lc.rackId}|${lc.boxId}`, lc.count);

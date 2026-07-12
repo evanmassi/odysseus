@@ -25,7 +25,6 @@ import type {
   BoxAddedEvent,
   BoxDeletedEvent,
   BoxUpdatedEvent,
-  LabNameChangedEvent,
   RackLabelUpdatedEvent,
   BoxLabelUpdatedEvent,
   RackAssignedEvent,
@@ -211,7 +210,6 @@ export class SocketEventHandler {
     this.eventBus.subscribe('BoxAdded', (e) => this.handleStorageChange(e));
     this.eventBus.subscribe('BoxUpdated', (e) => this.handleStorageChange(e));
     this.eventBus.subscribe('BoxDeleted', (e) => this.handleStorageChange(e));
-    this.eventBus.subscribe('LabNameChanged', (e) => this.handleStorageChange(e));
     this.eventBus.subscribe('RackLabelUpdated', (e) => this.handleStorageChange(e));
     this.eventBus.subscribe('BoxLabelUpdated', (e) => this.handleStorageChange(e));
 
@@ -283,7 +281,6 @@ export class SocketEventHandler {
       | BoxAddedEvent
       | BoxUpdatedEvent
       | BoxDeletedEvent
-      | LabNameChangedEvent
       | RackLabelUpdatedEvent
       | BoxLabelUpdatedEvent
       | RackAssignedEvent
@@ -847,7 +844,7 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      logger.debug('Emitting tube_access_shared Socket event', {
+      logger.debug('Emitting tube_access_shared socket event', {
         tubeCount: event.tubeIds.length,
         userCount: event.addedUserIds.length,
         labId: event.labId,
@@ -873,7 +870,7 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      logger.debug('Emitting tube_access_revoked Socket event', {
+      logger.debug('Emitting tube_access_revoked socket event', {
         tubeCount: event.tubeIds.length,
         userCount: event.revokedUserIds.length,
         labId: event.labId,

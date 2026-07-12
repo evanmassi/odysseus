@@ -1,7 +1,5 @@
 /**
  * Email Verification Commands
- *
- * Commands for email verification operations.
  */
 
 import type { EventBus } from '@application/contracts/EventBus';

@@ -14,11 +14,10 @@ export const AUDIT_RETENTION_CONFIG = {
   // Scheduled archival job (cron format: "0 2 * * *" = 2 AM daily)
   archivalJobSchedule: '0 2 * * *',
 
-  archivalJobTimezone: 'America/Los_Angeles',  // Pacific Time
+  archivalJobTimezone: 'America/Los_Angeles',
 
   enableAutoArchival: true,
 
-  // Admins can update this threshold through the API
   activeTableWarningThreshold: 50000,
 
   // Batch size for archival operations (prevents memory issues)

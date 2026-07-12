@@ -36,6 +36,10 @@ export interface GetSystemMetricsQuery {
   labId: string;
 }
 
+export interface CheckStorageHealthQuery {
+  labId: string;
+}
+
 /** Creates default configuration if none exists. */
 export class GetCurrentStorageQueryHandler {
   constructor(
@@ -88,7 +92,7 @@ export class GetStorageByVersionQueryHandler {
 export class CheckStorageHealthQueryHandler {
   constructor(private storageRepository: StorageRepository) {}
 
-  async handle(query: { labId: string }): Promise<StorageHealthReport> {
+  async handle(query: CheckStorageHealthQuery): Promise<StorageHealthReport> {
     try {
       const configuration = await this.storageRepository.getForLab(query.labId);
 

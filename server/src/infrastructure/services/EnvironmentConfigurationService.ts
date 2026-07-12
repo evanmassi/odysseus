@@ -59,16 +59,8 @@ export class EnvironmentConfigurationService implements ConfigurationService {
     return this.config[key];
   }
 
-  getAll(): Configuration {
-    return { ...this.config };
-  }
-
   isDevelopment(): boolean {
     return this.config.server.environment === 'development';
-  }
-
-  isProduction(): boolean {
-    return this.config.server.environment === 'production';
   }
 
   private loadConfiguration(): Configuration {

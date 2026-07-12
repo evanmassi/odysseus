@@ -10,8 +10,7 @@ import type { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenComman
 import type {
   ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
 } from '@application/commands/UserCommands';
-import type { GetUserByIdQueryHandler } from '@application/queries/UserQueries';
-import { GetUserByIdQuery } from '@application/queries/UserQueries';
+import type { GetUserByIdQuery, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { UserRole } from '@domain/value-objects/UserRole';
@@ -59,7 +58,11 @@ export class AdminUserController extends BaseController {
     try {
       const { id } = req.params;
       const adminUser = this.getAuthenticatedUser(req);
-      const query = new GetUserByIdQuery(id, adminUser.labId, adminUser.isSystemAdmin(), adminUser.id);
+      const query: GetUserByIdQuery = {
+        userId: id,
+        requesterLabId: adminUser.labId,
+        requesterIsSystemAdmin: adminUser.isSystemAdmin(),
+      };
       const user = await this.deps.getUserByIdHandler.handle(query);
 
       const response = ResponseBuilder.success({

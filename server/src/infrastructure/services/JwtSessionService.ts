@@ -231,30 +231,6 @@ export class JwtSessionService implements SessionService {
     };
   }
 
-  async revokeSession(token: string): Promise<void> {
-    try {
-      const decoded = jwt.verify(token, this.config.secret) as AccessTokenPayload;
-
-      // Fetch session FIRST to get refreshToken before revoking
-      const session = await this.userSessionRepository.findById(decoded.sessionId);
-      const refreshTokenValue = session?.refreshToken;
-
-      await this.userSessionRepository.revokeSession(decoded.sessionId);
-
-      if (refreshTokenValue) {
-        const refreshToken = await this.refreshTokenRepository.findByToken(refreshTokenValue);
-        if (refreshToken) {
-          refreshToken.revoke();
-          await this.refreshTokenRepository.save(refreshToken);
-        }
-      }
-
-      logger.info(`Session ${decoded.sessionId} revoked`);
-    } catch (error) {
-      logger.warn('Could not revoke session:', { error });
-    }
-  }
-
   async createTokenPair(
     user: User,
     userAgent?: string,
@@ -308,7 +284,6 @@ export class JwtSessionService implements SessionService {
 
     return {
       user: user.toPublicData(),
-      sessionToken: accessToken, // Backward compatibility
       tokens: tokenPair
     };
   }

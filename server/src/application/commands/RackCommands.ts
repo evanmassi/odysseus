@@ -1,15 +1,15 @@
 /**
  * Rack CQRS Commands
  *
- * Manages rack lifecycle within tanks — add, update, delete, and assignment.
+ * Manages rack lifecycle within tanks.
  */
 
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
+import { executeResourceAssignment } from '@application/commands/resourceAssignment';
 import type { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddRacksLimit } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
-import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -297,93 +297,61 @@ export class AssignRackCommandHandler {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    let assignedUser: User | null = null;
-    if (command.assignedUserId) {
-      assignedUser = await this.userRepository.findById(command.assignedUserId, command.labId);
-      if (!assignedUser) {
-        throw NotFoundError.forEntity('User', command.assignedUserId);
-      }
-      if (!assignedUser.hasResearcherProfile()) {
-        throw new ValidationError('Cannot assign rack to a user without a linked researcher profile');
-      }
-    }
-
-    const previousUserId = rack.assignedUserId;
-    const previousUsername = previousUserId
-      ? (await this.userRepository.findById(previousUserId, command.labId))?.username ?? 'Unknown'
-      : '';
-
-    if (previousUserId === command.assignedUserId) {
-      return;
-    }
-
-    const configData = currentConfig.toData();
-    const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
-    const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
-
-    configData.tanks[tankIndex].racks[rackIndex].assignedUserId = command.assignedUserId ?? undefined;
-
-    // Clear inherited box labels when unassigning
-    if (!command.assignedUserId && previousUserId) {
-      currentConfig.clearInheritedBoxLabelsForRack(command.tankId, command.rackId);
-    }
-
-    const expectedVersion = currentConfig.version;
-    currentConfig.updateFromData({
-      tanks: configData.tanks,
-      systemSettings: configData.systemSettings
-    });
-
-    const action = command.assignedUserId
-      ? (previousUserId ? 'Reassigned' : 'Assigned')
-      : 'Unassigned';
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
+    await executeResourceAssignment(
+      {
+        storageRepository: this.storageRepository,
+        userRepository: this.userRepository,
+        eventBus: this.eventBus,
+      },
       currentConfig,
-      expectedVersion,
-      `${action} rack '${rack.name}' in tank '${tank.name}'`,
-      command.userId
+      command,
+      {
+        resourceType: 'rack',
+        previousUserId: rack.assignedUserId,
+        applyAssignment: (configData, assignedUserId) => {
+          const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
+          const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
+          configData.tanks[tankIndex].racks[rackIndex].assignedUserId = assignedUserId;
+        },
+        // Clear inherited box labels when unassigning
+        onUnassign: () => currentConfig.clearInheritedBoxLabelsForRack(command.tankId, command.rackId),
+        buildSaveMessage: (action) => `${action} rack '${rack.name}' in tank '${tank.name}'`,
+        buildReassignedEvent: (previousUserId, previousUsername, newUserId, newUsername) =>
+          new RackReassignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            previousUserId,
+            previousUsername,
+            newUserId,
+            newUsername,
+            command.labId
+          ),
+        buildAssignedEvent: (newUserId, newUsername) =>
+          new RackAssignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            newUserId,
+            newUsername,
+            command.labId
+          ),
+        buildUnassignedEvent: (previousUserId, previousUsername) =>
+          new RackUnassignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            previousUserId,
+            previousUsername,
+            command.labId
+          ),
+      }
     );
-    currentConfig.applyPersistedVersion(newVersion);
-
-    if (command.assignedUserId && previousUserId) {
-      const event = new RackReassignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        previousUserId,
-        previousUsername,
-        command.assignedUserId,
-        assignedUser!.username,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    } else if (command.assignedUserId) {
-      const event = new RackAssignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        command.assignedUserId,
-        assignedUser!.username,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    } else {
-      const event = new RackUnassignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        previousUserId!,
-        previousUsername,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    }
   }
 }

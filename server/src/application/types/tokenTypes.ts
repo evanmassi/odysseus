@@ -1,5 +1,5 @@
 /**
- * Token Types - OAuth 2.0 / JWT Types
+ * Token Types
  *
  * Implements RFC 6749 OAuth 2.0 for dual token architecture.
  */
@@ -16,7 +16,7 @@ export interface RefreshTokenRecord {
   token: string;
   expiresAt: Date;
   createdAt: Date;
-  lastUsedAt: Date | null;  // null = never used (for analytics)
+  lastUsedAt: Date | null;  // null = never used
   isRevoked: boolean;
   deviceFingerprint?: string;
 }
@@ -40,7 +40,6 @@ export interface AccessTokenPayload {
 
 export interface EnhancedLoginResponse {
   user: ReturnType<User['toPublicData']>;
-  sessionToken: string;     // Legacy field (populated from accessToken)
   tokens: TokenPair;
 }
 

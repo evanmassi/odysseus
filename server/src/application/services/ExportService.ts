@@ -128,9 +128,9 @@ export class ExportService {
     private personRepository: PersonRepository,
     private storageRepository: StorageRepository,
     private appVersion: string,
-    private equipmentItemRepository?: EquipmentItemRepository,
-    private equipmentCategoryRepository?: EquipmentCategoryRepository,
-    private supplyItemRepository?: SupplyItemRepository,
+    private equipmentItemRepository: EquipmentItemRepository,
+    private equipmentCategoryRepository: EquipmentCategoryRepository,
+    private supplyItemRepository: SupplyItemRepository,
   ) {}
 
   async exportTubes(labId: string, format: 'csv'): Promise<string>;
@@ -327,10 +327,6 @@ export class ExportService {
   async exportEquipment(labId: string, format: 'csv' | 'json'): Promise<string | EquipmentExportRow[]> {
     logger.info('[ExportService] Exporting equipment', { labId, format });
 
-    if (!this.equipmentItemRepository || !this.equipmentCategoryRepository) {
-      throw new Error('Equipment repositories not configured');
-    }
-
     const items = await this.equipmentItemRepository.findByLabId(labId);
     const categories = await this.equipmentCategoryRepository.findByLabId(labId);
 
@@ -432,10 +428,6 @@ export class ExportService {
   async exportSupplyReorderList(labId: string, format: 'json'): Promise<SupplyReorderExportRow[]>;
   async exportSupplyReorderList(labId: string, format: 'csv' | 'json'): Promise<string | SupplyReorderExportRow[]> {
     logger.info('[ExportService] Exporting supply reorder list', { labId, format });
-
-    if (!this.supplyItemRepository) {
-      throw new Error('Supply item repository not configured');
-    }
 
     const itemsWithStock = await this.supplyItemRepository.findItemsAtOrBelowThreshold(labId);
 

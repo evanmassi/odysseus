@@ -46,7 +46,7 @@ export type SupplyDocumentResponse = SupplyDocumentData;
 
 export type SupplyBarcodeResponse = SupplyBarcode;
 
-// Hand-rolled: SupplyStock has no domain entity (removed in P2); shape matches supplyStockSchema.
+// Hand-rolled: SupplyStock has no domain entity; shape matches supplyStockSchema.
 export interface SupplyStockResponse {
   id: string;
   itemId: string;

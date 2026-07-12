@@ -11,6 +11,7 @@ import { findByIdForRequester } from '@application/authorization/findByIdForRequ
 import type { EventBus } from '@application/contracts/EventBus';
 import { ResearcherDto } from '@application/dto/ResearcherDto';
 import type { CreateResearcherRequest, ResearcherResponse } from '@application/dto/ResearcherDto';
+import { rejectDemoManagementOperation } from '@application/guards/DemoGuards';
 import type { AuditChange } from '@application/types/auditTypes';
 import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
@@ -115,7 +116,7 @@ export class ResearcherApplicationService {
    */
   async createResearcher(labId: string, request: CreateResearcherRequest, user: User): Promise<ResearcherResponse> {
     await this.deps.accessControlService.requireCanManageResearchers(user);
-    this.rejectIfDemoLab(user);
+    rejectDemoManagementOperation(user, 'Researcher management');
 
     if (!request.email?.trim()) {
       throw new ValidationError('Email is required for creating researcher profile', {});
@@ -178,7 +179,7 @@ export class ResearcherApplicationService {
 
   async updateResearcher(id: string, updates: UpdateResearcherProfile, user: User): Promise<ResearcherResponse> {
     await this.deps.accessControlService.requireCanManageResearchers(user);
-    this.rejectIfDemoLab(user);
+    rejectDemoManagementOperation(user, 'Researcher management');
 
     const researcher = await this.getResearcherOrThrow(id, user);
     const person = await this.getPersonForResearcher(researcher);
@@ -245,7 +246,7 @@ export class ResearcherApplicationService {
    */
   async deleteResearcher(id: string, user: User): Promise<void> {
     await this.deps.accessControlService.requireAdminAccess(user);
-    this.rejectIfDemoLab(user);
+    rejectDemoManagementOperation(user, 'Researcher management');
 
     const researcher = await this.getResearcherOrThrow(id, user);
     const person = await this.getPersonForResearcher(researcher);
@@ -294,7 +295,7 @@ export class ResearcherApplicationService {
 
   async deactivateResearcher(id: string, user: User): Promise<ResearcherResponse> {
     await this.deps.accessControlService.requireCanManageResearchers(user);
-    this.rejectIfDemoLab(user);
+    rejectDemoManagementOperation(user, 'Researcher management');
 
     const researcher = await this.getResearcherOrThrow(id, user);
 
@@ -323,7 +324,7 @@ export class ResearcherApplicationService {
 
   async activateResearcher(id: string, user: User): Promise<ResearcherResponse> {
     await this.deps.accessControlService.requireCanManageResearchers(user);
-    this.rejectIfDemoLab(user);
+    rejectDemoManagementOperation(user, 'Researcher management');
 
     const researcher = await this.getResearcherOrThrow(id, user);
 
@@ -441,12 +442,6 @@ export class ResearcherApplicationService {
         email,
         researcherId: existing.id
       });
-    }
-  }
-
-  private rejectIfDemoLab(user: User): void {
-    if (user.isDemo) {
-      throw new PermissionError('Researcher management is restricted in the demo environment');
     }
   }
 

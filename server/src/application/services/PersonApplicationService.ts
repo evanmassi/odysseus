@@ -17,7 +17,7 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 
 import type { UpdatePersonProfile } from '@odysseus/shared-schemas';
 
-export type UpdateMyProfileRequest = UpdatePersonProfile & { currentPassword?: string };
+type UpdateMyProfileRequest = UpdatePersonProfile & { currentPassword?: string };
 
 type PersonProfile = ReturnType<Person['toData']>;
 

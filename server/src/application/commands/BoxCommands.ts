@@ -7,10 +7,10 @@
 
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
+import { executeResourceAssignment } from '@application/commands/resourceAssignment';
 import type { EventBus } from '@application/contracts/EventBus';
 import { rejectIfSeeded, enforceAddBoxesLimit } from '@application/guards/DemoGuards';
 import { requireUser } from '@application/guards/UserGuards';
-import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -168,7 +168,6 @@ export class AddBoxesCommandHandler {
   }
 }
 
-/** Updates an existing box's properties. */
 export class UpdateBoxCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -318,7 +317,6 @@ export class DeleteBoxCommandHandler {
   }
 }
 
-/** Assigns or unassigns a box to/from a user. */
 export class AssignBoxCommandHandler {
   constructor(
     private storageRepository: StorageRepository,
@@ -355,98 +353,69 @@ export class AssignBoxCommandHandler {
       throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
     }
 
-    let assignedUser: User | null = null;
-    if (command.assignedUserId) {
-      assignedUser = await this.userRepository.findById(command.assignedUserId, command.labId);
-      if (!assignedUser) {
-        throw new ValidationError(`User '${command.assignedUserId}' not found`);
-      }
-      if (!assignedUser.hasResearcherProfile()) {
-        throw new ValidationError('Cannot assign box to a user without a linked researcher profile');
-      }
-    }
-
-    const previousUserId = box.assignedUserId;
-    const previousUsername = previousUserId
-      ? (await this.userRepository.findById(previousUserId, command.labId))?.username ?? 'Unknown'
-      : '';
-
-    if (previousUserId === command.assignedUserId) {
-      return;
-    }
-
-    const configData = currentConfig.toData();
-    const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
-    const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
-    const boxIndex = configData.tanks[tankIndex].racks[rackIndex].boxes.findIndex(
-      b => b.name === boxIdUpper
-    );
-
-    configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId = command.assignedUserId;
-
-    const expectedVersion = currentConfig.version;
-    currentConfig.updateFromData({
-      tanks: configData.tanks,
-      systemSettings: configData.systemSettings
-    });
-
-    const action = command.assignedUserId
-      ? (previousUserId ? 'Reassigned' : 'Assigned')
-      : 'Unassigned';
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
+    await executeResourceAssignment(
+      {
+        storageRepository: this.storageRepository,
+        userRepository: this.userRepository,
+        eventBus: this.eventBus,
+      },
       currentConfig,
-      expectedVersion,
-      `${action} box '${box.name}' in rack '${rack.name}'`,
-      command.userId
+      command,
+      {
+        resourceType: 'box',
+        previousUserId: box.assignedUserId,
+        applyAssignment: (configData, assignedUserId) => {
+          const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
+          const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
+          const boxIndex = configData.tanks[tankIndex].racks[rackIndex].boxes.findIndex(
+            b => b.name === boxIdUpper
+          );
+          configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId = assignedUserId;
+        },
+        buildSaveMessage: (action) => `${action} box '${box.name}' in rack '${rack.name}'`,
+        buildReassignedEvent: (previousUserId, previousUsername, newUserId, newUsername) =>
+          new BoxReassignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            boxIdUpper,
+            box.name,
+            previousUserId,
+            previousUsername,
+            newUserId,
+            newUsername,
+            command.labId
+          ),
+        buildAssignedEvent: (newUserId, newUsername) =>
+          new BoxAssignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            boxIdUpper,
+            box.name,
+            newUserId,
+            newUsername,
+            command.labId
+          ),
+        buildUnassignedEvent: (previousUserId, previousUsername) =>
+          new BoxUnassignedEvent(
+            command.userId,
+            command.tankId,
+            tank.name,
+            command.rackId,
+            rack.name,
+            boxIdUpper,
+            box.name,
+            previousUserId,
+            previousUsername,
+            command.labId
+          ),
+      }
     );
-    currentConfig.applyPersistedVersion(newVersion);
-
-    if (command.assignedUserId && previousUserId) {
-      const event = new BoxReassignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        boxIdUpper,
-        box.name,
-        previousUserId,
-        previousUsername,
-        command.assignedUserId,
-        assignedUser!.username,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    } else if (command.assignedUserId) {
-      const event = new BoxAssignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        boxIdUpper,
-        box.name,
-        command.assignedUserId,
-        assignedUser!.username,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    } else {
-      const event = new BoxUnassignedEvent(
-        command.userId,
-        command.tankId,
-        tank.name,
-        command.rackId,
-        rack.name,
-        boxIdUpper,
-        box.name,
-        previousUserId!,
-        previousUsername,
-        command.labId
-      );
-      await this.eventBus.publish(event);
-    }
   }
 
 }

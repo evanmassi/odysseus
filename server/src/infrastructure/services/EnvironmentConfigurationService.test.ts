@@ -185,31 +185,18 @@ describe('EnvironmentConfigurationService', () => {
     });
   });
 
-  describe('isDevelopment / isProduction', () => {
-    it('should return true for isDevelopment in development', () => {
+  describe('isDevelopment', () => {
+    it('should return true in development', () => {
       const service = createService({ NODE_ENV: 'development' });
       expect(service.isDevelopment()).toBe(true);
-      expect(service.isProduction()).toBe(false);
     });
 
-    it('should return true for isProduction in production', () => {
+    it('should return false in production', () => {
       const service = createService({
         NODE_ENV: 'production',
         JWT_SECRET: 'a'.repeat(64),
       });
       expect(service.isDevelopment()).toBe(false);
-      expect(service.isProduction()).toBe(true);
-    });
-  });
-
-  describe('getAll', () => {
-    it('should return a shallow copy of config', () => {
-      const service = createService();
-      const config1 = service.getAll();
-      const config2 = service.getAll();
-
-      expect(config1).toEqual(config2);
-      expect(config1).not.toBe(config2);
     });
   });
 });

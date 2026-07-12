@@ -5,26 +5,19 @@
  */
 
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
-import type { QueryHandler } from '@application/queries/Query';
-import { BaseQuery } from '@application/queries/Query';
 import type { User } from '@domain/entities/User';
 import { UserNotFoundError } from '@domain/errors/UserErrors';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 
 import type { UserSettings } from '@odysseus/shared-schemas';
 
-export class GetUserByIdQuery extends BaseQuery {
-  constructor(
-    public readonly userId: string,
-    public readonly requesterLabId: string | undefined,
-    public readonly requesterIsSystemAdmin: boolean,
-    requestedBy?: string
-  ) {
-    super(requestedBy);
-  }
+export interface GetUserByIdQuery {
+  userId: string;
+  requesterLabId: string | undefined;
+  requesterIsSystemAdmin: boolean;
 }
 
-export class GetUserByIdQueryHandler implements QueryHandler<GetUserByIdQuery, User> {
+export class GetUserByIdQueryHandler {
   constructor(private userRepository: UserRepository) {}
 
   async handle(query: GetUserByIdQuery): Promise<User> {
@@ -39,34 +32,23 @@ export class GetUserByIdQueryHandler implements QueryHandler<GetUserByIdQuery, U
   }
 }
 
-export class CheckFirstTimeSetupQuery extends BaseQuery {
-  constructor(requestedBy?: string) {
-    super(requestedBy);
-  }
-}
-
 export interface FirstTimeSetupResult {
   isFirstTime: boolean;
   needsSystemAdmin: boolean;
 }
 
-export class CheckFirstTimeSetupQueryHandler implements QueryHandler<CheckFirstTimeSetupQuery, FirstTimeSetupResult> {
+export class CheckFirstTimeSetupQueryHandler {
   constructor(private userRepository: UserRepository) {}
 
-  async handle(_query: CheckFirstTimeSetupQuery): Promise<FirstTimeSetupResult> {
+  async handle(): Promise<FirstTimeSetupResult> {
     const isEmpty = await this.userRepository.isEmpty();
     const systemAdminCount = await this.userRepository.countByRole('system_admin');
     return { isFirstTime: isEmpty, needsSystemAdmin: systemAdminCount === 0 };
   }
 }
 
-export class GetUserStatisticsQuery extends BaseQuery {
-  constructor(
-    public readonly labId?: string,
-    requestedBy?: string
-  ) {
-    super(requestedBy);
-  }
+export interface GetUserStatisticsQuery {
+  labId?: string;
 }
 
 export interface UserStatistics {
@@ -76,7 +58,7 @@ export interface UserStatistics {
   recentlyCreated: number;
 }
 
-export class GetUserStatisticsQueryHandler implements QueryHandler<GetUserStatisticsQuery, UserStatistics> {
+export class GetUserStatisticsQueryHandler {
   constructor(private userRepository: UserRepository) {}
 
   async handle(query: GetUserStatisticsQuery): Promise<UserStatistics> {

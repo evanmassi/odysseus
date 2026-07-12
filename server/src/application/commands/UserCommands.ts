@@ -41,7 +41,6 @@ export interface CreateSystemAdminCommand {
   setupKey?: string;
   department?: string;
   position?: string;
-  initiatedBy?: string;
 }
 
 export interface ChangeUserPasswordCommand {
@@ -206,7 +205,6 @@ export class ChangeUserRoleCommandHandler {
 
 export interface LoginResult {
   user: User;
-  sessionToken: string;
   requirePasswordChange: boolean;
 }
 
@@ -278,7 +276,6 @@ export class LoginCommandHandler {
 
     return {
       user,
-      sessionToken: '', // Legacy field - OAuth 2.0 tokens created by AuthController
       requirePasswordChange
     };
   }

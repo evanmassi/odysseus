@@ -43,6 +43,8 @@ import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItem
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
 
+import { executeBulk } from './executeBulk';
+
 import type {
   CreateEquipmentCategoryRequest,
   UpdateEquipmentCategoryRequest,
@@ -53,6 +55,8 @@ import type {
   UpdateEquipmentDocumentRequest,
   CreateEquipmentMaintenanceLogRequest,
   UpdateEquipmentMaintenanceLogRequest,
+  EquipmentBulkRelocateRequest,
+  EquipmentBulkResponse,
   EquipmentStatus,
 } from '@odysseus/shared-schemas';
 
@@ -504,10 +508,10 @@ export class EquipmentApplicationService {
     itemIds: string[],
     data: CreateEquipmentMaintenanceLogRequest,
     user: User
-  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<EquipmentBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       itemIds,
       async (itemId) => {
         await this.addMaintenanceEntry(labId, itemId, data, user, { bulkOperation: true });
@@ -530,10 +534,10 @@ export class EquipmentApplicationService {
     itemIds: string[],
     data: { status: EquipmentStatus; conditionNotes?: string },
     user: User
-  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<EquipmentBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       itemIds,
       async (itemId) => {
         await this.updateItem(labId, itemId, { status: data.status, conditionNotes: data.conditionNotes }, user, { bulkOperation: true });
@@ -554,9 +558,9 @@ export class EquipmentApplicationService {
   async bulkRelocate(
     labId: string,
     itemIds: string[],
-    data: { categoryId: string },
+    data: EquipmentBulkRelocateRequest['data'],
     user: User
-  ): Promise<{ succeeded: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<EquipmentBulkResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
     const category = await this.categoryRepository.findById(data.categoryId, labId);
@@ -564,7 +568,7 @@ export class EquipmentApplicationService {
       throw new NotFoundError('Target category not found');
     }
 
-    const result = await this.executeBulk(
+    const result = await executeBulk(
       itemIds,
       async (itemId) => {
         await this.updateItem(labId, itemId, { categoryId: data.categoryId }, user, { bulkOperation: true });
@@ -583,25 +587,6 @@ export class EquipmentApplicationService {
   }
 
   // Helpers
-
-  private async executeBulk<TItem, TSuccess, TFailure>(
-    items: TItem[],
-    operation: (item: TItem, index: number) => Promise<TSuccess>,
-    onFailure: (item: TItem, index: number, error: string) => TFailure
-  ): Promise<{ succeeded: TSuccess[]; failed: TFailure[] }> {
-    const succeeded: TSuccess[] = [];
-    const failed: TFailure[] = [];
-
-    for (let i = 0; i < items.length; i++) {
-      try {
-        succeeded.push(await operation(items[i], i));
-      } catch (error) {
-        failed.push(onFailure(items[i], i, error instanceof Error ? error.message : 'Unknown error'));
-      }
-    }
-
-    return { succeeded, failed };
-  }
 
   private async getItemOrThrow(id: string, labId: string): Promise<EquipmentItem> {
     const item = await this.itemRepository.findById(id, labId);
