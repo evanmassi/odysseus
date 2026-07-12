@@ -14,7 +14,7 @@ import type { StorageRepository as IStorageRepository, StorageHistory } from '@d
 import type { Box } from '@domain/value-objects/Equipment';
 import type { Location } from '@domain/value-objects/Location';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
@@ -26,7 +26,7 @@ const MAX_SERIALIZATION_RETRIES = 3;
 
 export class StorageRepository implements IStorageRepository {
 
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   async getForLab(labId: string): Promise<Storage | null> {
     try {

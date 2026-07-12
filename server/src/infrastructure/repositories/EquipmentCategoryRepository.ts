@@ -8,14 +8,14 @@ import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { EquipmentCategoryRepository as IEquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentCategoryRow } from '@infrastructure/database/mappers/EquipmentCategoryMapper';
 import { EquipmentCategoryMapper } from '@infrastructure/database/mappers/EquipmentCategoryMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const COLUMNS = 'id, lab_id, name, parent_id, sort_order, created_at, updated_at';
 
 export class EquipmentCategoryRepository implements IEquipmentCategoryRepository {
 
-  constructor(private db: PostgresContext) {}
+  constructor(private db: Queryable) {}
 
   async findById(id: string, labId: string): Promise<EquipmentCategory | null> {
     const row = await this.db.queryOne<EquipmentCategoryRow>(

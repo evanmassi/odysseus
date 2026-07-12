@@ -8,13 +8,13 @@ import type { InviteCode } from '@domain/entities/InviteCode';
 import type { InviteCodeRepository as IInviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { InviteCodeRow } from '@infrastructure/database/mappers/InviteCodeMapper';
 import { InviteCodeMapper } from '@infrastructure/database/mappers/InviteCodeMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const INVITE_CODE_COLUMNS = 'id, lab_id, code, role, create_researcher, created_by, max_uses, use_count, expires_at, is_active, created_at, deactivation_reason';
 
 export class InviteCodeRepository implements IInviteCodeRepository {
 
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   async findById(id: string, labId: string): Promise<InviteCode | null> {
     const row = await this.context.queryOne<InviteCodeRow>(

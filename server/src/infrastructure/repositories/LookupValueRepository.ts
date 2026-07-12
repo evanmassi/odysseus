@@ -8,8 +8,8 @@ import type { LookupValue, LookupCategory } from '@domain/entities/LookupValue';
 import type { LookupValueRepository as ILookupValueRepository } from '@domain/repositories/LookupValueRepository';
 import type { LookupValueRow } from '@infrastructure/database/mappers/LookupValueMapper';
 import { LookupValueMapper } from '@infrastructure/database/mappers/LookupValueMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const LOOKUP_VALUE_COLUMNS = 'id, category, value, sort_order, is_active, created_at, updated_at, lab_id';
 
@@ -20,7 +20,7 @@ const CATEGORY_COLUMN_MAP: Partial<Record<LookupCategory, string>> = {
 };
 
 export class LookupValueRepository implements ILookupValueRepository {
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   async findById(id: string, labId: string): Promise<LookupValue | null> {
     const row = await this.context.queryOne<LookupValueRow>(

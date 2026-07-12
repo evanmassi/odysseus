@@ -9,7 +9,7 @@ import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 import { AuditLogEntryMapper } from '@infrastructure/database/mappers/AuditLogEntryMapper';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
@@ -36,7 +36,7 @@ interface AuditLogRow {
 }
 
 export class AuditRepository implements IAuditRepository {
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   // WRITE OPERATIONS
 

@@ -9,8 +9,8 @@ import type { RefreshTokenRepository as IRefreshTokenRepository, IpTokenCount } 
 import { hashToken } from '@domain/utils/tokenHash';
 import type { RefreshTokenRow } from '@infrastructure/database/mappers/RefreshTokenMapper';
 import { RefreshTokenMapper } from '@infrastructure/database/mappers/RefreshTokenMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const REFRESH_TOKEN_COLUMNS = `
   id, user_id, token, expires_at, created_at, last_used_at, is_revoked, user_agent, ip_address
@@ -20,7 +20,7 @@ const DEFAULT_CLEANUP_DAYS = 30;
 
 export class RefreshTokenRepository implements IRefreshTokenRepository {
 
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   // BASIC CRUD OPERATIONS
 

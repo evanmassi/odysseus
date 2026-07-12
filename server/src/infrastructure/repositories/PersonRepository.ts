@@ -8,7 +8,7 @@ import type { Person } from '@domain/entities/Person';
 import type { PersonRepository as IPersonRepository } from '@domain/repositories/PersonRepository';
 import type { PersonRow } from '@infrastructure/database/mappers/PersonMapper';
 import { PersonMapper } from '@infrastructure/database/mappers/PersonMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const PERSON_COLUMNS = `
   id, first_name, last_name, email, position, department, created_at, updated_at
@@ -16,7 +16,7 @@ const PERSON_COLUMNS = `
 
 export class PersonRepository implements IPersonRepository {
 
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   async findById(id: string): Promise<Person | null> {
     const row = await this.context.queryOne<PersonRow>(

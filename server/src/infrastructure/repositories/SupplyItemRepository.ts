@@ -30,7 +30,7 @@ import type { SupplyStockDbRow } from '@infrastructure/database/mappers/SupplySt
 import { SupplyStockMapper } from '@infrastructure/database/mappers/SupplyStockMapper';
 import type { SupplyTransactionDbRow } from '@infrastructure/database/mappers/SupplyTransactionMapper';
 import { SupplyTransactionMapper } from '@infrastructure/database/mappers/SupplyTransactionMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const ITEM_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
   vendor_name, vendor_catalog_number, stock_unit, base_item_name,
@@ -59,7 +59,7 @@ type ItemWithStockRow = SupplyItemRow & { total_stock: string; location_names: s
 
 export class SupplyItemRepository implements ISupplyItemRepository {
 
-  constructor(private db: PostgresContext) {}
+  constructor(private db: Queryable) {}
 
   // Items
 

@@ -8,15 +8,15 @@ import type { Researcher } from '@domain/entities/Researcher';
 import type { ResearcherRepository as IResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { ResearcherRow } from '@infrastructure/database/mappers/ResearcherMapper';
 import { ResearcherMapper } from '@infrastructure/database/mappers/ResearcherMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const RESEARCHER_COLUMNS = 'id, person_id, active, created_at, approval_status, source, lab_id';
 const RESEARCHER_COLUMNS_JOINED = 'r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source, r.lab_id';
 
 export class ResearcherRepository implements IResearcherRepository {
 
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   async findById(id: string, labId: string): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(

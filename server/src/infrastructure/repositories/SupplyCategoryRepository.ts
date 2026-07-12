@@ -8,14 +8,14 @@ import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { SupplyCategoryRepository as ISupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
 import type { SupplyCategoryRow } from '@infrastructure/database/mappers/SupplyCategoryMapper';
 import { SupplyCategoryMapper } from '@infrastructure/database/mappers/SupplyCategoryMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const COLUMNS = 'id, lab_id, name, parent_id, sort_order, created_at, updated_at';
 
 export class SupplyCategoryRepository implements ISupplyCategoryRepository {
 
-  constructor(private db: PostgresContext) {}
+  constructor(private db: Queryable) {}
 
   async findById(id: string, labId: string): Promise<SupplyCategory | null> {
     const row = await this.db.queryOne<SupplyCategoryRow>(

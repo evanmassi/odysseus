@@ -4,6 +4,7 @@
  * Lazy-singleton wiring for all repository implementations against PostgreSQL.
  */
 
+import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
 import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
@@ -23,6 +24,8 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import type { DatabaseConnectionConfig } from '@infrastructure/database/PostgresContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
+import { TransactionalContext } from '@infrastructure/database/TransactionalContext';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
 import { DonorRepository as DonorRepositoryImpl } from '@infrastructure/repositories/DonorRepository';
 import { EquipmentCategoryRepository as EquipmentCategoryRepositoryImpl } from '@infrastructure/repositories/EquipmentCategoryRepository';
@@ -41,7 +44,7 @@ import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositori
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
 import { UserSessionRepository as UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
 
-export class RepositoryFactory {
+export class RepositoryFactory implements UnitOfWork {
   private postgresContext: PostgresContext;
   private tubeRepository?: TubeRepository;
   private userRepository?: UserRepository;
@@ -189,7 +192,7 @@ export class RepositoryFactory {
     return this.supplyLocationRepository;
   }
 
-  getRepositories() {
+  getRepositories(): Repositories {
     return {
       tubes: this.getTubeRepository(),
       users: this.getUserRepository(),
@@ -208,6 +211,41 @@ export class RepositoryFactory {
       supplyCategories: this.getSupplyCategoryRepository(),
       supplyItems: this.getSupplyItemRepository(),
       supplyLocations: this.getSupplyLocationRepository(),
+    };
+  }
+
+  /**
+   * Runs `work` inside one transaction. The repositories passed to it are freshly bound to that
+   * transaction's client — distinct from the pool-backed singletons above, which is what keeps
+   * event-handler writes (audit) out of the caller's transaction and safe from its rollback.
+   */
+  async withTransaction<T>(work: (repos: Repositories) => Promise<T>): Promise<T> {
+    return this.postgresContext.transaction(async (client) => {
+      return work(this.buildRepositories(new TransactionalContext(client)));
+    });
+  }
+
+  private buildRepositories(db: Queryable): Repositories {
+    const storage = new StorageRepositoryImpl(db);
+
+    return {
+      tubes: new TubeRepositoryImpl(db, storage),
+      users: new UserRepositoryImpl(db),
+      researchers: new ResearcherRepositoryImpl(db),
+      persons: new PersonRepositoryImpl(db),
+      storage,
+      refreshTokens: new RefreshTokenRepositoryImpl(db),
+      userSessions: new UserSessionRepositoryImpl(db),
+      audit: new AuditRepositoryImpl(db),
+      lookupValues: new LookupValueRepositoryImpl(db),
+      labs: new LabRepositoryImpl(db),
+      inviteCodes: new InviteCodeRepositoryImpl(db),
+      donors: new DonorRepositoryImpl(db),
+      equipmentCategories: new EquipmentCategoryRepositoryImpl(db),
+      equipmentItems: new EquipmentItemRepositoryImpl(db),
+      supplyCategories: new SupplyCategoryRepositoryImpl(db),
+      supplyItems: new SupplyItemRepositoryImpl(db),
+      supplyLocations: new SupplyLocationRepositoryImpl(db),
     };
   }
 

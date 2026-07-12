@@ -12,8 +12,8 @@ import type { UserRepository as IUserRepository } from '@domain/repositories/Use
 import { isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
 import type { UserRow } from '@infrastructure/database/mappers/UserMapper';
 import { UserMapper } from '@infrastructure/database/mappers/UserMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 
 const USER_COLUMNS = `
@@ -28,7 +28,7 @@ const USER_FROM = `users u LEFT JOIN labs l ON u.lab_id = l.id LEFT JOIN researc
 
 export class UserRepository implements IUserRepository {
 
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   // BASIC CRUD OPERATIONS
 

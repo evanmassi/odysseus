@@ -8,13 +8,13 @@ import type { SupplyLocation } from '@domain/entities/SupplyLocation';
 import type { SupplyLocationRepository as ISupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { SupplyLocationRow } from '@infrastructure/database/mappers/SupplyLocationMapper';
 import { SupplyLocationMapper } from '@infrastructure/database/mappers/SupplyLocationMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const COLUMNS = 'id, lab_id, name, description, sort_order, created_at, updated_at';
 
 export class SupplyLocationRepository implements ISupplyLocationRepository {
 
-  constructor(private db: PostgresContext) {}
+  constructor(private db: Queryable) {}
 
   async findById(id: string, labId: string): Promise<SupplyLocation | null> {
     const row = await this.db.queryOne<SupplyLocationRow>(

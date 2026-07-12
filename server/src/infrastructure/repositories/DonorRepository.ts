@@ -10,8 +10,8 @@ import type { DonorRepository as IDonorRepository } from '@domain/repositories/D
 import { escapeLikePattern } from '@infrastructure/database/likePattern';
 import type { DonorRow, DonorCollectionHistoryRow } from '@infrastructure/database/mappers/DonorMapper';
 import { DonorMapper } from '@infrastructure/database/mappers/DonorMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const DONOR_COLUMNS = 'id, lab_id, donor_source_id, donor_internal_id, species, age, sex, ethnicity, clinical_status, diagnosis, disease_stage, notes, is_curated, created_at, updated_at';
 const HISTORY_COLUMNS = 'id, donor_id, collection_date, specimen_type, source, created_at';
@@ -21,7 +21,7 @@ const HISTORY_SELECT_COLUMNS =
 
 export class DonorRepository implements IDonorRepository {
 
-  constructor(private db: PostgresContext) {}
+  constructor(private db: Queryable) {}
 
   async findById(id: string, labId: string): Promise<Donor | null> {
     const row = await this.db.queryOne<DonorRow>(

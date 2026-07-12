@@ -10,6 +10,7 @@ import * as jwt from 'jsonwebtoken';
 
 import type { ConfigurationService } from '@application/contracts/ConfigurationService';
 import type { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/contracts/SessionService';
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import type {
   TokenPair,
   AccessTokenPayload,
@@ -52,6 +53,7 @@ export class JwtSessionService implements SessionService {
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly storageRepository: StorageRepository,
     private readonly userSessionRepository: UserSessionRepository,
+    private readonly unitOfWork: UnitOfWork,
     private readonly labRepository?: LabRepository
   ) {
     const jwtConfig = configurationService.get('jwt');
@@ -388,24 +390,31 @@ export class JwtSessionService implements SessionService {
       // Rotate: revoke the presented token (kept, not deleted, so a later replay is detected as
       // reuse), issue a new token that inherits the session's remaining lifetime, and point the
       // session at it so the old token can never mint again.
-      tokenRecord.revoke();
-      await this.refreshTokenRepository.save(tokenRecord);
-
       const remainingDays = (userSession.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000);
       const rotatedToken = RefreshToken.create(user.id, remainingDays);
-      await this.refreshTokenRepository.save(rotatedToken);
-
-      userSession.rotateRefreshToken(rotatedToken.token);
-      await this.userSessionRepository.save(userSession);
-
-      const newAccessToken = await this.createAccessToken(user, userSession.id);
-      const accessTokenExpiryMs = await this.getAccessTokenExpiryMs();
-      const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);
 
       const rotatedRawToken = rotatedToken.rawToken;
       if (!rotatedRawToken) {
         throw new Error('Rotated refresh token is missing its raw value');
       }
+
+      // Minted before the commit: a throw after it would hand the caller an error even though the
+      // rotation had already landed, leaving them holding a token the next refresh reads as reuse.
+      const newAccessToken = await this.createAccessToken(user, userSession.id);
+      const accessTokenExpiryMs = await this.getAccessTokenExpiryMs();
+      const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);
+
+      // Atomic: a partial write would point the session at a revoked token, and the next refresh
+      // would read that as replay and revoke the user's whole token family.
+      await this.unitOfWork.withTransaction(async (repos) => {
+        tokenRecord.revoke();
+        await repos.refreshTokens.save(tokenRecord);
+
+        await repos.refreshTokens.save(rotatedToken);
+
+        userSession.rotateRefreshToken(rotatedToken.token);
+        await repos.userSessions.save(userSession);
+      });
 
       return {
         accessToken: newAccessToken,

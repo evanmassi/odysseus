@@ -9,8 +9,8 @@ import type { UserSessionRepository as IUserSessionRepository, ActiveSessionWith
 import { hashToken } from '@domain/utils/tokenHash';
 import type { UserSessionRow } from '@infrastructure/database/mappers/UserSessionMapper';
 import { UserSessionMapper } from '@infrastructure/database/mappers/UserSessionMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const SESSION_COLUMNS = `
   id, user_id, refresh_token, device_info, ip_address, user_agent,
@@ -19,7 +19,7 @@ const SESSION_COLUMNS = `
 
 export class UserSessionRepository implements IUserSessionRepository {
 
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   // BASIC CRUD OPERATIONS
 

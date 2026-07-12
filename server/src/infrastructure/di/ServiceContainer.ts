@@ -129,6 +129,7 @@ export class ServiceContainer {
         repositories.refreshTokens,
         repositories.storage,
         repositories.userSessions,
+        this.repositoryFactory,
         repositories.labs
       );
     }

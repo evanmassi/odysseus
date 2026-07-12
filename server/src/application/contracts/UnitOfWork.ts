@@ -1,0 +1,50 @@
+/**
+ * Unit of Work
+ *
+ * Runs a set of writes across several repositories as one atomic transaction. The repositories
+ * handed to the callback are bound to that transaction; every other repository in the system —
+ * including the ones event handlers hold — keeps its own connection and commits independently.
+ */
+
+import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { DonorRepository } from '@domain/repositories/DonorRepository';
+import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
+import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
+import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import type { LabRepository } from '@domain/repositories/LabRepository';
+import type { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
+import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { StorageRepository } from '@domain/repositories/StorageRepository';
+import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
+import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
+import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
+import type { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+
+export interface Repositories {
+  tubes: TubeRepository;
+  users: UserRepository;
+  researchers: ResearcherRepository;
+  persons: PersonRepository;
+  storage: StorageRepository;
+  refreshTokens: RefreshTokenRepository;
+  userSessions: UserSessionRepository;
+  audit: AuditRepository;
+  lookupValues: LookupValueRepository;
+  labs: LabRepository;
+  inviteCodes: InviteCodeRepository;
+  donors: DonorRepository;
+  equipmentCategories: EquipmentCategoryRepository;
+  equipmentItems: EquipmentItemRepository;
+  supplyCategories: SupplyCategoryRepository;
+  supplyItems: SupplyItemRepository;
+  supplyLocations: SupplyLocationRepository;
+}
+
+export interface UnitOfWork {
+  /** Commits on return, rolls back on throw. */
+  withTransaction<T>(work: (repos: Repositories) => Promise<T>): Promise<T>;
+}

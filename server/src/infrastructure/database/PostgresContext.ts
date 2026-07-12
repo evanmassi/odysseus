@@ -10,6 +10,7 @@ import { logger } from '@infrastructure/logging/logger';
 
 import { runMigrations } from './migrations/migrationRunner';
 
+import type { Queryable } from './Queryable';
 import type { PoolClient, QueryResult, QueryResultRow } from 'pg';
 
 export interface DatabaseConnectionConfig {
@@ -18,7 +19,7 @@ export interface DatabaseConnectionConfig {
   maxConnections: number;
 }
 
-export class PostgresContext {
+export class PostgresContext implements Queryable {
   private pool: Pool;
   private initialized: boolean = false;
 
@@ -141,10 +142,6 @@ export class PostgresContext {
     } finally {
       client.release();
     }
-  }
-
-  async getClient(): Promise<PoolClient> {
-    return this.pool.connect();
   }
 
   async isHealthy(): Promise<boolean> {

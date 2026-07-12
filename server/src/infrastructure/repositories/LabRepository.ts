@@ -8,13 +8,13 @@ import type { Lab } from '@domain/entities/Lab';
 import type { LabRepository as ILabRepository } from '@domain/repositories/LabRepository';
 import type { LabRow } from '@infrastructure/database/mappers/LabMapper';
 import { LabMapper } from '@infrastructure/database/mappers/LabMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 
 const LAB_COLUMNS = 'id, name, slug, is_active, is_demo, created_at, updated_at, demo_limits';
 
 export class LabRepository implements ILabRepository {
 
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   async findById(id: string): Promise<Lab | null> {
     const row = await this.context.queryOne<LabRow>(

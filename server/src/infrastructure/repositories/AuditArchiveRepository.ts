@@ -9,7 +9,7 @@ import type { PaginatedResult } from '@domain/types/repository';
 import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
 import { AuditLogEntryMapper } from '@infrastructure/database/mappers/AuditLogEntryMapper';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
@@ -38,7 +38,7 @@ interface AuditArchiveRow {
 }
 
 export class AuditArchiveRepository implements IAuditArchiveRepository {
-  constructor(private context: PostgresContext) {}
+  constructor(private context: Queryable) {}
 
   async saveArchived(entries: AuditLogEntry[]): Promise<void> {
     if (entries.length === 0) return;

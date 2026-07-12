@@ -16,8 +16,8 @@ import { isPositionConstraintError } from '@infrastructure/database/DatabaseErro
 import { escapeLikePattern } from '@infrastructure/database/likePattern';
 import type { TubeRow } from '@infrastructure/database/mappers/TubeMapper';
 import { TubeMapper } from '@infrastructure/database/mappers/TubeMapper';
-import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { parseCount } from '@infrastructure/database/PostgresContext';
+import type { Queryable } from '@infrastructure/database/Queryable';
 import {
   normalizeSearchQuery,
   parseQueryIntoConcepts,
@@ -32,7 +32,7 @@ import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-sc
 
 export class TubeRepository implements ITubeRepository {
   constructor(
-    private context: PostgresContext,
+    private context: Queryable,
     private storageRepository: StorageRepository
   ) {}
 
