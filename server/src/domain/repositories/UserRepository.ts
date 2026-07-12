@@ -23,8 +23,12 @@ export interface UserRepository {
   findAll(): Promise<User[]>;
   findAllWithLastActivity(): Promise<User[]>;
 
-  /** Returns only found users — no errors for missing IDs. */
-  findByIds(ids: string[]): Promise<User[]>;
+  /**
+   * Returns only found users — no errors for missing IDs.
+   * When `labId` is provided, results are scoped to that lab; omit for
+   * cross-lab (system-admin) access.
+   */
+  findByIds(ids: string[], labId?: string): Promise<User[]>;
 
   /** Create vs update determined by existence. */
   save(user: User): Promise<void>;

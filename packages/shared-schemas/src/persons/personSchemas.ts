@@ -31,6 +31,18 @@ export const updatePersonProfileSchema = z.object({
 export type UpdatePersonProfile = z.infer<typeof updatePersonProfileSchema>;
 
 /**
+ * Self-service profile update request.
+ *
+ * Requires the caller's current password to authorize the change; the profile
+ * fields themselves remain optional.
+ */
+export const updateMyProfileRequestSchema = updatePersonProfileSchema.extend({
+  currentPassword: z.string().min(1),
+});
+
+export type UpdateMyProfileRequest = z.infer<typeof updateMyProfileRequestSchema>;
+
+/**
  * Objects that can be sorted by name. Supports flexible field presence:
  * researchers have firstName/lastName, users fall back to username.
  */

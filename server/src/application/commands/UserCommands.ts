@@ -224,6 +224,9 @@ export class LoginCommandHandler {
     }
 
     if (!user || !user.hasPassword()) {
+      // Equalize response time with the valid-user path (which runs a bcrypt verify below) so
+      // login latency can't be used to enumerate which usernames/emails exist.
+      await this.passwordService.hash(command.password);
       throw new InvalidCredentialsError('Invalid username or password');
     }
 

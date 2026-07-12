@@ -58,8 +58,10 @@ export class EnvironmentConfigurationService implements ConfigurationService {
   }
 
   private loadConfiguration(): Configuration {
+    // Unset/empty NODE_ENV defaults to 'production' so security decisions (JWT secret required,
+    // DB SSL) fail closed on a misconfigured deploy. Local dev sets NODE_ENV via .env.development.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
-    const environment = process.env.NODE_ENV || 'development';
+    const environment = process.env.NODE_ENV || 'production';
 
     const rawConfig = {
       server: {
@@ -108,9 +110,11 @@ export class EnvironmentConfigurationService implements ConfigurationService {
   }
 
   private getJwtSecret(environment: string): string {
-    if (environment === 'production') {
+    // The fixed dev secret is only ever handed out for local development/CI; any other
+    // environment (production, staging, unset) must supply JWT_SECRET or the server refuses to boot.
+    if (environment !== 'development' && environment !== 'test') {
       throw new Error(
-        'JWT_SECRET environment variable is required in production. ' +
+        'JWT_SECRET environment variable is required outside development. ' +
         'Generate a secure secret with: openssl rand -base64 64'
       );
     }

@@ -45,7 +45,7 @@ describe('UserApplicationService.lookupUsers', () => {
 
     const result = await service.lookupUsers(['u1', 'u2']);
 
-    expect(findByIds).toHaveBeenCalledWith(['u1', 'u2']);
+    expect(findByIds).toHaveBeenCalledWith(['u1', 'u2'], undefined);
     expect(personFindByIds).toHaveBeenCalledWith(['p1']);
     expect(result).toEqual([
       { id: 'u1', username: 'alice', firstName: 'Alice', lastName: 'Adams', hasResearcher: false },

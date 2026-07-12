@@ -84,11 +84,13 @@ export class SocketEventHandler {
   }
 
   private emitToLabRooms(labId: string | undefined, eventName: string, payload: unknown): void {
-    if (labId) {
-      this.io.to(this.getLabRoomName(labId)).emit(eventName, payload);
-    } else {
-      this.io.emit(eventName, payload);
+    // Fail closed: a lab-scoped event with no lab must never broadcast to every socket
+    // (including unauthenticated ones) — drop it and surface the anomaly instead.
+    if (!labId) {
+      logger.warn('Dropped socket emit with no lab scope', { eventName });
+      return;
     }
+    this.io.to(this.getLabRoomName(labId)).emit(eventName, payload);
   }
 
   private emitSystemAdminUpdate(labId: string | undefined, trigger: string): void {
@@ -142,6 +144,9 @@ export class SocketEventHandler {
       // Handle explicit presence state requests from clients
       // Used after socket connects to get authoritative state (avoids race conditions)
       socket.on('request_presence', () => {
+        // Unauthenticated sockets have no lab scope — deny presence rather than leaking the
+        // cross-lab online-user list via the system-admin (no-labId) branch below.
+        if (!socket.userId) return;
         try {
           const onlineUserIds = socket.labId
             ? this.presenceService.getOnlineUserIdsForLab(socket.labId)

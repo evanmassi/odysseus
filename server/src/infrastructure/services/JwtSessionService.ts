@@ -373,6 +373,10 @@ export class JwtSessionService implements SessionService {
       if (!userSession) {
         throw new Error('USER_SESSION_NOT_FOUND');
       }
+      // A revoked session (logout, admin revoke, password change) must not mint new access tokens.
+      if (!userSession.isActive) {
+        throw new Error('REVOKED_REFRESH_TOKEN');
+      }
 
       // Don't update lastUsedAt — token refresh is automatic, not user activity
       const newAccessToken = await this.createAccessToken(user, userSession.id);

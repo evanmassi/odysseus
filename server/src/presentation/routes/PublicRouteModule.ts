@@ -118,6 +118,7 @@ export class PublicRouteModule implements RouteModule {
     // Force change password (public - user has temp token from login response)
     // Used when user logs in with requirePasswordChange=true (admin reset flow)
     router.post('/auth/force-change-password',
+      this.authLimiter,
       validateBody(forceChangePasswordRequestSchema),
       this.publicAuthController.forceChangePassword.bind(this.publicAuthController)
     );

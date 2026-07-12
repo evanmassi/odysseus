@@ -45,6 +45,7 @@ export {
   generatePasswordResetTokenResponseSchema,
   resetPasswordWithTokenRequestSchema,
   forceChangePasswordRequestSchema,
+  changePasswordRequestSchema,
   passwordChangeRequiredResponseSchema,
   type GeneratePasswordResetTokenResponse,
   type PasswordChangeRequiredResponse,

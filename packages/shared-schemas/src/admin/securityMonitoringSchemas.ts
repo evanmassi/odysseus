@@ -71,6 +71,21 @@ export const bulkRevokeSessionsRequestSchema = z.object({
   sessionIds: z.array(z.string()).min(1).max(100),
 });
 
+/**
+ * Query bounds for the failed-logins and session-activity monitoring endpoints.
+ *
+ * `hours` caps at one year; dates stay strings so the controller's `new Date(...)`
+ * consumption is unchanged.
+ */
+export const securityMonitoringQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(500).optional(),
+  hours: z.coerce.number().int().min(1).max(8760).optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+});
+
+export type SecurityMonitoringQuery = z.infer<typeof securityMonitoringQuerySchema>;
+
 export const bulkRevokeResponseSchema = z.object({
   revokedCount: z.number(),
 });

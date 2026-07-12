@@ -18,11 +18,18 @@ function escapeValue(value: unknown, forceText = false): string {
     return `="${stringValue.replace(/"/g, '""')}"`;
   }
 
-  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
-    return `"${stringValue.replace(/"/g, '""')}"`;
+  // Prevent CSV formula injection: a spreadsheet evaluates a cell beginning with = + - @ (or
+  // tab/CR) as a formula. Prefix an apostrophe to neutralize it, but leave genuine numbers alone
+  // so negatives aren't turned into text.
+  const guarded = /^[=+\-@\t\r]/.test(stringValue) && Number.isNaN(Number(stringValue))
+    ? `'${stringValue}`
+    : stringValue;
+
+  if (guarded.includes(',') || guarded.includes('"') || guarded.includes('\n') || guarded.includes('\r')) {
+    return `"${guarded.replace(/"/g, '""')}"`;
   }
 
-  return stringValue;
+  return guarded;
 }
 
 /** If columns not provided, uses keys from first object. */

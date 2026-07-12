@@ -4,7 +4,7 @@
  * Authenticated routes for user settings, profile, sessions, and user lookups.
  */
 
-import { userLookupRequestSchema } from '@odysseus/shared-schemas';
+import { userLookupRequestSchema, updateMyProfileRequestSchema } from '@odysseus/shared-schemas';
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { PersonController } from '@presentation/controllers/PersonController';
@@ -41,6 +41,7 @@ export class UserRouteModule implements RouteModule {
     );
 
     router.put('/me/profile',
+      validateBody(updateMyProfileRequestSchema),
       this.personController.updateMyProfile.bind(this.personController)
     );
 

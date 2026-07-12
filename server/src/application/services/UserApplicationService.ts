@@ -139,9 +139,13 @@ export class UserApplicationService {
     });
   }
 
-  /** Resolves slim display info (name via linked person) for the given user ids. */
-  async lookupUsers(userIds: string[]): Promise<UserDisplayInfo[]> {
-    const users = await this.userRepository.findByIds(userIds);
+  /**
+   * Resolves slim display info (name via linked person) for the given user ids.
+   * Scoped to `labId` when provided so callers cannot resolve other labs' users;
+   * omit for cross-lab (system-admin) access.
+   */
+  async lookupUsers(userIds: string[], labId?: string): Promise<UserDisplayInfo[]> {
+    const users = await this.userRepository.findByIds(userIds, labId);
     return this.toDisplayUsers(users);
   }
 

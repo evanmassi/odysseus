@@ -157,7 +157,7 @@ describe('EnvironmentConfigurationService', () => {
     it('should require JWT_SECRET in production', () => {
       expect(() => createService({
         NODE_ENV: 'production',
-      })).toThrow(/JWT_SECRET environment variable is required in production/);
+      })).toThrow(/JWT_SECRET environment variable is required/);
     });
   });
 

@@ -8,7 +8,8 @@ import {
   updateSecurityConfigSchema,
   adminResetPasswordRequestSchema,
   createLookupValueRequestSchema,
-  renameLookupValueRequestSchema
+  renameLookupValueRequestSchema,
+  auditSearchQuerySchema
 } from '@odysseus/shared-schemas';
 
 
@@ -22,7 +23,7 @@ import type { LookupValueController } from '@presentation/controllers/LookupValu
 import type { ResearcherController } from '@presentation/controllers/ResearcherController';
 import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
-import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
+import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
@@ -140,7 +141,10 @@ export class AdminRouteModule implements RouteModule {
       this.adminConfigController.getSecurityConfig.bind(this.adminConfigController)
     );
 
+    // Security config is a single global row — writes are system-admin-only
+    // (the /api/system/security-config route serves the same resource).
     router.put('/security-config',
+      this.authMiddleware.requireSystemAdmin,
       validateBody(updateSecurityConfigSchema),
       this.adminConfigController.updateSecurityConfig.bind(this.adminConfigController)
     );
@@ -174,6 +178,7 @@ export class AdminRouteModule implements RouteModule {
     );
 
     router.get('/audit/search',
+      validateQuery(auditSearchQuerySchema),
       this.auditController.searchAuditLogs.bind(this.auditController)
     );
 

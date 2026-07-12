@@ -264,7 +264,7 @@ export class PublicAuthController {
       if (email) {
         try {
           await this.deps.sendVerificationEmailHandler.handle({ userId: user.id });
-          logger.info('Verification email sent', { userId: user.id, email });
+          logger.info('Verification email sent', { userId: user.id });
         } catch (emailError) {
           logger.error('Failed to send verification email', {
             userId: user.id,
@@ -312,8 +312,7 @@ export class PublicAuthController {
       const command: VerifyEmailCommand = { token };
       const user = await this.deps.verifyEmailHandler.handle(command);
 
-      const email = await this.deps.personApplicationService.getContactEmail(user);
-      logger.info('Email verified successfully', { userId: user.id, email: email ?? 'unknown' });
+      logger.info('Email verified successfully', { userId: user.id });
 
       res.status(200).json(ResponseBuilder.success({ emailVerified: true }));
     } catch (error) {
@@ -345,10 +344,7 @@ export class PublicAuthController {
       const command = { userId: user.id };
       await this.deps.resendVerificationHandler.handle(command);
 
-      logger.info('Verification email resent (public)', {
-        userId: user.id,
-        usernameOrEmail
-      });
+      logger.info('Verification email resent (public)', { userId: user.id });
 
       res.status(200).json(ResponseBuilder.success({
         message: 'Verification email sent. Please check your inbox.'

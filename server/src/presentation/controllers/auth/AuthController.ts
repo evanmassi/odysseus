@@ -8,6 +8,7 @@
 import type { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
+import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
@@ -17,6 +18,7 @@ import type { Request, Response } from 'express';
 
 export interface AuthControllerDeps {
   changePasswordHandler: ChangeUserPasswordCommandHandler;
+  userSessionRepository: UserSessionRepository;
   eventBus: EventBus;
 }
 
@@ -57,6 +59,12 @@ export class AuthController extends BaseController {
   async logout(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
+
+      // Revoke the session server-side so the access token and its refresh token
+      // (rejected on an inactive session) stop working immediately, not just client-side.
+      if (req.sessionId) {
+        await this.deps.userSessionRepository.revokeSession(req.sessionId);
+      }
 
       await this.deps.eventBus.publish(new UserLoggedOutEvent(user.id, user.username, user.labId));
 

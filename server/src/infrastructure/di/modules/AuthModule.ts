@@ -233,6 +233,7 @@ export class AuthModule {
     if (!this.authController) {
       this.authController = new AuthController({
         changePasswordHandler: this.getChangePasswordHandler(),
+        userSessionRepository: this.repositoryFactory.getRepositories().userSessions,
         eventBus: this.shared.eventBus,
       });
     }

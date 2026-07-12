@@ -67,6 +67,17 @@ export const forceChangePasswordRequestSchema = z.object({
 });
 
 /**
+ * Change Password Request
+ *
+ * Authenticated user changes their own password. Strength rules are enforced
+ * downstream against the lab security config; this schema only guards the boundary.
+ */
+export const changePasswordRequestSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(1).max(128),
+});
+
+/**
  * Password Change Required Response
  *
  * Returned from login when user has requirePasswordChange flag set.

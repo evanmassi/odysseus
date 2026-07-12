@@ -55,7 +55,13 @@ export class UserController extends BaseController {
   async lookupUsers(req: Request, res: Response): Promise<void> {
     try {
       const { userIds } = req.body;
-      const users = await this.deps.userApplicationService.lookupUsers(userIds);
+
+      // Scope to the caller's lab so a lab user cannot resolve another lab's
+      // users; system admins have no lab and legitimately see all labs.
+      const user = this.getAuthenticatedUser(req);
+      const labId = user.isSystemAdmin() ? undefined : user.labId;
+
+      const users = await this.deps.userApplicationService.lookupUsers(userIds, labId);
 
       res.json(ResponseBuilder.success({ users }));
     } catch (error) {

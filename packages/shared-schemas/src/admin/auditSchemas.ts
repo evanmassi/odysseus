@@ -35,6 +35,26 @@ export const auditLogFiltersSchema = z.object({
 
 export type AuditLogFilters = z.infer<typeof auditLogFiltersSchema>;
 
+/**
+ * Audit search query params (bounds the request to prevent unbounded SQL LIMIT).
+ *
+ * `action`/`entityType` arrive as repeated query params, so Express delivers a
+ * single string or a string array; both are accepted. `includeArchive` stays a
+ * string so the controller's `=== 'true'` check keeps working.
+ */
+export const auditSearchQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+  username: z.string().optional(),
+  action: z.union([z.string(), z.array(z.string())]).optional(),
+  entityType: z.union([z.string(), z.array(z.string())]).optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+  includeArchive: z.enum(['true', 'false']).optional(),
+});
+
+export type AuditSearchQuery = z.infer<typeof auditSearchQuerySchema>;
+
 export const retentionMetricsSchema = z.object({
   activeTable: z.object({
     count: z.number().int().min(0),

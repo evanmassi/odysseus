@@ -106,12 +106,20 @@ export class UserRepository implements IUserRepository {
     return UserMapper.fromRows(rows);
   }
 
-  async findByIds(ids: string[]): Promise<User[]> {
+  async findByIds(ids: string[], labId?: string): Promise<User[]> {
     if (ids.length === 0) return [];
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const params: string[] = [...ids];
+
+    let labClause = '';
+    if (labId !== undefined) {
+      params.push(labId);
+      labClause = ` AND u.lab_id = $${params.length}`;
+    }
+
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id IN (${placeholders})`,
-      ids
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id IN (${placeholders})${labClause}`,
+      params
     );
     return UserMapper.fromRows(rows);
   }

@@ -5,7 +5,13 @@
  * global security settings, and cross-lab overview. Requires system_admin role.
  */
 
-import { updateSecurityConfigSchema, updateDemoLimitsSchema, bulkRevokeSessionsRequestSchema } from '@odysseus/shared-schemas';
+import {
+  updateSecurityConfigSchema,
+  updateDemoLimitsSchema,
+  bulkRevokeSessionsRequestSchema,
+  auditSearchQuerySchema,
+  securityMonitoringQuerySchema
+} from '@odysseus/shared-schemas';
 
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
@@ -18,7 +24,7 @@ import type { SecurityMonitoringController } from '@presentation/controllers/sys
 import type { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 import type { SystemAdminUserController } from '@presentation/controllers/system/SystemAdminUserController';
 import { createStrictRateLimiter } from '@presentation/middleware/apiRateLimiter';
-import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
+import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
 import {
   IdParams,
@@ -148,6 +154,7 @@ export class SystemAdminRouteModule implements RouteModule {
 
     router.get('/labs/:labId/audit',
       validateParams(LabIdParams),
+      validateQuery(auditSearchQuerySchema),
       this.auditController.getLabAuditLog.bind(this.auditController)
     );
 
@@ -193,10 +200,12 @@ export class SystemAdminRouteModule implements RouteModule {
     );
 
     router.get('/security/session-activity',
+      validateQuery(securityMonitoringQuerySchema),
       this.securityMonitoringController.getSessionActivity.bind(this.securityMonitoringController)
     );
 
     router.get('/security/failed-logins',
+      validateQuery(securityMonitoringQuerySchema),
       this.securityMonitoringController.getFailedLogins.bind(this.securityMonitoringController)
     );
 

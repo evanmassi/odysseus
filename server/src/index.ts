@@ -66,7 +66,7 @@ class OdysseusServer {
   private setupSocket(): void {
     this.io = new SocketIOServer(this.server, {
       cors: {
-        origin: "*",
+        origin: this.configurationService.get('server').allowedOrigins,
         methods: ["GET", "POST"]
       },
 

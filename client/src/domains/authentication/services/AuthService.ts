@@ -142,7 +142,14 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
-    // SessionService will handle token cleanup and HTTP client state
+    // Best-effort server-side session revocation; never block local logout if it fails
+    // (e.g. the access token already expired).
+    try {
+      await httpClient.postData('/auth/logout', {}, messageResponseSchema);
+    } catch (error) {
+      logger.error('Server logout failed; clearing local session anyway', { error });
+    }
+    // SessionService handles token cleanup and HTTP client state
     queryClient.clear();
   }
 }

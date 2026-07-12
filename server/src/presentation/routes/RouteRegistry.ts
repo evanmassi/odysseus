@@ -78,11 +78,16 @@ export class RouteRegistry {
       const statusCode = typeof errorObj.statusCode === 'number' ? errorObj.statusCode
         : typeof errorObj.status === 'number' ? errorObj.status : 500;
       const errorCode = typeof errorObj.code === 'string' ? errorObj.code : API_ERROR_CODES.INTERNAL_SERVER_ERROR;
-      const context = errorObj.context as Record<string, unknown> | undefined;
+
+      // Only surface the message/context for intentional client errors (< 500). For unexpected
+      // server errors, stay generic so internals (SQL text, stack paths) never reach the client.
+      const isClientError = statusCode < 500;
+      const message = isClientError ? (err.message || 'Request failed') : 'Internal server error';
+      const context = isClientError ? (errorObj.context as Record<string, unknown> | undefined) : undefined;
 
       // Canonical error envelope + a dev-only stack for debugging.
       res.status(statusCode).json({
-        ...ResponseBuilder.error(errorCode, err.message || 'Internal server error', context),
+        ...ResponseBuilder.error(errorCode, message, context),
         ...(this.isDevelopment && { stack: err.stack })
       });
     });
