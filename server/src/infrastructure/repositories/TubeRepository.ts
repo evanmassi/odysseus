@@ -330,16 +330,22 @@ export class TubeRepository implements ITubeRepository {
 
   // SEARCH AND FILTERING
 
-  private readonly ALLOWED_SORT_COLUMNS = [
-    'rank',
-    'created_at',
-    'updated_at',
-    'cell_type',
-    'date',
-    'donor_internal_id',
-    'donor_source_id',
-    'lot_number'
-  ] as const;
+  /**
+   * Maps the camelCase `criteria.sortBy` union to real snake_case tube columns.
+   * Only mapped values ever reach SQL, so this doubles as the injection allowlist:
+   * an unmapped/absent sortBy falls back to a hardcoded default.
+   */
+  private readonly CRITERIA_SORT_COLUMNS: Record<NonNullable<TubeSearchCriteria['sortBy']>, string> = {
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    cellType: 'cell_type',
+    position: 'position',
+    researcherId: 'researcher_id',
+  };
+
+  /** Completeness predicate: a tube is "complete" once its core identity fields are set. */
+  private readonly TUBE_COMPLETE_CONDITION =
+    'cell_type IS NOT NULL AND donor_internal_id IS NOT NULL AND researcher_id IS NOT NULL';
 
   private readonly TUBE_COLUMNS = `
     tubes.id,
@@ -732,25 +738,22 @@ export class TubeRepository implements ITubeRepository {
       ) combined_results
     `;
 
-    // Sorting with SQL injection protection
-    const sortBy = criteria.sortBy && this.ALLOWED_SORT_COLUMNS.includes(criteria.sortBy as typeof this.ALLOWED_SORT_COLUMNS[number])
-      ? criteria.sortBy
-      : 'rank';
+    // Sorting with SQL injection protection — only mapped columns reach SQL
+    const sortColumn = criteria.sortBy ? this.CRITERIA_SORT_COLUMNS[criteria.sortBy] : undefined;
     const sortOrder = criteria.sortOrder === 'asc' ? 'ASC' : 'DESC';
 
     let finalSql = combinedSql;
-    if (sortBy === 'rank') {
+    if (!sortColumn) {
       finalSql += ` ORDER BY id, rank DESC`;
     } else {
-      finalSql += ` ORDER BY id, ${sortBy} ${sortOrder}`;
+      finalSql += ` ORDER BY id, ${sortColumn} ${sortOrder}`;
     }
 
     finalSql = `
       SELECT * FROM (${finalSql}) sorted_results
-      ORDER BY ${sortBy === 'rank' ? 'rank DESC' : `${sortBy} ${sortOrder}`}
+      ORDER BY ${sortColumn ? `${sortColumn} ${sortOrder}` : 'rank DESC'}
     `;
 
-    // Pagination
     if (criteria.limit) {
       finalSql += ` LIMIT $${paramIndex.current++}`;
       params.push(criteria.limit);
@@ -790,7 +793,6 @@ export class TubeRepository implements ITubeRepository {
       params.push(criteria.createdBefore.toISOString());
     }
 
-    // Status criteria
     if (criteria.hasConcentration !== undefined) {
       if (criteria.hasConcentration) {
         sql += ' AND concentration IS NOT NULL';
@@ -800,21 +802,17 @@ export class TubeRepository implements ITubeRepository {
     }
     if (criteria.isComplete !== undefined) {
       if (criteria.isComplete) {
-        sql += ' AND cell_type IS NOT NULL AND donor_internal_id IS NOT NULL AND researcher_id IS NOT NULL';
+        sql += ` AND ${this.TUBE_COMPLETE_CONDITION}`;
       } else {
         sql += ' AND (cell_type IS NULL OR donor_internal_id IS NULL OR researcher_id IS NULL)';
       }
     }
 
-    // Sorting with SQL injection protection
-    const allowedStructuredSorts = ['created_at', 'updated_at', 'cell_type', 'date', 'donor_internal_id', 'donor_source_id', 'lot_number'];
-    const sortBy = criteria.sortBy && allowedStructuredSorts.includes(criteria.sortBy)
-      ? criteria.sortBy
-      : 'created_at';
+    // Sorting with SQL injection protection — only mapped columns reach SQL
+    const sortColumn = criteria.sortBy ? this.CRITERIA_SORT_COLUMNS[criteria.sortBy] : undefined;
     const sortOrder = criteria.sortOrder === 'asc' ? 'ASC' : 'DESC';
-    sql += ` ORDER BY ${sortBy} ${sortOrder}`;
+    sql += ` ORDER BY ${sortColumn ?? 'created_at'} ${sortOrder}`;
 
-    // Pagination
     if (criteria.limit) {
       sql += ` LIMIT $${paramIndex.current++}`;
       params.push(criteria.limit);
@@ -960,7 +958,7 @@ export class TubeRepository implements ITubeRepository {
     );
 
     const completeCount = await this.context.queryOne<{ count: string }>(
-      `SELECT COUNT(*) as count FROM tubes WHERE cell_type IS NOT NULL AND donor_internal_id IS NOT NULL AND researcher_id IS NOT NULL ${andClause}`, params
+      `SELECT COUNT(*) as count FROM tubes WHERE ${this.TUBE_COMPLETE_CONDITION} ${andClause}`, params
     );
     const completionRate = totalTubes > 0 ? (parseCount(completeCount) / totalTubes) * 100 : 0;
 

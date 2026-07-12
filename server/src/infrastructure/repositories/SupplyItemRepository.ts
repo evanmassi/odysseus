@@ -44,6 +44,19 @@ const TXN_COLUMNS = `id, item_id, location_id, lab_id, type, quantity_change, qu
   lot_number, expiration_date, po_number, cost, performed_by, notes, created_at,
   voided_at, voided_by, void_reason, related_transaction_id`;
 
+// Shared prefix for the two item-with-stock queries; callers append their own WHERE/GROUP BY/HAVING/ORDER BY.
+const ITEM_WITH_STOCK_SELECT = `
+  SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
+         COALESCE(
+           array_agg(DISTINCT l.name ORDER BY l.name) FILTER (WHERE l.name IS NOT NULL AND s.quantity > 0),
+           '{}'
+         ) as location_names
+  FROM supply_items p
+  LEFT JOIN supply_stock s ON s.item_id = p.id
+  LEFT JOIN supply_locations l ON l.id = s.location_id`;
+
+type ItemWithStockRow = SupplyItemRow & { total_stock: string; location_names: string[] };
+
 export class SupplyItemRepository implements ISupplyItemRepository {
 
   constructor(private db: PostgresContext) {}
@@ -59,25 +72,14 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   }
 
   async findByLabIdWithStock(labId: string): Promise<ItemWithStock[]> {
-    const rows = await this.db.queryMany<SupplyItemRow & { total_stock: string; location_names: string[] }>(
-      `SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
-              COALESCE(
-                array_agg(DISTINCT l.name ORDER BY l.name) FILTER (WHERE l.name IS NOT NULL AND s.quantity > 0),
-                '{}'
-              ) as location_names
-       FROM supply_items p
-       LEFT JOIN supply_stock s ON s.item_id = p.id
-       LEFT JOIN supply_locations l ON l.id = s.location_id
+    const rows = await this.db.queryMany<ItemWithStockRow>(
+      `${ITEM_WITH_STOCK_SELECT}
        WHERE p.lab_id = $1
        GROUP BY p.id
        ORDER BY p.name`,
       [labId]
     );
-    return rows.map(row => ({
-      item: SupplyItemMapper.fromRow(row),
-      totalStock: parseFloat(row.total_stock),
-      locationNames: row.location_names ?? [],
-    }));
+    return rows.map(row => this.toItemWithStock(row));
   }
 
   async save(item: SupplyItem): Promise<void> {
@@ -372,26 +374,23 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   // Reorder
 
   async findItemsAtOrBelowThreshold(labId: string): Promise<ItemWithStock[]> {
-    const rows = await this.db.queryMany<SupplyItemRow & { total_stock: string; location_names: string[] }>(`
-      SELECT p.*, COALESCE(SUM(s.quantity), 0) as total_stock,
-             COALESCE(
-               array_agg(DISTINCT l.name ORDER BY l.name) FILTER (WHERE l.name IS NOT NULL AND s.quantity > 0),
-               '{}'
-             ) as location_names
-      FROM supply_items p
-      LEFT JOIN supply_stock s ON s.item_id = p.id
-      LEFT JOIN supply_locations l ON l.id = s.location_id
+    const rows = await this.db.queryMany<ItemWithStockRow>(`
+      ${ITEM_WITH_STOCK_SELECT}
       WHERE p.lab_id = $1 AND p.status = 'active' AND p.reorder_threshold IS NOT NULL
       GROUP BY p.id
       HAVING COALESCE(SUM(s.quantity), 0) <= p.reorder_threshold
       ORDER BY p.name
     `, [labId]);
 
-    return rows.map(row => ({
+    return rows.map(row => this.toItemWithStock(row));
+  }
+
+  private toItemWithStock(row: ItemWithStockRow): ItemWithStock {
+    return {
       item: SupplyItemMapper.fromRow(row),
       totalStock: parseFloat(row.total_stock),
       locationNames: row.location_names ?? [],
-    }));
+    };
   }
 
   // Lookup support

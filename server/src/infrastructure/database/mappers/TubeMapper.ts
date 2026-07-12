@@ -61,7 +61,7 @@ export class TubeMapper {
       rack_id: location.rackId,
       box_id: location.boxId,
       position: location.position,
-      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+      /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- empty strings must map to undefined (persisted as NULL), which ?? would not do */
       cell_type: sampleData.cellType || undefined,
       donor_internal_id: sampleData.donorInternalId || undefined,
       donor_source_id: sampleData.donorSourceId || undefined,

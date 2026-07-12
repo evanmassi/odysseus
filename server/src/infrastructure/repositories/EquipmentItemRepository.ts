@@ -15,6 +15,7 @@ import { EquipmentItemMapper } from '@infrastructure/database/mappers/EquipmentI
 import type { EquipmentMaintenanceLogRow } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import { EquipmentMaintenanceLogMapper } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const ITEM_COLUMNS = 'id, lab_id, category_id, name, serial_number, manufacturer, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
 const DOC_COLUMNS = 'id, item_id, label, url, notes, created_at';
@@ -24,7 +25,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
 
   constructor(private db: PostgresContext) {}
 
-  // Items
+  // ITEMS
 
   async findById(id: string, labId: string): Promise<EquipmentItem | null> {
     const row = await this.db.queryOne<EquipmentItemRow>(
@@ -85,7 +86,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  // Documents
+  // DOCUMENTS
 
   async findDocumentsByItemId(itemId: string): Promise<EquipmentDocument[]> {
     const rows = await this.db.queryMany<EquipmentDocumentRow>(
@@ -133,7 +134,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  // Maintenance log
+  // MAINTENANCE LOG
 
   async findMaintenanceLogByItemId(itemId: string): Promise<EquipmentMaintenanceLog[]> {
     const rows = await this.db.queryMany<EquipmentMaintenanceLogRow>(
@@ -183,7 +184,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  // Lookup support — JOINs through equipment_items for lab scoping
+  // LOOKUP SUPPORT — JOINs through equipment_items for lab scoping
 
   async countMaintenanceEntriesUsingType(type: string, labId: string): Promise<number> {
     const row = await this.db.queryOne<{ count: string }>(`
@@ -192,7 +193,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
       JOIN equipment_items i ON i.id = ml.item_id
       WHERE ml.maintenance_type = $1 AND i.lab_id = $2
     `, [type, labId]);
-    return parseInt(row?.count ?? '0', 10);
+    return parseCount(row);
   }
 
   async renameMaintenanceType(oldValue: string, newValue: string, labId: string): Promise<number> {

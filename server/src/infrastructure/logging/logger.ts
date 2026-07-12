@@ -1,7 +1,7 @@
 /**
  * Application Logger
  *
- * Winston-based logger with console output and optional daily-rotated file logging.
+ * Winston-based logger with console output and daily-rotated file logging.
  */
 
 import fs from 'fs';
@@ -44,7 +44,7 @@ const transports: winston.transport[] = [
 ];
 
 export const logger = winston.createLogger({
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty LOG_LEVEL should fall through to 'info'
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
   transports

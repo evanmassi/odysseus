@@ -9,6 +9,7 @@ import type { SupplyLocationRepository as ISupplyLocationRepository } from '@dom
 import type { SupplyLocationRow } from '@infrastructure/database/mappers/SupplyLocationMapper';
 import { SupplyLocationMapper } from '@infrastructure/database/mappers/SupplyLocationMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const COLUMNS = 'id, lab_id, name, description, sort_order, created_at, updated_at';
 
@@ -58,6 +59,6 @@ export class SupplyLocationRepository implements ISupplyLocationRepository {
       'SELECT COUNT(*) as count FROM supply_stock WHERE location_id = $1 AND quantity > 0',
       [id]
     );
-    return parseInt(row?.count ?? '0', 10) > 0;
+    return parseCount(row) > 0;
   }
 }

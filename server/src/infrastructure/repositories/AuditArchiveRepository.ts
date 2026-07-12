@@ -7,6 +7,7 @@
 import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import type { PaginatedResult } from '@domain/types/repository';
 import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
+import { AuditLogEntryMapper } from '@infrastructure/database/mappers/AuditLogEntryMapper';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
@@ -122,7 +123,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     const query = `SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive ${whereClause} ORDER BY timestamp DESC`;
     const rows = await this.context.queryMany<AuditArchiveRow>(query, params);
 
-    return JSON.stringify(rows.map(this.rowToEntry), null, 2);
+    return JSON.stringify(rows.map(AuditLogEntryMapper.fromRow), null, 2);
   }
 
   private buildDateClauses(dateFrom?: Date, dateTo?: Date): Omit<FilterResult, 'nextParamIndex'> {
@@ -170,7 +171,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     );
 
     return {
-      items: rows.map(this.rowToEntry),
+      items: rows.map(AuditLogEntryMapper.fromRow),
       pagination: {
         total,
         limit,
@@ -180,19 +181,4 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     };
   }
 
-  private rowToEntry(row: AuditArchiveRow): AuditLogEntry {
-    return {
-      id: row.id,
-      labId: row.lab_id ?? undefined,
-      userId: row.user_id ?? undefined,
-      username: row.username,
-      action: row.action,
-      entityType: row.entity_type,
-      entityId: row.entity_id ?? undefined,
-      details: row.details,
-      timestamp: toDate(row.timestamp),
-      ipAddress: row.ip_address ?? undefined,
-      userAgent: row.user_agent ?? undefined,
-    };
-  }
 }

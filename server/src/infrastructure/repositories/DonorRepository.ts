@@ -10,6 +10,7 @@ import type { DonorRepository as IDonorRepository } from '@domain/repositories/D
 import type { DonorRow, DonorCollectionHistoryRow } from '@infrastructure/database/mappers/DonorMapper';
 import { DonorMapper } from '@infrastructure/database/mappers/DonorMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const DONOR_COLUMNS = 'id, lab_id, donor_source_id, donor_internal_id, species, age, sex, ethnicity, clinical_status, diagnosis, disease_stage, notes, is_curated, created_at, updated_at';
 const HISTORY_COLUMNS = 'id, donor_id, collection_date, specimen_type, source, created_at';
@@ -181,7 +182,7 @@ export class DonorRepository implements IDonorRepository {
     `, params);
 
     for (const row of rows) {
-      result.set(row.donor_id, parseInt(row.count, 10));
+      result.set(row.donor_id, parseCount(row));
     }
 
     // Ensure all donors have an entry (0 for those with no tubes)
@@ -244,7 +245,7 @@ export class DonorRepository implements IDonorRepository {
        WHERE dch.specimen_type = $1 AND d.lab_id = $2`,
       [value, labId]
     );
-    return parseInt(result?.count ?? '0', 10);
+    return parseCount(result);
   }
 
   async renameSpecimenType(oldValue: string, newValue: string, labId: string): Promise<number> {

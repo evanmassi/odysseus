@@ -18,6 +18,7 @@ import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@infrastructure/logging/logger';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
+import type { PoolClient } from 'pg';
 
 type ConfigurationJson = Parameters<typeof Storage.fromData>[0];
 
@@ -75,14 +76,9 @@ export class StorageRepository implements IStorageRepository {
     const now = new Date();
 
     await this.context.transaction(async (client) => {
-      const versionResult = await client.query<{ version: number }>(
-        `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING version`,
-        [labId, now, 'Default configuration created', 'system', configJson]
+      const version = await this.insertStorageVersion(
+        client, labId, now, 'Default configuration created', 'system', configJson
       );
-
-      const version = versionResult.rows[0].version;
 
       await client.query(
         `INSERT INTO storage_current (lab_id, version, updated_at, config_json)
@@ -151,14 +147,9 @@ export class StorageRepository implements IStorageRepository {
         const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
 
-        const versionResult = await client.query<{ version: number }>(
-          `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
-           VALUES ($1, $2, $3, $4, $5)
-           RETURNING version`,
-          [labId, now, changeDescription, changedBy, configJson]
+        newVersion = await this.insertStorageVersion(
+          client, labId, now, changeDescription, changedBy, configJson
         );
-
-        newVersion = versionResult.rows[0].version;
 
         const updateResult = await client.query(
           `UPDATE storage_current
@@ -540,14 +531,9 @@ export class StorageRepository implements IStorageRepository {
           const now = new Date();
           const configJson = JSON.stringify(configData);
 
-          const versionResult = await client.query<{ version: number }>(
-            `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
-             VALUES ($1, $2, $3, $4, $5)
-             RETURNING version`,
-            [labId, now, description, changedBy, configJson]
+          const newVersion = await this.insertStorageVersion(
+            client, labId, now, description, changedBy, configJson
           );
-
-          const newVersion = versionResult.rows[0].version;
 
           const updateResult = await client.query(
             `UPDATE storage_current
@@ -579,6 +565,24 @@ export class StorageRepository implements IStorageRepository {
     }
 
     throw new ValidationError('Failed to delete equipment after maximum retries');
+  }
+
+  /** Appends a new immutable row to storage_versions and returns its generated version number. */
+  private async insertStorageVersion(
+    client: PoolClient,
+    labId: string,
+    timestamp: Date,
+    changeDescription: string,
+    changedBy: string,
+    configJson: string
+  ): Promise<number> {
+    const versionResult = await client.query<{ version: number }>(
+      `INSERT INTO storage_versions (lab_id, updated_at, change_description, changed_by, config_json)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING version`,
+      [labId, timestamp, changeDescription, changedBy, configJson]
+    );
+    return versionResult.rows[0].version;
   }
 
   private async getBoxByName(labId: string, tankId: string, rackId: string, boxId: string): Promise<Box | null> {

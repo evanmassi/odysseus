@@ -21,7 +21,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
 
   constructor(private context: PostgresContext) {}
 
-  // Basic CRUD operations
+  // BASIC CRUD OPERATIONS
 
   async findByToken(token: string): Promise<RefreshToken | null> {
     const row = await this.context.queryOne<RefreshTokenRow>(
@@ -61,7 +61,6 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
-  /** Logout from all devices. */
   async revokeAllForUser(userId: string): Promise<number> {
     const result = await this.context.execute(
       'UPDATE refresh_tokens SET is_revoked = TRUE WHERE user_id = $1 AND is_revoked = FALSE',
@@ -70,7 +69,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
     return result.rowCount ?? 0;
   }
 
-  // Maintenance operations
+  // MAINTENANCE OPERATIONS
 
   async cleanupExpiredTokens(olderThanDays: number = DEFAULT_CLEANUP_DAYS): Promise<number> {
     const cutoffDate = new Date(Date.now() - (olderThanDays * 24 * 60 * 60 * 1000));
@@ -85,7 +84,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
     return result.rowCount ?? 0;
   }
 
-  // System-wide monitoring
+  // SYSTEM-WIDE MONITORING
 
   async countAllActiveTokens(): Promise<number> {
     const now = new Date();

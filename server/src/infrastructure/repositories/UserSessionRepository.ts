@@ -5,7 +5,7 @@
  */
 
 import type { UserSession } from '@domain/entities/UserSession';
-import type { UserSessionRepository, ActiveSessionWithUser, IpSessionCount } from '@domain/repositories/UserSessionRepository';
+import type { UserSessionRepository as IUserSessionRepository, ActiveSessionWithUser, IpSessionCount } from '@domain/repositories/UserSessionRepository';
 import type { UserSessionRow } from '@infrastructure/database/mappers/UserSessionMapper';
 import { UserSessionMapper } from '@infrastructure/database/mappers/UserSessionMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -16,7 +16,7 @@ const SESSION_COLUMNS = `
   created_at, last_used_at, expires_at, is_active
 `.trim();
 
-export class UserSessionRepositoryImpl implements UserSessionRepository {
+export class UserSessionRepository implements IUserSessionRepository {
 
   constructor(private context: PostgresContext) {}
 

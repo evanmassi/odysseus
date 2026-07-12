@@ -9,6 +9,9 @@ export interface PasswordService {
 
   verify(plainPassword: string, storedHash: string, salt?: string): Promise<boolean>;
 
-  /** Returns true if the stored hash should be re-hashed with the current algorithm. */
-  needsUpgrade(storedHash: string, salt?: string): boolean;
+  /**
+   * Returns true if the stored credential should be re-hashed with the current
+   * algorithm. Legacy PBKDF2 credentials carry a salt and need re-hashing to bcrypt.
+   */
+  needsUpgrade(salt?: string): boolean;
 }

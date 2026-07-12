@@ -2,7 +2,7 @@
  * Migration 001 — Initial Schema
  *
  * Creates all tables in their final-state schema. On existing databases this
- * migration is marked as applied without running (see migrationRunner fingerprint).
+ * migration is marked as applied without running (see detectExistingState in migrationRunner).
  */
 
 import type { Migration } from './migrationRunner';

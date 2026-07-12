@@ -39,7 +39,7 @@ import { SupplyItemRepository as SupplyItemRepositoryImpl } from '@infrastructur
 import { SupplyLocationRepository as SupplyLocationRepositoryImpl } from '@infrastructure/repositories/SupplyLocationRepository';
 import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
-import { UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
+import { UserSessionRepository as UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
 
 export class RepositoryFactory {
   private postgresContext: PostgresContext;

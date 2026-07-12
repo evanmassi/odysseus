@@ -48,8 +48,4 @@ export class RefreshTokenMapper {
       ipAddress: row.ip_address ?? undefined
     });
   }
-
-  static fromRows(rows: RefreshTokenRow[]): RefreshToken[] {
-    return rows.map(row => this.fromRow(row));
-  }
 }

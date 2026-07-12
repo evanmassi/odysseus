@@ -26,15 +26,9 @@ const ConfigurationSchema = z.object({
   }),
   jwt: z.object({
     secret: z.string().min(32, 'JWT secret must be at least 32 characters'),
-    expirationTime: z.string().default('24h'),
     issuer: z.string().default('odysseus-api'),
     audience: z.string().default('odysseus-client'),
     algorithm: z.enum(['HS256', 'HS384', 'HS512']).default('HS256'),
-  }),
-  logging: z.object({
-    level: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
-    enableConsole: z.boolean().default(true),
-    enableFile: z.boolean().default(false),
   }),
   email: z.object({
     verificationBaseUrl: z.string(),
@@ -64,14 +58,14 @@ export class EnvironmentConfigurationService implements ConfigurationService {
   }
 
   private loadConfiguration(): Configuration {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
     const environment = process.env.NODE_ENV || 'development';
 
     const rawConfig = {
       server: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         port: parseInt(process.env.PORT || '3001', 10),
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         host: process.env.HOST || 'localhost',
         environment,
         allowedOrigins: process.env.ALLOWED_ORIGINS
@@ -82,36 +76,27 @@ export class EnvironmentConfigurationService implements ConfigurationService {
         type: 'postgresql',
         url: process.env.DATABASE_URL,
         ssl: environment === 'production',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         maxConnections: parseInt(process.env.DATABASE_MAX_CONNECTIONS || '10', 10),
       },
       jwt: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         secret: process.env.JWT_SECRET || this.getJwtSecret(environment),
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        expirationTime: process.env.JWT_EXPIRATION || '24h',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         issuer: process.env.JWT_ISSUER || 'odysseus-api',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         audience: process.env.JWT_AUDIENCE || 'odysseus-client',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         algorithm: process.env.JWT_ALGORITHM || 'HS256',
       },
-      logging: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        level: process.env.LOG_LEVEL ||
-               (environment === 'development' ? 'debug' : 'info'),
-        enableConsole: process.env.LOG_CONSOLE !== 'false',
-        enableFile: process.env.LOG_FILE === 'true',
-      },
       email: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         verificationBaseUrl: process.env.VERIFICATION_BASE_URL || 'http://localhost:3000/verify-email',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must fall through to the default
         resetPasswordBaseUrl: process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password',
       },
       security: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- env var: empty string must normalize to undefined
         systemAdminSetupKey: process.env.SYSTEM_ADMIN_SETUP_KEY || undefined,
       },
       app: {
@@ -143,7 +128,7 @@ export class EnvironmentConfigurationService implements ConfigurationService {
     try {
       const packagePath = path.resolve(__dirname, '..', '..', '..', 'package.json');
       const raw = fs.readFileSync(packagePath, 'utf-8');
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty version field must fall through to the default
       return JSON.parse(raw).version || '1.0.0';
     } catch {
       return '1.0.0';

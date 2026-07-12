@@ -10,7 +10,7 @@ import { logger } from '@infrastructure/logging/logger';
 
 import { ALL_MIGRATIONS } from './index';
 
-import type { Pool } from 'pg';
+import type { Pool, PoolClient } from 'pg';
 
 export interface Migration {
   id: number;
@@ -21,10 +21,14 @@ export interface Migration {
 const MIGRATION_LOCK_ID = 839201;
 
 export async function runMigrations(pool: Pool): Promise<void> {
-  await pool.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_ID]);
+  // Session advisory locks bind to a connection, so all bookkeeping (lock,
+  // schema_migrations reads/writes, state detection, unlock) must run on one
+  // client. Migrations themselves still get the pool.
+  const client = await pool.connect();
+  await client.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_ID]);
 
   try {
-    await pool.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
@@ -32,12 +36,12 @@ export async function runMigrations(pool: Pool): Promise<void> {
       )
     `);
 
-    const existing = await pool.query('SELECT id FROM schema_migrations');
+    const existing = await client.query('SELECT id FROM schema_migrations');
     if (existing.rows.length === 0) {
-      const markUpTo = await detectExistingState(pool);
+      const markUpTo = await detectExistingState(client);
       for (const migration of ALL_MIGRATIONS) {
         if (migration.id <= markUpTo) {
-          await pool.query(
+          await client.query(
             'INSERT INTO schema_migrations (id, name) VALUES ($1, $2)',
             [migration.id, migration.name]
           );
@@ -46,7 +50,7 @@ export async function runMigrations(pool: Pool): Promise<void> {
       }
     }
 
-    const applied = await pool.query('SELECT id FROM schema_migrations');
+    const applied = await client.query('SELECT id FROM schema_migrations');
     const appliedIds = new Set(applied.rows.map(r => r.id));
 
     for (const migration of ALL_MIGRATIONS) {
@@ -55,7 +59,7 @@ export async function runMigrations(pool: Pool): Promise<void> {
       logger.info(`Running migration ${migration.id}: ${migration.name}...`);
       try {
         await migration.up(pool);
-        await pool.query(
+        await client.query(
           'INSERT INTO schema_migrations (id, name) VALUES ($1, $2)',
           [migration.id, migration.name]
         );
@@ -66,22 +70,26 @@ export async function runMigrations(pool: Pool): Promise<void> {
       }
     }
   } finally {
-    await pool.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]);
+    await client.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]);
+    client.release();
   }
 }
 
-async function detectExistingState(pool: Pool): Promise<number> {
-  const hasPersons = await tableExists(pool, 'persons');
+async function detectExistingState(client: PoolClient): Promise<number> {
+  const hasPersons = await tableExists(client, 'persons');
   if (!hasPersons) return 0;
 
-  const hasLabs = await tableExists(pool, 'labs');
+  // A labs table means this is the legacy production DB, already at migration 15 —
+  // so 011-015 (multi-tenancy) are no-ops there. A persons-only DB predates
+  // multi-tenancy entirely and sits at the initial-schema baseline of 1.
+  const hasLabs = await tableExists(client, 'labs');
   if (hasLabs) return 15;
 
   return 1;
 }
 
-async function tableExists(pool: Pool, tableName: string): Promise<boolean> {
-  const result = await pool.query(
+async function tableExists(client: PoolClient, tableName: string): Promise<boolean> {
+  const result = await client.query(
     `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1`,
     [tableName]
   );

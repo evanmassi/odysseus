@@ -45,7 +45,7 @@ export class BcryptPasswordService implements PasswordService {
     }
   }
 
-  needsUpgrade(storedHash: string, salt?: string): boolean {
+  needsUpgrade(salt?: string): boolean {
     return !!salt;
   }
 }

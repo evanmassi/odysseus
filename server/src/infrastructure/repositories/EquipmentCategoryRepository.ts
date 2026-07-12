@@ -9,6 +9,7 @@ import type { EquipmentCategoryRepository as IEquipmentCategoryRepository } from
 import type { EquipmentCategoryRow } from '@infrastructure/database/mappers/EquipmentCategoryMapper';
 import { EquipmentCategoryMapper } from '@infrastructure/database/mappers/EquipmentCategoryMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const COLUMNS = 'id, lab_id, name, parent_id, sort_order, created_at, updated_at';
 
@@ -58,7 +59,7 @@ export class EquipmentCategoryRepository implements IEquipmentCategoryRepository
       'SELECT COUNT(*) as count FROM equipment_categories WHERE parent_id = $1 AND lab_id = $2',
       [id, labId]
     );
-    return parseInt(row?.count ?? '0', 10) > 0;
+    return parseCount(row) > 0;
   }
 
   async hasItemsIncludingChildren(id: string, labId: string): Promise<boolean> {
@@ -71,6 +72,6 @@ export class EquipmentCategoryRepository implements IEquipmentCategoryRepository
           SELECT id FROM equipment_categories WHERE parent_id = $1 AND lab_id = $2
         )
     `, [id, labId]);
-    return parseInt(row?.count ?? '0', 10) > 0;
+    return parseCount(row) > 0;
   }
 }

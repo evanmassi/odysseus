@@ -9,6 +9,7 @@ import type { SupplyCategoryRepository as ISupplyCategoryRepository } from '@dom
 import type { SupplyCategoryRow } from '@infrastructure/database/mappers/SupplyCategoryMapper';
 import { SupplyCategoryMapper } from '@infrastructure/database/mappers/SupplyCategoryMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const COLUMNS = 'id, lab_id, name, parent_id, sort_order, created_at, updated_at';
 
@@ -58,7 +59,7 @@ export class SupplyCategoryRepository implements ISupplyCategoryRepository {
       'SELECT COUNT(*) as count FROM supply_categories WHERE parent_id = $1 AND lab_id = $2',
       [id, labId]
     );
-    return parseInt(row?.count ?? '0', 10) > 0;
+    return parseCount(row) > 0;
   }
 
   async hasItemsIncludingChildren(id: string, labId: string): Promise<boolean> {
@@ -71,6 +72,6 @@ export class SupplyCategoryRepository implements ISupplyCategoryRepository {
           SELECT id FROM supply_categories WHERE parent_id = $1 AND lab_id = $2
         )
     `, [id, labId]);
-    return parseInt(row?.count ?? '0', 10) > 0;
+    return parseCount(row) > 0;
   }
 }

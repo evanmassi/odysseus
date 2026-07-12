@@ -34,15 +34,16 @@ export function generateCsv<T extends object>(
     return '';
   }
 
-  const columnConfig = columns ?? Object.keys(data[0]).map(key => ({
-    key: key as keyof T,
-    header: key
-  }));
+  const columnConfig: Array<{ key: keyof T; header: string; forceText?: boolean }> =
+    columns ?? Object.keys(data[0]).map(key => ({
+      key: key as keyof T,
+      header: key
+    }));
 
   const headerRow = columnConfig.map(col => escapeValue(col.header)).join(',');
 
   const dataRows = data.map(row =>
-    columnConfig.map(col => escapeValue(row[col.key], 'forceText' in col ? (col as { forceText?: boolean }).forceText : false)).join(',')
+    columnConfig.map(col => escapeValue(row[col.key], col.forceText)).join(',')
   );
 
   return [headerRow, ...dataRows].join('\n');

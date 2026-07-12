@@ -7,6 +7,7 @@
 import type { AuditRepository as IAuditRepository } from '@domain/repositories/AuditRepository';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import { buildAuditFilterClauses, DEFAULT_AUDIT_PAGE_LIMIT, type FilterResult } from '@infrastructure/database/auditFilterBuilder';
+import { AuditLogEntryMapper } from '@infrastructure/database/mappers/AuditLogEntryMapper';
 import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
 
@@ -84,7 +85,7 @@ export class AuditRepository implements IAuditRepository {
        ORDER BY timestamp DESC`,
       [entityId, entityType]
     );
-    return rows.map(this.rowToEntry);
+    return rows.map(AuditLogEntryMapper.fromRow);
   }
 
   async findByEntityIdForLab(entityId: string, entityType: string, labId: string): Promise<AuditLogEntry[]> {
@@ -94,7 +95,7 @@ export class AuditRepository implements IAuditRepository {
        ORDER BY timestamp DESC`,
       [entityId, entityType, labId]
     );
-    return rows.map(this.rowToEntry);
+    return rows.map(AuditLogEntryMapper.fromRow);
   }
 
   async findByAction(action: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
@@ -167,7 +168,7 @@ export class AuditRepository implements IAuditRepository {
     }
 
     const rows = await this.context.queryMany<AuditLogRow>(query, params);
-    return rows.map(this.rowToEntry);
+    return rows.map(AuditLogEntryMapper.fromRow);
   }
 
   async deleteArchived(entryIds: string[]): Promise<number> {
@@ -242,7 +243,7 @@ export class AuditRepository implements IAuditRepository {
     );
 
     return {
-      items: rows.map(this.rowToEntry),
+      items: rows.map(AuditLogEntryMapper.fromRow),
       pagination: {
         total,
         limit,
@@ -282,22 +283,6 @@ export class AuditRepository implements IAuditRepository {
     }
 
     const rows = await this.context.queryMany<AuditLogRow>(query, params);
-    return rows.map(this.rowToEntry);
-  }
-
-  private rowToEntry(row: AuditLogRow): AuditLogEntry {
-    return {
-      id: row.id,
-      labId: row.lab_id ?? undefined,
-      userId: row.user_id ?? undefined,
-      username: row.username,
-      action: row.action,
-      entityType: row.entity_type,
-      entityId: row.entity_id ?? undefined,
-      details: row.details,
-      timestamp: toDate(row.timestamp),
-      ipAddress: row.ip_address ?? undefined,
-      userAgent: row.user_agent ?? undefined,
-    };
+    return rows.map(AuditLogEntryMapper.fromRow);
   }
 }

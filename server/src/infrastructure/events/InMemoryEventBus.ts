@@ -97,7 +97,7 @@ export class InMemoryEventBus implements EventBus {
     logger.debug('Domain event processing completed', {
       eventName,
       eventId: event.eventId,
-      successfulHandlers: handlers.length
+      handlerCount: handlers.length
     });
   }
 

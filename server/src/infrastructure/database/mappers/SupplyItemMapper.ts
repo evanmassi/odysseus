@@ -90,8 +90,4 @@ export class SupplyItemMapper {
       updatedAt: toISOString(row.updated_at),
     });
   }
-
-  static fromRows(rows: SupplyItemRow[]): SupplyItem[] {
-    return rows.map(row => this.fromRow(row));
-  }
 }

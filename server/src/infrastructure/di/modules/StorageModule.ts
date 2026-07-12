@@ -52,7 +52,7 @@ export class StorageModule {
   private assignBoxHandler?: AssignBoxCommandHandler;
   private bulkUnassignHandler?: BulkUnassignResourcesCommandHandler;
   private bulkReassignHandler?: BulkReassignResourcesCommandHandler;
-  private initializeConfigHandler?: InitializeStorageCommandHandler;
+  private initializeStorageHandler?: InitializeStorageCommandHandler;
   private seedDemoHandler?: SeedDemoCommandHandler;
   private unseedDemoHandler?: UnseedDemoCommandHandler;
 
@@ -106,7 +106,7 @@ export class StorageModule {
     return this.resetStorageToDefaultHandler;
   }
 
-  getImportConfigurationHandler(): ImportStorageCommandHandler {
+  getImportStorageHandler(): ImportStorageCommandHandler {
     if (!this.importStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.importStorageHandler = new ImportStorageCommandHandler(
@@ -330,16 +330,16 @@ export class StorageModule {
     return this.bulkReassignHandler;
   }
 
-  getInitializeConfigHandler(): InitializeStorageCommandHandler {
-    if (!this.initializeConfigHandler) {
+  getInitializeStorageHandler(): InitializeStorageCommandHandler {
+    if (!this.initializeStorageHandler) {
       const repositories = this.repositoryFactory.getRepositories();
-      this.initializeConfigHandler = new InitializeStorageCommandHandler(
+      this.initializeStorageHandler = new InitializeStorageCommandHandler(
         repositories.storage,
         repositories.users,
         this.shared.eventBus
       );
     }
-    return this.initializeConfigHandler;
+    return this.initializeStorageHandler;
   }
 
   getSeedDemoHandler(): SeedDemoCommandHandler {
@@ -400,7 +400,7 @@ export class StorageModule {
     return this.getStorageByVersionHandler;
   }
 
-  getGetCheckConfigurationHealthHandler(): CheckStorageHealthQueryHandler {
+  getCheckStorageHealthHandler(): CheckStorageHealthQueryHandler {
     if (!this.checkStorageHealthHandler) {
       const repositories = this.repositoryFactory.getRepositories();
       this.checkStorageHealthHandler = new CheckStorageHealthQueryHandler(
@@ -466,10 +466,10 @@ export class StorageModule {
         getCurrentStorageHandler: this.getGetCurrentStorageHandler(),
         getStorageHistoryHandler: this.getGetStorageHistoryHandler(),
         getStorageByVersionHandler: this.getGetStorageByVersionHandler(),
-        checkStorageHealthHandler: this.getGetCheckConfigurationHealthHandler(),
+        checkStorageHealthHandler: this.getCheckStorageHealthHandler(),
         updateSystemStorageHandler: this.getUpdateSystemStorageHandler(),
         resetStorageHandler: this.getResetStorageToDefaultHandler(),
-        importStorageHandler: this.getImportConfigurationHandler(),
+        importStorageHandler: this.getImportStorageHandler(),
         updateBoxPositionDisplayHandler: this.getUpdateBoxPositionDisplayHandler(),
         updateLabDefaultPositionDisplayHandler: this.getUpdateLabDefaultPositionDisplayHandler(),
         updateResourceLabelHandler: this.getUpdateResourceLabelHandler(),
@@ -489,7 +489,7 @@ export class StorageModule {
         bulkReassignHandler: this.getBulkReassignHandler(),
         seedDemoHandler: this.getSeedDemoHandler(),
         unseedDemoHandler: this.getUnseedDemoHandler(),
-        initializeConfigHandler: this.getInitializeConfigHandler(),
+        initializeConfigHandler: this.getInitializeStorageHandler(),
       });
     }
     return this.storageController;

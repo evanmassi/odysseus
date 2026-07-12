@@ -35,7 +35,7 @@ export async function upgradePasswordHashIfNeeded(
   passwordService: PasswordService,
   userRepository: UserRepository
 ): Promise<void> {
-  if (passwordService.needsUpgrade(user.passwordHash!, user.salt)) {
+  if (passwordService.needsUpgrade(user.salt)) {
     const newHash = await passwordService.hash(plainPassword);
     user.setPasswordHash(newHash);
     await userRepository.save(user);

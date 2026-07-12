@@ -29,9 +29,8 @@ import { logger } from '@infrastructure/logging/logger';
 
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
-export interface JwtSessionConfig {
+interface JwtSessionConfig {
   secret: string;
-  expirationTime: string;
   issuer: string;
   audience: string;
   algorithm: jwt.Algorithm;
@@ -60,7 +59,6 @@ export class JwtSessionService implements SessionService {
 
     this.config = {
       secret: jwtConfig.secret,
-      expirationTime: jwtConfig.expirationTime,
       issuer: jwtConfig.issuer,
       audience: jwtConfig.audience,
       algorithm: jwtConfig.algorithm as jwt.Algorithm
@@ -131,13 +129,23 @@ export class JwtSessionService implements SessionService {
     }
   }
 
+  private signToken(payload: object): string {
+    return jwt.sign(payload, this.config.secret, {
+      algorithm: this.config.algorithm
+    } as jwt.SignOptions);
+  }
+
+  private verifyToken<T>(token: string): T {
+    return jwt.verify(token, this.config.secret, {
+      issuer: this.config.issuer,
+      audience: this.config.audience,
+      algorithms: [this.config.algorithm]
+    }) as T;
+  }
+
   async validateSession(token: string): Promise<SessionValidationResult | null> {
     try {
-      const decoded = jwt.verify(token, this.config.secret, {
-        issuer: this.config.issuer,
-        audience: this.config.audience,
-        algorithms: [this.config.algorithm]
-      }) as AccessTokenPayload;
+      const decoded = this.verifyToken<AccessTokenPayload>(token);
 
       // RFC 7519 'sub' claim
       const userId = decoded.sub;
@@ -311,9 +319,7 @@ export class JwtSessionService implements SessionService {
       labId: user.labId
     };
 
-    return jwt.sign(payload, this.config.secret, {
-      algorithm: this.config.algorithm
-    } as jwt.SignOptions);
+    return this.signToken(payload);
   }
 
   private async createRefreshToken(user: User): Promise<RefreshTokenRecord> {
@@ -412,25 +418,19 @@ export class JwtSessionService implements SessionService {
       jti: randomUUID()
     };
 
-    return jwt.sign(payload, this.config.secret, {
-      algorithm: this.config.algorithm
-    } as jwt.SignOptions);
+    return this.signToken(payload);
   }
 
   /** Only accepts tokens with purpose='password_change'. */
   async verifyPasswordChangeTempToken(token: string): Promise<{ userId: string; username: string } | null> {
     try {
-      const decoded = jwt.verify(token, this.config.secret, {
-        issuer: this.config.issuer,
-        audience: this.config.audience,
-        algorithms: [this.config.algorithm]
-      }) as {
+      const decoded = this.verifyToken<{
         sub: string;
         username: string;
         purpose: string;
         exp: number;
         iat: number;
-      };
+      }>(token);
 
       if (decoded.purpose !== 'password_change') {
         logger.warn('Token is not a password change token');
