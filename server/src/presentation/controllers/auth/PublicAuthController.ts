@@ -183,7 +183,11 @@ export class PublicAuthController {
       const ipAddress = req.ip ?? req.socket.remoteAddress;
       const enhancedResult = await this.deps.sessionService.createTokenPair(result.user, userAgent, ipAddress);
 
-      const response = ResponseBuilder.success(enhancedResult);
+      // authResponseSchema requires sessionToken alongside tokens (legacy wire contract)
+      const response = ResponseBuilder.success({
+        ...enhancedResult,
+        sessionToken: enhancedResult.tokens.accessToken,
+      });
       res.status(200).json(response);
     } catch (error) {
       await recordFailedLogin(req);
@@ -409,8 +413,10 @@ export class PublicAuthController {
       const ipAddress = req.ip ?? req.socket.remoteAddress;
       const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
 
+      // authResponseSchema requires sessionToken alongside tokens (legacy wire contract)
       const response = ResponseBuilder.success({
         ...authResult,
+        sessionToken: authResult.tokens.accessToken,
         message: 'Password changed successfully'
       });
 
