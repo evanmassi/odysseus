@@ -14,6 +14,7 @@ import { BaseController } from '@presentation/controllers/BaseController';
 import { handleControllerError } from '@presentation/utils/errorHandler';
 import { ResponseBuilder } from '@presentation/utils/responseBuilder';
 
+import type { MessageResponse } from '@odysseus/shared-schemas';
 import type { Request, Response } from 'express';
 
 export interface AuthControllerDeps {
@@ -50,7 +51,9 @@ export class AuthController extends BaseController {
 
       logger.info('Password changed successfully', { userId: user.id, username: user.username });
 
-      res.status(200).json(ResponseBuilder.success({ message: 'Password changed successfully' }));
+      const payload: MessageResponse = { message: 'Password changed successfully' };
+
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to change password');
     }
@@ -70,7 +73,9 @@ export class AuthController extends BaseController {
 
       logger.info('User logged out', { userId: user.id, username: user.username });
 
-      res.status(200).json(ResponseBuilder.success({ message: 'Logged out successfully' }));
+      const payload: MessageResponse = { message: 'Logged out successfully' };
+
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to logout');
     }
@@ -86,7 +91,9 @@ export class AuthController extends BaseController {
 
       logger.debug('Session heartbeat received', { userId: user.id, username: user.username, sessionId: req.sessionId });
 
-      res.status(200).json(ResponseBuilder.success({ message: 'Session extended' }));
+      const payload: MessageResponse = { message: 'Session extended' };
+
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to process heartbeat');
     }

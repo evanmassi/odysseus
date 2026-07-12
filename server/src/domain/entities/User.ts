@@ -475,8 +475,8 @@ export class User {
     id: string;
     username: string;
     role: 'system_admin' | 'lab_admin' | 'user';
-    createdAt: string;
-    lastActivity: string;
+    createdAt: Date;
+    lastActivity: Date;
     status: UserStatus;
     isDemo: boolean;
     researcherId?: string;
@@ -488,8 +488,8 @@ export class User {
       id: this._id,
       username: this._username,
       role: this._role.value,
-      createdAt: this._createdAt.toISOString(),
-      lastActivity: this._lastActivity.toISOString(),
+      createdAt: this._createdAt,
+      lastActivity: this._lastActivity,
       status: this._status,
       isDemo: this._labIsDemo,
       researcherId: this._researcherId,

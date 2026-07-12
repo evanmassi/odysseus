@@ -4,13 +4,14 @@
  * OAuth 2.0 session lifecycle with automatic token refresh and idle timeout monitoring.
  */
 
+import { refreshTokenResponseSchema, sessionInfoResponseSchema } from '@odysseus/shared-schemas';
+
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 import { MS_PER_SECOND, MS_PER_MINUTE } from '@shared/utils/timeConstants';
 
 import type { SessionDebugInfo } from '@domains/authentication';
 import type { SessionHttpClient } from '@infra/api/SessionHttpClient';
-import type { SessionInfoResponse } from '@odysseus/shared-schemas';
 import type {
   TokenPair,
   SessionStatus,
@@ -192,46 +193,30 @@ export class SessionService implements TokenProvider {
 
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
-        const response = await this.sessionHttpClient.post<
-          ApiEnvelope<{
-            accessToken: string;
-            accessTokenExpiry: string;
-            refreshToken: string;
-            refreshTokenExpiry: string;
-          }>
-        >('/public/auth/refresh', {
-          refreshToken: tokens.refreshToken,
-        });
+        const response = await this.sessionHttpClient.post<ApiEnvelope<unknown>>(
+          '/public/auth/refresh',
+          { refreshToken: tokens.refreshToken }
+        );
 
-        if (response.success) {
-          const refreshData = response.data;
-
-          if (
-            !refreshData.accessToken ||
-            !refreshData.accessTokenExpiry ||
-            !refreshData.refreshToken ||
-            !refreshData.refreshTokenExpiry
-          ) {
-            throw new Error('Invalid refresh response format');
-          }
-
-          // SessionHttpClient returns raw JSON — coerce date strings manually since there's no Zod
-          // layer. The refresh token rotates on every use, so persist the newly issued one.
-          const updatedTokens: TokenPair = {
-            ...tokens,
-            accessToken: refreshData.accessToken,
-            accessTokenExpiry: new Date(refreshData.accessTokenExpiry),
-            refreshToken: refreshData.refreshToken,
-            refreshTokenExpiry: new Date(refreshData.refreshTokenExpiry),
-          };
-
-          this.setTokens(updatedTokens);
-          this.state.lastRefreshTime = new Date();
-
-          return true;
-        } else {
+        if (!response.success) {
           throw new Error('Refresh request failed');
         }
+
+        const refreshData = refreshTokenResponseSchema.parse(response.data);
+
+        // The refresh token rotates on every use, so persist the newly issued one.
+        const updatedTokens: TokenPair = {
+          ...tokens,
+          accessToken: refreshData.accessToken,
+          accessTokenExpiry: refreshData.accessTokenExpiry,
+          refreshToken: refreshData.refreshToken,
+          refreshTokenExpiry: refreshData.refreshTokenExpiry,
+        };
+
+        this.setTokens(updatedTokens);
+        this.state.lastRefreshTime = new Date();
+
+        return true;
       } catch (error) {
         logger.error(`Token refresh attempt ${attempt} failed`, { error, attempt });
 
@@ -396,7 +381,7 @@ export class SessionService implements TokenProvider {
     }
 
     try {
-      const response = await this.sessionHttpClient.get<ApiEnvelope<SessionInfoResponse>>(
+      const response = await this.sessionHttpClient.get<ApiEnvelope<unknown>>(
         '/public/auth/session-info',
         { Authorization: `Bearer ${tokens.accessToken}` }
       );
@@ -407,7 +392,7 @@ export class SessionService implements TokenProvider {
         return;
       }
 
-      const data = response.data;
+      const data = sessionInfoResponseSchema.parse(response.data);
 
       // Track server-sent timing for adaptive polling
       if (data.timeUntilIdleTimeoutMs !== undefined) {

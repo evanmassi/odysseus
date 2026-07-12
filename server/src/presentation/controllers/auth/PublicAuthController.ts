@@ -8,7 +8,15 @@ import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 import {
   registerWithProfileSchema,
   forceChangePasswordRequestSchema,
-  type PasswordChangeRequiredResponse
+  type AuthResponse,
+  type FirstTimeResponse,
+  type MessageResponse,
+  type PasswordChangeRequiredResponse,
+  type PasswordRequirementsResponse,
+  type RefreshTokenResponse,
+  type RegisterWithProfileResponse,
+  type SessionInfoResponse,
+  type VerifyEmailResponse
 } from '@odysseus/shared-schemas';
 
 
@@ -64,10 +72,12 @@ export class PublicAuthController {
 
       logger.info('First-time setup check completed', { isFirstTime: result.isFirstTime });
 
-      res.status(200).json(ResponseBuilder.success({
+      const payload: FirstTimeResponse = {
         isFirstTime: result.isFirstTime,
         needsSystemAdmin: result.needsSystemAdmin
-      }));
+      };
+
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to check first time setup');
     }
@@ -86,12 +96,11 @@ export class PublicAuthController {
 
       const authResult = await this.issueTokens(req, user);
 
-      const response = ResponseBuilder.success({
+      const payload: AuthResponse = {
         user: user.toPublicData(),
-        sessionToken: authResult.tokens.accessToken,
         tokens: authResult.tokens,
-      });
-      res.status(201).json(response);
+      };
+      res.status(201).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to setup system admin');
     }
@@ -102,7 +111,7 @@ export class PublicAuthController {
 
       const securityConfig = await this.deps.securityConfigService.getSecurityConfig();
 
-      const passwordRequirements = {
+      const passwordRequirements: PasswordRequirementsResponse = {
         passwordMinLength: securityConfig.passwordMinLength,
         requireStrongPasswords: securityConfig.requireStrongPasswords,
         passwordRequireSpecialChars: securityConfig.passwordRequireSpecialChars
@@ -178,14 +187,9 @@ export class PublicAuthController {
         status: result.user.status
       });
 
-      const enhancedResult = await this.issueTokens(req, result.user);
+      const payload: AuthResponse = await this.issueTokens(req, result.user);
 
-      // authResponseSchema requires sessionToken alongside tokens (legacy wire contract)
-      const response = ResponseBuilder.success({
-        ...enhancedResult,
-        sessionToken: enhancedResult.tokens.accessToken,
-      });
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       await recordFailedLogin(req);
 
@@ -225,10 +229,9 @@ export class PublicAuthController {
       }
 
       try {
-        const refreshResult = await this.deps.sessionService.refreshAccessToken(refreshToken);
+        const payload: RefreshTokenResponse = await this.deps.sessionService.refreshAccessToken(refreshToken);
 
-        const response = ResponseBuilder.success(refreshResult);
-        res.status(200).json(response);
+        res.status(200).json(ResponseBuilder.success(payload));
 
         logger.info('Access token refreshed successfully');
 
@@ -277,24 +280,24 @@ export class PublicAuthController {
       if (user.isApproved()) {
         const authResult = await this.issueTokens(req, user);
 
-        const response = ResponseBuilder.success({
+        const approvedPayload: RegisterWithProfileResponse = {
           user: user.toPublicData(),
           tokens: authResult.tokens,
           status: 'approved',
           message: 'Account created and approved'
-        });
+        };
 
-        res.status(201).json(response);
+        res.status(201).json(ResponseBuilder.success(approvedPayload));
         return;
       }
 
-      const response = ResponseBuilder.success({
+      const pendingPayload: RegisterWithProfileResponse = {
         user: user.toPublicData(),
         status: 'pending',
         message: 'Account created. Awaiting administrator approval.'
-      });
+      };
 
-      res.status(201).json(response);
+      res.status(201).json(ResponseBuilder.success(pendingPayload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to register');
     }
@@ -314,7 +317,9 @@ export class PublicAuthController {
 
       logger.info('Email verified successfully', { userId: user.id });
 
-      res.status(200).json(ResponseBuilder.success({ emailVerified: true }));
+      const payload: VerifyEmailResponse = { emailVerified: true };
+
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to verify email');
     }
@@ -335,9 +340,10 @@ export class PublicAuthController {
 
       if (!user) {
         // Opaque response prevents user enumeration
-        res.status(200).json(ResponseBuilder.success({
+        const opaquePayload: MessageResponse = {
           message: 'If an account exists with that information, a verification email has been sent.'
-        }));
+        };
+        res.status(200).json(ResponseBuilder.success(opaquePayload));
         return;
       }
 
@@ -346,14 +352,17 @@ export class PublicAuthController {
 
       logger.info('Verification email resent (public)', { userId: user.id });
 
-      res.status(200).json(ResponseBuilder.success({
+      const sentPayload: MessageResponse = {
         message: 'Verification email sent. Please check your inbox.'
-      }));
+      };
+
+      res.status(200).json(ResponseBuilder.success(sentPayload));
     } catch (error) {
       logger.error('Error in public resend verification', { error });
-      res.status(200).json(ResponseBuilder.success({
+      const opaquePayload: MessageResponse = {
         message: 'If an account exists with that information, a verification email has been sent.'
-      }));
+      };
+      res.status(200).json(ResponseBuilder.success(opaquePayload));
     }
   }
 
@@ -374,11 +383,11 @@ export class PublicAuthController {
 
       logger.info('Password reset completed with token');
 
-      const response = ResponseBuilder.success({
+      const payload: MessageResponse = {
         message: 'Password reset successfully. You can now login with your new password.'
-      });
+      };
 
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to reset password');
     }
@@ -407,16 +416,9 @@ export class PublicAuthController {
 
       const user = await this.deps.forceChangePasswordHandler.handle({ userId: tokenData.userId, newPassword });
 
-      const authResult = await this.issueTokens(req, user);
+      const payload: AuthResponse = await this.issueTokens(req, user);
 
-      // authResponseSchema requires sessionToken alongside tokens (legacy wire contract)
-      const response = ResponseBuilder.success({
-        ...authResult,
-        sessionToken: authResult.tokens.accessToken,
-        message: 'Password changed successfully'
-      });
-
-      res.status(200).json(response);
+      res.status(200).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to force change password');
     }
@@ -431,12 +433,13 @@ export class PublicAuthController {
       const authHeader = req.headers.authorization;
 
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(200).json(ResponseBuilder.success({ isAuthenticated: false }));
+        const unauthenticated: SessionInfoResponse = { isAuthenticated: false };
+        res.status(200).json(ResponseBuilder.success(unauthenticated));
         return;
       }
 
       const token = authHeader.substring(7);
-      const info = await this.deps.getSessionInfoHandler.handle({ token });
+      const info: SessionInfoResponse = await this.deps.getSessionInfoHandler.handle({ token });
 
       res.status(200).json(ResponseBuilder.success(info));
     } catch (error) {

@@ -6,8 +6,8 @@
 
 import type { User } from '@domain/entities/User';
 
-import type { TokenPair } from '@odysseus/shared-schemas';
-export type { TokenPair };
+import type { RefreshTokenResponse, TokenPair } from '@odysseus/shared-schemas';
+export type { RefreshTokenResponse, TokenPair };
 
 export interface AccessTokenPayload {
   // Standard JWT claims (RFC 7519)
@@ -29,13 +29,4 @@ export interface AccessTokenPayload {
 export interface EnhancedLoginResponse {
   user: ReturnType<User['toPublicData']>;
   tokens: TokenPair;
-}
-
-export interface RefreshTokenResponse {
-  accessToken: string;
-  accessTokenExpiry: Date;
-  tokenType: 'Bearer';
-  // Rotation: each refresh issues a new refresh token that the client must persist.
-  refreshToken: string;
-  refreshTokenExpiry: Date;
 }

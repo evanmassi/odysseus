@@ -110,11 +110,21 @@ export type PublicUserData = z.infer<typeof publicUserDataSchema>;
 
 export const authResponseSchema = z.object({
   user: publicUserDataSchema,
-  sessionToken: z.string(),
   tokens: tokenPairSchema,
 });
 
 export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+/** Rotation: every refresh issues a new refresh token, so the client must persist both. */
+export const refreshTokenResponseSchema = z.object({
+  accessToken: z.string(),
+  accessTokenExpiry: dateField,
+  refreshToken: z.string(),
+  refreshTokenExpiry: dateField,
+  tokenType: z.literal('Bearer'),
+});
+
+export type RefreshTokenResponse = z.infer<typeof refreshTokenResponseSchema>;
 
 export const loginResponseSchema = z.union([
   authResponseSchema,
@@ -145,9 +155,13 @@ export const firstTimeResponseSchema = z.object({
   needsSystemAdmin: z.boolean().optional(),
 });
 
+export type FirstTimeResponse = z.infer<typeof firstTimeResponseSchema>;
+
 export const verifyEmailResponseSchema = z.object({
   emailVerified: z.boolean(),
 });
+
+export type VerifyEmailResponse = z.infer<typeof verifyEmailResponseSchema>;
 
 export const sessionInfoResponseSchema = z.object({
   isAuthenticated: z.boolean(),
