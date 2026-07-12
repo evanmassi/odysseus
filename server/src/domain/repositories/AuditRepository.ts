@@ -13,17 +13,11 @@ export interface AuditRepository {
   save(entry: AuditLogEntry): Promise<void>;
   saveMany(entries: AuditLogEntry[]): Promise<void>;
 
-  findByEntityId(entityId: string, entityType: string): Promise<AuditLogEntry[]>;
-  findByEntityIdForLab(entityId: string, entityType: string, labId: string): Promise<AuditLogEntry[]>;
   findByAction(action: string, options?: QueryOptions): Promise<AuditLogEntry[]>;
   findAll(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>>;
   findAllForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>>;
 
   deleteByLabId(labId: string): Promise<number>;
-  count(): Promise<number>;
-  countForLab(labId: string): Promise<number>;
-  countInRange(dateFrom: Date, dateTo: Date): Promise<number>;
-  countInRangeForLab(dateFrom: Date, dateTo: Date, labId: string): Promise<number>;
 
   findOlderThan(date: Date, limit?: number): Promise<AuditLogEntry[]>;
 

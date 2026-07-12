@@ -20,27 +20,25 @@ export class UserSessionController extends BaseController {
     super();
   }
 
-  /** GET /api/users/me/sessions */
   async getUserSessions(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
       const sessions = await this.deps.userSessionApplicationService.getActiveSessions(user, req.sessionId);
 
-      res.status(200).json(ResponseBuilder.success(sessions));
+      res.json(ResponseBuilder.success(sessions));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get user sessions');
+      handleControllerError(error, res, 'Failed to get user sessions', req.requestId);
     }
   }
 
-  /** DELETE /api/users/me/sessions/:id */
   async revokeSession(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
       await this.deps.userSessionApplicationService.revokeSession(user, req.params.id, req.sessionId);
 
-      res.status(200).json(ResponseBuilder.success({ message: 'Session revoked successfully' }));
+      res.json(ResponseBuilder.success({ message: 'Session revoked successfully' }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to revoke session');
+      handleControllerError(error, res, 'Failed to revoke session', req.requestId);
     }
   }
 }

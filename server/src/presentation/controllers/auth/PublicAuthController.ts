@@ -25,6 +25,7 @@ import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQ
 import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
+import type { User } from '@domain/entities/User';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { InvalidCredentialsError } from '@domain/errors/UserErrors';
 import { UserLoginFailedEvent } from '@domain/events/UserEvents';
@@ -83,9 +84,7 @@ export class PublicAuthController {
 
       logger.info('System admin created', { userId: user.id, username: user.username });
 
-      const userAgent = req.headers['user-agent'];
-      const ipAddress = req.ip ?? req.socket.remoteAddress;
-      const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
+      const authResult = await this.issueTokens(req, user);
 
       const response = ResponseBuilder.success({
         user: user.toPublicData(),
@@ -179,9 +178,7 @@ export class PublicAuthController {
         status: result.user.status
       });
 
-      const userAgent = req.headers['user-agent'];
-      const ipAddress = req.ip ?? req.socket.remoteAddress;
-      const enhancedResult = await this.deps.sessionService.createTokenPair(result.user, userAgent, ipAddress);
+      const enhancedResult = await this.issueTokens(req, result.user);
 
       // authResponseSchema requires sessionToken alongside tokens (legacy wire contract)
       const response = ResponseBuilder.success({
@@ -208,6 +205,13 @@ export class PublicAuthController {
   private denyLogin(req: Request, username: string, reason: string, userId: string): never {
     this.publishLoginFailed(req, username, reason, userId);
     throw new PermissionError(reason);
+  }
+
+  /** Creates a session token pair stamped with the request's user agent and IP. */
+  private issueTokens(req: Request, user: User) {
+    const userAgent = req.headers['user-agent'];
+    const ipAddress = req.ip ?? req.socket.remoteAddress;
+    return this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
   }
 
   async refreshToken(req: Request, res: Response): Promise<void> {
@@ -271,9 +275,7 @@ export class PublicAuthController {
       }
 
       if (user.isApproved()) {
-        const userAgent = req.headers['user-agent'];
-        const ipAddress = req.ip ?? req.socket.remoteAddress;
-        const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
+        const authResult = await this.issueTokens(req, user);
 
         const response = ResponseBuilder.success({
           user: user.toPublicData(),
@@ -409,9 +411,7 @@ export class PublicAuthController {
 
       const user = await this.deps.forceChangePasswordHandler.handle({ userId: tokenData.userId, newPassword });
 
-      const userAgent = req.headers['user-agent'];
-      const ipAddress = req.ip ?? req.socket.remoteAddress;
-      const authResult = await this.deps.sessionService.createTokenPair(user, userAgent, ipAddress);
+      const authResult = await this.issueTokens(req, user);
 
       // authResponseSchema requires sessionToken alongside tokens (legacy wire contract)
       const response = ResponseBuilder.success({

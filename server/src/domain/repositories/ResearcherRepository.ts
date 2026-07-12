@@ -27,9 +27,7 @@ export interface ResearcherRepository {
 
   nameExists(firstName: string, lastName: string, labId?: string): Promise<boolean>;
   findDeactivatedByName(firstName: string, lastName: string, labId: string): Promise<Researcher | null>;
-  searchByName(namePattern: string, labId: string): Promise<Researcher[]>;
 
-  getMostActiveResearchers(limit: number | undefined, labId: string): Promise<Array<{ researcher: Researcher, tubeCount: number }>>;
   countByLabIds(labIds: string[]): Promise<Map<string, number>>;
   getTubeCountByResearcher(researcherId: string): Promise<number>;
   getTubeCountsByResearcherIds(researcherIds: string[]): Promise<Map<string, number>>;

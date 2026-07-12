@@ -61,7 +61,7 @@ export class ExportController extends BaseController {
       const data = await this.deps.exportService.exportSystemBackup(labId);
       this.sendJsonExport(res, data, 'system-backup');
     } catch (error) {
-      handleControllerError(error, res, 'Failed to export system backup');
+      handleControllerError(error, res, 'Failed to export system backup', req.requestId);
     }
   }
 
@@ -81,7 +81,7 @@ export class ExportController extends BaseController {
         this.sendCsvExport(res, await fetchers.csv(labId), type);
       }
     } catch (error) {
-      handleControllerError(error, res, `Failed to export ${type}`);
+      handleControllerError(error, res, `Failed to export ${type}`, req.requestId);
     }
   }
 

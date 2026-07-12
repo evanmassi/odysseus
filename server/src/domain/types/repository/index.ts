@@ -5,5 +5,4 @@
  */
 
 export * from './searchCriteriaTypes';
-export * from './statsTypes';
 export * from './queryOptionsTypes';

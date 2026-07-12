@@ -10,10 +10,9 @@ import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandle
 import { SeedDemoCommandHandler, UnseedDemoCommandHandler } from '@application/commands/DemoSeedCommands';
 import { InitializeStorageCommandHandler } from '@application/commands/InitializeStorageCommand';
 import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
-import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
+import { UpdateSystemStorageCommandHandler, ResetStorageToDefaultCommandHandler, ImportStorageCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/StorageCommands';
 import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
 import { GetCurrentStorageQueryHandler, GetStorageHistoryQueryHandler, GetStorageByVersionQueryHandler, CheckStorageHealthQueryHandler, GetSystemMetricsQueryHandler } from '@application/queries/StorageQueries';
-import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import { StorageAnalyticsApplicationService } from '@application/services/StorageAnalyticsApplicationService';
@@ -24,17 +23,11 @@ import { LookupValueController } from '@presentation/controllers/LookupValueCont
 import { StorageController } from '@presentation/controllers/StorageController';
 import { StorageAnalyticsController } from '@presentation/controllers/system/StorageAnalyticsController';
 
-interface StorageCrossModuleDeps {
-  getGetUserStatsHandler: () => GetUserStatisticsQueryHandler;
-}
-
 export class StorageModule {
   // Storage command handlers
   private updateSystemStorageHandler?: UpdateSystemStorageCommandHandler;
   private resetStorageToDefaultHandler?: ResetStorageToDefaultCommandHandler;
   private importStorageHandler?: ImportStorageCommandHandler;
-  private updateBoxPositionDisplayHandler?: UpdateBoxPositionDisplayCommandHandler;
-  private updateLabDefaultPositionDisplayHandler?: UpdateLabDefaultPositionDisplayCommandHandler;
   private updateResourceLabelHandler?: UpdateResourceLabelCommandHandler;
 
   // Tank/rack/box handlers
@@ -76,8 +69,7 @@ export class StorageModule {
 
   constructor(
     private shared: SharedServices,
-    private repositoryFactory: RepositoryFactory,
-    private crossModuleDeps: StorageCrossModuleDeps
+    private repositoryFactory: RepositoryFactory
   ) {}
 
   // Storage command handlers
@@ -116,30 +108,6 @@ export class StorageModule {
       );
     }
     return this.importStorageHandler;
-  }
-
-  getUpdateBoxPositionDisplayHandler(): UpdateBoxPositionDisplayCommandHandler {
-    if (!this.updateBoxPositionDisplayHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.updateBoxPositionDisplayHandler = new UpdateBoxPositionDisplayCommandHandler(
-        repositories.storage,
-        this.shared.validationService,
-        repositories.users
-      );
-    }
-    return this.updateBoxPositionDisplayHandler;
-  }
-
-  getUpdateLabDefaultPositionDisplayHandler(): UpdateLabDefaultPositionDisplayCommandHandler {
-    if (!this.updateLabDefaultPositionDisplayHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.updateLabDefaultPositionDisplayHandler = new UpdateLabDefaultPositionDisplayCommandHandler(
-        repositories.storage,
-        this.shared.validationService,
-        repositories.users
-      );
-    }
-    return this.updateLabDefaultPositionDisplayHandler;
   }
 
   getUpdateResourceLabelHandler(): UpdateResourceLabelCommandHandler {
@@ -470,8 +438,6 @@ export class StorageModule {
         updateSystemStorageHandler: this.getUpdateSystemStorageHandler(),
         resetStorageHandler: this.getResetStorageToDefaultHandler(),
         importStorageHandler: this.getImportStorageHandler(),
-        updateBoxPositionDisplayHandler: this.getUpdateBoxPositionDisplayHandler(),
-        updateLabDefaultPositionDisplayHandler: this.getUpdateLabDefaultPositionDisplayHandler(),
         updateResourceLabelHandler: this.getUpdateResourceLabelHandler(),
         addTankHandler: this.getAddTankHandler(),
         updateTankHandler: this.getUpdateTankHandler(),
@@ -500,7 +466,6 @@ export class StorageModule {
       this.adminConfigController = new AdminConfigController({
         securityConfigService: this.getSecurityConfigApplicationService(),
         getSystemMetricsHandler: this.getGetSystemMetricsHandler(),
-        getUserStatsHandler: this.crossModuleDeps.getGetUserStatsHandler(),
       });
     }
     return this.adminConfigController;

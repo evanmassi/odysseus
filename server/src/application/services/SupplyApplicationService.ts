@@ -163,14 +163,6 @@ export class SupplyApplicationService {
     return SupplyDto.locationToResponse(location);
   }
 
-  async deleteLocation(labId: string, id: string, user: User): Promise<void> {
-    await this.accessControlService.requireAdminAccess(user);
-    await this.getLocationOrThrow(id, labId);
-    const hasStock = await this.locationRepository.hasStock(id);
-    if (hasStock) throw new ValidationError('Cannot delete location — it still has stock entries with non-zero quantities');
-    await this.locationRepository.delete(id, labId);
-  }
-
   // Items
 
   async listItems(labId: string): Promise<SupplyItemWithStockResponse[]> {
@@ -419,13 +411,6 @@ export class SupplyApplicationService {
     return SupplyDto.packagingLevelToResponse(level);
   }
 
-  async updatePackagingLevel(labId: string, itemId: string, levelId: string, quantity: number, user: User): Promise<void> {
-    await this.accessControlService.requireAdminAccess(user);
-    await this.getItemOrThrow(itemId, labId);
-    const updated = await this.itemRepository.updatePackagingLevel(levelId, itemId, quantity);
-    if (!updated) throw new NotFoundError(`Packaging level ${levelId} not found`);
-  }
-
   async removePackagingLevel(labId: string, itemId: string, levelId: string, user: User): Promise<void> {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
@@ -518,7 +503,8 @@ export class SupplyApplicationService {
     }, user);
   }
 
-  async getTransactionHistory(itemId: string, limit?: number): Promise<SupplyTransactionResponse[]> {
+  async getTransactionHistory(labId: string, itemId: string, limit?: number): Promise<SupplyTransactionResponse[]> {
+    await this.getItemOrThrow(itemId, labId);
     const txns = await this.itemRepository.findTransactionsByItemId(itemId, limit);
     return txns.map(SupplyDto.transactionToResponse);
   }

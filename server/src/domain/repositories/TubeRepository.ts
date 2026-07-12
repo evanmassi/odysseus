@@ -6,7 +6,6 @@
 
 import type { Tube } from '@domain/entities/Tube';
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteriaTypes';
-import type { TubeRepositoryStats } from '@domain/types/repository/statsTypes';
 import type { Location } from '@domain/value-objects/Location';
 
 import type { TubeFilterableField, TubeFilterOptions } from '@odysseus/shared-schemas';
@@ -48,5 +47,4 @@ export interface TubeRepository {
   deleteByTankIds(tankIds: string[], labId: string): Promise<number>;
 
   isHealthy(): Promise<boolean>;
-  getStats(tankIds?: string[], labId?: string): Promise<TubeRepositoryStats>;
 }

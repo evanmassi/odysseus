@@ -34,16 +34,16 @@ export class StorageAnalyticsController extends BaseController {
       const result = await this.deps.storageAnalyticsService.getLabAnalytics(labId);
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get storage analytics');
+      handleControllerError(error, res, 'Failed to get storage analytics', req.requestId);
     }
   }
 
-  async getCrossLabStorageAnalytics(_req: Request, res: Response): Promise<void> {
+  async getCrossLabStorageAnalytics(req: Request, res: Response): Promise<void> {
     try {
       const result = await this.deps.storageAnalyticsService.getCrossLabAnalytics();
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get cross-lab storage analytics');
+      handleControllerError(error, res, 'Failed to get cross-lab storage analytics', req.requestId);
     }
   }
 }

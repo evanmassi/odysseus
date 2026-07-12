@@ -176,7 +176,6 @@ export const useCreateTubeMutation = (
         });
       }
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
 
@@ -276,7 +275,6 @@ export const useUpdateTubeMutation = (
         });
       }
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
 
@@ -346,8 +344,6 @@ export const useDeleteTubeMutation = (
           });
         }
       }
-
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
     },
 
     onError: (error, id, _context) => {
@@ -400,7 +396,6 @@ export const useBulkUpdateTubesMutation = (
     },
 
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
 
       if (variables.location) {
@@ -479,8 +474,6 @@ export const useBulkDeleteTubesMutation = (
         queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(labId, id) });
       });
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
-
       if (variables.location) {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.location(
@@ -552,7 +545,6 @@ export const usePasteTubesMutation = (
         });
       }
 
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
 
       if (failed.length > 0) {
@@ -672,8 +664,6 @@ export const useMoveTubesMutation = (
       result.moved.forEach(tube => {
         queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
       });
-
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(labId) });
 
       const boxes = new Set<string>();
       result.moved.forEach(tube => {

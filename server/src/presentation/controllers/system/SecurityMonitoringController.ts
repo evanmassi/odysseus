@@ -21,21 +21,21 @@ export class SecurityMonitoringController extends BaseController {
     super();
   }
 
-  async getSecurityOverview(_req: Request, res: Response): Promise<void> {
+  async getSecurityOverview(req: Request, res: Response): Promise<void> {
     try {
       const result = await this.deps.securityMonitoringService.getSecurityOverview();
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get security overview');
+      handleControllerError(error, res, 'Failed to get security overview', req.requestId);
     }
   }
 
-  async getActiveSessions(_req: Request, res: Response): Promise<void> {
+  async getActiveSessions(req: Request, res: Response): Promise<void> {
     try {
       const result = await this.deps.securityMonitoringService.getActiveSessions();
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get active sessions');
+      handleControllerError(error, res, 'Failed to get active sessions', req.requestId);
     }
   }
 
@@ -47,16 +47,16 @@ export class SecurityMonitoringController extends BaseController {
       const result = await this.deps.securityMonitoringService.getIpActivity(startDate, endDate);
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get IP activity');
+      handleControllerError(error, res, 'Failed to get IP activity', req.requestId);
     }
   }
 
-  async purgeExpiredSessions(_req: Request, res: Response): Promise<void> {
+  async purgeExpiredSessions(req: Request, res: Response): Promise<void> {
     try {
       const result = await this.deps.securityMonitoringService.purgeExpiredSessions();
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to purge expired sessions');
+      handleControllerError(error, res, 'Failed to purge expired sessions', req.requestId);
     }
   }
 
@@ -69,7 +69,7 @@ export class SecurityMonitoringController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success({ message: 'Session revoked successfully' }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to revoke session');
+      handleControllerError(error, res, 'Failed to revoke session', req.requestId);
     }
   }
 
@@ -82,7 +82,7 @@ export class SecurityMonitoringController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to bulk revoke sessions');
+      handleControllerError(error, res, 'Failed to bulk revoke sessions', req.requestId);
     }
   }
 
@@ -95,7 +95,7 @@ export class SecurityMonitoringController extends BaseController {
       const result = await this.deps.securityMonitoringService.getFailedLogins(limit, startDate, endDate);
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get failed logins');
+      handleControllerError(error, res, 'Failed to get failed logins', req.requestId);
     }
   }
 
@@ -106,7 +106,7 @@ export class SecurityMonitoringController extends BaseController {
       const result = await this.deps.securityMonitoringService.getSessionActivity(hours);
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get session activity');
+      handleControllerError(error, res, 'Failed to get session activity', req.requestId);
     }
   }
 }

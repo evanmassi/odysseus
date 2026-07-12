@@ -9,7 +9,6 @@ import type { SupplyLocationRepository as ISupplyLocationRepository } from '@dom
 import type { SupplyLocationRow } from '@infrastructure/database/mappers/SupplyLocationMapper';
 import { SupplyLocationMapper } from '@infrastructure/database/mappers/SupplyLocationMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { parseCount } from '@infrastructure/database/PostgresContext';
 
 const COLUMNS = 'id, lab_id, name, description, sort_order, created_at, updated_at';
 
@@ -44,21 +43,5 @@ export class SupplyLocationRepository implements ISupplyLocationRepository {
         sort_order = EXCLUDED.sort_order,
         updated_at = EXCLUDED.updated_at
     `, [row.id, row.lab_id, row.name, row.description, row.sort_order, row.created_at, row.updated_at]);
-  }
-
-  async delete(id: string, labId: string): Promise<boolean> {
-    const result = await this.db.execute(
-      'DELETE FROM supply_locations WHERE id = $1 AND lab_id = $2',
-      [id, labId]
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  async hasStock(id: string): Promise<boolean> {
-    const row = await this.db.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM supply_stock WHERE location_id = $1 AND quantity > 0',
-      [id]
-    );
-    return parseCount(row) > 0;
   }
 }

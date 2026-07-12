@@ -10,13 +10,13 @@ import { ConflictError } from '@domain/errors/ConflictError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
-import type { TubeSearchCriteria, TubeSearchResult, TubeRepositoryStats } from '@domain/types/repository';
+import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository';
 import type { Location } from '@domain/value-objects/Location';
 import { isPositionConstraintError } from '@infrastructure/database/DatabaseErrors';
 import type { TubeRow } from '@infrastructure/database/mappers/TubeMapper';
 import { TubeMapper } from '@infrastructure/database/mappers/TubeMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { parseCount, toDate } from '@infrastructure/database/PostgresContext';
+import { parseCount } from '@infrastructure/database/PostgresContext';
 import {
   normalizeSearchQuery,
   parseQueryIntoConcepts,
@@ -903,85 +903,5 @@ export class TubeRepository implements ITubeRepository {
       logger.error('Repository health check failed', error);
       return false;
     }
-  }
-
-  async getStats(tankIds?: string[], labId?: string): Promise<TubeRepositoryStats> {
-    const params: unknown[] = [];
-    let paramIdx = 1;
-
-    const conditions: string[] = [];
-    if (tankIds && tankIds.length > 0) {
-      const placeholders = tankIds.map(() => `$${paramIdx++}`).join(',');
-      conditions.push(`tank_id IN (${placeholders})`);
-      params.push(...tankIds);
-    }
-    if (labId) {
-      conditions.push(`lab_id = $${paramIdx++}`);
-      params.push(labId);
-    }
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const andClause = conditions.length > 0 ? `AND ${conditions.join(' AND ')}` : '';
-
-    const totalResult = await this.context.queryOne<{ count: string }>(
-      `SELECT COUNT(*) as count FROM tubes ${whereClause}`, params
-    );
-    const totalTubes = parseCount(totalResult);
-
-    const tankRows = await this.context.queryMany<{ tank_id: string; count: string }>(
-      `SELECT tank_id, COUNT(*) as count FROM tubes ${whereClause} GROUP BY tank_id ORDER BY tank_id`, params
-    );
-    const tubesByTank: Record<string, number> = {};
-    tankRows.forEach((row: { tank_id: string; count: string }) => {
-      tubesByTank[row.tank_id] = parseCount(row);
-    });
-
-    const researcherRows = await this.context.queryMany<{ researcher_id: string; count: string }>(
-      `SELECT researcher_id, COUNT(*) as count FROM tubes WHERE researcher_id IS NOT NULL ${andClause} GROUP BY researcher_id ORDER BY researcher_id`, params
-    );
-    const tubesByResearcher: Record<string, number> = {};
-    researcherRows.forEach((row: { researcher_id: string; count: string }) => {
-      tubesByResearcher[row.researcher_id] = parseCount(row);
-    });
-
-    const boxCount = await this.context.queryOne<{ count: string }>(
-      `SELECT COUNT(DISTINCT tank_id || '-' || rack_id || '-' || box_id) as count FROM tubes ${whereClause}`, params
-    );
-    const boxCountNum = parseCount(boxCount);
-    const averageTubesPerBox = boxCountNum > 0 ? totalTubes / boxCountNum : 0;
-
-    const oldestRow = await this.context.queryOne<{ id: string; created_at: Date }>(
-      `SELECT id, created_at FROM tubes ${whereClause} ORDER BY created_at ASC LIMIT 1`, params
-    );
-    const newestRow = await this.context.queryOne<{ id: string; created_at: Date }>(
-      `SELECT id, created_at FROM tubes ${whereClause} ORDER BY created_at DESC LIMIT 1`, params
-    );
-
-    const completeCount = await this.context.queryOne<{ count: string }>(
-      `SELECT COUNT(*) as count FROM tubes WHERE ${this.TUBE_COMPLETE_CONDITION} ${andClause}`, params
-    );
-    const completionRate = totalTubes > 0 ? (parseCount(completeCount) / totalTubes) * 100 : 0;
-
-    const expiredCount = await this.context.queryOne<{ count: string }>(
-      `SELECT COUNT(*) as count FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text ${andClause}`, params
-    );
-    const expirationRate = totalTubes > 0 ? (parseCount(expiredCount) / totalTubes) * 100 : 0;
-
-    return {
-      totalTubes,
-      tubesByTank,
-      tubesByResearcher,
-      averageTubesPerBox,
-      oldestTube: oldestRow ? {
-        id: oldestRow.id,
-        createdAt: toDate(oldestRow.created_at)
-      } : undefined,
-      newestTube: newestRow ? {
-        id: newestRow.id,
-        createdAt: toDate(newestRow.created_at)
-      } : undefined,
-      completionRate,
-      expirationRate
-    };
   }
 }

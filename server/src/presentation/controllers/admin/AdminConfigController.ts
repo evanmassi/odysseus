@@ -1,13 +1,12 @@
 /**
  * Admin Configuration Controller
  *
- * Security settings, system metrics, and user statistics for lab and system admins.
+ * Security settings and system metrics for lab and system admins.
  */
 
 import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
 import type { GetSystemMetricsQueryHandler } from '@application/queries/StorageQueries';
-import type { GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
@@ -20,7 +19,6 @@ import type { Request, Response } from 'express';
 export interface AdminConfigControllerDeps {
   securityConfigService: SecurityConfigApplicationService;
   getSystemMetricsHandler: GetSystemMetricsQueryHandler;
-  getUserStatsHandler: GetUserStatisticsQueryHandler;
 }
 
 export class AdminConfigController extends BaseController {
@@ -36,7 +34,7 @@ export class AdminConfigController extends BaseController {
 
       logger.debug('Security configuration retrieved', { requestedBy: req.user?.username });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get security config');
+      handleControllerError(error, res, 'Failed to get security config', req.requestId);
     }
   }
 
@@ -54,7 +52,7 @@ export class AdminConfigController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success({ config }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update security config');
+      handleControllerError(error, res, 'Failed to update security config', req.requestId);
     }
   }
 
@@ -72,20 +70,7 @@ export class AdminConfigController extends BaseController {
 
       logger.debug('System metrics retrieved', { requestedBy: req.user?.username });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get metrics');
-    }
-  }
-
-  async getUserStatistics(req: Request, res: Response): Promise<void> {
-    try {
-      const user = this.getAuthenticatedUser(req);
-      const labId = user.isSystemAdmin() ? undefined : user.labId;
-
-      const stats = await this.deps.getUserStatsHandler.handle({ labId });
-
-      res.status(200).json(ResponseBuilder.success({ statistics: stats }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get user statistics');
+      handleControllerError(error, res, 'Failed to get metrics', req.requestId);
     }
   }
 }

@@ -10,7 +10,7 @@ import { LoginCommandHandler, ChangeUserPasswordCommandHandler, CreateSystemAdmi
 import type { ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import { GetSessionInfoQueryHandler } from '@application/queries/SessionQueries';
-import type { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
+import type { CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
 import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { SecurityConfigApplicationService } from '@application/services/SecurityConfigApplicationService';
@@ -24,7 +24,6 @@ import { PublicAuthController } from '@presentation/controllers/auth/PublicAuthC
 
 interface AuthCrossModuleDeps {
   getCheckFirstTimeHandler: () => CheckFirstTimeSetupQueryHandler;
-  getGetUserByIdHandler: () => GetUserByIdQueryHandler;
   getChangeRoleHandler: () => ChangeUserRoleCommandHandler;
   getUserApplicationService: () => UserApplicationService;
   getResearcherApplicationService: () => ResearcherApplicationService;
@@ -234,8 +233,6 @@ export class AuthModule {
     if (!this.authController) {
       this.authController = new AuthController({
         changePasswordHandler: this.getChangePasswordHandler(),
-        resendVerificationHandler: this.getResendVerificationHandler(),
-        personApplicationService: this.crossModuleDeps.getPersonApplicationService(),
         eventBus: this.shared.eventBus,
       });
     }
@@ -248,7 +245,6 @@ export class AuthModule {
         changeRoleHandler: this.crossModuleDeps.getChangeRoleHandler(),
         adminResetPasswordHandler: this.getAdminResetPasswordHandler(),
         generatePasswordResetTokenHandler: this.getGeneratePasswordResetTokenHandler(),
-        getUserByIdHandler: this.crossModuleDeps.getGetUserByIdHandler(),
         userApplicationService: this.crossModuleDeps.getUserApplicationService(),
         researcherApplicationService: this.crossModuleDeps.getResearcherApplicationService(),
       });

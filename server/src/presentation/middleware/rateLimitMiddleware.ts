@@ -25,7 +25,7 @@ export function createRateLimitMiddleware(
         return next();
       }
 
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- fall through on empty-string ip, so || not ??
       const identifier = req.ip || req.socket.remoteAddress || 'unknown';
       const blockStatus = await service.isBlocked(identifier);
 

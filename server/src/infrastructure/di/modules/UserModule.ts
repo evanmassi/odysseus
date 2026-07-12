@@ -5,7 +5,7 @@
  */
 
 import { ChangeUserRoleCommandHandler, UpdateUserSettingsCommandHandler } from '@application/commands/UserCommands';
-import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
+import { GetUserSettingsQueryHandler, CheckFirstTimeSetupQueryHandler } from '@application/queries/UserQueries';
 import { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { SecurityMonitoringApplicationService } from '@application/services/SecurityMonitoringApplicationService';
@@ -25,8 +25,6 @@ export class UserModule {
   private updateUserSettingsHandler?: UpdateUserSettingsCommandHandler;
   private getUserSettingsHandler?: GetUserSettingsQueryHandler;
   private checkFirstTimeHandler?: CheckFirstTimeSetupQueryHandler;
-  private getUserByIdHandler?: GetUserByIdQueryHandler;
-  private getUserStatsHandler?: GetUserStatisticsQueryHandler;
   private userApplicationService?: UserApplicationService;
   private researcherApplicationService?: ResearcherApplicationService;
   private personApplicationService?: PersonApplicationService;
@@ -85,26 +83,6 @@ export class UserModule {
       );
     }
     return this.checkFirstTimeHandler;
-  }
-
-  getGetUserByIdHandler(): GetUserByIdQueryHandler {
-    if (!this.getUserByIdHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.getUserByIdHandler = new GetUserByIdQueryHandler(
-        repositories.users
-      );
-    }
-    return this.getUserByIdHandler;
-  }
-
-  getGetUserStatsHandler(): GetUserStatisticsQueryHandler {
-    if (!this.getUserStatsHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.getUserStatsHandler = new GetUserStatisticsQueryHandler(
-        repositories.users
-      );
-    }
-    return this.getUserStatsHandler;
   }
 
   // Services

@@ -263,17 +263,4 @@ export class TubeController extends BaseController {
     }
   }
 
-  /** GET /api/tubes/stats */
-  async getStats(req: Request, res: Response): Promise<void> {
-    try {
-      const authenticatedUser = this.getAuthenticatedUser(req);
-
-      const stats = await this.deps.tubeApplicationService.getStats(authenticatedUser);
-
-      res.json(ResponseBuilder.success(stats));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get tube statistics', req.requestId);
-    }
-  }
-
 }

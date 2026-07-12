@@ -21,9 +21,6 @@ import type { AccessControlService , ResourceWithOwnership } from '@domain/servi
 import type { ValidationService } from '@domain/services/ValidationService';
 import type { StorageImportData } from '@domain/types/storageTypes';
 
-import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
-
-
 // COMMAND INTERFACES
 
 export interface UpdateSystemStorageCommand {
@@ -43,21 +40,6 @@ export interface ImportStorageCommand {
   labId: string;
   configurationData: StorageImportData;
   validateOnly?: boolean;
-}
-
-export interface UpdateBoxPositionDisplayCommand {
-  userId: string;
-  labId: string;
-  tankId: string;
-  rackId: string;
-  boxId: string;
-  positionDisplay: PositionDisplayConfig | null;
-}
-
-export interface UpdateLabDefaultPositionDisplayCommand {
-  userId: string;
-  labId: string;
-  positionDisplay: PositionDisplayConfig | null;
 }
 
 export interface UpdateResourceLabelCommand {
@@ -244,116 +226,6 @@ export class ImportStorageCommandHandler {
         errors: [error instanceof Error ? error.message : 'Unknown import error']
       };
     }
-  }
-}
-
-export class UpdateBoxPositionDisplayCommandHandler {
-  constructor(
-    private storageRepository: StorageRepository,
-    private validationService: ValidationService,
-    private userRepository: UserRepository
-  ) {}
-
-  async handle(command: UpdateBoxPositionDisplayCommand): Promise<Storage> {
-    const currentConfig = await this.storageRepository.getForLab(command.labId);
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found. Initialize system first.');
-    }
-
-    const user = await requireUser(this.userRepository, command.userId);
-
-    const box = currentConfig.equipment.findBox(
-      command.tankId,
-      command.rackId,
-      command.boxId
-    );
-
-    if (!box) {
-      throw new ValidationError(
-        `Box '${command.boxId}' not found in tank '${command.tankId}', rack ${command.rackId}`
-      );
-    }
-
-    const updatedConfig = currentConfig.updateBoxPositionDisplay(
-      command.tankId,
-      command.rackId,
-      command.boxId,
-      command.positionDisplay
-    );
-
-    const validationResult = await this.validationService.validateStorageUpdate(
-      currentConfig,
-      updatedConfig,
-      user,
-      command.labId
-    );
-
-    if (!validationResult.isValid) {
-      throw new ValidationError(
-        `Box position display update failed: ${validationResult.errors.join(', ')}`
-      );
-    }
-
-    const expectedVersion = currentConfig.version;
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
-      updatedConfig,
-      expectedVersion,
-      `Updated position display for box ${command.boxId} in tank ${command.tankId}, rack ${command.rackId}`,
-      command.userId
-    );
-    updatedConfig.applyPersistedVersion(newVersion);
-
-    return updatedConfig;
-  }
-}
-
-export class UpdateLabDefaultPositionDisplayCommandHandler {
-  constructor(
-    private storageRepository: StorageRepository,
-    private validationService: ValidationService,
-    private userRepository: UserRepository
-  ) {}
-
-  async handle(command: UpdateLabDefaultPositionDisplayCommand): Promise<Storage> {
-    const currentConfig = await this.storageRepository.getForLab(command.labId);
-
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found. Initialize configuration first.');
-    }
-
-    const user = await requireUser(this.userRepository, command.userId);
-
-    const updatedConfig = currentConfig.updateLabDefaultPositionDisplay(
-      command.positionDisplay
-    );
-
-    const validationResult = await this.validationService.validateStorageUpdate(
-      currentConfig,
-      updatedConfig,
-      user,
-      command.labId
-    );
-
-    if (!validationResult.isValid) {
-      throw new ValidationError(
-        `Lab default position display update failed: ${validationResult.errors.join(', ')}`
-      );
-    }
-
-    const expectedVersion = currentConfig.version;
-    const newVersion = await this.storageRepository.saveWithOptimisticLock(
-      command.labId,
-      updatedConfig,
-      expectedVersion,
-      command.positionDisplay
-        ? `Updated lab default position display to ${command.positionDisplay.format}`
-        : 'Cleared lab default position display',
-      command.userId
-    );
-    updatedConfig.applyPersistedVersion(newVersion);
-
-    return updatedConfig;
   }
 }
 

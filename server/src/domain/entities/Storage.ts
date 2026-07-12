@@ -267,87 +267,6 @@ export class Storage {
     );
   }
 
-  /** Pass null for positionDisplay to reset to system default */
-  updateBoxPositionDisplay(
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    positionDisplay: PositionDisplayConfig | null
-  ): Storage {
-    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
-    if (tankIndex === -1) {
-      throw new ValidationError(`Tank '${tankId}' not found`);
-    }
-
-    const tank = this._equipment.tanks[tankIndex];
-    const rackIndex = tank.racks.findIndex(r => String(r.id) === rackId);
-    if (rackIndex === -1) {
-      throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
-    }
-
-    const rack = tank.racks[rackIndex];
-    const boxIndex = rack.boxes.findIndex(b => b.name === boxId.toUpperCase());
-    if (boxIndex === -1) {
-      throw new ValidationError(
-        `Box '${boxId}' not found in tank '${tankId}', rack ${rackId}`
-      );
-    }
-
-    const oldBox = rack.boxes[boxIndex];
-    const updatedBox = Box.create({
-      name: oldBox.name,
-      gridConfig: oldBox.gridConfig,
-      maxPositions: oldBox.maxPositions,
-      positionDisplay: positionDisplay ?? undefined,
-      isActive: oldBox.isActive,
-      assignedUserId: oldBox.assignedUserId,
-      customLabel: oldBox.customLabel,
-      sharedWithUserIds: oldBox.sharedWithUserIds,
-      isSeeded: oldBox.isSeeded,
-    });
-
-    const newBoxes = [...rack.boxes];
-    newBoxes[boxIndex] = updatedBox;
-
-    const updatedRack = Rack.create({
-      id: rack.id,
-      name: rack.name,
-      boxes: newBoxes,
-      maxBoxes: rack.maxBoxes,
-      capacity: rack.capacity,
-      isActive: rack.isActive,
-      assignedUserId: rack.assignedUserId,
-      customLabel: rack.customLabel,
-      sharedWithUserIds: rack.sharedWithUserIds,
-      isSeeded: rack.isSeeded,
-    });
-
-    const newRacks = [...tank.racks];
-    newRacks[rackIndex] = updatedRack;
-
-    const updatedTank = Tank.create({
-      id: tank.id,
-      name: tank.name,
-      racks: newRacks as Rack[],
-      maxRacks: tank.maxRacks,
-      isActive: tank.isActive,
-      location: tank.location,
-      isSeeded: tank.isSeeded,
-    });
-
-    const newTanks = [...this._equipment.tanks];
-    newTanks[tankIndex] = updatedTank;
-
-    const newEquipment = EquipmentConfiguration.create(newTanks);
-
-    return new Storage(
-      newEquipment,
-      this._systemSettings,
-      new Date(),
-      this._version
-    );
-  }
-
   /**
    * When a rack is unassigned, boxes inheriting ownership (no explicit assignedUserId)
    * lose their ownership context, so their custom labels are cleared.
@@ -670,22 +589,6 @@ export class Storage {
     if (!box) return null;
 
     return { box: box.toData(), rack: rack.toData(), tank: tank.toData() };
-  }
-
-  /** Pass null to clear lab default and fall back to system default */
-  updateLabDefaultPositionDisplay(
-    positionDisplay: PositionDisplayConfig | null
-  ): Storage {
-    const newSystemSettings = this._systemSettings.update({
-      defaultPositionDisplay: positionDisplay
-    });
-
-    return new Storage(
-      this._equipment,
-      newSystemSettings,
-      new Date(),
-      this._version
-    );
   }
 
   isLocationValid(location: Location): boolean {

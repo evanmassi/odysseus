@@ -238,9 +238,7 @@ export class ServiceContainer {
 
   private getStorageModule(): StorageModule {
     if (!this._storageModule) {
-      this._storageModule = new StorageModule(this.getShared(), this.repositoryFactory, {
-        getGetUserStatsHandler: () => this.getUserModule().getGetUserStatsHandler(),
-      });
+      this._storageModule = new StorageModule(this.getShared(), this.repositoryFactory);
     }
     return this._storageModule;
   }
@@ -249,7 +247,6 @@ export class ServiceContainer {
     if (!this._authModule) {
       this._authModule = new AuthModule(this.getShared(), this.repositoryFactory, {
         getCheckFirstTimeHandler: () => this.getUserModule().getCheckFirstTimeHandler(),
-        getGetUserByIdHandler: () => this.getUserModule().getGetUserByIdHandler(),
         getChangeRoleHandler: () => this.getUserModule().getChangeRoleHandler(),
         getUserApplicationService: () => this.getUserModule().getUserApplicationService(),
         getResearcherApplicationService: () => this.getUserModule().getResearcherApplicationService(),

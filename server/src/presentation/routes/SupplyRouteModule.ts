@@ -37,7 +37,6 @@ import {
   SupplyTransactionVoidParams,
   SupplyPackagingLevelIdParams,
   CreateSupplyPackagingLevelHttpSchema,
-  UpdateSupplyPackagingLevelHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -98,11 +97,6 @@ export class SupplyRouteModule implements RouteModule {
       validateParams(SupplyLocationIdParams),
       validateBody(UpdateSupplyLocationHttpSchema),
       this.supplyController.updateLocation.bind(this.supplyController)
-    );
-
-    router.delete('/locations/:locationId',
-      validateParams(SupplyLocationIdParams),
-      this.supplyController.deleteLocation.bind(this.supplyController)
     );
 
     // Bulk operations — registered before /:id
@@ -248,12 +242,6 @@ export class SupplyRouteModule implements RouteModule {
       validateParams(IdParams),
       validateBody(CreateSupplyPackagingLevelHttpSchema),
       this.supplyController.addPackagingLevel.bind(this.supplyController)
-    );
-
-    router.put('/:id/packaging-levels/:levelId',
-      validateParams(SupplyPackagingLevelIdParams),
-      validateBody(UpdateSupplyPackagingLevelHttpSchema),
-      this.supplyController.updatePackagingLevel.bind(this.supplyController)
     );
 
     router.delete('/:id/packaging-levels/:levelId',

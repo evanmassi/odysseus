@@ -34,7 +34,7 @@ export class LabController extends BaseController {
       const labs = await this.deps.labApplicationService.listLabs();
       res.status(200).json(ResponseBuilder.success({ labs }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to list labs');
+      handleControllerError(error, res, 'Failed to list labs', req.requestId);
     }
   }
 
@@ -49,7 +49,7 @@ export class LabController extends BaseController {
 
       logger.info('Lab created', { labId: lab.id, createdBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to create lab');
+      handleControllerError(error, res, 'Failed to create lab', req.requestId);
     }
   }
 
@@ -65,7 +65,7 @@ export class LabController extends BaseController {
 
       logger.info('Lab updated', { labId, updatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update lab');
+      handleControllerError(error, res, 'Failed to update lab', req.requestId);
     }
   }
 
@@ -80,7 +80,7 @@ export class LabController extends BaseController {
 
       logger.info('Lab deactivated', { labId, deactivatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate lab');
+      handleControllerError(error, res, 'Failed to deactivate lab', req.requestId);
     }
   }
 
@@ -89,7 +89,7 @@ export class LabController extends BaseController {
       const details = await this.deps.labApplicationService.getLabDetails(req.params.labId);
       res.status(200).json(ResponseBuilder.success(details));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get lab details');
+      handleControllerError(error, res, 'Failed to get lab details', req.requestId);
     }
   }
 
@@ -104,7 +104,7 @@ export class LabController extends BaseController {
 
       logger.info('Lab activated', { labId, activatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to activate lab');
+      handleControllerError(error, res, 'Failed to activate lab', req.requestId);
     }
   }
 
@@ -113,7 +113,7 @@ export class LabController extends BaseController {
       const overview = await this.deps.labApplicationService.getOverview();
       res.status(200).json(ResponseBuilder.success(overview));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get overview');
+      handleControllerError(error, res, 'Failed to get overview', req.requestId);
     }
   }
 
@@ -122,7 +122,7 @@ export class LabController extends BaseController {
       const demoLimits = await this.deps.labApplicationService.getDemoLimits(req.params.labId);
       res.status(200).json(ResponseBuilder.success(demoLimits));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get demo limits');
+      handleControllerError(error, res, 'Failed to get demo limits', req.requestId);
     }
   }
 
@@ -141,7 +141,7 @@ export class LabController extends BaseController {
 
       logger.info('Demo limits updated', { labId, updatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update demo limits');
+      handleControllerError(error, res, 'Failed to update demo limits', req.requestId);
     }
   }
 }

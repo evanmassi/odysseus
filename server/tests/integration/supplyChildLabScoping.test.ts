@@ -105,25 +105,4 @@ describe('supply child-resource lab-scoping', () => {
     });
   });
 
-  describe('packaging levels', () => {
-    it('updatePackagingLevel leaves another lab\'s level untouched', async () => {
-      const labA = await seed.lab();
-      const labB = await seed.lab();
-      const itemA = await seed.supplyItem({ labId: labA.id });
-      const level = await seed.supplyPackagingLevel({ itemId: itemA.id, quantity: 10 });
-      const itemB = await seed.supplyItem({ labId: labB.id });
-
-      expect(await repo.updatePackagingLevel(level.id, itemB.id, 999)).toBe(false);
-      expect((await repo.findPackagingLevelsByItemId(itemA.id))[0].quantity).toBe(10);
-    });
-
-    it('updatePackagingLevel updates a level under its own item', async () => {
-      const labA = await seed.lab();
-      const itemA = await seed.supplyItem({ labId: labA.id });
-      const level = await seed.supplyPackagingLevel({ itemId: itemA.id, quantity: 10 });
-
-      expect(await repo.updatePackagingLevel(level.id, itemA.id, 42)).toBe(true);
-      expect((await repo.findPackagingLevelsByItemId(itemA.id))[0].quantity).toBe(42);
-    });
-  });
 });

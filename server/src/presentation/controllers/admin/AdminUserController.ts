@@ -10,7 +10,6 @@ import type { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenComman
 import type {
   ChangeUserRoleCommand, ChangeUserRoleCommandHandler,
 } from '@application/commands/UserCommands';
-import type { GetUserByIdQuery, GetUserByIdQueryHandler } from '@application/queries/UserQueries';
 import type { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import type { UserApplicationService } from '@application/services/UserApplicationService';
 import { UserRole } from '@domain/value-objects/UserRole';
@@ -25,7 +24,6 @@ export interface AdminUserControllerDeps {
   changeRoleHandler: ChangeUserRoleCommandHandler;
   adminResetPasswordHandler: AdminResetPasswordCommandHandler;
   generatePasswordResetTokenHandler: GeneratePasswordResetTokenCommandHandler;
-  getUserByIdHandler: GetUserByIdQueryHandler;
   userApplicationService: UserApplicationService;
   researcherApplicationService: ResearcherApplicationService;
 }
@@ -50,27 +48,7 @@ export class AdminUserController extends BaseController {
       });
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get users');
-    }
-  }
-
-  async getUserById(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const adminUser = this.getAuthenticatedUser(req);
-      const query: GetUserByIdQuery = {
-        userId: id,
-        requesterLabId: adminUser.labId,
-        requesterIsSystemAdmin: adminUser.isSystemAdmin(),
-      };
-      const user = await this.deps.getUserByIdHandler.handle(query);
-
-      const response = ResponseBuilder.success({
-        user: user.toPublicData()
-      });
-      res.status(200).json(response);
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get user');
+      handleControllerError(error, res, 'Failed to get users', req.requestId);
     }
   }
 
@@ -97,7 +75,7 @@ export class AdminUserController extends BaseController {
       const response = ResponseBuilder.success({ message: 'User role updated successfully' });
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update user role');
+      handleControllerError(error, res, 'Failed to update user role', req.requestId);
     }
   }
 
@@ -115,7 +93,7 @@ export class AdminUserController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success({ message: 'User deleted successfully' }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete user');
+      handleControllerError(error, res, 'Failed to delete user', req.requestId);
     }
   }
 
@@ -132,7 +110,7 @@ export class AdminUserController extends BaseController {
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate user');
+      handleControllerError(error, res, 'Failed to deactivate user', req.requestId);
     }
   }
 
@@ -149,7 +127,7 @@ export class AdminUserController extends BaseController {
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to activate user');
+      handleControllerError(error, res, 'Failed to activate user', req.requestId);
     }
   }
 
@@ -195,7 +173,7 @@ export class AdminUserController extends BaseController {
         linkedBy: adminUser.username
       });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to link researcher');
+      handleControllerError(error, res, 'Failed to link researcher', req.requestId);
     }
   }
 
@@ -218,7 +196,7 @@ export class AdminUserController extends BaseController {
         unlinkedBy: adminUser.username
       });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to unlink researcher');
+      handleControllerError(error, res, 'Failed to unlink researcher', req.requestId);
     }
   }
 
@@ -252,7 +230,7 @@ export class AdminUserController extends BaseController {
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to reset password');
+      handleControllerError(error, res, 'Failed to reset password', req.requestId);
     }
   }
 
@@ -281,7 +259,7 @@ export class AdminUserController extends BaseController {
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to generate reset token');
+      handleControllerError(error, res, 'Failed to generate reset token', req.requestId);
     }
   }
 }

@@ -47,7 +47,6 @@ export const queryKeys = {
     byRack: (labId = '', tankId: string, rackId: string) =>
       [...queryKeys.tubes.all(labId), 'byRack', tankId, rackId] as const,
     locationCounts: (labId = '') => [...queryKeys.tubes.all(labId), 'locationCounts'] as const,
-    stats: (labId = '') => [...queryKeys.tubes.all(labId), 'stats'] as const,
     filterOptions: (labId = '', fields: TubeFilterableField[]) =>
       [...queryKeys.tubes.all(labId), 'filterOptions', [...fields].sort()] as const,
     bulk: (labId = '', tubeIds: string[]) =>

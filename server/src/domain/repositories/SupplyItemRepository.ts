@@ -137,6 +137,5 @@ export interface SupplyItemRepository {
 
   findPackagingLevelsByItemId(itemId: string): Promise<SupplyPackagingLevelRow[]>;
   savePackagingLevel(level: SupplyPackagingLevelRow): Promise<void>;
-  updatePackagingLevel(id: string, itemId: string, quantity: number): Promise<boolean>;
   deletePackagingLevel(id: string): Promise<boolean>;
 }

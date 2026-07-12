@@ -34,7 +34,7 @@ export class SystemAdminUserController extends BaseController {
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to activate user');
+      handleControllerError(error, res, 'Failed to activate user', req.requestId);
     }
   }
 
@@ -51,7 +51,7 @@ export class SystemAdminUserController extends BaseController {
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate user');
+      handleControllerError(error, res, 'Failed to deactivate user', req.requestId);
     }
   }
 
@@ -68,7 +68,7 @@ export class SystemAdminUserController extends BaseController {
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to suspend user');
+      handleControllerError(error, res, 'Failed to suspend user', req.requestId);
     }
   }
 
@@ -85,7 +85,7 @@ export class SystemAdminUserController extends BaseController {
 
       res.status(200).json(response);
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete user');
+      handleControllerError(error, res, 'Failed to delete user', req.requestId);
     }
   }
 }

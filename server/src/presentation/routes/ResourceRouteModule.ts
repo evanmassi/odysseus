@@ -76,10 +76,6 @@ export class ResourceRouteModule implements RouteModule {
       this.tubeController.getFilterOptions.bind(this.tubeController)
     );
 
-    router.get('/tubes/stats',
-      this.tubeController.getStats.bind(this.tubeController)
-    );
-
     // Navigator field map feeds — registered before /tubes/:id so the literal
     // paths are not shadowed by the id param route.
     router.get('/tubes/by-rack',
@@ -165,33 +161,15 @@ export class ResourceRouteModule implements RouteModule {
       this.researcherController.getAllResearchers.bind(this.researcherController)
     );
 
-    router.get('/researchers/search',
-      this.researcherController.searchResearchers.bind(this.researcherController)
-    );
-
-    router.get('/researchers/stats',
-      this.researcherController.getResearcherStats.bind(this.researcherController)
-    );
-
     router.get('/researchers/:id',
       validateParams(IdParams),
       this.researcherController.getResearcherById.bind(this.researcherController)
-    );
-
-    router.get('/researchers/:id/tubes/count',
-      validateParams(IdParams),
-      this.researcherController.getResearcherTubeCount.bind(this.researcherController)
     );
 
     // Write operations
     router.post('/researchers',
       validateBody(CreateResearcherHttpSchema),
       this.researcherController.createResearcher.bind(this.researcherController)
-    );
-
-    router.put('/researchers/:id',
-      validateParams(IdParams),
-      this.researcherController.updateResearcher.bind(this.researcherController)
     );
 
     router.put('/researchers/:id/activate',
@@ -202,11 +180,6 @@ export class ResourceRouteModule implements RouteModule {
     router.put('/researchers/:id/deactivate',
       validateParams(IdParams),
       this.researcherController.deactivateResearcher.bind(this.researcherController)
-    );
-
-    router.delete('/researchers/:id',
-      validateParams(IdParams),
-      this.researcherController.deleteResearcher.bind(this.researcherController)
     );
 
     // LOOKUP VALUE ROUTES (for form dropdowns)

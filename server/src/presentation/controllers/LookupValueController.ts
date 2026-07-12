@@ -1,7 +1,7 @@
 /**
  * Lookup Value Controller
  *
- * HTTP handlers for admin-managed dropdown values (species, source).
+ * HTTP handlers for lab lookup values — form dropdowns and admin catalog management.
  */
 
 

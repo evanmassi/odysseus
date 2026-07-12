@@ -199,35 +199,6 @@ describe('Storage', () => {
     });
   });
 
-  describe('updateBoxPositionDisplay', () => {
-    it('should update position display for a specific box', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const config = { format: 'numeric' as const };
-      const updated = storage.updateBoxPositionDisplay(tankId, rackId, 'A', config);
-      const box = updated.toData().tanks[0].racks[0].boxes[0];
-      expect(box.positionDisplay).toEqual(config);
-    });
-
-    it('should clear position display when null is passed', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      const updated = storage.updateBoxPositionDisplay(tankId, rackId, 'A', null);
-      const box = updated.toData().tanks[0].racks[0].boxes[0];
-      expect(box.positionDisplay).toBeUndefined();
-    });
-
-    it('should throw for non-existent box', () => {
-      const storage = createMinimalStorage();
-      const tankId = storage.tanks[0].id;
-      const rackId = storage.tanks[0].racks[0].id;
-      expect(() => storage.updateBoxPositionDisplay(tankId, rackId, 'Z', null))
-        .toThrow('not found');
-    });
-  });
-
   describe('clearInheritedBoxLabelsForRack', () => {
     it('should clear custom labels on boxes without explicit assignedUserId', () => {
       const data = Storage.createDefault().toData();
@@ -459,23 +430,6 @@ describe('Storage', () => {
       const tankId = storage.tanks[0].id;
       const rackId = storage.tanks[0].racks[0].id;
       expect(storage.getBox(tankId, rackId, 'Z')).toBeNull();
-    });
-  });
-
-  describe('updateLabDefaultPositionDisplay', () => {
-    it('should set lab default position display', () => {
-      const storage = createMinimalStorage();
-      const config = { format: 'numeric' as const };
-      const updated = storage.updateLabDefaultPositionDisplay(config);
-      expect(updated.systemSettings.defaultPositionDisplay).toEqual(config);
-    });
-
-    it('should clear lab default when null', () => {
-      const storage = createMinimalStorage();
-      const config = { format: 'numeric' as const };
-      const withConfig = storage.updateLabDefaultPositionDisplay(config);
-      const cleared = withConfig.updateLabDefaultPositionDisplay(null);
-      expect(cleared.systemSettings.defaultPositionDisplay).toBeUndefined();
     });
   });
 

@@ -81,7 +81,7 @@ export class PublicRouteModule implements RouteModule {
       this.publicAuthController.getPasswordRequirements.bind(this.publicAuthController)
     );
 
-    router.post('/auth/login',
+    router.post(LOGIN_PATH,
       this.authLimiter,
       validateBody(LoginBodySchema),
       this.publicAuthController.login.bind(this.publicAuthController)
@@ -139,7 +139,7 @@ export class PublicRouteModule implements RouteModule {
       this.publicAuthController.setupSystemAdmin.bind(this.publicAuthController)
     );
 
-    router.get('/health', async (req, res) => {
+    router.get('/health', (req, res) => {
       res.json(ResponseBuilder.success({
         status: 'OK',
         timestamp: new Date().toISOString(),
@@ -148,7 +148,7 @@ export class PublicRouteModule implements RouteModule {
       }));
     });
 
-    router.get('/version', async (req, res) => {
+    router.get('/version', (req, res) => {
       res.json(ResponseBuilder.success({
         version: this.appVersion,
         environment: this.environment,

@@ -1,7 +1,7 @@
 /**
  * Search Route Module
  *
- * Handles search-related routes with proper authentication.
+ * Authenticated route for advanced tube search.
  */
 
 import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';

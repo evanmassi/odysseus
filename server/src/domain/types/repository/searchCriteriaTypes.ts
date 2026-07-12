@@ -18,6 +18,8 @@ export interface TubeSearchResult {
   matchedTerms: string[];
 }
 
+export const TUBE_SORT_FIELDS = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
+
 export interface TubeSearchCriteria {
   query?: string;
 
@@ -67,7 +69,7 @@ export interface TubeSearchCriteria {
   offset?: number;
 
   // Sorting
-  sortBy?: 'createdAt' | 'updatedAt' | 'position' | 'researcherId' | 'cellType';
+  sortBy?: (typeof TUBE_SORT_FIELDS)[number];
   sortOrder?: 'asc' | 'desc';
 }
 

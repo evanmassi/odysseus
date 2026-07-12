@@ -476,14 +476,6 @@ export class SupplyItemRepository implements ISupplyItemRepository {
     );
   }
 
-  async updatePackagingLevel(id: string, itemId: string, quantity: number): Promise<boolean> {
-    const result = await this.db.execute(
-      'UPDATE supply_packaging_levels SET quantity = $1 WHERE id = $2 AND item_id = $3',
-      [String(quantity), id, itemId]
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
   async deletePackagingLevel(id: string): Promise<boolean> {
     const result = await this.db.execute('DELETE FROM supply_packaging_levels WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;

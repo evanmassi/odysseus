@@ -7,6 +7,7 @@ import {
   createTubeRequestSchema,
   updateTubeRequestSchema,
   tubeLocationSchema,
+  bulkMoveRequestSchema,
   TUBE_FILTERABLE_FIELDS,
   createResearcherProfileSchema,
   lockTubesRequestSchema,
@@ -56,7 +57,6 @@ import {
   createSupplyDocumentRequestSchema,
   updateSupplyDocumentRequestSchema,
   createSupplyPackagingLevelRequestSchema,
-  updateSupplyPackagingLevelRequestSchema,
   recordSupplyTransactionRequestSchema,
   recordSupplyStockCountRequestSchema,
   supplyBulkReceiveRequestSchema,
@@ -77,7 +77,6 @@ export const LabIdParams = z.object({ labId: z.string().min(1) });
 export const LabUserParams = z.object({ labId: z.string().min(1), userId: z.string().min(1) });
 export const ResearcherIdParams = z.object({ researcherId: z.string().min(1) });
 export const CategoryParams = z.object({ category: z.string().min(1) });
-export const EntityHistoryParams = z.object({ entityType: z.string().min(1), entityId: z.string().min(1) });
 
 // Tube schemas
 
@@ -90,7 +89,6 @@ export const CreateTubeHttpSchema = z.union([
 export const UpdateTubeHttpSchema = updateTubeRequestSchema;
 export const CreateResearcherHttpSchema = createResearcherProfileSchema;
 
-// Omits position from shared location schema
 export const LocationQuerySchema = tubeLocationSchema.omit({ position: true });
 
 // Navigator field map reads a whole rack — tank + rack only, no box or position
@@ -116,13 +114,7 @@ export const BulkFetchHttpSchema = z.object({
   tubeIds: z.array(z.string().min(1)).min(1, "At least one tube ID is required").max(100)
 });
 
-export const BulkMoveHttpSchema = z.object({
-  moves: z.array(z.object({
-    tubeId: z.string().min(1),
-    version: z.number().int().positive(),
-    destination: tubeLocationSchema,
-  })).min(1, "At least one move is required").max(100)
-});
+export const BulkMoveHttpSchema = bulkMoveRequestSchema;
 
 export const LockTubesHttpSchema = lockTubesRequestSchema;
 export const UnlockTubesHttpSchema = unlockTubesRequestSchema;
@@ -170,7 +162,7 @@ export const UpdateRoleBodySchema = z.object({
 export const LinkResearcherBodySchema = z.object({
   researcherId: z.string().optional(),
   newResearcher: createResearcherProfileSchema.optional(),
-// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- '' must count as absent, so || not ??
 }).refine(data => data.researcherId || data.newResearcher, {
   message: 'Must provide either researcherId or newResearcher',
 });
@@ -233,6 +225,7 @@ export const UpdateSystemStorageHttpSchema = updateSystemStorageRequestSchema;
 export const InitializeStorageHttpSchema = initializeStorageRequestSchema;
 export const BulkUnassignHttpSchema = bulkUnassignRequestSchema;
 export const BulkReassignHttpSchema = bulkReassignRequestSchema;
+export const ResetStorageHttpSchema = z.object({ confirmationToken: z.string().min(1) });
 
 // Supply schemas
 
@@ -262,5 +255,4 @@ export const VoidSupplyTransactionHttpSchema = voidSupplyTransactionRequestSchem
 export const SupplyBulkVoidHttpSchema = supplyBulkVoidRequestSchema;
 export const SupplyTransactionVoidParams = z.object({ transactionId: z.string().min(1) });
 export const CreateSupplyPackagingLevelHttpSchema = createSupplyPackagingLevelRequestSchema;
-export const UpdateSupplyPackagingLevelHttpSchema = updateSupplyPackagingLevelRequestSchema;
 

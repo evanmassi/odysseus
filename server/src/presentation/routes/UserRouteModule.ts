@@ -10,8 +10,9 @@ import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { PersonController } from '@presentation/controllers/PersonController';
 import type { UserController } from '@presentation/controllers/UserController';
 import type { UserSessionController } from '@presentation/controllers/UserSessionController';
-import { validateBody } from '@presentation/middleware/requestValidation';
+import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import type { RouteModule } from '@presentation/routes/RouteModule';
+import { IdParams } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
 
@@ -56,6 +57,7 @@ export class UserRouteModule implements RouteModule {
     );
 
     router.delete('/me/sessions/:id',
+      validateParams(IdParams),
       this.sessionController.revokeSession.bind(this.sessionController)
     );
 

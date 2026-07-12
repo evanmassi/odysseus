@@ -2,13 +2,11 @@
  * Authenticated Session Controller
  *
  * Endpoints for logged-in users managing their own session — logout, heartbeat,
- * password change, and email verification status.
+ * and password change.
  */
 
-import type { ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import type { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
 import type { EventBus } from '@application/contracts/EventBus';
-import type { PersonApplicationService } from '@application/services/PersonApplicationService';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
 import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
@@ -19,8 +17,6 @@ import type { Request, Response } from 'express';
 
 export interface AuthControllerDeps {
   changePasswordHandler: ChangeUserPasswordCommandHandler;
-  resendVerificationHandler: ResendVerificationEmailCommandHandler;
-  personApplicationService: PersonApplicationService;
   eventBus: EventBus;
 }
 
@@ -85,42 +81,6 @@ export class AuthController extends BaseController {
       res.status(200).json(ResponseBuilder.success({ message: 'Session extended' }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to process heartbeat');
-    }
-  }
-
-  /** Deprecated — use public endpoint. */
-  async resendVerification(req: Request, res: Response): Promise<void> {
-    try {
-      const user = this.getAuthenticatedUser(req);
-
-      await this.deps.resendVerificationHandler.handle({ userId: user.id });
-
-      const email = await this.deps.personApplicationService.getContactEmail(user);
-      logger.info('Verification email resent', { userId: user.id, email: email ?? 'unknown' });
-
-      res.status(200).json(ResponseBuilder.success({
-        message: 'Verification email sent. Check your inbox.',
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
-      }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to resend verification');
-    }
-  }
-
-  async getVerificationStatus(req: Request, res: Response): Promise<void> {
-    try {
-      const user = this.getAuthenticatedUser(req);
-
-      logger.info('Verification status checked', { userId: user.id, emailVerified: user.emailVerified });
-
-      const email = await this.deps.personApplicationService.getContactEmail(user);
-
-      res.status(200).json(ResponseBuilder.success({
-        emailVerified: user.emailVerified,
-        email: email ?? null
-      }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get verification status');
     }
   }
 }

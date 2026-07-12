@@ -4,7 +4,7 @@
  * HTTP handlers for storage configuration, tank/rack/box CRUD, and bulk assignment operations.
  */
 
-import { POSITION_DISPLAY_PRESETS, API_ERROR_CODES } from '@odysseus/shared-schemas';
+import { API_ERROR_CODES } from '@odysseus/shared-schemas';
 
 
 import type {
@@ -32,8 +32,6 @@ import type {
   UpdateSystemStorageCommandHandler,
   ResetStorageToDefaultCommandHandler,
   ImportStorageCommandHandler,
-  UpdateBoxPositionDisplayCommandHandler,
-  UpdateLabDefaultPositionDisplayCommandHandler,
   UpdateResourceLabelCommandHandler
 } from '@application/commands/StorageCommands';
 import type {
@@ -63,8 +61,6 @@ export interface StorageControllerDeps {
   updateSystemStorageHandler: UpdateSystemStorageCommandHandler;
   resetStorageHandler: ResetStorageToDefaultCommandHandler;
   importStorageHandler: ImportStorageCommandHandler;
-  updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
-  updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler;
   updateResourceLabelHandler: UpdateResourceLabelCommandHandler;
   addTankHandler: AddTankCommandHandler;
   updateTankHandler: UpdateTankCommandHandler;
@@ -92,7 +88,6 @@ export class StorageController extends BaseController {
 
   // QUERY ENDPOINTS
 
-  /** GET /api/storage */
   async getCurrentStorage(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
@@ -107,11 +102,10 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success(configurationResponse));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get current configuration');
+      handleControllerError(error, res, 'Failed to get current configuration', req.requestId);
     }
   }
 
-  /** GET /api/storage/history */
   async getStorageHistory(req: Request, res: Response): Promise<void> {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
@@ -127,11 +121,10 @@ export class StorageController extends BaseController {
         pagination: { limit, total: history.length }
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get configuration history');
+      handleControllerError(error, res, 'Failed to get configuration history', req.requestId);
     }
   }
 
-  /** GET /api/storage/version/:version */
   async getStorageByVersion(req: Request, res: Response): Promise<void> {
     try {
       const version = parseInt(req.params.version);
@@ -151,11 +144,10 @@ export class StorageController extends BaseController {
         equipment: configuration.equipment
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get configuration version');
+      handleControllerError(error, res, 'Failed to get configuration version', req.requestId);
     }
   }
 
-  /** GET /api/storage/version */
   async getStorageVersion(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -166,11 +158,10 @@ export class StorageController extends BaseController {
         updatedAt: storage.updatedAt
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get configuration version');
+      handleControllerError(error, res, 'Failed to get configuration version', req.requestId);
     }
   }
 
-  /** GET /api/storage/health */
   async checkStorageHealth(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -183,13 +174,12 @@ export class StorageController extends BaseController {
         issues: health.issues
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to check configuration health');
+      handleControllerError(error, res, 'Failed to check configuration health', req.requestId);
     }
   }
 
   // COMMAND ENDPOINTS
 
-  /** PUT /api/storage/system */
   async updateSystemStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -205,21 +195,15 @@ export class StorageController extends BaseController {
         systemSettings: updatedStorage.systemSettings
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update system configuration');
+      handleControllerError(error, res, 'Failed to update system configuration', req.requestId);
     }
   }
 
-  /** POST /api/storage/reset */
   async resetStorageToDefault(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
       const labId = this.extractLabId(req);
       const confirmationToken = req.body.confirmationToken;
-
-      if (!confirmationToken) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'Confirmation token required for configuration reset'));
-        return;
-      }
 
       const defaultStorage = await this.deps.resetStorageHandler.handle({
         userId, labId, confirmationToken
@@ -231,11 +215,10 @@ export class StorageController extends BaseController {
         lastUpdated: defaultStorage.updatedAt
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to reset configuration');
+      handleControllerError(error, res, 'Failed to reset configuration', req.requestId);
     }
   }
 
-  /** POST /api/storage/import */
   async importStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -268,63 +251,11 @@ export class StorageController extends BaseController {
         })
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to import configuration');
-    }
-  }
-
-  /** PUT /api/storage/box-position-display */
-  async updateBoxPositionDisplay(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-      const { tankId, rackId, boxId, positionDisplay } = req.body;
-
-      if (!tankId || !rackId || !boxId) {
-        res.status(400).json(ResponseBuilder.error(API_ERROR_CODES.INVALID_INPUT, 'tankId, rackId, and boxId are required'));
-        return;
-      }
-
-      const labId = this.extractLabId(req);
-
-      const updatedStorage = await this.deps.updateBoxPositionDisplayHandler.handle({
-        userId, labId, tankId, rackId, boxId, positionDisplay: positionDisplay || null
-      });
-
-      res.json(ResponseBuilder.success({
-        message: `Position display updated for box ${boxId}`,
-        version: updatedStorage.version,
-        lastUpdated: updatedStorage.updatedAt
-      }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to update box position display');
-    }
-  }
-
-  /** PUT /api/storage/lab-position-display */
-  async updateLabDefaultPositionDisplay(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-      const labId = this.extractLabId(req);
-      const { positionDisplay } = req.body;
-
-      const updatedStorage = await this.deps.updateLabDefaultPositionDisplayHandler.handle({
-        userId, labId, positionDisplay: positionDisplay || null
-      });
-
-      res.json(ResponseBuilder.success({
-        message: positionDisplay
-          ? `Lab default position display updated to ${positionDisplay.format}`
-          : 'Lab default position display cleared',
-        version: updatedStorage.version,
-        lastUpdated: updatedStorage.updatedAt
-      }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to update lab default position display');
+      handleControllerError(error, res, 'Failed to import configuration', req.requestId);
     }
   }
 
   /**
-   * PUT /api/storage/resource-label
-   *
    * Uses fine-grained permissions (canEditResource) rather than admin-only config
    * management permissions, allowing resource owners to set their own labels.
    */
@@ -345,33 +276,12 @@ export class StorageController extends BaseController {
         lastUpdated: updatedStorage.updatedAt
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update resource label');
-    }
-  }
-
-  /** GET /api/storage/position-display-presets */
-  async getPositionDisplayPresets(req: Request, res: Response): Promise<void> {
-    try {
-      res.json(ResponseBuilder.success({
-        presets: {
-          NUMERIC: POSITION_DISPLAY_PRESETS.NUMERIC,
-          ALPHANUMERIC_STANDARD: POSITION_DISPLAY_PRESETS.ALPHANUMERIC_STANDARD,
-          ALPHANUMERIC_REVERSE: POSITION_DISPLAY_PRESETS.ALPHANUMERIC_REVERSE
-        },
-        description: {
-          NUMERIC: 'Simple numeric labeling (1-81)',
-          ALPHANUMERIC_STANDARD: 'Alphanumeric row-column format (A1-I9)',
-          ALPHANUMERIC_REVERSE: 'Alphanumeric column-row format (1A-9I)'
-        }
-      }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to get position display presets');
+      handleControllerError(error, res, 'Failed to update resource label', req.requestId);
     }
   }
 
   // TANK ENDPOINTS
 
-  /** POST /api/storage/tanks */
   async addTank(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -382,11 +292,10 @@ export class StorageController extends BaseController {
 
       res.status(201).json(ResponseBuilder.success({ tankId: result.tankId }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to add tank');
+      handleControllerError(error, res, 'Failed to add tank', req.requestId);
     }
   }
 
-  /** PUT /api/storage/tanks/:tankId */
   async updateTank(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -398,11 +307,10 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success({ message: `Tank '${tankId}' updated` }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update tank');
+      handleControllerError(error, res, 'Failed to update tank', req.requestId);
     }
   }
 
-  /** DELETE /api/storage/tanks/:tankId */
   async deleteTank(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -413,13 +321,12 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success({ message: `Tank '${tankId}' deleted` }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete tank');
+      handleControllerError(error, res, 'Failed to delete tank', req.requestId);
     }
   }
 
   // RACK ENDPOINTS
 
-  /** POST /api/storage/tanks/:tankId/racks */
   async addRacks(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -431,11 +338,10 @@ export class StorageController extends BaseController {
 
       res.status(201).json(ResponseBuilder.success({ rackIds: result.rackIds }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to add rack(s)');
+      handleControllerError(error, res, 'Failed to add rack(s)', req.requestId);
     }
   }
 
-  /** PUT /api/storage/tanks/:tankId/racks/:rackId */
   async updateRack(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -447,11 +353,10 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success({ message: `Rack '${rackId}' updated` }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update rack');
+      handleControllerError(error, res, 'Failed to update rack', req.requestId);
     }
   }
 
-  /** DELETE /api/storage/tanks/:tankId/racks/:rackId */
   async deleteRack(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -462,11 +367,10 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success({ message: `Rack '${rackId}' deleted` }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete rack');
+      handleControllerError(error, res, 'Failed to delete rack', req.requestId);
     }
   }
 
-  /** PUT /api/storage/tanks/:tankId/racks/:rackId/assign */
   async assignRack(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -484,13 +388,12 @@ export class StorageController extends BaseController {
           : `Rack '${rackId}' unassigned`
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to assign rack');
+      handleControllerError(error, res, 'Failed to assign rack', req.requestId);
     }
   }
 
   // BOX ENDPOINTS
 
-  /** POST /api/storage/tanks/:tankId/racks/:rackId/boxes */
   async addBoxes(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -502,11 +405,10 @@ export class StorageController extends BaseController {
 
       res.status(201).json(ResponseBuilder.success({ boxIds: result.boxIds }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to add box(es)');
+      handleControllerError(error, res, 'Failed to add box(es)', req.requestId);
     }
   }
 
-  /** PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId */
   async updateBox(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -520,11 +422,10 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success({ message: `Box '${boxId}' updated` }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update box');
+      handleControllerError(error, res, 'Failed to update box', req.requestId);
     }
   }
 
-  /** DELETE /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId */
   async deleteBox(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -535,11 +436,10 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success({ message: `Box '${boxId}' deleted` }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete box');
+      handleControllerError(error, res, 'Failed to delete box', req.requestId);
     }
   }
 
-  /** PUT /api/storage/tanks/:tankId/racks/:rackId/boxes/:boxId/assign */
   async assignBox(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -557,13 +457,12 @@ export class StorageController extends BaseController {
           : `Box '${boxId}' unassigned`
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to assign box');
+      handleControllerError(error, res, 'Failed to assign box', req.requestId);
     }
   }
 
   // BULK ASSIGNMENT ENDPOINTS
 
-  /** POST /api/storage/bulk-unassign */
   async bulkUnassignResources(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -577,11 +476,10 @@ export class StorageController extends BaseController {
         boxesAffected: result.boxesAffected,
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to bulk unassign resources');
+      handleControllerError(error, res, 'Failed to bulk unassign resources', req.requestId);
     }
   }
 
-  /** POST /api/storage/bulk-reassign */
   async bulkReassignResources(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -595,13 +493,12 @@ export class StorageController extends BaseController {
         boxesAffected: result.boxesAffected,
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to bulk reassign resources');
+      handleControllerError(error, res, 'Failed to bulk reassign resources', req.requestId);
     }
   }
 
   // INITIALIZE ENDPOINT
 
-  /** POST /api/storage/initialize */
   async initializeStorage(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -617,7 +514,7 @@ export class StorageController extends BaseController {
         message: `Storage initialized for lab '${labName}'`
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to initialize configuration');
+      handleControllerError(error, res, 'Failed to initialize configuration', req.requestId);
     }
   }
 
@@ -635,7 +532,7 @@ export class StorageController extends BaseController {
         deletedTubes: result.deletedTubes
       }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to reset demo data');
+      handleControllerError(error, res, 'Failed to reset demo data', req.requestId);
     }
   }
 
@@ -648,7 +545,7 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to seed demo lab');
+      handleControllerError(error, res, 'Failed to seed demo lab', req.requestId);
     }
   }
 
@@ -661,7 +558,7 @@ export class StorageController extends BaseController {
 
       res.json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to unseed demo lab');
+      handleControllerError(error, res, 'Failed to unseed demo lab', req.requestId);
     }
   }
 }

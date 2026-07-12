@@ -94,11 +94,6 @@ export class SystemAdminRouteModule implements RouteModule {
 
     // INVITE CODES (system admin can manage any lab's codes)
 
-    router.get('/labs/:labId/invite-codes',
-      validateParams(LabIdParams),
-      this.inviteCodeController.listForLab.bind(this.inviteCodeController)
-    );
-
     router.post('/labs/:labId/invite-codes',
       validateParams(LabIdParams),
       validateBody(CreateInviteCodeBodySchema),
@@ -106,10 +101,6 @@ export class SystemAdminRouteModule implements RouteModule {
     );
 
     // GLOBAL SECURITY SETTINGS
-
-    router.get('/security-config',
-      this.adminConfigController.getSecurityConfig.bind(this.adminConfigController)
-    );
 
     router.put('/security-config',
       validateBody(updateSecurityConfigSchema),

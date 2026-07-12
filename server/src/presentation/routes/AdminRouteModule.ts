@@ -29,7 +29,6 @@ import {
   UserIdParams,
   ResearcherIdParams,
   CategoryParams,
-  EntityHistoryParams,
   UpdateRoleBodySchema,
   LinkResearcherBodySchema,
   CreateInviteCodeBodySchema
@@ -95,11 +94,6 @@ export class AdminRouteModule implements RouteModule {
 
     // USER CRUD ENDPOINTS (parameterized routes come after specific routes)
 
-    router.get('/users/:id',
-      validateParams(IdParams),
-      this.adminUserController.getUserById.bind(this.adminUserController)
-    );
-
     router.put('/users/:id/role',
       validateParams(IdParams),
       validateBody(UpdateRoleBodySchema),
@@ -155,26 +149,6 @@ export class AdminRouteModule implements RouteModule {
 
     router.get('/metrics',
       this.adminConfigController.getMetrics.bind(this.adminConfigController)
-    );
-
-    router.get('/stats/users',
-      this.adminConfigController.getUserStatistics.bind(this.adminConfigController)
-    );
-
-    // AUDIT LOG ENDPOINTS
-
-    router.get('/audit/statistics',
-      this.auditController.getStatistics.bind(this.auditController)
-    );
-
-    // Must come before /audit to avoid route collision
-    router.get('/audit/entity/:entityType/:entityId',
-      validateParams(EntityHistoryParams),
-      this.auditController.getEntityHistory.bind(this.auditController)
-    );
-
-    router.get('/audit',
-      this.auditController.getAuditLog.bind(this.auditController)
     );
 
     // AUDIT RETENTION ENDPOINTS

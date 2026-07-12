@@ -5,14 +5,13 @@
  * profile data (name, email, position, department) lives in the Person entity.
  */
 
-import { type AdminResearcher, type AdminResearchersList, type UpdateResearcherProfile } from '@odysseus/shared-schemas';
+import { type AdminResearcher, type AdminResearchersList } from '@odysseus/shared-schemas';
 
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import { ResearcherDto } from '@application/dto/ResearcherDto';
 import type { CreateResearcherRequest, ResearcherResponse } from '@application/dto/ResearcherDto';
 import { rejectDemoManagementOperation } from '@application/guards/DemoGuards';
-import type { AuditChange } from '@application/types/auditTypes';
 import { Person } from '@domain/entities/Person';
 import { Researcher } from '@domain/entities/Researcher';
 import type { User } from '@domain/entities/User';
@@ -21,7 +20,6 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import {
   ResearcherCreatedEvent,
-  ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
   ResearcherReactivatedEvent,
   ResearcherDeletedEvent
@@ -177,69 +175,6 @@ export class ResearcherApplicationService {
     return ResearcherDto.toResponse(researcher, person);
   }
 
-  async updateResearcher(id: string, updates: UpdateResearcherProfile, user: User): Promise<ResearcherResponse> {
-    await this.deps.accessControlService.requireCanManageResearchers(user);
-    rejectDemoManagementOperation(user, 'Researcher management');
-
-    const researcher = await this.getResearcherOrThrow(id, user);
-    const person = await this.getPersonForResearcher(researcher);
-
-    const changes: AuditChange[] = [];
-
-    if (updates.firstName !== undefined || updates.lastName !== undefined ||
-        updates.position !== undefined || updates.department !== undefined) {
-      if (updates.firstName !== undefined && updates.firstName !== person.firstName) {
-        changes.push({ field: 'firstName', oldValue: person.firstName, newValue: updates.firstName });
-      }
-      if (updates.lastName !== undefined && updates.lastName !== person.lastName) {
-        changes.push({ field: 'lastName', oldValue: person.lastName, newValue: updates.lastName });
-      }
-      if (updates.position !== undefined && updates.position !== person.position) {
-        changes.push({ field: 'position', oldValue: person.position, newValue: updates.position });
-      }
-      if (updates.department !== undefined && updates.department !== person.department) {
-        changes.push({ field: 'department', oldValue: person.department, newValue: updates.department });
-      }
-
-      person.updateProfile(
-        updates.firstName ?? person.firstName,
-        updates.lastName ?? person.lastName,
-        updates.position ?? person.position,
-        updates.department ?? person.department
-      );
-      await this.deps.personRepository.save(person);
-    }
-
-    if (updates.email !== undefined && updates.email !== person.email) {
-      changes.push({ field: 'email', oldValue: person.email, newValue: updates.email });
-      person.updateEmail(updates.email);
-      await this.deps.personRepository.save(person);
-    }
-
-    if (updates.active !== undefined) {
-      if (updates.active) {
-        researcher.activate();
-      } else {
-        researcher.deactivate();
-      }
-      await this.deps.researcherRepository.save(researcher);
-    }
-
-    if (changes.length > 0) {
-      const updatedEvent = new ResearcherUpdatedEvent(
-        researcher.id,
-        person.firstName,
-        person.lastName,
-        changes,
-        user.id,
-        researcher.labId!
-      );
-      await this.deps.eventBus.publish(updatedEvent);
-    }
-
-    return ResearcherDto.toResponse(researcher, person);
-  }
-
   /**
    * Requires zero tubes AND no linked user.
    * Cleans up orphaned Person if no other entity references it.
@@ -343,32 +278,6 @@ export class ResearcherApplicationService {
     await this.deps.eventBus.publish(reactivatedEvent);
 
     return ResearcherDto.toResponse(researcher, person);
-  }
-
-  async getResearcherStats(labId: string, user: User): Promise<Array<{
-    researcher: ResearcherResponse;
-    tubeCount: number;
-  }>> {
-    await this.deps.accessControlService.requireCanViewTubes(user);
-
-    const activeResearchers = await this.deps.researcherRepository.getMostActiveResearchers(10, labId);
-    const personMap = await this.buildPersonMap(activeResearchers.map(item => item.researcher));
-
-    return activeResearchers.map(item => ({
-      researcher: ResearcherDto.toResponse(item.researcher, personMap.get(item.researcher.personId)!),
-      tubeCount: item.tubeCount
-    }));
-  }
-
-  async searchResearchers(labId: string, namePattern: string): Promise<ResearcherResponse[]> {
-    const researchers = await this.deps.researcherRepository.searchByName(namePattern, labId);
-    return this.resolveWithPersons(researchers);
-  }
-
-  async getResearcherTubeCount(id: string, user: User): Promise<{ tubeCount: number }> {
-    const researcher = await this.getResearcherOrThrow(id, user);
-    const tubeCount = await this.deps.researcherRepository.getTubeCountByResearcher(researcher.id);
-    return { tubeCount };
   }
 
   private toAdminResearcher(

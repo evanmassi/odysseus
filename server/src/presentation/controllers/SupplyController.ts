@@ -102,17 +102,6 @@ export class SupplyController extends BaseController {
     }
   }
 
-  async deleteLocation(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const user = this.getAuthenticatedUser(req);
-      await this.deps.supplyApplicationService.deleteLocation(labId, req.params.locationId, user);
-      res.json(ResponseBuilder.success({ message: 'Location deleted' }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to delete supply location', req.requestId);
-    }
-  }
-
   // Items
 
   async listItems(req: Request, res: Response): Promise<void> {
@@ -292,17 +281,6 @@ export class SupplyController extends BaseController {
     }
   }
 
-  async updatePackagingLevel(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const user = this.getAuthenticatedUser(req);
-      await this.deps.supplyApplicationService.updatePackagingLevel(labId, req.params.id, req.params.levelId, req.body.quantity, user);
-      res.json(ResponseBuilder.success({ message: 'Packaging level updated' }));
-    } catch (error) {
-      handleControllerError(error, res, 'Failed to update packaging level', req.requestId);
-    }
-  }
-
   async removePackagingLevel(req: Request, res: Response): Promise<void> {
     try {
       const labId = this.extractLabId(req);
@@ -340,7 +318,8 @@ export class SupplyController extends BaseController {
 
   async getTransactionHistory(req: Request, res: Response): Promise<void> {
     try {
-      const transactions = await this.deps.supplyApplicationService.getTransactionHistory(req.params.id);
+      const labId = this.extractLabId(req);
+      const transactions = await this.deps.supplyApplicationService.getTransactionHistory(labId, req.params.id);
       res.json(ResponseBuilder.success({ transactions }));
     } catch (error) {
       handleControllerError(error, res, 'Failed to get transaction history', req.requestId);

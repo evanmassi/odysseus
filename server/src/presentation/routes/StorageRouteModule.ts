@@ -27,6 +27,7 @@ import {
   InitializeStorageHttpSchema,
   BulkUnassignHttpSchema,
   BulkReassignHttpSchema,
+  ResetStorageHttpSchema,
 } from '@presentation/validation/httpValidationSchemas';
 
 import type { Router, RequestHandler } from 'express';
@@ -65,18 +66,6 @@ export class StorageRouteModule implements RouteModule {
       this.storageController.checkStorageHealth.bind(this.storageController)
     );
 
-    router.put('/box-position-display',
-      this.storageController.updateBoxPositionDisplay.bind(this.storageController)
-    );
-
-    router.put('/lab-position-display',
-      this.storageController.updateLabDefaultPositionDisplay.bind(this.storageController)
-    );
-
-    router.get('/position-display-presets',
-      this.storageController.getPositionDisplayPresets.bind(this.storageController)
-    );
-
     // Uses fine-grained canEditResource permission, not admin-only
     router.put('/resource-label',
       validateBody(UpdateResourceLabelHttpSchema),
@@ -104,6 +93,7 @@ export class StorageRouteModule implements RouteModule {
     router.post('/reset',
       this.authMiddleware.requireAdmin,
       this.strictLimiter,
+      validateBody(ResetStorageHttpSchema),
       this.storageController.resetStorageToDefault.bind(this.storageController)
     );
 
@@ -131,6 +121,7 @@ export class StorageRouteModule implements RouteModule {
     // Blocked if tubes exist in the tank
     router.delete('/tanks/:tankId',
       this.authMiddleware.requireAdmin,
+      validateParams(TankIdParams),
       this.storageController.deleteTank.bind(this.storageController)
     );
 
@@ -154,6 +145,7 @@ export class StorageRouteModule implements RouteModule {
     // Blocked if tubes exist in the rack
     router.delete('/tanks/:tankId/racks/:rackId',
       this.authMiddleware.requireAdmin,
+      validateParams(RackIdParams),
       this.storageController.deleteRack.bind(this.storageController)
     );
 
@@ -184,6 +176,7 @@ export class StorageRouteModule implements RouteModule {
     // Blocked if tubes exist in the box
     router.delete('/tanks/:tankId/racks/:rackId/boxes/:boxId',
       this.authMiddleware.requireAdmin,
+      validateParams(BoxIdParams),
       this.storageController.deleteBox.bind(this.storageController)
     );
 

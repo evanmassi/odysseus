@@ -27,18 +27,13 @@ export class InviteCodeController extends BaseController {
     super();
   }
 
-  /** List invite codes for a specific lab (system admin — any lab via :labId param) */
-  async listForLab(req: Request, res: Response): Promise<void> {
-    return this.listCodes(req.params.labId, res);
-  }
-
   /** List invite codes for the current user's lab (lab admin) */
   async listForCurrentLab(req: Request, res: Response): Promise<void> {
-    return this.listCodes(this.extractLabId(req), res);
+    return this.listCodes(this.extractLabId(req), req, res);
   }
 
   async create(req: Request, res: Response): Promise<void> {
-    const labId = req.params.labId ?? req.body.labId;
+    const labId = req.params.labId;
     return this.createCode(labId, req, res);
   }
 
@@ -47,12 +42,12 @@ export class InviteCodeController extends BaseController {
     return this.createCode(this.extractLabId(req), req, res);
   }
 
-  private async listCodes(labId: string, res: Response): Promise<void> {
+  private async listCodes(labId: string, req: Request, res: Response): Promise<void> {
     try {
       const inviteCodes = await this.deps.listInviteCodesHandler.handle({ labId });
       res.status(200).json(ResponseBuilder.success({ inviteCodes }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to list invite codes');
+      handleControllerError(error, res, 'Failed to list invite codes', req.requestId);
     }
   }
 
@@ -68,7 +63,7 @@ export class InviteCodeController extends BaseController {
       res.status(201).json(ResponseBuilder.success({ inviteCode: result }));
       logger.info('Invite code created', { codeId: result.id, labId, createdBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to create invite code');
+      handleControllerError(error, res, 'Failed to create invite code', req.requestId);
     }
   }
 
@@ -83,7 +78,7 @@ export class InviteCodeController extends BaseController {
 
       logger.info('Invite code deactivated', { codeId, deactivatedBy: userId });
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate invite code');
+      handleControllerError(error, res, 'Failed to deactivate invite code', req.requestId);
     }
   }
 
@@ -96,7 +91,7 @@ export class InviteCodeController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to validate invite code');
+      handleControllerError(error, res, 'Failed to validate invite code', req.requestId);
     }
   }
 }

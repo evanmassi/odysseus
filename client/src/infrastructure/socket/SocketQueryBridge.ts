@@ -136,7 +136,7 @@ class SocketQueryBridge {
     this.registerHandler('tube_created', tubeEventSchemas.tube_created, ({ location }) => {
       if (!this.labId) return;
       this.invalidateTubeLocation(location);
-      this.invalidateTubesListAndStats();
+      this.invalidateTubesList();
     });
 
     this.registerHandler(
@@ -158,7 +158,7 @@ class SocketQueryBridge {
           this.invalidateTubeLocation(newLocation);
         }
 
-        this.invalidateTubesListAndStats();
+        this.invalidateTubesList();
       }
     );
 
@@ -167,7 +167,7 @@ class SocketQueryBridge {
 
       this.queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(this.labId, tubeId) });
       this.invalidateTubeLocation(location);
-      this.invalidateTubesListAndStats();
+      this.invalidateTubesList();
     });
 
     const bulkTubeEvents = [
@@ -180,7 +180,7 @@ class SocketQueryBridge {
     for (const event of bulkTubeEvents) {
       this.registerHandler<unknown>(event, tubeEventSchemas[event], () => {
         if (!this.labId) return;
-        this.invalidateTubesListAndStats();
+        this.invalidateTubesList();
       });
     }
   }
@@ -272,11 +272,10 @@ class SocketQueryBridge {
     );
   }
 
-  /** Refreshes the full tube list (used by TubeEditorModal position analysis) and tube stats. */
-  private invalidateTubesListAndStats(): void {
+  /** Refreshes the full tube list (used by TubeEditorModal position analysis). */
+  private invalidateTubesList(): void {
     if (!this.labId) return;
     void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(this.labId) });
-    void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
   }
 
   private invalidateTubeLocation(location: {
@@ -295,7 +294,7 @@ class SocketQueryBridge {
     });
   }
 
-  // RESEARCHER EVENT HANDLERS — all invalidate researchers + tube stats
+  // RESEARCHER EVENT HANDLERS — all invalidate researchers
 
   private setupResearcherEventHandlers(): void {
     if (!this.socket) return;
@@ -306,7 +305,6 @@ class SocketQueryBridge {
         void this.queryClient.invalidateQueries({
           queryKey: queryKeys.researchers.all(this.labId),
         });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats(this.labId) });
       });
     }
   }

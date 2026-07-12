@@ -20,25 +20,23 @@ export class PersonController extends BaseController {
     super();
   }
 
-  /** GET /api/users/me/profile */
   async getMyProfile(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
       const profile = await this.deps.personApplicationService.getMyProfile(user);
-      res.status(200).json(ResponseBuilder.success(profile));
+      res.json(ResponseBuilder.success(profile));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get profile');
+      handleControllerError(error, res, 'Failed to get profile', req.requestId);
     }
   }
 
-  /** PUT /api/users/me/profile */
   async updateMyProfile(req: Request, res: Response): Promise<void> {
     try {
       const user = this.getAuthenticatedUser(req);
       const profile = await this.deps.personApplicationService.updateMyProfile(user, req.body);
-      res.status(200).json(ResponseBuilder.success(profile));
+      res.json(ResponseBuilder.success(profile));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update profile');
+      handleControllerError(error, res, 'Failed to update profile', req.requestId);
     }
   }
 }

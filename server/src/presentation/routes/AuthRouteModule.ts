@@ -1,7 +1,7 @@
 /**
  * Authenticated Route Module
  *
- * Routes requiring a valid session — session management, password, and email verification.
+ * Routes requiring a valid session — session management and password change.
  */
 
 
@@ -49,15 +49,6 @@ export class AuthRouteModule implements RouteModule {
     // Password management
     router.post('/change-password',
       this.authController.changePassword.bind(this.authController)
-    );
-
-    // Email verification management
-    router.post('/resend-verification',
-      this.authController.resendVerification.bind(this.authController)
-    );
-
-    router.get('/verification-status',
-      this.authController.getVerificationStatus.bind(this.authController)
     );
   }
 }

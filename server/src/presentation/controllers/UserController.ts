@@ -27,7 +27,6 @@ export class UserController extends BaseController {
     super();
   }
 
-  /** GET /api/users/me/settings */
   async getCurrentUserSettings(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -35,11 +34,10 @@ export class UserController extends BaseController {
 
       res.json(ResponseBuilder.success({ settings }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get user settings');
+      handleControllerError(error, res, 'Failed to get user settings', req.requestId);
     }
   }
 
-  /** PUT /api/users/me/settings */
   async updateCurrentUserSettings(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
@@ -49,7 +47,7 @@ export class UserController extends BaseController {
 
       res.json(ResponseBuilder.success({ settings: updatedUser.settings }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update user settings');
+      handleControllerError(error, res, 'Failed to update user settings', req.requestId);
     }
   }
 
@@ -61,7 +59,7 @@ export class UserController extends BaseController {
 
       res.json(ResponseBuilder.success({ users }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to lookup users');
+      handleControllerError(error, res, 'Failed to lookup users', req.requestId);
     }
   }
 
@@ -73,7 +71,7 @@ export class UserController extends BaseController {
 
       res.json(ResponseBuilder.success({ users }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to list active users');
+      handleControllerError(error, res, 'Failed to list active users', req.requestId);
     }
   }
 }
