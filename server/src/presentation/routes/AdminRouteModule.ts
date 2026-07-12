@@ -5,7 +5,6 @@
  */
 
 import {
-  updateSecurityConfigSchema,
   adminResetPasswordRequestSchema,
   createLookupValueRequestSchema,
   renameLookupValueRequestSchema,
@@ -137,16 +136,10 @@ export class AdminRouteModule implements RouteModule {
 
     // SECURITY & CONFIGURATION ENDPOINTS
 
+    // Read-only here — security config is a single global row written only via the
+    // system-admin route (/api/system/security-config).
     router.get('/security-config',
       this.adminConfigController.getSecurityConfig.bind(this.adminConfigController)
-    );
-
-    // Security config is a single global row — writes are system-admin-only
-    // (the /api/system/security-config route serves the same resource).
-    router.put('/security-config',
-      this.authMiddleware.requireSystemAdmin,
-      validateBody(updateSecurityConfigSchema),
-      this.adminConfigController.updateSecurityConfig.bind(this.adminConfigController)
     );
 
     // METRICS & MONITORING ENDPOINTS

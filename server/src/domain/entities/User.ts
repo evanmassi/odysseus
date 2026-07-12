@@ -11,6 +11,7 @@ import { type UserSettings, type UserStatus, DEFAULT_USER_SETTINGS } from '@odys
 import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
+import { constantTimeEqual } from '@domain/utils/constantTimeEqual';
 import { generateId } from '@domain/utils/generateId';
 import { UserRole } from '@domain/value-objects/UserRole';
 
@@ -571,7 +572,7 @@ export class User {
 
     const providedHash = User.hashToken(token, salt);
 
-    if (providedHash !== storedHash) {
+    if (!constantTimeEqual(providedHash, storedHash)) {
       throw EmailVerificationError.invalid();
     }
 
@@ -639,7 +640,7 @@ export class User {
     }
 
     const testHash = User.hashToken(token, storedSalt);
-    if (testHash !== storedHash) {
+    if (!constantTimeEqual(testHash, storedHash)) {
       throw new ValidationError('Invalid password reset token');
     }
 

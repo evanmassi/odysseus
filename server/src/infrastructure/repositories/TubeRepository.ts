@@ -13,6 +13,7 @@ import type { TubeRepository as ITubeRepository } from '@domain/repositories/Tub
 import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository';
 import type { Location } from '@domain/value-objects/Location';
 import { isPositionConstraintError } from '@infrastructure/database/DatabaseErrors';
+import { escapeLikePattern } from '@infrastructure/database/likePattern';
 import type { TubeRow } from '@infrastructure/database/mappers/TubeMapper';
 import { TubeMapper } from '@infrastructure/database/mappers/TubeMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -711,8 +712,8 @@ export class TubeRepository implements ITubeRepository {
       const variantConditions: string[] = [];
       for (const variant of conceptVariants) {
         const paramNum = paramIndex.current++;
-        params.push(`%${variant}%`);
-        variantConditions.push(`p.first_name ILIKE $${paramNum} OR p.last_name ILIKE $${paramNum}`);
+        params.push(`%${escapeLikePattern(variant)}%`);
+        variantConditions.push(`p.first_name ILIKE $${paramNum} ESCAPE '\\' OR p.last_name ILIKE $${paramNum} ESCAPE '\\'`);
       }
       researcherConceptConditions.push(`(${variantConditions.join(' OR ')})`);
     }

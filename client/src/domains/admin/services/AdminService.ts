@@ -38,10 +38,6 @@ class AdminService {
     return data.config;
   }
 
-  async updateSecurityConfig(config: UpdateSecurityConfig): Promise<void> {
-    await httpClient.putData('/admin/security-config', config, securityConfigDataSchema);
-  }
-
   async getVersionInfo(): Promise<VersionInfo> {
     return await httpClient.getData('/public/version', versionInfoSchema);
   }
@@ -80,7 +76,7 @@ class AdminService {
     await httpClient.deleteData(`/admin/invite-codes/${id}`);
   }
 
-  async updateSecurityConfigAsSystemAdmin(config: UpdateSecurityConfig): Promise<void> {
+  async updateSecurityConfig(config: UpdateSecurityConfig): Promise<void> {
     await httpClient.putData('/system/security-config', config, securityConfigDataSchema);
   }
 }

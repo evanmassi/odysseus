@@ -25,6 +25,7 @@ import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { constantTimeEqual } from '@domain/utils/constantTimeEqual';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
 
@@ -76,7 +77,8 @@ export class CreateSystemAdminCommandHandler {
     private eventBus: EventBus,
     private personRepository: PersonRepository,
     private passwordService: PasswordService,
-    private setupKey?: string
+    private setupKey?: string,
+    private requireSetupKey: boolean = false
   ) {}
 
   async handle(command: CreateSystemAdminCommand): Promise<User> {
@@ -85,8 +87,14 @@ export class CreateSystemAdminCommandHandler {
       throw new ValidationError('System admin already exists');
     }
 
+    // Fail closed where a setup key is mandatory (production) but none is configured, so the
+    // first-admin endpoint can never be created without one.
+    if (this.requireSetupKey && !this.setupKey) {
+      throw new ValidationError('System admin setup key is not configured');
+    }
+
     if (this.setupKey) {
-      if (!command.setupKey || command.setupKey !== this.setupKey) {
+      if (!command.setupKey || !constantTimeEqual(command.setupKey, this.setupKey)) {
         throw new PermissionError('Invalid setup key');
       }
     }

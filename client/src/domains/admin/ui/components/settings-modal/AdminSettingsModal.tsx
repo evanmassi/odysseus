@@ -121,7 +121,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     isSaving,
     load: loadConfiguration,
     save,
-  } = useSecurityConfig(isSystemAdmin);
+  } = useSecurityConfig();
 
   useEffect(() => {
     if (isOpen) {

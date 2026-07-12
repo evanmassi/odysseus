@@ -16,7 +16,7 @@ import { SecurityTab } from '../settings-modal/tabs/SecurityTab';
 
 export function SecuritySettings() {
   const { config, handleConfigChange, changedCount, hasChanges, isLoaded, isSaving, load, save } =
-    useSecurityConfig(true);
+    useSecurityConfig();
   const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {

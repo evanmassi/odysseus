@@ -1,8 +1,8 @@
 /**
  * Security Config Editor
  *
- * Loads the security configuration into editable state and persists changes, routing to the
- * system-admin endpoint when the caller is a system admin.
+ * Loads the security configuration into editable state and persists changes via the
+ * system-admin endpoint (the only writer of the single global security-config row).
  */
 
 import { useCallback, useState } from 'react';
@@ -15,7 +15,7 @@ import { adminService } from '../services/AdminService';
 
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
-export function useSecurityConfig(isSystemAdmin: boolean) {
+export function useSecurityConfig() {
   const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -55,9 +55,7 @@ export function useSecurityConfig(isSystemAdmin: boolean) {
 
     setIsSaving(true);
     try {
-      await (isSystemAdmin
-        ? adminService.updateSecurityConfigAsSystemAdmin(changes)
-        : adminService.updateSecurityConfig(changes));
+      await adminService.updateSecurityConfig(changes);
       setOriginalConfig(config);
     } finally {
       setIsSaving(false);

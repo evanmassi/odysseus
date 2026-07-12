@@ -7,6 +7,7 @@
 import type { Donor } from '@domain/entities/Donor';
 import type { DonorCollectionHistory } from '@domain/entities/DonorCollectionHistory';
 import type { DonorRepository as IDonorRepository } from '@domain/repositories/DonorRepository';
+import { escapeLikePattern } from '@infrastructure/database/likePattern';
 import type { DonorRow, DonorCollectionHistoryRow } from '@infrastructure/database/mappers/DonorMapper';
 import { DonorMapper } from '@infrastructure/database/mappers/DonorMapper';
 import type { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -66,13 +67,13 @@ export class DonorRepository implements IDonorRepository {
   async search(labId: string, query: string, limit: number = 20): Promise<Donor[]> {
     // Strip # and spaces so "LP8", "LP#8", "LP #8" all match
     const normalized = query.replace(/[\s#]+/g, '');
-    const pattern = `%${normalized}%`;
+    const pattern = `%${escapeLikePattern(normalized)}%`;
     const rows = await this.db.queryMany<DonorRow>(`
       SELECT ${DONOR_COLUMNS} FROM donors
       WHERE lab_id = $1
         AND (
-          REPLACE(REPLACE(donor_source_id, '#', ''), ' ', '') ILIKE $2
-          OR REPLACE(REPLACE(donor_internal_id, '#', ''), ' ', '') ILIKE $2
+          REPLACE(REPLACE(donor_source_id, '#', ''), ' ', '') ILIKE $2 ESCAPE '\\'
+          OR REPLACE(REPLACE(donor_internal_id, '#', ''), ' ', '') ILIKE $2 ESCAPE '\\'
         )
       ORDER BY donor_source_id, donor_internal_id
       LIMIT $3

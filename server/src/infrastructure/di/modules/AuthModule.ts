@@ -172,7 +172,8 @@ export class AuthModule {
         this.shared.eventBus,
         repositories.persons,
         this.shared.passwordService,
-        this.shared.configurationService.get('security').systemAdminSetupKey
+        this.shared.configurationService.get('security').systemAdminSetupKey,
+        this.shared.configurationService.get('server').environment === 'production'
       );
     }
     return this.createSystemAdminHandler;

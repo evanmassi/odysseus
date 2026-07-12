@@ -9,6 +9,7 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 
 import type { PasswordService } from '@application/contracts/PasswordService';
+import { constantTimeEqual } from '@domain/utils/constantTimeEqual';
 
 const DEFAULT_SALT_ROUNDS = 12;
 const PBKDF2_ITERATIONS = 10000;
@@ -37,7 +38,7 @@ export class BcryptPasswordService implements PasswordService {
     try {
       if (salt) {
         const derived = crypto.pbkdf2Sync(plainPassword, salt, PBKDF2_ITERATIONS, PBKDF2_KEY_LENGTH, PBKDF2_DIGEST).toString('hex');
-        return derived === storedHash;
+        return constantTimeEqual(derived, storedHash);
       }
       return bcrypt.compare(plainPassword, storedHash);
     } catch {

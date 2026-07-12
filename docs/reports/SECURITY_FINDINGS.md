@@ -212,6 +212,16 @@ or defer.
 - **D3 error-context** — `filterPublicContext` (an explicit client-safe key allowlist) gates what
   `handleControllerError` and the global handler return; full context is still logged server-side.
 
-**Remaining (optional hardening):** L5 (storage-import validateBody), L8/L9 (LIKE escaping),
-L10 (staging setup-key + timing-safe compare), I1 (constant-time hash compare), I2/I3 (cosmetic),
-and the redundant now-locked `/admin/security-config` PUT + its dead client method.
+**Polish batch applied:** removed the redundant `/admin/security-config` PUT (and the orphaned
+client `updateSecurityConfig` method / `useSecurityConfig` branch — the `/system` route is the sole
+writer); **L10** now requires `SYSTEM_ADMIN_SETUP_KEY` in production (handler fails closed when
+unset) and compares it with `constantTimeEqual`; **I1** routes the PBKDF2 password path and the
+email-verification / password-reset token checks through `constantTimeEqual` (`domain/utils`);
+**I2** dropped the dead `LOG_CONSOLE`/`LOG_FILE` keys from `.env.example`; **L8/L9** escape LIKE
+metacharacters (`%` `_` `\`) in donor + tube-researcher search via `escapeLikePattern` + `ESCAPE '\'`
+(fixes literal-underscore over-matching; integration test added).
+
+**Deliberately left (verified marginal):** L5 (storage-import validateBody — `StorageImportData` is a
+hand-rolled domain interface with no shared schema; a bespoke Zod schema would be a drift-prone
+parallel shape, and `Storage.fromData` is the authoritative validator), I3 (registration
+enumeration — invite-gated, and the specific messages are better UX).
