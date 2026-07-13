@@ -16,7 +16,7 @@ closed for the paths that carried real risk.
 > | Item | State |
 > |------|-------|
 > | #0 Vulnerable dependencies | **Done** (`eb4e59f1`) — 16 prod vulns → 1, which is unreachable |
-> | #1 Transactions | **Mechanism built + auth flows wrapped** (`cf4996a3`); bulk tubes + storage import remain |
+> | #1 Transactions | **Done** (`cf4996a3`, `fcc99674`) — mechanism + every auth flow; the two "remaining" flows needed no transaction |
 > | #2 Wire contract | **Largely closed** (`ccc3a81a`); runtime serialization tests remain |
 > | #3–#7 | Open |
 
@@ -64,10 +64,17 @@ token-family revocation, and all four password-change handlers (admin reset, tok
 force-change, user-initiated) via the shared `commitPasswordChange` helper. Integration tests inject
 a mid-flow failure and assert rollback; each was verified to fail without its transaction.
 
-**What remains:** the non-auth flows — **bulk tube operations** and **storage import**
-(`ImportStorageCommandHandler`). Both are lower severity: a partial write there is recoverable data,
-whereas a partial auth write locked the user out. Wrap them with `withTransaction`; the mechanism
-needs no further work.
+**What remains: nothing — #1 is closed.** The two flows the original draft still listed turned out
+not to need transactions, and wrapping one of them would have been a bug:
+
+- ~~Bulk tube operations~~ — these must **not** be atomic. They run through `executeBulk`, which
+  executes each item independently and collects failures, and the wire contract says so:
+  `bulkUpdateResponseSchema` / `bulkDeleteResponseSchema` return `updated`/`deleted` **plus**
+  `failed: [{ id, error }]`. Partial success is the designed, client-visible behavior (delete twelve
+  tubes, two are locked → ten deleted, two reported). A transaction would make it all-or-nothing and
+  silently break the feature. Each per-tube write is a single row, already atomic on its own.
+- ~~Storage import~~ — already atomic. It writes via `StorageRepository.saveWithOptimisticLock`,
+  which wraps its writes in `context.transaction(...)` (`StorageRepository.ts:146`).
 
 ## 2. Wire-contract enforcement — *largely closed 2026-07-12*
 
