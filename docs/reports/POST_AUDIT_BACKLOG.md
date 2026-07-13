@@ -6,13 +6,17 @@ deliberately skipped — see the `*_FINDINGS.md` ledgers in this directory).
 This captures the larger, out-of-scope items worth investigating later — the "real work," not
 polish. Each has a starting point so it can be picked up cold. Ranked roughly by ongoing cost.
 
-**Next up:** #4 (frontend) and #5 (a11y) — the client never got the file-by-file pass the server did,
-so that is where the unknown debt is. Everything that carried real risk is closed.
+**Next up:** #4 (bundle size) and #6 (performance at volume). Everything that carried real risk is
+closed, and the "unaudited frontend" this doc pointed at does not exist.
 
-> **Revised 2026-07-12** after verifying each item against the code. Several starting points in the
-> original draft were wrong — corrections are inline, struck through rather than deleted so the
-> mistake is visible. Three items turned out to be partly or wholly mis-specified, and one (#3's
-> "consolidate behind a generic inventory item") would have been an active mistake to follow.
+> **Revised 2026-07-12** after verifying each item against the code. **Most of the original draft's
+> starting points were wrong**, and they were wrong in a consistent direction: it described work as
+> outstanding that had already been done, and pointed at prerequisites that already existed.
+> Corrections are struck through rather than deleted so the mistake stays visible. Two would have
+> actively wasted a reader's time or made the codebase worse — #3's "consolidate behind a generic
+> inventory item", and #4's claim that the client was never audited.
+>
+> **Read the code before trusting an item in this file.**
 >
 > | Item | State |
 > |------|-------|
@@ -20,7 +24,9 @@ so that is where the unknown debt is. Everything that carried real risk is close
 > | #1 Transactions | **Done** (`cf4996a3`, `fcc99674`) — mechanism + every auth flow; the two "remaining" flows needed no transaction |
 > | #2 Wire contract | **Largely closed** (`ccc3a81a`); runtime serialization tests remain |
 > | #3 Equipment ↔ supplies twin | **Done** (`f966d4b7`, `c9ee8994`, `66c06491`) — split verdict; the standing rule now lives in AGENTS.md |
-> | #4–#7 | Open |
+> | #4 Frontend audit | **Already done before this doc was written** — 53 `audit:` commits; 151 of 216 branch commits touch `client/`. Only bundle size remains. |
+> | #5 Accessibility | **Partly done incidentally** by the component audit; no dedicated sweep |
+> | #6–#7 | Open |
 
 ---
 
@@ -163,30 +169,45 @@ behaviour change it is. Both now list newest-first, matching 7 of the 9 time-ord
 app — including the maintenance log sitting directly beside the documents on the equipment panel,
 which had been newest-first while the documents next to it were not.
 
-## 4. Frontend audit + code-splitting
+## 4. Code-splitting — *the "frontend audit" half of this item was already done*
 
-**What:** The client got lighter scrutiny than the server (the client sweep was narrow — cross-domain
-barrels and design tokens — not the file-by-file pass the server layers got). Separately, the main
-bundle is large.
+> ~~**What:** The client got lighter scrutiny than the server (the client sweep was narrow —
+> cross-domain barrels and design tokens — not the file-by-file pass the server layers got).~~
+>
+> **This was wrong, and it is the most misleading claim in the original draft.** The client had
+> already received a full file-by-file audit on this branch — **53 `audit:` commits** covering every
+> domain (tubes, users, supplies, storage, search, equipment, researchers, lab-management, help,
+> admin, donors, authentication) plus `ui/primitives`, `ui/components/*`, and `styles/`. Of the 216
+> commits on `audit/fixes`, **151 touch `client/` against 57 touching `server/`** — the client sweep
+> was the larger of the two, and at a finer grain (dead props, barrel surfaces, token
+> centralization, component extraction). Anyone reading the draft would conclude the client is
+> unexamined. It is the most examined part of the repo.
 
-**Why it matters:** Real load-time cost, and likely undiscovered component-level debt.
+**What actually remains:** the main bundle is large. That is a separate concern from code quality and
+was never addressed by the audit.
+
+**Why it matters:** Real load-time cost.
 
 **Where to start:** The production build reports a ~1 MB main chunk (~317 kB gzipped). ~~Only the
 admin tabs are lazy-loaded.~~ Correction: `lazy()` is used in **seven** files (`App.tsx`,
 `AppDashboard`, `AppHeader`, `AdminSettingsModal`, `SystemAdminDashboard`, `HelpModal`,
 `UserSettingsModal`) — so the low-hanging fruit is already picked, and the remaining 1 MB is the
 *core* bundle. Note also `client/vite.config.ts:40` sets `chunkSizeWarningLimit: 1100`, i.e. the
-warning was **silenced, not fixed**. Split by domain / route. Then a proper component-quality pass
-(prop-drilling, near-duplicate components, hook boundaries) using the same rubric the server got
-(`docs/audit-rubric.md`).
+warning was **silenced, not fixed**. Split by domain / route.
 
-## 5. Accessibility
+~~Then a proper component-quality pass.~~ Not needed — that pass happened (see above). Component
+quality is not the open question here; bundle size is.
 
-**What:** AGENTS.md mandates keyboard support for interactive elements, but there's no evidence of an
-actual a11y pass.
+## 5. Accessibility — *partly done, incidentally*
 
-**Why it matters:** Probably the widest gap between the documented standard and the real state, given
-how modal- and form-driven the UI is.
+**What:** AGENTS.md mandates keyboard support for interactive elements. ~~There's no evidence of an
+actual a11y pass.~~ Correction: there was no *dedicated* a11y pass, but the component audit did a
+fair amount of it in passing — 13 client commits touch aria/focus/keyboard (option ids and
+`aria-activedescendant` on Autocomplete, focus-ring tokens, the modal focus trap). So the state is
+better than the draft implies, but it was a by-product rather than a sweep.
+
+**Why it matters:** Still likely a gap between the documented standard and the real state, given how
+modal- and form-driven the UI is — but a narrower one than "no a11y pass has happened."
 
 **Where to start:** ~~Focus management on the modals.~~ Correction: `BaseModal.tsx` already has
 `useFocusTrap`, `role="dialog"`, `aria-modal`, `aria-labelledby`, Escape scoped for nested modals,
