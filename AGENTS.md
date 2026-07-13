@@ -176,9 +176,13 @@ When writing new code, pattern it after these already-audited files. They define
 | Client Zustand store | `client/src/app/stores/modalStore.ts` |
 | Shared schema module | `packages/shared-schemas/src/donors/donorSchemas.ts` |
 
-The **equipment and supply item surfaces** have NOT been audited — never use them as a reference.
-Their shared category/document code is audited and is the exemplar for a two-catalog abstraction —
-see *Equipment ↔ Supplies* below.
+~~The equipment domain has NOT been audited.~~ **Stale — it was.** That line predated the layer
+audits (2026-07-11/12), which do carry findings against `EquipmentApplicationService`,
+`SupplyApplicationService`, and `SupplyItemRepository`. Every layer of this repo has now had a pass.
+
+Still, prefer the exemplars above: the equipment and supply **item** services are large and were
+never rewritten to the standard the Donor domain sets. Their shared **category/document** code is
+the exemplar for a two-catalog abstraction — see *Equipment ↔ Supplies* below.
 
 ---
 
