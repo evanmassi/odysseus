@@ -7,6 +7,7 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
+import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
@@ -36,7 +37,15 @@ function makeHandler(opts: { found?: boolean } = {}) {
   const passwordService = { hash } as unknown as PasswordService;
   const storageRepository = { getSecurityConfig: jest.fn().mockResolvedValue(DEFAULT_SECURITY_CONFIG) } as unknown as StorageRepository;
 
-  const handler = new ForceChangePasswordCommandHandler(userRepository, eventBus, refreshTokenRepository, userSessionRepository, passwordService, storageRepository);
+  const unitOfWork: UnitOfWork = {
+    withTransaction: work => work({
+      users: userRepository,
+      refreshTokens: refreshTokenRepository,
+      userSessions: userSessionRepository,
+    } as Repositories),
+  };
+
+  const handler = new ForceChangePasswordCommandHandler(userRepository, eventBus, passwordService, storageRepository, unitOfWork);
   return { handler, user, setPasswordHash, markPasswordChanged, save, publish, revokeAllForUser, revokeAllSessions, hash };
 }
 

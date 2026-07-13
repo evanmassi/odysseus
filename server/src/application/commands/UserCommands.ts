@@ -8,6 +8,7 @@ import { verifyCurrentPassword, upgradePasswordHashIfNeeded } from '@application
 import { findByIdForRequester } from '@application/authorization/findByIdForRequester';
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { Person } from '@domain/entities/Person';
 import { User } from '@domain/entities/User';
@@ -24,7 +25,6 @@ import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { constantTimeEqual } from '@domain/utils/constantTimeEqual';
 import { UserRole } from '@domain/value-objects/UserRole';
 import { logger } from '@infrastructure/logging/logger';
@@ -138,8 +138,8 @@ export class ChangeUserPasswordCommandHandler {
     private userRepository: UserRepository,
     private eventBus: EventBus,
     private storageRepository: StorageRepository,
-    private userSessionRepository: UserSessionRepository,
-    private passwordService: PasswordService
+    private passwordService: PasswordService,
+    private unitOfWork: UnitOfWork
   ) {}
 
   async handle(command: ChangeUserPasswordCommand): Promise<void> {
@@ -154,20 +154,25 @@ export class ChangeUserPasswordCommandHandler {
     const newHash = await this.passwordService.hash(command.newPassword);
 
     user.setPasswordHash(newHash);
-    await this.userRepository.save(user);
 
-    // Changing password revokes all other sessions for security
-    if (command.currentSessionId) {
-      const activeSessions = await this.userSessionRepository.findActiveSessionsByUserId(user.id);
-      const otherSessionIds = activeSessions
-        .filter(s => s.id !== command.currentSessionId)
-        .map(s => s.id);
+    // Atomic: a new password that failed to revoke the old sessions leaves them alive — the
+    // opposite of what changing a password is for.
+    await this.unitOfWork.withTransaction(async (repos) => {
+      await repos.users.save(user);
 
-      if (otherSessionIds.length > 0) {
-        const revokedCount = await this.userSessionRepository.bulkRevoke(otherSessionIds);
-        logger.info(`Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`);
+      // The session the change was made from survives; every other one is revoked.
+      if (command.currentSessionId) {
+        const activeSessions = await repos.userSessions.findActiveSessionsByUserId(user.id);
+        const otherSessionIds = activeSessions
+          .filter(s => s.id !== command.currentSessionId)
+          .map(s => s.id);
+
+        if (otherSessionIds.length > 0) {
+          const revokedCount = await repos.userSessions.bulkRevoke(otherSessionIds);
+          logger.info(`Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`);
+        }
       }
-    }
+    });
 
     const event = new UserPasswordChangedEvent(user.id, user.username, command.initiatedBy, user.labId);
     await this.eventBus.publish(event);

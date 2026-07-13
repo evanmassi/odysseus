@@ -255,14 +255,14 @@ export class JwtSessionService implements SessionService {
       ? new Date(Date.now() + (JwtSessionService.DEMO_SESSION_EXPIRY_HOURS * 60 * 60 * 1000))
       : new Date(Date.now() + (JwtSessionService.REAL_USER_REFRESH_EXPIRY_DAYS * 24 * 60 * 60 * 1000));
 
-    const refreshToken = await this.createRefreshToken(user);
+    const refreshToken = this.buildRefreshToken(user);
     const rawRefreshToken = refreshToken.rawToken;
     if (!rawRefreshToken) {
       throw new Error('Refresh token is missing its raw value immediately after creation');
     }
 
-    // Create session FIRST — its ID will be embedded in the JWT. The session stores the token
-    // hash so `findByRefreshToken` matches (hashing its input) without persisting the raw token.
+    // The session stores the token hash so `findByRefreshToken` matches (hashing its input)
+    // without persisting the raw token.
     const userSession = UserSession.create(
       user.id,
       refreshToken.token,
@@ -272,8 +272,13 @@ export class JwtSessionService implements SessionService {
       userAgent
     );
 
+    // Atomic: a token persisted without its session is unusable and unreachable — the refresh
+    // that presented it would fail on the missing session and strand the row.
     try {
-      await this.userSessionRepository.save(userSession);
+      await this.unitOfWork.withTransaction(async (repos) => {
+        await repos.refreshTokens.save(refreshToken);
+        await repos.userSessions.save(userSession);
+      });
       logger.info(`Created session ${userSession.id} for user ${user.username}`);
     } catch (error) {
       logger.error('Failed to create user session:', { error });
@@ -328,25 +333,29 @@ export class JwtSessionService implements SessionService {
     return this.signToken(payload);
   }
 
-  private async createRefreshToken(user: User): Promise<RefreshToken> {
+  /** Builds the entity only — the caller persists it, so the write can join a transaction. */
+  private buildRefreshToken(user: User): RefreshToken {
     // Demo users get shorter refresh token expiry
     const expiryDays = user.isDemo
       ? JwtSessionService.DEMO_SESSION_EXPIRY_HOURS / 24
       : JwtSessionService.REAL_USER_REFRESH_EXPIRY_DAYS;
 
-    const refreshTokenEntity = RefreshToken.create(user.id, expiryDays);
-    await this.refreshTokenRepository.save(refreshTokenEntity);
-
-    return refreshTokenEntity;
+    return RefreshToken.create(user.id, expiryDays);
   }
 
-  /** Revokes every refresh token and active session for a user — the response to token reuse. */
+  /**
+   * Revokes every refresh token and active session for a user — the response to token reuse.
+   * Atomic: this is the containment step for a suspected compromise, so it must not half-apply
+   * and leave the attacker holding live credentials.
+   */
   private async revokeUserTokenFamily(userId: string): Promise<void> {
-    const sessions = await this.userSessionRepository.findActiveSessionsByUserId(userId);
-    if (sessions.length > 0) {
-      await this.userSessionRepository.bulkRevoke(sessions.map(session => session.id));
-    }
-    await this.refreshTokenRepository.revokeAllForUser(userId);
+    await this.unitOfWork.withTransaction(async (repos) => {
+      const sessions = await repos.userSessions.findActiveSessionsByUserId(userId);
+      if (sessions.length > 0) {
+        await repos.userSessions.bulkRevoke(sessions.map(session => session.id));
+      }
+      await repos.refreshTokens.revokeAllForUser(userId);
+    });
   }
 
   /**

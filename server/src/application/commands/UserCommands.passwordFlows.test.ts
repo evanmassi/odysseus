@@ -7,6 +7,7 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
+import type { Repositories, UnitOfWork } from '@application/contracts/UnitOfWork';
 import type { User } from '@domain/entities/User';
 import { InvalidCredentialsError } from '@domain/errors/UserErrors';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
@@ -36,7 +37,14 @@ function makeChangeHandler(opts: { verify?: boolean } = {}) {
   const hash = jest.fn().mockResolvedValue('NEWHASH');
   const passwordService = { verify: jest.fn().mockResolvedValue(opts.verify ?? true), hash } as unknown as PasswordService;
 
-  const handler = new ChangeUserPasswordCommandHandler(userRepository, eventBus, storageRepository, userSessionRepository, passwordService);
+  const unitOfWork: UnitOfWork = {
+    withTransaction: work => work({
+      users: userRepository,
+      userSessions: userSessionRepository,
+    } as Repositories),
+  };
+
+  const handler = new ChangeUserPasswordCommandHandler(userRepository, eventBus, storageRepository, passwordService, unitOfWork);
   return { handler, setPasswordHash, save, publish, hash };
 }
 

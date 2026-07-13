@@ -76,8 +76,8 @@ export class AuthModule {
         repositories.users,
         this.shared.eventBus,
         repositories.storage,
-        repositories.userSessions,
-        this.shared.passwordService
+        this.shared.passwordService,
+        this.repositoryFactory
       );
     }
     return this.changePasswordHandler;
@@ -127,10 +127,9 @@ export class AuthModule {
       this.adminResetPasswordHandler = new AdminResetPasswordCommandHandler(
         repositories.users,
         this.shared.eventBus,
-        repositories.refreshTokens,
-        repositories.userSessions,
         this.shared.passwordService,
-        repositories.storage
+        repositories.storage,
+        this.repositoryFactory
       );
     }
     return this.adminResetPasswordHandler;
@@ -154,10 +153,9 @@ export class AuthModule {
       this.resetPasswordWithTokenHandler = new ResetPasswordWithTokenCommandHandler(
         repositories.users,
         this.shared.eventBus,
-        repositories.refreshTokens,
-        repositories.userSessions,
         this.shared.passwordService,
-        repositories.storage
+        repositories.storage,
+        this.repositoryFactory
       );
     }
     return this.resetPasswordWithTokenHandler;
@@ -185,10 +183,9 @@ export class AuthModule {
       this.forceChangePasswordHandler = new ForceChangePasswordCommandHandler(
         repositories.users,
         this.shared.eventBus,
-        repositories.refreshTokens,
-        repositories.userSessions,
         this.shared.passwordService,
-        repositories.storage
+        repositories.storage,
+        this.repositoryFactory
       );
     }
     return this.forceChangePasswordHandler;

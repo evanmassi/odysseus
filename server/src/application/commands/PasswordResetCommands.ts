@@ -6,6 +6,7 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { PasswordService } from '@application/contracts/PasswordService';
+import type { UnitOfWork } from '@application/contracts/UnitOfWork';
 import { validatePasswordPolicy } from '@application/guards/PasswordGuards';
 import { requireUser, requireAdmin } from '@application/guards/UserGuards';
 import type { User } from '@domain/entities/User';
@@ -13,10 +14,8 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PasswordResetByAdminEvent, PasswordResetTokenGeneratedEvent, PasswordResetCompletedEvent } from '@domain/events/PasswordResetEvents';
 import { UserPasswordChangedEvent } from '@domain/events/UserEvents';
-import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
-import type { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { logger } from '@infrastructure/logging/logger';
 
 // COMMAND INTERFACES
@@ -43,16 +42,36 @@ export interface ForceChangePasswordCommand {
   newPassword: string;
 }
 
+interface RevokedCredentials {
+  tokens: number;
+  sessions: number;
+}
+
+/**
+ * Persists the new password and revokes every existing refresh token and session as one
+ * transaction. A partial write would leave the user's old sessions alive under a password they
+ * just changed — which is exactly what someone resetting a compromised account is trying to end.
+ */
+function commitPasswordChange(unitOfWork: UnitOfWork, user: User): Promise<RevokedCredentials> {
+  return unitOfWork.withTransaction(async (repos) => {
+    await repos.users.save(user);
+
+    return {
+      tokens: await repos.refreshTokens.revokeAllForUser(user.id),
+      sessions: await repos.userSessions.revokeAllSessions(user.id),
+    };
+  });
+}
+
 // COMMAND HANDLERS
 
 export class AdminResetPasswordCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private eventBus: EventBus,
-    private refreshTokenRepository: RefreshTokenRepository,
-    private userSessionRepository: UserSessionRepository,
     private passwordService: PasswordService,
-    private storageRepository: StorageRepository
+    private storageRepository: StorageRepository,
+    private unitOfWork: UnitOfWork
   ) {}
 
   async handle(command: AdminResetPasswordCommand): Promise<void> {
@@ -64,10 +83,8 @@ export class AdminResetPasswordCommandHandler {
     const passwordHash = await this.passwordService.hash(command.newPassword);
 
     targetUser.adminResetPassword(passwordHash, command.requirePasswordChange);
-    await this.userRepository.save(targetUser);
 
-    const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(targetUser.id);
-    const revokedSessions = await this.userSessionRepository.revokeAllSessions(targetUser.id);
+    const revoked = await commitPasswordChange(this.unitOfWork, targetUser);
 
     await this.eventBus.publish(new PasswordResetByAdminEvent(
       targetUser.id,
@@ -82,8 +99,8 @@ export class AdminResetPasswordCommandHandler {
       targetUserId: targetUser.id,
       targetUsername: targetUser.username,
       requirePasswordChange: command.requirePasswordChange,
-      revokedRefreshTokens: revokedTokens,
-      revokedSessions: revokedSessions,
+      revokedRefreshTokens: revoked.tokens,
+      revokedSessions: revoked.sessions,
       timestamp: new Date().toISOString()
     });
   }
@@ -133,10 +150,9 @@ export class ResetPasswordWithTokenCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private eventBus: EventBus,
-    private refreshTokenRepository: RefreshTokenRepository,
-    private userSessionRepository: UserSessionRepository,
     private passwordService: PasswordService,
-    private storageRepository: StorageRepository
+    private storageRepository: StorageRepository,
+    private unitOfWork: UnitOfWork
   ) {}
 
   async handle(command: ResetPasswordWithTokenCommand): Promise<void> {
@@ -149,18 +165,16 @@ export class ResetPasswordWithTokenCommandHandler {
     const passwordHash = await this.passwordService.hash(command.newPassword);
 
     user.resetPasswordWithToken(command.token, passwordHash);
-    await this.userRepository.save(user);
 
-    const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(user.id);
-    const revokedSessions = await this.userSessionRepository.revokeAllSessions(user.id);
+    const revoked = await commitPasswordChange(this.unitOfWork, user);
 
     await this.eventBus.publish(new PasswordResetCompletedEvent(user.id, user.labId));
 
     logger.info('Password reset completed with token', {
       userId: user.id,
       username: user.username,
-      revokedRefreshTokens: revokedTokens,
-      revokedSessions: revokedSessions,
+      revokedRefreshTokens: revoked.tokens,
+      revokedSessions: revoked.sessions,
       timestamp: new Date().toISOString()
     });
   }
@@ -175,10 +189,9 @@ export class ForceChangePasswordCommandHandler {
   constructor(
     private userRepository: UserRepository,
     private eventBus: EventBus,
-    private refreshTokenRepository: RefreshTokenRepository,
-    private userSessionRepository: UserSessionRepository,
     private passwordService: PasswordService,
-    private storageRepository: StorageRepository
+    private storageRepository: StorageRepository,
+    private unitOfWork: UnitOfWork
   ) {}
 
   async handle(command: ForceChangePasswordCommand): Promise<User> {
@@ -192,18 +205,16 @@ export class ForceChangePasswordCommandHandler {
 
     user.setPasswordHash(passwordHash);
     user.markPasswordChanged();
-    await this.userRepository.save(user);
 
-    const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(user.id);
-    const revokedSessions = await this.userSessionRepository.revokeAllSessions(user.id);
+    const revoked = await commitPasswordChange(this.unitOfWork, user);
 
     await this.eventBus.publish(new UserPasswordChangedEvent(user.id, user.username, user.id, user.labId));
 
     logger.info('Password changed via force-change flow', {
       userId: user.id,
       username: user.username,
-      revokedRefreshTokens: revokedTokens,
-      revokedSessions: revokedSessions,
+      revokedRefreshTokens: revoked.tokens,
+      revokedSessions: revoked.sessions,
       timestamp: new Date().toISOString()
     });
 

@@ -1,10 +1,10 @@
 /**
- * Refresh Rotation Atomicity
+ * Session Write Atomicity
  *
- * Rotation revokes the presented token, persists its replacement, and repoints the session. A
- * partial write would leave the session pointing at a revoked token, so the next refresh would
- * read as replay and revoke the user's whole token family — locking them out. These tests prove
- * the three writes commit together or not at all.
+ * Login and refresh rotation each write across several repositories. A partial write leaves the
+ * session and its refresh token disagreeing — which the next refresh reads as token replay, so it
+ * revokes the whole family and logs the user out. These tests prove each flow commits all its
+ * writes or none.
  */
 
 import { RepositoryFactory } from '@infrastructure/di/RepositoryFactory';
@@ -82,6 +82,22 @@ describe('refresh rotation atomicity', () => {
   afterAll(async () => {
     await factory.close();
     await bootstrap.close();
+  });
+
+  it('persists no refresh token when login fails to create the session', async () => {
+    const lab = await seed.lab();
+    const user = await seed.user({ labId: lab.id });
+
+    await expect(
+      buildSessionService(failingUnitOfWork()).createTokenPair(user, 'test-agent', '127.0.0.1')
+    ).rejects.toThrow();
+
+    // The token is saved before the session; without a transaction it would survive as an
+    // unreachable row that no session ever points at.
+    expect(await countTokensFor(user.id)).toBe(0);
+
+    const sessions = await factory.getRepositories().userSessions.findActiveSessionsByUserId(user.id);
+    expect(sessions).toHaveLength(0);
   });
 
   it('rolls back every write when a later write in the rotation fails', async () => {
