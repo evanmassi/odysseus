@@ -6,12 +6,19 @@ deliberately skipped — see the `*_FINDINGS.md` ledgers in this directory).
 This captures the larger, out-of-scope items worth investigating later — the "real work," not
 polish. Each has a starting point so it can be picked up cold. Ranked roughly by ongoing cost.
 
-**If you only do three:** #0 (vulnerable dependencies), #1 (transactions), #3 (the twins decision).
-Those carry real ongoing cost today; the rest are missing coverage or deferred decisions.
+**Next up:** #3 (the twins decision), then #4 (frontend) / #5 (a11y). #0 is done, and #1 and #2 are
+closed for the paths that carried real risk.
 
 > **Revised 2026-07-12** after verifying each item against the code. Several starting points in the
-> original draft were wrong — corrections are inline. #2 is now largely closed; #0 is new and was
-> the most urgent thing here, mis-filed as a footnote under #7.
+> original draft were wrong — corrections are inline, struck through rather than deleted so the
+> mistake is visible.
+>
+> | Item | State |
+> |------|-------|
+> | #0 Vulnerable dependencies | **Done** (`eb4e59f1`) — 16 prod vulns → 1, which is unreachable |
+> | #1 Transactions | **Mechanism built + auth flows wrapped** (`cf4996a3`); bulk tubes + storage import remain |
+> | #2 Wire contract | **Largely closed** (`ccc3a81a`); runtime serialization tests remain |
+> | #3–#7 | Open |
 
 ---
 
@@ -36,18 +43,31 @@ so a mid-flow failure leaves inconsistent state.
 
 **Why it matters:** Data-integrity risk — the highest-severity class of issue that remains.
 
-**Where to start:** ~~First check whether `PostgresContext` exposes a transaction wrapper.~~ **It
-already does** — `transaction()` and `transactionSerializable()` (`PostgresContext.ts:111`, `:131`),
-used today by four repositories. The helper is not the prerequisite, and the real blocker is bigger
-than the original draft implied: the wrapper hands the callback a `PoolClient`, but repository
-methods query the pool directly, so there is **no way to enlist a cross-repository flow in one
-transaction** without threading an optional client through repository signatures. That plumbing
-decision is the actual work.
+**Mechanism: built 2026-07-12** (`cf4996a3`). The original draft's premise was wrong twice over —
+`PostgresContext` already had `transaction()`, and the real blocker was that repositories query the
+pool directly, so no *cross-repository* flow could share one. Both are now resolved:
 
-The concrete flows: refresh-token rotation in `JwtSessionService.refreshAccessToken` (revoke old →
-save new → repoint session — three sequential writes), bulk tube operations, storage import
-(`ImportStorageCommandHandler`), password-reset (revokes sessions + tokens), login (creates session
-+ refresh token). Note `PostgresContext.getClient()` (`:146`) has zero callers — dead code.
+- `Queryable` — the query surface repositories depend on. `PostgresContext` implements it
+  pool-backed; `TransactionalContext` implements it bound to one client. All 18 repos take
+  `Queryable`.
+- `UnitOfWork` (`application/contracts`), implemented by `RepositoryFactory`. `withTransaction(work)`
+  hands the callback a repo set bound to that transaction. **The pool-backed singletons are
+  deliberately left alone** — that is what keeps event-handler writes (audit) out of the caller's
+  transaction, where a rollback would erase the record of the very failure being audited. This is
+  the reason an ambient/AsyncLocalStorage transaction was rejected.
+- `TransactionalContext.transaction()` **joins** the active transaction rather than nesting: a second
+  `BEGIN` on the same client is a silent no-op and the inner `COMMIT` would commit the outer
+  transaction early. Four repositories call `transaction()` internally, so this matters.
+
+**Auth flows wrapped** (`cf4996a3` + follow-up): refresh rotation, login (`createTokenPair`),
+token-family revocation, and all four password-change handlers (admin reset, token reset,
+force-change, user-initiated) via the shared `commitPasswordChange` helper. Integration tests inject
+a mid-flow failure and assert rollback; each was verified to fail without its transaction.
+
+**What remains:** the non-auth flows — **bulk tube operations** and **storage import**
+(`ImportStorageCommandHandler`). Both are lower severity: a partial write there is recoverable data,
+whereas a partial auth write locked the user out. Wrap them with `withTransaction`; the mechanism
+needs no further work.
 
 ## 2. Wire-contract enforcement — *largely closed 2026-07-12*
 
