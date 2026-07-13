@@ -60,7 +60,7 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   private readonly documents: DocumentQueries<SupplyDocument>;
 
   constructor(private db: Queryable) {
-    this.documents = new DocumentQueries(db, 'supply_documents', data => SupplyDocument.fromData(data), 'DESC');
+    this.documents = new DocumentQueries(db, 'supply_documents', data => SupplyDocument.fromData(data));
   }
 
   // Items

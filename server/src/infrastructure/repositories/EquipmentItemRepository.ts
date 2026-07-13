@@ -24,7 +24,7 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
   private readonly documents: DocumentQueries<EquipmentDocument>;
 
   constructor(private db: Queryable) {
-    this.documents = new DocumentQueries(db, 'equipment_documents', data => EquipmentDocument.fromData(data), 'ASC');
+    this.documents = new DocumentQueries(db, 'equipment_documents', data => EquipmentDocument.fromData(data));
   }
 
   // ITEMS

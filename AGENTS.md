@@ -213,10 +213,6 @@ Merging them would make a supply category assignable to an equipment repository.
 never share the identity. (The client made the same call: the shared components in
 `shared/ui/components/inventory/` are generic over a structural shape, not a merged type.)
 
-**Known divergence, not yet resolved:** equipment lists item documents oldest-first, supplies
-newest-first. Preserved as a constructor argument in `DocumentQueries` and pinned by tests on both
-sides. Unifying it is a behaviour change, not a refactor.
-
 ---
 
 ## Naming Conventions

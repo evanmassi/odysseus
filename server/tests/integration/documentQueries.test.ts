@@ -1,10 +1,9 @@
 /**
  * Document Queries
  *
- * Both catalogs store item documents through the same shared SQL. This pins the behaviour that
- * survived the consolidation — including the one thing the two do NOT agree on: equipment lists
- * documents oldest-first, supplies newest-first. That predates the shared code and is preserved
- * deliberately; if the two are ever unified, this test is the one that should change.
+ * Both catalogs store item documents through the same shared SQL, and both now list them
+ * newest-first — matching every other time-ordered list in the app, including the maintenance log
+ * that sits beside the documents on the equipment panel.
  */
 
 import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
@@ -94,7 +93,7 @@ describe('item documents', () => {
       expect(await repo.findDocumentsByItemId(itemId)).toHaveLength(0);
     });
 
-    it('lists oldest-first', async () => {
+    it('lists newest-first', async () => {
       const { repo, itemId } = await setup();
       const older = EquipmentDocument.fromData({
         id: 'eqdoc_old', itemId, label: 'Older', url: 'https://example.com/1',
@@ -108,7 +107,7 @@ describe('item documents', () => {
       await repo.saveDocument(older);
 
       const labels = (await repo.findDocumentsByItemId(itemId)).map(d => d.label);
-      expect(labels).toEqual(['Older', 'Newer']);
+      expect(labels).toEqual(['Newer', 'Older']);
     });
   });
 
@@ -143,7 +142,7 @@ describe('item documents', () => {
       expect(updated!.notes).toBe('rev A');
     });
 
-    it('lists newest-first — the one place the two catalogs disagree', async () => {
+    it('lists newest-first, agreeing with equipment', async () => {
       const { repo, itemId } = await setup();
       const older = SupplyDocument.fromData({
         id: 'sdoc_old', itemId, label: 'Older', url: 'https://example.com/1',

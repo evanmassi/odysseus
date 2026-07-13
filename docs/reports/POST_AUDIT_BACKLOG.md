@@ -156,9 +156,12 @@ files removed. The four subclasses now hold nothing but an ID prefix, so the nex
 - The **byte-identical schema pairs stay separate.** Merging them would make a supply category
   assignable to an equipment repository. Share behaviour, never share identity.
 
-**Left open (behaviour, not refactor):** equipment lists item documents oldest-first, supplies
-newest-first. Found during the consolidation, preserved rather than silently unified, pinned by tests
-on both sides. They should probably agree.
+**Found and fixed along the way:** the two catalogs ordered item documents differently — equipment
+oldest-first, supplies newest-first, and neither client re-sorted, so the two panels really did
+display in opposite orders. It was preserved through the refactor, then unified separately as the
+behaviour change it is. Both now list newest-first, matching 7 of the 9 time-ordered queries in the
+app — including the maintenance log sitting directly beside the documents on the equipment panel,
+which had been newest-first while the documents next to it were not.
 
 ## 4. Frontend audit + code-splitting
 

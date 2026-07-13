@@ -23,19 +23,17 @@ export class DocumentQueries<T extends Document> {
   /**
    * @param table - the catalog's documents table. Interpolated into SQL, so it must only ever come
    *   from a constant at the composing repository — never from a request.
-   * @param order - equipment lists documents oldest-first and supplies newest-first. That predates
-   *   this class and is preserved rather than silently unified; the two should probably agree.
    */
   constructor(
     private db: Queryable,
     private table: string,
-    private fromData: DocumentFactory<T>,
-    private order: 'ASC' | 'DESC'
+    private fromData: DocumentFactory<T>
   ) {}
 
+  /** Newest first, matching every other time-ordered list — including the maintenance log. */
   async findByItemId(itemId: string): Promise<T[]> {
     const rows = await this.db.queryMany<DocumentRow>(
-      `SELECT ${COLUMNS} FROM ${this.table} WHERE item_id = $1 ORDER BY created_at ${this.order}`,
+      `SELECT ${COLUMNS} FROM ${this.table} WHERE item_id = $1 ORDER BY created_at DESC`,
       [itemId]
     );
     return DocumentMapper.fromRows(rows, this.fromData);
