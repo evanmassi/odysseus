@@ -20,6 +20,7 @@ import {
   type SupplyTransactionResponse,
   type SupplyPackagingLevelResponse,
 } from '@application/dto/SupplyDto';
+import { validateCategoryDepth } from '@application/guards/CategoryGuards';
 import { SupplyCategory } from '@domain/entities/SupplyCategory';
 import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import { SupplyItem } from '@domain/entities/SupplyItem';
@@ -100,11 +101,7 @@ export class SupplyApplicationService {
   async createCategory(labId: string, data: CreateSupplyCategoryRequest, user: User): Promise<SupplyCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
 
-    if (data.parentId) {
-      const parent = await this.categoryRepository.findById(data.parentId, labId);
-      if (!parent) throw new NotFoundError('Parent category not found');
-      if (parent.parentId) throw new ValidationError('Cannot create subcategory under a subcategory — maximum depth is two levels');
-    }
+    await validateCategoryDepth(this.categoryRepository, { labId, parentId: data.parentId });
 
     const category = SupplyCategory.create({ labId, name: data.name, parentId: data.parentId, sortOrder: data.sortOrder });
     await this.categoryRepository.save(category);
@@ -115,6 +112,16 @@ export class SupplyApplicationService {
   async updateCategory(labId: string, id: string, data: UpdateSupplyCategoryRequest, user: User): Promise<SupplyCategoryResponse> {
     await this.accessControlService.requireAdminAccess(user);
     const category = await this.getCategoryOrThrow(id, labId);
+
+    // Only a change of parent can violate the depth rule.
+    if (data.parentId !== undefined && data.parentId !== category.parentId) {
+      await validateCategoryDepth(this.categoryRepository, {
+        labId,
+        parentId: data.parentId,
+        movingCategoryId: id,
+      });
+    }
+
     category.update({ name: data.name, parentId: data.parentId, sortOrder: data.sortOrder });
     await this.categoryRepository.save(category);
     await this.eventBus.publish(new SupplyCategoryUpdatedEvent(category.id, category.name, user.id, labId));
