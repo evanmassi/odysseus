@@ -4,26 +4,28 @@
  * PostgreSQL implementation for equipment items, documents, and maintenance logs.
  */
 
-import type { EquipmentDocument } from '@domain/entities/EquipmentDocument';
+import { EquipmentDocument } from '@domain/entities/EquipmentDocument';
 import type { EquipmentItem } from '@domain/entities/EquipmentItem';
 import type { EquipmentMaintenanceLog } from '@domain/entities/EquipmentMaintenanceLog';
 import type { EquipmentItemRepository as IEquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
-import type { EquipmentDocumentRow } from '@infrastructure/database/mappers/EquipmentDocumentMapper';
-import { EquipmentDocumentMapper } from '@infrastructure/database/mappers/EquipmentDocumentMapper';
 import type { EquipmentItemRow } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import { EquipmentItemMapper } from '@infrastructure/database/mappers/EquipmentItemMapper';
 import type { EquipmentMaintenanceLogRow } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import { EquipmentMaintenanceLogMapper } from '@infrastructure/database/mappers/EquipmentMaintenanceLogMapper';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
+import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositories/DocumentQueries';
 
 const ITEM_COLUMNS = 'id, lab_id, category_id, name, serial_number, manufacturer, model, description, location, status, condition_notes, purchase_date, warranty_expiration, purchase_cost, asset_tag, next_maintenance_date, decommission_date, decommission_reason, disposal_method, notes, created_at, updated_at';
-const DOC_COLUMNS = 'id, item_id, label, url, notes, created_at';
 const LOG_COLUMNS = 'id, item_id, date_performed, maintenance_type, performed_by, technician, description, next_scheduled_date, cost, notes, created_at, updated_at';
 
 export class EquipmentItemRepository implements IEquipmentItemRepository {
 
-  constructor(private db: Queryable) {}
+  private readonly documents: DocumentQueries<EquipmentDocument>;
+
+  constructor(private db: Queryable) {
+    this.documents = new DocumentQueries(db, 'equipment_documents', data => EquipmentDocument.fromData(data), 'ASC');
+  }
 
   // ITEMS
 
@@ -89,49 +91,19 @@ export class EquipmentItemRepository implements IEquipmentItemRepository {
   // DOCUMENTS
 
   async findDocumentsByItemId(itemId: string): Promise<EquipmentDocument[]> {
-    const rows = await this.db.queryMany<EquipmentDocumentRow>(
-      `SELECT ${DOC_COLUMNS} FROM equipment_documents WHERE item_id = $1 ORDER BY created_at`,
-      [itemId]
-    );
-    return EquipmentDocumentMapper.fromRows(rows);
+    return this.documents.findByItemId(itemId);
   }
 
   async saveDocument(document: EquipmentDocument): Promise<void> {
-    const row = EquipmentDocumentMapper.toRow(document);
-    await this.db.execute(`
-      INSERT INTO equipment_documents (${DOC_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `, [row.id, row.item_id, row.label, row.url, row.notes, row.created_at]);
+    return this.documents.save(document);
   }
 
-  async updateDocument(id: string, itemId: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<EquipmentDocument | null> {
-    const sets: string[] = [];
-    const params: unknown[] = [];
-    let idx = 1;
-
-    if (fields.label !== undefined) { sets.push(`label = $${idx++}`); params.push(fields.label); }
-    if (fields.url !== undefined) { sets.push(`url = $${idx++}`); params.push(fields.url); }
-    if (fields.notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(fields.notes); }
-
-    if (sets.length === 0) {
-      const existing = await this.db.queryOne<EquipmentDocumentRow>(
-        `SELECT ${DOC_COLUMNS} FROM equipment_documents WHERE id = $1 AND item_id = $2`,
-        [id, itemId]
-      );
-      return existing ? EquipmentDocumentMapper.fromRow(existing) : null;
-    }
-
-    params.push(id, itemId);
-    const row = await this.db.queryOne<EquipmentDocumentRow>(
-      `UPDATE equipment_documents SET ${sets.join(', ')} WHERE id = $${idx} AND item_id = $${idx + 1} RETURNING ${DOC_COLUMNS}`,
-      params
-    );
-    return row ? EquipmentDocumentMapper.fromRow(row) : null;
+  async updateDocument(id: string, itemId: string, fields: DocumentPatch): Promise<EquipmentDocument | null> {
+    return this.documents.update(id, itemId, fields);
   }
 
   async deleteDocument(id: string, itemId: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM equipment_documents WHERE id = $1 AND item_id = $2', [id, itemId]);
-    return (result.rowCount ?? 0) > 0;
+    return this.documents.delete(id, itemId);
   }
 
   // MAINTENANCE LOG

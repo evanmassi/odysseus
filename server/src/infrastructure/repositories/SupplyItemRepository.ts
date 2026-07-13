@@ -5,7 +5,7 @@
  * stock levels, transactions, and lookup value support.
  */
 
-import type { SupplyDocument } from '@domain/entities/SupplyDocument';
+import { SupplyDocument } from '@domain/entities/SupplyDocument';
 import type { SupplyItem } from '@domain/entities/SupplyItem';
 import type {
   SupplyItemRepository as ISupplyItemRepository,
@@ -20,8 +20,6 @@ import type {
 import { generateId } from '@domain/utils/generateId';
 import type { SupplyBarcodeDbRow } from '@infrastructure/database/mappers/SupplyBarcodeMapper';
 import { SupplyBarcodeMapper } from '@infrastructure/database/mappers/SupplyBarcodeMapper';
-import type { SupplyDocumentRow } from '@infrastructure/database/mappers/SupplyDocumentMapper';
-import { SupplyDocumentMapper } from '@infrastructure/database/mappers/SupplyDocumentMapper';
 import type { SupplyItemRow } from '@infrastructure/database/mappers/SupplyItemMapper';
 import { SupplyItemMapper } from '@infrastructure/database/mappers/SupplyItemMapper';
 import type { SupplyPackagingLevelDbRow } from '@infrastructure/database/mappers/SupplyPackagingLevelMapper';
@@ -31,13 +29,13 @@ import { SupplyStockMapper } from '@infrastructure/database/mappers/SupplyStockM
 import type { SupplyTransactionDbRow } from '@infrastructure/database/mappers/SupplyTransactionMapper';
 import { SupplyTransactionMapper } from '@infrastructure/database/mappers/SupplyTransactionMapper';
 import type { Queryable } from '@infrastructure/database/Queryable';
+import { DocumentQueries, type DocumentPatch } from '@infrastructure/repositories/DocumentQueries';
 
 const ITEM_COLUMNS = `id, lab_id, category_id, name, manufacturer, catalog_number,
   vendor_name, vendor_catalog_number, stock_unit, base_item_name,
   reorder_threshold, reorder_threshold_unit, reorder_quantity, reorder_unit, unit_price, properties,
   current_lot_number, description, notes, status, created_at, updated_at`;
 
-const DOC_COLUMNS = 'id, item_id, label, url, notes, created_at';
 const BARCODE_COLUMNS = 'id, item_id, barcode_value, barcode_type, is_primary, label';
 const STOCK_COLUMNS = 'id, item_id, location_id, quantity, updated_at';
 const TXN_COLUMNS = `id, item_id, location_id, lab_id, type, quantity_change, quantity_after,
@@ -59,7 +57,11 @@ type ItemWithStockRow = SupplyItemRow & { total_stock: string; location_names: s
 
 export class SupplyItemRepository implements ISupplyItemRepository {
 
-  constructor(private db: Queryable) {}
+  private readonly documents: DocumentQueries<SupplyDocument>;
+
+  constructor(private db: Queryable) {
+    this.documents = new DocumentQueries(db, 'supply_documents', data => SupplyDocument.fromData(data), 'DESC');
+  }
 
   // Items
 
@@ -134,49 +136,19 @@ export class SupplyItemRepository implements ISupplyItemRepository {
   // Documents
 
   async findDocumentsByItemId(itemId: string): Promise<SupplyDocument[]> {
-    const rows = await this.db.queryMany<SupplyDocumentRow>(
-      `SELECT ${DOC_COLUMNS} FROM supply_documents WHERE item_id = $1 ORDER BY created_at DESC`,
-      [itemId]
-    );
-    return SupplyDocumentMapper.fromRows(rows);
+    return this.documents.findByItemId(itemId);
   }
 
   async saveDocument(document: SupplyDocument): Promise<void> {
-    const row = SupplyDocumentMapper.toRow(document);
-    await this.db.execute(`
-      INSERT INTO supply_documents (${DOC_COLUMNS})
-      VALUES ($1, $2, $3, $4, $5, $6)
-    `, [row.id, row.item_id, row.label, row.url, row.notes, row.created_at]);
+    return this.documents.save(document);
   }
 
-  async updateDocument(id: string, itemId: string, fields: { label?: string; url?: string; notes?: string | null }): Promise<SupplyDocument | null> {
-    const sets: string[] = [];
-    const params: unknown[] = [];
-    let idx = 1;
-
-    if (fields.label !== undefined) { sets.push(`label = $${idx++}`); params.push(fields.label); }
-    if (fields.url !== undefined) { sets.push(`url = $${idx++}`); params.push(fields.url); }
-    if (fields.notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(fields.notes); }
-
-    if (sets.length === 0) {
-      const existing = await this.db.queryOne<SupplyDocumentRow>(
-        `SELECT ${DOC_COLUMNS} FROM supply_documents WHERE id = $1 AND item_id = $2`,
-        [id, itemId]
-      );
-      return existing ? SupplyDocumentMapper.fromRow(existing) : null;
-    }
-
-    params.push(id, itemId);
-    const row = await this.db.queryOne<SupplyDocumentRow>(
-      `UPDATE supply_documents SET ${sets.join(', ')} WHERE id = $${idx} AND item_id = $${idx + 1} RETURNING ${DOC_COLUMNS}`,
-      params
-    );
-    return row ? SupplyDocumentMapper.fromRow(row) : null;
+  async updateDocument(id: string, itemId: string, fields: DocumentPatch): Promise<SupplyDocument | null> {
+    return this.documents.update(id, itemId, fields);
   }
 
   async deleteDocument(id: string, itemId: string): Promise<boolean> {
-    const result = await this.db.execute('DELETE FROM supply_documents WHERE id = $1 AND item_id = $2', [id, itemId]);
-    return (result.rowCount ?? 0) > 0;
+    return this.documents.delete(id, itemId);
   }
 
   // Barcodes

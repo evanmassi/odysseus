@@ -1,30 +1,15 @@
 /**
  * Supply Document
  *
- * Link to an external document (SOP, spec sheet, item page) associated with a supply item.
+ * A Document against a supply item (SOP, spec sheet, item page). Behaviour lives on the base class.
  */
 
-import { ValidationError } from '@domain/errors/ValidationError';
+import { Document, type DocumentCreateData, type DocumentData } from '@domain/entities/Document';
 import { generateId } from '@domain/utils/generateId';
+import { toDomainDate } from '@domain/utils/toDomainDate';
 
-export class SupplyDocument {
-  private constructor(
-    private readonly _id: string,
-    private readonly _itemId: string,
-    private readonly _label: string,
-    private readonly _url: string,
-    private readonly _notes: string | undefined,
-    private readonly _createdAt: Date
-  ) {
-    this.validate();
-  }
-
-  static create(data: {
-    itemId: string;
-    label: string;
-    url: string;
-    notes?: string;
-  }): SupplyDocument {
+export class SupplyDocument extends Document {
+  static create(data: DocumentCreateData): SupplyDocument {
     return new SupplyDocument(
       generateId('sdoc'),
       data.itemId,
@@ -35,37 +20,14 @@ export class SupplyDocument {
     );
   }
 
-  static fromData(data: {
-    id: string;
-    itemId: string;
-    label: string;
-    url: string;
-    notes?: string;
-    createdAt: string | Date;
-  }): SupplyDocument {
+  static fromData(data: DocumentData): SupplyDocument {
     return new SupplyDocument(
       data.id,
       data.itemId,
       data.label,
       data.url,
       data.notes,
-      typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt
+      toDomainDate(data.createdAt)
     );
   }
-
-  private validate(): void {
-    if (!this._label || this._label.trim().length === 0) {
-      throw new ValidationError('Document label is required');
-    }
-    if (!this._url || this._url.trim().length === 0) {
-      throw new ValidationError('Document URL is required');
-    }
-  }
-
-  get id(): string { return this._id; }
-  get itemId(): string { return this._itemId; }
-  get label(): string { return this._label; }
-  get url(): string { return this._url; }
-  get notes(): string | undefined { return this._notes; }
-  get createdAt(): Date { return new Date(this._createdAt); }
 }

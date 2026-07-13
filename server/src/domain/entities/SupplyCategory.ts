@@ -5,8 +5,9 @@
  * categories from being interchangeable with equipment ones.
  */
 
-import { Category, toCategoryDate, type CategoryCreateData, type CategoryData } from '@domain/entities/Category';
+import { Category, type CategoryCreateData, type CategoryData } from '@domain/entities/Category';
 import { generateId } from '@domain/utils/generateId';
+import { toDomainDate } from '@domain/utils/toDomainDate';
 
 export class SupplyCategory extends Category {
   static create(data: CategoryCreateData): SupplyCategory {
@@ -28,8 +29,8 @@ export class SupplyCategory extends Category {
       data.name,
       data.parentId,
       data.sortOrder,
-      toCategoryDate(data.createdAt),
-      toCategoryDate(data.updatedAt)
+      toDomainDate(data.createdAt),
+      toDomainDate(data.updatedAt)
     );
   }
 }

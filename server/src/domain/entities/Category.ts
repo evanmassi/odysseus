@@ -70,8 +70,3 @@ export abstract class Category {
   get createdAt(): Date { return new Date(this._createdAt); }
   get updatedAt(): Date { return new Date(this._updatedAt); }
 }
-
-/** Persisted timestamps arrive as Date from pg, or as ISO strings from a mapper. */
-export function toCategoryDate(value: string | Date): Date {
-  return typeof value === 'string' ? new Date(value) : value;
-}
