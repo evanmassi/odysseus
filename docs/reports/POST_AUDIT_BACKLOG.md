@@ -6,19 +6,21 @@ deliberately skipped — see the `*_FINDINGS.md` ledgers in this directory).
 This captures the larger, out-of-scope items worth investigating later — the "real work," not
 polish. Each has a starting point so it can be picked up cold. Ranked roughly by ongoing cost.
 
-**Next up:** #3 (the twins decision), then #4 (frontend) / #5 (a11y). #0 is done, and #1 and #2 are
-closed for the paths that carried real risk.
+**Next up:** #4 (frontend) and #5 (a11y) — the client never got the file-by-file pass the server did,
+so that is where the unknown debt is. Everything that carried real risk is closed.
 
 > **Revised 2026-07-12** after verifying each item against the code. Several starting points in the
 > original draft were wrong — corrections are inline, struck through rather than deleted so the
-> mistake is visible.
+> mistake is visible. Three items turned out to be partly or wholly mis-specified, and one (#3's
+> "consolidate behind a generic inventory item") would have been an active mistake to follow.
 >
 > | Item | State |
 > |------|-------|
 > | #0 Vulnerable dependencies | **Done** (`eb4e59f1`) — 16 prod vulns → 1, which is unreachable |
 > | #1 Transactions | **Done** (`cf4996a3`, `fcc99674`) — mechanism + every auth flow; the two "remaining" flows needed no transaction |
 > | #2 Wire contract | **Largely closed** (`ccc3a81a`); runtime serialization tests remain |
-> | #3–#7 | Open |
+> | #3 Equipment ↔ supplies twin | **Done** (`f966d4b7`, `c9ee8994`, `66c06491`) — split verdict; the standing rule now lives in AGENTS.md |
+> | #4–#7 | Open |
 
 ---
 
@@ -116,26 +118,47 @@ responses instead of casting them. `User.toPublicData()` returns `Date` rather t
   response bodies are currently discarded, so the blast radius is small, but it's a systematic
   bypass of the rule in AGENTS.md.
 
-## 3. The equipment ↔ supplies twin decision
+## 3. The equipment ↔ supplies twin — *closed 2026-07-12*
 
-**What:** Near-identical full-stack duplication between the equipment and supplies domains —
-entities, mappers, repositories, services, and ~9 byte-identical schema pairs (categories,
-documents, bulk responses, item-id fields).
+**What it was:** Near-identical duplication between the equipment and supply domains, deferred at
+every layer of the review. Leaving it *undecided* was the stated cost — the two copies would drift.
 
-**Why it matters:** The biggest remaining architectural/DRY question. It was deferred at every layer
-of the review. Leaving it *undecided* is the cost — the two copies will drift.
+**They had already drifted, and it had already cost a bug.** Both catalogs document a two-level
+category hierarchy and both enforced it on create. Only equipment enforced it on *reparent*, so
+`PUT /supplies/categories/:id` could move a category under a subcategory and reach a third level the
+create path forbids and the UI cannot render. Equipment got the hardening; supplies never did,
+because the rule lived in two places.
 
-**Where to start:** First read `P1B_EQUIPMENT_SUPPLIES_TWIN.md` — the **client** half of this was
-already resolved (2026-07-08): seven shared components, ~1,500 lines collapsed. The original draft
-didn't reference it, so anyone picking this up cold would re-tread solved ground.
+**The answer was a split verdict, not the binary the draft posed.** Measured, not guessed:
 
-What actually remains is the **server** twin: `EquipmentCategoryRepository` and
-`SupplyCategoryRepository` are both exactly 77 lines; the application services are 632 vs 810; plus
-the ~9 byte-identical schema pairs. Decide the fork explicitly: (a) consolidate behind a shared
-generic "inventory item" abstraction, or (b) formally accept them as permanently separate and
-document why. The domain-layer ledger (C11) and the shared-schemas "Twins" note track the pairs.
-AGENTS.md marks both domains as *un-audited* exemplars — resolving this is what would let them
-become reference-quality.
+| Pair | Identical after renaming |
+|------|--------------------------|
+| Category repository | **100%** — zero differing lines |
+| Category entity | **98%** — differed by one line (the ID prefix) |
+| Document entity / mappers | 97% — differed by a header comment |
+| Item entity | 50% |
+| Item repository | 35% (207 vs 483 lines) |
+| Application service | 38% (19 vs 34 public methods) |
+
+So the category and document surfaces are a genuine twin; the item surface only looks like one. That
+matches what `P1B_EQUIPMENT_SUPPLIES_TWIN.md` concluded for the client in July.
+
+**Done** (`f966d4b7`, `c9ee8994`, `66c06491`): the depth rule extracted to one guard; category and
+document entities, repositories, and mappers collapsed to one implementation each; eight duplicate
+files removed. The four subclasses now hold nothing but an ID prefix, so the next drift is visible.
+
+**Deliberately NOT done, and recorded in AGENTS.md → *Equipment ↔ Supplies*:**
+
+- The **item surface stays separate, permanently.** ~6 shared fields out of 15+; equipment tracks
+  asset lifecycle, supplies tracks a stock ledger. A generic "inventory item" would be a
+  lowest-common-denominator wrapper around two unrelated subsystems — the wrong abstraction, and
+  harder to unwind than the duplication. The draft's option (a) was a trap.
+- The **byte-identical schema pairs stay separate.** Merging them would make a supply category
+  assignable to an equipment repository. Share behaviour, never share identity.
+
+**Left open (behaviour, not refactor):** equipment lists item documents oldest-first, supplies
+newest-first. Found during the consolidation, preserved rather than silently unified, pinned by tests
+on both sides. They should probably agree.
 
 ## 4. Frontend audit + code-splitting
 

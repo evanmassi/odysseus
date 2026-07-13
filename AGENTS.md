@@ -176,7 +176,46 @@ When writing new code, pattern it after these already-audited files. They define
 | Client Zustand store | `client/src/app/stores/modalStore.ts` |
 | Shared schema module | `packages/shared-schemas/src/donors/donorSchemas.ts` |
 
-The **equipment** domain has NOT been audited — never use it as a reference.
+The **equipment and supply item surfaces** have NOT been audited — never use them as a reference.
+Their shared category/document code is audited and is the exemplar for a two-catalog abstraction —
+see *Equipment ↔ Supplies* below.
+
+---
+
+## Equipment ↔ Supplies
+
+The two catalogs are **partly** the same thing. The line has been drawn, and it is not negotiable
+per-PR: the category and document surfaces are shared, the item surface is permanently separate.
+
+**Shared — do not re-duplicate.** Categories and documents were independent copies until the code
+below was extracted. They differed by an ID prefix and a header comment, and that duplication had
+already produced a real bug (supplies could reparent a category into a third level because only
+equipment's `updateCategory` enforced the depth rule).
+
+| Concern | Shared home |
+|---------|-------------|
+| Category behaviour | `domain/entities/Category.ts` — `EquipmentCategory` / `SupplyCategory` add only an ID prefix |
+| Category persistence | `infrastructure/repositories/CategoryRepository.ts` (+ `CategoryMapper`) |
+| Two-level depth rule | `application/guards/CategoryGuards.ts` |
+| Document behaviour | `domain/entities/Document.ts` — subclasses add only an ID prefix |
+| Document persistence | `infrastructure/repositories/DocumentQueries.ts` (+ `DocumentMapper`) |
+
+**Separate — do not merge.** The item surfaces only *look* alike. They share ~6 of 15+ fields and
+nothing else: equipment tracks asset lifecycle (serial, warranty, decommission, maintenance logs);
+supplies tracks inventory (barcodes, stock ledger, packaging levels, reorder thresholds). The supply
+item repository is 2.3× the size of equipment's for that reason. A generic "inventory item" would be
+a ten-field lowest common denominator wrapped around two unrelated subsystems — the wrong
+abstraction, and far harder to unwind than the duplication. Leave them alone.
+
+**Types stay distinct even where code is shared.** `EquipmentCategory` and `SupplyCategory` are
+separate classes on purpose, and the byte-identical Zod schema pairs are *deliberately* not merged.
+Merging them would make a supply category assignable to an equipment repository. Share behaviour;
+never share the identity. (The client made the same call: the shared components in
+`shared/ui/components/inventory/` are generic over a structural shape, not a merged type.)
+
+**Known divergence, not yet resolved:** equipment lists item documents oldest-first, supplies
+newest-first. Preserved as a constructor argument in `DocumentQueries` and pinned by tests on both
+sides. Unifying it is a behaviour change, not a refactor.
 
 ---
 
