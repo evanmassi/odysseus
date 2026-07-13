@@ -6,9 +6,11 @@
  * including the ones event handlers hold — keeps its own connection and commits independently.
  */
 
+import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
+import type { SupplyCategory } from '@domain/entities/SupplyCategory';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { DonorRepository } from '@domain/repositories/DonorRepository';
-import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import type { LabRepository } from '@domain/repositories/LabRepository';
@@ -17,7 +19,6 @@ import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { StorageRepository } from '@domain/repositories/StorageRepository';
-import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
 import type { SupplyItemRepository } from '@domain/repositories/SupplyItemRepository';
 import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -37,9 +38,9 @@ export interface Repositories {
   labs: LabRepository;
   inviteCodes: InviteCodeRepository;
   donors: DonorRepository;
-  equipmentCategories: EquipmentCategoryRepository;
+  equipmentCategories: CategoryRepository<EquipmentCategory>;
   equipmentItems: EquipmentItemRepository;
-  supplyCategories: SupplyCategoryRepository;
+  supplyCategories: CategoryRepository<SupplyCategory>;
   supplyItems: SupplyItemRepository;
   supplyLocations: SupplyLocationRepository;
 }

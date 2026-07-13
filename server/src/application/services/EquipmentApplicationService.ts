@@ -39,7 +39,7 @@ import {
   EquipmentBulkStatusChangedEvent,
   EquipmentBulkRelocatedEvent,
 } from '@domain/events/EquipmentEvents';
-import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
 import type { FieldChange } from '@domain/types/fieldChangeTypes';
@@ -64,7 +64,7 @@ import type {
 export class EquipmentApplicationService {
 
   constructor(
-    private categoryRepository: EquipmentCategoryRepository,
+    private categoryRepository: CategoryRepository<EquipmentCategory>,
     private itemRepository: EquipmentItemRepository,
     private accessControlService: AccessControlService,
     private eventBus: EventBus

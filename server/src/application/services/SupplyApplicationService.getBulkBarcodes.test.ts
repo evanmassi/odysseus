@@ -7,7 +7,8 @@
  */
 
 import type { EventBus } from '@application/contracts/EventBus';
-import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
+import type { SupplyCategory } from '@domain/entities/SupplyCategory';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { SupplyItemRepository, SupplyBarcodeRow } from '@domain/repositories/SupplyItemRepository';
 import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
@@ -22,7 +23,7 @@ function makeService(repoOverrides: Partial<SupplyItemRepository> = {}) {
   } as unknown as SupplyItemRepository;
 
   const service = new SupplyApplicationService(
-    {} as SupplyCategoryRepository,
+    {} as CategoryRepository<SupplyCategory>,
     repo,
     {} as SupplyLocationRepository,
     {} as AccessControlService,

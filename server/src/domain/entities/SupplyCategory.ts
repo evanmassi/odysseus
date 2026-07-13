@@ -1,39 +1,14 @@
 /**
  * Supply Category
  *
- * Lab-managed grouping for supply items. Supports a two-level hierarchy
- * (top-level categories with optional subcategories).
+ * A Category in the supply catalog. Behaviour lives on the base class; this exists to keep supply
+ * categories from being interchangeable with equipment ones.
  */
 
-import { ValidationError } from '@domain/errors/ValidationError';
+import { Category, toCategoryDate, type CategoryCreateData, type CategoryData } from '@domain/entities/Category';
 import { generateId } from '@domain/utils/generateId';
 
-interface CategoryCreateData {
-  labId: string;
-  name: string;
-  parentId?: string;
-  sortOrder?: number;
-}
-
-interface CategoryUpdateData {
-  name?: string | null;
-  parentId?: string | null;
-  sortOrder?: number | null;
-}
-
-export class SupplyCategory {
-  private constructor(
-    private readonly _id: string,
-    private readonly _labId: string,
-    private _name: string,
-    private _parentId: string | undefined,
-    private _sortOrder: number,
-    private readonly _createdAt: Date,
-    private _updatedAt: Date
-  ) {
-    this.validate();
-  }
-
+export class SupplyCategory extends Category {
   static create(data: CategoryCreateData): SupplyCategory {
     return new SupplyCategory(
       generateId('scat'),
@@ -46,46 +21,15 @@ export class SupplyCategory {
     );
   }
 
-  static fromData(data: {
-    id: string;
-    labId: string;
-    name: string;
-    parentId?: string;
-    sortOrder: number;
-    createdAt: string | Date;
-    updatedAt: string | Date;
-  }): SupplyCategory {
+  static fromData(data: CategoryData): SupplyCategory {
     return new SupplyCategory(
       data.id,
       data.labId,
       data.name,
       data.parentId,
       data.sortOrder,
-      typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
-      typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : data.updatedAt
+      toCategoryDate(data.createdAt),
+      toCategoryDate(data.updatedAt)
     );
   }
-
-  private validate(): void {
-    if (!this._name || this._name.trim().length === 0) {
-      throw new ValidationError('Category name is required');
-    }
-  }
-
-  update(data: CategoryUpdateData): void {
-    if (data.name !== undefined) this._name = data.name ?? this._name;
-    if (data.parentId !== undefined) this._parentId = data.parentId ?? undefined;
-    if (data.sortOrder !== undefined) this._sortOrder = data.sortOrder ?? this._sortOrder;
-
-    this.validate();
-    this._updatedAt = new Date();
-  }
-
-  get id(): string { return this._id; }
-  get labId(): string { return this._labId; }
-  get name(): string { return this._name; }
-  get parentId(): string | undefined { return this._parentId; }
-  get sortOrder(): number { return this._sortOrder; }
-  get createdAt(): Date { return new Date(this._createdAt); }
-  get updatedAt(): Date { return new Date(this._updatedAt); }
 }

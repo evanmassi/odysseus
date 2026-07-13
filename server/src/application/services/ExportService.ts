@@ -4,8 +4,9 @@
  * Transforms domain data into CSV/JSON export formats for admin users.
  */
 
+import type { EquipmentCategory } from '@domain/entities/EquipmentCategory';
 import type { Person } from '@domain/entities/Person';
-import type { EquipmentCategoryRepository } from '@domain/repositories/EquipmentCategoryRepository';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { EquipmentItemRepository } from '@domain/repositories/EquipmentItemRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
@@ -129,7 +130,7 @@ export class ExportService {
     private storageRepository: StorageRepository,
     private appVersion: string,
     private equipmentItemRepository: EquipmentItemRepository,
-    private equipmentCategoryRepository: EquipmentCategoryRepository,
+    private equipmentCategoryRepository: CategoryRepository<EquipmentCategory>,
     private supplyItemRepository: SupplyItemRepository,
   ) {}
 

@@ -50,7 +50,7 @@ import {
   SupplyBulkVoidedEvent,
   type BulkVoidItemDetail,
 } from '@domain/events/SupplyEvents';
-import type { SupplyCategoryRepository } from '@domain/repositories/SupplyCategoryRepository';
+import type { CategoryRepository } from '@domain/repositories/CategoryRepository';
 import type { SupplyItemRepository, SupplyBarcodeRow } from '@domain/repositories/SupplyItemRepository';
 import type { SupplyLocationRepository } from '@domain/repositories/SupplyLocationRepository';
 import type { AccessControlService } from '@domain/services/AccessControlService';
@@ -84,7 +84,7 @@ import type {
 
 export class SupplyApplicationService {
   constructor(
-    private categoryRepository: SupplyCategoryRepository,
+    private categoryRepository: CategoryRepository<SupplyCategory>,
     private itemRepository: SupplyItemRepository,
     private locationRepository: SupplyLocationRepository,
     private accessControlService: AccessControlService,

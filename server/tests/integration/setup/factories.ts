@@ -21,13 +21,16 @@ import { SupplyItem } from '@domain/entities/SupplyItem';
 import { generateId } from '@domain/utils/generateId';
 
 import { DonorRepository } from '@infrastructure/repositories/DonorRepository';
-import { EquipmentCategoryRepository } from '@infrastructure/repositories/EquipmentCategoryRepository';
+import {
+  CategoryRepository,
+  EQUIPMENT_CATEGORY_TABLES,
+  SUPPLY_CATEGORY_TABLES,
+} from '@infrastructure/repositories/CategoryRepository';
 import { EquipmentItemRepository } from '@infrastructure/repositories/EquipmentItemRepository';
 import { LabRepository } from '@infrastructure/repositories/LabRepository';
 import { PersonRepository } from '@infrastructure/repositories/PersonRepository';
 import { ResearcherRepository } from '@infrastructure/repositories/ResearcherRepository';
 import { StorageRepository } from '@infrastructure/repositories/StorageRepository';
-import { SupplyCategoryRepository } from '@infrastructure/repositories/SupplyCategoryRepository';
 import { SupplyItemRepository } from '@infrastructure/repositories/SupplyItemRepository';
 import { TubeRepository } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository } from '@infrastructure/repositories/UserRepository';
@@ -45,9 +48,9 @@ export function createSeed(context: PostgresContext) {
   const persons = new PersonRepository(context);
   const researchers = new ResearcherRepository(context);
   const donors = new DonorRepository(context);
-  const equipmentCategories = new EquipmentCategoryRepository(context);
+  const equipmentCategories = new CategoryRepository(context, EQUIPMENT_CATEGORY_TABLES, data => EquipmentCategory.fromData(data));
   const equipmentItems = new EquipmentItemRepository(context);
-  const supplyCategories = new SupplyCategoryRepository(context);
+  const supplyCategories = new CategoryRepository(context, SUPPLY_CATEGORY_TABLES, data => SupplyCategory.fromData(data));
   const supplyItems = new SupplyItemRepository(context);
   const tubes = new TubeRepository(context, new StorageRepository(context));
   const users = new UserRepository(context);

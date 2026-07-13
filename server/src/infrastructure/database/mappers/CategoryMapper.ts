@@ -1,13 +1,14 @@
 /**
- * Supply Category Mapper
+ * Category Mapper
  *
- * Converts between SupplyCategory domain entities and PostgreSQL rows.
+ * Converts between Category entities and PostgreSQL rows. The concrete category is supplied by the
+ * caller, so both catalogs share this one mapping.
  */
 
-import { SupplyCategory } from '@domain/entities/SupplyCategory';
+import type { Category, CategoryFactory } from '@domain/entities/Category';
 import { toISOString } from '@infrastructure/database/PostgresContext';
 
-export interface SupplyCategoryRow {
+export interface CategoryRow {
   id: string;
   lab_id: string;
   name: string;
@@ -17,9 +18,9 @@ export interface SupplyCategoryRow {
   updated_at: Date | string;
 }
 
-export class SupplyCategoryMapper {
+export class CategoryMapper {
 
-  static toRow(category: SupplyCategory): SupplyCategoryRow {
+  static toRow(category: Category): CategoryRow {
     return {
       id: category.id,
       lab_id: category.labId,
@@ -31,8 +32,8 @@ export class SupplyCategoryMapper {
     };
   }
 
-  static fromRow(row: SupplyCategoryRow): SupplyCategory {
-    return SupplyCategory.fromData({
+  static fromRow<T extends Category>(row: CategoryRow, fromData: CategoryFactory<T>): T {
+    return fromData({
       id: row.id,
       labId: row.lab_id,
       name: row.name,
@@ -43,7 +44,7 @@ export class SupplyCategoryMapper {
     });
   }
 
-  static fromRows(rows: SupplyCategoryRow[]): SupplyCategory[] {
-    return rows.map(row => this.fromRow(row));
+  static fromRows<T extends Category>(rows: CategoryRow[], fromData: CategoryFactory<T>): T[] {
+    return rows.map(row => this.fromRow(row, fromData));
   }
 }
