@@ -75,7 +75,6 @@ interface ResearcherExportRow {
   position: string;
   department: string;
   active: string;
-  approvalStatus: string;
   tubeCount: number;
   linkedUserId: string;
   createdAt: string;
@@ -297,7 +296,6 @@ export class ExportService {
         position: person?.position ?? '',
         department: person?.department ?? '',
         active: researcher.active ? 'Yes' : 'No',
-        approvalStatus: researcher.approvalStatus,
         tubeCount: tubeCounts.get(researcher.id) ?? 0,
         linkedUserId: userByResearcherId.get(researcher.id) ?? '',
         createdAt: formatDateForCsv(researcher.createdAt)
@@ -316,7 +314,6 @@ export class ExportService {
       { key: 'position', header: 'Position' },
       { key: 'department', header: 'Department' },
       { key: 'active', header: 'Active' },
-      { key: 'approvalStatus', header: 'Approval Status' },
       { key: 'tubeCount', header: 'Tube Count' },
       { key: 'linkedUserId', header: 'Linked User ID' },
       { key: 'createdAt', header: 'Created At' }

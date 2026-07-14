@@ -93,13 +93,11 @@ export function createSeed(context: PostgresContext) {
     labId: string;
     personId?: string;
     source?: 'registration' | 'admin';
-    isUserApproved?: boolean;
   }): Promise<Researcher> {
     const personId = overrides.personId ?? (await person()).id;
     const entity = Researcher.create(personId, {
       labId: overrides.labId,
       source: overrides.source ?? 'admin',
-      isUserApproved: overrides.isUserApproved,
     });
     await researchers.save(entity);
     return entity;

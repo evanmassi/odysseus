@@ -6,37 +6,17 @@ import { Researcher } from './Researcher';
 
 describe('Researcher', () => {
   describe('create', () => {
-    it('should create with generated id, active, and approved by default', () => {
+    it('should create with generated id, active, and admin source by default', () => {
       const researcher = Researcher.create('person_123');
       expect(researcher.id).toMatch(/^researcher_/);
       expect(researcher.personId).toBe('person_123');
       expect(researcher.active).toBe(true);
-      expect(researcher.approvalStatus).toBe('approved');
       expect(researcher.source).toBe('admin');
     });
 
-    it('should approve admin-created researchers regardless of user approval', () => {
-      const researcher = Researcher.create('person_123', {
-        source: 'admin',
-        isUserApproved: false,
-      });
-      expect(researcher.approvalStatus).toBe('approved');
-    });
-
-    it('should set registration-created researchers to pending when user not approved', () => {
-      const researcher = Researcher.create('person_123', {
-        source: 'registration',
-        isUserApproved: false,
-      });
-      expect(researcher.approvalStatus).toBe('pending');
-    });
-
-    it('should approve registration-created researchers when user is approved', () => {
-      const researcher = Researcher.create('person_123', {
-        source: 'registration',
-        isUserApproved: true,
-      });
-      expect(researcher.approvalStatus).toBe('approved');
+    it('should record a registration source', () => {
+      const researcher = Researcher.create('person_123', { source: 'registration' });
+      expect(researcher.source).toBe('registration');
     });
 
     it('should accept optional labId', () => {
@@ -73,7 +53,6 @@ describe('Researcher', () => {
     it('should preserve all fields through roundtrip', () => {
       const original = Researcher.create('person_123', {
         source: 'registration',
-        isUserApproved: true,
         labId: 'lab_456',
       });
       const data = original.toData();
@@ -82,7 +61,6 @@ describe('Researcher', () => {
       expect(restored.id).toBe(original.id);
       expect(restored.personId).toBe('person_123');
       expect(restored.active).toBe(true);
-      expect(restored.approvalStatus).toBe('approved');
       expect(restored.source).toBe('registration');
       expect(restored.labId).toBe('lab_456');
     });
@@ -95,16 +73,6 @@ describe('Researcher', () => {
         createdAt: '2024-01-01T00:00:00.000Z',
       });
       expect(restored.createdAt.toISOString()).toBe('2024-01-01T00:00:00.000Z');
-    });
-
-    it('should default approvalStatus to approved when missing', () => {
-      const restored = Researcher.fromData({
-        id: 'researcher_test',
-        personId: 'person_123',
-        active: true,
-        createdAt: new Date(),
-      });
-      expect(restored.approvalStatus).toBe('approved');
     });
 
     it('should default source to admin when missing', () => {

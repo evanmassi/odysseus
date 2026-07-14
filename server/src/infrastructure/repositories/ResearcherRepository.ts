@@ -11,8 +11,8 @@ import { ResearcherMapper } from '@infrastructure/database/mappers/ResearcherMap
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
 
-const RESEARCHER_COLUMNS = 'id, person_id, active, created_at, approval_status, source, lab_id';
-const RESEARCHER_COLUMNS_JOINED = 'r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source, r.lab_id';
+const RESEARCHER_COLUMNS = 'id, person_id, active, created_at, source, lab_id';
+const RESEARCHER_COLUMNS_JOINED = 'r.id, r.person_id, r.active, r.created_at, r.source, r.lab_id';
 
 export class ResearcherRepository implements IResearcherRepository {
 
@@ -76,16 +76,15 @@ export class ResearcherRepository implements IResearcherRepository {
     const row = ResearcherMapper.toRow(researcher);
 
     await this.context.execute(`
-      INSERT INTO researchers (id, person_id, active, created_at, approval_status, source, lab_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO researchers (id, person_id, active, created_at, source, lab_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (id) DO UPDATE SET
         person_id = EXCLUDED.person_id,
         active = EXCLUDED.active,
         created_at = EXCLUDED.created_at,
-        approval_status = EXCLUDED.approval_status,
         source = EXCLUDED.source,
         lab_id = EXCLUDED.lab_id
-    `, [row.id, row.person_id, row.active, row.created_at, row.approval_status, row.source, row.lab_id]);
+    `, [row.id, row.person_id, row.active, row.created_at, row.source, row.lab_id]);
   }
 
   async delete(id: string, labId: string): Promise<boolean> {

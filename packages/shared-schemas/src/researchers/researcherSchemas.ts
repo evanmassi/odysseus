@@ -7,7 +7,6 @@
 import { z } from 'zod';
 import { dateField } from '../utils/dateFields';
 
-const researcherApprovalStatusSchema = z.enum(['pending', 'approved']);
 const researcherSourceSchema = z.enum(['registration', 'admin']);
 
 export const researcherSchema = z.object({
@@ -15,7 +14,6 @@ export const researcherSchema = z.object({
   personId: z.string(),
   active: z.boolean(),
   createdAt: dateField,
-  approvalStatus: researcherApprovalStatusSchema.optional().default('approved'),
   source: researcherSourceSchema.optional().default('admin'),
   // Denormalized Person fields for display
   firstName: z.string(),
@@ -41,8 +39,6 @@ export type CreateResearcherProfile = z.infer<typeof createResearcherProfileSche
  * Extended researcher view with admin metadata.
  */
 export const adminResearcherSchema = researcherSchema.extend({
-  // Approval workflow fields (required in admin view, overrides optional on base schema)
-  approvalStatus: researcherApprovalStatusSchema,
   source: researcherSourceSchema,
 
   // Admin metadata

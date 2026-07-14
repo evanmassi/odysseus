@@ -22,7 +22,6 @@ export class ResearcherDto {
       personId: researcher.personId,
       active: researcher.active,
       createdAt: researcher.createdAt,
-      approvalStatus: researcher.approvalStatus,
       source: researcher.source,
       firstName: person.firstName,
       lastName: person.lastName,

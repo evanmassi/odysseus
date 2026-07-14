@@ -103,14 +103,12 @@ CREATE TABLE researchers (
   lab_id TEXT NOT NULL REFERENCES labs(id),
   active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL,
-  approval_status TEXT NOT NULL DEFAULT 'approved' CHECK (approval_status IN ('pending', 'approved')),
   source TEXT NOT NULL DEFAULT 'admin' CHECK (source IN ('registration', 'admin')),
   FOREIGN KEY (person_id) REFERENCES persons(id)
 );
 
 CREATE INDEX idx_researchers_active ON researchers(active);
 CREATE INDEX idx_researchers_person_id ON researchers(person_id);
-CREATE INDEX idx_researchers_approval_status ON researchers(approval_status);
 CREATE INDEX idx_researchers_lab_id ON researchers(lab_id);
 
 -- USERS TABLE

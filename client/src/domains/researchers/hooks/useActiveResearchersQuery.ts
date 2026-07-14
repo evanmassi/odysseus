@@ -1,7 +1,7 @@
 /**
  * Active Researchers Query
  *
- * Server-side filtered to approved+active only — pending researchers excluded from dropdowns.
+ * Server-side filtered to active researchers only.
  */
 
 import { type Researcher, sortByName } from '@odysseus/shared-schemas';

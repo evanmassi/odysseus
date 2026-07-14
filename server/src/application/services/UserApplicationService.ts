@@ -336,7 +336,6 @@ export class UserApplicationService {
 
     let labId: string | undefined;
     let resolvedRole: 'lab_admin' | 'user' | undefined;
-    let autoApprove = false;
     let createResearcher = true;
 
     if (request.inviteCode && this.inviteCodeRepository && this.labRepository) {
@@ -350,7 +349,6 @@ export class UserApplicationService {
       }
       labId = inviteCode.labId;
       resolvedRole = inviteCode.role as 'lab_admin' | 'user';
-      autoApprove = true;
       createResearcher = inviteCode.createResearcher;
       inviteCode.recordUse();
       await this.inviteCodeRepository.save(inviteCode);
@@ -435,7 +433,6 @@ export class UserApplicationService {
       researcher = relinkedResearcher;
     } else if (createResearcher) {
       researcher = Researcher.create(person.id, {
-        isUserApproved: isFirstUser || autoApprove,
         source: 'registration',
         labId
       });

@@ -296,7 +296,6 @@ export class ResearcherApplicationService {
       email: person.email,
       active: researcher.active,
       createdAt: researcher.createdAt,
-      approvalStatus: researcher.approvalStatus,
       source: researcher.source,
       labId: researcher.labId,
       tubeCount,

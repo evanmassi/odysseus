@@ -38,7 +38,7 @@ server/src/
 │   ├── commands/     # CQRS commands (Tank, Rack, Box, User, etc.)
 │   ├── queries/      # CQRS queries
 │   ├── dto/          # Data transfer objects
-│   └── eventHandlers/# Audit, Socket, ResearcherApproval handlers
+│   └── event-handlers/# Audit, Socket handlers
 ├── infrastructure/   # External concerns
 │   ├── database/     # PostgresContext, schema, mappers
 │   ├── repositories/ # Postgres implementations
