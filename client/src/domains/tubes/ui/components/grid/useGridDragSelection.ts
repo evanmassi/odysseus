@@ -57,7 +57,8 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
       const dragStart = dragStartPositionRef.current;
       const withCtrl = isDragWithCtrlRef.current;
 
-      if (dragStart !== null && dragStart !== position) {
+      // Keep recomputing once dragging so a return to origin shrinks the preview
+      if (dragStart !== null && (isDraggingRef.current || dragStart !== position)) {
         if (!isDraggingRef.current) {
           isDraggingRef.current = true;
           setIsDragging(true);

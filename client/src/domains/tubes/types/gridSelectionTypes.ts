@@ -80,11 +80,7 @@ export interface GridControllerProps {
 }
 
 export interface GridControllerReturn {
-  handlePositionClick: (
-    position: number,
-    event: React.MouseEvent | React.KeyboardEvent,
-    gridSize?: number
-  ) => void;
+  handlePositionClick: (position: number, event: React.MouseEvent | React.KeyboardEvent) => void;
   handlePositionDoubleClick: (position: number) => void;
   isPositionSelected: (position: number) => boolean;
 

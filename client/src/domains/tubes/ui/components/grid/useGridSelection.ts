@@ -40,11 +40,7 @@ interface SelectionCounts {
 }
 
 export interface UseGridSelectionReturn {
-  handlePositionClick: (
-    position: number,
-    event: React.MouseEvent | React.KeyboardEvent,
-    gridSize?: number
-  ) => void;
+  handlePositionClick: (position: number, event: React.MouseEvent | React.KeyboardEvent) => void;
   isPositionSelected: (position: number) => boolean;
   selectedPositionsInThisBox: () => number[];
   selectionAnalysis: SelectionCounts;
@@ -129,7 +125,11 @@ export const useGridSelection = ({
       };
 
       if (shouldDelay) {
-        clickTimerRef.current = setTimeout(executeSelection, DOUBLE_CLICK_DELAY_MS);
+        clickTimerRef.current = setTimeout(() => {
+          // Skip if an intervening clear/delete/drag already deselected the cell
+          if (!useTubeStore.getState().selectedPositions.has(positionKey)) return;
+          executeSelection();
+        }, DOUBLE_CLICK_DELAY_MS);
       } else {
         executeSelection();
       }
@@ -205,6 +205,7 @@ export const useGridSelection = ({
       setSelection: (position: number) => {
         const positionKey = toPositionKey(ctx, position);
         onSelectionChange(new Set([positionKey]));
+        useTubeStore.getState().setSelectionAnchor(position);
       },
       toggleInSelection: (position: number) => {
         const positionKey = toPositionKey(ctx, position);
@@ -215,6 +216,7 @@ export const useGridSelection = ({
           newSelection.add(positionKey);
         }
         onSelectionChange(newSelection);
+        useTubeStore.getState().setSelectionAnchor(position);
       },
       clearSelection: () => {
         onSelectionChange(new Set());

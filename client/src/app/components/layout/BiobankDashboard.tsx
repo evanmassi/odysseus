@@ -4,7 +4,7 @@
  * Main lab workspace: storage navigator, tube grid, and info panel.
  */
 
-import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { useRef, useMemo, useCallback, useEffect } from 'react';
 
 import { isAdminRole, getPersonDisplayName } from '@odysseus/shared-schemas';
 import { FlaskConical } from 'lucide-react';
@@ -108,8 +108,6 @@ function BiobankWorkspace() {
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const infoPanelRef = useRef<HTMLDivElement>(null);
 
-  const [isSelectorActive, setIsSelectorActive] = useState(false);
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -137,11 +135,6 @@ function BiobankWorkspace() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [selectedPositions.size, clearSelection]);
-
-  const isStorageNavigatorFocused = () => {
-    const activeElement = document.activeElement;
-    return !!(activeElement && storageNavigatorRef.current?.contains(activeElement));
-  };
 
   const { getCurrentTanks, currentLab } = useStorageData();
 
@@ -344,12 +337,7 @@ function BiobankWorkspace() {
 
       <div className="main-layout">
         <div className="storage-navigator-panel">
-          <div
-            className="h-full"
-            ref={storageNavigatorRef}
-            onFocus={() => setIsSelectorActive(true)}
-            onBlur={() => setIsSelectorActive(false)}
-          >
+          <div className="h-full" ref={storageNavigatorRef}>
             <ErrorBoundary>
               <StorageNavigator
                 data={storageHierarchy}
@@ -407,9 +395,7 @@ function BiobankWorkspace() {
                   tankId={currentTank}
                   rackId={currentRack}
                   boxId={currentBox}
-                  selectedPositions={
-                    isStorageNavigatorFocused() || isSelectorActive ? new Set() : selectedPositions
-                  }
+                  selectedPositions={selectedPositions}
                   onSelectionChange={setSelection}
                   gridController={gridController}
                   lockContext={lockContext}

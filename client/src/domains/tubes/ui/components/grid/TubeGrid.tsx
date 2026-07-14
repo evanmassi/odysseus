@@ -182,18 +182,6 @@ export function TubeGrid({
     }
   }, [gridNode]);
 
-  useEffect(() => {
-    if (!gridNode) return;
-
-    const selectedElements = gridNode.querySelectorAll('.selected');
-    selectedElements.forEach(el => {
-      const element = el as HTMLElement;
-      element.style.animation = 'none';
-      element.offsetHeight; // Force reflow to restart animation
-      element.style.animation = '';
-    });
-  }, [selectedPositions, gridNode]);
-
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: `repeat(${gridConfig.cols}, minmax(0, 1fr))`,
