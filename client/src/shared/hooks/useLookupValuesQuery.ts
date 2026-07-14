@@ -22,5 +22,6 @@ export function useLookupValuesQuery(category: LookupCategory) {
     queryFn: () => httpClient.getArray(`/lookups/${category}`, lookupValueSchema),
     staleTime: 5 * MS_PER_MINUTE,
     refetchOnMount: 'always',
+    enabled: !!labId,
   });
 }

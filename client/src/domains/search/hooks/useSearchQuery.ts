@@ -22,7 +22,7 @@ export const useSearchQuery = (options: AdvancedSearchOptions, config?: { enable
     queryKey,
     queryFn: () => SearchService.searchTubes(options),
     ...DOMAIN_QUERY_OPTIONS.search,
-    enabled: config?.enabled ?? true,
+    enabled: !!labId && (config?.enabled ?? true),
     retry: 2,
     refetchOnWindowFocus: false,
     placeholderData: previousData => previousData,

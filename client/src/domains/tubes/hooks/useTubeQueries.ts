@@ -28,10 +28,12 @@ export const useTubesByLocation = (
   return useQuery({
     queryKey: queryKeys.tubes.location(labId, tankId, rackId, boxId),
     queryFn: () => TubeService.fetchTubesByLocation(tankId, rackId, boxId),
-    enabled: !!(tankId && rackId && boxId),
     staleTime: TUBE_STALE_TIME,
     gcTime: TUBE_GC_TIME,
     ...options,
+    // After the spread: a lab is a precondition no caller may override — the server rejects a
+    // lab-less request outright, and the query key would otherwise cache under a blank lab.
+    enabled: !!labId && !!(tankId && rackId && boxId) && (options.enabled ?? true),
   });
 };
 
@@ -88,10 +90,10 @@ export const useTube = (
     queryKey: queryKeys.tubes.detail(labId, id),
     queryFn: () => TubeService.fetchTubeById(id),
     initialData,
-    enabled: !!id,
     staleTime: TUBE_STALE_TIME,
     gcTime: 15 * MS_PER_MINUTE,
     ...options,
+    enabled: !!labId && !!id && (options.enabled ?? true),
   });
 };
 
@@ -122,9 +124,9 @@ export const useBulkTubes = (
 
       return TubeService.bulkFetchTubes(tubeIds);
     },
-    enabled: tubeIds.length > 0,
     staleTime: TUBE_STALE_TIME,
     gcTime: TUBE_GC_TIME,
     ...options,
+    enabled: !!labId && tubeIds.length > 0 && (options.enabled ?? true),
   });
 };
