@@ -134,7 +134,6 @@ export function SupplyTransactionForm({
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
-      itemId,
       locationId: prefill?.locationId ?? '',
       type: (initialTab ?? 'received') as string,
       quantity: prefill?.quantity as number | undefined,
@@ -170,13 +169,17 @@ export function SupplyTransactionForm({
     }
   }, [hasPackaging, computedTotal, setValue]);
 
-  const onFormSubmit = async (data: FieldValues) => {
-    const quantity = Number(data['quantity']);
-    const locationId = data['locationId'] as string;
-    if (!locationId || isNaN(quantity)) {
-      notifications.error('Quantity and location are required');
-      return;
+  // A count of zero is a real measurement; receiving, issuing, or disposing of zero is not.
+  const validateQuantity = (value: unknown) => {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      return mode === 'count' ? 'Count is required' : 'Quantity is required';
     }
+    if (mode === 'count') return value >= 0 || 'Count cannot be negative';
+    return value > 0 || 'Quantity must be greater than 0';
+  };
+
+  const onFormSubmit = async (data: FieldValues) => {
+    const quantity = data['quantity'] as number;
 
     try {
       if (mode === 'count') {
@@ -220,7 +223,6 @@ export function SupplyTransactionForm({
   const handleModeChange = (newMode: string) => {
     setQtyByLevel({});
     reset({
-      itemId,
       locationId: '',
       type: newMode,
       quantity: undefined,
@@ -294,7 +296,6 @@ export function SupplyTransactionForm({
           onSubmit={handleSubmit(onFormSubmit)}
           className="space-y-3 p-4"
         >
-          <input type="hidden" {...register('itemId')} />
           <input type="hidden" {...register('type')} />
 
           {hasPackaging ? (
@@ -355,8 +356,12 @@ export function SupplyTransactionForm({
                 type="hidden"
                 {...register('quantity', {
                   setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                  validate: validateQuantity,
                 })}
               />
+              {errors.quantity && (
+                <p className="text-caption text-danger-text">{errors.quantity.message as string}</p>
+              )}
             </div>
           ) : (
             <ValidatedInput
@@ -369,6 +374,7 @@ export function SupplyTransactionForm({
               helperText={(errors.quantity?.message as string) ?? undefined}
               registration={register('quantity', {
                 setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
+                validate: validateQuantity,
               })}
             />
           )}
@@ -404,6 +410,7 @@ export function SupplyTransactionForm({
           <Controller
             name="locationId"
             control={control}
+            rules={{ required: 'Location is required' }}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <div>
                 {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}

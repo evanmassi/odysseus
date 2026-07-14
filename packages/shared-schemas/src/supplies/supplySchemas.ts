@@ -229,7 +229,7 @@ export const recordSupplyTransactionRequestSchema = z.object({
   itemId: z.string().min(1, 'Item is required'),
   locationId: z.string().min(1, 'Location is required'),
   type: z.enum(['received', 'issued', 'disposed']),
-  quantity: z.number().min(0, 'Quantity must be non-negative'),
+  quantity: z.number().positive('Quantity must be greater than 0'),
   lotNumber: z.string().max(200).optional(),
   expirationDate: z.string().optional(),
   poNumber: z.string().max(200).optional(),
