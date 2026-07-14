@@ -247,8 +247,6 @@ export class StorageRepository implements IStorageRepository {
         loginattemptsperminute: number;
         lockoutdurationminutes: number;
         enableadmincontrols: boolean;
-        enabledetailedlogging: boolean;
-        logfailedattempts: boolean;
       }>(`
         SELECT
           use_enhanced_auth as useenhancedauth,
@@ -263,9 +261,7 @@ export class StorageRepository implements IStorageRepository {
           enable_rate_limiting as enableratelimiting,
           login_attempts_per_minute as loginattemptsperminute,
           lockout_duration_minutes as lockoutdurationminutes,
-          enable_admin_controls as enableadmincontrols,
-          enable_detailed_logging as enabledetailedlogging,
-          log_failed_attempts as logfailedattempts
+          enable_admin_controls as enableadmincontrols
         FROM security_config
         WHERE id = 1
       `);
@@ -287,9 +283,7 @@ export class StorageRepository implements IStorageRepository {
         enableRateLimiting: row.enableratelimiting,
         loginAttemptsPerMinute: row.loginattemptsperminute,
         lockoutDurationMinutes: row.lockoutdurationminutes,
-        enableAdminControls: row.enableadmincontrols,
-        enableDetailedLogging: row.enabledetailedlogging,
-        logFailedAttempts: row.logfailedattempts
+        enableAdminControls: row.enableadmincontrols
       };
 
     } catch (error) {
@@ -319,10 +313,8 @@ export class StorageRepository implements IStorageRepository {
           login_attempts_per_minute,
           lockout_duration_minutes,
           enable_admin_controls,
-          enable_detailed_logging,
-          log_failed_attempts,
           updated_at
-        ) VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+        ) VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
         ON CONFLICT (id) DO UPDATE SET
           use_enhanced_auth = EXCLUDED.use_enhanced_auth,
           require_strong_passwords = EXCLUDED.require_strong_passwords,
@@ -337,8 +329,6 @@ export class StorageRepository implements IStorageRepository {
           login_attempts_per_minute = EXCLUDED.login_attempts_per_minute,
           lockout_duration_minutes = EXCLUDED.lockout_duration_minutes,
           enable_admin_controls = EXCLUDED.enable_admin_controls,
-          enable_detailed_logging = EXCLUDED.enable_detailed_logging,
-          log_failed_attempts = EXCLUDED.log_failed_attempts,
           updated_at = NOW()
       `, [
         updatedConfig.useEnhancedAuth,
@@ -353,9 +343,7 @@ export class StorageRepository implements IStorageRepository {
         updatedConfig.enableRateLimiting,
         updatedConfig.loginAttemptsPerMinute,
         updatedConfig.lockoutDurationMinutes,
-        updatedConfig.enableAdminControls,
-        updatedConfig.enableDetailedLogging,
-        updatedConfig.logFailedAttempts
+        updatedConfig.enableAdminControls
       ]);
 
       logger.info('Security configuration updated successfully');

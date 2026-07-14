@@ -10,7 +10,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   Shield,
   Activity,
-  Save,
   ShieldUser,
   Gauge,
   UsersRound,
@@ -20,7 +19,6 @@ import {
 } from 'lucide-react';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { useModalStore } from '@app/stores/modalStore';
 import { useLabId, useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import { logger } from '@infra/logger';
@@ -33,7 +31,6 @@ import {
   LoadingSkeleton,
   Tabs,
   Tooltip,
-  UnsavedChangesIndicator,
 } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
@@ -98,12 +95,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       t => t.isSeeded ?? t.racks.some(r => r.isSeeded ?? r.boxes.some(b => b.isSeeded))
     ) ??
       false);
-  const securityReadOnly = !isSystemAdmin || isDemo;
-
   const [activeTab, setActiveTab] = useState<TabId>('system');
   const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null);
   const [tabFooter, setTabFooter] = useState<React.ReactNode>(null);
-  const modalService = useModalStore();
 
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -113,15 +107,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const refreshUsers = () =>
     void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
 
-  const {
-    config,
-    handleConfigChange,
-    changedCount,
-    hasChanges,
-    isSaving,
-    load: loadConfiguration,
-    save,
-  } = useSecurityConfig();
+  // Security config is read-only here: writing it is a system-admin action, and the system-admin
+  // dashboard owns the only surface that can save it.
+  const { config, handleConfigChange, load: loadConfiguration } = useSecurityConfig();
 
   useEffect(() => {
     if (isOpen) {
@@ -141,30 +129,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       // Left null so the strip hides. Substituting placeholder counts here rendered them as fact.
       setSystemStats(null);
       notifications.error('Failed to load system metrics');
-    }
-  };
-
-  const saveConfiguration = async () => {
-    try {
-      await save();
-      notifications.success('Security configuration updated successfully');
-      onClose();
-    } catch (error) {
-      logger.error('Failed to save configuration', { error });
-      notifications.error('Failed to update security configuration');
-    }
-  };
-
-  const handleClose = () => {
-    if (hasChanges && activeTab === 'security') {
-      modalService.showUnsavedConfirm({
-        onConfirm: () => {
-          modalService.hideUnsavedConfirm();
-          onClose();
-        },
-      });
-    } else {
-      onClose();
     }
   };
 
@@ -212,55 +176,24 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     </Tabs>
   );
 
-  const footer =
-    activeTab === 'security' ? (
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-shrink min-w-0">
-          <UnsavedChangesIndicator count={changedCount} />
-          {isDemo && (
-            <Tooltip content="Some management features are restricted" side="top">
-              <div>
-                <AlertBanner variant="demo" spacing="none">
-                  Demo Environment
-                </AlertBanner>
-              </div>
-            </Tooltip>
-          )}
-        </div>
-        <div className="flex space-x-2 flex-shrink-0">
-          <Button variant="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={saveConfiguration}
-            disabled={!hasChanges || securityReadOnly}
-            isLoading={isSaving}
-            loadingText="Saving..."
-            leftIcon={<Save size={14} />}
-          >
-            Save Changes
-          </Button>
-        </div>
+  const footer = (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-3 flex-shrink min-w-0">
+        {isDemo && (
+          <Tooltip content="Some management features are restricted" side="top">
+            <div>
+              <AlertBanner variant="demo" spacing="none">
+                Demo Environment
+              </AlertBanner>
+            </div>
+          </Tooltip>
+        )}
       </div>
-    ) : (
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-shrink min-w-0">
-          {isDemo && (
-            <Tooltip content="Some management features are restricted" side="top">
-              <div>
-                <AlertBanner variant="demo" spacing="none">
-                  Demo Environment
-                </AlertBanner>
-              </div>
-            </Tooltip>
-          )}
-        </div>
-        <Button variant="secondary" onClick={onClose}>
-          Done
-        </Button>
-      </div>
-    );
+      <Button variant="secondary" onClick={onClose}>
+        Done
+      </Button>
+    </div>
+  );
 
   const accentBar = (
     <span
@@ -319,23 +252,17 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       tabFooter={tabFooter}
       locator={locator}
       className="h-[85vh]"
-      onClose={handleClose}
+      onClose={onClose}
     >
       <SectionHeader icon={TAB_META[activeTab].icon} title={TAB_META[activeTab].title} size="lg" />
 
       {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<LoadingSkeleton />}>
-          {securityReadOnly && (
-            <AlertBanner variant="info" spacing="sm">
-              Only system admins can modify security settings.
-            </AlertBanner>
-          )}
+          <AlertBanner variant="info" spacing="sm">
+            Only system admins can modify security settings.
+          </AlertBanner>
           <ConsolePanel intensity="soft">
-            <SecurityTab
-              config={config}
-              onChange={handleConfigChange}
-              readOnly={securityReadOnly}
-            />
+            <SecurityTab config={config} onChange={handleConfigChange} readOnly />
           </ConsolePanel>
         </Suspense>
       )}
@@ -373,7 +300,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'system' && (
         <Suspense fallback={<LoadingSkeleton />}>
-          <SystemTab config={config} stats={systemStats} onChange={handleConfigChange} />
+          <SystemTab stats={systemStats} />
         </Suspense>
       )}
 

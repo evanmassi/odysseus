@@ -53,8 +53,8 @@ const exportOptions: ExportOption[] = [
   },
   {
     value: 'system-backup',
-    label: 'System Backup',
-    description: 'Configuration and settings',
+    label: 'Configuration Backup',
+    description: 'Configuration and settings — no inventory data',
     defaultFormat: 'json',
     jsonOnly: true,
   },

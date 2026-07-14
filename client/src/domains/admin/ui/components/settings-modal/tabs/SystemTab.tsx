@@ -33,7 +33,6 @@ import {
   StatCell,
   STAT_STRIP,
   Subsection,
-  Toggle,
 } from '@shared/ui';
 import { NavTreeLines } from '@shared/ui/components/tree-lines';
 import { notifications } from '@shared/utils';
@@ -44,15 +43,13 @@ import { adminService } from '../../../../services/AdminService';
 import { UtilizationBar } from '../../displays/UtilizationBar';
 import { DataExportForm } from '../DataExportForm';
 
-import type { SecurityConfig, SystemMetrics, VersionInfo } from '@odysseus/shared-schemas';
+import type { SystemMetrics, VersionInfo } from '@odysseus/shared-schemas';
 
 interface SystemTabProps {
-  config: SecurityConfig;
   stats: SystemMetrics | null;
-  onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
 }
 
-export function SystemTab({ config, stats, onChange }: SystemTabProps) {
+export function SystemTab({ stats }: SystemTabProps) {
   const labId = useAuthStore(s => s.user?.labId);
   const hasLab = !!labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
@@ -168,8 +165,8 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
       )}
 
       <ConsolePanel intensity="soft">
-        <Subsection title="Laboratory" index={1} accent>
-          {hasLab && (
+        {hasLab && (
+          <Subsection title="Laboratory" index={1} accent>
             <SettingsRow label="Lab Name" hint="Display name shown across the app">
               <div className="flex w-48 items-center justify-end gap-2">
                 {isEditingLabName ? (
@@ -200,24 +197,12 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                 )}
               </div>
             </SettingsRow>
-          )}
-
-          <SettingsRow
-            label="Detailed System Logging"
-            hint="Verbose audit logging for all operations"
-            className={hasLab ? undefined : 'col-span-2'}
-          >
-            <Toggle
-              checked={config.enableDetailedLogging}
-              onChange={checked => onChange('enableDetailedLogging', checked)}
-              aria-label="Enable detailed logging for all system operations"
-            />
-          </SettingsRow>
-        </Subsection>
+          </Subsection>
+        )}
 
         {hasLab && <StorageUtilizationSection />}
 
-        <Subsection title="Data Export" index={hasLab ? 3 : 2} accent>
+        <Subsection title="Data Export" index={hasLab ? 3 : 1} accent>
           <div className="col-span-2 py-4">
             <DataExportForm />
           </div>

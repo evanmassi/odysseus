@@ -75,8 +75,6 @@ CREATE TABLE security_config (
   login_attempts_per_minute INTEGER NOT NULL DEFAULT 10,
   lockout_duration_minutes INTEGER NOT NULL DEFAULT 15,
   enable_admin_controls BOOLEAN NOT NULL DEFAULT TRUE,
-  enable_detailed_logging BOOLEAN NOT NULL DEFAULT TRUE,
-  log_failed_attempts BOOLEAN NOT NULL DEFAULT TRUE,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

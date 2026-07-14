@@ -31,10 +31,6 @@ export const securityConfigSchema = z.object({
 
   // Admin Features
   enableAdminControls: z.boolean(),
-
-  // Audit & Monitoring
-  enableDetailedLogging: z.boolean(),
-  logFailedAttempts: z.boolean(),
 });
 
 export type SecurityConfig = z.infer<typeof securityConfigSchema>;
@@ -53,8 +49,6 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
   loginAttemptsPerMinute: 10,
   lockoutDurationMinutes: 15,
   enableAdminControls: true,
-  enableDetailedLogging: true,
-  logFailedAttempts: true,
 } as const;
 
 export const updateSecurityConfigSchema = securityConfigSchema.partial();
