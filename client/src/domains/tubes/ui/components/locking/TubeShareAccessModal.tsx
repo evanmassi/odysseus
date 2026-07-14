@@ -4,7 +4,7 @@
  * Shares or revokes edit access to locked tubes with other users.
  */
 
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 import { Share2, X, UserRoundPlus, UsersRound } from 'lucide-react';
 
@@ -36,6 +36,13 @@ export function TubeShareAccessModal({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const shareMutation = useShareTubeAccessMutation();
   const revokeMutation = useRevokeTubeAccessMutation();
+
+  // The host mounts this modal permanently, so a stale selection would survive a close
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedUserIds([]);
+    }
+  }, [isOpen]);
 
   const { data: allUsers = [], isLoading: isLoadingUsers } = useActiveUsersQuery();
 
