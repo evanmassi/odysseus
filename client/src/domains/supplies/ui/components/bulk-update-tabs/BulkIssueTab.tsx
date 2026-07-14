@@ -4,7 +4,7 @@
  * Order-form style issuance with item search and packaging-aware per-row inputs.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 
 import { Search } from 'lucide-react';
 
@@ -25,6 +25,7 @@ import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
 
 interface IssueRow {
+  rowId: string;
   itemId: string;
   itemName: string;
   quantity: number;
@@ -40,6 +41,7 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
   const [rows, setRows] = useState<IssueRow[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [lastLocationId, setLastLocationId] = useState('');
+  const nextRowId = useRef(0);
   const { data: locations = [] } = useSupplyLocationsQuery();
   const bulkIssueMutation = useSupplyBulkIssueMutation();
 
@@ -59,7 +61,11 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
 
   const addItem = useCallback(
     (itemId: string, itemName: string) => {
-      setRows(prev => [...prev, { itemId, itemName, quantity: 0, locationId: lastLocationId }]);
+      const rowId = `row-${nextRowId.current++}`;
+      setRows(prev => [
+        ...prev,
+        { rowId, itemId, itemName, quantity: 0, locationId: lastLocationId },
+      ]);
     },
     [lastLocationId]
   );
@@ -80,19 +86,17 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
     [items, addItem]
   );
 
-  const updateRow = useCallback((index: number, field: keyof IssueRow, value: string | number) => {
-    setRows(prev =>
-      prev.map((row, i) => {
-        if (i !== index) return row;
-        const updated = { ...row, [field]: value };
-        if (field === 'locationId') setLastLocationId(value as string);
-        return updated;
-      })
-    );
+  const updateQuantity = useCallback((rowId: string, quantity: number) => {
+    setRows(prev => prev.map(row => (row.rowId === rowId ? { ...row, quantity } : row)));
   }, []);
 
-  const removeRow = useCallback((index: number) => {
-    setRows(prev => prev.filter((_, i) => i !== index));
+  const updateLocation = useCallback((rowId: string, locationId: string) => {
+    setLastLocationId(locationId);
+    setRows(prev => prev.map(row => (row.rowId === rowId ? { ...row, locationId } : row)));
+  }, []);
+
+  const removeRow = useCallback((rowId: string) => {
+    setRows(prev => prev.filter(row => row.rowId !== rowId));
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -142,16 +146,17 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
             </p>
           )}
 
-          {rows.map((row, index) => (
+          {rows.map(row => (
             <BulkItemRow
-              key={`${row.itemId}-${index}`}
+              key={row.rowId}
+              rowId={row.rowId}
               itemId={row.itemId}
               itemName={row.itemName}
               locationId={row.locationId}
               locationOptions={locationOptions}
-              onLocationChange={v => updateRow(index, 'locationId', v)}
-              onQuantityChange={v => updateRow(index, 'quantity', v)}
-              onRemove={() => removeRow(index)}
+              onLocationChange={updateLocation}
+              onQuantityChange={updateQuantity}
+              onRemove={removeRow}
             />
           ))}
         </div>

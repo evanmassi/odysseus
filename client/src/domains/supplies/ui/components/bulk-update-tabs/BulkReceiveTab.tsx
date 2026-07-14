@@ -4,7 +4,7 @@
  * Order-form style receive with item search and packaging-aware per-row inputs.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 
 import { Search } from 'lucide-react';
 
@@ -26,6 +26,7 @@ import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { AutocompleteOption } from '@shared/ui';
 
 interface ReceiveRow {
+  rowId: string;
   itemId: string;
   itemName: string;
   quantity: number;
@@ -44,6 +45,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
   const [rows, setRows] = useState<ReceiveRow[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [lastLocationId, setLastLocationId] = useState('');
+  const nextRowId = useRef(0);
   const { data: locations = [] } = useSupplyLocationsQuery();
   const bulkReceiveMutation = useSupplyBulkReceiveMutation();
 
@@ -63,9 +65,11 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
 
   const addItem = useCallback(
     (itemId: string, itemName: string) => {
+      const rowId = `row-${nextRowId.current++}`;
       setRows(prev => [
         ...prev,
         {
+          rowId,
           itemId,
           itemName,
           quantity: 0,
@@ -96,21 +100,26 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
   );
 
   const updateRow = useCallback(
-    (index: number, field: keyof ReceiveRow, value: string | number) => {
-      setRows(prev =>
-        prev.map((row, i) => {
-          if (i !== index) return row;
-          const updated = { ...row, [field]: value };
-          if (field === 'locationId') setLastLocationId(value as string);
-          return updated;
-        })
-      );
+    (rowId: string, field: keyof ReceiveRow, value: string | number) => {
+      setRows(prev => prev.map(row => (row.rowId === rowId ? { ...row, [field]: value } : row)));
     },
     []
   );
 
-  const removeRow = useCallback((index: number) => {
-    setRows(prev => prev.filter((_, i) => i !== index));
+  const updateQuantity = useCallback((rowId: string, quantity: number) => {
+    setRows(prev => prev.map(row => (row.rowId === rowId ? { ...row, quantity } : row)));
+  }, []);
+
+  const updateLocation = useCallback(
+    (rowId: string, locationId: string) => {
+      setLastLocationId(locationId);
+      updateRow(rowId, 'locationId', locationId);
+    },
+    [updateRow]
+  );
+
+  const removeRow = useCallback((rowId: string) => {
+    setRows(prev => prev.filter(row => row.rowId !== rowId));
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -167,16 +176,17 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
             </p>
           )}
 
-          {rows.map((row, index) => (
+          {rows.map(row => (
             <BulkItemRow
-              key={`${row.itemId}-${index}`}
+              key={row.rowId}
+              rowId={row.rowId}
               itemId={row.itemId}
               itemName={row.itemName}
               locationId={row.locationId}
               locationOptions={locationOptions}
-              onLocationChange={v => updateRow(index, 'locationId', v)}
-              onQuantityChange={v => updateRow(index, 'quantity', v)}
-              onRemove={() => removeRow(index)}
+              onLocationChange={updateLocation}
+              onQuantityChange={updateQuantity}
+              onRemove={removeRow}
             >
               <div className="grid grid-cols-3 gap-2">
                 <div>
@@ -184,7 +194,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
                   <Input
                     type="text"
                     value={row.lotNumber}
-                    onValueChange={v => updateRow(index, 'lotNumber', v)}
+                    onValueChange={v => updateRow(row.rowId, 'lotNumber', v)}
                     size="sm"
                     fullWidth
                   />
@@ -194,7 +204,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
                   <Input
                     type="text"
                     value={row.poNumber}
-                    onValueChange={v => updateRow(index, 'poNumber', v)}
+                    onValueChange={v => updateRow(row.rowId, 'poNumber', v)}
                     size="sm"
                     fullWidth
                   />
@@ -204,7 +214,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
                   <Input
                     type="number"
                     value={row.cost}
-                    onValueChange={v => updateRow(index, 'cost', v)}
+                    onValueChange={v => updateRow(row.rowId, 'cost', v)}
                     size="sm"
                     fullWidth
                   />
