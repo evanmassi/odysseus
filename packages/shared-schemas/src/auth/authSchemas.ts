@@ -9,7 +9,7 @@ import { dateField } from '../utils/dateFields';
 import { passwordChangeRequiredResponseSchema, passwordField } from './passwordResetSchemas';
 
 export const USER_ROLES = ['system_admin', 'lab_admin', 'user'] as const;
-export const USER_STATUSES = ['pending', 'approved', 'rejected', 'deactivated', 'suspended'] as const;
+export const USER_STATUSES = ['approved', 'deactivated', 'suspended'] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 export type UserStatus = (typeof USER_STATUSES)[number];
 
@@ -136,7 +136,7 @@ export type LoginResponse = z.infer<typeof loginResponseSchema>;
 export const registerWithProfileResponseSchema = z.object({
   user: publicUserDataSchema,
   tokens: tokenPairSchema.optional(),
-  status: z.enum(['approved', 'pending'] as const),
+  status: z.literal('approved'),
   message: z.string(),
 });
 

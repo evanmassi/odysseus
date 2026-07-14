@@ -69,13 +69,12 @@ export class UserApplicationService {
   ) {}
 
   /**
-   * Returns non-pending lab users enriched with Person names.
+   * Returns lab users enriched with Person names.
    * Name resolution priority: direct personId link, then linked researcher's person.
    */
   async getEnrichedLabUsers(labId: string): Promise<EnrichedPublicUser[]> {
     const users = await this.userRepository.findByLabId(labId);
-    const nonPendingUsers = users.filter(u => !u.isPending());
-    const publicDataList = nonPendingUsers.map(u => u.toPublicData());
+    const publicDataList = users.map(u => u.toPublicData());
 
     if (!this.personRepository || !this.researcherRepository) {
       return publicDataList;
@@ -446,7 +445,6 @@ export class UserApplicationService {
     const role = isFirstUser
       ? UserRole.labAdmin()
       : resolvedRole === 'lab_admin' ? UserRole.labAdmin() : UserRole.user();
-    const status = (isFirstUser || autoApprove) ? 'approved' : 'pending';
 
     const user = User.createWithPassword(
       username,
@@ -454,13 +452,11 @@ export class UserApplicationService {
       role,
       researcherId,
       person.id,
-      status,
+      'approved',
       labId
     );
 
-    if (isFirstUser || autoApprove) {
-      user.markEmailVerified();
-    }
+    user.markEmailVerified();
 
     await this.personRepository!.save(person);
 

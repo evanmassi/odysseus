@@ -6,6 +6,9 @@
 
 import type { User } from '@domain/entities/User';
 
+import type { UserStatus } from '@odysseus/shared-schemas';
+
+
 export interface UserRepository {
 
   /** Lab-scoped lookup — the default. Returns null for a user in another lab. */
@@ -46,7 +49,7 @@ export interface UserRepository {
   // LAB-SCOPED OPERATIONS
 
   findByLabId(labId: string): Promise<User[]>;
-  findByStatusInLab(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended', labId: string): Promise<User[]>;
+  findByStatusInLab(status: UserStatus, labId: string): Promise<User[]>;
   countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number>;
 
   isHealthy(): Promise<boolean>;

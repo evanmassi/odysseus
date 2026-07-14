@@ -16,7 +16,7 @@ describe('User', () => {
         expect(user.id).toMatch(/^user_/);
         expect(user.username).toBe('testuser');
         expect(user.role.isUser()).toBe(true);
-        expect(user.status).toBe('pending');
+        expect(user.status).toBe('approved');
         expect(user.isDemo).toBe(false);
       });
 
@@ -49,8 +49,8 @@ describe('User', () => {
       });
 
       it('should set the requested status', () => {
-        const pending = createTestUser({ status: 'pending' });
-        expect(pending.isPending()).toBe(true);
+        const suspended = createTestUser({ status: 'suspended' });
+        expect(suspended.isSuspended()).toBe(true);
       });
     });
 
@@ -233,7 +233,7 @@ describe('User', () => {
 
     it('should not deactivate non-approved user', () => {
       const admin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
+      const user = createTestUser({ status: 'suspended' });
       expect(() => user.deactivate(admin)).toThrow('Only approved users can be deactivated');
     });
 
@@ -278,9 +278,9 @@ describe('User', () => {
       expect(user.isSuspended()).toBe(true);
     });
 
-    it('should not suspend pending user', () => {
+    it('should not suspend an already-suspended user', () => {
       const sysAdmin = createTestSystemAdmin();
-      const user = createTestUser({ status: 'pending' });
+      const user = createTestUser({ status: 'suspended' });
       expect(() => user.suspend(sysAdmin)).toThrow('Only approved or deactivated users can be suspended');
     });
 
@@ -300,15 +300,10 @@ describe('User', () => {
 
   describe('status queries', () => {
     it('should report correct status', () => {
-      const pending = createTestUser({ status: 'pending' });
-      expect(pending.isPending()).toBe(true);
-      expect(pending.isApproved()).toBe(false);
-      expect(pending.isRejected()).toBe(false);
-      expect(pending.isDeactivated()).toBe(false);
-      expect(pending.isSuspended()).toBe(false);
-
       const approved = createTestUser({ status: 'approved' });
       expect(approved.isApproved()).toBe(true);
+      expect(approved.isDeactivated()).toBe(false);
+      expect(approved.isSuspended()).toBe(false);
 
       const deactivated = createTestUser({ status: 'deactivated' });
       expect(deactivated.isDeactivated()).toBe(true);

@@ -77,7 +77,7 @@ export class User {
     this._lastActivity = props.lastActivity;
     this._researcherId = props.researcherId;
     this._personId = props.personId;
-    this._status = props.status ?? 'pending';
+    this._status = props.status ?? 'approved';
     this._labId = props.labId;
 
     this._emailVerified = props.emailVerified ?? false;
@@ -120,7 +120,7 @@ export class User {
       lastActivity: now,
       researcherId,
       personId,
-      status: 'pending',
+      status: 'approved',
       labId,
     });
   }
@@ -136,7 +136,7 @@ export class User {
       lastActivity: now,
       researcherId,
       personId,
-      status: 'pending',
+      status: 'approved',
       labId,
     });
   }
@@ -161,7 +161,7 @@ export class User {
     role: UserRole,
     researcherId?: string,
     personId?: string,
-    status: UserStatus = 'pending',
+    status: UserStatus = 'approved',
     labId?: string
   ): User {
     const now = new Date();
@@ -237,7 +237,7 @@ export class User {
       lastActivity: new Date(data.lastActivity),
       researcherId: data.researcherId,
       personId: data.personId,
-      status: data.status ?? 'pending',
+      status: data.status ?? 'approved',
       emailVerified: data.emailVerified === 1,
       emailVerificationToken: data.emailVerificationToken,
       emailVerificationExpiry: data.emailVerificationExpiry,
@@ -437,16 +437,8 @@ export class User {
     this.recordActivity();
   }
 
-  isPending(): boolean {
-    return this._status === 'pending';
-  }
-
   isApproved(): boolean {
     return this._status === 'approved';
-  }
-
-  isRejected(): boolean {
-    return this._status === 'rejected';
   }
 
   isDeactivated(): boolean {

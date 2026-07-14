@@ -6,6 +6,7 @@
 
 import * as crypto from 'crypto';
 
+
 import type { User } from '@domain/entities/User';
 import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
 import type { UserRepository as IUserRepository } from '@domain/repositories/UserRepository';
@@ -14,6 +15,8 @@ import type { UserRow } from '@infrastructure/database/mappers/UserMapper';
 import { UserMapper } from '@infrastructure/database/mappers/UserMapper';
 import { parseCount } from '@infrastructure/database/PostgresContext';
 import type { Queryable } from '@infrastructure/database/Queryable';
+
+import type { UserStatus } from '@odysseus/shared-schemas';
 
 
 const USER_COLUMNS = `
@@ -222,7 +225,7 @@ export class UserRepository implements IUserRepository {
     return UserMapper.fromRows(rows);
   }
 
-  async findByStatusInLab(status: 'pending' | 'approved' | 'rejected', labId: string): Promise<User[]> {
+  async findByStatusInLab(status: UserStatus, labId: string): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
       `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.status = $1 AND u.lab_id = $2 ORDER BY u.created_at DESC`,
       [status, labId]

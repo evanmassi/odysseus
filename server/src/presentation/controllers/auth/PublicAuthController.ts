@@ -137,14 +137,6 @@ export class PublicAuthController {
       const command: LoginCommand = { username, password };
       const result = await this.deps.loginHandler.handle(command);
 
-      if (result.user.isPending()) {
-        this.denyLogin(req, result.user.username, 'Account is awaiting administrator approval', result.user.id);
-      }
-
-      if (result.user.isRejected()) {
-        this.denyLogin(req, result.user.username, 'Account access has been denied', result.user.id);
-      }
-
       if (result.user.isDeactivated()) {
         this.denyLogin(req, result.user.username, 'Account has been deactivated. Contact your lab administrator', result.user.id);
       }
@@ -277,27 +269,16 @@ export class PublicAuthController {
         }
       }
 
-      if (user.isApproved()) {
-        const authResult = await this.issueTokens(req, user);
+      const authResult = await this.issueTokens(req, user);
 
-        const approvedPayload: RegisterWithProfileResponse = {
-          user: user.toPublicData(),
-          tokens: authResult.tokens,
-          status: 'approved',
-          message: 'Account created and approved'
-        };
-
-        res.status(201).json(ResponseBuilder.success(approvedPayload));
-        return;
-      }
-
-      const pendingPayload: RegisterWithProfileResponse = {
+      const payload: RegisterWithProfileResponse = {
         user: user.toPublicData(),
-        status: 'pending',
-        message: 'Account created. Awaiting administrator approval.'
+        tokens: authResult.tokens,
+        status: 'approved',
+        message: 'Account created and approved'
       };
 
-      res.status(201).json(ResponseBuilder.success(pendingPayload));
+      res.status(201).json(ResponseBuilder.success(payload));
     } catch (error) {
       handleControllerError(error, res, 'Failed to register');
     }

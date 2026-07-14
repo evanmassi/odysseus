@@ -126,7 +126,7 @@ CREATE TABLE users (
   researcher_id TEXT,
   person_id TEXT,
   lab_id TEXT REFERENCES labs(id),
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'deactivated', 'suspended')),
+  status TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('approved', 'deactivated', 'suspended')),
   email_verified BOOLEAN NOT NULL DEFAULT FALSE,
   email_verification_token TEXT,
   email_verification_expiry TIMESTAMPTZ,

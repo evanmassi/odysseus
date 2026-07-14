@@ -264,19 +264,14 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           const result = await authService.registerWithProfile(request);
+          set({ isLoading: false, error: null });
 
-          if (result.status === 'approved' && result.tokens) {
-            set({ isLoading: false, error: null });
-
-            return {
-              success: true,
-              message: result.message,
-              user: result.user,
-              tokens: result.tokens,
-            };
-          }
-
-          throw new Error('Registration failed: unexpected response status');
+          return {
+            success: true,
+            message: result.message,
+            user: result.user,
+            tokens: result.tokens,
+          };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Registration error';
           logger.error('Auth store registerWithProfile exception', { error });

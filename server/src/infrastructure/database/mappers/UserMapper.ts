@@ -4,8 +4,11 @@
  * Converts between database rows and User domain entities.
  */
 
+
 import { User } from '@domain/entities/User';
 import { toDate, toISOString } from '@infrastructure/database/PostgresContext';
+
+import type { UserStatus } from '@odysseus/shared-schemas';
 
 export interface UserRow {
   id: string;
@@ -17,7 +20,7 @@ export interface UserRow {
   created_at: Date | string;
   researcher_id?: string;
   person_id?: string;
-  status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
+  status: UserStatus;
   email_verified?: boolean;
   email_verification_token?: string;
   email_verification_expiry?: Date | string;

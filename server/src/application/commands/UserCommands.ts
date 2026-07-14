@@ -251,15 +251,6 @@ export class LoginCommandHandler {
     // Lazy migration: re-hash PBKDF2 passwords to bcrypt on successful login
     await upgradePasswordHashIfNeeded(user, command.password, this.passwordService, this.userRepository);
 
-    // Check admin approval status FIRST (gates access before email verification)
-    if (user.status === 'pending') {
-      throw new InvalidCredentialsError('Account pending administrator approval. You will be notified when approved.');
-    }
-
-    if (user.status === 'rejected') {
-      throw new InvalidCredentialsError('Account access has been denied. Contact administrator for more information.');
-    }
-
     if (user.status === 'deactivated') {
       throw new InvalidCredentialsError('Account has been deactivated. Contact your lab administrator.');
     }

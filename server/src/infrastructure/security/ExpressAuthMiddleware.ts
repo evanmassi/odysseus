@@ -103,9 +103,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         if (!result.user.isApproved()) {
           const statusMessages: Record<string, string> = {
             deactivated: 'Account has been deactivated. Contact your lab administrator',
-            suspended: 'Account has been suspended. Contact your system administrator',
-            pending: 'Account is awaiting administrator approval',
-            rejected: 'Account access has been denied'
+            suspended: 'Account has been suspended. Contact your system administrator'
           };
           const message = statusMessages[result.user.status] || 'Account is not approved for access';
 

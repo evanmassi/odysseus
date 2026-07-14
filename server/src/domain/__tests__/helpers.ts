@@ -4,6 +4,8 @@
  * Shared helpers for creating domain entities in tests with sensible defaults.
  */
 
+import type { UserStatus } from '@odysseus/shared-schemas';
+
 import { Tube } from '@domain/entities/Tube';
 import { User } from '@domain/entities/User';
 import { UserRole } from '@domain/value-objects/UserRole';
@@ -14,7 +16,7 @@ export function createTestUser(overrides: {
   username?: string;
   passwordHash?: string;
   role?: UserRole;
-  status?: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
+  status?: UserStatus;
   labId?: string;
   researcherId?: string;
 } = {}): User {
