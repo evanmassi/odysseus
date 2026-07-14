@@ -4,7 +4,11 @@
  * OAuth 2.0 session lifecycle with automatic token refresh and idle timeout monitoring.
  */
 
-import { refreshTokenResponseSchema, sessionInfoResponseSchema } from '@odysseus/shared-schemas';
+import {
+  ApiError,
+  refreshTokenResponseSchema,
+  sessionInfoResponseSchema,
+} from '@odysseus/shared-schemas';
 
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
@@ -219,6 +223,12 @@ export class SessionService implements TokenProvider {
         return true;
       } catch (error) {
         logger.error(`Token refresh attempt ${attempt} failed`, { error, attempt });
+
+        // A 4xx means the server rejected the refresh token itself; retrying replays the same
+        // rejected token and only delays the logout. Matches mutationRetryLogic.
+        if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+          break;
+        }
 
         if (attempt < this.config.maxRetries) {
           // Wait before retry with exponential backoff
@@ -570,7 +580,7 @@ export class SessionService implements TokenProvider {
     return {
       sessionStatus: this.getSessionStatus(),
       accessTokenExpiresIn: `${timeUntilExpiry} minutes`,
-      nextRefreshIn: timeUntilRefresh ? `${timeUntilRefresh} minutes` : 'Not scheduled',
+      nextRefreshIn: timeUntilRefresh !== null ? `${timeUntilRefresh} minutes` : 'Not scheduled',
       isRefreshing: this.state.isRefreshing,
       lastRefresh: this.state.lastRefreshTime?.toLocaleTimeString() ?? 'Never',
     };

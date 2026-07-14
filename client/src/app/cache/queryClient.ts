@@ -284,13 +284,23 @@ export const DOMAIN_QUERY_OPTIONS = {
   },
 } as const;
 
-const EXCLUDED_QUERY_PREFIXES = ['users', 'admin', 'auth', 'security'] as const;
+// Admin-scoped data stays out of localStorage. 'labs' and 'storageAnalytics' are system-admin
+// surfaces spanning every lab, so they belong here alongside the rest.
+const NON_PERSISTED_QUERY_KEYS: readonly string[] = [
+  'users',
+  'admin',
+  'auth',
+  'security',
+  'labs',
+  'storageAnalytics',
+];
 
 function shouldPersistQuery(queryKey: readonly unknown[]): boolean {
   const firstKey = queryKey[0];
   if (typeof firstKey !== 'string') return false;
 
-  return !EXCLUDED_QUERY_PREFIXES.some(prefix => firstKey.startsWith(prefix));
+  // Matched exactly, not by prefix: 'storage' would otherwise swallow 'storageAnalytics'.
+  return !NON_PERSISTED_QUERY_KEYS.includes(firstKey);
 }
 
 // JSON.parse revives Date.prototype.toISOString() strings back to Date objects.

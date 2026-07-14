@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 
-import { useQueryClient, type MutationCacheNotifyEvent } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const RealtimeSyncIndicator: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
@@ -15,25 +15,16 @@ export const RealtimeSyncIndicator: React.FC = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const mutationCache = queryClient.getMutationCache();
-
-    const handleMutationUpdate = (event: MutationCacheNotifyEvent) => {
-      const mutation = event.mutation;
-
-      if (mutation?.state?.status === 'pending') {
-        startTransition(() => {
-          setIsAnimating(true);
-        });
-      } else if (mutation?.state?.status === 'success' || mutation?.state?.status === 'error') {
-        startTransition(() => {
-          setIsAnimating(false);
-        });
-      }
+    // Count what is still in flight rather than react to the mutation that just settled — the
+    // first of several concurrent mutations to finish would otherwise clear the badge early.
+    const syncPendingState = () => {
+      const isPending = queryClient.isMutating() > 0;
+      startTransition(() => {
+        setIsAnimating(isPending);
+      });
     };
 
-    const unsubscribe = mutationCache.subscribe(handleMutationUpdate);
-
-    return unsubscribe;
+    return queryClient.getMutationCache().subscribe(syncPendingState);
   }, [queryClient]);
 
   if (!isAnimating) return null;

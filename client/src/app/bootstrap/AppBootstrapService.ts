@@ -45,6 +45,7 @@ class AppBootstrapService {
 
   private listeners: Array<(state: AppBootstrapState) => void> = [];
   private isInitialized = false;
+  private inFlight: Promise<void> | null = null;
   private authUnsubscribe: (() => void) | null = null;
 
   constructor() {
@@ -117,12 +118,21 @@ class AppBootstrapService {
   }
 
   async bootstrap(): Promise<void> {
-    // Prevent duplicate bootstrap in React StrictMode
     if (this.isInitialized) {
       logger.warn('Bootstrap already initialized, skipping duplicate');
       return;
     }
 
+    // isInitialized only flips at the end, so a second caller during a run — StrictMode's double
+    // effect — would start its own. Callers join the run already in flight instead.
+    this.inFlight ??= this.runBootstrap().finally(() => {
+      this.inFlight = null;
+    });
+
+    return this.inFlight;
+  }
+
+  private async runBootstrap(): Promise<void> {
     try {
       this.state.isLoading = true;
       this.state.error = null;
