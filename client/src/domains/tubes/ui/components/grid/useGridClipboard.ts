@@ -27,7 +27,7 @@ import type {
   PositionContext,
   TubeClipboardItem,
 } from '@domains/tubes/types/gridSelectionTypes';
-import type { TubeData, TubeLocation } from '@odysseus/shared-schemas';
+import type { BulkMoveResponse, TubeData, TubeLocation } from '@odysseus/shared-schemas';
 
 export interface UseGridClipboardProps {
   ctx: PositionContext;
@@ -38,7 +38,7 @@ export interface UseGridClipboardProps {
   onPasteTubes?: (tubes: ReturnType<typeof tubeDataToCreateRequest>[]) => Promise<void>;
   onMoveTubes?: (
     moves: Array<{ tubeId: string; version: number; destination: TubeLocation }>
-  ) => Promise<void>;
+  ) => Promise<BulkMoveResponse>;
   onSelectionChange: (selection: Set<PositionKey>) => void;
   currentUserId?: string;
   isViewOnlySpace?: boolean;
@@ -164,7 +164,11 @@ export const useGridClipboard = ({
       if (!clipData || clipData.tubes.length === 0) return;
 
       const currentSelectedPositions = selectedPositionsInThisBox();
-      const shouldFillTargets = currentSelectedPositions.length > clipData.tubes.length;
+
+      // Filling repeats the source tubes across a larger selection, which only a copy can do —
+      // a cut has no tubes to duplicate. Cutting into an oversized selection anchors instead.
+      const shouldFillTargets =
+        clipData.operation === 'copy' && currentSelectedPositions.length > clipData.tubes.length;
 
       let tubesToPaste: ReturnType<typeof tubeDataToCreateRequest>[];
       let pastedSourceTubeIds: string[] = [];
@@ -301,28 +305,25 @@ export const useGridClipboard = ({
         }
       }
 
-      const conflictingPositions = tubesToPaste.filter(tubeData => {
-        const existingTube = tubes.find(
-          t =>
-            t.location.tankId === tubeData.location.tankId &&
-            t.location.rackId === tubeData.location.rackId &&
-            t.location.boxId === tubeData.location.boxId &&
-            t.location.position === tubeData.location.position
-        );
-        return existingTube !== undefined;
-      });
+      // A cut vacates its own source positions as part of the move, so a tube being
+      // relocated is never an obstacle to itself — overwriting it would delete the
+      // very tube the move is about to reposition.
+      const relocatingTubeIds =
+        clipData.operation === 'cut' ? new Set(pastedSourceTubeIds) : new Set<string>();
 
-      if (conflictingPositions.length > 0) {
-        const conflictingTubes = conflictingPositions.map(tubeData => {
-          return tubes.find(
+      const conflictingTubes = tubesToPaste
+        .map(tubeData =>
+          tubes.find(
             t =>
               t.location.tankId === tubeData.location.tankId &&
               t.location.rackId === tubeData.location.rackId &&
               t.location.boxId === tubeData.location.boxId &&
               t.location.position === tubeData.location.position
-          )!;
-        });
+          )
+        )
+        .filter((tube): tube is TubeData => tube !== undefined && !relocatingTubeIds.has(tube.id));
 
+      if (conflictingTubes.length > 0) {
         const overwriteResult = canModifyAllTubes(
           conflictingTubes,
           currentUserId,
@@ -339,7 +340,7 @@ export const useGridClipboard = ({
         const userConfirmed = await new Promise<boolean>(resolve => {
           modalService.showOverwriteConfirm({
             title: 'Overwrite Confirmation',
-            message: `${conflictingPositions.length} position${conflictingPositions.length > 1 ? 's are' : ' is'} already occupied. Do you want to overwrite ${conflictingPositions.length > 1 ? 'these tubes' : 'this tube'}?`,
+            message: `${conflictingTubes.length} position${conflictingTubes.length > 1 ? 's are' : ' is'} already occupied. Do you want to overwrite ${conflictingTubes.length > 1 ? 'these tubes' : 'this tube'}?`,
             confirmText: 'Overwrite',
             onConfirm: () => {
               modalService.hideOverwriteConfirm();
@@ -354,11 +355,14 @@ export const useGridClipboard = ({
 
         if (!userConfirmed) return;
 
-        const conflictingTubeIds = conflictingTubes.map(t => t.id);
-        if (onDeleteTubes && conflictingTubeIds.length > 0) {
-          await onDeleteTubes(conflictingTubeIds, true);
-        }
+        await onDeleteTubes?.(
+          conflictingTubes.map(t => t.id),
+          true
+        );
       }
+
+      let appliedCount = tubesToPaste.length;
+      let failedCount = 0;
 
       if (clipData.operation === 'cut' && onMoveTubes && tubesToPaste.length > 0) {
         // Atomic move: update locations in a single request instead of create+delete
@@ -377,23 +381,26 @@ export const useGridClipboard = ({
             destination: tubesToPaste[i].location,
           });
         }
-        await onMoveTubes([...uniqueMoves.values()]);
+        const result = await onMoveTubes([...uniqueMoves.values()]);
+        appliedCount = result.moved.length;
+        failedCount = result.failed.length;
       } else if (onPasteTubes) {
         await onPasteTubes(tubesToPaste);
       }
 
-      const skippedCount = clipData.tubes.length - tubesToPaste.length;
+      // Filling targets only selected positions, so nothing can land outside the grid.
+      const outOfBoundsCount = shouldFillTargets ? 0 : clipData.tubes.length - tubesToPaste.length;
       const action = clipData.operation === 'cut' ? 'Moved' : 'Pasted';
+      const summary = `${action} ${appliedCount} tube${appliedCount !== 1 ? 's' : ''}`;
 
-      if (skippedCount > 0) {
-        notifications.warning(
-          `${action} ${tubesToPaste.length} tube${tubesToPaste.length !== 1 ? 's' : ''}. ` +
-            `${skippedCount} skipped (outside grid bounds).`
-        );
+      const problems: string[] = [];
+      if (outOfBoundsCount > 0) problems.push(`${outOfBoundsCount} skipped (outside grid bounds)`);
+      if (failedCount > 0) problems.push(`${failedCount} failed`);
+
+      if (problems.length > 0) {
+        notifications.warning(`${summary}. ${problems.join('. ')}.`);
       } else {
-        notifications.success(
-          `${action} ${tubesToPaste.length} tube${tubesToPaste.length !== 1 ? 's' : ''}`
-        );
+        notifications.success(summary);
       }
 
       setClipboard(null);

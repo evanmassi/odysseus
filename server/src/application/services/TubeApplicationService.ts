@@ -723,6 +723,45 @@ export class TubeApplicationService {
     return { deleted: validatedIds, failed };
   }
 
+  /**
+   * Orders moves so that a destination occupied by another tube in the same batch is claimed only
+   * after that tube has vacated it. Tubes are saved one at a time against a unique position
+   * constraint, so a block shifted within its own box (cut/paste overlapping its source) would
+   * otherwise fail on every tube whose target is still held by an unmoved sibling. Moves forming a
+   * cycle (a true swap) cannot be sequenced without a free position and are left to fail validation.
+   */
+  private sequenceMovesByVacancy(
+    moves: BulkMoveRequest['moves'],
+    tubeMap: Map<string, Tube>
+  ): BulkMoveRequest['moves'] {
+    const positionKey = (l: { tankId: string; rackId: string; boxId: string; position: number }) =>
+      `${l.tankId}:${l.rackId}:${l.boxId.toUpperCase()}:${l.position}`;
+
+    const occupants = new Map<string, string>();
+    for (const move of moves) {
+      const tube = tubeMap.get(move.tubeId);
+      if (tube) occupants.set(positionKey(tube.location), move.tubeId);
+    }
+
+    const ordered: BulkMoveRequest['moves'] = [];
+    const pending = [...moves];
+
+    while (pending.length > 0) {
+      const nextIndex = pending.findIndex(move => {
+        const occupant = occupants.get(positionKey(move.destination));
+        return occupant === undefined || occupant === move.tubeId;
+      });
+      if (nextIndex === -1) break;
+
+      const [move] = pending.splice(nextIndex, 1);
+      const tube = tubeMap.get(move.tubeId);
+      if (tube) occupants.delete(positionKey(tube.location));
+      ordered.push(move);
+    }
+
+    return [...ordered, ...pending];
+  }
+
   /** Atomically moves tubes to new locations with position validation. Emits per-tube TubeLocationChangedEvent for audit and one BulkTubesMovedEvent for socket. */
   async moveTubes(
     moves: BulkMoveRequest['moves'],
@@ -739,7 +778,7 @@ export class TubeApplicationService {
     const failed: Array<{ tubeId: string; error: string }> = [];
     const moveDetails: BulkTubeMovedDetail[] = [];
 
-    for (const move of moves) {
+    for (const move of this.sequenceMovesByVacancy(moves, tubeMap)) {
       const tube = tubeMap.get(move.tubeId);
       if (!tube) {
         failed.push({ tubeId: move.tubeId, error: 'Tube not found' });

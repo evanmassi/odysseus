@@ -4,7 +4,12 @@
  * Position management, clipboard, navigation, lock context, and controller interfaces for the tube grid.
  */
 
-import type { TubeData, TubeLocation, CreateTubeRequest } from '@odysseus/shared-schemas';
+import type {
+  TubeData,
+  TubeLocation,
+  CreateTubeRequest,
+  BulkMoveResponse,
+} from '@odysseus/shared-schemas';
 
 export interface PositionContext {
   tankId: string;
@@ -56,7 +61,7 @@ export interface GridControllerProps {
   onPasteTubes?: (tubes: CreateTubeRequest[]) => Promise<void>;
   onMoveTubes?: (
     moves: Array<{ tubeId: string; version: number; destination: TubeLocation }>
-  ) => Promise<void>;
+  ) => Promise<BulkMoveResponse>;
 
   onLockTubes?: (tubeIds: string[]) => void;
   onUnlockTubes?: (tubeIds: string[]) => Promise<void>;

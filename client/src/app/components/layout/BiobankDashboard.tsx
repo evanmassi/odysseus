@@ -306,7 +306,7 @@ function BiobankWorkspace() {
       await pasteTubesMutation.mutateAsync({ tubes });
     },
     onMoveTubes: async moves => {
-      await moveTubesMutation.mutateAsync({ moves });
+      return await moveTubesMutation.mutateAsync({ moves });
     },
     onLockTubes: handleLockTubes,
     onUnlockTubes: handleUnlockTubes,
