@@ -41,7 +41,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
     forceChangePassword,
     clearPasswordChangeRequired,
     logoutReason,
-    error: authError,
     passwordChangeRequired,
     passwordChangeSuccess,
   } = useAuthStore();
@@ -101,8 +100,10 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
     const success = await forceChangePassword(newPassword);
 
     if (!success) {
+      // Read the error the action just set, not a stale render-time binding.
+      const storeError = useAuthStore.getState().error;
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error message should fall through to default
-      throw new Error(authError || 'Password change failed. Please try again.');
+      throw new Error(storeError || 'Password change failed. Please try again.');
     }
   };
 
