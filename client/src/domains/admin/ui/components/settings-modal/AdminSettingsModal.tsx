@@ -138,12 +138,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       setSystemStats(metrics);
     } catch (error) {
       logger.error('Failed to load system stats', { error });
-      setSystemStats({
-        totalTubes: 0,
-        totalUsers: 1,
-        totalResearchers: 0,
-        lastBackup: new Date(),
-      });
+      // Left null so the strip hides. Substituting placeholder counts here rendered them as fact.
+      setSystemStats(null);
+      notifications.error('Failed to load system metrics');
     }
   };
 

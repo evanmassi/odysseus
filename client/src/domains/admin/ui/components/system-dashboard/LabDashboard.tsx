@@ -65,6 +65,11 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
     if (!userSortConfig) return source;
     return [...source].sort((a, b) => {
       const { columnId, direction } = userSortConfig;
+      // Stringifying a Date sorts by weekday name, not chronologically.
+      if (columnId === 'lastActivity') {
+        const diff = a.lastActivity.getTime() - b.lastActivity.getTime();
+        return direction === 'asc' ? diff : -diff;
+      }
       const aVal = String(a[columnId as keyof LabDetailsUser] ?? '');
       const bVal = String(b[columnId as keyof LabDetailsUser] ?? '');
       const cmp = aVal.localeCompare(bVal);
@@ -111,6 +116,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   const handleRename = () => {
     const name = newName.trim();
     if (!name) return;
+    if (updateLabMutation.isPending) return;
     updateLabMutation.mutate(
       { id: labId, name },
       {

@@ -4,10 +4,12 @@
  * Admin resets a user's password directly, or generates a one-time reset link.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
+import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound, Copy, Check, RotateCcwKey, ExternalLink, Clock, RotateCcw } from 'lucide-react';
 
+import { usePasswordRequirementsQuery } from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { AuthInput, Button, Tab, Tabs, Toggle } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
@@ -71,6 +73,13 @@ export function PasswordResetModal({
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const { data: passwordRequirements } = usePasswordRequirementsQuery();
+
+  const meetsRequirements = useMemo(() => {
+    if (!passwordRequirements || !newPassword) return false;
+    return PasswordValidator.validate(newPassword, passwordRequirements).isValid;
+  }, [newPassword, passwordRequirements]);
+
   // Reset form state when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -84,8 +93,16 @@ export function PasswordResetModal({
   }, [isOpen]);
 
   const handleDirectReset = async () => {
-    if (!newPassword || newPassword.length < 4) {
-      notifications.error('Password must be at least 4 characters');
+    if (!newPassword) {
+      notifications.error('Password is required');
+      return;
+    }
+
+    if (passwordRequirements && !meetsRequirements) {
+      const unmet = PasswordValidator.validate(newPassword, passwordRequirements).requirements.find(
+        req => !req.isMet
+      );
+      notifications.error(unmet ? `Password must have ${unmet.label}` : 'Password is too weak');
       return;
     }
 
@@ -223,7 +240,7 @@ export function PasswordResetModal({
                 label="Temporary Password"
                 placeholder="Enter temporary password"
                 icon={<KeyRound size={16} />}
-                state={newPassword.length >= 4 ? 'success' : 'default'}
+                state={meetsRequirements ? 'success' : 'default'}
                 variant="console"
               />
               <div className="mt-2 ml-1 flex items-center gap-2.5">

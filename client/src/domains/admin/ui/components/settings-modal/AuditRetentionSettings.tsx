@@ -126,7 +126,8 @@ export function AuditRetentionSettings({
   const currentStatus = STATUS_CONFIG[status];
   const StatusIcon = currentStatus.icon;
 
-  if (loading) {
+  // First load only: a refresh keeps the panel on screen and lets the button's spinner carry it.
+  if (loading && !metrics) {
     return (
       <ConsolePanel intensity="soft">
         <div className="px-4 py-3 text-center type-label text-label-xs text-muted-foreground">

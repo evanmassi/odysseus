@@ -198,6 +198,19 @@ interface AuditDetailFormatted {
 
 const BULK_POSITION_PREVIEW = 6;
 
+const STOCK_MOVEMENT_VERBS: Record<string, string> = {
+  supply_stock_received: 'Received',
+  supply_stock_issued: 'Issued',
+  supply_stock_disposed: 'Disposed',
+};
+
+const BULK_SUPPLY_VERBS: Record<string, string> = {
+  supply_bulk_received: 'Received',
+  supply_bulk_issued: 'Issued',
+  supply_bulk_archived: 'Archived',
+  supply_bulk_category_reassigned: 'Recategorized',
+};
+
 /** Appends a bulk operation's location scope and cell coordinates to its summary line,
     previewing the first few positions inline with the full list in the tooltip. */
 function formatBulkScope(
@@ -820,6 +833,8 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     // ── SUPPLY EVENTS ──
 
     if (entityType === 'supply_item') {
+      const name = getStringProperty(details, 'name');
+
       if (action === 'supply_stock_voided') {
         const voidReason = getStringProperty(details, 'voidReason');
         const username = getStringProperty(details, 'voidedBy');
@@ -833,6 +848,69 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
           `${count} transaction${count !== 1 ? 's' : ''} voided${voidReason ? ` — ${voidReason}` : ''}`
         );
       }
+
+      if (action === 'supply_item_created') {
+        return plain(name ? `${name} added` : 'Supply added');
+      }
+
+      if (action === 'supply_item_updated') {
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          const label = name ? `${name} — ` : '';
+          return {
+            text: `${label}${fields.text} changed`,
+            fullText: fields.full ? `${label}${fields.full} changed` : undefined,
+          };
+        }
+        return plain(name ? `${name} updated` : 'Supply updated');
+      }
+
+      if (action === 'supply_item_archived') {
+        return plain(name ? `${name} archived` : 'Supply archived');
+      }
+
+      if (action === 'supply_item_deleted') {
+        return plain(name ? `${name} removed` : 'Supply removed');
+      }
+
+      if (action === 'supply_category_created') {
+        return plain(name ? `${name} category added` : 'Category added');
+      }
+
+      if (action === 'supply_category_updated') {
+        return plain(name ? `${name} category updated` : 'Category updated');
+      }
+
+      if (action === 'supply_category_deleted') {
+        return plain(name ? `${name} category removed` : 'Category removed');
+      }
+
+      if (action === 'supply_document_added') {
+        const label = getStringProperty(details, 'label');
+        return plain(label ? `${label} attached` : 'Document attached');
+      }
+
+      if (action === 'supply_document_removed') {
+        return plain('Document removed');
+      }
+
+      if (STOCK_MOVEMENT_VERBS[action]) {
+        const quantity = getNumberProperty(details, 'quantity');
+        return plain(`${STOCK_MOVEMENT_VERBS[action]} ${quantity}`);
+      }
+
+      if (action === 'supply_stock_count_adjusted') {
+        const delta = getNumberProperty(details, 'delta');
+        return plain(`Count adjusted by ${delta > 0 ? '+' : ''}${delta}`);
+      }
+
+      if (BULK_SUPPLY_VERBS[action]) {
+        const count = getNumberProperty(details, 'count');
+        return plain(`${BULK_SUPPLY_VERBS[action]} ${count} item${count !== 1 ? 's' : ''}`);
+      }
+
+      return plain(name ? name : '-');
     }
 
     return plain('-');

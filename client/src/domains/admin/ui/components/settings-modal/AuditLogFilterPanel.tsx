@@ -61,7 +61,7 @@ const ACTION_SECTIONS: ActionSection[] = [
       { value: 'box_created', label: 'Box Created' },
       { value: 'box_updated', label: 'Box Updated' },
       { value: 'box_deleted', label: 'Box Deleted' },
-      { value: 'lab_name_changed', label: 'Lab Name Changed' },
+      { value: 'lab_renamed', label: 'Lab Name Changed' },
     ],
   },
   {
@@ -543,7 +543,9 @@ export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilt
                     />
                     <DatePicker
                       value={filters.dateTo?.slice(0, 10) ?? ''}
-                      onChange={v => onChange({ ...filters, dateTo: v || undefined })}
+                      onChange={v =>
+                        onChange({ ...filters, dateTo: v || undefined, datePreset: undefined })
+                      }
                       placeholder="To"
                       aria-label="Filter end date"
                       size="xs"

@@ -77,8 +77,8 @@ export function SessionListPanel() {
     const sorted = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
 
     const current = sorted.find(s => s.isCurrentSession);
-    const others = sorted.filter(s => !s.isCurrentSession).slice(0, 4);
-    const selected = current ? [current, ...others] : others.slice(0, 5);
+    const others = sorted.filter(s => !s.isCurrentSession).slice(0, current ? 4 : 5);
+    const selected = current ? [current, ...others] : others;
 
     return selected.map(session => {
       const parsed = parseUserAgent(session.userAgent);
@@ -106,7 +106,10 @@ export function SessionListPanel() {
   };
 
   const handleBulkRevoke = async () => {
-    const ids = selectedSessionIds.map(String);
+    // The server refuses to revoke the caller's own session, so including it in a select-all
+    // guarantees a "Failed to revoke 1 session" toast. Log out to end the current session.
+    const currentSessionId = displayedSessions.find(s => s.isCurrentSession)?.id;
+    const ids = selectedSessionIds.map(String).filter(id => id !== currentSessionId);
     if (ids.length === 0) return;
     setIsBulkRevoking(true);
     const results = await Promise.allSettled(ids.map(id => revokeSessionAsync(id)));

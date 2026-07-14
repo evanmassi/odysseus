@@ -158,7 +158,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
             />
             <StatCell
               size="sm"
-              label="Last Backup"
+              label="Config Modified"
               value={stats.lastBackup ? formatDateForDisplay(stats.lastBackup) : 'Never'}
               icon={<DatabaseBackup size={11} />}
               className="flex-1"

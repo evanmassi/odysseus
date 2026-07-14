@@ -32,6 +32,29 @@ import { adminService } from '../../../../services/AdminService';
 import type { LookupCategory, LookupValueWithCount } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
+/**
+ * Cached data holding a renamed lookup value, by category. The server rewrites a different table
+ * per category — tubes, donor_collection_history, equipment_maintenance_log or supply_items — so
+ * invalidating only tubes leaves the other three showing the old name until their cache expires.
+ */
+const renameCascadeKeys = (category: LookupCategory, labId: string | undefined) => {
+  switch (category) {
+    case 'species':
+    case 'source':
+    case 'media':
+      return [queryKeys.tubes.all(labId)];
+    case 'specimen_type':
+      return [queryKeys.donors.all(labId)];
+    case 'equipment_maintenance_type':
+      return [queryKeys.equipment.all(labId)];
+    case 'supply_item_property':
+    case 'supply_stock_unit':
+    case 'supply_vendor':
+    case 'supply_manufacturer':
+      return [queryKeys.supplies.all(labId)];
+  }
+};
+
 const CATEGORY_SINGULAR_LABELS: Record<LookupCategory, string> = {
   species: 'species',
   source: 'source',
@@ -487,6 +510,8 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       notifications.error(
         getErrorMessage(error, `Failed to add ${CATEGORY_SINGULAR_LABELS[category] ?? category}`)
       );
+      // Rethrown so the child keeps the typed value instead of clearing it on a failed add.
+      throw error;
     }
   };
 
@@ -494,7 +519,9 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
     try {
       const updated = await adminService.renameLookupValue(id, newValue);
       void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.all(labId) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
+      for (const queryKey of renameCascadeKeys(category, labId)) {
+        void queryClient.invalidateQueries({ queryKey });
+      }
       setterForCategory[category](prev =>
         prev.map(item => (item.id === id ? { ...updated, usageCount: item.usageCount } : item))
       );

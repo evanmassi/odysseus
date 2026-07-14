@@ -53,7 +53,6 @@ interface UsersTabProps {
 }
 
 export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTabProps) {
-  const [updating, setUpdating] = useState<string | null>(null);
   // Modal state: separate data from visibility for exit animations
   const [researcherModalData, setResearcherModalData] = useState<{
     id: string;
@@ -81,7 +80,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const activateUserMutation = useActivateUserMutation();
   const unlinkResearcherMutation = useUnlinkResearcherMutation();
   const updateUserRole = async (userId: string, newRole: UserRole) => {
-    setUpdating(userId);
     try {
       await adminUserService.updateUserRole(userId, newRole);
       notifications.success(`User role updated to ${newRole}`);
@@ -90,8 +88,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       logger.error('Failed to update user role', { error });
       const message = error instanceof Error ? error.message : 'Failed to update user role';
       notifications.error(message);
-    } finally {
-      setUpdating(null);
     }
   };
 
@@ -539,7 +535,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
               ? deleteUserMutation.isPending
               : confirmDialog.type === 'deactivate'
                 ? deactivateUserMutation.isPending
-                : updating === confirmDialog.userId
+                : unlinkResearcherMutation.isPending
           }
         />
       )}

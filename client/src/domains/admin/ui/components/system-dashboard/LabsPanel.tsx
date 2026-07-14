@@ -18,6 +18,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 
+import { logger } from '@infra/logger';
 import {
   Button,
   ConsolePanel,
@@ -86,6 +87,7 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
   const handleCreateLab = () => {
     const name = newLabName.trim();
     if (!name) return;
+    if (createLabMutation.isPending) return;
     createLabMutation.mutate(
       { name },
       {
@@ -121,8 +123,13 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
       {
         onSuccess: async code => {
           setLabInviteCodes(prev => ({ ...prev, [labId]: code.code }));
-          await navigator.clipboard.writeText(code.code);
-          notifications.success('Lab admin invite code created and copied to clipboard');
+          try {
+            await navigator.clipboard.writeText(code.code);
+            notifications.success('Lab admin invite code created and copied to clipboard');
+          } catch (error) {
+            logger.error('Failed to copy invite code to clipboard', { error });
+            notifications.success('Lab admin invite code created. Copy it from the card below.');
+          }
         },
         onSettled: () => setGeneratingCodeForLab(null),
       }
@@ -173,7 +180,10 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
             <Well className="flex aspect-square shrink-0 items-center justify-center">
               <LabPowerToggle
                 isActive={lab.isActive}
-                isLoading={activateLabMutation.isPending || deactivateLabMutation.isPending}
+                isLoading={
+                  (activateLabMutation.isPending && activateLabMutation.variables === lab.id) ||
+                  (deactivateLabMutation.isPending && deactivateLabMutation.variables === lab.id)
+                }
                 onActivate={() => handleActivateLab(lab.id)}
                 onDeactivate={() => setDeactivateTarget(lab.id)}
               />
@@ -219,8 +229,13 @@ export function LabsPanel({ onSelectLab }: LabsPanelProps) {
                     aria-label="Copy to clipboard"
                     onClick={async () => {
                       if (!latestCode) return;
-                      await navigator.clipboard.writeText(latestCode);
-                      notifications.success('Copied');
+                      try {
+                        await navigator.clipboard.writeText(latestCode);
+                        notifications.success('Copied');
+                      } catch (error) {
+                        logger.error('Failed to copy invite code to clipboard', { error });
+                        notifications.error('Failed to copy. Select the code and copy manually.');
+                      }
                     }}
                     disabled={!latestCode}
                     className="flex shrink-0 items-center self-stretch border-l border-line-soft px-2 text-foreground/40 transition-colors hover:text-foreground/70 disabled:cursor-not-allowed disabled:opacity-30"
