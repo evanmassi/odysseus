@@ -147,6 +147,30 @@ describe('PersonApplicationService.updateMyProfile', () => {
     expect(result).toMatchObject({ firstName: 'Janet', lastName: 'Doe', email: 'janet@example.com' });
   });
 
+  it('clears an optional field sent as an empty string', async () => {
+    const { service } = makeService({ person: makePerson() });
+
+    const result = await service.updateMyProfile(user, {
+      department: '',
+      currentPassword: 'pw',
+    });
+
+    expect(result.department).toBeUndefined();
+    expect(result.position).toBe('Scientist');
+  });
+
+  it('leaves an omitted optional field unchanged', async () => {
+    const { service } = makeService({ person: makePerson() });
+
+    const result = await service.updateMyProfile(user, {
+      firstName: 'Janet',
+      currentPassword: 'pw',
+    });
+
+    expect(result.department).toBe('Biology');
+    expect(result.position).toBe('Scientist');
+  });
+
   it('lazily upgrades a legacy password hash during update', async () => {
     const setPasswordHash = jest.fn();
     const { service, saveUser } = makeService({

@@ -96,9 +96,10 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
     if (firstName !== profile?.firstName) updateData.firstName = firstName.trim();
     if (lastName !== profile?.lastName) updateData.lastName = lastName.trim();
     if (email !== profile?.email) updateData.email = email.trim();
-    if (department !== (profile?.department ?? ''))
-      updateData.department = department.trim() || undefined;
-    if (position !== (profile?.position ?? '')) updateData.position = position.trim() || undefined;
+    // Send the empty string rather than undefined: JSON.stringify drops undefined, and an absent
+    // field means "unchanged" to the server, which is what made these fields unclearable.
+    if (department !== (profile?.department ?? '')) updateData.department = department.trim();
+    if (position !== (profile?.position ?? '')) updateData.position = position.trim();
 
     updateProfile(updateData, {
       onSuccess: () => {

@@ -62,12 +62,16 @@ export class PersonApplicationService {
       throw new ValidationError('Last name cannot be empty');
     }
 
+    // An omitted optional field means "unchanged"; an empty one means "clear it".
+    const resolveOptional = (next: string | undefined, current: string | undefined) =>
+      next === undefined ? current : next.trim() || undefined;
+
     if (firstName !== undefined || lastName !== undefined || position !== undefined || department !== undefined) {
       person.updateProfile(
         firstName ?? person.firstName,
         lastName ?? person.lastName,
-        position ?? person.position,
-        department ?? person.department
+        resolveOptional(position, person.position),
+        resolveOptional(department, person.department)
       );
     }
 
