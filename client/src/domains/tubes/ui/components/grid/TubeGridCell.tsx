@@ -181,7 +181,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
             : `Position ${position}, empty, ${selected ? 'selected' : 'not selected'}`
         }
         aria-selected={selected}
-        tabIndex={selected ? 0 : -1}
+        tabIndex={-1}
         data-focus="custom"
         className={`
         tube-position relative group cursor-pointer

@@ -3,7 +3,7 @@
  *
  * Configuration-driven grid supporting individual box customization and dynamic grid sizes.
  */
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import {
   useStorageData,
@@ -72,6 +72,7 @@ export function TubeGrid({
   const setClipboard = useGridClipboardStore(state => state.setClipboard);
 
   const [focusedPosition, setFocusedPosition] = useState<number>(1);
+  const skipNextFocusSelect = useRef(false);
 
   // Shared tooltip state - singleton pattern avoids Radix composeRefs bug
   const [hoveredTube, setHoveredTube] = useState<TubeData | null>(null);
@@ -126,6 +127,20 @@ export function TubeGrid({
     [gridController]
   );
 
+  const handleGridFocus = useCallback(
+    (event: React.FocusEvent<HTMLDivElement>) => {
+      if (event.target !== event.currentTarget) return;
+      if (skipNextFocusSelect.current) {
+        skipNextFocusSelect.current = false;
+        return;
+      }
+      if (selectedPositions.size === 0) {
+        gridController.actions.setSelection(focusedPosition);
+      }
+    },
+    [selectedPositions.size, gridController, focusedPosition]
+  );
+
   const handlePositionRightClick = useCallback(
     (position: number, event: React.MouseEvent) => {
       event.preventDefault();
@@ -178,6 +193,7 @@ export function TubeGrid({
 
   useEffect(() => {
     if (gridNode) {
+      skipNextFocusSelect.current = true;
       gridNode.focus();
     }
   }, [gridNode]);
@@ -263,6 +279,7 @@ export function TubeGrid({
             aria-multiselectable="true"
             tabIndex={0}
             data-focus="custom"
+            onFocus={handleGridFocus}
             onKeyDown={keyboardNav.handleGridKeyDown}
           >
             {positions.map(position => {
