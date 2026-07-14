@@ -115,7 +115,8 @@ export class StorageService {
     tankId: string,
     rackId: string,
     boxId: string,
-    assignedUserId: string | null
+    /** null = common (everyone); undefined omits the field, which the server reads as inherit. */
+    assignedUserId: string | null | undefined
   ): Promise<void> {
     await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}/boxes/${boxId}/assign`, {
       assignedUserId,

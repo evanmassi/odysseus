@@ -447,8 +447,9 @@ export class StorageController extends BaseController {
       const { assignedUserId } = req.body;
       const labId = this.extractLabId(req);
 
+      // Passed through unflattened: an absent field means inherit, an explicit null means common.
       await this.deps.assignBoxHandler.handle({
-        userId, labId, tankId, rackId, boxId, assignedUserId: assignedUserId ?? null
+        userId, labId, tankId, rackId, boxId, assignedUserId
       });
 
       res.json(ResponseBuilder.success({

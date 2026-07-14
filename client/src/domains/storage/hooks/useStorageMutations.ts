@@ -279,7 +279,7 @@ export const useAssignBoxMutation = () => {
       tankId: string;
       rackId: string;
       boxId: string;
-      assignedUserId: string | null;
+      assignedUserId: string | null | undefined;
     }) => StorageService.assignBox(tankId, rackId, boxId, assignedUserId),
 
     onSuccess: (_, variables) => {

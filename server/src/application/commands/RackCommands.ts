@@ -311,7 +311,8 @@ export class AssignRackCommandHandler {
         applyAssignment: (configData, assignedUserId) => {
           const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
           const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
-          configData.tanks[tankIndex].racks[rackIndex].assignedUserId = assignedUserId;
+          // A rack has no parent to inherit from, so it is two-state: owned or unassigned.
+          configData.tanks[tankIndex].racks[rackIndex].assignedUserId = assignedUserId ?? undefined;
         },
         // Clear inherited box labels when unassigning
         onUnassign: () => currentConfig.clearInheritedBoxLabelsForRack(command.tankId, command.rackId),

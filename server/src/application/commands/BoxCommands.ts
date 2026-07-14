@@ -67,7 +67,8 @@ export interface AssignBoxCommand {
   tankId: string;
   rackId: string;
   boxId: string;
-  assignedUserId: string | null;
+  /** A user id, null (common — everyone), or undefined (inherit from the rack). */
+  assignedUserId: string | null | undefined;
 }
 
 // COMMAND HANDLERS
@@ -370,6 +371,7 @@ export class AssignBoxCommandHandler {
           const boxIndex = configData.tanks[tankIndex].racks[rackIndex].boxes.findIndex(
             b => b.name === boxIdUpper
           );
+          // Kept as-is: null means common (everyone), undefined means inherit from the rack.
           configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId = assignedUserId;
         },
         buildSaveMessage: (action) => `${action} box '${box.name}' in rack '${rack.name}'`,

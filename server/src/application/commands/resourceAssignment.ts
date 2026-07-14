@@ -22,7 +22,8 @@ type StorageData = ReturnType<Storage['toData']>;
 export interface AssignResourceCommand {
   userId: string;
   labId: string;
-  assignedUserId: string | null;
+  /** A box carries three states: a user id, null (common), or undefined (inherit from its rack). */
+  assignedUserId: string | null | undefined;
 }
 
 export interface AssignResourceDeps {
@@ -37,8 +38,8 @@ export interface ResourceAssignmentDescriptor {
   resourceType: 'rack' | 'box';
   /** Owner of the resource before this command runs (boxes may carry an explicit null). */
   previousUserId: string | null | undefined;
-  /** Writes the new owner onto the mutable config data (undefined = unassigned). */
-  applyAssignment: (configData: StorageData, assignedUserId: string | undefined) => void;
+  /** Writes the new owner onto the mutable config data. Racks flatten null to undefined; boxes keep it. */
+  applyAssignment: (configData: StorageData, assignedUserId: string | null | undefined) => void;
   /** Entity-level cleanup run when an owned resource is being unassigned. */
   onUnassign?: () => void;
   buildSaveMessage: (action: 'Reassigned' | 'Assigned' | 'Unassigned') => string;
@@ -81,7 +82,7 @@ export async function executeResourceAssignment(
   }
 
   const configData = currentConfig.toData();
-  descriptor.applyAssignment(configData, command.assignedUserId ?? undefined);
+  descriptor.applyAssignment(configData, command.assignedUserId);
 
   if (!command.assignedUserId && previousUserId) {
     descriptor.onUnassign?.();
@@ -118,9 +119,11 @@ export async function executeResourceAssignment(
     await deps.eventBus.publish(
       descriptor.buildAssignedEvent(command.assignedUserId, assignedUser!.username)
     );
-  } else {
+  } else if (previousUserId) {
     await deps.eventBus.publish(
-      descriptor.buildUnassignedEvent(previousUserId!, previousUsername)
+      descriptor.buildUnassignedEvent(previousUserId, previousUsername)
     );
   }
+  // Moving a box between its two ownerless states (common <-> inherit) takes nobody's access
+  // away, so there is no assignee to name in an Unassigned event; the config version records it.
 }

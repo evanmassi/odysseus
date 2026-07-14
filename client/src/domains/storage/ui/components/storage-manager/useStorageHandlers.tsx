@@ -97,7 +97,9 @@ export function useStorageHandlers({
 
   const handleAssignBox = useCallback(
     (tankId: string, rackId: string, boxId: string, userId: string | null | undefined) => {
-      assignBoxMutation.mutate({ tankId, rackId, boxId, assignedUserId: userId ?? null });
+      // Forwarded unflattened: null is "common", undefined is "inherit from the rack". Collapsing
+      // the two here is what made a box impossible to mark common.
+      assignBoxMutation.mutate({ tankId, rackId, boxId, assignedUserId: userId });
     },
     [assignBoxMutation]
   );
