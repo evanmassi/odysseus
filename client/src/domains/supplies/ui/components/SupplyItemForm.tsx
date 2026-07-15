@@ -319,7 +319,9 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
       }
       onSubmit();
     } catch {
-      // Global mutation handler shows the error toast.
+      // Kept as mutateAsync: the create is awaited so the barcode + packaging follow-ups sequence
+      // off the new item id, and RHF's isSubmitting spans the whole flow. The global handler still
+      // toasts create/update failures.
     }
   };
 
