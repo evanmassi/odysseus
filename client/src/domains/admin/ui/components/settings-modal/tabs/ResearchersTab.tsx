@@ -7,7 +7,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   ChevronDown,
   Dna,
@@ -20,8 +19,7 @@ import {
   Trash2,
 } from 'lucide-react';
 
-import { queryKeys } from '@app/cache/queryKeys';
-import { useAuthStore, useLabId } from '@domains/authentication';
+import { useAuthStore } from '@domains/authentication';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
@@ -29,10 +27,10 @@ import { notifications } from '@shared/utils';
 import { useAdminResearchersQuery } from '../../../../hooks/useAdminResearchersQuery';
 import {
   useActivateResearcherMutation,
+  useCreateResearcherMutation,
   useDeactivateResearcherMutation,
   useDeleteResearcherMutation,
 } from '../../../../hooks/useResearcherMutations';
-import { adminResearcherService } from '../../../../services/AdminResearcherService';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
@@ -49,10 +47,9 @@ export function ResearchersTab({
   onTabFooter,
   readOnly = false,
 }: ResearchersTabProps) {
-  const queryClient = useQueryClient();
-  const labId = useLabId();
   const { data, isLoading, isFetching, refetch } = useAdminResearchersQuery();
   const activateMutation = useActivateResearcherMutation();
+  const createResearcherMutation = useCreateResearcherMutation();
   const deactivateMutation = useDeactivateResearcherMutation();
   const deleteMutation = useDeleteResearcherMutation();
 
@@ -196,8 +193,7 @@ export function ResearchersTab({
   };
 
   const handleCreateResearcher = async (data: CreateResearcherProfile) => {
-    await adminResearcherService.createResearcher(data);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.admin.researchers(labId) });
+    await createResearcherMutation.mutateAsync(data);
     onResearcherUpdate?.();
   };
 

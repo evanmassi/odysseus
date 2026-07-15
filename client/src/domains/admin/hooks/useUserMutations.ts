@@ -11,6 +11,8 @@ import { useLabId } from '@domains/authentication';
 
 import { adminUserService } from '../services/AdminUserService';
 
+import type { UserRole } from '@odysseus/shared-schemas';
+
 export function useDeactivateUserMutation() {
   const labId = useLabId();
 
@@ -54,6 +56,32 @@ export function useUnlinkResearcherMutation() {
         queryKeys.admin.users(labId),
         queryKeys.storage.all(labId),
         queryKeys.tubes.all(labId),
+      ],
+    },
+  });
+}
+
+export function useUpdateUserRoleMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: UserRole }) =>
+      adminUserService.updateUserRole(userId, role),
+    meta: { invalidates: [queryKeys.admin.users(labId)] },
+  });
+}
+
+export function useLinkResearcherToUserMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: ({ userId, researcherId }: { userId: string; researcherId: string }) =>
+      adminUserService.linkResearcherToUser(userId, researcherId),
+    meta: {
+      invalidates: [
+        queryKeys.admin.users(labId),
+        queryKeys.admin.researchers(labId),
+        queryKeys.admin.unlinkedResearchers(labId),
       ],
     },
   });

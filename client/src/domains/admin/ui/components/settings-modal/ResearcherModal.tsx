@@ -17,7 +17,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { AuthInput } from '@shared/ui/primitives';
-import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
+import { notifications } from '@shared/utils';
 
 interface ResearcherModalProps {
   isOpen: boolean;
@@ -53,28 +53,32 @@ export function ResearcherModal({
   });
 
   const handleCreate = async (data: CreateResearcherProfile) => {
-    await withAsyncHandler(() => onCreateResearcher(data), {
-      setLoading: setIsSubmitting,
-      successMessage: 'Researcher added successfully',
-      errorMessage: 'Failed to add researcher',
-      onSuccess: () => {
-        reset();
-        onSuccess();
-        onClose();
-      },
-    });
+    setIsSubmitting(true);
+    try {
+      await onCreateResearcher(data);
+      notifications.success('Researcher added successfully');
+      reset();
+      onSuccess();
+      onClose();
+    } catch {
+      // The create mutation surfaces the error toast globally; keep the modal open to retry.
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleLinkExisting = async (researcherId: string) => {
-    await withAsyncHandler(() => onLinkExisting(researcherId), {
-      setLoading: setIsSubmitting,
-      successMessage: 'Researcher linked successfully',
-      errorMessage: 'Failed to link researcher',
-      onSuccess: () => {
-        onSuccess();
-        onClose();
-      },
-    });
+    setIsSubmitting(true);
+    try {
+      await onLinkExisting(researcherId);
+      notifications.success('Researcher linked successfully');
+      onSuccess();
+      onClose();
+    } catch {
+      // The link mutation surfaces the error toast globally; keep the modal open to retry.
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {

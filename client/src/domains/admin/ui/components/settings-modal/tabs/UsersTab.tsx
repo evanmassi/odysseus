@@ -21,29 +21,25 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { logger } from '@infra/logger';
 import { Button, Chip, OverflowMenu, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
 
+import { useCreateAndLinkResearcherMutation } from '../../../../hooks/useResearcherMutations';
+import { useUnlinkedResearchersQuery } from '../../../../hooks/useUnlinkedResearchersQuery';
 import {
-  useDeleteUserMutation,
-  useDeactivateUserMutation,
   useActivateUserMutation,
+  useDeactivateUserMutation,
+  useDeleteUserMutation,
+  useLinkResearcherToUserMutation,
   useUnlinkResearcherMutation,
+  useUpdateUserRoleMutation,
 } from '../../../../hooks/useUserMutations';
-import { adminResearcherService } from '../../../../services/AdminResearcherService';
-import { adminUserService } from '../../../../services/AdminUserService';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
-import type {
-  AdminUser,
-  CreateResearcherProfile,
-  AdminResearcher,
-  UserRole,
-} from '@odysseus/shared-schemas';
+import type { AdminUser, CreateResearcherProfile, UserRole } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
 interface UsersTabProps {
@@ -59,7 +55,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     username: string;
   } | null>(null);
   const [isResearcherModalOpen, setIsResearcherModalOpen] = useState(false);
-  const [unlinkedResearchers, setUnlinkedResearchers] = useState<AdminResearcher[]>([]);
+  const { data: unlinkedResearchers = [] } = useUnlinkedResearchersQuery(isResearcherModalOpen);
 
   const [passwordResetModalData, setPasswordResetModalData] = useState<{
     userId: string;
@@ -79,16 +75,19 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const deactivateUserMutation = useDeactivateUserMutation();
   const activateUserMutation = useActivateUserMutation();
   const unlinkResearcherMutation = useUnlinkResearcherMutation();
-  const updateUserRole = async (userId: string, newRole: UserRole) => {
-    try {
-      await adminUserService.updateUserRole(userId, newRole);
-      notifications.success(`User role updated to ${newRole}`);
-      onUserUpdate();
-    } catch (error) {
-      logger.error('Failed to update user role', { error });
-      const message = error instanceof Error ? error.message : 'Failed to update user role';
-      notifications.error(message);
-    }
+  const updateUserRoleMutation = useUpdateUserRoleMutation();
+  const linkResearcherMutation = useLinkResearcherToUserMutation();
+  const createAndLinkMutation = useCreateAndLinkResearcherMutation();
+
+  const updateUserRole = (userId: string, newRole: UserRole) => {
+    updateUserRoleMutation.mutate(
+      { userId, role: newRole },
+      {
+        onSuccess: () => {
+          notifications.success(`User role updated to ${newRole}`);
+        },
+      }
+    );
   };
 
   const handleDeleteUser = (userId: string, username: string) => {
@@ -142,30 +141,19 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     });
   };
 
-  const openLinkModal = async (user: { id: string; username: string }) => {
+  const openLinkModal = (user: { id: string; username: string }) => {
     setResearcherModalData(user);
     setIsResearcherModalOpen(true);
-    try {
-      const researchers = await adminResearcherService.getUnlinkedResearchers();
-      setUnlinkedResearchers(researchers);
-    } catch (error) {
-      logger.error('Failed to load unlinked researchers', { error });
-      notifications.error('Failed to load available researchers');
-    }
   };
 
   const handleLinkExisting = async (researcherId: string) => {
     if (!researcherModalData) return;
-
-    await adminUserService.linkResearcherToUser(researcherModalData.id, researcherId);
-    await onUserUpdate(); // Make sure to await the update
+    await linkResearcherMutation.mutateAsync({ userId: researcherModalData.id, researcherId });
   };
 
   const handleCreateAndLink = async (data: CreateResearcherProfile) => {
     if (!researcherModalData) return;
-
-    await adminResearcherService.createAndLinkResearcher(researcherModalData.id, data);
-    await onUserUpdate(); // Make sure to await the update
+    await createAndLinkMutation.mutateAsync({ userId: researcherModalData.id, data });
   };
 
   const sortedUsers = useMemo(() => {
@@ -345,7 +333,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                   icon: user.role === 'lab_admin' ? UserRound : ShieldUser,
                   label: user.role === 'lab_admin' ? 'Set as User' : 'Set as Lab Admin',
                   onClick: () =>
-                    void updateUserRole(
+                    updateUserRole(
                       user.id,
                       user.role === 'lab_admin' ? ('user' as UserRole) : ('lab_admin' as UserRole)
                     ),
@@ -471,7 +459,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
           isOpen={isResearcherModalOpen}
           onClose={() => {
             setIsResearcherModalOpen(false);
-            setUnlinkedResearchers([]);
           }}
           mode="select-or-create"
           username={researcherModalData.username}

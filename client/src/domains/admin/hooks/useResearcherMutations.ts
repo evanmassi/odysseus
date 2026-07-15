@@ -13,6 +13,8 @@ import { useLabId } from '@domains/authentication';
 
 import { adminResearcherService } from '../services/AdminResearcherService';
 
+import type { CreateResearcherProfile } from '@odysseus/shared-schemas';
+
 export function useActivateResearcherMutation() {
   const labId = useLabId();
 
@@ -37,5 +39,30 @@ export function useDeleteResearcherMutation() {
   return useMutation({
     mutationFn: (researcherId: string) => adminResearcherService.deleteResearcher(researcherId),
     meta: { invalidates: [queryKeys.admin.researchers(labId)] },
+  });
+}
+
+export function useCreateResearcherMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: (data: CreateResearcherProfile) => adminResearcherService.createResearcher(data),
+    meta: { invalidates: [queryKeys.admin.researchers(labId)] },
+  });
+}
+
+export function useCreateAndLinkResearcherMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: ({ userId, data }: { userId: string; data: CreateResearcherProfile }) =>
+      adminResearcherService.createAndLinkResearcher(userId, data),
+    meta: {
+      invalidates: [
+        queryKeys.admin.users(labId),
+        queryKeys.admin.researchers(labId),
+        queryKeys.admin.unlinkedResearchers(labId),
+      ],
+    },
   });
 }
