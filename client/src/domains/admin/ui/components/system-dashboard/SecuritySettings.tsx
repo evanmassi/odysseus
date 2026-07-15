@@ -28,7 +28,7 @@ export function SecuritySettings() {
       await save();
       notifications.success('Security configuration updated');
     } catch {
-      notifications.error('Failed to update security configuration');
+      // The save mutation surfaces the error toast globally; keep the form for retry.
     }
   };
 
