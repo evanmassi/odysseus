@@ -122,7 +122,7 @@ export class UpdateTankCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const changes: FieldChange[] = [];

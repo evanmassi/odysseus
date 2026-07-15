@@ -90,7 +90,7 @@ export class AddRacksCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const lab = await this.labRepository.findById(command.labId);
@@ -166,12 +166,12 @@ export class UpdateRackCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
+      throw new NotFoundError('That rack could not be found in the selected tank.');
     }
 
     const changes: FieldChange[] = [];
@@ -289,12 +289,12 @@ export class AssignRackCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
+      throw new NotFoundError('That rack could not be found in the selected tank.');
     }
 
     await executeResourceAssignment(

@@ -99,12 +99,12 @@ export class AddBoxesCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
+      throw new NotFoundError('That rack could not be found in the selected tank.');
     }
 
     rejectIfSeeded(user, currentConfig, command.tankId, command.rackId);
@@ -191,18 +191,18 @@ export class UpdateBoxCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
+      throw new NotFoundError('That rack could not be found in the selected tank.');
     }
 
     const boxIdUpper = command.boxId.toUpperCase();
     const box = rack.boxes.find(b => b.name === boxIdUpper);
     if (!box) {
-      throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
+      throw new NotFoundError('That box could not be found in the selected rack.');
     }
 
     const changes: FieldChange[] = [];
@@ -340,18 +340,18 @@ export class AssignBoxCommandHandler {
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+      throw new NotFoundError('The selected tank could not be found.');
     }
 
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
+      throw new NotFoundError('That rack could not be found in the selected tank.');
     }
 
     const boxIdUpper = command.boxId.toUpperCase();
     const box = rack.boxes.find(b => b.name === boxIdUpper);
     if (!box) {
-      throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
+      throw new NotFoundError('That box could not be found in the selected rack.');
     }
 
     await executeResourceAssignment(

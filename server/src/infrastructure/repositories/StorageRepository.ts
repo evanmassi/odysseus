@@ -413,7 +413,7 @@ export class StorageRepository implements IStorageRepository {
       changedBy,
       (configData) => {
         const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
-        if (tankIndex === -1) throw new NotFoundError(`Tank '${tankId}' not found`);
+        if (tankIndex === -1) throw new NotFoundError('The selected tank could not be found.');
         const tankName = configData.tanks[tankIndex].name;
         configData.tanks.splice(tankIndex, 1);
         return { description: `Deleted tank '${tankName}'`, result: { tankName } };
@@ -434,11 +434,11 @@ export class StorageRepository implements IStorageRepository {
       changedBy,
       (configData) => {
         const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
-        if (tankIndex === -1) throw new NotFoundError(`Tank '${tankId}' not found`);
+        if (tankIndex === -1) throw new NotFoundError('The selected tank could not be found.');
 
         const tank = configData.tanks[tankIndex];
         const rackIndex = tank.racks.findIndex((r) => r.id === rackId);
-        if (rackIndex === -1) throw new NotFoundError(`Rack '${rackId}' not found in tank '${tankId}'`);
+        if (rackIndex === -1) throw new NotFoundError('That rack could not be found in the selected tank.');
 
         const tankName = tank.name;
         const rackName = tank.racks[rackIndex].name;
@@ -464,15 +464,15 @@ export class StorageRepository implements IStorageRepository {
       changedBy,
       (configData) => {
         const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
-        if (tankIndex === -1) throw new NotFoundError(`Tank '${tankId}' not found`);
+        if (tankIndex === -1) throw new NotFoundError('The selected tank could not be found.');
 
         const tank = configData.tanks[tankIndex];
         const rackIndex = tank.racks.findIndex((r) => r.id === rackId);
-        if (rackIndex === -1) throw new NotFoundError(`Rack '${rackId}' not found in tank '${tankId}'`);
+        if (rackIndex === -1) throw new NotFoundError('That rack could not be found in the selected tank.');
 
         const rack = tank.racks[rackIndex];
         const boxIndex = rack.boxes.findIndex((b) => b.name === boxIdUpper);
-        if (boxIndex === -1) throw new NotFoundError(`Box '${boxId}' not found in rack '${rackId}'`);
+        if (boxIndex === -1) throw new NotFoundError('That box could not be found in the selected rack.');
 
         const tankName = tank.name;
         const rackName = rack.name;
