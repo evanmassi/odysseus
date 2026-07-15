@@ -13,10 +13,12 @@ import { usePasswordRequirementsQuery } from '@domains/authentication';
 import { logger } from '@infra/logger';
 import { AuthInput, Button, Tab, Tabs, Toggle } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
-import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 import { notifications } from '@shared/utils/notifications';
 
-import { adminUserService } from '../../../services/AdminUserService';
+import {
+  useGeneratePasswordResetTokenMutation,
+  useResetUserPasswordMutation,
+} from '../../../hooks/useUserMutations';
 
 function getPasswordStrength(password: string): string {
   if (password.length === 0) return '';
@@ -68,12 +70,13 @@ export function PasswordResetModal({
   const [activeTab, setActiveTab] = useState<'direct' | 'token'>('direct');
   const [newPassword, setNewPassword] = useState('');
   const [requirePasswordChange, setRequirePasswordChange] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [resetUrl, setResetUrl] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const { data: passwordRequirements } = usePasswordRequirementsQuery();
+  const resetPasswordMutation = useResetUserPasswordMutation();
+  const generateTokenMutation = useGeneratePasswordResetTokenMutation();
 
   const meetsRequirements = useMemo(() => {
     if (!passwordRequirements || !newPassword) return false;
@@ -92,7 +95,7 @@ export function PasswordResetModal({
     }
   }, [isOpen]);
 
-  const handleDirectReset = async () => {
+  const handleDirectReset = () => {
     if (!newPassword) {
       notifications.error('Password is required');
       return;
@@ -106,15 +109,11 @@ export function PasswordResetModal({
       return;
     }
 
-    await withAsyncHandler(
-      async () => {
-        await adminUserService.resetUserPassword(userId, newPassword, requirePasswordChange);
-      },
+    resetPasswordMutation.mutate(
+      { userId, newPassword, requirePasswordChange },
       {
-        setLoading: setIsLoading,
-        successMessage: 'Password reset successfully',
-        errorMessage: 'Failed to reset password',
         onSuccess: () => {
+          notifications.success('Password reset successfully');
           onSuccess();
           onClose();
         },
@@ -122,19 +121,14 @@ export function PasswordResetModal({
     );
   };
 
-  const handleGenerateToken = async () => {
-    await withAsyncHandler(
-      async () => {
-        const response = await adminUserService.generatePasswordResetToken(userId);
+  const handleGenerateToken = () => {
+    generateTokenMutation.mutate(userId, {
+      onSuccess: response => {
         setResetUrl(response.resetUrl);
         setExpiresAt(response.expiresAt);
+        notifications.success('Reset link generated successfully');
       },
-      {
-        setLoading: setIsLoading,
-        successMessage: 'Reset link generated successfully',
-        errorMessage: 'Failed to generate reset link',
-      }
-    );
+    });
   };
 
   const handleCopyUrl = () => {
@@ -177,7 +171,7 @@ export function PasswordResetModal({
         fullWidth
         onClick={handleDirectReset}
         disabled={!newPassword}
-        isLoading={isLoading}
+        isLoading={resetPasswordMutation.isPending}
         loadingText="Resetting..."
       >
         Reset Password
@@ -188,7 +182,7 @@ export function PasswordResetModal({
         tail
         fullWidth
         onClick={handleGenerateToken}
-        isLoading={isLoading}
+        isLoading={generateTokenMutation.isPending}
         loadingText="Generating..."
       >
         Generate Reset Link

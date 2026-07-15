@@ -86,3 +86,26 @@ export function useLinkResearcherToUserMutation() {
     },
   });
 }
+
+export function useResetUserPasswordMutation() {
+  const labId = useLabId();
+
+  return useMutation({
+    mutationFn: ({
+      userId,
+      newPassword,
+      requirePasswordChange,
+    }: {
+      userId: string;
+      newPassword: string;
+      requirePasswordChange: boolean;
+    }) => adminUserService.resetUserPassword(userId, newPassword, requirePasswordChange),
+    meta: { invalidates: [queryKeys.admin.users(labId)] },
+  });
+}
+
+export function useGeneratePasswordResetTokenMutation() {
+  return useMutation({
+    mutationFn: (userId: string) => adminUserService.generatePasswordResetToken(userId),
+  });
+}
