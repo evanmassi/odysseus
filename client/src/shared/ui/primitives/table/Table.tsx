@@ -102,10 +102,6 @@ const headerVariants = cva(
         true: 'cursor-pointer hover:text-primary dark:hover:text-foreground select-none',
         false: '',
       },
-      sticky: {
-        true: 'sticky top-0 z-10',
-        false: '',
-      },
       align: {
         left: 'text-left',
         center: 'text-center',
@@ -118,7 +114,6 @@ const headerVariants = cva(
     },
     defaultVariants: {
       sortable: false,
-      sticky: false,
       align: 'left',
       density: 'default',
     },
@@ -419,7 +414,6 @@ export function Table<T extends TableRowBase>({
   sortConfig,
   loading = defaultTableProps.loading,
   density = defaultTableProps.density,
-  stickyHeader = defaultTableProps.stickyHeader,
   onSort,
   onSelectionChange = () => {},
   onRowClick,
@@ -471,11 +465,8 @@ export function Table<T extends TableRowBase>({
     </TableContext.Provider>
   );
 
-  // Sticky-header consumers need a scrollable wrapper.
-  const framedBody = stickyHeader ? <div className="relative overflow-auto">{body}</div> : body;
-
   if (!chassis) {
-    return framedBody;
+    return body;
   }
 
   // Table-specific chassis: auth-console vocabulary at table intensity.
@@ -525,7 +516,7 @@ export function Table<T extends TableRowBase>({
           {toolbar.right}
         </div>
       )}
-      {framedBody}
+      {body}
     </div>
   );
 }

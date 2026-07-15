@@ -48,7 +48,6 @@ export interface TableProps<T extends TableRowBase = TableRowMap> {
   sortConfig?: SortConfig;
   loading?: boolean;
   density?: TableDensity;
-  stickyHeader?: boolean;
   onSort?: (config: SortConfig) => void;
   onSelectionChange?: (selectedIds: (string | number)[]) => void;
   onRowClick?: (row: T, index: number) => void;
@@ -83,7 +82,6 @@ export const defaultTableProps = {
   multiSelect: false,
   hoverable: true,
   loading: false,
-  stickyHeader: false,
   selectedRows: [],
   emptyMessage: 'No data available',
   loadingMessage: 'Loading...',
