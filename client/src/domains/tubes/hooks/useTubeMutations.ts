@@ -576,7 +576,7 @@ export const useMoveTubesMutation = (
 
       // Enumerate location queries once, not per move.
       const locationQueries = queryClient.getQueriesData<TubeData[]>({
-        queryKey: [...queryKeys.tubes.all(labId), 'location'],
+        queryKey: queryKeys.tubes.locationPrefix(labId),
       });
 
       // Current data for each moving tube, from whichever box holds it now.
@@ -592,7 +592,8 @@ export const useMoveTubesMutation = (
       moves.forEach(m => affectedBoxKeys.add(boxKeyOf(m.destination)));
       for (const [key, data] of locationQueries) {
         if (data?.some(t => moveMap.has(t.id))) {
-          affectedBoxKeys.add((key as string[]).slice(3).join(':'));
+          // location key tail is [tankId, rackId, boxId]
+          affectedBoxKeys.add((key as string[]).slice(-3).join(':'));
         }
       }
 

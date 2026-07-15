@@ -42,8 +42,9 @@ export const queryKeys = {
     root: ['tubes'] as const,
     all: (labId = '') => [...queryKeys.tubes.root, labId] as const,
     detail: (labId = '', id: string) => [...queryKeys.tubes.all(labId), 'detail', id] as const,
+    locationPrefix: (labId = '') => [...queryKeys.tubes.all(labId), 'location'] as const,
     location: (labId = '', tankId: string, rackId: string, boxId: string) =>
-      [...queryKeys.tubes.all(labId), 'location', tankId, rackId, boxId] as const,
+      [...queryKeys.tubes.locationPrefix(labId), tankId, rackId, boxId] as const,
     byRack: (labId = '', tankId: string, rackId: string) =>
       [...queryKeys.tubes.all(labId), 'byRack', tankId, rackId] as const,
     locationCounts: (labId = '') => [...queryKeys.tubes.all(labId), 'locationCounts'] as const,
