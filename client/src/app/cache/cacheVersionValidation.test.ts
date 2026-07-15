@@ -1,7 +1,7 @@
 /**
  * Cache Version Validation Tests
  *
- * Covers version match/mismatch, missing cache, missing session, and network error paths.
+ * Covers version match/mismatch, missing cache, missing session, and fetch-failure paths.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -22,13 +22,17 @@ vi.mock('./queryClient', () => ({
   },
 }));
 
+vi.mock('@domains/storage', () => ({
+  StorageService: {
+    getConfigVersion: vi.fn(),
+  },
+}));
+
+import { StorageService } from '@domains/storage';
 import { logger } from '@infra/logger';
 
 import { validateCacheVersion } from './cacheVersionValidation';
 import { queryClient } from './queryClient';
-
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 const mockLocalStorage = {
   removeItem: vi.fn(),
@@ -37,6 +41,8 @@ Object.defineProperty(global, 'localStorage', {
   value: mockLocalStorage,
   writable: true,
 });
+
+const getConfigVersion = vi.mocked(StorageService.getConfigVersion);
 
 describe('validateCacheVersion', () => {
   beforeEach(() => {
@@ -53,7 +59,7 @@ describe('validateCacheVersion', () => {
         cachedVersion: null,
         reason: 'no-session',
       });
-      expect(mockFetch).not.toHaveBeenCalled();
+      expect(getConfigVersion).not.toHaveBeenCalled();
     });
   });
 
@@ -69,7 +75,7 @@ describe('validateCacheVersion', () => {
         cachedVersion: null,
         reason: 'no-cache',
       });
-      expect(mockFetch).not.toHaveBeenCalled();
+      expect(getConfigVersion).not.toHaveBeenCalled();
     });
   });
 
@@ -87,14 +93,7 @@ describe('validateCacheVersion', () => {
     });
 
     it('should return valid when versions match', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            data: { version: 5 },
-          }),
-      });
+      getConfigVersion.mockResolvedValue(5);
 
       const result = await validateCacheVersion('valid-token', 'lab_test');
 
@@ -108,14 +107,7 @@ describe('validateCacheVersion', () => {
     });
 
     it('should clear cache when server version is higher', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            data: { version: 10 },
-          }),
-      });
+      getConfigVersion.mockResolvedValue(10);
 
       const result = await validateCacheVersion('valid-token', 'lab_test');
 
@@ -138,14 +130,7 @@ describe('validateCacheVersion', () => {
     });
 
     it('should detect database reset when server version is lower', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            data: { version: 1 },
-          }),
-      });
+      getConfigVersion.mockResolvedValue(1);
 
       const result = await validateCacheVersion('valid-token', 'lab_test');
 
@@ -163,8 +148,8 @@ describe('validateCacheVersion', () => {
       );
     });
 
-    it('should not clear cache on network error', async () => {
-      mockFetch.mockRejectedValue(new Error('Network error'));
+    it('should not clear cache when the version request fails', async () => {
+      getConfigVersion.mockRejectedValue(new Error('Network error'));
 
       const result = await validateCacheVersion('valid-token', 'lab_test');
 
@@ -176,46 +161,10 @@ describe('validateCacheVersion', () => {
       });
       expect(queryClient.removeQueries).not.toHaveBeenCalled();
       expect(logger.warn).toHaveBeenCalledWith(
-        'Could not verify cache version - server unreachable'
-      );
-    });
-
-    it('should not clear cache on non-ok response', async () => {
-      mockFetch.mockResolvedValue({
-        ok: false,
-        status: 500,
-      });
-
-      const result = await validateCacheVersion('valid-token', 'lab_test');
-
-      expect(result).toEqual({
-        isValid: true,
-        serverVersion: null,
-        cachedVersion: 5,
-        reason: 'error',
-      });
-      expect(queryClient.removeQueries).not.toHaveBeenCalled();
-    });
-
-    it('should send correct authorization header', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            data: { version: 5 },
-          }),
-      });
-
-      await validateCacheVersion('my-access-token', 'lab_test');
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/storage/version'),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'Bearer my-access-token',
-          }),
-        })
+        'Could not verify cache version - server unreachable',
+        {
+          error: expect.any(Error),
+        }
       );
     });
   });
@@ -231,25 +180,6 @@ describe('validateCacheVersion', () => {
       const result = await validateCacheVersion('valid-token', 'lab_test');
 
       expect(result.reason).toBe('no-cache');
-    });
-
-    it('should handle malformed server response', async () => {
-      vi.mocked(queryClient.getQueryData).mockReturnValue({
-        configuration: { systemConfig: { version: 5 } },
-      });
-
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            success: true,
-            data: {}, // Missing version
-          }),
-      });
-
-      const result = await validateCacheVersion('valid-token', 'lab_test');
-
-      expect(result.reason).toBe('error');
     });
   });
 });

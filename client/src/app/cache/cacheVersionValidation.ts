@@ -4,14 +4,12 @@
  * Validates that client-side cached data matches server state.
  * Clears stale cache when version mismatch is detected (e.g., after database reset).
  */
+import { StorageService } from '@domains/storage';
 import { logger } from '@infra/logger';
-import { env } from '@shared/config';
 
 import { CONFIG_VERSION_KEY, QUERY_CACHE_KEY } from './cacheStorageKeys';
 import { queryClient } from './queryClient';
 import { queryKeys } from './queryKeys';
-
-const VERSION_FETCH_TIMEOUT_MS = 5000;
 
 interface VersionCheckResult {
   isValid: boolean;
@@ -38,42 +36,6 @@ function getCachedConfigVersion(labId?: string): number | null {
   }
 
   return null;
-}
-
-async function fetchServerVersion(accessToken: string): Promise<number | null> {
-  try {
-    const apiBaseUrl = env.apiBaseUrl();
-
-    const response = await fetch(`${apiBaseUrl}/storage/version`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      signal: AbortSignal.timeout(VERSION_FETCH_TIMEOUT_MS),
-    });
-
-    if (!response.ok) {
-      logger.warn('Failed to fetch server configuration version', {
-        status: response.status,
-      });
-      return null;
-    }
-
-    const result = (await response.json()) as {
-      success: boolean;
-      data?: { version: number };
-    };
-
-    if (result.success && typeof result.data?.version === 'number') {
-      return result.data.version;
-    }
-
-    return null;
-  } catch (error) {
-    logger.warn('Error fetching server configuration version', { error });
-    return null;
-  }
 }
 
 function clearStaleCaches(labId?: string): void {
@@ -123,10 +85,12 @@ export async function validateCacheVersion(
     };
   }
 
-  const serverVersion = await fetchServerVersion(accessToken);
-  if (serverVersion === null) {
+  let serverVersion: number;
+  try {
+    serverVersion = await StorageService.getConfigVersion();
+  } catch (error) {
     // Don't clear cache on network errors - might be temporary
-    logger.warn('Could not verify cache version - server unreachable');
+    logger.warn('Could not verify cache version - server unreachable', { error });
     return {
       isValid: true,
       serverVersion: null,
