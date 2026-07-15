@@ -91,7 +91,7 @@ export function BoxEditModal({
       title="Edit Box"
       icon={<BoxIcon size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
       footer={footer}
     >
       <form id="box-edit-form" onSubmit={handleSubmit} className="space-y-4">

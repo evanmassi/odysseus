@@ -100,7 +100,7 @@ export function TubeLockNoteModal({
       title={title}
       icon={<SquarePen size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
     >
       <div className="space-y-4">
         {hasMixedNotes && (

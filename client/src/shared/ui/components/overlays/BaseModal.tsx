@@ -3,7 +3,7 @@
  *
  * Reusable modal with animation, focus trap, and nested Escape support.
  */
-import React, { forwardRef, useImperativeHandle } from 'react';
+import React, { forwardRef, useImperativeHandle, useId } from 'react';
 
 import { X } from 'lucide-react';
 
@@ -17,7 +17,7 @@ import { ModalPortal } from './ModalPortal';
 
 import type { TabOrientation } from '@shared/ui/primitives/tabs/Tabs';
 
-type ModalSize = 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
+type ModalSize = 'xs' | 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
 type ModalChassis = 'default' | 'lit';
 
 interface BaseModalProps {
@@ -53,6 +53,7 @@ export interface BaseModalHandle {
 }
 
 const SIZE_CLASSES: Record<ModalSize, string> = {
+  xs: 'max-w-sm',
   sm: 'max-w-md',
   md: 'max-w-lg',
   'md-lg': 'max-w-[736px]',
@@ -87,6 +88,8 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
   },
   ref
 ) {
+  const titleId = useId();
+
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
     onClose,
@@ -143,7 +146,7 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
           <div className="p-1.5 text-muted-foreground">{icon}</div>
           <div>
             <h2
-              id="modal-title"
+              id={titleId}
               className={
                 isLit
                   ? 'text-title font-medium text-foreground'
@@ -235,7 +238,7 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
               ref={trapRef}
               role="dialog"
               aria-modal="true"
-              aria-labelledby="modal-title"
+              aria-labelledby={titleId}
               {...dataAttrs}
               className="flex flex-1 flex-col min-h-0"
             >
@@ -247,7 +250,7 @@ export const BaseModal = forwardRef<BaseModalHandle, BaseModalProps>(function Ba
             ref={trapRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="modal-title"
+            aria-labelledby={titleId}
             {...dataAttrs}
             className={`bg-card rounded-2xl shadow-2xl shadow-black/10 border border-border ${sharedClassName}`}
           >

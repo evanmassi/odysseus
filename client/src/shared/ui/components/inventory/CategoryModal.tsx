@@ -88,7 +88,7 @@ export function CategoryModal({
       title={title}
       icon={isEditing ? <SquarePen size={24} /> : <FolderOpen size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
     >
       <div className="space-y-4">
         {isSubcategory && parentName && !isEditing && (

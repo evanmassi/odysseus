@@ -89,7 +89,7 @@ export function ResearcherModal({
       title={mode === 'create-only' ? 'Add Researcher' : `Link Researcher to ${username}`}
       icon={<Dna size={24} />}
       onClose={handleClose}
-      className="max-w-2xl"
+      size="md-lg"
     >
       {mode === 'select-or-create' && (
         <div className="mb-4 flex space-x-4 border-b border-border pb-3">

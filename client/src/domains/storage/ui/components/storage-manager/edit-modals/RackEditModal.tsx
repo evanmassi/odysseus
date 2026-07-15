@@ -74,7 +74,7 @@ export function RackEditModal({
       title="Edit Rack"
       icon={<RackIcon size={24} />}
       onClose={onClose}
-      className="max-w-sm"
+      size="xs"
       footer={footer}
     >
       <form id="rack-edit-form" onSubmit={handleSubmit} className="space-y-4">

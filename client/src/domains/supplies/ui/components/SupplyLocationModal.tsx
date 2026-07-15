@@ -86,7 +86,7 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
       title={title}
       icon={isEditing ? <SquarePen size={24} /> : <MapPin size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
     >
       <div className="space-y-4">
         <div>

@@ -174,7 +174,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
         case 'dateAdded': {
           const aDate = new Date(a.createdAt).getTime();
           const bDate = new Date(b.createdAt).getTime();
-          return (bDate - aDate) * dir;
+          return (aDate - bDate) * dir;
         }
         default:
           return 0;

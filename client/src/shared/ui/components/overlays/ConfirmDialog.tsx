@@ -6,7 +6,6 @@
 
 import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 
-import { useModalStore } from '@app/stores/modalStore';
 import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
 import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 import { AnimatedXMark } from '@shared/ui/components/icons/AnimatedXMark';
@@ -56,7 +55,6 @@ export function ConfirmDialog({
   onCancel,
   isLoading = false,
 }: ConfirmDialogProps) {
-  const modalService = useModalStore();
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
   const styles = getVariantStyles(variant);
@@ -83,18 +81,6 @@ export function ConfirmDialog({
     isOpen: isVisible,
     initialFocusRef: confirmButtonRef,
   });
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    return () => {
-      const modalType = variant === 'danger' ? 'deleteConfirm' : 'overwriteConfirm';
-      const previousFocus = modalService[modalType].previousFocusElement;
-      if (previousFocus && typeof previousFocus.focus === 'function') {
-        setTimeout(() => previousFocus.focus(), 0);
-      }
-    };
-  }, [isVisible, modalService, variant]);
 
   // Disabled during exit animation to prevent double-triggers
   useEffect(() => {

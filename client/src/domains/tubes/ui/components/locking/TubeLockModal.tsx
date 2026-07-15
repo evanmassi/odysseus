@@ -75,7 +75,7 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
       title={`Lock ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`}
       icon={<Lock size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
     >
       <div className="space-y-4">
         <LockNoteField value={lockNote} onValueChange={setLockNote} onKeyDown={handleKeyDown} />

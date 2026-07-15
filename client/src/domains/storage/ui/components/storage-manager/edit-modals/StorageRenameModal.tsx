@@ -91,7 +91,7 @@ export function StorageRenameModal({
       title={isRack ? 'Rename Rack' : 'Rename Box'}
       icon={<Tag size={24} />}
       onClose={onClose}
-      className="max-w-sm"
+      size="xs"
       footer={footer}
     >
       <form id="storage-rename-form" onSubmit={handleSubmit} className="space-y-4">

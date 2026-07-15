@@ -17,7 +17,6 @@ interface ConfirmDialogState {
   confirmText?: string;
   onConfirm: () => void;
   onCancel: () => void;
-  previousFocusElement?: HTMLElement | null;
 }
 
 interface UnsavedConfirmState {
@@ -26,7 +25,6 @@ interface UnsavedConfirmState {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
-  previousFocusElement?: HTMLElement | null;
 }
 
 interface TubeEditorModalState {
@@ -44,13 +42,11 @@ interface TubeEditorModalState {
 interface LockTubesModalState {
   isOpen: boolean;
   tubeIds: string[];
-  previousFocusElement?: HTMLElement | null;
 }
 
 interface ShareAccessModalState {
   isOpen: boolean;
   tubeIds: string[];
-  previousFocusElement?: HTMLElement | null;
 }
 
 interface SessionTimeoutWarningState {
@@ -161,7 +157,6 @@ const buildConfirmState = (
   confirmText: config.confirmText,
   onConfirm: config.onConfirm,
   onCancel: config.onCancel ?? defaultCancel,
-  previousFocusElement: document.activeElement as HTMLElement,
 });
 
 // Exported raw for direct .getState() access from non-React code (e.g., authStore)
@@ -196,8 +191,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   showUnsavedConfirm: config => {
-    const previousFocusElement = document.activeElement as HTMLElement;
-
     set({
       unsavedConfirm: {
         isOpen: true,
@@ -205,7 +198,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
         message: config.message ?? 'You have unsaved changes. Are you sure you want to close?',
         onConfirm: config.onConfirm,
         onCancel: config.onCancel ?? (() => get().hideUnsavedConfirm()),
-        previousFocusElement,
       },
     });
   },
@@ -245,12 +237,10 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   showLockTubesModal: tubeIds => {
-    const previousFocusElement = document.activeElement as HTMLElement;
     set({
       lockTubesModal: {
         isOpen: true,
         tubeIds,
-        previousFocusElement,
       },
     });
   },
@@ -262,12 +252,10 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   showShareAccessModal: tubeIds => {
-    const previousFocusElement = document.activeElement as HTMLElement;
     set({
       shareAccessModal: {
         isOpen: true,
         tubeIds,
-        previousFocusElement,
       },
     });
   },

@@ -96,7 +96,7 @@ export function SupplyVoidTransactionModal({
       title="Void Transaction"
       icon={<Ban size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
     >
       {transaction && (
         <div className="space-y-4">

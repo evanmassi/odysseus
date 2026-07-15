@@ -65,7 +65,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
       title="Edit Tank"
       icon={<TankIcon size={24} />}
       onClose={onClose}
-      className="max-w-md"
+      size="sm"
       footer={footer}
     >
       <form id="tank-edit-form" onSubmit={handleSubmit} className="space-y-5">

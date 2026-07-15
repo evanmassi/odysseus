@@ -135,7 +135,7 @@ export function TubeShareAccessModal({
       title={tubeCount === 1 ? 'Share Access' : `Share Access (${tubeCount} tubes)`}
       icon={<Share2 size={24} />}
       onClose={onClose}
-      className="max-w-lg"
+      size="md"
     >
       <div className="space-y-4">
         {currentlySharedUserIds.length > 0 && (
