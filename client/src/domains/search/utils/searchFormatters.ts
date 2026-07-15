@@ -19,7 +19,6 @@ export interface DisplayResults {
   matchedTerms?: string[];
   total: number;
   query: string;
-  hasResults: boolean;
 }
 
 /**
@@ -109,6 +108,5 @@ export function formatResultsForDisplay(
     matchedTerms: serverResult.matchedTerms,
     total: tubes.length,
     query,
-    hasResults: tubes.length > 0,
   };
 }
