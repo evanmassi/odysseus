@@ -132,7 +132,6 @@ export class EnvironmentConfigurationService implements ConfigurationService {
     try {
       const packagePath = path.resolve(__dirname, '..', '..', '..', 'package.json');
       const raw = fs.readFileSync(packagePath, 'utf-8');
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty version field must fall through to the default
       return JSON.parse(raw).version || '1.0.0';
     } catch {
       return '1.0.0';

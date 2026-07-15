@@ -16,6 +16,6 @@ export function useMergedRef<T>(...refs: MergeableRef<T>[]): RefCallback<T> {
       if (typeof ref === 'function') ref(node);
       else if (ref) ref.current = node;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refs is itself the dependency list
   }, refs);
 }

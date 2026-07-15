@@ -13,7 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:integration": "jest --config jest.integration.config.js",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --report-unused-disable-directives",
     "lint:fix": "eslint src --ext .ts --fix"
   },
   "dependencies": {

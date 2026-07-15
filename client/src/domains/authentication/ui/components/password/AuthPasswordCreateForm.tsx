@@ -106,7 +106,6 @@ export function AuthPasswordCreateForm({
       setConfirmPassword('');
       setNewPasswordTouched(false);
     } catch (err) {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Error message could be empty string
       const message =
         (err instanceof Error && err.message) || 'Password change failed. Please try again.';
       setInternalError(message);

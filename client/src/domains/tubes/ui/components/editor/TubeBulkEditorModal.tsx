@@ -281,7 +281,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       form.reset(resolvedData);
       setDataReady(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-syncs form only on open or resolved-data change; form and setters are stable
   }, [isOpen, resolvedData, tubes.length]);
 
   useEffect(() => {

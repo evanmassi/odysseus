@@ -165,7 +165,6 @@ function EditModeForm({
         cellType: tube.sample.cellType ?? '',
         donorInternalId: tube.sample.donorInternalId ?? '',
         donorSourceId: tube.sample.donorSourceId ?? '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Convert empty string to undefined for form
         concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
         concentrationUnit: tube.sample.concentrationUnit ?? undefined,
         date: tube.sample.date ? normalizeDateString(tube.sample.date) : '',

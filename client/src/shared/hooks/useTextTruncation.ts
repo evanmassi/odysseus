@@ -63,7 +63,7 @@ export function useTextTruncation<T extends HTMLElement = HTMLElement>(
     return () => {
       unobserveElement(element);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps is the caller-supplied dependency list
   }, [...deps]);
 
   return { ref, isTruncated };

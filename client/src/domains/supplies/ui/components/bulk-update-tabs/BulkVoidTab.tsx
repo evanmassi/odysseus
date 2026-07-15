@@ -157,7 +157,6 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
               txn.quantityChange >= 0 ? `+${txn.quantityChange}` : String(txn.quantityChange);
 
             return (
-              // eslint-disable-next-line jsx-a11y/label-has-associated-control -- Checkbox is the control
               <label
                 key={txn.id}
                 className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md border border-border hover:bg-accent/30 cursor-pointer transition-colors"

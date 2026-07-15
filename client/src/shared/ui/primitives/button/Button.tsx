@@ -198,7 +198,6 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
     },
     ref
   ) => {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic is correct here
     const isDisabled = disabled || isLoading;
 
     const buttonClasses = buttonVariants({

@@ -5,8 +5,6 @@
  * Development: all levels output. Production: only warn/error.
  */
 
-/* eslint-disable no-console -- ClientLogger is the console wrapper */
-
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 type LogContext = Record<string, unknown>;

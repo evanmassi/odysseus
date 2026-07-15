@@ -9,7 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint src --ext .ts,.tsx --report-unused-disable-directives",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
