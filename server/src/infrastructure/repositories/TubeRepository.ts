@@ -119,7 +119,7 @@ export class TubeRepository implements ITubeRepository {
       ]);
     } catch (error) {
       if (isPositionConstraintError(error)) {
-        throw new ValidationError('Position already occupied', {
+        throw new ValidationError('That position is already occupied. Please choose a different one.', {
           code: 'POSITION_OCCUPIED',
           tankId: tube.location.tankId,
           rackId: tube.location.rackId,
@@ -186,7 +186,7 @@ export class TubeRepository implements ITubeRepository {
       ]);
     } catch (error) {
       if (isPositionConstraintError(error)) {
-        throw new ValidationError('Position already occupied', {
+        throw new ValidationError('That position is already occupied. Please choose a different one.', {
           code: 'POSITION_OCCUPIED',
           tankId: tube.location.tankId,
           rackId: tube.location.rackId,
