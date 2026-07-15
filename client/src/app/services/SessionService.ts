@@ -135,6 +135,11 @@ export class SessionService implements TokenProvider {
     return null;
   }
 
+  async forceRefresh(): Promise<string | null> {
+    const refreshSuccess = await this.refreshTokens();
+    return refreshSuccess ? (this.storage.getTokens()?.accessToken ?? null) : null;
+  }
+
   getSessionStatus(): SessionStatus {
     if (this.state.isRefreshing) {
       return 'refreshing';

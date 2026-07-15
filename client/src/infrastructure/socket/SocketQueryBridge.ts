@@ -32,14 +32,20 @@ class SocketQueryBridge {
   private socket: Socket | null = null;
   private queryClient: QueryClient;
   private labId: string | undefined;
+  private loadConfigVersion: () => Promise<number>;
   private isInitialized = false;
 
   // Persists across socket reconnections for version-change detection
   private lastKnownConfigVersion: number | null = null;
 
-  constructor(queryClient: QueryClient, labId: string | undefined) {
+  constructor(
+    queryClient: QueryClient,
+    labId: string | undefined,
+    loadConfigVersion: () => Promise<number>
+  ) {
     this.queryClient = queryClient;
     this.labId = labId;
+    this.loadConfigVersion = loadConfigVersion;
   }
 
   public initializeSocket(socket: Socket): void {
@@ -427,39 +433,28 @@ class SocketQueryBridge {
         queryKey: queryKeys.storage.data(this.labId),
       });
 
-      const freshData = (await this.queryClient.fetchQuery({
-        queryKey: queryKeys.storage.data(this.labId),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query result with unknown structure before validation
-      })) as any;
-
-      const newVersion = freshData?.configuration?.systemConfig?.version;
+      const newVersion = await this.loadConfigVersion();
 
       // First event — no baseline, assume changed
-      if (currentVersion === null && newVersion !== undefined) {
+      if (currentVersion === null) {
         this.lastKnownConfigVersion = newVersion;
         return true;
       }
 
-      if (currentVersion !== undefined && currentVersion !== null && newVersion !== undefined) {
-        const versionChanged = currentVersion !== newVersion;
+      if (newVersion < currentVersion) {
+        logger.warn('Database reset detected', {
+          previous: currentVersion,
+          current: newVersion,
+          difference: currentVersion - newVersion,
+        });
 
-        if (newVersion < currentVersion) {
-          logger.warn('Database reset detected', {
-            previous: currentVersion,
-            current: newVersion,
-            difference: currentVersion - newVersion,
-          });
-
-          notifications.warning(
-            'Database was reset. Your local settings have been synchronized with the server.'
-          );
-        }
-
-        this.lastKnownConfigVersion = newVersion;
-        return versionChanged;
+        notifications.warning(
+          'Database was reset. Your local settings have been synchronized with the server.'
+        );
       }
 
-      return true;
+      this.lastKnownConfigVersion = newVersion;
+      return currentVersion !== newVersion;
     } catch (error) {
       logger.error('Error checking configuration version', { error });
       return true;
@@ -500,13 +495,13 @@ class SocketQueryBridge {
     const hasUpdated = eventTypes.some(t => t.includes('Updated'));
 
     if (hasAdded && hasDeleted) {
-      return 'Equipment configuration modified';
+      return 'Storage configuration modified';
     } else if (hasAdded) {
-      return 'Equipment added to configuration';
+      return 'Storage added to configuration';
     } else if (hasDeleted) {
-      return 'Equipment removed from configuration';
+      return 'Storage removed from configuration';
     } else if (hasUpdated) {
-      return 'Equipment configuration updated';
+      return 'Storage configuration updated';
     }
 
     return 'Multiple configuration changes applied';
@@ -550,10 +545,11 @@ let globalSocketBridge: SocketQueryBridge | null = null;
 
 export const getSocketBridge = (
   queryClient: QueryClient,
-  labId: string | undefined
+  labId: string | undefined,
+  loadConfigVersion: () => Promise<number>
 ): SocketQueryBridge => {
   if (!globalSocketBridge) {
-    globalSocketBridge = new SocketQueryBridge(queryClient, labId);
+    globalSocketBridge = new SocketQueryBridge(queryClient, labId, loadConfigVersion);
   }
   return globalSocketBridge;
 };

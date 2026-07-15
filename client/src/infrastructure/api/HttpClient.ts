@@ -101,15 +101,6 @@ export class HttpClient {
     await this.delete(url, headers);
   }
 
-  async deleteWithData<T>(
-    url: string,
-    responseSchema: z.ZodType<T>,
-    headers?: Record<string, string>
-  ): Promise<T> {
-    const response = await this.delete(url, headers);
-    return this.unwrap(response, responseSchema);
-  }
-
   // INTERNAL
 
   private unwrap<T>(body: unknown, schema: z.ZodType<T>): T {
@@ -141,7 +132,7 @@ export class HttpClient {
         }
 
         if (this.tokenProvider) {
-          const newToken = await this.tokenProvider.getValidAccessToken();
+          const newToken = await this.tokenProvider.forceRefresh();
           if (newToken) {
             return await execute({ ...baseHeaders, Authorization: `Bearer ${newToken}` });
           }

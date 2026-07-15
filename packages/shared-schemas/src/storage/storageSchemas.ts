@@ -113,6 +113,10 @@ export const StorageResponseSchema = z.object({
   configuration: configurationPayloadSchema,
 }).strict();
 
+export const storageVersionResponseSchema = z.object({
+  version: z.number(),
+});
+
 export type GridConfiguration = z.infer<typeof GridConfigurationSchema>;
 export type BoxConfiguration = z.infer<typeof BoxConfigurationSchema>;
 export type RackConfiguration = z.infer<typeof RackConfigurationSchema>;

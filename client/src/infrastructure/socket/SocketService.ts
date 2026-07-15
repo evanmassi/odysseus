@@ -7,6 +7,7 @@
 import { io } from 'socket.io-client';
 
 import { sessionManager, useAuthStore } from '@domains/authentication';
+import { StorageService } from '@domains/storage';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 
@@ -43,22 +44,28 @@ class SocketService {
     }
 
     try {
-      // Auth token enables server-side presence tracking
-      const authToken = await sessionManager.getValidAccessToken();
-
       this.socket = io(SOCKET_CONFIG.url, {
         ...SOCKET_CONFIG.options,
-        auth: authToken ? { token: authToken } : undefined,
+        // Resolved per (re)connection so reconnects use a fresh, auto-refreshed token.
+        auth: (cb: (data: Record<string, string>) => void) => {
+          void sessionManager.getValidAccessToken().then(token => {
+            cb(token ? { token } : {});
+          });
+        },
       });
 
       const labId = useAuthStore.getState().user?.labId;
-      const bridge = getSocketBridge(this.queryClient, labId);
+      const bridge = getSocketBridge(this.queryClient, labId, () =>
+        StorageService.getConfigVersion()
+      );
       bridge.initializeSocket(this.socket);
 
       await this.waitForConnection();
       this.isInitialized = true;
     } catch (error) {
       logger.error('Socket service failed to initialize', { error });
+      // Tear down partial state so a retry starts clean, not bound to an orphaned socket.
+      this.disconnect();
       throw error;
     }
   }

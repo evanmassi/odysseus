@@ -37,5 +37,7 @@ export interface SessionStorage {
 
 export interface TokenProvider {
   getValidAccessToken(): Promise<string | null>;
+  /** Refreshes unconditionally, bypassing the local-expiry check — recovers from a 401. */
+  forceRefresh(): Promise<string | null>;
   getSessionStatus(): SessionStatus;
 }

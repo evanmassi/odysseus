@@ -119,6 +119,7 @@ export {
   LabConfigurationSchema,
   SystemConfigurationSchema,
   StorageResponseSchema,
+  storageVersionResponseSchema,
   type GridConfiguration,
   type BoxConfiguration,
   type RackConfiguration,

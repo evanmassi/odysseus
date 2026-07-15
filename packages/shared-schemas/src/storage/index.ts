@@ -15,6 +15,7 @@ export {
   GlobalSettingsSchema,
   SystemConfigurationSchema,
   StorageResponseSchema,
+  storageVersionResponseSchema,
   type GridConfiguration,
   type BoxConfiguration,
   type RackConfiguration,

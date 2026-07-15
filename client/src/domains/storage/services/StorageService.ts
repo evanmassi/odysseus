@@ -5,6 +5,7 @@
  */
 import {
   StorageResponseSchema,
+  storageVersionResponseSchema,
   addTankResponseSchema,
   addRacksResponseSchema,
   addBoxesResponseSchema,
@@ -19,6 +20,11 @@ import type { StorageResponse, GridConfiguration } from '@odysseus/shared-schema
 export class StorageService {
   static async loadConfiguration(): Promise<StorageResponse> {
     return httpClient.getData('/storage', StorageResponseSchema);
+  }
+
+  static async getConfigVersion(): Promise<number> {
+    const { version } = await httpClient.getData('/storage/version', storageVersionResponseSchema);
+    return version;
   }
 
   /** Resource owners can set their own labels via canEditResource, not just admins. */

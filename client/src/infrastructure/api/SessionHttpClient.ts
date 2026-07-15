@@ -53,7 +53,7 @@ export class SessionHttpClient {
 
       if (!response.ok) {
         throw new ApiError(
-          responseData.message || `Authentication request failed: ${response.status}`,
+          responseData.error || `Authentication request failed: ${response.status}`,
           response.status,
           responseData.code,
           responseData.details
@@ -66,7 +66,7 @@ export class SessionHttpClient {
         throw error;
       }
 
-      if ((error as Error).name === 'AbortError') {
+      if ((error as Error).name === 'TimeoutError') {
         throw new ApiError('Authentication request timeout', 408);
       }
 
