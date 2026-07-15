@@ -33,10 +33,10 @@ export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
   const [label, setLabel] = useState('');
   const addMutation = useAddSupplyBarcodeMutation();
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!barcodeValue.trim()) return;
-    try {
-      await addMutation.mutateAsync({
+    addMutation.mutate(
+      {
         itemId,
         data: {
           barcodeValue: barcodeValue.trim(),
@@ -44,16 +44,18 @@ export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
           isPrimary: isPrimary || undefined,
           label: label.trim() || undefined,
         },
-      });
-      notifications.success('Barcode added');
-      setBarcodeValue('');
-      setBarcodeType('manufacturer_sku');
-      setIsPrimary(false);
-      setLabel('');
-      setIsOpen(false);
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+      },
+      {
+        onSuccess: () => {
+          notifications.success('Barcode added');
+          setBarcodeValue('');
+          setBarcodeType('manufacturer_sku');
+          setIsPrimary(false);
+          setLabel('');
+          setIsOpen(false);
+        },
+      }
+    );
   };
 
   if (!isOpen) {
@@ -126,7 +128,7 @@ export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
         </Button>
         <Button
           size="sm"
-          onClick={() => void handleSubmit()}
+          onClick={handleSubmit}
           disabled={!barcodeValue.trim()}
           isLoading={addMutation.isPending}
         >

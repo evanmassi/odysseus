@@ -179,34 +179,36 @@ export function SupplyItemInfoPanel({
       <span className="text-muted-foreground">—</span>
     );
 
-  const handleDelete = async () => {
-    try {
-      await deleteItemMutation.mutateAsync(itemId);
-      notifications.success('Item removed');
-      onDeleted();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
-    setShowDeleteConfirm(false);
+  const handleDelete = () => {
+    deleteItemMutation.mutate(itemId, {
+      onSuccess: () => {
+        notifications.success('Item removed');
+        onDeleted();
+      },
+      onSettled: () => {
+        setShowDeleteConfirm(false);
+      },
+    });
   };
 
-  const handleArchive = async () => {
-    try {
-      await archiveItemMutation.mutateAsync(itemId);
-      notifications.success('Item archived');
-      onDeleted();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+  const handleArchive = () => {
+    archiveItemMutation.mutate(itemId, {
+      onSuccess: () => {
+        notifications.success('Item archived');
+        onDeleted();
+      },
+    });
   };
 
-  const handleRemoveDocument = async (docId: string) => {
-    try {
-      await removeDocumentMutation.mutateAsync({ itemId, docId });
-      notifications.success('Document removed');
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+  const handleRemoveDocument = (docId: string) => {
+    removeDocumentMutation.mutate(
+      { itemId, docId },
+      {
+        onSuccess: () => {
+          notifications.success('Document removed');
+        },
+      }
+    );
   };
 
   const handleSaveDocument = async (values: DocumentLinkValues) => {
@@ -226,26 +228,26 @@ export function SupplyItemInfoPanel({
     }
   };
 
-  const handleRemoveBarcode = async (barcodeId: string) => {
-    try {
-      await removeBarcodeMutation.mutateAsync({ itemId, barcodeId });
-      notifications.success('Barcode removed');
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+  const handleRemoveBarcode = (barcodeId: string) => {
+    removeBarcodeMutation.mutate(
+      { itemId, barcodeId },
+      {
+        onSuccess: () => {
+          notifications.success('Barcode removed');
+        },
+      }
+    );
   };
 
-  const handleSaveBarcodeLabel = async (barcodeId: string) => {
-    try {
-      await updateBarcodeMutation.mutateAsync({
-        itemId,
-        barcodeId,
-        data: { label: editingLabel.trim() || null },
-      });
-      setEditingBarcodeId(null);
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+  const handleSaveBarcodeLabel = (barcodeId: string) => {
+    updateBarcodeMutation.mutate(
+      { itemId, barcodeId, data: { label: editingLabel.trim() || null } },
+      {
+        onSuccess: () => {
+          setEditingBarcodeId(null);
+        },
+      }
+    );
   };
 
   return (

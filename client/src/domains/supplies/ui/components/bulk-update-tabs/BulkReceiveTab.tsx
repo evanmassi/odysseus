@@ -135,14 +135,16 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
 
     if (items.length === 0) return;
 
-    try {
-      const result = await bulkReceiveMutation.mutateAsync({ items });
-      notifyBulkResult(result, { entityLabel: 'items', actionVerb: 'Received' });
-      setRows([]);
-      onComplete();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    bulkReceiveMutation.mutate(
+      { items },
+      {
+        onSuccess: result => {
+          notifyBulkResult(result, { entityLabel: 'items', actionVerb: 'Received' });
+          setRows([]);
+          onComplete();
+        },
+      }
+    );
   }, [rows, bulkReceiveMutation, onComplete]);
 
   const validRowCount = rows.filter(r => r.quantity > 0 && r.locationId).length;

@@ -45,34 +45,37 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
 
   const title = isEditing ? 'Edit Location' : 'Add Location';
 
-  const handleSave = async () => {
+  const handleSave = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    try {
-      if (isEditing) {
-        await updateMutation.mutateAsync({
-          id: location.id,
-          data: { name: trimmed, description: description.trim() || undefined },
-        });
-        notifications.success(`Location updated`);
-      } else {
-        await createMutation.mutateAsync({
-          name: trimmed,
-          description: description.trim() || undefined,
-        });
-        notifications.success(`Location "${trimmed}" created`);
-      }
-      onClose();
-    } catch {
-      // Global mutation handler shows the error toast.
+    if (isEditing) {
+      updateMutation.mutate(
+        { id: location.id, data: { name: trimmed, description: description.trim() || undefined } },
+        {
+          onSuccess: () => {
+            notifications.success(`Location updated`);
+            onClose();
+          },
+        }
+      );
+    } else {
+      createMutation.mutate(
+        { name: trimmed, description: description.trim() || undefined },
+        {
+          onSuccess: () => {
+            notifications.success(`Location "${trimmed}" created`);
+            onClose();
+          },
+        }
+      );
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && name.trim() && !isPending) {
       e.preventDefault();
-      void handleSave();
+      handleSave();
     }
   };
 

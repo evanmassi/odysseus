@@ -105,14 +105,16 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
 
     if (items.length === 0) return;
 
-    try {
-      const result = await bulkIssueMutation.mutateAsync({ items });
-      notifyBulkResult(result, { entityLabel: 'items', actionVerb: 'Issued' });
-      setRows([]);
-      onComplete();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    bulkIssueMutation.mutate(
+      { items },
+      {
+        onSuccess: result => {
+          notifyBulkResult(result, { entityLabel: 'items', actionVerb: 'Issued' });
+          setRows([]);
+          onComplete();
+        },
+      }
+    );
   }, [rows, bulkIssueMutation, onComplete]);
 
   const validRowCount = rows.filter(r => r.quantity > 0 && r.locationId).length;

@@ -48,20 +48,19 @@ export function SupplyBarcodeLinkDialog({
     [items]
   );
 
-  const handleLink = async () => {
+  const handleLink = () => {
     if (!linkItemId || !barcodeValue) return;
-    try {
-      await addBarcodeMutation.mutateAsync({
-        itemId: linkItemId,
-        data: { barcodeValue, barcodeType: 'manufacturer_sku' },
-      });
-      notifications.success('Barcode linked');
-      onLinked?.(linkItemId);
-      setLinkItemId('');
-      onClose();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    addBarcodeMutation.mutate(
+      { itemId: linkItemId, data: { barcodeValue, barcodeType: 'manufacturer_sku' } },
+      {
+        onSuccess: () => {
+          notifications.success('Barcode linked');
+          onLinked?.(linkItemId);
+          setLinkItemId('');
+          onClose();
+        },
+      }
+    );
   };
 
   return (

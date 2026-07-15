@@ -60,34 +60,34 @@ export function SupplyVoidTransactionModal({
     ? (locations.find(l => l.id === transaction.locationId)?.name ?? transaction.locationId)
     : '';
 
-  const handleVoid = async (replace: boolean) => {
-    if (!transaction || !reason.trim()) return;
-    try {
-      await voidMutation.mutateAsync({
-        transactionId: transaction.id,
-        data: { reason: reason.trim() },
-      });
-      notifications.success('Transaction voided');
-      onClose();
+  const handleVoid = (replace: boolean) => {
+    const tx = transaction;
+    if (!tx || !reason.trim()) return;
+    voidMutation.mutate(
+      { transactionId: tx.id, data: { reason: reason.trim() } },
+      {
+        onSuccess: () => {
+          notifications.success('Transaction voided');
+          onClose();
 
-      if (replace && onVoidAndReplace) {
-        const initialTab =
-          transaction.type === 'count_adjustment'
-            ? 'count'
-            : (transaction.type as 'received' | 'issued' | 'disposed');
-        onVoidAndReplace(transaction.itemId, initialTab, {
-          locationId: transaction.locationId,
-          quantity: Math.abs(transaction.quantityChange),
-          lotNumber: transaction.lotNumber,
-          expirationDate: normalizeDateString(transaction.expirationDate),
-          poNumber: transaction.poNumber,
-          cost: transaction.cost,
-          notes: transaction.notes,
-        });
+          if (replace && onVoidAndReplace) {
+            const initialTab =
+              tx.type === 'count_adjustment'
+                ? 'count'
+                : (tx.type as 'received' | 'issued' | 'disposed');
+            onVoidAndReplace(tx.itemId, initialTab, {
+              locationId: tx.locationId,
+              quantity: Math.abs(tx.quantityChange),
+              lotNumber: tx.lotNumber,
+              expirationDate: normalizeDateString(tx.expirationDate),
+              poNumber: tx.poNumber,
+              cost: tx.cost,
+              notes: tx.notes,
+            });
+          }
+        },
       }
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    );
   };
 
   return (

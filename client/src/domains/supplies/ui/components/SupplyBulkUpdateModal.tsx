@@ -117,24 +117,20 @@ export function SupplyBulkUpdateModal({
     [onClose]
   );
 
-  const handleConfirm = useCallback(async () => {
+  const handleConfirm = useCallback(() => {
     const itemIds = Array.from(selectedIds);
-    try {
-      let result: SupplyBulkResponse;
-      if (actionType === 'reassign-category') {
-        result = await bulkMutation.mutateAsync({
-          type: 'reassign-category',
-          itemIds,
-          categoryId: targetCategoryId,
-        });
-      } else {
-        result = await bulkMutation.mutateAsync({ type: 'archive', itemIds });
-      }
-      handleResult(result);
-    } catch {
-      // Global mutation handler shows the error toast.
+    const handlers = {
+      onSuccess: (result: SupplyBulkResponse) => handleResult(result),
+      onSettled: () => setPendingAction(false),
+    };
+    if (actionType === 'reassign-category') {
+      bulkMutation.mutate(
+        { type: 'reassign-category', itemIds, categoryId: targetCategoryId },
+        handlers
+      );
+    } else {
+      bulkMutation.mutate({ type: 'archive', itemIds }, handlers);
     }
-    setPendingAction(false);
   }, [selectedIds, actionType, targetCategoryId, bulkMutation, handleResult]);
 
   const handleClose = useCallback(() => {

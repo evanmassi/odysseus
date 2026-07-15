@@ -131,7 +131,7 @@ export function SupplyTransactionForm({
     watch,
     reset,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     defaultValues: {
       locationId: prefill?.locationId ?? '',
@@ -178,32 +178,10 @@ export function SupplyTransactionForm({
     return value > 0 || 'Quantity must be greater than 0';
   };
 
-  const onFormSubmit = async (data: FieldValues) => {
+  const onFormSubmit = (data: FieldValues) => {
     const quantity = data['quantity'] as number;
 
-    try {
-      if (mode === 'count') {
-        await recordStockCountMutation.mutateAsync({
-          itemId,
-          locationId: data['locationId'] as string,
-          actualCount: quantity,
-          lotNumber: (data['lotNumber'] as string) || undefined,
-          expirationDate: (data['expirationDate'] as string) || undefined,
-          notes: (data['notes'] as string) || undefined,
-        });
-      } else {
-        await recordTransactionMutation.mutateAsync({
-          itemId,
-          locationId: data['locationId'] as string,
-          type: data['type'] as 'received' | 'issued' | 'disposed',
-          quantity,
-          lotNumber: (data['lotNumber'] as string) || undefined,
-          expirationDate: (data['expirationDate'] as string) || undefined,
-          poNumber: (data['poNumber'] as string) || undefined,
-          cost: data['cost'] as number | undefined,
-          notes: (data['notes'] as string) || undefined,
-        });
-      }
+    const onSuccess = () => {
       notifications.success(
         mode === 'received'
           ? 'Stock received'
@@ -215,8 +193,35 @@ export function SupplyTransactionForm({
       );
       reset();
       onSubmit();
-    } catch {
-      // Global mutation handler shows the error toast.
+    };
+
+    if (mode === 'count') {
+      recordStockCountMutation.mutate(
+        {
+          itemId,
+          locationId: data['locationId'] as string,
+          actualCount: quantity,
+          lotNumber: (data['lotNumber'] as string) || undefined,
+          expirationDate: (data['expirationDate'] as string) || undefined,
+          notes: (data['notes'] as string) || undefined,
+        },
+        { onSuccess }
+      );
+    } else {
+      recordTransactionMutation.mutate(
+        {
+          itemId,
+          locationId: data['locationId'] as string,
+          type: data['type'] as 'received' | 'issued' | 'disposed',
+          quantity,
+          lotNumber: (data['lotNumber'] as string) || undefined,
+          expirationDate: (data['expirationDate'] as string) || undefined,
+          poNumber: (data['poNumber'] as string) || undefined,
+          cost: data['cost'] as number | undefined,
+          notes: (data['notes'] as string) || undefined,
+        },
+        { onSuccess }
+      );
     }
   };
 
@@ -497,7 +502,7 @@ export function SupplyTransactionForm({
             form="supply-transaction-form"
             variant="primary"
             size="sm"
-            isLoading={isSubmitting}
+            isLoading={recordStockCountMutation.isPending || recordTransactionMutation.isPending}
             loadingText="Recording..."
           >
             {mode === 'received'

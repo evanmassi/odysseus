@@ -199,15 +199,17 @@ export function SuppliesTab() {
     setDeleteConfirm({ isOpen: true, category });
   }, []);
 
-  const executeDeleteCategory = useCallback(async () => {
-    if (!deleteConfirm.category) return;
-    try {
-      await deleteCategoryMutation.mutateAsync(deleteConfirm.category.id);
-      notifications.success(`"${deleteConfirm.category.name}" removed`);
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
-    setDeleteConfirm({ isOpen: false });
+  const executeDeleteCategory = useCallback(() => {
+    const category = deleteConfirm.category;
+    if (!category) return;
+    deleteCategoryMutation.mutate(category.id, {
+      onSuccess: () => {
+        notifications.success(`"${category.name}" removed`);
+      },
+      onSettled: () => {
+        setDeleteConfirm({ isOpen: false });
+      },
+    });
   }, [deleteConfirm.category, deleteCategoryMutation]);
 
   const bulkMenuItems: OverflowMenuItem[] = [

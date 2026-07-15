@@ -98,21 +98,20 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
     [selectItem]
   );
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     if (selectedTxnIds.size === 0 || !reason.trim()) return;
-    try {
-      const result = await bulkVoidMutation.mutateAsync({
-        transactionIds: [...selectedTxnIds],
-        reason: reason.trim(),
-      });
-      notifyBulkResult(result, { entityLabel: 'transactions', actionVerb: 'Voided' });
-      setSelectedItemId(undefined);
-      setSelectedTxnIds(new Set());
-      setReason('');
-      onComplete();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    bulkVoidMutation.mutate(
+      { transactionIds: [...selectedTxnIds], reason: reason.trim() },
+      {
+        onSuccess: result => {
+          notifyBulkResult(result, { entityLabel: 'transactions', actionVerb: 'Voided' });
+          setSelectedItemId(undefined);
+          setSelectedTxnIds(new Set());
+          setReason('');
+          onComplete();
+        },
+      }
+    );
   }, [selectedTxnIds, reason, bulkVoidMutation, onComplete]);
 
   return (
