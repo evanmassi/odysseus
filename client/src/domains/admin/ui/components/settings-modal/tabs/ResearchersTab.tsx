@@ -7,6 +7,7 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ChevronDown,
   Dna,
@@ -19,13 +20,18 @@ import {
   Trash2,
 } from 'lucide-react';
 
-import { useAuthStore } from '@domains/authentication';
-import { logger } from '@infra/logger';
+import { queryKeys } from '@app/cache/queryKeys';
+import { useAuthStore, useLabId } from '@domains/authentication';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
-import { getErrorMessage } from '@shared/utils/getErrorMessage';
 
+import { useAdminResearchersQuery } from '../../../../hooks/useAdminResearchersQuery';
+import {
+  useActivateResearcherMutation,
+  useDeactivateResearcherMutation,
+  useDeleteResearcherMutation,
+} from '../../../../hooks/useResearcherMutations';
 import { adminResearcherService } from '../../../../services/AdminResearcherService';
 import { ResearcherModal } from '../ResearcherModal';
 
@@ -43,9 +49,16 @@ export function ResearchersTab({
   onTabFooter,
   readOnly = false,
 }: ResearchersTabProps) {
-  const [researchers, setResearchers] = useState<AdminResearcher[]>([]);
-  const [totalTubeCount, setTotalTubeCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const labId = useLabId();
+  const { data, isLoading, isFetching, refetch } = useAdminResearchersQuery();
+  const activateMutation = useActivateResearcherMutation();
+  const deactivateMutation = useDeactivateResearcherMutation();
+  const deleteMutation = useDeleteResearcherMutation();
+
+  const researchers = useMemo(() => sortByName(data?.researchers ?? []), [data]);
+  const totalTubeCount = data?.totalTubeCount ?? 0;
+
   const [deleting, setDeleting] = useState<string | null>(null);
   const [togglingStatus, setTogglingStatus] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -57,10 +70,6 @@ export function ResearchersTab({
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
   const [showInactive, setShowInactive] = useState(false);
   const currentUserId = useAuthStore(s => s.user?.id);
-
-  useEffect(() => {
-    void loadResearchers();
-  }, []);
 
   const tubesWithoutResearcher =
     totalTubeCount - researchers.reduce((sum, r) => sum + r.tubeCount, 0);
@@ -94,20 +103,6 @@ export function ResearchersTab({
     );
   }, [onTabFooter, researchers, tubesWithoutResearcher]);
 
-  const loadResearchers = async () => {
-    setLoading(true);
-    try {
-      const data = await adminResearcherService.getResearchers();
-      setResearchers(sortByName(data.researchers));
-      setTotalTubeCount(data.totalTubeCount ?? 0);
-    } catch (error) {
-      logger.error('Failed to load researchers', { error });
-      notifications.error('Failed to load researchers');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const deleteResearcher = (researcherId: string, researcherName: string) => {
     const researcher = researchers.find(r => r.id === researcherId);
 
@@ -131,7 +126,7 @@ export function ResearchersTab({
     setConfirmDialog({ type: 'delete', researcherId, researcherName });
   };
 
-  const handleToggleStatus = async (researcher: AdminResearcher) => {
+  const handleToggleStatus = (researcher: AdminResearcher) => {
     if (researcher.active) {
       setConfirmDialog({
         type: 'deactivate',
@@ -142,51 +137,45 @@ export function ResearchersTab({
     }
 
     setTogglingStatus(researcher.id);
-    try {
-      await adminResearcherService.activateResearcher(researcher.id);
-      notifications.success(
-        `Researcher "${researcher.lastName}, ${researcher.firstName}" reactivated`
-      );
-      await loadResearchers();
-      onResearcherUpdate?.();
-    } catch (error) {
-      notifications.error(getErrorMessage(error));
-    } finally {
-      setTogglingStatus(null);
-    }
+    activateMutation.mutate(researcher.id, {
+      onSuccess: () => {
+        notifications.success(
+          `Researcher "${researcher.lastName}, ${researcher.firstName}" reactivated`
+        );
+        onResearcherUpdate?.();
+      },
+      onSettled: () => {
+        setTogglingStatus(null);
+      },
+    });
   };
 
-  const executeDeactivateResearcher = async (researcherId: string, researcherName: string) => {
+  const executeDeactivateResearcher = (researcherId: string, researcherName: string) => {
     setTogglingStatus(researcherId);
-    try {
-      await adminResearcherService.deactivateResearcher(researcherId);
-      notifications.success(`Researcher "${researcherName}" deactivated`);
-      setConfirmDialog(null);
-      await loadResearchers();
-      onResearcherUpdate?.();
-    } catch (error) {
-      notifications.error(getErrorMessage(error));
-      setConfirmDialog(null);
-    } finally {
-      setTogglingStatus(null);
-    }
+    deactivateMutation.mutate(researcherId, {
+      onSuccess: () => {
+        notifications.success(`Researcher "${researcherName}" deactivated`);
+        onResearcherUpdate?.();
+      },
+      onSettled: () => {
+        setConfirmDialog(null);
+        setTogglingStatus(null);
+      },
+    });
   };
 
-  const executeDeleteResearcher = async (researcherId: string, researcherName: string) => {
+  const executeDeleteResearcher = (researcherId: string, researcherName: string) => {
     setDeleting(researcherId);
-    try {
-      await adminResearcherService.deleteResearcher(researcherId);
-      notifications.success(`Researcher "${researcherName}" deleted successfully`);
-      setConfirmDialog(null);
-      await loadResearchers();
-      onResearcherUpdate?.();
-    } catch (error) {
-      logger.error('Failed to delete researcher', { error });
-      notifications.error(getErrorMessage(error));
-      setConfirmDialog(null);
-    } finally {
-      setDeleting(null);
-    }
+    deleteMutation.mutate(researcherId, {
+      onSuccess: () => {
+        notifications.success(`Researcher "${researcherName}" deleted successfully`);
+        onResearcherUpdate?.();
+      },
+      onSettled: () => {
+        setConfirmDialog(null);
+        setDeleting(null);
+      },
+    });
   };
 
   const canDelete = (researcher: AdminResearcher): boolean => {
@@ -208,7 +197,7 @@ export function ResearchersTab({
 
   const handleCreateResearcher = async (data: CreateResearcherProfile) => {
     await adminResearcherService.createResearcher(data);
-    await loadResearchers();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.admin.researchers(labId) });
     onResearcherUpdate?.();
   };
 
@@ -334,7 +323,7 @@ export function ResearchersTab({
                 variant="ghost-danger"
                 size="xs"
                 iconOnly
-                onClick={() => void handleToggleStatus(researcher)}
+                onClick={() => handleToggleStatus(researcher)}
                 disabled={isSelfResearcher || togglingStatus === researcher.id}
                 isLoading={togglingStatus === researcher.id}
                 aria-label={researcher.active ? 'Deactivate researcher' : 'Reactivate researcher'}
@@ -375,7 +364,7 @@ export function ResearchersTab({
         sortable
         sortConfig={sortConfig}
         onSort={setSortConfig}
-        loading={loading}
+        loading={isLoading}
         emptyMessage="No researchers found"
         loadingMessage="Loading researchers..."
         aria-label="Researchers list"
@@ -388,9 +377,11 @@ export function ResearchersTab({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={loadResearchers}
-                      isLoading={loading}
-                      leftIcon={<RefreshCw size={14} className={loading ? 'animate-spin' : ''} />}
+                      onClick={() => refetch()}
+                      isLoading={isFetching}
+                      leftIcon={
+                        <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
+                      }
                     >
                       Refresh
                     </Button>
@@ -458,15 +449,9 @@ export function ResearchersTab({
           confirmText={confirmDialog.type === 'delete' ? 'Delete' : 'Deactivate'}
           onConfirm={() => {
             if (confirmDialog.type === 'delete') {
-              void executeDeleteResearcher(
-                confirmDialog.researcherId,
-                confirmDialog.researcherName
-              );
+              executeDeleteResearcher(confirmDialog.researcherId, confirmDialog.researcherName);
             } else {
-              void executeDeactivateResearcher(
-                confirmDialog.researcherId,
-                confirmDialog.researcherName
-              );
+              executeDeactivateResearcher(confirmDialog.researcherId, confirmDialog.researcherName);
             }
           }}
           onCancel={() => setConfirmDialog(null)}

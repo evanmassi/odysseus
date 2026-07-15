@@ -13,7 +13,7 @@ import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
-import { adminResearcherService } from '../../../services/AdminResearcherService';
+import { useDeleteResearcherMutation } from '../../../hooks/useResearcherMutations';
 
 import type { LabDetailsResearcher } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
@@ -32,27 +32,24 @@ export function LabResearchersPanel({
   onResearcherDeleted,
 }: LabResearchersPanelProps) {
   const [deleteTarget, setDeleteTarget] = useState<LabDetailsResearcher | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
+  const deleteMutation = useDeleteResearcherMutation();
 
   const activeResearchers = useMemo(() => researchers.filter(r => r.active), [researchers]);
   const inactiveResearchers = useMemo(() => researchers.filter(r => !r.active), [researchers]);
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    try {
-      await adminResearcherService.deleteResearcher(deleteTarget.id);
-      notifications.success(
-        `Researcher "${deleteTarget.firstName} ${deleteTarget.lastName}" deleted`
-      );
-      setDeleteTarget(null);
-      onResearcherDeleted?.();
-    } catch {
-      notifications.error('Failed to delete researcher');
-    } finally {
-      setIsDeleting(false);
-    }
+  const handleDelete = () => {
+    const target = deleteTarget;
+    if (!target) return;
+    deleteMutation.mutate(target.id, {
+      onSuccess: () => {
+        notifications.success(`Researcher "${target.firstName} ${target.lastName}" deleted`);
+        onResearcherDeleted?.();
+      },
+      onSettled: () => {
+        setDeleteTarget(null);
+      },
+    });
   };
 
   const canDelete = (researcher: LabDetailsResearcher) =>
@@ -109,7 +106,7 @@ export function LabResearchersPanel({
         message={`Delete "${deleteTarget?.firstName} ${deleteTarget?.lastName}"? This cannot be undone.`}
         confirmText="Delete"
         variant="danger"
-        isLoading={isDeleting}
+        isLoading={deleteMutation.isPending}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
