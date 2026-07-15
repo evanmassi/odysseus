@@ -166,13 +166,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error ID is invalid, generate unique ID
-    const errorId = this.state.errorId || generateErrorId();
+    // getDerivedStateFromError always sets errorId before this runs.
+    const errorId = this.state.errorId!;
 
-    this.setState({
-      errorInfo,
-      errorId,
-    });
+    this.setState({ errorInfo });
 
     if (env.isDev()) {
       // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
