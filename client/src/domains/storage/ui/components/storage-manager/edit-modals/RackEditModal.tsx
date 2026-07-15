@@ -39,11 +39,11 @@ export function RackEditModal({
   } = useEditModalForm(isOpen, initialRack);
 
   const handleSave = async () => {
+    // The mutation's onSuccess closes the modal, so a failed save keeps it open with edits intact.
     await onSave(tankId, editedRack.id, {
       name: editedRack.name,
       isActive: editedRack.isActive,
     });
-    onClose();
   };
 
   const handleSubmit = createSubmitHandler(async () => {

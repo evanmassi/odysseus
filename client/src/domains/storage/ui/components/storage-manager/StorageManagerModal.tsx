@@ -4,7 +4,7 @@
  * Admin modal for managing storage layout (tanks, racks, boxes) and user assignments.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 
 import { sortByName, GRID_TEMPLATES } from '@odysseus/shared-schemas';
 import { Plus, ListTree, UsersRound } from 'lucide-react';
@@ -23,7 +23,6 @@ import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { buildStorageHierarchy, computeNavigatorOccupancy } from '../storage-navigator';
 import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 
-import '../storage-navigator/storage-navigator.css';
 import { BoxEditModal } from './edit-modals/BoxEditModal';
 import { RackEditModal } from './edit-modals/RackEditModal';
 import { StorageRenameModal } from './edit-modals/StorageRenameModal';
@@ -117,16 +116,23 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   );
 
   const [collapsedTanks, setCollapsedTanks] = useState<Set<string>>(new Set());
-  const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(() => {
-    // Default all racks to collapsed for cleaner initial view
+  const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(new Set());
+
+  // Collapse every rack once the config first loads. Seeding this in a useState initializer read
+  // currentLab before the query resolved, so the tree opened fully expanded.
+  const hasSeededCollapse = useRef(false);
+  useEffect(() => {
+    if (hasSeededCollapse.current || !currentLab) return;
+    hasSeededCollapse.current = true;
+
     const allRackKeys = new Set<string>();
-    currentLab?.equipment.tanks.forEach(tank => {
+    currentLab.equipment.tanks.forEach(tank => {
       tank.racks.forEach(rack => {
         allRackKeys.add(`${tank.id}-rack-${rack.id}`);
       });
     });
-    return allRackKeys;
-  });
+    setCollapsedRacks(allRackKeys);
+  }, [currentLab]);
 
   const editModals = useEditModals();
   const handlers = useStorageHandlers({ currentLab, getUserInfo, setCollapsedRacks });

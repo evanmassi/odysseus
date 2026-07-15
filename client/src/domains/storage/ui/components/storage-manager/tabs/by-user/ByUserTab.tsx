@@ -102,7 +102,7 @@ export function ByUserTab({
   }
 
   return (
-    <div className="relative" role="tree" data-view="by-user" data-tree-id="modal-user">
+    <div className="relative" data-view="by-user" data-tree-id="modal-user">
       <TreeLinesByUser expandedUsers={expandedUsers} />
       <div className="space-y-1">
         {assignmentsByUser.map(userAssignment => {
@@ -222,11 +222,7 @@ export function ByUserTab({
                           data-id={`${rackGroup.tankId}-${rackGroup.rackId}`}
                         >
                           <div className="storage-nav-item--modal storage-nav-item--rack">
-                            <button
-                              type="button"
-                              className="storage-nav-button storage-nav-button--rack"
-                              aria-label={`${rackGroup.tankName} / ${rackGroup.rackName}`}
-                            >
+                            <div className="storage-nav-button storage-nav-button--rack">
                               <TreeNub />
                               <UserBadge
                                 type={badgeType}
@@ -258,7 +254,7 @@ export function ByUserTab({
                                   />
                                 )}
                               </div>
-                            </button>
+                            </div>
                           </div>
 
                           {rackGroup.boxes.length > 0 && (
@@ -269,10 +265,7 @@ export function ByUserTab({
                                   data-level="box"
                                   data-id={box.boxId}
                                 >
-                                  <div
-                                    className="storage-nav-item--modal storage-nav-item--box"
-                                    role="listitem"
-                                  >
+                                  <div className="storage-nav-item--modal storage-nav-item--box">
                                     <div className="storage-nav-button storage-nav-button--box">
                                       <TreeNub />
                                       <UserBadge

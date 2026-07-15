@@ -62,8 +62,8 @@ export function BoxEditModal({
   };
 
   const handleSave = async () => {
+    // The mutation's onSuccess closes the modal, so a failed save keeps it open with edits intact.
     await onSave(tankId, rackId, initialBox.id, selectedGridConfig);
-    onClose();
   };
 
   const handleSubmit = createSubmitHandler(handleSave);

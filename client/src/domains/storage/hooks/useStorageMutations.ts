@@ -378,14 +378,12 @@ export const useInitializeConfigurationMutation = () => {
       notifications.success('Lab configuration initialized successfully');
     },
 
-    onError: labId
-      ? createMutationErrorHandler(
-          queryClient,
-          labId,
-          'Initialize configuration',
-          'Failed to initialize configuration'
-        )
-      : () => notifications.error('Failed to initialize configuration'),
+    onError: createMutationErrorHandler(
+      queryClient,
+      labId,
+      'Initialize configuration',
+      'Failed to initialize configuration'
+    ),
   });
 };
 

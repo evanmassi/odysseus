@@ -15,6 +15,7 @@ import { useLocationCounts } from '@domains/tubes/hooks/useTubeQueries';
 import { HeaderStrip, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
+import './storage-navigator.css';
 import { StorageBoxMinimap } from './StorageBoxMinimap';
 import { StorageNavigatorNode } from './StorageNavigatorNode';
 import {

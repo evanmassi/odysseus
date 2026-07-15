@@ -29,12 +29,12 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
   } = useEditModalForm(isOpen, initialTank);
 
   const handleSave = async () => {
+    // The mutation's onSuccess closes the modal, so a failed save keeps it open with edits intact.
     await onSave(editedTank.id, {
       name: editedTank.name,
       location: editedTank.location,
       isActive: editedTank.isActive,
     });
-    onClose();
   };
 
   const handleSubmit = createSubmitHandler(async () => {

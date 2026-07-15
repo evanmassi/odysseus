@@ -164,7 +164,9 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
               <span className="relative h-0.5 flex-1 bg-foreground/[0.07]">
                 <span
                   className={`absolute inset-y-0 left-0 ${isFull ? 'bg-warning-bg' : 'bg-primary/80'}`}
-                  style={{ width: `${capacity > 0 ? (filled / capacity) * 100 : 0}%` }}
+                  style={{
+                    width: `${capacity > 0 ? Math.min(100, (filled / capacity) * 100) : 0}%`,
+                  }}
                 />
               </span>
               <span

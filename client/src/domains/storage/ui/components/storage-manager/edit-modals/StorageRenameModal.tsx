@@ -56,6 +56,7 @@ export function StorageRenameModal({
   const previewName = formatStorageDisplayName(genericName, label);
 
   const handleSave = async () => {
+    // The mutation's onSuccess closes the modal, so a failed save keeps it open with edits intact.
     await onSave(
       resourceInfo.type,
       resourceInfo.tankId,
@@ -63,7 +64,6 @@ export function StorageRenameModal({
       resourceInfo.boxId,
       label
     );
-    onClose();
   };
 
   const handleSubmit = createSubmitHandler(handleSave);

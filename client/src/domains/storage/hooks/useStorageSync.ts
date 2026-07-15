@@ -29,6 +29,8 @@ export function useStorageSync() {
 
   // Track if initial save has been attempted (for fresh installs only)
   const hasInitialized = useRef(false);
+  const initAttempts = useRef(0);
+  const MAX_INIT_ATTEMPTS = 3;
 
   // Initialize server with defaults if no config exists (fresh install)
   // Only runs when server is reachable but returns 404/error for config
@@ -37,8 +39,14 @@ export function useStorageSync() {
   useEffect(() => {
     if (!hasLab) return;
 
-    if (isError && !hasInitialized.current && !initializeMutation.isPending) {
+    if (
+      isError &&
+      !hasInitialized.current &&
+      !initializeMutation.isPending &&
+      initAttempts.current < MAX_INIT_ATTEMPTS
+    ) {
       hasInitialized.current = true;
+      initAttempts.current += 1;
 
       initializeMutation.mutate(
         {
@@ -63,7 +71,7 @@ export function useStorageSync() {
                 reason: isAlreadyExists ? 'already exists' : 'offline',
               });
             } else {
-              // Transient error - allow retry
+              // Transient error - allow retry until the attempt cap, then give up
               logger.error('Failed to initialize configuration', { initError });
               hasInitialized.current = false;
             }
