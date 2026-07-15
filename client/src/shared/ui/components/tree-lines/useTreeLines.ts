@@ -15,7 +15,6 @@ export interface TreeLine {
   x2: number;
   y2: number;
   strokeWidth: number;
-  type: string;
 }
 
 export const LINE_OFFSET = 11;

@@ -74,7 +74,6 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
         x2: rackX,
         y2: rackY,
         strokeWidth: STROKE_WIDTH,
-        type: 'rack-branch',
       });
 
       const shouldShowBoxes = config.isRackExpanded ? config.isRackExpanded(topId, rackId) : true;
@@ -100,7 +99,6 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
             x2: boxX,
             y2: boxY,
             strokeWidth: STROKE_WIDTH,
-            type: 'box-branch',
           });
         });
 
@@ -112,7 +110,6 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
             x2: rackX,
             y2: lastBoxY,
             strokeWidth: STROKE_WIDTH,
-            type: 'rack-vertical',
           });
         }
       }
@@ -126,7 +123,6 @@ export function calculateTreeLines(config: TreeLineCalcConfig): {
         x2: topX,
         y2: lastRackY,
         strokeWidth: STROKE_WIDTH,
-        type: `${config.topLevelAttr}-vertical`,
       });
     }
   });
