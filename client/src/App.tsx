@@ -24,7 +24,6 @@ import {
   AuthSessionTimeoutModal,
   AuthPasswordResetPage,
 } from '@domains/authentication';
-import { LoadingSpinner } from '@shared/ui';
 
 // Minimum time the boot splash stays up so a fast bootstrap doesn't flash by.
 const SPLASH_FLOOR_MS = 1000;
@@ -54,18 +53,6 @@ function AppContent() {
       <AppErrorBoundary onRetry={retry}>
         <AppLoader context={bootstrapState} onRetry={retry} />
       </AppErrorBoundary>
-    );
-  }
-
-  // Fallback loading state (should rarely be reached)
-  if (!isReady) {
-    return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size={32} className="mb-4 mx-auto text-primary" />
-          <p className="text-lg font-medium text-secondary-foreground">Finalizing...</p>
-        </div>
-      </div>
     );
   }
 
