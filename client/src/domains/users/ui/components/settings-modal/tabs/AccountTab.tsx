@@ -109,10 +109,10 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
       },
       onError: (error: Error) => {
         logger.error('AccountTab update failed', { error });
+        // Flag the password field too; the global handler shows the server message as a toast.
         if (error.message.includes('password')) {
           setPasswordTouched(true);
         }
-        notifications.error(error.message || 'Failed to update profile');
       },
     });
   };

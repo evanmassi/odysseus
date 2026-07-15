@@ -97,10 +97,8 @@ export function SessionListPanel() {
     revokeSession(sessionId, {
       onSuccess: () => {
         notifications.success('Logged out successfully');
-        setRevokingSessionId(null);
       },
-      onError: (error: Error) => {
-        notifications.error(error.message || 'Failed to logout');
+      onSettled: () => {
         setRevokingSessionId(null);
       },
     });

@@ -102,13 +102,13 @@ export function SecurityTab() {
         },
         onError: (error: Error) => {
           logger.error('SecurityTab password change failed', { error });
+          // Highlight the field too; the global handler shows the server message as a toast.
           if (
             error.message.toLowerCase().includes('incorrect') ||
             error.message.toLowerCase().includes('invalid')
           ) {
             setCurrentPasswordError('Current password is incorrect');
           }
-          notifications.error(error.message || 'Failed to change password');
         },
       }
     );

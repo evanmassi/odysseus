@@ -93,7 +93,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       },
       onError: (error: Error) => {
         logger.error('UserSettingsModal display save failed', { error });
-        notifications.error(`Failed to save settings: ${error.message}`);
       },
     });
   };
