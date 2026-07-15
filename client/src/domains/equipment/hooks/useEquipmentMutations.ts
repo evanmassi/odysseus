@@ -29,38 +29,29 @@ import type {
 
 export function useCreateEquipmentCategoryMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateEquipmentCategoryRequest) => EquipmentService.createCategory(data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.categories(labId) });
-    },
+    meta: { invalidates: [queryKeys.equipment.categories(labId)] },
   });
 }
 
 export function useUpdateEquipmentCategoryMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateEquipmentCategoryRequest }) =>
       EquipmentService.updateCategory(id, data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.categories(labId) });
-    },
+    meta: { invalidates: [queryKeys.equipment.categories(labId)] },
   });
 }
 
 export function useDeleteEquipmentCategoryMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => EquipmentService.deleteCategory(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.categories(labId) });
-    },
+    meta: { invalidates: [queryKeys.equipment.categories(labId)] },
   });
 }
 
@@ -68,13 +59,10 @@ export function useDeleteEquipmentCategoryMutation() {
 
 export function useCreateEquipmentItemMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateEquipmentItemRequest) => EquipmentService.create(data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
-    },
+    meta: { invalidates: [queryKeys.equipment.items(labId)] },
   });
 }
 
@@ -108,13 +96,10 @@ export function useDecommissionEquipmentItemMutation() {
 
 export function useDeleteEquipmentItemMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => EquipmentService.delete(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.items(labId) });
-    },
+    meta: { invalidates: [queryKeys.equipment.items(labId)] },
   });
 }
 
@@ -222,7 +207,6 @@ export type EquipmentBulkAction =
 
 export function useEquipmentBulkUpdateMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (action: EquipmentBulkAction) => {
@@ -235,9 +219,7 @@ export function useEquipmentBulkUpdateMutation() {
           return EquipmentService.bulkRelocate(action.itemIds, action.data);
       }
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.equipment.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.equipment.all(labId)] },
   });
 }
 

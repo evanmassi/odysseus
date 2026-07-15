@@ -36,38 +36,29 @@ import type {
 
 export function useCreateSupplyCategoryMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateSupplyCategoryRequest) => SupplyService.createCategory(data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.categories(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.categories(labId)] },
   });
 }
 
 export function useUpdateSupplyCategoryMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateSupplyCategoryRequest }) =>
       SupplyService.updateCategory(id, data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.categories(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.categories(labId)] },
   });
 }
 
 export function useDeleteSupplyCategoryMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => SupplyService.deleteCategory(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.categories(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.categories(labId)] },
   });
 }
 
@@ -75,26 +66,20 @@ export function useDeleteSupplyCategoryMutation() {
 
 export function useCreateSupplyLocationMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateSupplyLocationRequest) => SupplyService.createLocation(data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.locations(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.locations(labId)] },
   });
 }
 
 export function useUpdateSupplyLocationMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateSupplyLocationRequest }) =>
       SupplyService.updateLocation(id, data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.locations(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.locations(labId)] },
   });
 }
 
@@ -102,13 +87,10 @@ export function useUpdateSupplyLocationMutation() {
 
 export function useCreateSupplyItemMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateSupplyItemRequest) => SupplyService.createItem(data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.items(labId)] },
   });
 }
 
@@ -128,25 +110,19 @@ export function useUpdateSupplyItemMutation() {
 
 export function useArchiveSupplyItemMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => SupplyService.archiveItem(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.items(labId)] },
   });
 }
 
 export function useDeleteSupplyItemMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => SupplyService.deleteItem(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.items(labId)] },
   });
 }
 
@@ -354,31 +330,24 @@ type SupplyBulkAction =
 
 export function useSupplyBulkReceiveMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: SupplyBulkReceiveRequest) => SupplyService.bulkReceive(data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.all(labId)] },
   });
 }
 
 export function useSupplyBulkIssueMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: SupplyBulkIssueRequest) => SupplyService.bulkIssue(data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.all(labId)] },
   });
 }
 
 export function useSupplyBulkUpdateMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (action: SupplyBulkAction) => {
@@ -393,9 +362,7 @@ export function useSupplyBulkUpdateMutation() {
           return SupplyService.bulkArchive(action.itemIds);
       }
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.all(labId)] },
   });
 }
 
@@ -426,12 +393,9 @@ export function useVoidSupplyTransactionMutation() {
 
 export function useSupplyBulkVoidMutation() {
   const labId = useLabId();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: SupplyBulkVoidRequest) => SupplyService.bulkVoidTransactions(data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.all(labId) });
-    },
+    meta: { invalidates: [queryKeys.supplies.all(labId)] },
   });
 }
