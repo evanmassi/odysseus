@@ -8,7 +8,6 @@ import { forwardRef } from 'react';
 import type { ChangeEvent, FocusEvent } from 'react';
 
 type TextareaState = 'default' | 'error' | 'warning' | 'success';
-type TextareaSize = 'sm' | 'md' | 'lg';
 type TextareaResize = 'none' | 'vertical' | 'horizontal' | 'both';
 
 interface TextareaProps {
@@ -21,26 +20,16 @@ interface TextareaProps {
   rows?: number;
   maxLength?: number;
   state?: TextareaState;
-  size?: TextareaSize;
   resize?: TextareaResize;
   fullWidth?: boolean;
   disabled?: boolean;
-  readOnly?: boolean;
   name?: string;
   id?: string;
   'aria-label'?: string;
-  'aria-labelledby'?: string;
   'aria-describedby'?: string;
-  'aria-required'?: boolean;
   'aria-invalid'?: boolean;
   className?: string;
 }
-
-const SIZE_CLASSES: Record<TextareaSize, string> = {
-  sm: 'px-2 py-1.5 text-body-sm',
-  md: 'px-3 py-2 text-body',
-  lg: 'px-4 py-3 text-body-lg',
-};
 
 const STATE_CLASSES: Record<TextareaState, string> = {
   default: 'border-line-faint hover:border-foreground/30',
@@ -67,17 +56,13 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       rows = 3,
       maxLength,
       state = 'default',
-      size = 'md',
       resize = 'none',
       fullWidth = true,
       disabled = false,
-      readOnly = false,
       name,
       id,
       'aria-label': ariaLabel,
-      'aria-labelledby': ariaLabelledBy,
       'aria-describedby': ariaDescribedBy,
-      'aria-required': ariaRequired,
       'aria-invalid': ariaInvalid,
       className = '',
     },
@@ -98,13 +83,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         rows={rows}
         maxLength={maxLength}
         disabled={disabled}
-        readOnly={readOnly}
         name={name}
         id={id}
         aria-label={ariaLabel}
-        aria-labelledby={ariaLabelledBy}
         aria-describedby={ariaDescribedBy}
-        aria-required={ariaRequired}
         aria-invalid={ariaInvalid ?? state === 'error'}
         className={`
           ${fullWidth ? 'w-full' : 'w-auto'}
@@ -115,8 +97,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]
           focus:shadow-[var(--input-focus-shadow)]
           disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line-faint
-          read-only:cursor-default
-          ${SIZE_CLASSES[size]}
+          px-3 py-2 text-body
           ${STATE_CLASSES[state]}
           ${RESIZE_CLASSES[resize]}
           ${className}

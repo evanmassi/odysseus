@@ -2,7 +2,7 @@
  * Date Picker Types
  */
 
-type DatePickerSize = 'xs' | 'sm' | 'md' | 'lg';
+type DatePickerSize = 'xs' | 'sm' | 'md';
 
 type DatePickerState = 'default' | 'error' | 'warning' | 'success';
 

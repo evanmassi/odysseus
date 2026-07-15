@@ -100,7 +100,6 @@ const triggerVariants = cva(
         xs: 'h-7 px-2 text-data-sm',
         sm: 'h-8 px-3 text-data',
         md: 'h-9 px-3 text-data',
-        lg: 'h-12 px-4 text-data-lg',
       },
       focused: {
         true: `bg-primary/[0.04] ${TRIGGER_FOCUS_SHADOW}`,

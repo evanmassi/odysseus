@@ -101,7 +101,7 @@ export interface NumberInputProps {
   min?: number;
   max?: number;
   step?: number;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md';
   disabled?: boolean;
   allowDecimals?: boolean;
   'aria-label'?: string;
@@ -135,14 +135,6 @@ const sizeStyles = {
     cellH: 20,
     font: 'text-data',
     icon: 16,
-  },
-  lg: {
-    container: 'h-12',
-    button: 'w-9',
-    inputWidth: 'w-16',
-    cellH: 26,
-    font: 'text-data-lg',
-    icon: 18,
   },
 } as const;
 

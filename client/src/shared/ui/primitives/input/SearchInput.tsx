@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 
 import { Search } from 'lucide-react';
 
-type SearchInputSize = 'xs' | 'sm' | 'md' | 'lg';
+type SearchInputSize = 'sm';
 
 export interface SearchInputProps {
   value: string;
@@ -28,14 +28,6 @@ export interface SearchInputProps {
 }
 
 const SIZE = {
-  xs: {
-    container: 'h-6',
-    text: 'text-body-sm',
-    paddingX: 'pl-6 pr-2',
-    paddingXWithTrailing: 'pl-6 pr-10',
-    iconWrap: 'left-1.5',
-    iconSize: 12,
-  },
   sm: {
     container: 'h-8',
     text: 'text-body',
@@ -43,22 +35,6 @@ const SIZE = {
     paddingXWithTrailing: 'pl-8 pr-12',
     iconWrap: 'left-2.5',
     iconSize: 12,
-  },
-  md: {
-    container: 'h-9',
-    text: 'text-body',
-    paddingX: 'pl-9 pr-3',
-    paddingXWithTrailing: 'pl-9 pr-12',
-    iconWrap: 'left-3',
-    iconSize: 14,
-  },
-  lg: {
-    container: 'h-12',
-    text: 'text-body-lg',
-    paddingX: 'pl-11 pr-4',
-    paddingXWithTrailing: 'pl-11 pr-14',
-    iconWrap: 'left-4',
-    iconSize: 16,
   },
 } as const;
 
