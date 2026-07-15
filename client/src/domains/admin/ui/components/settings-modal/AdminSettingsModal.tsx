@@ -21,7 +21,6 @@ import {
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId, useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
-import { logger } from '@infra/logger';
 import {
   AlertBanner,
   Button,
@@ -33,15 +32,12 @@ import {
   Tooltip,
 } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
-import { notifications } from '@shared/utils';
 
 import { useSecurityConfig } from '../../../hooks/useSecurityConfig';
 import { useLabStorageAnalyticsQuery } from '../../../hooks/useStorageAnalyticsQueries';
+import { useSystemMetricsQuery } from '../../../hooks/useSystemMetricsQuery';
 import { useUsersQuery } from '../../../hooks/useUsersQuery';
-import { adminService } from '../../../services/AdminService';
 import { UtilizationBar } from '../displays/UtilizationBar';
-
-import type { SystemMetrics } from '@odysseus/shared-schemas';
 
 const SecurityTab = lazy(() =>
   import('./tabs/SecurityTab').then(m => ({ default: m.SecurityTab }))
@@ -96,7 +92,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     ) ??
       false);
   const [activeTab, setActiveTab] = useState<TabId>('system');
-  const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null);
   const [tabFooter, setTabFooter] = useState<React.ReactNode>(null);
 
   const queryClient = useQueryClient();
@@ -104,6 +99,8 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const { data: users = [] } = useUsersQuery({
     queryOptions: { enabled: isOpen && !isSystemAdmin, select: sortByName },
   });
+  const metricsQuery = useSystemMetricsQuery({ enabled: isOpen && !isSystemAdmin });
+  const systemStats = metricsQuery.data ?? null;
   const refreshUsers = () =>
     void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users(labId) });
 
@@ -114,23 +111,8 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   useEffect(() => {
     if (isOpen) {
       void loadConfiguration();
-      if (!isSystemAdmin) {
-        void loadSystemStats();
-      }
     }
-  }, [isOpen, isSystemAdmin, loadConfiguration]);
-
-  const loadSystemStats = async () => {
-    try {
-      const metrics = await adminService.getMetrics();
-      setSystemStats(metrics);
-    } catch (error) {
-      logger.error('Failed to load system stats', { error });
-      // Left null so the strip hides. Substituting placeholder counts here rendered them as fact.
-      setSystemStats(null);
-      notifications.error('Failed to load system metrics');
-    }
-  };
+  }, [isOpen, loadConfiguration]);
 
   const handleTabFooter = useCallback((footer: React.ReactNode) => setTabFooter(footer), []);
 
@@ -283,7 +265,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         <Suspense fallback={<LoadingSkeleton />}>
           <ResearchersTab
             onResearcherUpdate={() => {
-              void loadSystemStats();
+              void queryClient.invalidateQueries({ queryKey: queryKeys.admin.metrics(labId) });
               refreshUsers();
             }}
             onTabFooter={handleTabFooter}
