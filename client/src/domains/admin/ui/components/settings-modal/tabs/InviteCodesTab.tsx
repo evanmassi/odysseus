@@ -5,11 +5,10 @@
  * or any lab (system admins via the system admin dashboard).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 
 import { Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 
-import { logger } from '@infra/logger';
 import {
   Button,
   Chip,
@@ -25,7 +24,11 @@ import {
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { MS_PER_DAY, notifications } from '@shared/utils';
 
-import { adminService } from '../../../../services/AdminService';
+import {
+  useCreateInviteCodeMutation,
+  useDeactivateInviteCodeMutation,
+} from '../../../../hooks/useInviteCodeMutations';
+import { useInviteCodesQuery } from '../../../../hooks/useInviteCodesQuery';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 import type { SelectOption, TableColumn } from '@shared/ui';
@@ -46,9 +49,10 @@ const EXPIRY_OPTIONS: SelectOption[] = [
 const DEFAULT_EXPIRY_DAYS = 7;
 
 export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
-  const [codes, setCodes] = useState<InviteCodeData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
+  const { data: codes = [], isLoading, isFetching, refetch } = useInviteCodesQuery();
+  const createMutation = useCreateInviteCodeMutation();
+  const deactivateMutation = useDeactivateInviteCodeMutation();
+
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   // New code form
@@ -58,58 +62,35 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   const [newCodeExpiryDays, setNewCodeExpiryDays] = useState(DEFAULT_EXPIRY_DAYS);
   const [showInactive, setShowInactive] = useState(false);
 
-  const loadCodes = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const result = await adminService.getInviteCodes();
-      setCodes(result);
-    } catch (error) {
-      logger.error('Failed to load invite codes', { error });
-      notifications.error('Failed to load invite codes');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadCodes();
-  }, [loadCodes]);
-
-  const handleCreate = async () => {
-    setIsCreating(true);
-    try {
-      await adminService.createInviteCode({
+  const handleCreate = () => {
+    createMutation.mutate(
+      {
         createResearcher: newCodeCreateResearcher,
         maxUses: newCodeMaxUses,
         expiresAt:
           newCodeExpiryDays > 0
             ? new Date(Date.now() + newCodeExpiryDays * MS_PER_DAY).toISOString()
             : undefined,
-      });
-      notifications.success('Invite code created');
-      setShowCreateForm(false);
-      setNewCodeMaxUses(1);
-      setNewCodeCreateResearcher(false);
-      setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
-      await loadCodes();
-    } catch (error) {
-      logger.error('Failed to create invite code', { error });
-      notifications.error('Failed to create invite code');
-    } finally {
-      setIsCreating(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          notifications.success('Invite code created');
+          setShowCreateForm(false);
+          setNewCodeMaxUses(1);
+          setNewCodeCreateResearcher(false);
+          setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
+        },
+      }
+    );
   };
 
-  const handleDeactivate = async (id: string) => {
-    try {
-      await adminService.deactivateInviteCode(id);
-      notifications.success('Invite code deactivated');
-      setDeleteTarget(null);
-      await loadCodes();
-    } catch (error) {
-      logger.error('Failed to deactivate invite code', { error });
-      notifications.error('Failed to deactivate invite code');
-    }
+  const handleDeactivate = (id: string) => {
+    deactivateMutation.mutate(id, {
+      onSuccess: () => {
+        notifications.success('Invite code deactivated');
+        setDeleteTarget(null);
+      },
+    });
   };
 
   const handleCopy = async (code: string) => {
@@ -286,7 +267,12 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
             >
               Cancel
             </Button>
-            <Button variant="primary" size="sm" onClick={handleCreate} isLoading={isCreating}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleCreate}
+              isLoading={createMutation.isPending}
+            >
               Create
             </Button>
           </div>
@@ -297,7 +283,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
         columns={activeColumns}
         data={activeCodes}
         hoverable
-        loading={isLoading && codes.length === 0}
+        loading={isLoading}
         emptyMessage="No active invite codes. Create one to invite new users to your lab."
         loadingMessage="Loading invite codes..."
         aria-label="Active invite codes"
@@ -307,9 +293,9 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={loadCodes}
-                disabled={isLoading}
-                leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
+                onClick={() => refetch()}
+                disabled={isFetching}
+                leftIcon={<RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />}
               >
                 Refresh
               </Button>

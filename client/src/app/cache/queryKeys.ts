@@ -35,6 +35,7 @@ export const queryKeys = {
   admin: {
     all: (labId = '') => ['admin', labId] as const,
     users: (labId = '') => [...queryKeys.admin.all(labId), 'users'] as const,
+    inviteCodes: (labId = '') => [...queryKeys.admin.all(labId), 'inviteCodes'] as const,
   },
 
   // Tubes (lab-scoped)
