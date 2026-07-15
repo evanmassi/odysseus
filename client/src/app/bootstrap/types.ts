@@ -8,7 +8,6 @@ export interface AppBootstrapState {
   isLoading: boolean;
   currentStep: BootstrapStep;
   error: string | null;
-  steps: BootstrapStepInfo[];
 }
 
 export type BootstrapStep =
@@ -21,19 +20,12 @@ export type BootstrapStep =
   | 'complete'
   | 'error';
 
-export interface BootstrapStepInfo {
-  step: BootstrapStep;
-  label: string;
-  completed: boolean;
-  error?: string;
-}
-
 export interface UseAppBootstrapResult {
   isReady: boolean;
   isLoading: boolean;
   isError: boolean;
   error: string | null;
-  state: 'initializing' | 'loading' | 'error' | 'complete';
+  state: 'loading' | 'error' | 'complete';
   canRetry: boolean;
   retry: () => void;
 }

@@ -1,8 +1,7 @@
 /**
  * Application Bootstrap Service
  *
- * Manages the ordered initialization sequence: auth check, session restore,
- * cache validation, network setup, and socket connection.
+ * Runs the ordered startup sequence and publishes its state to the app shell.
  */
 
 import { firstTimeSetupQueryOptions, useAuthStore, sessionManager } from '@domains/authentication';
@@ -22,7 +21,6 @@ import { queryClient } from '../cache/queryClient';
 import { queryKeys } from '../cache/queryKeys';
 
 import { clearChunkReloadFlag } from './chunkErrorRecovery';
-import { BOOTSTRAP_STEPS } from './constants';
 
 import type { AppBootstrapState, BootstrapStep } from './types';
 
@@ -40,7 +38,6 @@ class AppBootstrapService {
     isLoading: true,
     currentStep: 'initialization',
     error: null,
-    steps: [...BOOTSTRAP_STEPS],
   };
 
   private listeners: Array<(state: AppBootstrapState) => void> = [];
@@ -70,16 +67,8 @@ class AppBootstrapService {
     this.listeners.forEach(listener => listener(this.getState()));
   }
 
-  private updateStep(step: BootstrapStep, completed: boolean, error?: string) {
+  private updateStep(step: BootstrapStep, error?: string) {
     this.state.currentStep = step;
-    const stepIndex = this.state.steps.findIndex(s => s.step === step);
-    if (stepIndex !== -1) {
-      this.state.steps[stepIndex] = {
-        ...this.state.steps[stepIndex],
-        completed,
-        error,
-      };
-    }
     if (error) {
       this.state.error = error;
       this.state.currentStep = 'error';
@@ -138,32 +127,27 @@ class AppBootstrapService {
       this.state.error = null;
       this.notify();
 
-      this.updateStep('initialization', false);
+      this.updateStep('initialization');
       await new Promise(resolve => setTimeout(resolve, LOADING_SCREEN_RENDER_DELAY_MS));
-      this.updateStep('initialization', true);
 
       // Warm the first-time setup check so the auth gateway reflects current server
       // truth before first paint (checkFirstTime swallows errors, returning safe defaults).
-      this.updateStep('auth-check', false);
+      this.updateStep('auth-check');
       await queryClient.prefetchQuery(firstTimeSetupQueryOptions);
-      this.updateStep('auth-check', true);
 
       // SessionService already loaded tokens in constructor, now sync with auth store
-      this.updateStep('session-restore', false);
+      this.updateStep('session-restore');
       try {
         const authStore = useAuthStore.getState();
         authStore.initializeFromStorage();
-        this.updateStep('session-restore', true);
       } catch (error) {
         logger.error('Bootstrap session restoration failed', { error });
         // Non-fatal: Continue bootstrap even if session restoration fails
         // User will simply need to log in again
-        this.updateStep('session-restore', true);
       }
 
-      // Validate cached data against server version
-      // Clears stale cache if database was reset or version mismatch detected
-      this.updateStep('cache-validation', false);
+      // Drops the persisted cache if the server version changed or the DB was reset.
+      this.updateStep('cache-validation');
       try {
         const tokens = sessionManager.getTokens();
         const accessToken = tokens?.accessToken ?? null;
@@ -176,14 +160,12 @@ class AppBootstrapService {
             cachedVersion: result.cachedVersion,
           });
         }
-        this.updateStep('cache-validation', true);
       } catch (error) {
         logger.warn('Cache validation failed, continuing with existing cache', { error });
         // Non-fatal: Continue even if validation fails
-        this.updateStep('cache-validation', true);
       }
 
-      this.updateStep('socket-connection', false);
+      this.updateStep('socket-connection');
 
       // Early offline detection - check before attempting network operations
       if (!navigator.onLine) {
@@ -206,8 +188,6 @@ class AppBootstrapService {
 
         // Socket will notify NetworkMonitor of connection state changes
         await initializeSocket(queryClient);
-
-        this.updateStep('socket-connection', true);
       } catch (socketError) {
         const errorMessage =
           socketError instanceof Error ? socketError.message : String(socketError);
@@ -222,16 +202,14 @@ class AppBootstrapService {
         }
 
         logger.error('Bootstrap real-time systems initialization failed', { socketError });
-        this.updateStep('socket-connection', false, 'Failed to initialize real-time systems');
+        this.updateStep('socket-connection', 'Failed to initialize real-time systems');
         throw socketError;
       }
 
-      // Data loading handled by React Query (on-demand, component-driven)
-      // Components call hooks (useTubesQuery, useResearchersQuery, etc.)
-      // Socket.IO keeps cache fresh via real-time invalidation
-      this.updateStep('data-loading', true);
+      // No explicit fetch: React Query loads data on demand and Socket.IO keeps it fresh.
+      this.updateStep('data-loading');
 
-      this.updateStep('complete', true);
+      this.updateStep('complete');
       this.state.isLoading = false;
       this.isInitialized = true;
 
@@ -261,12 +239,6 @@ class AppBootstrapService {
   }
 
   retry(): void {
-    this.state.steps = this.state.steps.map(step => ({
-      ...step,
-      completed: false,
-      error: undefined,
-    }));
-
     // Reset network state so we get fresh connectivity check on retry
     resetNetworkState();
     cleanupNetworkMonitor();

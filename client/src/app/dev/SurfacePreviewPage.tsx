@@ -212,7 +212,7 @@ function mockBootstrapContext(
 ): UseAppBootstrapResult {
   return {
     isReady: state === 'complete',
-    isLoading: state === 'loading' || state === 'initializing',
+    isLoading: state === 'loading',
     isError: state === 'error',
     error,
     state,

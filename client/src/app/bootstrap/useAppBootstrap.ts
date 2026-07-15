@@ -25,11 +25,10 @@ export function useAppBootstrap(): UseAppBootstrapResult {
     }
   }, [bootstrapState.currentStep, bootstrapState.isLoading]);
 
-  const getOverallState = (): 'initializing' | 'loading' | 'error' | 'complete' => {
+  const getOverallState = (): 'loading' | 'error' | 'complete' => {
     if (bootstrapState.currentStep === 'error') return 'error';
     if (bootstrapState.currentStep === 'complete') return 'complete';
-    if (bootstrapState.isLoading) return 'loading';
-    return 'initializing';
+    return 'loading';
   };
 
   return {
