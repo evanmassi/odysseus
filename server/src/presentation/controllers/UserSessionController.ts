@@ -41,4 +41,20 @@ export class UserSessionController extends BaseController {
       handleControllerError(error, res, 'Failed to revoke session', req.requestId);
     }
   }
+
+  async bulkRevokeSessions(req: Request, res: Response): Promise<void> {
+    try {
+      const user = this.getAuthenticatedUser(req);
+      const { sessionIds } = req.body as { sessionIds: string[] };
+      const result = await this.deps.userSessionApplicationService.bulkRevokeSessions(
+        user,
+        sessionIds,
+        req.sessionId
+      );
+
+      res.json(ResponseBuilder.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to revoke sessions', req.requestId);
+    }
+  }
 }

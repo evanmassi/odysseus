@@ -78,3 +78,32 @@ describe('UserSessionApplicationService.revokeSession', () => {
     expect(revokeSession).toHaveBeenCalledWith('s1');
   });
 });
+
+describe('UserSessionApplicationService.bulkRevokeSessions', () => {
+  function makeService(activeSessions: UserSession[], revokedCount = activeSessions.length) {
+    const findActiveSessionsByUserId = jest.fn().mockResolvedValue(activeSessions);
+    const bulkRevoke = jest.fn().mockResolvedValue(revokedCount);
+    const userSessionRepository = { findActiveSessionsByUserId, bulkRevoke } as unknown as UserSessionRepository;
+    return { service: new UserSessionApplicationService({ userSessionRepository }), bulkRevoke };
+  }
+
+  it("revokes only the user's own sessions and skips the current one", async () => {
+    const active = [makeSession('s1', 'u1'), makeSession('s2', 'u1'), makeSession('s3', 'u1')];
+    const { service, bulkRevoke } = makeService(active, 2);
+
+    // Request mixes two own sessions, the current session ('s3'), and a foreign id ('other').
+    const result = await service.bulkRevokeSessions(user, ['s1', 's2', 's3', 'other'], 's3');
+
+    expect(bulkRevoke).toHaveBeenCalledWith(['s1', 's2']);
+    expect(result).toEqual({ revokedCount: 2 });
+  });
+
+  it('returns zero and skips the repository when nothing is revocable', async () => {
+    const { service, bulkRevoke } = makeService([makeSession('s1', 'u1')]);
+
+    const result = await service.bulkRevokeSessions(user, ['s1', 'foreign'], 's1');
+
+    expect(bulkRevoke).not.toHaveBeenCalled();
+    expect(result).toEqual({ revokedCount: 0 });
+  });
+});

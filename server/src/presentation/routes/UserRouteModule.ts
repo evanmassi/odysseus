@@ -4,7 +4,11 @@
  * Authenticated routes for user settings, profile, sessions, and user lookups.
  */
 
-import { userLookupRequestSchema, updateMyProfileRequestSchema } from '@odysseus/shared-schemas';
+import {
+  bulkRevokeSessionsRequestSchema,
+  userLookupRequestSchema,
+  updateMyProfileRequestSchema,
+} from '@odysseus/shared-schemas';
 
 import type { AuthMiddleware } from '@application/contracts/AuthMiddleware';
 import type { PersonController } from '@presentation/controllers/PersonController';
@@ -60,6 +64,11 @@ export class UserRouteModule implements RouteModule {
     router.delete('/me/sessions/:id',
       validateParams(IdParams),
       this.sessionController.revokeSession.bind(this.sessionController)
+    );
+
+    router.post('/me/sessions/bulk-revoke',
+      validateBody(bulkRevokeSessionsRequestSchema),
+      this.sessionController.bulkRevokeSessions.bind(this.sessionController)
     );
 
     router.post('/lookup',

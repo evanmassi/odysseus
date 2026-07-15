@@ -25,15 +25,24 @@ function useRevokeSessionMutation() {
   });
 }
 
+function useBulkRevokeSessionsMutation() {
+  return useMutation({
+    mutationFn: (sessionIds: string[]) => UserSessionService.bulkRevokeSessions(sessionIds),
+    meta: { invalidates: [queryKeys.users.sessions()] },
+  });
+}
+
 export function useUserSessions() {
   const sessionsQuery = useUserSessionsQuery();
   const revokeSessionMutation = useRevokeSessionMutation();
+  const bulkRevokeMutation = useBulkRevokeSessionsMutation();
 
   return {
     sessions: sessionsQuery.data ?? [],
     isLoading: sessionsQuery.isLoading,
     revokeSession: revokeSessionMutation.mutate,
-    revokeSessionAsync: revokeSessionMutation.mutateAsync,
     isRevoking: revokeSessionMutation.isPending,
+    bulkRevoke: bulkRevokeMutation.mutate,
+    isBulkRevoking: bulkRevokeMutation.isPending,
   };
 }

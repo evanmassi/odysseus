@@ -55,4 +55,26 @@ export class UserSessionApplicationService {
       throw new NotFoundError('Session not found or already revoked');
     }
   }
+
+  /**
+   * Revokes several of the user's own sessions in one call. The current session and any id that
+   * isn't one of the user's active sessions are silently skipped — a user can never revoke another
+   * account's session, and bulk revoke is best-effort rather than all-or-nothing.
+   */
+  async bulkRevokeSessions(
+    user: User,
+    sessionIds: string[],
+    currentSessionId: string | undefined
+  ): Promise<{ revokedCount: number }> {
+    const activeSessions = await this.deps.userSessionRepository.findActiveSessionsByUserId(user.id);
+    const ownedIds = new Set(activeSessions.map(session => session.id));
+
+    const revocableIds = sessionIds.filter(id => id !== currentSessionId && ownedIds.has(id));
+    if (revocableIds.length === 0) {
+      return { revokedCount: 0 };
+    }
+
+    const revokedCount = await this.deps.userSessionRepository.bulkRevoke(revocableIds);
+    return { revokedCount };
+  }
 }

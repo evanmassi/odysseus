@@ -67,12 +67,12 @@ type DisplaySession = ActiveSession & {
 };
 
 export function SessionListPanel() {
-  const { sessions, isLoading, revokeSession, revokeSessionAsync, isRevoking } = useUserSessions();
+  const { sessions, isLoading, revokeSession, isRevoking, bulkRevoke, isBulkRevoking } =
+    useUserSessions();
 
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
   const [selectedSessionIds, setSelectedSessionIds] = useState<(string | number)[]>([]);
   const [showBulkRevokeConfirm, setShowBulkRevokeConfirm] = useState(false);
-  const [isBulkRevoking, setIsBulkRevoking] = useState(false);
 
   const displayedSessions = useMemo(() => {
     const sorted = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
@@ -104,25 +104,24 @@ export function SessionListPanel() {
     });
   };
 
-  const handleBulkRevoke = async () => {
-    // The server refuses to revoke the caller's own session, so including it in a select-all
-    // guarantees a "Failed to revoke 1 session" toast. Log out to end the current session.
+  const handleBulkRevoke = () => {
+    // Drop the current session — the server skips it anyway, so there's no reason to send it.
     const currentSessionId = displayedSessions.find(s => s.isCurrentSession)?.id;
     const ids = selectedSessionIds.map(String).filter(id => id !== currentSessionId);
     if (ids.length === 0) return;
-    setIsBulkRevoking(true);
-    const results = await Promise.allSettled(ids.map(id => revokeSessionAsync(id)));
-    const succeeded = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.length - succeeded;
-    if (succeeded > 0) {
-      notifications.success(`Logged out of ${succeeded} session${succeeded !== 1 ? 's' : ''}`);
-    }
-    if (failed > 0) {
-      notifications.error(`Failed to revoke ${failed} session${failed !== 1 ? 's' : ''}`);
-    }
-    setSelectedSessionIds([]);
-    setShowBulkRevokeConfirm(false);
-    setIsBulkRevoking(false);
+    bulkRevoke(ids, {
+      onSuccess: result => {
+        if (result.revokedCount > 0) {
+          notifications.success(
+            `Logged out of ${result.revokedCount} session${result.revokedCount !== 1 ? 's' : ''}`
+          );
+        }
+      },
+      onSettled: () => {
+        setSelectedSessionIds([]);
+        setShowBulkRevokeConfirm(false);
+      },
+    });
   };
 
   const sessionColumns: TableColumn<DisplaySession>[] = [
