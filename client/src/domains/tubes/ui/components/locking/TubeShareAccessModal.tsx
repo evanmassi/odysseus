@@ -23,7 +23,6 @@ export interface TubeShareAccessModalProps {
   tubes: TubeData[];
   currentUserId: string;
   onClose: () => void;
-  onSuccess?: () => void;
 }
 
 export function TubeShareAccessModal({
@@ -31,7 +30,6 @@ export function TubeShareAccessModal({
   tubes,
   currentUserId,
   onClose,
-  onSuccess,
 }: TubeShareAccessModalProps) {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const shareMutation = useShareTubeAccessMutation();
@@ -87,7 +85,6 @@ export function TubeShareAccessModal({
           `Shared access to ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}`
         );
         setSelectedUserIds([]);
-        onSuccess?.();
       } else if (sharedCount > 0 && skippedCount > 0) {
         notifications.success(
           `Shared ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
@@ -111,7 +108,6 @@ export function TubeShareAccessModal({
       const revokedCount = result.revoked.length;
       if (revokedCount > 0) {
         notifications.success(`Revoked access from ${getUserName(userId)}`);
-        onSuccess?.();
       } else {
         notifications.warning('No access was revoked');
       }

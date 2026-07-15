@@ -255,11 +255,14 @@ export const TubeForm = ({
         <Controller
           name="sample.concentration"
           control={control}
-          render={({ field: { value, onChange } }) => (
+          render={({ field: { value, onChange }, fieldState: concentrationState }) => (
             <Controller
               name="sample.concentrationUnit"
               control={control}
-              render={({ field: { value: unitValue, onChange: onUnitChange } }) => (
+              render={({
+                field: { value: unitValue, onChange: onUnitChange },
+                fieldState: unitState,
+              }) => (
                 <TubeConcentrationField
                   label="Concentration"
                   value={String(value ?? '')}
@@ -282,6 +285,7 @@ export const TubeForm = ({
                   }}
                   badge={getConflictBadge('sample.concentration')}
                   hasConflict={hasConflict('sample.concentration')}
+                  isDirty={concentrationState.isDirty || unitState.isDirty}
                 />
               )}
             />

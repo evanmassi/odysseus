@@ -65,6 +65,8 @@ export function useGridKeyboardNavigation(
   const handleGridKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       const { key, shiftKey, ctrlKey, metaKey } = event;
+      // Normalize letter shortcuts so CapsLock (which flips key case) doesn't break them.
+      const lowerKey = key.toLowerCase();
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
         event.preventDefault();
@@ -145,7 +147,7 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      if (key === 'a' && (ctrlKey || metaKey)) {
+      if (lowerKey === 'a' && (ctrlKey || metaKey)) {
         event.preventDefault();
         const allPositions = new Set<PositionKey>();
         const totalPositions = getGridTotalPositions(gridConfig);
@@ -163,19 +165,19 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      if (key === 'c' && (ctrlKey || metaKey)) {
+      if (lowerKey === 'c' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void controller.actions.copy();
         return;
       }
 
-      if (key === 'x' && (ctrlKey || metaKey)) {
+      if (lowerKey === 'x' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void controller.actions.cut();
         return;
       }
 
-      if (key === 'v' && (ctrlKey || metaKey)) {
+      if (lowerKey === 'v' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void (async () => {
           try {
@@ -188,7 +190,7 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      if (key === 'L' && shiftKey && !ctrlKey && !metaKey) {
+      if (lowerKey === 'l' && shiftKey && !ctrlKey && !metaKey) {
         event.preventDefault();
         if (controller.actions.toggleLock) {
           void controller.actions.toggleLock();
@@ -196,7 +198,7 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      if (key === 'S' && shiftKey && !ctrlKey && !metaKey) {
+      if (lowerKey === 's' && shiftKey && !ctrlKey && !metaKey) {
         event.preventDefault();
         if (controller.actions.shareAccess) {
           controller.actions.shareAccess();

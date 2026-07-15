@@ -636,21 +636,33 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         }
       }
 
-      if (successCount === parsedPositions.length) {
-        const createCount = positionAnalysis.emptyPositions.length;
-        const updateCount = positionAnalysis.occupiedPositions.length;
+      // Occupied positions are only attempted when overwrite is enabled; otherwise they are
+      // intentionally skipped and must not count against the "processed / failed" tally.
+      const createCount = positionAnalysis.emptyPositions.length;
+      const updateCount = allowOverwrite ? positionAnalysis.occupiedPositions.length : 0;
+      const skippedCount = allowOverwrite ? 0 : positionAnalysis.occupiedPositions.length;
+      const attemptedCount = createCount + updateCount;
+      const positionRange = bulkLocationDisplay?.positionRanges ?? '';
 
-        const positionRange = bulkLocationDisplay?.positionRanges ?? '';
+      if (attemptedCount === 0) {
+        notifications.info(
+          `All ${skippedCount} selected position${skippedCount !== 1 ? 's are' : ' is'} occupied. Enable overwrite to update.`
+        );
+      } else if (successCount === attemptedCount) {
+        const skippedNote =
+          skippedCount > 0
+            ? ` (${skippedCount} occupied position${skippedCount !== 1 ? 's' : ''} skipped)`
+            : '';
 
         if (createCount > 0 && updateCount > 0) {
           notifications.success(
-            `Successfully filled ${successCount} positions (${createCount} new, ${updateCount} updated) at ${positionRange}`
+            `Successfully filled ${successCount} positions (${createCount} new, ${updateCount} updated) at ${positionRange}${skippedNote}`
           );
         } else if (createCount > 0) {
           const message =
             successCount > 1
-              ? `Successfully created ${successCount} tubes at positions ${positionRange}`
-              : `Successfully created tube at position ${positionRange}`;
+              ? `Successfully created ${successCount} tubes at positions ${positionRange}${skippedNote}`
+              : `Successfully created tube at position ${positionRange}${skippedNote}`;
           notifications.success(message);
         } else {
           const message =
@@ -662,7 +674,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
         modalRef.current?.requestClose();
       } else if (successCount > 0) {
         notifications.warning(
-          `Processed ${successCount} of ${parsedPositions.length} positions. ${errorCount} failed.`
+          `Processed ${successCount} of ${attemptedCount} positions. ${errorCount} failed.`
         );
         if (errors.length > 0) {
           logger.warn('Tube operation errors', { errors });

@@ -1,16 +1,8 @@
 /**
  * Bulk Update Types
  *
- * Progress, result, and error types for tube bulk operations.
+ * Result and error types for tube bulk operations.
  */
-
-export interface BulkUpdateProgress {
-  total: number;
-  current: number;
-  currentTubeId?: string;
-  phase: 'preparing' | 'updating';
-  errors: BulkUpdateError[];
-}
 
 export interface BulkUpdateResult {
   success: boolean;

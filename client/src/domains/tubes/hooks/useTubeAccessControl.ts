@@ -11,13 +11,8 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 
 import type { TubeData } from '@odysseus/shared-schemas';
 
-interface ContainerInfo {
-  assignedUserId?: string | null;
-  sharedWithUserIds?: string[];
-}
-
 interface UseTubeAccessControlResult {
-  canLockTube: (tube: TubeData, container?: ContainerInfo) => boolean;
+  canLockTube: (tube: TubeData) => boolean;
   canUnlockTube: (tube: TubeData) => boolean;
   canShareTubeAccess: (tube: TubeData) => boolean;
   isLockedOutFrom: (tube: TubeData) => boolean;
@@ -32,21 +27,13 @@ export function useTubeAccessControl(
   const userId = currentUser?.id;
 
   const canLockTube = useCallback(
-    (tube: TubeData, container?: ContainerInfo): boolean => {
+    (tube: TubeData): boolean => {
       if (!userId) return false;
-      if (isAdmin) return !tube.isLocked;
-      if (tube.isLocked) return false;
-
-      // In user's own assigned space
-      if (container?.assignedUserId === userId) return true;
-
-      // In common/unassigned space (null or undefined)
-      if (!container?.assignedUserId) return true;
-
-      // In another user's space - cannot lock
-      return false;
+      // Optimistic: the server's AccessControlService enforces assigned-space rules and rejects
+      // locking a tube in another user's box/rack; that denial surfaces as an error toast.
+      return !tube.isLocked;
     },
-    [userId, isAdmin]
+    [userId]
   );
 
   const canUnlockTube = useCallback(

@@ -139,12 +139,7 @@ function handleTubeConflictError(
 }
 
 export const useCreateTubeMutation = (
-  options: UseMutationOptions<
-    TubeData,
-    Error,
-    CreateTubeRequest,
-    { previousTubes: unknown; newTube: CreateTubeRequest }
-  > = {}
+  options: UseMutationOptions<TubeData, Error, CreateTubeRequest> = {}
 ) => {
   const queryClient = useQueryClient();
   const labId = useLabId();
@@ -154,14 +149,7 @@ export const useCreateTubeMutation = (
       return await TubeService.createTube(tubeData);
     },
 
-    onMutate: async newTube => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.tubes.all(labId) });
-      const previousTubes = queryClient.getQueryData(queryKeys.tubes.all(labId));
-
-      return { previousTubes, newTube };
-    },
-
-    onSuccess: (tube, _variables, _context) => {
+    onSuccess: tube => {
       queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
 
@@ -179,16 +167,11 @@ export const useCreateTubeMutation = (
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
 
-    onError: (error, _variables, context) => {
+    onError: error => {
       logger.error('Create tube failed', { error });
 
       if (isPositionOccupiedError(error)) {
         handlePositionOccupiedError(queryClient, labId, error);
-        return;
-      }
-
-      if (context?.previousTubes) {
-        queryClient.setQueryData(queryKeys.tubes.all(labId), context.previousTubes);
       }
     },
 
@@ -430,7 +413,6 @@ export const useBulkDeleteTubesMutation = (
     {
       tubeIds: string[];
       location?: { tankId: string; rackId: string; boxId: string };
-      onProgress?: (progress: { completed: number; total: number; currentId: string }) => void;
     }
   > = {}
 ) => {
@@ -438,16 +420,8 @@ export const useBulkDeleteTubesMutation = (
   const labId = useLabId();
 
   return useMutation({
-    mutationFn: async ({ tubeIds, onProgress }) => {
-      onProgress?.({ completed: 0, total: tubeIds.length, currentId: tubeIds[0] });
-
+    mutationFn: async ({ tubeIds }) => {
       const result = await TubeService.bulkDeleteTubes(tubeIds);
-
-      onProgress?.({
-        completed: tubeIds.length,
-        total: tubeIds.length,
-        currentId: tubeIds[tubeIds.length - 1],
-      });
 
       const successfulIds = result.deleted;
       const errors = result.failed.map(f => ({
@@ -596,66 +570,55 @@ export const useMoveTubesMutation = (
     },
 
     onMutate: async ({ moves }) => {
-      const affectedBoxKeys = new Set<string>();
       const moveMap = new Map(moves.map(m => [m.tubeId, m.destination]));
+      const boxKeyOf = (loc: { tankId: string; rackId: string; boxId: string }) =>
+        `${loc.tankId}:${loc.rackId}:${loc.boxId}`;
 
-      moves.forEach(m => {
-        affectedBoxKeys.add(
-          `${m.destination.tankId}:${m.destination.rackId}:${m.destination.boxId}`
-        );
+      // Enumerate location queries once, not per move.
+      const locationQueries = queryClient.getQueriesData<TubeData[]>({
+        queryKey: [...queryKeys.tubes.all(labId), 'location'],
       });
 
-      const snapshots = new Map<string, TubeData[] | undefined>();
+      // Current data for each moving tube, from whichever box holds it now.
+      const movingTubes = new Map<string, TubeData>();
+      for (const [, data] of locationQueries) {
+        data?.forEach(tube => {
+          if (moveMap.has(tube.id)) movingTubes.set(tube.id, tube);
+        });
+      }
 
-      for (const key of affectedBoxKeys) {
-        const [tankId, rackId, boxId] = key.split(':');
+      // Every box that loses a tube (source) or gains one (destination).
+      const affectedBoxKeys = new Set<string>();
+      moves.forEach(m => affectedBoxKeys.add(boxKeyOf(m.destination)));
+      for (const [key, data] of locationQueries) {
+        if (data?.some(t => moveMap.has(t.id))) {
+          affectedBoxKeys.add((key as string[]).slice(3).join(':'));
+        }
+      }
+
+      // Snapshot + cancel each affected box before rewriting it.
+      const snapshots = new Map<string, TubeData[] | undefined>();
+      for (const boxKey of affectedBoxKeys) {
+        const [tankId, rackId, boxId] = boxKey.split(':');
         const queryKey = queryKeys.tubes.location(labId, tankId, rackId, boxId);
         await queryClient.cancelQueries({ queryKey });
-        snapshots.set(key, queryClient.getQueryData<TubeData[]>(queryKey));
+        snapshots.set(boxKey, queryClient.getQueryData<TubeData[]>(queryKey));
       }
 
-      // Also snapshot source boxes by finding tubes in the cache
-      for (const move of moves) {
-        const allLocationQueries = queryClient.getQueriesData<TubeData[]>({
-          queryKey: [...queryKeys.tubes.all(labId), 'location'],
-        });
-        for (const [key, data] of allLocationQueries) {
-          if (data?.some(t => t.id === move.tubeId)) {
-            const keyStr = (key as string[]).slice(3).join(':');
-            if (!snapshots.has(keyStr)) {
-              await queryClient.cancelQueries({ queryKey: key });
-              snapshots.set(keyStr, data);
-            }
-          }
+      // Rebuild each box by its own key: drop moved-out tubes, add moved-in tubes — including
+      // into a currently-empty destination box, which the previous oldData[0] approach skipped.
+      for (const boxKey of affectedBoxKeys) {
+        const [tankId, rackId, boxId] = boxKey.split(':');
+        const queryKey = queryKeys.tubes.location(labId, tankId, rackId, boxId);
+        const remaining = (snapshots.get(boxKey) ?? []).filter(tube => !moveMap.has(tube.id));
+        const incoming: TubeData[] = [];
+        for (const [tubeId, dest] of moveMap) {
+          if (boxKeyOf(dest) !== boxKey) continue;
+          const tube = movingTubes.get(tubeId);
+          if (tube) incoming.push({ ...tube, location: { ...tube.location, ...dest } });
         }
+        queryClient.setQueryData<TubeData[]>(queryKey, [...remaining, ...incoming]);
       }
-
-      // Optimistically remove from source and add to destination
-      queryClient.setQueriesData(
-        { queryKey: [...queryKeys.tubes.all(labId), 'location'] },
-        (oldData: TubeData[] | undefined) => {
-          if (!oldData) return oldData;
-          return oldData
-            .filter(tube => !moveMap.has(tube.id))
-            .concat(
-              oldData
-                .filter(tube => moveMap.has(tube.id))
-                .map(tube => {
-                  const dest = moveMap.get(tube.id)!;
-                  return { ...tube, location: { ...tube.location, ...dest } };
-                })
-                .filter(tube => {
-                  const firstTube = oldData[0];
-                  if (!firstTube) return false;
-                  return (
-                    tube.location.tankId === firstTube.location.tankId &&
-                    tube.location.rackId === firstTube.location.rackId &&
-                    tube.location.boxId === firstTube.location.boxId
-                  );
-                })
-            );
-        }
-      );
 
       return { snapshots };
     },

@@ -1,115 +1,44 @@
 /**
  * Bulk Progress Modal
  *
- * Displays real-time progress during bulk tube update operations.
+ * Indeterminate overlay shown while a bulk tube update is in flight (the update is a single
+ * atomic request, so there is no incremental progress to report).
  */
-
-import { XCircle, AlertCircle } from 'lucide-react';
 
 import { Button, LoadingSpinner } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 
-import type { BulkUpdateProgress } from '@domains/tubes/types';
-
 interface TubeBulkProgressModalProps {
   isOpen: boolean;
-  progress: BulkUpdateProgress;
   onClose: () => void;
   canClose: boolean;
-  tubeCount?: number;
+  tubeCount: number;
+  hasErrors: boolean;
 }
 
 export function TubeBulkProgressModal({
   isOpen,
-  progress,
   onClose,
   canClose,
   tubeCount,
+  hasErrors,
 }: TubeBulkProgressModalProps) {
   if (!isOpen) return null;
-
-  const getPhaseLabel = (phase: BulkUpdateProgress['phase']) =>
-    phase === 'preparing' ? 'Preparing updates...' : 'Updating tubes...';
-
-  const getPhaseIcon = (phase: BulkUpdateProgress['phase']) => (
-    <LoadingSpinner
-      size={20}
-      className={phase === 'preparing' ? 'text-info-text' : 'text-primary'}
-    />
-  );
-
-  const isIndeterminate = progress.total === 0;
-  const progressPercentage = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
-  const hasErrors = progress.errors.length > 0;
-  const displayCount = tubeCount ?? progress.total;
 
   return (
     <ModalPortal>
       <div className="fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center z-50 animate-modal-backdrop-in">
         <div className="bg-card rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-border animate-modal-reveal-in">
           <div className="text-center mb-6">
-            <div className="mb-4">{getPhaseIcon(progress.phase)}</div>
+            <div className="mb-4">
+              <LoadingSpinner size={20} className="text-primary" />
+            </div>
 
-            <h3 className="text-lg font-semibold text-card-foreground mb-2">
-              {isIndeterminate
-                ? `Updating ${displayCount} tube${displayCount !== 1 ? 's' : ''}...`
-                : getPhaseLabel(progress.phase)}
+            <h3 className="text-lg font-semibold text-card-foreground">
+              Updating {tubeCount} tube{tubeCount !== 1 ? 's' : ''}...
             </h3>
-
-            {!isIndeterminate && (
-              <div className="text-body-sm text-muted-foreground">
-                {progress.current} of {progress.total} tubes
-                {progress.currentTubeId && (
-                  <div className="text-caption mt-1 text-muted-foreground">
-                    Processing: {progress.currentTubeId}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
-          {!isIndeterminate && (
-            <div className="mb-6">
-              <div className="w-full bg-border rounded-full h-3 mb-2">
-                <div
-                  className="bg-primary h-3 rounded-full transition-all duration-300 ease-out"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-              <div className="text-center text-body-sm text-muted-foreground">
-                {Math.round(progressPercentage)}% complete
-              </div>
-            </div>
-          )}
-
-          {/* Error Summary */}
-          {hasErrors && (
-            <div className="mb-4 p-3 bg-muted border border-danger-border rounded-lg">
-              <div className="flex items-center space-x-2 text-danger-text mb-2">
-                <AlertCircle size={16} />
-                <span className="font-medium text-body-sm">
-                  {progress.errors.length} issue{progress.errors.length > 1 ? 's' : ''} encountered
-                </span>
-              </div>
-              <div className="max-h-20 overflow-y-auto text-caption text-danger-text space-y-1">
-                {progress.errors.slice(0, 3).map((error, index) => (
-                  <div key={index} className="flex items-start space-x-1">
-                    <XCircle size={12} className="mt-0.5 flex-shrink-0" />
-                    <span>
-                      {error.tubeId}: {error.error}
-                    </span>
-                  </div>
-                ))}
-                {progress.errors.length > 3 && (
-                  <div className="text-danger-text italic">
-                    +{progress.errors.length - 3} more errors...
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Close button (only shown when operation is complete) */}
           {canClose && (
             <div className="text-center">
               <Button variant="primary" onClick={onClose}>

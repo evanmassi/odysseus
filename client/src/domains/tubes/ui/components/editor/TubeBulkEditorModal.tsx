@@ -46,7 +46,7 @@ import { useTubeFormOptions } from './useTubeFormOptions';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useTubeFieldResolver';
-import type { BulkUpdateProgress, BulkUpdateResult } from '@domains/tubes/types';
+import type { BulkUpdateResult } from '@domains/tubes/types';
 import type {
   Control,
   UseFormRegister,
@@ -251,12 +251,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
-  const [progress, setProgress] = useState<BulkUpdateProgress>({
-    current: 0,
-    total: 0,
-    phase: 'preparing',
-    errors: [],
-  });
   const [result, setResult] = useState<BulkUpdateResult | null>(null);
   const [dataReady, setDataReady] = useState(false);
 
@@ -429,15 +423,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       const deleteResult = await bulkDeleteMutation.mutateAsync({
         tubeIds,
         location: deleteLocation,
-        onProgress: progress => {
-          setProgress({
-            current: progress.completed,
-            total: progress.total,
-            currentTubeId: progress.currentId,
-            phase: 'updating',
-            errors: [],
-          });
-        },
       });
 
       if (deleteResult.success) {
@@ -687,10 +672,10 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
 
       <TubeBulkProgressModal
         isOpen={showProgress}
-        progress={progress}
         onClose={handleProgressClose}
         canClose={!isSubmitting && result !== null}
         tubeCount={tubeIds.length}
+        hasErrors={result !== null && !result.success}
       />
 
       <ConfirmDialog

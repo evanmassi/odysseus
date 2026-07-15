@@ -4,7 +4,7 @@
  * Paired numeric input + unit selector with scientific notation formatting.
  */
 
-import React, { useRef, useState } from 'react';
+import React from 'react';
 
 import { formatConcentrationDisplay } from '@odysseus/shared-schemas';
 import { AlertCircle, AlertTriangle } from 'lucide-react';
@@ -34,6 +34,8 @@ interface ConcentrationFieldProps {
   className?: string;
   badge?: React.ReactNode;
   hasConflict?: boolean;
+  /** Whether the field differs from its form default (from RHF fieldState), used for the success state. */
+  isDirty?: boolean;
 }
 
 export function TubeConcentrationField({
@@ -48,18 +50,8 @@ export function TubeConcentrationField({
   className = '',
   badge,
   hasConflict = false,
+  isDirty = false,
 }: ConcentrationFieldProps) {
-  // useRef captures initial value on first render only
-  const initialValueRef = useRef<string>(value);
-  const initialUnitRef = useRef<string>(unitValue);
-  const [isDirty, setIsDirty] = useState(false);
-
-  const checkDirty = (newValue: string, newUnit: string) => {
-    const valueChanged = newValue !== initialValueRef.current;
-    const unitChanged = newUnit !== initialUnitRef.current;
-    setIsDirty(valueChanged || unitChanged);
-  };
-
   // Only show success state if user has actually edited the field
   const getInputState = (): InputState => {
     if (validation?.error) return 'error';
@@ -90,11 +82,6 @@ export function TubeConcentrationField({
     }
 
     return inputValue;
-  };
-
-  const handleInputChange = (newValue: string) => {
-    onChange(newValue);
-    checkDirty(newValue, unitValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -129,7 +116,7 @@ export function TubeConcentrationField({
         <Input
           type="text"
           value={value}
-          onValueChange={handleInputChange}
+          onValueChange={onChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
@@ -144,9 +131,7 @@ export function TubeConcentrationField({
             options={UNIT_OPTIONS}
             value={unitValue}
             onChange={newValue => {
-              const newUnit = String(newValue ?? '');
-              onUnitChange(newUnit);
-              checkDirty(value, newUnit);
+              onUnitChange(String(newValue ?? ''));
             }}
             disabled={disabled}
             state={

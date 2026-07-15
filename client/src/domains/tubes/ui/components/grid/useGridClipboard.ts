@@ -9,7 +9,7 @@ import { useCallback, useMemo } from 'react';
 import { tubeDataToCreateRequest } from '@odysseus/shared-schemas';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useStorageData } from '@domains/storage';
+import { useStorageData, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
@@ -230,18 +230,16 @@ export const useGridClipboard = ({
           }
         }
 
-        // 9×9 = 81 is the default grid size when config is unavailable
-        const DEFAULT_GRID_TOTAL = 81;
         const targetTotalPositions = targetGridConfig
           ? targetGridConfig.rows * targetGridConfig.cols
-          : DEFAULT_GRID_TOTAL;
+          : DEFAULT_GRID_CONFIG.rows * DEFAULT_GRID_CONFIG.cols;
 
         pastedSourceTubeIds = [];
 
         if (clipData.selectionMode === 'drag') {
-          const sourceCols = sourceGridConfig?.cols ?? 9;
-          const targetCols = targetGridConfig?.cols ?? 5;
-          const targetRows = targetGridConfig?.rows ?? 5;
+          const sourceCols = sourceGridConfig?.cols ?? DEFAULT_GRID_CONFIG.cols;
+          const targetCols = targetGridConfig?.cols ?? DEFAULT_GRID_CONFIG.cols;
+          const targetRows = targetGridConfig?.rows ?? DEFAULT_GRID_CONFIG.rows;
 
           const posToRowCol = (pos: number, cols: number) => ({
             row: Math.floor((pos - 1) / cols),
