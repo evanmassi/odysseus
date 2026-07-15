@@ -4,7 +4,7 @@
  * Browsable donor reference with searchable table and detail panel.
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
 import { BookUser } from 'lucide-react';
@@ -37,7 +37,7 @@ export function DonorRegistryModal({
   const { user } = useAuthStore();
   const isAdmin = isAdminRole(user?.role);
 
-  const { data: donors = [], isLoading } = useDonorsQuery();
+  const { data: donors = [], isLoading } = useDonorsQuery({ enabled: isOpen });
   const deleteMutation = useDeleteDonorMutation();
 
   const [selectedDonorId, setSelectedDonorId] = useState<string | undefined>();
@@ -53,9 +53,12 @@ export function DonorRegistryModal({
 
   const { data: collectionHistory = [] } = useDonorCollectionHistoryQuery(selectedDonorId);
 
-  // Deep-link: resolve initialDonorId to a donor record
+  // Deep-link: resolve initialDonorId to a donor record once, so a later refetch (new donors
+  // identity) doesn't override a selection the user has since changed.
+  const resolvedDeepLink = useRef<string | undefined>();
   useEffect(() => {
     if (!initialDonorId || donors.length === 0) return;
+    if (resolvedDeepLink.current === initialDonorId) return;
 
     const match = donors.find(d =>
       initialIdType === 'internal'
@@ -64,6 +67,7 @@ export function DonorRegistryModal({
     );
 
     if (match) {
+      resolvedDeepLink.current = initialDonorId;
       setSelectedDonorId(match.id);
     }
   }, [initialDonorId, initialIdType, donors]);

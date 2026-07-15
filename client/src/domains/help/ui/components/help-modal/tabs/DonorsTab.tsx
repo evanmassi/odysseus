@@ -115,8 +115,8 @@ export function DonorsTab() {
             </li>
             <li>
               <span className="text-card-foreground font-medium">Delete donors</span> — removes the
-              donor and all associated collection history. Any tubes referencing this donor will
-              have their donor fields cleared.
+              donor and all associated collection history. Tubes that referenced this donor keep
+              their donor IDs but will no longer resolve to a registry profile.
             </li>
           </ul>
         </HelpSection>

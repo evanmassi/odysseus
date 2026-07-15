@@ -100,10 +100,11 @@ export function AdministrationTab() {
 
       <HelpSection id="admin-catalog">
         <p className="text-body-sm text-muted-foreground">
-          Customize the options available when filling out tube and donor forms — species, source
-          types, media types, and specimen types. You can add new options, rename existing ones, and
-          remove options that are no longer relevant. Before removing an option, the system shows
-          how many records currently use it.
+          Customize the options available across tube, donor, equipment, and supply forms — species,
+          source types, media types, specimen types, equipment maintenance types, and supply
+          vendors, manufacturers, stock units, and properties. You can add new options, rename
+          existing ones, and remove options that are no longer relevant. Before removing an option,
+          the system shows how many records currently use it.
         </p>
       </HelpSection>
 

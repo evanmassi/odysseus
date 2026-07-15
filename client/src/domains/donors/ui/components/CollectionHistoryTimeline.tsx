@@ -55,6 +55,13 @@ export function CollectionHistoryTimeline({
 
   const hasAnyField = !!(newDate || newSpecimenType || newSource);
 
+  const resetAddForm = () => {
+    setIsAdding(false);
+    setNewDate('');
+    setNewSpecimenType('');
+    setNewSource('');
+  };
+
   const handleAdd = () => {
     if (!hasAnyField) return;
 
@@ -67,14 +74,7 @@ export function CollectionHistoryTimeline({
           source: newSource || undefined,
         },
       },
-      {
-        onSuccess: () => {
-          setIsAdding(false);
-          setNewDate('');
-          setNewSpecimenType('');
-          setNewSource('');
-        },
-      }
+      { onSuccess: resetAddForm }
     );
   };
 
@@ -142,7 +142,7 @@ export function CollectionHistoryTimeline({
           onSpecimenTypeChange={setNewSpecimenType}
           onSourceChange={setNewSource}
           onSave={handleAdd}
-          onCancel={() => setIsAdding(false)}
+          onCancel={resetAddForm}
           saveDisabled={!hasAnyField}
           isPending={addMutation.isPending}
         />
