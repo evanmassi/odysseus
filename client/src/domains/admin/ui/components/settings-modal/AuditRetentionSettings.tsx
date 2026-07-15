@@ -19,6 +19,7 @@ import {
 import { auditService } from '@domains/admin/services/AuditService';
 import { logger } from '@infra/logger';
 import { AlertBanner, Button, ConsolePanel, StatCell, STAT_STRIP, Subsection } from '@shared/ui';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { downloadBlob } from '@shared/utils/downloadBlob';
 
 import type { RetentionMetrics, RetentionPolicy } from '@odysseus/shared-schemas';
@@ -103,14 +104,7 @@ export function AuditRetentionSettings({
     }
   };
 
-  const formatDate = (date: Date | null) => {
-    if (!date) return '—';
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+  const formatDate = (date: Date | null) => (date ? formatDateForDisplay(date) : '—');
 
   const formatNumber = (num: number) => {
     return num.toLocaleString();
