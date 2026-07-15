@@ -4,6 +4,9 @@
  * Public exports for all Zod schemas used by both client and server.
  */
 
+// Lets client code type schemas without importing zod directly (only HttpClient may).
+export type { ZodType } from 'zod';
+
 // Tubes
 export {
   CONCENTRATION_UNITS,
