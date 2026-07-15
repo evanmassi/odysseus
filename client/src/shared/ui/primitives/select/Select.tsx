@@ -4,7 +4,16 @@
  * Accessible select dropdown primitive with design system tokens.
  */
 
-import React, { forwardRef, useState, useRef, useCallback, useMemo, useId, useEffect } from 'react';
+import React, {
+  forwardRef,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useId,
+  useEffect,
+  useLayoutEffect,
+} from 'react';
 
 import { cva } from 'class-variance-authority';
 import { createPortal } from 'react-dom';
@@ -380,7 +389,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       });
     }, [maxHeight]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (!isOpen) return;
 
       updateDropdownPosition();
@@ -590,7 +599,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                         role="option"
                         aria-selected={isSelected}
                         aria-disabled={option.disabled}
-                        tabIndex={isHighlighted ? 0 : -1}
+                        tabIndex={isOpen && isHighlighted ? 0 : -1}
                       >
                         {renderOption ? (
                           renderOption(option, { isSelected, isHighlighted })

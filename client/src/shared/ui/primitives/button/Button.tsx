@@ -233,6 +233,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
 
     const renderContent = () => {
       if (iconOnly) {
+        if (isLoading) return <ButtonSpinner size={size} />;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: use first available icon/children
         return leftIcon || children;
       }
@@ -250,7 +251,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
         <>
           {renderLeading()}
           {children && <span>{children}</span>}
-          {rightIcon && !tail && <span className="flex-shrink-0">{rightIcon}</span>}
+          {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
           {tail && !rightIcon && (
             <span
               aria-hidden

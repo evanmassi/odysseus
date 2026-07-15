@@ -4,7 +4,7 @@
  * Three-dot dropdown menu with portal rendering and viewport collision detection.
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 
 import { MoreVertical } from 'lucide-react';
 
@@ -75,7 +75,7 @@ export function OverflowMenu({
     setPlacement({ vertical, horizontal });
   }, [items.length, dividerBefore.length]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen) return;
 
     updatePosition();

@@ -4,7 +4,15 @@
  * Text input with keyboard-navigable dropdown suggestions. Supports free text entry.
  */
 
-import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } from 'react';
+import React, {
+  forwardRef,
+  useState,
+  useRef,
+  useCallback,
+  useId,
+  useEffect,
+  useLayoutEffect,
+} from 'react';
 
 import { createPortal } from 'react-dom';
 
@@ -42,6 +50,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const blurTimerRef = useRef<ReturnType<typeof setTimeout>>();
     const listboxId = useId();
 
     const combinedRef = useMergedRef(ref, inputRef);
@@ -60,7 +69,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
       });
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       if (!shouldShow) return;
 
       updateDropdownPosition();
@@ -71,6 +80,8 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
         window.removeEventListener('resize', updateDropdownPosition);
       };
     }, [shouldShow, updateDropdownPosition]);
+
+    useEffect(() => () => clearTimeout(blurTimerRef.current), []);
 
     useEffect(() => {
       setHighlightedIndex(-1);
@@ -146,6 +157,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
     );
 
     const handleFocus = useCallback(() => {
+      clearTimeout(blurTimerRef.current);
       if (value.length >= MIN_CHARS && options.length > 0) {
         setIsOpen(true);
       }
@@ -154,7 +166,7 @@ export const Autocomplete = forwardRef<AutocompleteRef, AutocompleteProps>(
     const handleBlur = useCallback((e: React.FocusEvent) => {
       const relatedTarget = e.relatedTarget as Node | null;
       if (containerRef.current?.contains(relatedTarget)) return;
-      setTimeout(() => setIsOpen(false), BLUR_CLOSE_DELAY_MS);
+      blurTimerRef.current = setTimeout(() => setIsOpen(false), BLUR_CLOSE_DELAY_MS);
     }, []);
 
     const stateBorder =
