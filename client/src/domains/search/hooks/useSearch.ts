@@ -45,6 +45,8 @@ export function useSearch() {
     query,
     filters,
     isSearching: searchResult.isLoading,
+    // isFetching stays true through refetches that keep placeholder data, where isLoading does not.
+    isFetching: searchResult.isFetching,
     results: formattedResults,
     search: setSearchQuery,
     clear: clearSearch,

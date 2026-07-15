@@ -51,8 +51,6 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType = 'donor';
     } else if (tube.sample.cellType?.toLowerCase().includes(lowerQuery)) {
       groupType = 'cellType';
-    } else if (tube.researcherId?.toLowerCase().includes(lowerQuery)) {
-      groupType = 'researcher';
     } else if (tube.sample.lotNumber?.toLowerCase().includes(lowerQuery)) {
       groupType = 'lotNumber';
     } else if (getMediaString(tube.sample).toLowerCase().includes(lowerQuery)) {

@@ -67,12 +67,15 @@ export const useSearchStore = create<SearchUIStore>((set, get) => ({
       ? currentArray.filter(v => v !== value)
       : [...currentArray, value];
 
-    set({
-      filters: {
-        ...filters,
-        [filterKey]: newArray.length > 0 ? newArray : undefined,
-      },
-    });
+    const nextFilters = { ...filters } as Record<string, string[] | string | undefined>;
+    if (newArray.length > 0) {
+      nextFilters[filterKey] = newArray;
+    } else {
+      // Drop the key entirely; leaving it undefined still counts in Object.keys(filters).length.
+      delete nextFilters[filterKey];
+    }
+
+    set({ filters: nextFilters as SearchFilters });
   },
 
   hasActiveFilters: () => {

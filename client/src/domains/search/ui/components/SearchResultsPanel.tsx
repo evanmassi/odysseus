@@ -21,6 +21,7 @@ import { useUserSettings, useUserLookupQuery } from '@domains/users';
 import { Button, Chip, LoadingSpinner, PanelEmptyState, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { useSearch } from '../../hooks/useSearch';
 import { useSearchStore } from '../../stores/searchStore';
@@ -33,12 +34,14 @@ import type { TubeData } from '@odysseus/shared-schemas';
 interface SearchResultsPanelProps {
   results: DisplayResults | null;
   isSearching?: boolean;
+  isFetching?: boolean;
   onClose?: () => void;
 }
 
 export function SearchResultsPanel({
   results,
   isSearching = false,
+  isFetching = false,
   onClose,
 }: SearchResultsPanelProps) {
   const { navigateToResult } = useSearch();
@@ -179,9 +182,12 @@ export function SearchResultsPanel({
     const tankName = tank?.name ?? `Tank ${tankId}`;
 
     const rack = tank?.racks?.find(r => r.id === rackId);
-    const rackName = rack?.name ?? `Rack ${rackId}`;
+    const rackName = formatStorageDisplayName(rack?.name ?? `Rack ${rackId}`, rack?.customLabel);
 
-    return `${tankName} → ${rackName} → Box ${boxId}`;
+    const box = rack?.boxes?.find(b => b.id === boxId);
+    const boxName = formatStorageDisplayName(box?.name ?? `Box ${boxId}`, box?.customLabel);
+
+    return `${tankName} → ${rackName} → ${boxName}`;
   };
 
   const getResearcherName = (researcherId: string | undefined): string => {
@@ -198,19 +204,6 @@ export function SearchResultsPanel({
       return `${user.lastName}, ${user.firstName}`;
     }
     return user.username;
-  };
-
-  const formatDate = (dateString: string | Date | undefined): string => {
-    if (!dateString) return '';
-    try {
-      const date = dateString instanceof Date ? dateString : new Date(dateString);
-      const month = (date.getMonth() + 1).toString().padStart(2, '0');
-      const day = date.getDate().toString().padStart(2, '0');
-      const year = date.getFullYear();
-      return `${month}/${day}/${year}`;
-    } catch {
-      return typeof dateString === 'string' ? dateString : '';
-    }
   };
 
   const handleExportResults = () => {
@@ -303,7 +296,7 @@ export function SearchResultsPanel({
           tube.sample.donorInternalId ?? '',
           tube.sample.donorSourceId ?? '',
           formatConcentrationDisplay(tube.sample.concentration, tube.sample.concentrationUnit),
-          formatDate(tube.sample.date),
+          formatDateForDisplay(tube.sample.date),
           tube.sample.lotNumber ?? '',
           tube.sample.source ?? '',
           tube.sample.catalogNumber ?? '',
@@ -317,8 +310,8 @@ export function SearchResultsPanel({
           tube.isLocked ? 'Yes' : 'No',
           getUserDisplayName(tube.lockedBy),
           tube.lockNote ?? '',
-          formatDate(tube.timestamps.createdAt),
-          formatDate(tube.timestamps.updatedAt),
+          formatDateForDisplay(tube.timestamps.createdAt),
+          formatDateForDisplay(tube.timestamps.updatedAt),
         ];
 
         return values.map(escapeCsvValue).join(',');
@@ -455,7 +448,7 @@ export function SearchResultsPanel({
 
   return (
     <div className="flex-1 max-h-[600px] overflow-hidden relative flex flex-col">
-      {isSearching && (
+      {isFetching && (
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
           <div className="flex items-center border border-line-soft bg-card px-3 py-1 shadow-[0_8px_20px_-12px_hsl(var(--recess)/0.7)]">
             <LoadingSpinner size={12} className="text-primary" />
@@ -498,7 +491,7 @@ export function SearchResultsPanel({
                 const donorInternal = firstTube.sample?.donorInternalId ?? '';
                 const donorSource = firstTube.sample?.donorSourceId ?? '';
                 const lotNumber = firstTube.sample?.lotNumber ?? '';
-                const date = formatDate(firstTube.sample?.date);
+                const date = formatDateForDisplay(firstTube.sample?.date);
                 const researcherName = getResearcherName(firstTube.researcherId);
                 const location = getDisplayLocation(group.primaryLocation);
 

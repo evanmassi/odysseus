@@ -29,7 +29,7 @@ const ICON_BTN_CHAMFER: React.CSSProperties = {
 };
 
 export function SearchPanel() {
-  const { query, filters, results, isSearching, search, clear, refetch } = useSearch();
+  const { query, filters, results, isSearching, isFetching, search, clear, refetch } = useSearch();
   const resolvedTheme = useResolvedTheme();
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -127,7 +127,7 @@ export function SearchPanel() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 'f') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
@@ -244,6 +244,7 @@ export function SearchPanel() {
                 <SearchResultsPanel
                   results={results}
                   isSearching={isSearching}
+                  isFetching={isFetching}
                   onClose={closeDropdown}
                 />
               </div>
