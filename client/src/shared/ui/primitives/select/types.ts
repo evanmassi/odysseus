@@ -4,7 +4,7 @@
 
 import type { ReactNode } from 'react';
 
-type SelectSize = 'xs' | 'sm' | 'md' | 'lg';
+type SelectSize = 'xs' | 'sm' | 'md';
 
 type SelectState = 'default' | 'error' | 'warning' | 'success';
 
@@ -18,52 +18,21 @@ export interface SelectOption {
 }
 
 export interface SelectProps {
-  // Options
   options: SelectOption[];
-  value?: string | number | (string | number)[];
-  defaultValue?: string | number | (string | number)[];
-
-  // Behavior
-  multiple?: boolean;
-  searchable?: boolean;
+  value?: string | number | null;
   clearable?: boolean;
   disabled?: boolean;
-  isLoading?: boolean;
-
-  // Appearance
   size?: SelectSize;
   state?: SelectState;
   placeholder?: string;
   fullWidth?: boolean;
-
-  // Label and description
   label?: string;
-  description?: string;
   /** Also sets error validation state */
   error?: string;
-  warning?: string;
-  success?: string;
-
-  // Event handlers
-  onChange?: (value: string | number | (string | number)[] | null) => void;
-  onSearch?: (query: string) => void;
-  onOpen?: () => void;
-  onClose?: () => void;
-
-  // Accessibility
+  onChange?: (value: string | number | null) => void;
   'aria-label'?: string;
-  'aria-describedby'?: string;
-
-  // Styling
+  'aria-labelledby'?: string;
   className?: string;
-
-  // Advanced
-  /** Max height of dropdown in pixels */
-  maxHeight?: number;
-  /** Default: true for single, false for multi */
-  closeOnSelect?: boolean;
-
-  // Custom rendering
   renderOption?: (
     option: SelectOption,
     state: { isSelected: boolean; isHighlighted: boolean }
@@ -76,12 +45,8 @@ export type SelectRef = HTMLDivElement;
 export const defaultSelectProps = {
   size: 'md',
   state: 'default',
-  multiple: false,
-  searchable: false,
   clearable: false,
   disabled: false,
-  isLoading: false,
   fullWidth: false,
   placeholder: 'Select an option...',
-  maxHeight: 240,
 } satisfies Partial<SelectProps>;
