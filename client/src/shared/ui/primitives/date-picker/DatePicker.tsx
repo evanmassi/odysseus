@@ -163,6 +163,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const dayRef = useRef<HTMLSpanElement>(null);
   const yearRef = useRef<HTMLSpanElement>(null);
   const justCommittedRef = useRef(false);
+  const segmentsRef = useRef(segments);
+  segmentsRef.current = segments;
 
   const segmentRefs = useMemo(() => ({ month: monthRef, day: dayRef, year: yearRef }), []);
 
@@ -181,7 +183,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     setIsOpen(true);
   }, [disabled, updatePosition]);
 
-  const close = useCallback(() => setIsOpen(false), []);
+  const close = useCallback(() => {
+    setIsOpen(false);
+    triggerRef.current?.focus();
+  }, []);
 
   const commitSegments = useCallback(
     (segs: { month: string; day: string; year: string }) => {
@@ -191,11 +196,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
       if (m && d && y) {
         m = Math.min(Math.max(m, 1), 12);
-        const maxDay = new Date(y, m, 0).getDate();
+        const yy = Math.min(Math.max(y, SEGMENT_MIN.year), SEGMENT_MAX.year);
+        const maxDay = new Date(yy, m, 0).getDate();
         d = Math.min(Math.max(d, 1), maxDay);
 
         justCommittedRef.current = true;
-        onChange?.(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+        onChange?.(`${yy}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
       }
       setIsEditing(false);
       setActiveSegment(null);
@@ -219,6 +225,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       setIsOpen(false);
       setIsEditing(false);
       setActiveSegment(null);
+      triggerRef.current?.focus();
     },
     [onChange]
   );
@@ -236,27 +243,24 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const processDigit = useCallback(
     (segment: Segment, digit: string) => {
       const idx = SEGMENT_ORDER.indexOf(segment);
+      const prev = segmentsRef.current;
+      const current = prev[segment];
+      const maxLen = segment === 'year' ? 4 : 2;
 
-      setSegments(prev => {
-        const current = prev[segment];
-        const maxLen = segment === 'year' ? 4 : 2;
+      // Start fresh if segment is full
+      const next = current.length >= maxLen ? digit : current + digit;
+      const advance = shouldAutoAdvance(segment, next);
+      const updated = { ...prev, [segment]: advance ? padSegmentForAdvance(segment, next) : next };
 
-        // Start fresh if segment is full
-        const next = current.length >= maxLen ? digit : current + digit;
-        const updated = { ...prev, [segment]: next };
+      setSegments(updated);
 
-        if (shouldAutoAdvance(segment, next)) {
-          updated[segment] = padSegmentForAdvance(segment, next);
-
-          if (idx < SEGMENT_ORDER.length - 1) {
-            setTimeout(() => setActiveSegment(SEGMENT_ORDER[idx + 1]), 0);
-          } else {
-            setTimeout(() => commitSegments(updated), 0);
-          }
+      if (advance) {
+        if (idx < SEGMENT_ORDER.length - 1) {
+          setActiveSegment(SEGMENT_ORDER[idx + 1]);
+        } else {
+          commitSegments(updated);
         }
-
-        return updated;
-      });
+      }
     },
     [commitSegments]
   );
@@ -461,6 +465,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             e.preventDefault();
             if (isOpen) close();
             else startEditing('month');
+          } else if (e.key === 'ArrowDown' && !isOpen) {
+            e.preventDefault();
+            openCalendar();
           } else if (e.key === 'Escape' && isOpen) {
             e.preventDefault();
             close();
@@ -515,57 +522,65 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         </div>
       </div>
 
-      {createPortal(
-        <div
-          ref={dropdownRef}
-          id={dialogId}
-          className={`fixed z-[9999] border border-line-mid bg-card p-3 ${POPUP_SHADOW} ${
-            isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-          }`}
-          role="presentation"
-          onMouseDown={e => e.stopPropagation()}
-          style={{
-            top: dropdownPosition.top,
-            left: dropdownPosition.left,
-          }}
-        >
-          <DayPicker
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleSelect}
-            defaultMonth={selectedDate}
-            classNames={{
-              root: 'text-foreground font-mono',
-              months: 'flex',
-              month: 'space-y-3',
-              month_caption: 'flex justify-center items-center h-8',
-              caption_label: 'type-label text-label-xs text-foreground/85',
-              nav: 'flex items-center justify-between absolute inset-x-0 top-0 px-1 h-8',
-              button_previous: NAV_BUTTON,
-              button_next: NAV_BUTTON,
-              month_grid: 'border-collapse',
-              weekdays: '',
-              weekday:
-                'type-label text-label-2xs text-muted-foreground/70 w-8 h-8 pb-1 border-b border-line-faint',
-              weeks: '',
-              week: '',
-              day: 'text-center p-0',
-              day_button:
-                'w-8 h-8 text-data font-mono text-foreground transition-colors hover:bg-foreground/5 dark:hover:[text-shadow:0_0_6px_color-mix(in_srgb,currentColor_60%,transparent)] focus:outline-none focus-visible:[box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.5)]',
-              selected:
-                'bg-primary/20 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.7)] hover:bg-primary/25',
-              today:
-                'text-primary [text-decoration:underline] [text-decoration-thickness:1px] [text-underline-offset:3px]',
-              outside: 'text-muted-foreground opacity-30',
-              disabled: 'text-muted-foreground opacity-30 cursor-not-allowed',
-              // fill-current — react-day-picker's Chevron polygons ship without an explicit
-              // fill attribute, so without this they render in SVG's default (black).
-              chevron: 'w-4 h-4 fill-current',
+      {isOpen &&
+        createPortal(
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- a dialog must close on Escape
+          <div
+            ref={dropdownRef}
+            id={dialogId}
+            className={`fixed z-[9999] border border-line-mid bg-card p-3 ${POPUP_SHADOW}`}
+            role="dialog"
+            aria-label="Choose date"
+            onKeyDown={e => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                close();
+              }
             }}
-          />
-        </div>,
-        document.body
-      )}
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+            }}
+          >
+            <DayPicker
+              // eslint-disable-next-line jsx-a11y/no-autofocus -- moves focus into the dialog on open
+              autoFocus
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleSelect}
+              defaultMonth={selectedDate}
+              classNames={{
+                root: 'text-foreground font-mono',
+                months: 'flex',
+                month: 'space-y-3',
+                month_caption: 'flex justify-center items-center h-8',
+                caption_label: 'type-label text-label-xs text-foreground/85',
+                nav: 'flex items-center justify-between absolute inset-x-0 top-0 px-1 h-8',
+                button_previous: NAV_BUTTON,
+                button_next: NAV_BUTTON,
+                month_grid: 'border-collapse',
+                weekdays: '',
+                weekday:
+                  'type-label text-label-2xs text-muted-foreground/70 w-8 h-8 pb-1 border-b border-line-faint',
+                weeks: '',
+                week: '',
+                day: 'text-center p-0',
+                day_button:
+                  'w-8 h-8 text-data font-mono text-foreground transition-colors hover:bg-foreground/5 dark:hover:[text-shadow:0_0_6px_color-mix(in_srgb,currentColor_60%,transparent)] focus:outline-none focus-visible:[box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.5)]',
+                selected:
+                  'bg-primary/20 text-foreground phosphor-text [box-shadow:inset_0_0_0_1px_hsl(var(--primary)/0.7)] hover:bg-primary/25',
+                today:
+                  'text-primary [text-decoration:underline] [text-decoration-thickness:1px] [text-underline-offset:3px]',
+                outside: 'text-muted-foreground opacity-30',
+                disabled: 'text-muted-foreground opacity-30 cursor-not-allowed',
+                // fill-current — react-day-picker's Chevron polygons ship without an explicit
+                // fill attribute, so without this they render in SVG's default (black).
+                chevron: 'w-4 h-4 fill-current',
+              }}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
