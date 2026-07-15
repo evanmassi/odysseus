@@ -261,6 +261,7 @@ export function EquipmentTab() {
               <button
                 type="button"
                 onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+                aria-label={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'}
                 className="rounded p-1 text-secondary-foreground transition-colors hover:bg-secondary hover:text-accent-foreground"
               >
                 {sortDirection === 'asc' ? (

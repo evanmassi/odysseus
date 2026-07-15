@@ -5,7 +5,7 @@
  * dropdowns, packaging hierarchy management, and multi-select properties.
  */
 
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createSupplyItemRequestSchema } from '@odysseus/shared-schemas';
@@ -97,12 +97,18 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
 
   const [newLevelQty, setNewLevelQty] = useState('');
   const [newLevelUnit, setNewLevelUnit] = useState('');
-  const [newLevelParent, setNewLevelParent] = useState<string | null>(null);
+  // '__base__' = parent to the base item, '' = unset (defaults to the top of the chain), else a unit.
+  const [newLevelParent, setNewLevelParent] = useState('');
   const [manufacturerBarcode, setManufacturerBarcode] = useState('');
   const [manufacturerBarcodeLabel, setManufacturerBarcodeLabel] = useState('');
   const [thresholdInputQty, setThresholdInputQty] = useState('');
+  // Stop the initializer below from overwriting the field once the user has edited it — otherwise
+  // adding a packaging level (which changes packagingLevels) resets the display to the stored value
+  // while the form still holds the user's number.
+  const thresholdUserEdited = useRef(false);
 
   useEffect(() => {
+    if (thresholdUserEdited.current) return;
     if (!isEditing || item?.reorderThreshold == null) return;
     if (!item.reorderThresholdUnit || item.reorderThresholdUnit === item.stockUnit) {
       setThresholdInputQty(String(item.reorderThreshold));
@@ -226,7 +232,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     const qty = Number(newLevelQty);
     if (!newLevelUnit || qty <= 0) return;
 
-    const resolvedParent = newLevelParent ?? topOfChain;
+    const resolvedParent = newLevelParent === '__base__' ? null : newLevelParent || topOfChain;
     const addedUnit = newLevelUnit;
     if (isEditing && item) {
       addPackagingMutation.mutate(
@@ -535,8 +541,9 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
               <div className="flex-1">
                 <Select
                   options={parentOptions}
-                  value={newLevelParent ?? topOfChain ?? '__base__'}
-                  onChange={v => setNewLevelParent(v === '__base__' ? null : String(v ?? ''))}
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- '' means unset and must fall through to the default
+                  value={newLevelParent || topOfChain || '__base__'}
+                  onChange={v => setNewLevelParent(String(v ?? ''))}
                   size="sm"
                   fullWidth
                   aria-label="Contents"
@@ -627,6 +634,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                 type="number"
                 value={thresholdInputQty}
                 onValueChange={v => {
+                  thresholdUserEdited.current = true;
                   setThresholdInputQty(v);
                   const qty = v === '' ? undefined : Number(v);
                   const multiplier = thresholdUnit

@@ -36,8 +36,8 @@ export function SupplyItemRow({ item, isSelected, onSelect }: SupplyItemRowProps
   const stockColor = getStockChipColor(item.totalStock, item.reorderThreshold);
   const statusInfo = SUPPLY_STATUS_DISPLAY[item.status];
 
-  // The low-stock triangle (and the warning/danger line tone) only show when the
-  // item is actually at or below reorder — a healthy stock reads as active.
+  // The triangle warns early — from twice the reorder threshold down — so stock is flagged
+  // before it actually hits reorder; the tooltip distinguishes "running low" from "low stock".
   const isUrgent = !isArchived && (stockColor === 'danger' || stockColor === 'warning');
   const statusTone: ItemRowStatusTone = isArchived
     ? 'muted'

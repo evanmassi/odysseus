@@ -236,6 +236,7 @@ export function usePrintTabState(
         return;
       }
       setPrintableLabels(labels);
+      setIsLoading(false);
       setIsPreviewOpen(true);
     } catch {
       notifications.error('Failed to fetch barcodes');

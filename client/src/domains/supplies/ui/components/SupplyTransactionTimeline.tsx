@@ -133,7 +133,8 @@ function TransactionEntry({
   const hasDetails = !!(
     transaction.lotNumber ||
     transaction.poNumber ||
-    transaction.cost ||
+    transaction.expirationDate ||
+    transaction.cost !== undefined ||
     transaction.notes ||
     transaction.voidReason
   );

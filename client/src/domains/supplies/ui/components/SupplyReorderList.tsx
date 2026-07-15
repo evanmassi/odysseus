@@ -6,8 +6,10 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
+import { isAdminRole } from '@odysseus/shared-schemas';
 import { Download, ShoppingCart } from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication';
 import { httpClient } from '@infra/api';
 import { Button, Table } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
@@ -39,6 +41,9 @@ interface SupplyReorderListProps {
 }
 
 export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListProps) {
+  const { user } = useAuthStore();
+  const isAdmin = isAdminRole(user?.role);
+
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     columnId: 'totalStock',
     direction: 'asc',
@@ -190,7 +195,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
         density="compact"
         className="text-data"
         toolbar={{
-          right: (
+          right: isAdmin ? (
             <Button
               variant="secondary"
               size="sm"
@@ -199,7 +204,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
             >
               Export CSV
             </Button>
-          ),
+          ) : undefined,
         }}
         aria-label="Reorder list"
       />

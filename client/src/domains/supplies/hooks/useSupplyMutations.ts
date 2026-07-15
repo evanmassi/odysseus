@@ -318,6 +318,9 @@ export function useRecordSupplyTransactionMutation() {
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.reorderList(labId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.transactions(labId, data.itemId),
+      });
     },
   });
 }
@@ -334,6 +337,9 @@ export function useRecordSupplyStockCountMutation() {
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.items(labId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.supplies.reorderList(labId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.supplies.transactions(labId, data.itemId),
+      });
     },
   });
 }
