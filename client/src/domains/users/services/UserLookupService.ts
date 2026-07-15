@@ -7,18 +7,16 @@ import { usersLookupListSchema, type UserDisplayInfo } from '@odysseus/shared-sc
 
 import { httpClient } from '@infra/api';
 
-class UserLookupService {
-  async lookupUsers(userIds: string[]): Promise<UserDisplayInfo[]> {
+export class UserLookupService {
+  static async lookupUsers(userIds: string[]): Promise<UserDisplayInfo[]> {
     if (userIds.length === 0) return [];
 
     const data = await httpClient.postData('/users/lookup', { userIds }, usersLookupListSchema);
     return data.users;
   }
 
-  async listActiveUsers(): Promise<UserDisplayInfo[]> {
+  static async listActiveUsers(): Promise<UserDisplayInfo[]> {
     const data = await httpClient.getData('/users/list', usersLookupListSchema);
     return data.users;
   }
 }
-
-export const userLookupService = new UserLookupService();

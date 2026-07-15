@@ -7,13 +7,13 @@ import { userSettingsDataSchema, type UserSettings } from '@odysseus/shared-sche
 
 import { httpClient } from '@infra/api';
 
-class UserSettingsService {
-  async getUserSettings(): Promise<UserSettings> {
+export class UserSettingsService {
+  static async getUserSettings(): Promise<UserSettings> {
     const data = await httpClient.getData('/users/me/settings', userSettingsDataSchema);
     return data.settings;
   }
 
-  async updateUserSettings(settings: UserSettings): Promise<UserSettings> {
+  static async updateUserSettings(settings: UserSettings): Promise<UserSettings> {
     const data = await httpClient.putData(
       '/users/me/settings',
       { settings },
@@ -22,5 +22,3 @@ class UserSettingsService {
     return data.settings;
   }
 }
-
-export const userSettingsService = new UserSettingsService();

@@ -9,7 +9,7 @@ import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
 import { MS_PER_MINUTE } from '@shared/utils';
 
-import { userLookupService } from '../services/UserLookupService';
+import { UserLookupService } from '../services/UserLookupService';
 
 export function useActiveUsersQuery() {
   const labId = useLabId();
@@ -17,7 +17,7 @@ export function useActiveUsersQuery() {
   return useQuery({
     queryKey: queryKeys.users.list(labId),
     enabled: !!labId,
-    queryFn: () => userLookupService.listActiveUsers(),
+    queryFn: () => UserLookupService.listActiveUsers(),
     staleTime: 5 * MS_PER_MINUTE,
     gcTime: 30 * MS_PER_MINUTE,
   });
