@@ -8,40 +8,23 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
-import { isConflictError, isOfflineError } from '@infra/api';
-import { logger } from '@infra/logger';
+import { isConflictError } from '@infra/api';
 import { notifications } from '@shared/utils/notifications';
 
 import { StorageService } from '../services/StorageService';
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';
 
-function handleConflictError(
+// Layout writes toast their errors through the global handler. The only local reaction is refetching
+// the layout on a 409, so the next edit starts from whatever another user just changed.
+function invalidateOnConflict(
   queryClient: ReturnType<typeof useQueryClient>,
-  labId: string | undefined,
-  operation: string
-): void {
-  notifications.error(
-    `${operation} failed: Configuration was modified by another user. Please review the latest changes and try again.`
-  );
-  void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
-}
-
-function createMutationErrorHandler(
-  queryClient: ReturnType<typeof useQueryClient>,
-  labId: string | undefined,
-  operation: string,
-  errorLabel: string
+  labId: string | undefined
 ) {
   return (error: unknown) => {
-    if (isOfflineError(error)) return;
     if (isConflictError(error)) {
-      handleConflictError(queryClient, labId, operation);
-      return;
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
     }
-    logger.error(`${operation} failed`, { error });
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    notifications.error(`${errorLabel}: ${message}`);
   };
 }
 
@@ -58,7 +41,7 @@ export const useAddTankMutation = () => {
       notifications.success(`Tank "${variables.name}" added successfully`);
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Add tank', 'Failed to add tank'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -81,7 +64,7 @@ export const useUpdateTankMutation = () => {
       notifications.success('Tank updated successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Update tank', 'Failed to update tank'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -99,7 +82,7 @@ export const useDeleteTankMutation = () => {
       notifications.success('Tank deleted successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Delete tank', 'Failed to delete tank'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -121,7 +104,7 @@ export const useAddRacksMutation = () => {
       notifications.success(message);
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Add rack(s)', 'Failed to add rack(s)'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -146,7 +129,7 @@ export const useUpdateRackMutation = () => {
       notifications.success('Rack updated successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Update rack', 'Failed to update rack'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -165,7 +148,7 @@ export const useDeleteRackMutation = () => {
       notifications.success('Rack deleted successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Delete rack', 'Failed to delete rack'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -192,7 +175,7 @@ export const useAssignRackMutation = () => {
       );
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Assign rack', 'Failed to assign rack'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -214,7 +197,7 @@ export const useAddBoxesMutation = () => {
       notifications.success(message);
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Add box(es)', 'Failed to add box(es)'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -241,7 +224,7 @@ export const useUpdateBoxMutation = () => {
       notifications.success('Box updated successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Update box', 'Failed to update box'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -260,7 +243,7 @@ export const useDeleteBoxMutation = () => {
       notifications.success('Box deleted successfully');
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Delete box', 'Failed to delete box'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -289,7 +272,7 @@ export const useAssignBoxMutation = () => {
       );
     },
 
-    onError: createMutationErrorHandler(queryClient, labId, 'Assign box', 'Failed to assign box'),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -315,12 +298,7 @@ export const useBulkUnassignMutation = () => {
       }
     },
 
-    onError: createMutationErrorHandler(
-      queryClient,
-      labId,
-      'Bulk unassign',
-      'Failed to unassign resources'
-    ),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -345,12 +323,7 @@ export const useBulkReassignMutation = () => {
       }
     },
 
-    onError: createMutationErrorHandler(
-      queryClient,
-      labId,
-      'Bulk reassign',
-      'Failed to reassign resources'
-    ),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -378,12 +351,7 @@ export const useInitializeConfigurationMutation = () => {
       notifications.success('Lab configuration initialized successfully');
     },
 
-    onError: createMutationErrorHandler(
-      queryClient,
-      labId,
-      'Initialize configuration',
-      'Failed to initialize configuration'
-    ),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
 
@@ -413,11 +381,6 @@ export const useUpdateResourceLabelMutation = () => {
       });
     },
 
-    onError: createMutationErrorHandler(
-      queryClient,
-      labId,
-      'Update label',
-      'Failed to update label'
-    ),
+    onError: invalidateOnConflict(queryClient, labId),
   });
 };
