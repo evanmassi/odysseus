@@ -8,6 +8,7 @@
 
 import type {
   AdvancedSearchOptions,
+  AuditLogFilters,
   LookupCategory,
   TubeFilterableField,
 } from '@odysseus/shared-schemas';
@@ -44,6 +45,9 @@ export const queryKeys = {
     securityConfig: () => ['admin', 'securityConfig'] as const,
     versionInfo: () => ['admin', 'versionInfo'] as const,
     metrics: (labId = '') => [...queryKeys.admin.all(labId), 'metrics'] as const,
+    auditLog: (labId: string, filters: AuditLogFilters, includeArchive: boolean) =>
+      ['admin', 'auditLog', labId, filters, includeArchive] as const,
+    auditRetention: () => ['admin', 'auditRetention'] as const,
   },
 
   // Tubes (lab-scoped)

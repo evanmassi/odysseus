@@ -3,7 +3,7 @@
  *
  * Admin controls for retention policy, metrics, and manual archival.
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import {
   RefreshCw,
@@ -20,10 +20,11 @@ import { logger } from '@infra/logger';
 import { AlertBanner, Button, ConsolePanel, StatCell, STAT_STRIP, Subsection } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { downloadBlob } from '@shared/utils/downloadBlob';
+import { getErrorMessage } from '@shared/utils/getErrorMessage';
 
+import { useAuditRetentionQuery } from '../../../hooks/useAuditRetentionQuery';
+import { useRunManualArchivalMutation } from '../../../hooks/useRunManualArchivalMutation';
 import { auditService } from '../../../services/AuditService';
-
-import type { RetentionMetrics, RetentionPolicy } from '@odysseus/shared-schemas';
 
 const STATUS_CONFIG = {
   healthy: { icon: CheckCircle, label: 'Healthy', textClass: 'text-success-text' },
@@ -39,68 +40,41 @@ export function AuditRetentionSettings({
   defaultCollapsed = true,
   isDemo,
 }: AuditRetentionSettingsProps) {
-  const [metrics, setMetrics] = useState<RetentionMetrics | null>(null);
-  const [policy, setPolicy] = useState<RetentionPolicy | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [archiving, setArchiving] = useState(false);
+  const retentionQuery = useAuditRetentionQuery();
+  const metrics = retentionQuery.data?.metrics ?? null;
+  const policy = retentionQuery.data?.policy ?? null;
+  const loading = retentionQuery.isFetching;
+
+  const archivalMutation = useRunManualArchivalMutation();
   const [archiveResult, setArchiveResult] = useState<{ archived: number; deleted: number } | null>(
     null
   );
+  const [exportError, setExportError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // One inline banner across loads, archival, and export; each error source is mutually exclusive.
+  const error =
+    exportError ??
+    (retentionQuery.isError ? getErrorMessage(retentionQuery.error) : null) ??
+    (archivalMutation.isError ? getErrorMessage(archivalMutation.error) : null);
 
-      const [metricsResult, policyResult] = await Promise.all([
-        auditService.getRetentionMetrics(),
-        auditService.getRetentionPolicy(),
-      ]);
-
-      setMetrics(metricsResult);
-      setPolicy(policyResult);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load retention data');
-      logger.error('Failed to load retention data', { err });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadData();
-  }, []);
-
-  const runArchival = async () => {
-    try {
-      setArchiving(true);
-      setArchiveResult(null);
-      setError(null);
-
-      const result = await auditService.runManualArchival();
-      setArchiveResult({
-        archived: result.archived,
-        deleted: result.deleted,
-      });
-
-      // Reload metrics after archival
-      await loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to run archival');
-      logger.error('Failed to run archival', { err });
-    } finally {
-      setArchiving(false);
-    }
+  const runArchival = () => {
+    setArchiveResult(null);
+    setExportError(null);
+    archivalMutation.mutate(undefined, {
+      onSuccess: result => {
+        setArchiveResult({ archived: result.archived, deleted: result.deleted });
+      },
+    });
   };
 
   const exportArchive = async () => {
+    setExportError(null);
     try {
       const blob = await auditService.exportArchivedLogs();
       downloadBlob(blob, `audit-archive-${new Date().toISOString().split('T')[0]}.json`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to export archive');
+      setExportError(err instanceof Error ? err.message : 'Failed to export archive');
       logger.error('Failed to export archive', { err });
     }
   };
@@ -200,7 +174,7 @@ export function AuditRetentionSettings({
         <Button
           variant="secondary"
           size="xs"
-          onClick={() => void loadData()}
+          onClick={() => retentionQuery.refetch()}
           isLoading={loading}
           leftIcon={<RefreshCw size={12} />}
         >
@@ -351,7 +325,7 @@ export function AuditRetentionSettings({
                 variant="primary"
                 size="xs"
                 onClick={runArchival}
-                isLoading={archiving}
+                isLoading={archivalMutation.isPending}
                 disabled={isDemo}
                 loadingText="Running Archival..."
                 leftIcon={<Archive size={12} />}

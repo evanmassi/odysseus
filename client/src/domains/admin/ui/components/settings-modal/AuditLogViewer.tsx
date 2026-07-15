@@ -3,7 +3,7 @@
  *
  * Paginated audit log table with filtering and archive search
  */
-import { useState, useEffect, useCallback, createElement } from 'react';
+import { useState, useCallback, createElement } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import {
@@ -24,16 +24,15 @@ import {
   Droplet,
 } from 'lucide-react';
 
-import { logger } from '@infra/logger';
 import { Button, Table, Tooltip } from '@shared/ui';
+import { getErrorMessage } from '@shared/utils/getErrorMessage';
 
-import { auditService } from '../../../services/AuditService';
-import { labService } from '../../../services/LabService';
+import { useAuditLogQuery } from '../../../hooks/useAuditLogQuery';
 import { formatAuditDetails } from '../../../utils/auditLogFormatters';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
-import type { AuditLogEntry, AuditLogFilters, Pagination } from '@odysseus/shared-schemas';
+import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { TableColumn } from '@shared/ui';
 
 const ACTION_LABEL_OVERRIDES: Record<string, string> = {
@@ -120,47 +119,26 @@ export function AuditLogViewer({
   readOnly,
   hideHeader = false,
 }: AuditLogViewerProps) {
-  const [entries, setEntries] = useState<AuditLogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [filters, setFilters] = useState<AuditLogFilters>({
     limit: 50,
     offset: 0,
     ...initialFilters,
   });
 
-  const [pagination, setPagination] = useState<Pagination>({
-    total: 0,
-    limit: 50,
-    offset: 0,
-    hasMore: false,
-  });
-
   const [showFilters, setShowFilters] = useState(false);
   const [filterState, setFilterState] = useState<AuditFilterState>({});
   const [includeArchive, setIncludeArchive] = useState(false);
 
-  const loadAuditLog = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = labId
-        ? await labService.getLabAuditLog(labId, filters, includeArchive)
-        : await auditService.searchAuditLogs(filters, includeArchive);
-      setEntries(result.entries);
-      setPagination(result.pagination);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load audit log');
-      logger.error('Failed to load audit log', { err });
-    } finally {
-      setLoading(false);
-    }
-  }, [filters, includeArchive, labId]);
-
-  useEffect(() => {
-    void loadAuditLog();
-  }, [loadAuditLog]);
+  const query = useAuditLogQuery(labId, filters, includeArchive);
+  const entries = query.data?.entries ?? [];
+  const pagination = query.data?.pagination ?? {
+    total: 0,
+    limit: filters.limit ?? 50,
+    offset: filters.offset ?? 0,
+    hasMore: false,
+  };
+  const loading = query.isFetching;
+  const error = query.isError ? getErrorMessage(query.error) : null;
 
   const handleFilterChange = useCallback(
     (newFilterState: AuditFilterState) => {
@@ -419,7 +397,7 @@ export function AuditLogViewer({
           <Button
             variant="secondary"
             size="xs"
-            onClick={loadAuditLog}
+            onClick={() => query.refetch()}
             leftIcon={<RefreshCw size={12} />}
           >
             Refresh
