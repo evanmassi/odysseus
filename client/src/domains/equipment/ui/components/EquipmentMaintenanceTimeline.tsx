@@ -52,15 +52,19 @@ export function EquipmentMaintenanceTimeline({
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const deleteMutation = useDeleteEquipmentMaintenanceEntryMutation();
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!pendingDeleteId) return;
-    try {
-      await deleteMutation.mutateAsync({ itemId, entryId: pendingDeleteId });
-      notifications.success('Maintenance entry removed');
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
-    setPendingDeleteId(null);
+    deleteMutation.mutate(
+      { itemId, entryId: pendingDeleteId },
+      {
+        onSuccess: () => {
+          notifications.success('Maintenance entry removed');
+        },
+        onSettled: () => {
+          setPendingDeleteId(null);
+        },
+      }
+    );
   };
 
   const toggleExpand = (id: string) => {

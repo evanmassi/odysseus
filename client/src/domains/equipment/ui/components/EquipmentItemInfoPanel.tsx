@@ -131,24 +131,27 @@ export function EquipmentItemInfoPanel({
   const hasProcurement =
     item.purchaseCost != null || Boolean(item.purchaseDate) || Boolean(item.warrantyExpiration);
 
-  const handleDelete = async () => {
-    try {
-      await deleteItemMutation.mutateAsync(itemId);
-      notifications.success('Equipment removed');
-      onDeleted();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
-    setShowDeleteConfirm(false);
+  const handleDelete = () => {
+    deleteItemMutation.mutate(itemId, {
+      onSuccess: () => {
+        notifications.success('Equipment removed');
+        onDeleted();
+      },
+      onSettled: () => {
+        setShowDeleteConfirm(false);
+      },
+    });
   };
 
-  const handleRemoveDocument = async (docId: string) => {
-    try {
-      await removeDocumentMutation.mutateAsync({ itemId, docId });
-      notifications.success('Document removed');
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+  const handleRemoveDocument = (docId: string) => {
+    removeDocumentMutation.mutate(
+      { itemId, docId },
+      {
+        onSuccess: () => {
+          notifications.success('Document removed');
+        },
+      }
+    );
   };
 
   const handleSaveDocument = async (values: DocumentLinkValues) => {

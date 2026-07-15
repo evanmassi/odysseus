@@ -55,7 +55,7 @@ export function EquipmentMaintenanceForm({
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(
       isEditing
@@ -76,25 +76,27 @@ export function EquipmentMaintenanceForm({
       : {},
   });
 
-  const onFormSubmit = async (data: FieldValues) => {
-    try {
-      if (isEditing) {
-        await updateMutation.mutateAsync({
-          itemId,
-          entryId: entry.id,
-          data: data as UpdateEquipmentMaintenanceLogRequest,
-        });
-        notifications.success('Maintenance entry updated');
-      } else {
-        await addMutation.mutateAsync({
-          itemId,
-          data: data as CreateEquipmentMaintenanceLogRequest,
-        });
-        notifications.success('Maintenance entry added');
-      }
-      onSubmit();
-    } catch {
-      // Global mutation handler shows the error toast.
+  const onFormSubmit = (data: FieldValues) => {
+    if (isEditing) {
+      updateMutation.mutate(
+        { itemId, entryId: entry.id, data: data as UpdateEquipmentMaintenanceLogRequest },
+        {
+          onSuccess: () => {
+            notifications.success('Maintenance entry updated');
+            onSubmit();
+          },
+        }
+      );
+    } else {
+      addMutation.mutate(
+        { itemId, data: data as CreateEquipmentMaintenanceLogRequest },
+        {
+          onSuccess: () => {
+            notifications.success('Maintenance entry added');
+            onSubmit();
+          },
+        }
+      );
     }
   };
 
@@ -231,7 +233,7 @@ export function EquipmentMaintenanceForm({
             form="maintenance-form"
             variant="primary"
             size="sm"
-            disabled={isSubmitting}
+            disabled={updateMutation.isPending || addMutation.isPending}
             leftIcon={<Save className="h-3.5 w-3.5" />}
           >
             {isEditing ? 'Save Changes' : 'Add Entry'}

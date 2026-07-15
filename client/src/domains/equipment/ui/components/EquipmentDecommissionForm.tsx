@@ -39,7 +39,7 @@ export function EquipmentDecommissionForm({
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(decommissionEquipmentItemRequestSchema),
     defaultValues: {
@@ -49,17 +49,16 @@ export function EquipmentDecommissionForm({
     },
   });
 
-  const onFormSubmit = async (data: FieldValues) => {
-    try {
-      await decommissionMutation.mutateAsync({
-        id: itemId,
-        data: data as DecommissionEquipmentItemRequest,
-      });
-      notifications.success(`"${itemName}" has been decommissioned`);
-      onSubmit();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+  const onFormSubmit = (data: FieldValues) => {
+    decommissionMutation.mutate(
+      { id: itemId, data: data as DecommissionEquipmentItemRequest },
+      {
+        onSuccess: () => {
+          notifications.success(`"${itemName}" has been decommissioned`);
+          onSubmit();
+        },
+      }
+    );
   };
 
   return (
@@ -131,7 +130,7 @@ export function EquipmentDecommissionForm({
             form="decommission-form"
             variant="warning"
             size="sm"
-            disabled={isSubmitting}
+            disabled={decommissionMutation.isPending}
             leftIcon={<Power className="h-3.5 w-3.5" />}
           >
             Decommission
