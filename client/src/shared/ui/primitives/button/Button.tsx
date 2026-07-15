@@ -55,13 +55,8 @@ const buttonVariants = cva(
         danger:
           'bg-danger-bg/10 border-danger-bg/45 text-foreground shadow-standard-danger hover:bg-danger-bg/20 hover:border-danger-bg hover:shadow-standard-danger-hover active:bg-danger-bg/[0.28]',
 
-        success:
-          'bg-success-bg/10 border-success-bg/45 text-foreground shadow-standard-success hover:bg-success-bg/20 hover:border-success-bg hover:shadow-standard-success-hover active:bg-success-bg/[0.28]',
-
         warning:
           'bg-warning-bg/10 border-warning-bg/45 text-foreground shadow-standard-warning hover:bg-warning-bg/20 hover:border-warning-bg hover:shadow-standard-warning-hover active:bg-warning-bg/[0.28]',
-
-        info: 'bg-info-bg/10 border-info-bg/45 text-foreground shadow-standard-info hover:bg-info-bg/20 hover:border-info-bg hover:shadow-standard-info-hover active:bg-info-bg/[0.28]',
 
         // Ghost weight: no fill or border; hover boldens + deepens the label (phosphor glow in dark).
         ghost: GHOST_BASE,
@@ -77,7 +72,6 @@ const buttonVariants = cva(
         xs: 'h-6 px-2.5 text-label-sm gap-1.5 min-w-6',
         sm: 'h-8 px-3 text-label-md gap-2 min-w-8',
         md: 'h-10 px-4 text-label-md gap-2 min-w-10',
-        xl: 'h-14 px-8 text-label-lg gap-3 min-w-14',
       },
 
       fullWidth: {
@@ -100,7 +94,6 @@ const buttonVariants = cva(
       { iconOnly: true, size: 'xs', className: 'w-6 h-6' },
       { iconOnly: true, size: 'sm', className: 'w-8 h-8' },
       { iconOnly: true, size: 'md', className: 'w-10 h-10' },
-      { iconOnly: true, size: 'xl', className: 'w-14 h-14' },
       { iconOnly: true, className: 'dark:drop-shadow-icon-bloom' },
       { variant: 'ghost', iconOnly: true, className: 'dark:hover:drop-shadow-icon-bloom-hover' },
       {
@@ -133,9 +126,7 @@ const MARKER_CLASSES: Record<ButtonVariant, string> = {
   solid:
     'bg-sheen/95 dark:shadow-[0_0_8px_0_hsl(var(--sheen)/0.65),inset_0_0_2px_hsl(var(--primary)/0.5)]',
   danger: 'bg-danger-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-danger-bg)/0.55)]',
-  success: 'bg-success-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-success-bg)/0.55)]',
   warning: 'bg-warning-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-warning-bg)/0.55)]',
-  info: 'bg-info-bg dark:shadow-[0_0_6px_-1px_hsl(var(--color-info-bg)/0.55)]',
   ghost: NEUTRAL_MARKER,
   'ghost-danger':
     'bg-danger-text shadow-[0_0_6px_-1px_hsl(var(--color-danger-text)/calc(0.55_*_var(--lit)))]',
@@ -159,16 +150,14 @@ const ICON_TONE: Record<ButtonVariant, string> = {
   primary: 'text-primary dark:drop-shadow-icon-bloom',
   solid: 'text-white dark:drop-shadow-icon-bloom',
   danger: 'text-danger-bg dark:drop-shadow-icon-bloom',
-  success: 'text-success-bg dark:drop-shadow-icon-bloom',
   warning: 'text-warning-bg dark:drop-shadow-icon-bloom',
-  info: 'text-info-bg dark:drop-shadow-icon-bloom',
   ghost: GHOST_ICON_TONE,
   'ghost-danger': GHOST_ICON_TONE,
   secondary: GHOST_ICON_TONE,
   cancel: GHOST_ICON_TONE,
 };
 
-const SPINNER_PX: Record<ButtonSize, number> = { xs: 12, sm: 12, md: 16, xl: 20 };
+const SPINNER_PX: Record<ButtonSize, number> = { xs: 12, sm: 12, md: 16 };
 
 function ButtonSpinner({ size }: { size: ButtonSize }) {
   return <LoadingSpinner size={SPINNER_PX[size]} />;

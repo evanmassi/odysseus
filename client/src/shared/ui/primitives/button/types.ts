@@ -9,14 +9,12 @@ export type ButtonVariant =
   | 'solid'
   | 'secondary'
   | 'danger'
-  | 'success'
   | 'warning'
-  | 'info'
   | 'ghost'
   | 'ghost-danger'
   | 'cancel';
 
-export type ButtonSize = 'xs' | 'sm' | 'md' | 'xl';
+export type ButtonSize = 'xs' | 'sm' | 'md';
 
 export interface ButtonProps extends ComponentProps<'button'> {
   variant?: ButtonVariant;
