@@ -8,7 +8,7 @@
 import { forwardRef } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 
-export interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
+interface BadgeProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   size?: 'sm' | 'md';
   lit?: boolean;

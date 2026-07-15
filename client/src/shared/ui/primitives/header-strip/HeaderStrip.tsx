@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 
 import { NubDivider, type NubDividerTone } from '../nub-divider/NubDivider';
 
-export interface HeaderStripProps {
+interface HeaderStripProps {
   children: ReactNode;
   className?: string;
   /** Tone of the terminating nub divider. */

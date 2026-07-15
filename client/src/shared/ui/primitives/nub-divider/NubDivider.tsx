@@ -6,7 +6,7 @@
 
 export type NubDividerTone = 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
 
-export interface NubDividerProps {
+interface NubDividerProps {
   /** Color family for the line and its glowing end nubs. */
   tone?: NubDividerTone;
   /**

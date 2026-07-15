@@ -9,7 +9,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 type ConsolePanelIntensity = 'soft' | 'medium' | 'lit';
 
-export interface ConsolePanelProps {
+interface ConsolePanelProps {
   /** CSS color for the status-tinted layers — diagonal sheen, bottom-right wash, outer bloom. */
   statusColor?: string;
   /** CSS color for the top-left identity wash. */

@@ -10,7 +10,7 @@ import { useMergedRef } from '@shared/hooks';
 
 type CheckboxTone = 'primary' | 'success';
 
-export interface CheckboxProps {
+interface CheckboxProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   'aria-label'?: string;
