@@ -27,7 +27,6 @@ import {
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
-import { notifications } from '@shared/utils/notifications';
 
 import { BulkArchiveTab } from './bulk-update-tabs/BulkArchiveTab';
 import { BulkIssueTab } from './bulk-update-tabs/BulkIssueTab';
@@ -133,7 +132,7 @@ export function SupplyBulkUpdateModal({
       }
       handleResult(result);
     } catch {
-      notifications.error('Failed to update items');
+      // Global mutation handler shows the error toast.
     }
     setPendingAction(false);
   }, [selectedIds, actionType, targetCategoryId, bulkMutation, handleResult]);

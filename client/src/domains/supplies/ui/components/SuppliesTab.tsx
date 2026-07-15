@@ -205,7 +205,7 @@ export function SuppliesTab() {
       await deleteCategoryMutation.mutateAsync(deleteConfirm.category.id);
       notifications.success(`"${deleteConfirm.category.name}" removed`);
     } catch {
-      notifications.error('Cannot remove — category still contains items');
+      // Global mutation handler shows the error toast.
     }
     setDeleteConfirm({ isOpen: false });
   }, [deleteConfirm.category, deleteCategoryMutation]);

@@ -17,7 +17,6 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Textarea } from '@shared/ui/primitives/textarea/Textarea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
-import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
@@ -112,7 +111,7 @@ export function BulkVoidTab({ items, onComplete }: BulkVoidTabProps) {
       setReason('');
       onComplete();
     } catch {
-      notifications.error('Failed to void transactions');
+      // Global mutation handler shows the error toast.
     }
   }, [selectedTxnIds, reason, bulkVoidMutation, onComplete]);
 

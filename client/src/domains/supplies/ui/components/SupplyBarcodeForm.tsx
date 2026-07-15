@@ -52,7 +52,7 @@ export function SupplyBarcodeForm({ itemId }: SupplyBarcodeFormProps) {
       setLabel('');
       setIsOpen(false);
     } catch {
-      notifications.error('Failed to add barcode — it may already be in use');
+      // Global mutation handler shows the error toast.
     }
   };
 

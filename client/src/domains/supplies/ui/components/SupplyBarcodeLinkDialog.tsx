@@ -60,7 +60,7 @@ export function SupplyBarcodeLinkDialog({
       setLinkItemId('');
       onClose();
     } catch {
-      notifications.error('Failed to link barcode');
+      // Global mutation handler shows the error toast.
     }
   };
 

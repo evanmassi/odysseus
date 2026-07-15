@@ -185,7 +185,7 @@ export function SupplyItemInfoPanel({
       notifications.success('Item removed');
       onDeleted();
     } catch {
-      notifications.error('Failed to remove item');
+      // Global mutation handler shows the error toast.
     }
     setShowDeleteConfirm(false);
   };
@@ -196,7 +196,7 @@ export function SupplyItemInfoPanel({
       notifications.success('Item archived');
       onDeleted();
     } catch {
-      notifications.error('Failed to archive item');
+      // Global mutation handler shows the error toast.
     }
   };
 
@@ -205,34 +205,24 @@ export function SupplyItemInfoPanel({
       await removeDocumentMutation.mutateAsync({ itemId, docId });
       notifications.success('Document removed');
     } catch {
-      notifications.error('Failed to remove document');
+      // Global mutation handler shows the error toast.
     }
   };
 
   const handleSaveDocument = async (values: DocumentLinkValues) => {
     if (documentModal.mode === 'edit' && documentModal.doc) {
-      try {
-        await updateDocumentMutation.mutateAsync({
-          itemId,
-          docId: documentModal.doc.id,
-          data: { label: values.label, url: values.url, notes: values.notes ?? null },
-        });
-        notifications.success('Document updated');
-      } catch (error) {
-        notifications.error('Failed to update document');
-        throw error;
-      }
+      await updateDocumentMutation.mutateAsync({
+        itemId,
+        docId: documentModal.doc.id,
+        data: { label: values.label, url: values.url, notes: values.notes ?? null },
+      });
+      notifications.success('Document updated');
     } else {
-      try {
-        await addDocumentMutation.mutateAsync({
-          itemId,
-          data: { label: values.label, url: values.url, notes: values.notes },
-        });
-        notifications.success('Document added');
-      } catch (error) {
-        notifications.error('Failed to add document');
-        throw error;
-      }
+      await addDocumentMutation.mutateAsync({
+        itemId,
+        data: { label: values.label, url: values.url, notes: values.notes },
+      });
+      notifications.success('Document added');
     }
   };
 
@@ -241,7 +231,7 @@ export function SupplyItemInfoPanel({
       await removeBarcodeMutation.mutateAsync({ itemId, barcodeId });
       notifications.success('Barcode removed');
     } catch {
-      notifications.error('Failed to remove barcode');
+      // Global mutation handler shows the error toast.
     }
   };
 
@@ -254,7 +244,7 @@ export function SupplyItemInfoPanel({
       });
       setEditingBarcodeId(null);
     } catch {
-      notifications.error('Failed to update barcode label');
+      // Global mutation handler shows the error toast.
     }
   };
 

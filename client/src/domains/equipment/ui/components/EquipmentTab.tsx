@@ -199,7 +199,7 @@ export function EquipmentTab() {
       await deleteCategoryMutation.mutateAsync(deleteConfirm.category.id);
       notifications.success(`"${deleteConfirm.category.name}" removed`);
     } catch {
-      notifications.error('Cannot remove — category still contains equipment');
+      // Global mutation handler shows the error toast.
     }
     setDeleteConfirm({ isOpen: false });
   }, [deleteConfirm.category, deleteCategoryMutation]);

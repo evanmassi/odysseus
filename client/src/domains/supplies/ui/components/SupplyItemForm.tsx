@@ -319,7 +319,7 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
       }
       onSubmit();
     } catch {
-      notifications.error(isEditing ? 'Failed to update item' : 'Failed to create item');
+      // Global mutation handler shows the error toast.
     }
   };
 

@@ -78,7 +78,7 @@ export function TubeLockNoteModal({
       onSuccess?.();
       onClose();
     } catch {
-      notifications.error('Failed to update lock note');
+      // Global mutation handler shows the error toast.
     }
   };
 

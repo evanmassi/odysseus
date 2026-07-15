@@ -86,7 +86,7 @@ export function SupplyVoidTransactionModal({
         });
       }
     } catch {
-      notifications.error('Failed to void transaction');
+      // Global mutation handler shows the error toast.
     }
   };
 

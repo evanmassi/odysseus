@@ -14,7 +14,6 @@ import { toItemAutocompleteOptions } from '@domains/supplies/utils/itemAutocompl
 import { Autocomplete, Button, NubDivider, withPlaceholder } from '@shared/ui';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
-import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
@@ -112,7 +111,7 @@ export function BulkIssueTab({ items, onComplete }: BulkIssueTabProps) {
       setRows([]);
       onComplete();
     } catch {
-      notifications.error('Failed to record issuance');
+      // Global mutation handler shows the error toast.
     }
   }, [rows, bulkIssueMutation, onComplete]);
 

@@ -15,7 +15,6 @@ import { Autocomplete, Button, Input, NubDivider, withPlaceholder } from '@share
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
-import { notifications } from '@shared/utils/notifications';
 
 import { SupplyBarcodeScanInput } from '../SupplyBarcodeScanInput';
 
@@ -142,7 +141,7 @@ export function BulkReceiveTab({ items, onComplete }: BulkReceiveTabProps) {
       setRows([]);
       onComplete();
     } catch {
-      notifications.error('Failed to receive stock');
+      // Global mutation handler shows the error toast.
     }
   }, [rows, bulkReceiveMutation, onComplete]);
 

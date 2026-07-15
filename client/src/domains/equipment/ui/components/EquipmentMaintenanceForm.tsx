@@ -94,7 +94,7 @@ export function EquipmentMaintenanceForm({
       }
       onSubmit();
     } catch {
-      notifications.error(isEditing ? 'Failed to update entry' : 'Failed to add entry');
+      // Global mutation handler shows the error toast.
     }
   };
 

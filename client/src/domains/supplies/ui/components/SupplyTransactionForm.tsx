@@ -216,7 +216,7 @@ export function SupplyTransactionForm({
       reset();
       onSubmit();
     } catch {
-      notifications.error('Failed to record transaction');
+      // Global mutation handler shows the error toast.
     }
   };
 

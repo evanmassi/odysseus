@@ -94,7 +94,7 @@ export function TubeShareAccessModal({
         notifications.warning('No tubes were shared');
       }
     } catch {
-      notifications.error('Failed to share tube access');
+      // Global mutation handler shows the error toast.
     }
   };
 
@@ -112,7 +112,7 @@ export function TubeShareAccessModal({
         notifications.warning('No access was revoked');
       }
     } catch {
-      notifications.error('Failed to revoke access');
+      // Global mutation handler shows the error toast.
     }
   };
 

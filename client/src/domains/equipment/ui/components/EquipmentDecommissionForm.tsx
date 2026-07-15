@@ -58,7 +58,7 @@ export function EquipmentDecommissionForm({
       notifications.success(`"${itemName}" has been decommissioned`);
       onSubmit();
     } catch {
-      notifications.error('Failed to decommission equipment');
+      // Global mutation handler shows the error toast.
     }
   };
 

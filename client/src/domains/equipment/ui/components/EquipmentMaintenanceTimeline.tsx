@@ -58,7 +58,7 @@ export function EquipmentMaintenanceTimeline({
       await deleteMutation.mutateAsync({ itemId, entryId: pendingDeleteId });
       notifications.success('Maintenance entry removed');
     } catch {
-      notifications.error('Failed to remove maintenance entry');
+      // Global mutation handler shows the error toast.
     }
     setPendingDeleteId(null);
   };

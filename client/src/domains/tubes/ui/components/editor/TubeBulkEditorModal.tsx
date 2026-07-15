@@ -344,7 +344,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       }
     } catch (error) {
       logger.error('Bulk update error', { error });
-      notifications.error('Failed to update tubes');
       setShowProgress(false);
     }
   };
@@ -404,7 +403,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       }
     } catch (error) {
       logger.error('Retry error', { error });
-      notifications.error('Retry failed');
       setShowProgress(false);
     }
   };
@@ -435,7 +433,6 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       }
     } catch (error) {
       logger.error('Bulk delete error', { error });
-      notifications.error('Failed to remove tubes');
     } finally {
       setShowDeleteConfirm(false);
     }

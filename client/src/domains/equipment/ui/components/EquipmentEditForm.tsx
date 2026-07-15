@@ -132,7 +132,7 @@ export function EquipmentEditForm({
       }
       onSubmit();
     } catch {
-      notifications.error(isEditing ? 'Failed to update equipment' : 'Failed to create equipment');
+      // Global mutation handler shows the error toast.
     }
   };
 

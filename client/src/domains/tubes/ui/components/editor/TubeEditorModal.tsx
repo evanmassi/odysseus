@@ -246,7 +246,6 @@ function EditModeForm({
         modalRef.current?.requestClose();
       } else {
         setIsSavingLocal(false);
-        notifications.error(result.error ?? 'Failed to update tube');
       }
     } catch (error) {
       setIsSavingLocal(false);
@@ -264,11 +263,8 @@ function EditModeForm({
       await deleteMutation.mutateAsync(tubeId);
       notifications.success('Tube removed successfully');
       onClose();
-    } catch (error) {
-      // Skip notification for offline errors - global handler already shows it
-      if (!isOfflineError(error)) {
-        notifications.error('Failed to remove tube');
-      }
+    } catch {
+      // Global mutation handler shows the error toast.
     }
   };
 
@@ -540,14 +536,6 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
           modalRef.current?.requestClose();
         }
       : undefined, // Bulk mode: notification handled after all tubes are created
-    onError: isSingleTube
-      ? error => {
-          // Skip notification for offline errors - global handler already shows it
-          if (!isOfflineError(error)) {
-            notifications.error(`Failed to create tube: ${error.message}`);
-          }
-        }
-      : undefined, // Bulk mode: errors handled in handleFormSubmit
   });
 
   // Reset form when modal opens to clear any stale data

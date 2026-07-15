@@ -55,8 +55,8 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
 
       onSuccess?.();
       onClose();
-    } catch (error) {
-      notifications.error('Failed to lock tubes');
+    } catch {
+      // Global mutation handler shows the error toast.
     }
   };
 

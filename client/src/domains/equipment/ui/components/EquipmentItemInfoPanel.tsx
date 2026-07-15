@@ -137,7 +137,7 @@ export function EquipmentItemInfoPanel({
       notifications.success('Equipment removed');
       onDeleted();
     } catch {
-      notifications.error('Failed to remove equipment');
+      // Global mutation handler shows the error toast.
     }
     setShowDeleteConfirm(false);
   };
@@ -147,34 +147,24 @@ export function EquipmentItemInfoPanel({
       await removeDocumentMutation.mutateAsync({ itemId, docId });
       notifications.success('Document removed');
     } catch {
-      notifications.error('Failed to remove document');
+      // Global mutation handler shows the error toast.
     }
   };
 
   const handleSaveDocument = async (values: DocumentLinkValues) => {
     if (documentModal.mode === 'edit' && documentModal.doc) {
-      try {
-        await updateDocumentMutation.mutateAsync({
-          itemId,
-          docId: documentModal.doc.id,
-          data: { label: values.label, url: values.url, notes: values.notes ?? null },
-        });
-        notifications.success('Document updated');
-      } catch (error) {
-        notifications.error('Failed to update document');
-        throw error;
-      }
+      await updateDocumentMutation.mutateAsync({
+        itemId,
+        docId: documentModal.doc.id,
+        data: { label: values.label, url: values.url, notes: values.notes ?? null },
+      });
+      notifications.success('Document updated');
     } else {
-      try {
-        await addDocumentMutation.mutateAsync({
-          itemId,
-          data: { label: values.label, url: values.url, notes: values.notes },
-        });
-        notifications.success('Document added');
-      } catch (error) {
-        notifications.error('Failed to add document');
-        throw error;
-      }
+      await addDocumentMutation.mutateAsync({
+        itemId,
+        data: { label: values.label, url: values.url, notes: values.notes },
+      });
+      notifications.success('Document added');
     }
   };
 

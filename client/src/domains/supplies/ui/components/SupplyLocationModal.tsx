@@ -65,7 +65,7 @@ export function SupplyLocationModal({ isOpen, location, onClose }: SupplyLocatio
       }
       onClose();
     } catch {
-      notifications.error(isEditing ? 'Failed to update location' : 'Failed to create location');
+      // Global mutation handler shows the error toast.
     }
   };
 

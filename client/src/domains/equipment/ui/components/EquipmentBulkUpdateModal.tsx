@@ -22,7 +22,6 @@ import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifyBulkResult } from '@shared/utils/bulkResultNotifications';
-import { notifications } from '@shared/utils/notifications';
 
 import { BulkMaintenanceTab } from './bulk-update-tabs/BulkMaintenanceTab';
 import { BulkRelocateTab } from './bulk-update-tabs/BulkRelocateTab';
@@ -112,7 +111,6 @@ export function EquipmentBulkUpdateModal({
         setPendingAction(null);
       },
       onError: () => {
-        notifications.error('Failed to update items');
         setPendingAction(null);
       },
     });
