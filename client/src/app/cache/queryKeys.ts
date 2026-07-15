@@ -42,6 +42,7 @@ export const queryKeys = {
       [...queryKeys.admin.all(labId), 'unlinkedResearchers'] as const,
     // Global (not lab-scoped): a single security-config row shared across the app.
     securityConfig: () => ['admin', 'securityConfig'] as const,
+    versionInfo: () => ['admin', 'versionInfo'] as const,
   },
 
   // Tubes (lab-scoped)

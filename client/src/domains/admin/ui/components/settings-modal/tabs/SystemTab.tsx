@@ -7,7 +7,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   HardDrive,
   Icon,
@@ -20,10 +19,8 @@ import {
   DatabaseBackup,
 } from 'lucide-react';
 
-import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
-import { StorageService, useStorageData } from '@domains/storage';
-import { logger } from '@infra/logger';
+import { useStorageData } from '@domains/storage';
 import {
   Button,
   Chip,
@@ -39,11 +36,12 @@ import { notifications } from '@shared/utils';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { useLabStorageAnalyticsQuery } from '../../../../hooks/useStorageAnalyticsQueries';
-import { adminService } from '../../../../services/AdminService';
+import { useUpdateSystemSettingsMutation } from '../../../../hooks/useSystemSettingsMutation';
+import { useVersionInfoQuery } from '../../../../hooks/useVersionInfoQuery';
 import { UtilizationBar } from '../../displays/UtilizationBar';
 import { DataExportForm } from '../DataExportForm';
 
-import type { SystemMetrics, VersionInfo } from '@odysseus/shared-schemas';
+import type { SystemMetrics } from '@odysseus/shared-schemas';
 
 interface SystemTabProps {
   stats: SystemMetrics | null;
@@ -53,34 +51,19 @@ export function SystemTab({ stats }: SystemTabProps) {
   const labId = useAuthStore(s => s.user?.labId);
   const hasLab = !!labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
-  const queryClient = useQueryClient();
+  const { data: versionInfo } = useVersionInfoQuery();
+  const updateSystemSettingsMutation = useUpdateSystemSettingsMutation();
 
   // Lab name editing state
   const [isEditingLabName, setIsEditingLabName] = useState(false);
   const [labNameInput, setLabNameInput] = useState(currentLab?.name ?? '');
-  const [isSavingLabName, setIsSavingLabName] = useState(false);
-
-  // Version info state
-  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
 
   useEffect(() => {
     setLabNameInput(currentLab?.name ?? '');
   }, [currentLab?.name]);
 
-  useEffect(() => {
-    async function fetchVersionInfo() {
-      try {
-        const versionData = await adminService.getVersionInfo();
-        setVersionInfo(versionData);
-      } catch (error) {
-        logger.error('Failed to fetch version info', { error });
-      }
-    }
-    void fetchVersionInfo();
-  }, []);
-
-  const handleSaveLabName = useCallback(async () => {
-    if (isSavingLabName) return;
+  const handleSaveLabName = useCallback(() => {
+    if (updateSystemSettingsMutation.isPending) return;
     const trimmedName = labNameInput.trim();
     if (!trimmedName) {
       notifications.error('Lab name cannot be empty');
@@ -92,24 +75,17 @@ export function SystemTab({ stats }: SystemTabProps) {
       return;
     }
 
-    setIsSavingLabName(true);
-    try {
-      // Dedicated system-settings endpoint — updates only labName, preserves all equipment.
-      await StorageService.updateSystemSettings(trimmedName);
-
-      if (labId) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data(labId) });
-      }
-
-      notifications.success('Lab name updated successfully');
-      setIsEditingLabName(false);
-    } catch {
-      notifications.error('Failed to update lab name');
-      setLabNameInput(currentLab?.name ?? '');
-    } finally {
-      setIsSavingLabName(false);
-    }
-  }, [isSavingLabName, labNameInput, currentLab?.name, queryClient, labId]);
+    updateSystemSettingsMutation.mutate(trimmedName, {
+      onSuccess: () => {
+        notifications.success('Lab name updated successfully');
+        setIsEditingLabName(false);
+      },
+      onError: () => {
+        // Global handler toasts; revert the field to the last saved name.
+        setLabNameInput(currentLab?.name ?? '');
+      },
+    });
+  }, [labNameInput, currentLab?.name, updateSystemSettingsMutation]);
 
   const handleCancelLabNameEdit = useCallback(() => {
     setLabNameInput(currentLab?.name ?? '');
@@ -119,7 +95,7 @@ export function SystemTab({ stats }: SystemTabProps) {
   const handleLabNameKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter') {
-        void handleSaveLabName();
+        handleSaveLabName();
       } else if (e.key === 'Escape') {
         handleCancelLabNameEdit();
       }
@@ -175,7 +151,7 @@ export function SystemTab({ stats }: SystemTabProps) {
                     value={labNameInput}
                     onValueChange={setLabNameInput}
                     onKeyDown={handleLabNameKeyDown}
-                    onBlur={() => void handleSaveLabName()}
+                    onBlur={() => handleSaveLabName()}
                     size="sm"
                     className="w-full"
                     title="Enter to save · Esc to cancel"
