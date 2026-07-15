@@ -24,7 +24,6 @@ export function AdministrationTab() {
           <li>Edit your lab name</li>
           <li>View storage utilization — capacity usage across tanks, racks, and boxes</li>
           <li>Export system data</li>
-          <li>Toggle detailed system logging for troubleshooting</li>
         </ul>
       </HelpSection>
 
