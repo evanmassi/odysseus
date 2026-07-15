@@ -4,7 +4,7 @@
  * Provides visual feedback about network connectivity and reconnection status.
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, WifiOff } from 'lucide-react';
@@ -12,7 +12,7 @@ import { RefreshCw, WifiOff } from 'lucide-react';
 import { useNetworkStatus } from '@infra/connection';
 import { Tooltip } from '@shared/ui';
 
-export const ConnectionStatusIndicator: React.FC = () => {
+export function ConnectionStatusIndicator() {
   const queryClient = useQueryClient();
   const networkStatus = useNetworkStatus(queryClient);
   const [showDetails, setShowDetails] = useState(false);
@@ -151,4 +151,4 @@ export const ConnectionStatusIndicator: React.FC = () => {
       </div>
     </div>
   );
-};
+}

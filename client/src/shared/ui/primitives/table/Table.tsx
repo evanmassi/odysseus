@@ -288,7 +288,6 @@ const TableHeader = <T,>({
               })} ${headerRim}${isFirstCell || isLastCell ? ' relative' : ''}`}
               style={{ width: column.width }}
               onClick={column.sortable ? () => handleSort(column.id) : undefined}
-              role="columnheader"
               aria-sort={
                 isSorted
                   ? sortDirection === 'asc'
@@ -447,11 +446,7 @@ export function Table<T extends TableRowBase>({
     </div>
   ) : (
     <TableContext.Provider value={contextValue}>
-      <table
-        className={`w-full border-collapse ${className ?? ''}`}
-        role="table"
-        aria-label={ariaLabel}
-      >
+      <table className={`w-full border-collapse ${className ?? ''}`} aria-label={ariaLabel}>
         <TableHeader columns={columns} hasToolbar={Boolean(toolbar)} />
         <TableBody
           columns={columns}

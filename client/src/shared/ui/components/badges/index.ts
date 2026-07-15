@@ -5,4 +5,5 @@
  */
 
 export { UserBadge, type UserBadgeType } from './UserBadge';
+export { LabBadge } from './LabBadge';
 export { OnlineUsersBadgeList } from './OnlineUsersBadgeList';

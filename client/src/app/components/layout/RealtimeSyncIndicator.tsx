@@ -4,11 +4,11 @@
  * Transient "Syncing…" badge shown while a mutation is in flight.
  */
 
-import React, { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-export const RealtimeSyncIndicator: React.FC = () => {
+export function RealtimeSyncIndicator() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -35,4 +35,4 @@ export const RealtimeSyncIndicator: React.FC = () => {
       <span>Syncing...</span>
     </div>
   );
-};
+}
