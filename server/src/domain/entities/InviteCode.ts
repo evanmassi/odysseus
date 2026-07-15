@@ -96,7 +96,7 @@ export class InviteCode {
       throw new ValidationError('Creator ID is required for invite code');
     }
     if (this._role !== 'lab_admin' && this._role !== 'user') {
-      throw new ValidationError('Invite code role must be lab_admin or user');
+      throw new ValidationError('Invite code role must be Lab Admin or User.');
     }
     if (this._maxUses !== undefined && this._maxUses < 1) {
       throw new ValidationError('Max uses must be at least 1');

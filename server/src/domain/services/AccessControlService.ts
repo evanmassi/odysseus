@@ -25,7 +25,7 @@ export class AccessControlService {
 
   async canCreateTube(user: User): Promise<AccessResult> {
     if (!user.hasPermission('create_tubes')) {
-      return this.createDeniedResult('User does not have permission to create tubes');
+      return this.createDeniedResult('You do not have permission to create tubes');
     }
 
     if (user.isAdmin()) {
@@ -40,7 +40,7 @@ export class AccessControlService {
 
   async canEditTube(user: User, tube: Tube): Promise<AccessResult> {
     if (!user.hasPermission('edit_tubes')) {
-      return this.createDeniedResult('User does not have permission to edit tubes');
+      return this.createDeniedResult('You do not have permission to edit tubes');
     }
 
     if (user.isAdmin()) {
@@ -60,7 +60,7 @@ export class AccessControlService {
 
   async canDeleteTube(user: User, tube: Tube): Promise<AccessResult> {
     if (!user.hasPermission('delete_tubes')) {
-      return this.createDeniedResult('User does not have permission to delete tubes');
+      return this.createDeniedResult('You do not have permission to delete tubes');
     }
 
     if (user.isAdmin()) {
@@ -91,7 +91,7 @@ export class AccessControlService {
 
   async canViewTubes(user: User): Promise<AccessResult> {
     if (!user.hasPermission('view_tubes')) {
-      return this.createDeniedResult('User does not have permission to view tubes');
+      return this.createDeniedResult('You do not have permission to view tubes');
     }
 
     return this.createAllowedResult();
@@ -269,7 +269,7 @@ export class AccessControlService {
 
   async canManageResearchers(user: User): Promise<AccessResult> {
     if (!user.hasPermission('manage_researchers')) {
-      return this.createDeniedResult('User does not have permission to manage researchers');
+      return this.createDeniedResult('You do not have permission to manage researchers');
     }
 
     return this.createAllowedResult();
@@ -279,7 +279,7 @@ export class AccessControlService {
 
   async canManageUsers(user: User): Promise<AccessResult> {
     if (!user.hasPermission('manage_users')) {
-      return this.createDeniedResult('User does not have permission to manage users');
+      return this.createDeniedResult('You do not have permission to manage users');
     }
 
     return this.createAllowedResult();
@@ -289,7 +289,7 @@ export class AccessControlService {
 
   async canModifyStorage(user: User): Promise<AccessResult> {
     if (!user.hasPermission('manage_configuration')) {
-      return this.createDeniedResult('User does not have permission to modify configuration');
+      return this.createDeniedResult('You do not have permission to modify configuration');
     }
 
     return this.createAllowedResult();
@@ -394,7 +394,7 @@ export class AccessControlService {
 
   async canAccessAdminFeatures(user: User): Promise<AccessResult> {
     if (!user.hasPermission('admin_settings')) {
-      return this.createDeniedResult('User does not have administrative privileges');
+      return this.createDeniedResult('You do not have administrative privileges.');
     }
 
     return this.createAllowedResult();

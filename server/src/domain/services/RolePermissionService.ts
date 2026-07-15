@@ -53,7 +53,7 @@ export class RolePermissionService {
   /** @throws ValidationError if role is invalid */
   private static validateRole(role: UserRole): void {
     if (!this.isValidRole(role)) {
-      throw new ValidationError(`Invalid role: ${role}. Valid roles: ${this.ROLES.join(', ')}`);
+      throw new ValidationError('That role is not valid. Choose System Admin, Lab Admin, or User.');
     }
   }
 

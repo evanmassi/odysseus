@@ -50,7 +50,7 @@ export class UserRole {
     }
 
     if (!UserRole.VALID_ROLES.includes(this._role)) {
-      throw new ValidationError(`Invalid user role. Must be one of: ${UserRole.VALID_ROLES.join(', ')}`);
+      throw new ValidationError('That role is not valid. Choose System Admin, Lab Admin, or User.');
     }
   }
 

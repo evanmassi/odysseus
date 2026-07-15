@@ -297,7 +297,7 @@ export class UpdateResourceLabelCommandHandler {
 
     if (!canEdit) {
       throw new PermissionError(
-        `User ${user.username} does not have permission to edit this ${command.resourceType}'s label`
+        `You do not have permission to edit this ${command.resourceType}'s label.`
       );
     }
 

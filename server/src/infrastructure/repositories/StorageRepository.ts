@@ -44,7 +44,7 @@ export class StorageRepository implements IStorageRepository {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to get configuration for lab:', { labId, message: errorMessage });
-      throw new ValidationError(`Database error retrieving configuration for lab: ${errorMessage}`);
+      throw new ValidationError('Unable to load the storage configuration. Please try again.');
     }
   }
 
@@ -61,7 +61,7 @@ export class StorageRepository implements IStorageRepository {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Failed to get configurations for labs:', { labIds, message: errorMessage });
-      throw new ValidationError(`Database error retrieving configurations: ${errorMessage}`);
+      throw new ValidationError('Unable to load storage configurations. Please try again.');
     }
   }
 
@@ -106,7 +106,7 @@ export class StorageRepository implements IStorageRepository {
 
     } catch (error) {
       logger.error('Failed to get configuration by version:', { error, labId, version });
-      throw new ValidationError(`Database error retrieving configuration version ${version}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new ValidationError('Unable to load that configuration version. Please try again.');
     }
   }
 
@@ -130,7 +130,7 @@ export class StorageRepository implements IStorageRepository {
 
     } catch (error) {
       logger.error('Failed to get configuration history:', { error, labId });
-      throw new ValidationError(`Database error retrieving configuration history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new ValidationError('Unable to load configuration history. Please try again.');
     }
   }
 
@@ -178,7 +178,7 @@ export class StorageRepository implements IStorageRepository {
         throw error;
       }
       logger.error('Failed to save configuration with optimistic lock:', { error, labId });
-      throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new ValidationError('Unable to save the configuration. Please try again.');
     }
   }
 
@@ -351,7 +351,7 @@ export class StorageRepository implements IStorageRepository {
 
     } catch (error) {
       logger.error('Failed to update security configuration:', { error });
-      throw new ValidationError(`Database error updating security configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new ValidationError('Unable to update security settings. Please try again.');
     }
   }
 
@@ -552,7 +552,7 @@ export class StorageRepository implements IStorageRepository {
       }
     }
 
-    throw new ValidationError('Failed to delete equipment after maximum retries');
+    throw new ValidationError('Could not delete this item because it is being changed by someone else. Please refresh and try again.');
   }
 
   /** Appends a new immutable row to storage_versions and returns its generated version number. */

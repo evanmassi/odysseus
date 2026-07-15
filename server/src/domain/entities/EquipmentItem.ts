@@ -161,7 +161,7 @@ export class EquipmentItem {
       throw new ValidationError('Category is required');
     }
     if (!equipmentStatusValues.includes(this._status)) {
-      throw new ValidationError(`Invalid equipment status: ${this._status}`);
+      throw new ValidationError('That equipment status is not valid.');
     }
   }
 

@@ -164,7 +164,7 @@ export class SupplyItem {
       throw new ValidationError('Category is required');
     }
     if (!supplyItemStatusValues.includes(this._status)) {
-      throw new ValidationError(`Invalid item status: ${this._status}`);
+      throw new ValidationError('That item status is not valid.');
     }
   }
 

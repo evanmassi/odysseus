@@ -81,12 +81,12 @@ export class Permission {
 
   private validate(): void {
     if (!this._key || this._key.trim().length === 0) {
-      throw new ValidationError('Permission key is required');
+      throw new ValidationError('A permission is required.');
     }
 
     // Validate snake_case format
     if (!/^[a-z][a-z0-9_]*$/.test(this._key)) {
-      throw new ValidationError(`Permission key must be snake_case: ${this._key}`);
+      throw new ValidationError('That permission is not valid.');
     }
   }
 
