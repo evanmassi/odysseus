@@ -280,7 +280,7 @@ export class SupplyApplicationService {
       url: data.url,
       notes: data.notes,
     });
-    if (!updated) throw new NotFoundError(`Document ${docId} not found`);
+    if (!updated) throw new NotFoundError('This document could not be found.');
     return SupplyDto.documentToResponse(updated);
   }
 
@@ -288,7 +288,7 @@ export class SupplyApplicationService {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
     const deleted = await this.itemRepository.deleteDocument(docId, itemId);
-    if (!deleted) throw new NotFoundError(`Document ${docId} not found`);
+    if (!deleted) throw new NotFoundError('This document could not be found.');
     await this.eventBus.publish(new SupplyDocumentRemovedEvent(itemId, user.id, labId));
   }
 
@@ -326,7 +326,7 @@ export class SupplyApplicationService {
       label: data.label,
       isPrimary: data.isPrimary,
     });
-    if (!updated) throw new NotFoundError(`Barcode ${barcodeId} not found`);
+    if (!updated) throw new NotFoundError('This barcode could not be found.');
     return SupplyDto.barcodeToResponse(updated);
   }
 
@@ -334,7 +334,7 @@ export class SupplyApplicationService {
     await this.accessControlService.requireAdminAccess(user);
     await this.getItemOrThrow(itemId, labId);
     const deleted = await this.itemRepository.deleteBarcode(barcodeId, itemId);
-    if (!deleted) throw new NotFoundError(`Barcode ${barcodeId} not found`);
+    if (!deleted) throw new NotFoundError('This barcode could not be found.');
   }
 
   async resolveBarcode(labId: string, barcodeValue: string): Promise<SupplyItemResponse | null> {
@@ -527,7 +527,7 @@ export class SupplyApplicationService {
 
     const existing = await this.itemRepository.findTransactionById(transactionId, labId);
     if (!existing) {
-      throw new NotFoundError(`Transaction ${transactionId} not found`);
+      throw new NotFoundError('This transaction could not be found.');
     }
     if (existing.voidedAt) {
       throw new ValidationError('Transaction has already been voided');
@@ -698,19 +698,19 @@ export class SupplyApplicationService {
 
   private async getItemOrThrow(id: string, labId: string): Promise<SupplyItem> {
     const item = await this.itemRepository.findById(id, labId);
-    if (!item) throw new NotFoundError(`Supply item not found: ${id}`, { itemId: id });
+    if (!item) throw new NotFoundError('This supply item could not be found.', { itemId: id });
     return item;
   }
 
   private async getCategoryOrThrow(id: string, labId: string): Promise<SupplyCategory> {
     const category = await this.categoryRepository.findById(id, labId);
-    if (!category) throw new NotFoundError(`Supply category not found: ${id}`, { categoryId: id });
+    if (!category) throw new NotFoundError('This category could not be found.', { categoryId: id });
     return category;
   }
 
   private async getLocationOrThrow(id: string, labId: string): Promise<SupplyLocation> {
     const location = await this.locationRepository.findById(id, labId);
-    if (!location) throw new NotFoundError(`Supply location not found: ${id}`, { locationId: id });
+    if (!location) throw new NotFoundError('This location could not be found.', { locationId: id });
     return location;
   }
 

@@ -270,7 +270,7 @@ export class UserApplicationService {
       isSystemAdmin: admin.isSystemAdmin(),
     });
     if (!user) {
-      throw new NotFoundError(`User not found: ${id}`, { userId: id });
+      throw new NotFoundError('This user could not be found.', { userId: id });
     }
     return user;
   }
@@ -551,7 +551,7 @@ export class UserApplicationService {
       isSystemAdmin: admin.isSystemAdmin(),
     });
     if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${researcherId}`, { researcherId });
+      throw new NotFoundError('This researcher could not be found.', { researcherId });
     }
 
     if (user.hasResearcherProfile()) {

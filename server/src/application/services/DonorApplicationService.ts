@@ -177,7 +177,7 @@ export class DonorApplicationService {
 
     const existing = await this.donorRepository.findCollectionHistoryById(historyId, labId);
     if (!existing) {
-      throw new NotFoundError(`Collection history entry not found: ${historyId}`);
+      throw new NotFoundError('This collection history entry could not be found.');
     }
 
     const updated = existing.update({
@@ -194,7 +194,7 @@ export class DonorApplicationService {
     await this.accessControlService.requireAdminAccess(user);
     const deleted = await this.donorRepository.deleteCollectionHistory(historyId, labId);
     if (!deleted) {
-      throw new NotFoundError(`Collection history entry not found: ${historyId}`);
+      throw new NotFoundError('This collection history entry could not be found.');
     }
   }
 
@@ -220,7 +220,7 @@ export class DonorApplicationService {
   private async getDonorOrThrow(id: string, labId: string): Promise<Donor> {
     const donor = await this.donorRepository.findById(id, labId);
     if (!donor) {
-      throw new NotFoundError(`Donor not found: ${id}`, { donorId: id });
+      throw new NotFoundError('This donor could not be found.', { donorId: id });
     }
     return donor;
   }

@@ -103,7 +103,7 @@ export class TubeApplicationService {
   private async getTubeOrThrow(id: string, labId: string): Promise<Tube> {
     const tube = await this.tubeRepository.findById(id, labId);
     if (!tube) {
-      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
+      throw new NotFoundError('This tube could not be found.', { tubeId: id });
     }
     return tube;
   }
@@ -118,7 +118,7 @@ export class TubeApplicationService {
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!);
     if (!allowedTankIds.includes(tube.location.tankId)) {
-      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
+      throw new NotFoundError('This tube could not be found.', { tubeId: id });
     }
 
     const containerInfo = await this.getContainerInfo(
@@ -215,7 +215,7 @@ export class TubeApplicationService {
       } else {
         const researcher = await this.researcherRepository.findById(tubeData.researcherId, authenticatedUser.labId!);
         if (!researcher) {
-          throw new ValidationError(`Researcher not found in this lab: ${tubeData.researcherId}`, { researcherId: tubeData.researcherId });
+          throw new ValidationError('The selected researcher could not be found in this lab.', { researcherId: tubeData.researcherId });
         }
         const person = await this.personRepository.findById(researcher.personId);
         if (person) {
@@ -526,7 +526,7 @@ export class TubeApplicationService {
     if (updateData.researcherId) {
       const researcher = await this.researcherRepository.findById(updateData.researcherId, authenticatedUser.labId!);
       if (!researcher) {
-        throw new ValidationError(`Researcher not found in this lab: ${updateData.researcherId}`, { researcherId: updateData.researcherId });
+        throw new ValidationError('The selected researcher could not be found in this lab.', { researcherId: updateData.researcherId });
       }
     }
 

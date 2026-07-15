@@ -353,7 +353,7 @@ export class EquipmentApplicationService {
       url: data.url,
       notes: data.notes,
     });
-    if (!updated) throw new NotFoundError(`Document ${docId} not found`);
+    if (!updated) throw new NotFoundError('This document could not be found. It may have been deleted.');
     return EquipmentDto.documentToResponse(updated);
   }
 
@@ -574,7 +574,7 @@ export class EquipmentApplicationService {
   private async getItemOrThrow(id: string, labId: string): Promise<EquipmentItem> {
     const item = await this.itemRepository.findById(id, labId);
     if (!item) {
-      throw new NotFoundError(`Equipment item not found: ${id}`, { itemId: id });
+      throw new NotFoundError('This equipment item could not be found.', { itemId: id });
     }
     return item;
   }

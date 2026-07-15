@@ -36,7 +36,7 @@ export class UserNotFoundError extends DomainError {
   readonly statusCode = 404;
 
   constructor(identifier: string) {
-    super(`User not found: ${identifier}`, { identifier });
+    super('This user could not be found.', { identifier });
   }
 }
 

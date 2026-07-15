@@ -106,7 +106,7 @@ export class BulkUnassignResourcesCommandHandler {
 
     const fromUser = await this.userRepository.findById(command.fromUserId, command.labId);
     if (!fromUser) {
-      throw new NotFoundError(`User '${command.fromUserId}' not found`);
+      throw new NotFoundError('The user you are reassigning from could not be found.');
     }
 
     const { racksAffected, boxesAffected } = await applyBulkAssignment(
@@ -161,12 +161,12 @@ export class BulkReassignResourcesCommandHandler {
 
     const fromUser = await this.userRepository.findById(command.fromUserId, command.labId);
     if (!fromUser) {
-      throw new NotFoundError(`User '${command.fromUserId}' not found`);
+      throw new NotFoundError('The user you are reassigning from could not be found.');
     }
 
     const toUser = await this.userRepository.findById(command.toUserId, command.labId);
     if (!toUser) {
-      throw new NotFoundError(`User '${command.toUserId}' not found`);
+      throw new NotFoundError('The user you are reassigning to could not be found.');
     }
 
     const { racksAffected, boxesAffected } = await applyBulkAssignment(

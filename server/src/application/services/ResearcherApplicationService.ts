@@ -311,7 +311,7 @@ export class ResearcherApplicationService {
       isSystemAdmin: user.isSystemAdmin(),
     });
     if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
+      throw new NotFoundError('This researcher could not be found.', { researcherId: id });
     }
     return researcher;
   }
@@ -319,7 +319,7 @@ export class ResearcherApplicationService {
   private async getPersonForResearcher(researcher: Researcher): Promise<Person> {
     const person = await this.deps.personRepository.findById(researcher.personId);
     if (!person) {
-      throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
+      throw new NotFoundError("This researcher's profile is incomplete. Please contact an administrator.", { personId: researcher.personId });
     }
     return person;
   }
@@ -336,7 +336,7 @@ export class ResearcherApplicationService {
 
     for (const researcher of researchers) {
       if (!personMap.has(researcher.personId)) {
-        throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
+        throw new NotFoundError("This researcher's profile is incomplete. Please contact an administrator.", { personId: researcher.personId });
       }
     }
 
