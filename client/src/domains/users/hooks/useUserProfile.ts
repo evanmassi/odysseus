@@ -17,9 +17,6 @@ function useUserProfileQuery() {
     queryKey: queryKeys.users.profile(),
     queryFn: () => PersonService.getMyProfile(),
     staleTime: 5 * MS_PER_MINUTE,
-    meta: {
-      errorMessage: 'Failed to load profile',
-    },
   });
 }
 
@@ -30,9 +27,6 @@ function useUpdateUserProfileMutation() {
     mutationFn: (data: UpdatePersonProfileWithPassword) => PersonService.updateMyProfile(data),
     onSuccess: (updatedProfile: Person) => {
       queryClient.setQueryData(queryKeys.users.profile(), updatedProfile);
-    },
-    meta: {
-      errorMessage: 'Failed to update profile',
     },
   });
 }

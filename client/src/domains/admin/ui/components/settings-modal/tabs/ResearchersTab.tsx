@@ -150,7 +150,7 @@ export function ResearchersTab({
       await loadResearchers();
       onResearcherUpdate?.();
     } catch (error) {
-      notifications.error(getErrorMessage(error, 'Failed to activate researcher'));
+      notifications.error(getErrorMessage(error));
     } finally {
       setTogglingStatus(null);
     }
@@ -165,7 +165,7 @@ export function ResearchersTab({
       await loadResearchers();
       onResearcherUpdate?.();
     } catch (error) {
-      notifications.error(getErrorMessage(error, 'Failed to deactivate researcher'));
+      notifications.error(getErrorMessage(error));
       setConfirmDialog(null);
     } finally {
       setTogglingStatus(null);
@@ -182,7 +182,7 @@ export function ResearchersTab({
       onResearcherUpdate?.();
     } catch (error) {
       logger.error('Failed to delete researcher', { error });
-      notifications.error(getErrorMessage(error, 'Failed to delete researcher'));
+      notifications.error(getErrorMessage(error));
       setConfirmDialog(null);
     } finally {
       setDeleting(null);

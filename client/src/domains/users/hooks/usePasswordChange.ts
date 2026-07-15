@@ -16,9 +16,6 @@ function useChangePasswordMutation() {
   return useMutation({
     mutationFn: ({ currentPassword, newPassword }: ChangePasswordVariables) =>
       UserPasswordService.changePassword(currentPassword, newPassword),
-    meta: {
-      errorMessage: 'Failed to change password',
-    },
   });
 }
 

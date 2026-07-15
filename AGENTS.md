@@ -103,6 +103,45 @@ client/src/
 
 ---
 
+## Client Error Handling
+
+One model, no exceptions: **the server owns error *text*; the client owns *presentation* and *cache reaction*.**
+
+**The single resolver.** `getErrorMessage(error)` (`shared/utils/getErrorMessage.ts`) maps any thrown
+value to the string shown to the user. Server 4xx responses carry specific, user-ready messages and
+are surfaced **verbatim** — never rewrite them client-side. Infrastructure failures (network,
+timeout, 5xx, 429) get canned copy. This is the *only* place error→text mapping lives; both global
+handlers call it. Never hand-roll `error.message` fallbacks at a call site.
+
+**One toaster per concern** (`app/cache/queryClient.ts`):
+- `MutationCache.onError` is the **sole** mutation-error toaster — every failed mutation toasts here.
+- `QueryCache.onError` toasts **infrastructure** errors only (`isInfrastructureError`); a 4xx query
+  failure stays silent — the component renders its own error/empty state from the query's `isError`.
+- A mutation hook's own `onError` **never toasts**. It does cache reactions (optimistic rollback,
+  conflict invalidation) and logging only.
+
+**Call style.** Component-triggered mutations use `mutation.mutate(vars, { onSuccess })`. Do **not**
+drive a mutation with `mutateAsync` + `try/catch` — it forces an empty catch whose only job is to
+swallow a rejection the global handler already owns. Reserve `mutateAsync` for genuine sequencing
+(awaiting one mutation before starting the next).
+
+**Escape hatch: `meta: { suppressErrorToast: true }`.** The one supported way to opt a mutation out
+of the global toast — for a mutation that surfaces its error inline (e.g. a "current password is
+incorrect" field error). There is no `meta.errorMessage` / per-operation-context convention: 5xx and
+network copy is deliberately generic, because the user can't act on it and already knows what they
+were doing.
+
+**Stays local — these are not mutation errors:**
+- Pre-flight validation guards — client-side checks *before* calling `mutate`.
+- Partial-success `notifications.warning` on bulk operations.
+- Non-mutation query/blob catches that must react in place (barcode resolve, export downloads).
+
+**Enrichment.** When an error genuinely deserves richer text than the server sends (e.g.
+position-occupied resolved to a human location), that enrichment is centralized at the `app` layer
+and composed into the global handler — never scattered into per-component `onError` handlers.
+
+---
+
 ## Shared Schemas
 
 All validation in `@odysseus/shared-schemas`. Always import from here, never define locally.

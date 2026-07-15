@@ -18,9 +18,6 @@ export function useUserSettingsQuery(options?: { enabled?: boolean }) {
     queryFn: () => UserSettingsService.getUserSettings(),
     staleTime: 5 * MS_PER_MINUTE,
     enabled: options?.enabled ?? true,
-    meta: {
-      errorMessage: 'Failed to load user settings',
-    },
   });
 }
 
@@ -31,9 +28,6 @@ function useUpdateUserSettingsMutation() {
     mutationFn: (settings: UserSettings) => UserSettingsService.updateUserSettings(settings),
     onSuccess: updatedSettings => {
       queryClient.setQueryData(queryKeys.users.settings(), updatedSettings);
-    },
-    meta: {
-      errorMessage: 'Failed to update user settings',
     },
   });
 }

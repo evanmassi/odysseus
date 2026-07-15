@@ -12,41 +12,34 @@ import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
+import {
+  getErrorMessage,
+  isInfrastructureError,
+  hasStatus,
+  hasMessage,
+} from '@shared/utils/getErrorMessage';
 import { notifications } from '@shared/utils/notifications';
 import { MS_PER_SECOND, MS_PER_MINUTE, MS_PER_HOUR, MS_PER_DAY } from '@shared/utils/timeConstants';
 
 import { CONFIG_VERSION_KEY, QUERY_CACHE_KEY } from './cacheStorageKeys';
 
-import type { DefaultOptions, QueryKey } from '@tanstack/react-query';
+import type { DefaultOptions, QueryKey, Mutation } from '@tanstack/react-query';
 
-// React Query v5 types errors as `unknown`.
-
-function hasStatus(error: unknown): error is { status: number } {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'status' in error &&
-    typeof (error as Record<string, unknown>)['status'] === 'number'
-  );
+declare module '@tanstack/react-query' {
+  interface Register {
+    mutationMeta: {
+      /** Static query keys to invalidate on success (consumed by handleMutationSuccess). */
+      invalidates?: QueryKey[];
+      /**
+       * Suppress the global error toast — for a mutation that surfaces its own error inline
+       * (e.g. a form field). The mutation still logs; only the toast is skipped.
+       */
+      suppressErrorToast?: boolean;
+    };
+  }
 }
 
-function hasMessage(error: unknown): error is { message: string } {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof (error as Record<string, unknown>)['message'] === 'string'
-  );
-}
-
-function hasCode(error: unknown): error is { code: string } {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    typeof (error as Record<string, unknown>)['code'] === 'string'
-  );
-}
+// React Query v5 types errors as `unknown`; these guards narrow the shapes we log.
 
 function hasDetails(error: unknown): error is { details: Record<string, unknown> } {
   return (
@@ -60,16 +53,6 @@ function hasDetails(error: unknown): error is { details: Record<string, unknown>
 
 function isQuery(query: unknown): query is { queryKey: unknown } {
   return typeof query === 'object' && query !== null && 'queryKey' in query;
-}
-
-function isMutation(mutation: unknown): mutation is { options: { mutationKey?: unknown } } {
-  return (
-    typeof mutation === 'object' &&
-    mutation !== null &&
-    'options' in mutation &&
-    typeof (mutation as Record<string, unknown>)['options'] === 'object' &&
-    (mutation as Record<string, unknown>)['options'] !== null
-  );
 }
 
 export const CACHE_TIMES = {
@@ -142,23 +125,17 @@ const handleQueryError = (error: unknown, query: unknown): void => {
     });
   }
 
-  if (hasStatus(error) && error.status === 429) {
-    notifications.error('Too many requests. Please wait a moment and try again.');
-  } else if (hasStatus(error) && error.status >= 500) {
-    notifications.error('Server error occurred. Please try again.');
-  } else if (
-    (hasStatus(error) && error.status === 0) ||
-    (hasCode(error) && error.code === 'NETWORK_ERROR')
-  ) {
-    notifications.error('Network error. Check your connection.');
+  // Infrastructure failures get a toast; 4xx query errors stay silent — the component renders
+  // its own error state from the query's `isError`.
+  if (isInfrastructureError(error)) {
+    notifications.error(getErrorMessage(error));
   }
 };
 
 const handleMutationError = (
   error: unknown,
   variables: unknown,
-  _context: unknown,
-  mutation: unknown
+  mutation: Mutation<unknown, unknown, unknown, unknown>
 ): void => {
   if (env.isDev()) {
     const originalError =
@@ -167,9 +144,9 @@ const handleMutationError = (
         : error;
 
     logger.error('Mutation failed', {
-      mutationKey: isMutation(mutation) ? mutation.options.mutationKey : 'unknown',
+      mutationKey: mutation.options.mutationKey ?? 'unknown',
       wrapperMessage: hasMessage(error) ? error.message : undefined,
-      originalError: originalError,
+      originalError,
       status: hasStatus(error)
         ? error.status
         : hasStatus(originalError)
@@ -178,11 +155,6 @@ const handleMutationError = (
       errorDetails: hasDetails(error) ? error.details : undefined,
       variables,
     });
-
-    logger.error('Full error object', { error });
-    if (originalError !== error) {
-      logger.error('Original unwrapped error', { originalError });
-    }
   }
 
   if (isOfflineError(error)) {
@@ -190,25 +162,22 @@ const handleMutationError = (
     return;
   }
 
-  if (hasStatus(error) && error.status === 429) {
-    notifications.error('Too many requests. Please wait a moment and try again.');
-  } else if (hasStatus(error) && error.status >= 500) {
-    notifications.error('Server error. Your changes could not be saved.');
-  } else if (hasStatus(error) && error.status >= 400 && error.status < 500) {
-    const message = hasMessage(error) ? error.message : 'Invalid request. Please check your input.';
-    notifications.error(message);
-  } else {
-    notifications.error('Network error. Please try again.');
+  // A mutation that renders its error inline opts out of the global toast via meta.
+  if (mutation.options.meta?.suppressErrorToast) {
+    return;
   }
+
+  notifications.error(getErrorMessage(error));
 };
 
 // Central post-write invalidation: a mutation declares `meta: { invalidates: [queryKey, ...] }` and
 // this refetches those keys on success, so hooks don't repeat useQueryClient + an onSuccess block.
 // Use meta ONLY for pure static-key invalidation; keep onSuccess for anything more — keys derived from
 // the mutation's (typed) variables or result, success toasts, cache patching, or optimistic updates.
-const handleMutationSuccess = (mutation: { meta?: Record<string, unknown> }): void => {
-  const invalidates = mutation.meta?.['invalidates'] as QueryKey[] | undefined;
-  invalidates?.forEach(queryKey => void queryClient.invalidateQueries({ queryKey }));
+const handleMutationSuccess = (mutation: Mutation<unknown, unknown, unknown, unknown>): void => {
+  mutation.options.meta?.invalidates?.forEach(
+    queryKey => void queryClient.invalidateQueries({ queryKey })
+  );
 };
 
 const defaultOptions: DefaultOptions = {
@@ -241,8 +210,8 @@ export const queryClient = new QueryClient({
     },
   }),
   mutationCache: new MutationCache({
-    onError: (error, variables, context, mutation) => {
-      handleMutationError(error, variables, context, mutation);
+    onError: (error, variables, _context, mutation) => {
+      handleMutationError(error, variables, mutation);
     },
     onSuccess: (_data, _variables, _context, mutation) => {
       handleMutationSuccess(mutation);

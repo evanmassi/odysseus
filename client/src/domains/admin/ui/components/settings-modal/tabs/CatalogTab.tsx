@@ -507,9 +507,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       setterForCategory[category](prev => [...prev, { ...created, usageCount: 0 }]);
       notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category] ?? category}`);
     } catch (error) {
-      notifications.error(
-        getErrorMessage(error, `Failed to add ${CATEGORY_SINGULAR_LABELS[category] ?? category}`)
-      );
+      notifications.error(getErrorMessage(error));
       // Rethrown so the child keeps the typed value instead of clearing it on a failed add.
       throw error;
     }
@@ -527,9 +525,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       );
       notifications.success(`Renamed to "${newValue}"`);
     } catch (error) {
-      notifications.error(
-        getErrorMessage(error, `Failed to rename ${CATEGORY_SINGULAR_LABELS[category] ?? category}`)
-      );
+      notifications.error(getErrorMessage(error));
     }
   };
 
@@ -551,12 +547,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
       notifications.success(`Deleted "${confirmDialog.value}"`);
       setConfirmDialog(null);
     } catch (error) {
-      notifications.error(
-        getErrorMessage(
-          error,
-          `Failed to delete ${CATEGORY_SINGULAR_LABELS[confirmDialog.category] ?? confirmDialog.category}`
-        )
-      );
+      notifications.error(getErrorMessage(error));
       setConfirmDialog(null);
     } finally {
       setDeletingId(null);
