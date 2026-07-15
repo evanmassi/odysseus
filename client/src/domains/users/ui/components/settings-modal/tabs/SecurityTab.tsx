@@ -13,12 +13,12 @@ import {
   usePasswordRequirementsQuery,
   PasswordRequirements,
 } from '@domains/authentication';
-import { usePasswordChange } from '@domains/users/hooks/usePasswordChange';
 import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button, ConsolePanel, Subsection } from '@shared/ui';
 import { notifications } from '@shared/utils';
 import { getValidationState } from '@shared/utils/fieldValidation';
 
+import { usePasswordChange } from '../../../../hooks/usePasswordChange';
 import { DemoModeBanner } from '../DemoModeBanner';
 import { SessionListPanel } from '../SessionListPanel';
 

@@ -4,7 +4,7 @@
  * Groups storage resources by assigned user for the By User tab display.
  */
 
-import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
+import type { UserInfo } from '../../../../../hooks/useStorageOwnership';
 import type { LabConfiguration } from '@odysseus/shared-schemas';
 
 interface ResourceAssignment {

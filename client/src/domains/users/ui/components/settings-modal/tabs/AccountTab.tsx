@@ -8,15 +8,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { UserRound, Mail, Building2, BriefcaseBusiness, KeyRound, Save } from 'lucide-react';
 
 import { useIsDemo } from '@domains/authentication';
-import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
 import { logger } from '@infra/logger';
 import { AuthInput, Button, ConsolePanel, LoadingSpinner, Subsection } from '@shared/ui';
 import { notifications } from '@shared/utils';
 import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
+import { useUserProfile, useUserProfileActions } from '../../../../hooks/useUserProfile';
 import { DemoModeBanner } from '../DemoModeBanner';
 
-import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
+import type { UpdatePersonProfileWithPassword } from '../../../../services/PersonService';
 
 interface AccountTabProps {
   /** Reports the number of unsaved profile field edits to the modal footer. */

@@ -24,11 +24,12 @@ import {
   Droplet,
 } from 'lucide-react';
 
-import { auditService } from '@domains/admin/services/AuditService';
-import { labService } from '@domains/admin/services/LabService';
-import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { logger } from '@infra/logger';
 import { Button, Table, Tooltip } from '@shared/ui';
+
+import { auditService } from '../../../services/AuditService';
+import { labService } from '../../../services/LabService';
+import { formatAuditDetails } from '../../../utils/auditLogFormatters';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 

@@ -7,8 +7,9 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { adminUserService } from '@domains/admin/services/AdminUserService';
 import { useLabId } from '@domains/authentication';
+
+import { adminUserService } from '../services/AdminUserService';
 
 export function useDeactivateUserMutation() {
   const labId = useLabId();

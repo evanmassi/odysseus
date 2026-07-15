@@ -6,8 +6,8 @@
 
 import { createContext, useContext } from 'react';
 
+import type { UserInfo } from '../../../hooks/useStorageOwnership';
 import type { NavigatorOccupancy } from '../storage-navigator';
-import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
 import type {
   BoxConfiguration,
   RackConfiguration,

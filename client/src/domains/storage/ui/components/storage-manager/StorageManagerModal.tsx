@@ -10,16 +10,16 @@ import { sortByName, GRID_TEMPLATES } from '@odysseus/shared-schemas';
 import { Plus, ListTree, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useStorageData } from '@domains/storage';
-import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
-import { useStoragePermissions } from '@domains/storage/hooks/useStoragePermissions';
-import { extractAssignedUserIds } from '@domains/storage/utils/extractAssignedUserIds';
 import { useLocationCounts } from '@domains/tubes';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
+import { useStorageData } from '../../../hooks/useStorageData';
+import { useStorageOwnership } from '../../../hooks/useStorageOwnership';
+import { useStoragePermissions } from '../../../hooks/useStoragePermissions';
+import { extractAssignedUserIds } from '../../../utils/extractAssignedUserIds';
 import { buildStorageHierarchy, computeNavigatorOccupancy } from '../storage-navigator';
 import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 

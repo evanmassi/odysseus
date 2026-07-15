@@ -9,11 +9,12 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 
 import { Compass } from 'lucide-react';
 
-import { useRackTubesByBox } from '@domains/storage/hooks/useRackTubesByBox';
 // deep import: avoids @domains/tubes↔@domains/storage barrel cycle
 import { useLocationCounts } from '@domains/tubes/hooks/useTubeQueries';
 import { HeaderStrip, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
+
+import { useRackTubesByBox } from '../../../hooks/useRackTubesByBox';
 
 import './storage-navigator.css';
 import { StorageBoxMinimap } from './StorageBoxMinimap';

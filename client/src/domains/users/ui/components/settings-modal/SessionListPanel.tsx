@@ -10,10 +10,11 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { Monitor, TabletSmartphone, MonitorCheck, LogOut } from 'lucide-react';
 import { UAParser } from 'ua-parser-js';
 
-import { useUserSessions } from '@domains/users';
 import { Button, LoadingSpinner, Table, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
+
+import { useUserSessions } from '../../../hooks/useUserSessions';
 
 import type { ActiveSession } from '@odysseus/shared-schemas';
 import type { TableColumn } from '@shared/ui';

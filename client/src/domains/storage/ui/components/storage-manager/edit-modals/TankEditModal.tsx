@@ -6,11 +6,12 @@
 
 import { Save } from 'lucide-react';
 
-import { getGridTotalPositions } from '@domains/storage';
 import { useEditModalForm } from '@shared/hooks';
 import { Button, Checkbox, Input } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays';
+
+import { getGridTotalPositions } from '../../../../utils/gridHelpers';
 
 import type { TankConfiguration } from '@odysseus/shared-schemas';
 

@@ -5,7 +5,7 @@
  * Mounts only while the rack is expanded, so collapsed racks fetch nothing.
  */
 
-import { useRackTubesByBox } from '@domains/storage/hooks/useRackTubesByBox';
+import { useRackTubesByBox } from '../../../../../hooks/useRackTubesByBox';
 
 import { BoxRow } from './BoxRow';
 

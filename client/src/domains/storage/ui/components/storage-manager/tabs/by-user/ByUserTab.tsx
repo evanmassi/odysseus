@@ -21,7 +21,7 @@ import { AssignmentDropdown } from './AssignmentDropdown';
 import { buildUserAssignments, buildRackGroups } from './buildUserAssignments';
 import { TreeLinesByUser } from './TreeLinesByUser';
 
-import type { UserInfo } from '@domains/storage/hooks/useStorageOwnership';
+import type { UserInfo } from '../../../../../hooks/useStorageOwnership';
 import type { LabConfiguration, UserDisplayInfo } from '@odysseus/shared-schemas';
 
 interface ByUserTabProps {

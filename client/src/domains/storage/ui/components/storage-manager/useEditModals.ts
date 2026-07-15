@@ -11,7 +11,7 @@ import {
   useUpdateRackMutation,
   useUpdateBoxMutation,
   useUpdateResourceLabelMutation,
-} from '@domains/storage';
+} from '../../../hooks/useStorageMutations';
 
 import type {
   TankConfiguration,

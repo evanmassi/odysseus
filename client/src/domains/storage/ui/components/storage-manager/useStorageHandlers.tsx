@@ -7,6 +7,8 @@
 import { useCallback } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { notifications } from '@shared/utils/notifications';
+
 import {
   useAddTankMutation,
   useDeleteTankMutation,
@@ -18,8 +20,7 @@ import {
   useAssignBoxMutation,
   useBulkUnassignMutation,
   useBulkReassignMutation,
-} from '@domains/storage';
-import { notifications } from '@shared/utils/notifications';
+} from '../../../hooks/useStorageMutations';
 
 import type { LabConfiguration, TankConfiguration } from '@odysseus/shared-schemas';
 

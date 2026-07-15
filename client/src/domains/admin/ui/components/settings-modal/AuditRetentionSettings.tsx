@@ -16,11 +16,12 @@ import {
   ChevronUp,
 } from 'lucide-react';
 
-import { auditService } from '@domains/admin/services/AuditService';
 import { logger } from '@infra/logger';
 import { AlertBanner, Button, ConsolePanel, StatCell, STAT_STRIP, Subsection } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { downloadBlob } from '@shared/utils/downloadBlob';
+
+import { auditService } from '../../../services/AuditService';
 
 import type { RetentionMetrics, RetentionPolicy } from '@odysseus/shared-schemas';
 

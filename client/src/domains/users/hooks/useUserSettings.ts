@@ -6,8 +6,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { UserSettingsService } from '@domains/users/services/UserSettingsService';
 import { MS_PER_MINUTE } from '@shared/utils';
+
+import { UserSettingsService } from '../services/UserSettingsService';
 
 import type { UserSettings } from '@odysseus/shared-schemas';
 

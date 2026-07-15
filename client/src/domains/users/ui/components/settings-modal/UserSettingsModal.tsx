@@ -10,12 +10,13 @@ import { Settings, Table2, UserRound, Shield } from 'lucide-react';
 import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication';
-import { useUserSessions } from '@domains/users';
-import { useUserSettings, useUserSettingsActions } from '@domains/users/hooks/useUserSettings';
 import { logger } from '@infra/logger';
 import { Button, Tab, LoadingSkeleton, SectionHeader, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
+
+import { useUserSessions } from '../../../hooks/useUserSessions';
+import { useUserSettings, useUserSettingsActions } from '../../../hooks/useUserSettings';
 
 import type {
   UserSettings,
