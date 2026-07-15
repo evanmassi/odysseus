@@ -33,31 +33,29 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
     }
   }, [isOpen]);
 
-  const handleLock = async () => {
-    try {
-      const result = await lockMutation.mutateAsync({
-        tubeIds,
-        lockNote: lockNote.trim() || undefined,
-      });
+  const handleLock = () => {
+    lockMutation.mutate(
+      { tubeIds, lockNote: lockNote.trim() || undefined },
+      {
+        onSuccess: result => {
+          const lockedCount = result.locked.length;
+          const skippedCount = result.skipped.length;
 
-      const lockedCount = result.locked.length;
-      const skippedCount = result.skipped.length;
+          if (lockedCount > 0 && skippedCount === 0) {
+            notifications.success(`Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}`);
+          } else if (lockedCount > 0 && skippedCount > 0) {
+            notifications.success(
+              `Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
+            );
+          } else {
+            notifications.warning('No tubes were locked');
+          }
 
-      if (lockedCount > 0 && skippedCount === 0) {
-        notifications.success(`Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}`);
-      } else if (lockedCount > 0 && skippedCount > 0) {
-        notifications.success(
-          `Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
-        );
-      } else {
-        notifications.warning('No tubes were locked');
+          onSuccess?.();
+          onClose();
+        },
       }
-
-      onSuccess?.();
-      onClose();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    );
   };
 
   const tubeCount = tubeIds.length;
@@ -65,7 +63,7 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !lockMutation.isPending) {
       e.preventDefault();
-      void handleLock();
+      handleLock();
     }
   };
 

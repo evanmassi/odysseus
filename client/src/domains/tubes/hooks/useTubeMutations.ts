@@ -4,18 +4,13 @@
  * React Query hooks for tube write operations.
  */
 
-import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
-import { formatPositionForBox } from '@domains/storage';
-// deep import: avoids @domains/tubes↔@domains/storage barrel cycle
-import { getStorageDataFromCache } from '@domains/storage/hooks/useStorageData';
 import { TubeService } from '@domains/tubes/services/TubeService';
 import { isConflictError } from '@infra/api';
 import { logger } from '@infra/logger';
-import { notifications } from '@shared/utils/notifications';
 
 import type {
   TubeData,
@@ -23,120 +18,6 @@ import type {
   UpdateTubeRequest,
   BulkUpdateResult,
 } from '@domains/tubes/types';
-
-/** Check if error is a position-already-occupied error from server. */
-function isPositionOccupiedError(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null) return false;
-
-  const err = error as { details?: { body?: { details?: { code?: string } } } };
-  return err.details?.body?.details?.code === 'POSITION_OCCUPIED';
-}
-
-/** Extract position info from position occupied error. */
-function getPositionFromError(error: unknown): {
-  tankId: string;
-  rackId: string;
-  boxId: string;
-  position: number;
-} | null {
-  if (typeof error !== 'object' || error === null) return null;
-
-  const err = error as {
-    details?: {
-      body?: {
-        details?: { tankId?: string; rackId?: string; boxId?: string; position?: number };
-      };
-    };
-  };
-  const details = err.details?.body?.details;
-
-  if (details?.tankId && details?.rackId && details?.boxId && details?.position !== undefined) {
-    return {
-      tankId: details.tankId,
-      rackId: details.rackId,
-      boxId: details.boxId,
-      position: details.position,
-    };
-  }
-  return null;
-}
-
-/** Format position with display names for user-friendly error message. */
-function formatPositionDisplayString(
-  queryClient: ReturnType<typeof useQueryClient>,
-  labId: string | undefined,
-  tankId: string,
-  rackId: string,
-  boxId: string,
-  position: number
-): string {
-  const { currentLab } = getStorageDataFromCache(queryClient, labId);
-
-  const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
-  const rack = tank?.racks?.find(r => r.id === rackId);
-  const box = rack?.boxes?.find(b => b.id === boxId);
-
-  const tankName = tank?.name ?? tankId;
-  const rackName = formatStorageDisplayName(rack?.name ?? rackId, rack?.customLabel);
-  const boxName = formatStorageDisplayName(box?.name ?? boxId, box?.customLabel);
-
-  let positionLabel = String(position);
-  if (box?.gridConfig && currentLab) {
-    try {
-      positionLabel = formatPositionForBox(
-        position,
-        tankId,
-        rackId,
-        boxId,
-        box.gridConfig,
-        currentLab,
-        null
-      );
-    } catch {
-      // Fall back to numeric if formatting fails
-    }
-  }
-
-  return `${tankName} → ${rackName} → ${boxName} → ${positionLabel}`;
-}
-
-/** Show position occupied error message and refresh cache. */
-function handlePositionOccupiedError(
-  queryClient: ReturnType<typeof useQueryClient>,
-  labId: string | undefined,
-  error: unknown
-): void {
-  const positionInfo = getPositionFromError(error);
-
-  let message = 'Position already occupied';
-  if (positionInfo) {
-    const locationString = formatPositionDisplayString(
-      queryClient,
-      labId,
-      positionInfo.tankId,
-      positionInfo.rackId,
-      positionInfo.boxId,
-      positionInfo.position
-    );
-    message = `Position already occupied\n${locationString}`;
-  }
-
-  notifications.error(message);
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-}
-
-/** Show conflict error message and refresh cache. */
-function handleTubeConflictError(
-  queryClient: ReturnType<typeof useQueryClient>,
-  labId: string | undefined,
-  tubeId: string
-): void {
-  notifications.error(
-    'Update failed: This tube was modified by another user. Please review the latest changes and try again.'
-  );
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(labId, tubeId) });
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
-}
 
 export const useCreateTubeMutation = (
   options: UseMutationOptions<TubeData, Error, CreateTubeRequest> = {}
@@ -169,10 +50,6 @@ export const useCreateTubeMutation = (
 
     onError: error => {
       logger.error('Create tube failed', { error });
-
-      if (isPositionOccupiedError(error)) {
-        handlePositionOccupiedError(queryClient, labId, error);
-      }
     },
 
     ...options,
@@ -264,13 +141,12 @@ export const useUpdateTubeMutation = (
     onError: (error, variables, context) => {
       logger.error(`Update tube ${variables.id} failed`, { error });
 
+      // Someone else changed this tube — refetch so the next edit starts from the latest.
       if (isConflictError(error)) {
-        handleTubeConflictError(queryClient, labId, variables.id);
-        return;
-      }
-
-      if (isPositionOccupiedError(error)) {
-        handlePositionOccupiedError(queryClient, labId, error);
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.detail(labId, variables.id),
+        });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
         return;
       }
 

@@ -257,15 +257,14 @@ function EditModeForm({
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     modalService.hideDeleteConfirm();
-    try {
-      await deleteMutation.mutateAsync(tubeId);
-      notifications.success('Tube removed successfully');
-      onClose();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    deleteMutation.mutate(tubeId, {
+      onSuccess: () => {
+        notifications.success('Tube removed successfully');
+        onClose();
+      },
+    });
   };
 
   const { isValid: isFormValid, isDirty } = form.formState;

@@ -65,55 +65,50 @@ export function TubeShareAccessModal({
     return user.username ?? userId;
   };
 
-  const handleShare = async () => {
+  const handleShare = () => {
     if (selectedUserIds.length === 0) {
       notifications.warning('Please select at least one user to share with');
       return;
     }
 
-    try {
-      const result = await shareMutation.mutateAsync({
-        tubeIds: tubes.map(t => t.id),
-        userIds: selectedUserIds,
-      });
+    shareMutation.mutate(
+      { tubeIds: tubes.map(t => t.id), userIds: selectedUserIds },
+      {
+        onSuccess: result => {
+          const sharedCount = result.shared.length;
+          const skippedCount = result.skipped.length;
 
-      const sharedCount = result.shared.length;
-      const skippedCount = result.skipped.length;
-
-      if (sharedCount > 0 && skippedCount === 0) {
-        notifications.success(
-          `Shared access to ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}`
-        );
-        setSelectedUserIds([]);
-      } else if (sharedCount > 0 && skippedCount > 0) {
-        notifications.success(
-          `Shared ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
-        );
-        setSelectedUserIds([]);
-      } else {
-        notifications.warning('No tubes were shared');
+          if (sharedCount > 0 && skippedCount === 0) {
+            notifications.success(
+              `Shared access to ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}`
+            );
+            setSelectedUserIds([]);
+          } else if (sharedCount > 0 && skippedCount > 0) {
+            notifications.success(
+              `Shared ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
+            );
+            setSelectedUserIds([]);
+          } else {
+            notifications.warning('No tubes were shared');
+          }
+        },
       }
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    );
   };
 
-  const handleRevoke = async (userId: string) => {
-    try {
-      const result = await revokeMutation.mutateAsync({
-        tubeIds: tubes.map(t => t.id),
-        userIds: [userId],
-      });
-
-      const revokedCount = result.revoked.length;
-      if (revokedCount > 0) {
-        notifications.success(`Revoked access from ${getUserName(userId)}`);
-      } else {
-        notifications.warning('No access was revoked');
+  const handleRevoke = (userId: string) => {
+    revokeMutation.mutate(
+      { tubeIds: tubes.map(t => t.id), userIds: [userId] },
+      {
+        onSuccess: result => {
+          if (result.revoked.length > 0) {
+            notifications.success(`Revoked access from ${getUserName(userId)}`);
+          } else {
+            notifications.warning('No access was revoked');
+          }
+        },
       }
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+    );
   };
 
   const toggleUserSelection = (userId: string) => {

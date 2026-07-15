@@ -136,9 +136,11 @@ were doing.
 - Partial-success `notifications.warning` on bulk operations.
 - Non-mutation query/blob catches that must react in place (barcode resolve, export downloads).
 
-**Enrichment.** When an error genuinely deserves richer text than the server sends (e.g.
-position-occupied resolved to a human location), that enrichment is centralized at the `app` layer
-and composed into the global handler — never scattered into per-component `onError` handlers.
+**Enrichment lives on the server.** When an error deserves richer text than a generic line —
+position-occupied naming the location, a human-readable conflict message — the *server* makes its
+4xx message self-contained and the client shows it verbatim. The client never rebuilds error text
+from IDs or cache. A mutation's `onError` may still *react* to a specific code (e.g. invalidate a
+stale query on a 409 conflict), but it never toasts.
 
 ---
 

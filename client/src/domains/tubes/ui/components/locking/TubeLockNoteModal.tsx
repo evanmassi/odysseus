@@ -62,24 +62,20 @@ export function TubeLockNoteModal({
   const tubeCount = tubes.length;
   const isSingleTube = tubeCount === 1;
 
-  const handleSave = async () => {
-    try {
-      await bulkUpdateMutation.mutateAsync({
-        tubeIds,
-        updates: {
-          lockNote: lockNote.trim() || undefined,
+  const handleSave = () => {
+    bulkUpdateMutation.mutate(
+      { tubeIds, updates: { lockNote: lockNote.trim() || undefined } },
+      {
+        onSuccess: () => {
+          const message = isSingleTube
+            ? 'Lock note updated'
+            : `Lock note updated on ${tubeCount} tubes`;
+          notifications.success(message);
+          onSuccess?.();
+          onClose();
         },
-      });
-
-      const message = isSingleTube
-        ? 'Lock note updated'
-        : `Lock note updated on ${tubeCount} tubes`;
-      notifications.success(message);
-      onSuccess?.();
-      onClose();
-    } catch {
-      // Global mutation handler shows the error toast.
-    }
+      }
+    );
   };
 
   // For mixed notes, initialNote is empty so user must type something
@@ -88,7 +84,7 @@ export function TubeLockNoteModal({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && hasChanges && !bulkUpdateMutation.isPending) {
       e.preventDefault();
-      void handleSave();
+      handleSave();
     }
   };
 
