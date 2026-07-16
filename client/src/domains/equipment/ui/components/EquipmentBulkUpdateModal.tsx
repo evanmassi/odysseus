@@ -245,7 +245,7 @@ export function EquipmentBulkUpdateModal({
           isOpen={true}
           variant="warning"
           title="Confirm Bulk Update"
-          message={`${actionLabels[pendingAction.type as BulkActionType]} for ${pendingAction.itemIds.length} ${pendingAction.itemIds.length === 1 ? 'item' : 'items'}?`}
+          message={`${actionLabels[pendingAction.type]} for ${pendingAction.itemIds.length} ${pendingAction.itemIds.length === 1 ? 'item' : 'items'}?`}
           confirmText="Apply"
           onConfirm={confirmAction}
           onCancel={() => setPendingAction(null)}
