@@ -4,7 +4,12 @@
  * React Query hooks for tube write operations.
  */
 
-import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type UseMutationOptions,
+} from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId } from '@domains/authentication';
@@ -18,6 +23,18 @@ import type {
   UpdateTubeRequest,
   BulkUpdateResult,
 } from '@domains/tubes/types';
+
+function invalidateTubeLocation(
+  queryClient: QueryClient,
+  labId: string | undefined,
+  location: TubeData['location']
+): void {
+  if (location.tankId && location.rackId !== undefined && location.boxId) {
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.tubes.location(labId, location.tankId, location.rackId, location.boxId),
+    });
+  }
+}
 
 export const useCreateTubeMutation = (
   options: UseMutationOptions<TubeData, Error, CreateTubeRequest> = {}
@@ -34,16 +51,7 @@ export const useCreateTubeMutation = (
       queryClient.setQueryData(queryKeys.tubes.detail(labId, tube.id), tube);
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all(labId) });
 
-      if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-        void queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(
-            labId,
-            tube.location.tankId,
-            tube.location.rackId,
-            tube.location.boxId
-          ),
-        });
-      }
+      invalidateTubeLocation(queryClient, labId, tube.location);
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
@@ -108,32 +116,10 @@ export const useUpdateTubeMutation = (
 
       const oldTube = context?.previousTube;
       if (oldTube) {
-        if (
-          oldTube.location.tankId &&
-          oldTube.location.rackId !== undefined &&
-          oldTube.location.boxId
-        ) {
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.tubes.location(
-              labId,
-              oldTube.location.tankId,
-              oldTube.location.rackId,
-              oldTube.location.boxId
-            ),
-          });
-        }
+        invalidateTubeLocation(queryClient, labId, oldTube.location);
       }
 
-      if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-        void queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(
-            labId,
-            tube.location.tankId,
-            tube.location.rackId,
-            tube.location.boxId
-          ),
-        });
-      }
+      invalidateTubeLocation(queryClient, labId, tube.location);
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.donors.all(labId) });
     },
@@ -192,16 +178,7 @@ export const useDeleteTubeMutation = (
 
       if (context?.previousTube) {
         const tube = context.previousTube;
-        if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-          void queryClient.invalidateQueries({
-            queryKey: queryKeys.tubes.location(
-              labId,
-              tube.location.tankId,
-              tube.location.rackId,
-              tube.location.boxId
-            ),
-          });
-        }
+        invalidateTubeLocation(queryClient, labId, tube.location);
       }
     },
 

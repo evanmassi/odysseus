@@ -42,6 +42,16 @@ interface TubeGridProps {
   gridController: GridControllerReturn;
   lockContext?: LockContext;
 }
+
+function deriveLockState(tube: TubeData | undefined, lockContext: LockContext | undefined) {
+  const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
+  const isLockedByCurrentUser =
+    tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
+  const hasSharedAccess = tube && lockContext ? lockContext.hasExplicitSharedAccess(tube) : false;
+  const lockOwnerName = tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
+  return { isLockedOut, isLockedByCurrentUser, hasSharedAccess, lockOwnerName };
+}
+
 export function TubeGrid({
   tankId,
   rackId,
@@ -161,21 +171,19 @@ export function TubeGrid({
       setHoverAnchorRect(rect);
 
       if (tube.isLocked && lockContext) {
-        const ownerName = lockContext.getLockOwnerName(tube);
-        const isMine = lockContext.isLockedByCurrentUser(tube);
-        const isShared = lockContext.hasExplicitSharedAccess(tube);
-        const isOut = lockContext.isLockedOutFrom(tube);
+        const { isLockedByCurrentUser, hasSharedAccess, isLockedOut, lockOwnerName } =
+          deriveLockState(tube, lockContext);
 
-        if (isMine) {
+        if (isLockedByCurrentUser) {
           setHoveredLockVariant('own');
-        } else if (isShared) {
+        } else if (hasSharedAccess) {
           setHoveredLockVariant('shared');
-        } else if (isOut) {
+        } else if (isLockedOut) {
           setHoveredLockVariant('other');
         } else {
           setHoveredLockVariant('admin-override');
         }
-        setHoveredLockOwnerName(ownerName);
+        setHoveredLockOwnerName(lockOwnerName);
       } else {
         setHoveredLockVariant(undefined);
         setHoveredLockOwnerName(undefined);
@@ -290,15 +298,10 @@ export function TubeGrid({
               const isCopied = gridController.clipboard.copyPositions.has(positionKey);
               const inDragPreview = dragSelection.dragPreview.has(positionKey);
 
-              const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
-              const isLockedByCurrentUser =
-                tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
-              const hasSharedAccess =
-                tube && lockContext ? lockContext.hasExplicitSharedAccess(tube) : false;
+              const { isLockedOut, isLockedByCurrentUser, hasSharedAccess, lockOwnerName } =
+                deriveLockState(tube, lockContext);
               const hasAdminOverride =
                 tube?.isLocked && !isLockedByCurrentUser && !hasSharedAccess && !isLockedOut;
-              const lockOwnerName =
-                tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
 
               return (
                 <TubeGridCell
