@@ -20,36 +20,27 @@ import {
   useResetUserPasswordMutation,
 } from '../../../hooks/useUserMutations';
 
-function getPasswordStrength(password: string): string {
-  if (password.length === 0) return '';
-  if (password.length < 4) return 'Too short';
-  if (password.length < 8) return 'Weak';
-  if (password.length < 12) return 'Medium';
-  return 'Strong';
+interface PasswordStrength {
+  label: string;
+  level: number;
+  textClass: string;
+  barClass: string;
 }
 
-function getPasswordStrengthColor(password: string): string {
-  const strength = getPasswordStrength(password);
-  if (strength === 'Too short' || strength === 'Weak') return 'text-danger-text';
-  if (strength === 'Medium') return 'text-warning-text';
-  if (strength === 'Strong') return 'text-success-text';
-  return '';
-}
-
-function getPasswordStrengthLevel(password: string): number {
-  const strength = getPasswordStrength(password);
-  if (strength === 'Strong') return 3;
-  if (strength === 'Medium') return 2;
-  if (strength === 'Weak' || strength === 'Too short') return 1;
-  return 0;
-}
-
-function getPasswordStrengthBar(password: string): string {
-  const strength = getPasswordStrength(password);
-  if (strength === 'Too short' || strength === 'Weak') return 'bg-danger-bg';
-  if (strength === 'Medium') return 'bg-warning-bg';
-  if (strength === 'Strong') return 'bg-success-bg';
-  return '';
+function getPasswordStrength(password: string): PasswordStrength {
+  if (password.length === 0) return { label: '', level: 0, textClass: '', barClass: '' };
+  if (password.length < 8) {
+    return {
+      label: password.length < 4 ? 'Too short' : 'Weak',
+      level: 1,
+      textClass: 'text-danger-text',
+      barClass: 'bg-danger-bg',
+    };
+  }
+  if (password.length < 12) {
+    return { label: 'Medium', level: 2, textClass: 'text-warning-text', barClass: 'bg-warning-bg' };
+  }
+  return { label: 'Strong', level: 3, textClass: 'text-success-text', barClass: 'bg-success-bg' };
 }
 
 interface PasswordResetModalProps {
@@ -147,10 +138,12 @@ export function PasswordResetModal({
     }
   };
 
-  const strengthLabel = getPasswordStrength(newPassword);
-  const strengthLevel = getPasswordStrengthLevel(newPassword);
-  const strengthBar = getPasswordStrengthBar(newPassword);
-  const strengthText = getPasswordStrengthColor(newPassword);
+  const {
+    label: strengthLabel,
+    level: strengthLevel,
+    barClass: strengthBar,
+    textClass: strengthText,
+  } = getPasswordStrength(newPassword);
 
   const tabs = (
     <Tabs value={activeTab} onChange={v => setActiveTab(v as 'direct' | 'token')}>

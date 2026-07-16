@@ -64,13 +64,44 @@ type TabId =
   | 'monitoring'
   | 'invite-codes';
 
-const TAB_META: Record<TabId, { icon: React.ReactNode; title: string }> = {
+interface TabVisibilityContext {
+  isDemo: boolean;
+  isSystemAdmin: boolean;
+}
+
+type TabMeta = {
+  icon: React.ReactNode;
+  title: string;
+  visible?: (ctx: TabVisibilityContext) => boolean;
+};
+
+const TAB_META: Record<TabId, TabMeta> = {
   system: { icon: <Gauge size={18} />, title: 'System' },
-  security: { icon: <Shield size={18} />, title: 'Security' },
-  users: { icon: <UsersRound size={18} />, title: 'Users' },
-  researchers: { icon: <Dna size={18} />, title: 'Researchers' },
-  'invite-codes': { icon: <TicketCheck size={18} />, title: 'Invite Codes' },
-  catalog: { icon: <BookOpen size={18} />, title: 'Catalog' },
+  security: {
+    icon: <Shield size={18} />,
+    title: 'Security',
+    visible: ({ isDemo, isSystemAdmin }) => !isDemo && !isSystemAdmin,
+  },
+  users: {
+    icon: <UsersRound size={18} />,
+    title: 'Users',
+    visible: ({ isSystemAdmin }) => !isSystemAdmin,
+  },
+  researchers: {
+    icon: <Dna size={18} />,
+    title: 'Researchers',
+    visible: ({ isSystemAdmin }) => !isSystemAdmin,
+  },
+  'invite-codes': {
+    icon: <TicketCheck size={18} />,
+    title: 'Invite Codes',
+    visible: ({ isSystemAdmin }) => !isSystemAdmin,
+  },
+  catalog: {
+    icon: <BookOpen size={18} />,
+    title: 'Catalog',
+    visible: ({ isSystemAdmin }) => !isSystemAdmin,
+  },
   monitoring: { icon: <Activity size={18} />, title: 'Monitoring' },
 };
 
@@ -124,37 +155,13 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         setTabFooter(null);
       }}
     >
-      <Tab id="system" icon={<Gauge size={18} />}>
-        System
-      </Tab>
-      {!isDemo && !isSystemAdmin && (
-        <Tab id="security" icon={<Shield size={18} />}>
-          Security
-        </Tab>
-      )}
-      {!isSystemAdmin && (
-        <Tab id="users" icon={<UsersRound size={18} />}>
-          Users
-        </Tab>
-      )}
-      {!isSystemAdmin && (
-        <Tab id="researchers" icon={<Dna size={18} />}>
-          Researchers
-        </Tab>
-      )}
-      {!isSystemAdmin && (
-        <Tab id="invite-codes" icon={<TicketCheck size={18} />}>
-          Invite Codes
-        </Tab>
-      )}
-      {!isSystemAdmin && (
-        <Tab id="catalog" icon={<BookOpen size={18} />}>
-          Catalog
-        </Tab>
-      )}
-      <Tab id="monitoring" icon={<Activity size={18} />}>
-        Monitoring
-      </Tab>
+      {(Object.entries(TAB_META) as [TabId, TabMeta][])
+        .filter(([, meta]) => meta.visible?.({ isDemo, isSystemAdmin }) ?? true)
+        .map(([id, meta]) => (
+          <Tab key={id} id={id} icon={meta.icon}>
+            {meta.title}
+          </Tab>
+        ))}
     </Tabs>
   );
 
