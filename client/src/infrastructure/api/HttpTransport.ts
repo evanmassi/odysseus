@@ -117,22 +117,7 @@ export class HttpTransport {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      const errorParsed = errorEnvelopeSchema.safeParse(errorData);
-
-      if (errorParsed.success) {
-        throw new ApiError(
-          errorParsed.data.error,
-          response.status,
-          errorParsed.data.code,
-          errorParsed.data.details
-        );
-      }
-
-      throw new ApiError(
-        errorData?.message || `HTTP ${response.status}: ${response.statusText}`,
-        response.status,
-        errorData?.code
-      );
+      throw this.buildApiError(response, errorData);
     }
 
     return response.blob();
