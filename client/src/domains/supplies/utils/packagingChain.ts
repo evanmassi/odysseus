@@ -30,6 +30,16 @@ export function computePackagingMultiplier(
   return multiplier;
 }
 
+/** A stock-unit threshold re-expressed in its entry (packaging) unit: amount ÷ unit multiplier. */
+export function thresholdInEntryUnit(
+  threshold: number,
+  thresholdUnit: string,
+  stockUnit: string,
+  levels: PackagingChainLevel[]
+): number {
+  return Math.round(threshold / computePackagingMultiplier(levels, thresholdUnit, stockUnit));
+}
+
 /** Orders levels from the base unit up, following each level's `parentUnit`. */
 export function orderPackagingChain<T extends { unitName: string; parentUnit: string | null }>(
   levels: T[]

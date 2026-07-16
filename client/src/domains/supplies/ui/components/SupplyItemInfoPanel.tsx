@@ -35,7 +35,7 @@ import {
   useUpdateSupplyBarcodeMutation,
   useRegenerateInternalBarcodeMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
-import { orderPackagingChain } from '@domains/supplies/utils/packagingChain';
+import { orderPackagingChain, thresholdInEntryUnit } from '@domains/supplies/utils/packagingChain';
 import { SUPPLY_STATUS_DISPLAY } from '@domains/supplies/utils/supplyStatus';
 import {
   Button,
@@ -155,17 +155,12 @@ export function SupplyItemInfoPanel({
           if (!item.reorderThresholdUnit || item.reorderThresholdUnit === item.stockUnit) {
             return `${item.reorderThreshold} ${pluralizeUnit(item.stockUnit ?? 'unit', item.reorderThreshold)}`;
           }
-          const levels = detail.packagingLevels;
-          let multiplier = 1;
-          let current = item.reorderThresholdUnit;
-          for (let i = 0; i < levels.length + 1; i++) {
-            const level = levels.find(l => l.unitName === current);
-            if (!level) break;
-            multiplier *= level.quantity;
-            if (level.parentUnit === null || level.parentUnit === item.stockUnit) break;
-            current = level.parentUnit;
-          }
-          const inputQty = Math.round(item.reorderThreshold / multiplier);
+          const inputQty = thresholdInEntryUnit(
+            item.reorderThreshold,
+            item.reorderThresholdUnit,
+            item.stockUnit ?? '',
+            detail.packagingLevels
+          );
           return `${inputQty} ${pluralizeUnit(item.reorderThresholdUnit, inputQty)}`;
         })()}
         {item.reorderThresholdUnit && item.reorderThresholdUnit !== item.stockUnit && (

@@ -20,7 +20,10 @@ import {
   useRemoveSupplyPackagingLevelMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import { SupplyService } from '@domains/supplies/services/SupplyService';
-import { computePackagingMultiplier } from '@domains/supplies/utils/packagingChain';
+import {
+  computePackagingMultiplier,
+  thresholdInEntryUnit,
+} from '@domains/supplies/utils/packagingChain';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
 import {
   Button,
@@ -116,16 +119,16 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
     }
     const levels = detail?.packagingLevels ?? [];
     if (levels.length === 0) return;
-    let multiplier = 1;
-    let current = item.reorderThresholdUnit;
-    for (let i = 0; i < levels.length + 1; i++) {
-      const level = levels.find(l => l.unitName === current);
-      if (!level) break;
-      multiplier *= level.quantity;
-      if (level.parentUnit === null || level.parentUnit === item.stockUnit) break;
-      current = level.parentUnit;
-    }
-    setThresholdInputQty(String(Math.round(item.reorderThreshold / multiplier)));
+    setThresholdInputQty(
+      String(
+        thresholdInEntryUnit(
+          item.reorderThreshold,
+          item.reorderThresholdUnit,
+          item.stockUnit ?? '',
+          levels
+        )
+      )
+    );
   }, [
     isEditing,
     item?.reorderThreshold,
