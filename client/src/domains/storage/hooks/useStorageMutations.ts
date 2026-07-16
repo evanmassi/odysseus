@@ -121,7 +121,7 @@ export const useUpdateRackMutation = () => {
     }: {
       tankId: string;
       rackId: string;
-      updates: { name?: string; capacity?: number; isActive?: boolean };
+      updates: { name?: string; isActive?: boolean };
     }) => StorageService.updateRack(tankId, rackId, updates),
 
     onSuccess: () => {

@@ -110,7 +110,6 @@ export function useEditModals() {
         rackId,
         updates: {
           name: updates.name,
-          capacity: updates.capacity,
           isActive: updates.isActive,
         },
       },

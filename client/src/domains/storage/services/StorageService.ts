@@ -71,7 +71,7 @@ export class StorageService {
   static async updateRack(
     tankId: string,
     rackId: string,
-    updates: { name?: string; capacity?: number; isActive?: boolean }
+    updates: { name?: string; isActive?: boolean }
   ): Promise<void> {
     await httpClient.put(`/storage/tanks/${tankId}/racks/${rackId}`, updates);
   }

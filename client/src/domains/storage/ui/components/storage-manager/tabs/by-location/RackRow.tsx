@@ -6,11 +6,7 @@
 
 import { useMemo, useState } from 'react';
 
-import {
-  EQUIPMENT_DEFAULTS,
-  formatStorageDisplayName,
-  isAdminRole,
-} from '@odysseus/shared-schemas';
+import { EQUIPMENT_DEFAULTS, formatStorageDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Lock, Plus, SquarePen, Tag, Trash2 } from 'lucide-react';
 
@@ -169,7 +165,7 @@ export function RackRow({
                 parts={[`${rack.boxes.length} ${rack.boxes.length === 1 ? 'box' : 'boxes'}`]}
               />
             </div>
-            {canManageStorage && !locked && isAdminRole(currentUser?.role) && (
+            {canManageStorage && !locked && (
               <div
                 role="presentation"
                 onClick={e => e.stopPropagation()}

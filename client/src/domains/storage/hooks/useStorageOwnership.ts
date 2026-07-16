@@ -22,10 +22,6 @@ export interface UserInfo {
 
 interface UseStorageOwnershipResult {
   getUserInfo: (userId: string) => UserInfo | null;
-  getEffectiveOwner: (
-    resource: BoxConfiguration,
-    parentRack: RackConfiguration
-  ) => string | undefined;
   isOwnedByCurrentUser: (
     resource: RackConfiguration | BoxConfiguration,
     parentRack?: RackConfiguration
@@ -56,17 +52,6 @@ export function useStorageOwnership(
     [users]
   );
 
-  const getEffectiveOwner = useMemo(
-    () =>
-      (resource: BoxConfiguration, parentRack: RackConfiguration): string | undefined => {
-        // null = explicitly unassigned/common (no owner)
-        if (resource.assignedUserId === null) return undefined;
-        // undefined = inherit from rack
-        return resource.assignedUserId ?? parentRack.assignedUserId;
-      },
-    []
-  );
-
   const isOwnedByCurrentUser = useMemo(
     () =>
       (resource: RackConfiguration | BoxConfiguration, parentRack?: RackConfiguration): boolean => {
@@ -93,7 +78,6 @@ export function useStorageOwnership(
 
   return {
     getUserInfo,
-    getEffectiveOwner,
     isOwnedByCurrentUser,
   };
 }

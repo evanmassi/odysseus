@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 
-import { formatStorageDisplayName, isAdminRole } from '@odysseus/shared-schemas';
+import { formatStorageDisplayName } from '@odysseus/shared-schemas';
 import { Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
 
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
@@ -107,8 +107,6 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
 
   const dividerBefore = canDeleteBox ? ['Delete Box'] : [];
 
-  const isAdmin = isAdminRole(currentUser?.role);
-
   return (
     <div data-level="box" data-id={box.id}>
       <div className="storage-nav-item--modal storage-nav-item--box">
@@ -133,7 +131,7 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
                 </Tooltip>
               ) : (
                 <>
-                  {canManageStorage && isAdmin && (
+                  {canManageStorage && (
                     <AssignmentDropdown
                       value={box.assignedUserId}
                       users={users}
