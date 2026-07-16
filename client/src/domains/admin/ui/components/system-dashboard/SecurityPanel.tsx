@@ -356,7 +356,7 @@ export function SecurityPanel() {
           iconOnly
           aria-label="Revoke session"
           onClick={e => {
-            (e as React.MouseEvent).stopPropagation();
+            e.stopPropagation();
             setRevokeTarget(row);
           }}
         >
@@ -411,7 +411,7 @@ export function SecurityPanel() {
             iconOnly
             aria-label="Revoke all sessions from this IP"
             onClick={e => {
-              (e as React.MouseEvent).stopPropagation();
+              e.stopPropagation();
               setBulkRevokeIp(row.ipAddress);
             }}
           >

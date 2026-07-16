@@ -182,11 +182,11 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   }, [users, sortConfig]);
 
   const activeUsers = useMemo(
-    () => (sortedUsers ?? []).filter(u => u.status === 'approved'),
+    () => sortedUsers.filter(u => u.status === 'approved'),
     [sortedUsers]
   );
   const inactiveUsers = useMemo(
-    () => (sortedUsers ?? []).filter(u => u.status === 'deactivated' || u.status === 'suspended'),
+    () => sortedUsers.filter(u => u.status === 'deactivated' || u.status === 'suspended'),
     [sortedUsers]
   );
 
@@ -333,10 +333,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                   icon: user.role === 'lab_admin' ? UserRound : ShieldUser,
                   label: user.role === 'lab_admin' ? 'Set as User' : 'Set as Lab Admin',
                   onClick: () =>
-                    updateUserRole(
-                      user.id,
-                      user.role === 'lab_admin' ? ('user' as UserRole) : ('lab_admin' as UserRole)
-                    ),
+                    updateUserRole(user.id, user.role === 'lab_admin' ? 'user' : 'lab_admin'),
                 },
               ]),
           {

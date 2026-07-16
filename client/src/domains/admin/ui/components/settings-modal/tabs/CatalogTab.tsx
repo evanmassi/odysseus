@@ -290,7 +290,7 @@ function CategorySection({
               onKeyDown={e => {
                 if (e.key === 'Enter' && !readOnly) void handleAdd();
               }}
-              placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category] ?? category}...`}
+              placeholder={`Add new ${CATEGORY_SINGULAR_LABELS[category]}...`}
               size="sm"
               disabled={readOnly}
             />
@@ -313,8 +313,8 @@ function CategorySection({
       sortConfig={sortConfig}
       onSort={setSortConfig}
       loading={loading}
-      emptyMessage={`No ${CATEGORY_PLURAL_LABELS[category] ?? category} yet`}
-      loadingMessage={`Loading ${CATEGORY_PLURAL_LABELS[category] ?? category}...`}
+      emptyMessage={`No ${CATEGORY_PLURAL_LABELS[category]} yet`}
+      loadingMessage={`Loading ${CATEGORY_PLURAL_LABELS[category]}...`}
       aria-label={`${title} list`}
     />
   );
@@ -402,7 +402,7 @@ export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   // mutateAsync so the child form can await the result and keep the typed value on failure.
   const handleAdd = async (category: LookupCategory, value: string) => {
     await createMutation.mutateAsync({ category, value });
-    notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category] ?? category}`);
+    notifications.success(`Added "${value}" to ${CATEGORY_PLURAL_LABELS[category]}`);
   };
 
   const handleRename = (category: LookupCategory, id: string, newValue: string) => {
