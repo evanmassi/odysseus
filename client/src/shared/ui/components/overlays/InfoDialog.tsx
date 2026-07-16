@@ -7,12 +7,11 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
 import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
-import { AnimatedInfoMark } from '@shared/ui/components/icons/AnimatedInfoMark';
-import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 
 import { Button } from '../../primitives';
 
 import { AlertDialog } from './AlertDialog';
+import { ALERT_VARIANT_STYLES } from './alertVariantStyles';
 
 interface InfoDialogProps {
   isOpen: boolean;
@@ -21,22 +20,6 @@ interface InfoDialogProps {
   message: ReactNode;
   buttonText?: string;
   onClose: () => void;
-}
-
-function getVariantStyles(variant: 'warning' | 'info') {
-  if (variant === 'warning') {
-    return {
-      iconColor: 'text-warning-text',
-      pin: 'bg-warning-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
-      Mark: AnimatedWarningMark,
-    };
-  }
-
-  return {
-    iconColor: 'text-info-text',
-    pin: 'bg-info-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-info-bg)/0.7)]',
-    Mark: AnimatedInfoMark,
-  };
 }
 
 const EXIT_DURATION_MS = 200;
@@ -51,7 +34,7 @@ export function InfoDialog({
 }: InfoDialogProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  const styles = getVariantStyles(variant);
+  const styles = ALERT_VARIANT_STYLES[variant];
 
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,

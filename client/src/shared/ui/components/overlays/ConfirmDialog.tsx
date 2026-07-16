@@ -7,12 +7,11 @@
 import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 
 import { useAnimatedClose, useFocusTrap } from '@shared/hooks';
-import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
-import { AnimatedXMark } from '@shared/ui/components/icons/AnimatedXMark';
 
 import { Button, type ButtonVariant } from '../../primitives';
 
 import { AlertDialog } from './AlertDialog';
+import { ALERT_VARIANT_STYLES } from './alertVariantStyles';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -23,24 +22,6 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
-}
-
-function getVariantStyles(variant: 'danger' | 'warning') {
-  if (variant === 'danger') {
-    return {
-      iconColor: 'text-danger-text',
-      pin: 'bg-danger-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-danger-bg)/0.7)]',
-      buttonVariant: 'danger' as ButtonVariant,
-      Mark: AnimatedXMark,
-    };
-  }
-
-  return {
-    iconColor: 'text-warning-text',
-    pin: 'bg-warning-bg dark:shadow-[0_0_6px_1px_hsl(var(--color-warning-bg)/0.7)]',
-    buttonVariant: 'warning' as ButtonVariant,
-    Mark: AnimatedWarningMark,
-  };
 }
 
 const EXIT_DURATION = 200;
@@ -57,7 +38,8 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
-  const styles = getVariantStyles(variant);
+  const styles = ALERT_VARIANT_STYLES[variant];
+  const buttonVariant: ButtonVariant = variant === 'danger' ? 'danger' : 'warning';
 
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
@@ -123,7 +105,7 @@ export function ConfirmDialog({
       </Button>
       <Button
         ref={confirmButtonRef}
-        variant={styles.buttonVariant}
+        variant={buttonVariant}
         onClick={handleConfirm}
         disabled={isLoading}
         isLoading={isLoading}
