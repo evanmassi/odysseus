@@ -694,13 +694,6 @@ export function SupplyItemForm({ item, categories, onSubmit, onCancel }: SupplyI
                 )}
             </div>
           </div>
-          <input
-            type="hidden"
-            {...register('reorderThreshold', {
-              setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-            })}
-          />
-          <input type="hidden" {...register('reorderThresholdUnit')} />
           <div className="grid grid-cols-3 gap-2.5 [&>*]:min-w-0">
             <ValidatedInput
               label="Reorder Qty"
