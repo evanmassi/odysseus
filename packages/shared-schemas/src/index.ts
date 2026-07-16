@@ -529,4 +529,4 @@ export {
   sortByName,
 } from './persons/personSchemas';
 
-export { getPersonInitials, getPersonDisplayName } from './persons/personFormatters';
+export { getPersonInitials, getPersonDisplayName, getPersonSortName } from './persons/personFormatters';

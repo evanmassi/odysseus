@@ -47,9 +47,9 @@ export type UpdateMyProfileRequest = z.infer<typeof updateMyProfileRequestSchema
  * researchers have firstName/lastName, users fall back to username.
  */
 export interface NameSortable {
-  lastName?: string;
-  firstName?: string;
-  username?: string;
+  lastName?: string | null;
+  firstName?: string | null;
+  username?: string | null;
 }
 
 /**
@@ -67,13 +67,13 @@ export interface NameSortable {
 export function sortByName<T extends NameSortable>(items: T[]): T[] {
   return [...items].sort((a, b) => {
     // Hyphenated last names sort by first segment
-    const getLastNameKey = (name?: string): string => {
+    const getLastNameKey = (name?: string | null): string => {
       if (!name?.trim()) return '\uffff'; // Sort empty to end
       const parts = name.split('-');
       return parts[0].trim().toLowerCase();
     };
 
-    const getNameKey = (name?: string): string => {
+    const getNameKey = (name?: string | null): string => {
       if (!name?.trim()) return '\uffff'; // Sort empty to end
       return name.trim().toLowerCase();
     };

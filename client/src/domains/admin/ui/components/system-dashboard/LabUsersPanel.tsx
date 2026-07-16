@@ -6,6 +6,7 @@
 
 import { useMemo, useState } from 'react';
 
+import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
 import { ChevronDown, Link2, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -180,16 +181,8 @@ function getUserColumns({
       header: 'User',
       sortable: true,
       render: (_value, row) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy
-        const hasName = row.lastName || row.firstName;
-        const displayName = hasName
-          ? `${row.lastName ?? ''}${row.lastName && row.firstName ? ', ' : ''}${row.firstName ?? ''}`
-          : row.username;
-
-        const initials =
-          row.firstName && row.lastName
-            ? `${row.firstName[0]}${row.lastName[0]}`.toUpperCase()
-            : row.username.slice(0, 2).toUpperCase();
+        const displayName = getPersonSortName(row);
+        const initials = getPersonInitials(row);
 
         return (
           <div className="flex items-center gap-3 whitespace-nowrap">

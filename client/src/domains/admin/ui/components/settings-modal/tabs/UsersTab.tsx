@@ -6,6 +6,7 @@
 
 import { useState, useMemo } from 'react';
 
+import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
 import {
   ChevronDown,
   KeyRound,
@@ -196,10 +197,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       header: 'User',
       sortable: true,
       render: (_, user) => {
-        const initials =
-          user.firstName && user.lastName
-            ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-            : user.username.slice(0, 2).toUpperCase();
+        const initials = getPersonInitials(user);
 
         return (
           <div
@@ -209,10 +207,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-sans text-body-sm font-medium text-card-foreground">
-                  {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
-                  {user.lastName || user.firstName
-                    ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
-                    : user.username}
+                  {getPersonSortName(user)}
                 </span>
                 {user.role === 'system_admin' && (
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded text-label-2xs font-medium bg-action/10 text-action">

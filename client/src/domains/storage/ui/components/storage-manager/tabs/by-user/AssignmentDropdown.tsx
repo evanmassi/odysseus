@@ -7,6 +7,8 @@
 
 import { useMemo, useCallback } from 'react';
 
+import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
+
 import { Select, type SelectOption } from '@shared/ui';
 import { UserBadge, type UserBadgeType } from '@shared/ui/components/badges';
 
@@ -32,11 +34,6 @@ interface AssignmentOption extends SelectOption {
   badgeType: UserBadgeType;
 }
 
-function getInitials(user: UserDisplayInfo): string {
-  const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
-  return initials || user.username.slice(0, 2).toUpperCase();
-}
-
 export function AssignmentDropdown({
   value,
   users,
@@ -49,8 +46,8 @@ export function AssignmentDropdown({
     (): AssignmentOption[] =>
       users.map(u => ({
         value: u.id,
-        label: u.firstName && u.lastName ? `${u.lastName}, ${u.firstName}` : u.username,
-        initials: getInitials(u),
+        label: getPersonSortName(u),
+        initials: getPersonInitials(u),
         badgeType: u.id === currentUserId ? 'currentUser' : 'otherUser',
       })),
     [users, currentUserId]

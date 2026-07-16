@@ -41,3 +41,24 @@ export function getPersonDisplayName({ username, firstName, lastName }: NameSort
   }
   return username ?? '';
 }
+
+/**
+ * Sort-friendly name: "lastName, firstName" > "lastName" > "firstName" > "username".
+ *
+ * @example
+ * getPersonSortName({ username: 'jdoe', firstName: 'John', lastName: 'Doe' }) // 'Doe, John'
+ * getPersonSortName({ username: 'jdoe', lastName: 'Doe' })                    // 'Doe'
+ * getPersonSortName({ username: 'jdoe' })                                     // 'jdoe'
+ */
+export function getPersonSortName({ username, firstName, lastName }: NameSortable): string {
+  if (firstName && lastName) {
+    return `${lastName}, ${firstName}`;
+  }
+  if (lastName) {
+    return lastName;
+  }
+  if (firstName) {
+    return firstName;
+  }
+  return username ?? '';
+}
