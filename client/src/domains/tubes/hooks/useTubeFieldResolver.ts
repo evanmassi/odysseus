@@ -178,11 +178,6 @@ export function useTubeFieldResolver(): TubeFieldResolverResult {
 }
 
 export const TUBE_FIELD_PATHS = {
-  tankId: 'location.tankId',
-  rackId: 'location.rackId',
-  boxId: 'location.boxId',
-  position: 'location.position',
-
   cellType: 'sample.cellType',
   donorInternalId: 'sample.donorInternalId',
   donorSourceId: 'sample.donorSourceId',
@@ -201,7 +196,4 @@ export const TUBE_FIELD_PATHS = {
   notes: 'sample.notes',
 
   researcherId: 'researcherId',
-
-  createdAt: 'timestamps.createdAt',
-  updatedAt: 'timestamps.updatedAt',
 } as const;
