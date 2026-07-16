@@ -21,7 +21,6 @@ import {
   type ValidateInviteCodeResponse,
 } from '@odysseus/shared-schemas';
 
-import { queryClient } from '@app/cache/queryClient';
 import { httpClient } from '@infra/api';
 import { logger } from '@infra/logger';
 
@@ -149,8 +148,6 @@ class AuthService {
     } catch (error) {
       logger.error('Server logout failed; clearing local session anyway', { error });
     }
-    // SessionService handles token cleanup and HTTP client state
-    queryClient.clear();
   }
 }
 
