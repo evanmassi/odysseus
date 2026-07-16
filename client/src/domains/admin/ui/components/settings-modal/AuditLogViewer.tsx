@@ -105,24 +105,15 @@ const ENTITY_BADGE_CLASSES: Record<string, string> = {
 };
 
 interface AuditLogViewerProps {
-  initialFilters?: Partial<AuditLogFilters>;
-  onFiltersChange?: (filters: AuditLogFilters) => void;
   labId?: string;
   readOnly?: boolean;
   hideHeader?: boolean;
 }
 
-export function AuditLogViewer({
-  initialFilters = {},
-  onFiltersChange,
-  labId,
-  readOnly,
-  hideHeader = false,
-}: AuditLogViewerProps) {
+export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLogViewerProps) {
   const [filters, setFilters] = useState<AuditLogFilters>({
     limit: 50,
     offset: 0,
-    ...initialFilters,
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -154,9 +145,8 @@ export function AuditLogViewer({
         dateTo: newFilterState.dateTo,
       };
       setFilters(newFilters);
-      onFiltersChange?.(newFilters);
     },
-    [filters.limit, onFiltersChange]
+    [filters.limit]
   );
 
   const clearFilters = useCallback(() => {
@@ -166,8 +156,7 @@ export function AuditLogViewer({
     };
     setFilters(resetFilters);
     setFilterState({});
-    onFiltersChange?.(resetFilters);
-  }, [onFiltersChange]);
+  }, []);
 
   // Pagination
   const goToNextPage = () => {

@@ -33,13 +33,9 @@ const STATUS_CONFIG = {
 
 interface AuditRetentionSettingsProps {
   defaultCollapsed?: boolean;
-  isDemo?: boolean;
 }
 
-export function AuditRetentionSettings({
-  defaultCollapsed = true,
-  isDemo,
-}: AuditRetentionSettingsProps) {
+export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetentionSettingsProps) {
   const retentionQuery = useAuditRetentionQuery();
   const metrics = retentionQuery.data?.metrics ?? null;
   const policy = retentionQuery.data?.policy ?? null;
@@ -326,7 +322,6 @@ export function AuditRetentionSettings({
                 size="xs"
                 onClick={runArchival}
                 isLoading={archivalMutation.isPending}
-                disabled={isDemo}
                 loadingText="Running Archival..."
                 leftIcon={<Archive size={12} />}
               >
@@ -336,7 +331,6 @@ export function AuditRetentionSettings({
                 variant="cancel"
                 size="xs"
                 onClick={exportArchive}
-                disabled={isDemo}
                 leftIcon={<Download size={12} />}
               >
                 Export Archive

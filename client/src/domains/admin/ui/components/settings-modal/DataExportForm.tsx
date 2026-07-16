@@ -22,7 +22,6 @@ interface ExportOption {
   value: ExportType;
   label: string;
   description: string;
-  defaultFormat: ExportFormat;
   jsonOnly?: boolean;
 }
 
@@ -31,31 +30,26 @@ const exportOptions: ExportOption[] = [
     value: 'tubes',
     label: 'Tube Inventory',
     description: 'All tubes with researcher names',
-    defaultFormat: 'csv',
   },
   {
     value: 'users',
     label: 'Users',
     description: 'User accounts (excludes passwords)',
-    defaultFormat: 'csv',
   },
   {
     value: 'researchers',
     label: 'Researchers',
     description: 'All researchers with tube counts',
-    defaultFormat: 'csv',
   },
   {
     value: 'equipment',
     label: 'Equipment Inventory',
     description: 'All equipment items with categories',
-    defaultFormat: 'csv',
   },
   {
     value: 'system-backup',
     label: 'Configuration Backup',
     description: 'Configuration and settings — no inventory data',
-    defaultFormat: 'json',
     jsonOnly: true,
   },
 ];
