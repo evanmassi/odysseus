@@ -28,7 +28,7 @@ import type {
 import type { TokenPair, SessionStatus } from '@shared/types/sessionTypes';
 
 /** Structured result from login for explicit error handling */
-export type LoginResult =
+type LoginResult =
   | { success: true }
   | { success: false; error: string }
   | { success: 'password_change_required' };

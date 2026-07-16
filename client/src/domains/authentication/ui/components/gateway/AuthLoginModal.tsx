@@ -33,7 +33,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [errorPulse, setErrorPulse] = useState(0);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const {
@@ -109,7 +108,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
 
   const handleCancelPasswordChange = () => {
     clearPasswordChangeRequired();
-    setPasswordError(null);
   };
 
   const handleResendVerification = async () => {
@@ -182,8 +180,6 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           onSubmit={handlePasswordChange}
           onCancel={handleCancelPasswordChange}
           cancelText="Login"
-          error={passwordError}
-          onErrorClear={() => setPasswordError(null)}
         />
       </div>
     );
