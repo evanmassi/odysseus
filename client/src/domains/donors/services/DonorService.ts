@@ -29,9 +29,8 @@ export class DonorService {
     return response.donors;
   }
 
-  static async search(query: string, limit?: number): Promise<DonorSearchResult[]> {
+  static async search(query: string): Promise<DonorSearchResult[]> {
     const params = new URLSearchParams({ q: query });
-    if (limit) params.set('limit', String(limit));
 
     const response = await httpClient.getData(
       `${this.BASE_PATH}/search?${params.toString()}`,
