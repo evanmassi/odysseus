@@ -62,7 +62,7 @@ export function SecurityTab() {
     );
   }, [currentPassword, newPasswordMeetsRequirements, passwordsMatch, newPasswordIsDifferent]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!isFormValid) {
       if (currentPassword.trim().length === 0) {
         setCurrentPasswordError('Current password is required');
@@ -83,7 +83,6 @@ export function SecurityTab() {
         notifications.error('New password must be different from current password');
         return;
       }
-      return;
     }
 
     changePassword(
