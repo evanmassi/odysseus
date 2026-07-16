@@ -8,6 +8,7 @@ export { useAnimatedClose } from './useAnimatedClose';
 export { useDebounce } from './useDebounce';
 export { useEditModalForm } from './useEditModalForm';
 export { useFocusTrap } from './useFocusTrap';
+export { useIconPop } from './useIconPop';
 export { useMenuKeyboardNavigation } from './useMenuKeyboardNavigation';
 export { useMergedRef } from './useMergedRef';
 export { useModalKeyboardNavigation } from './useModalKeyboardNavigation';

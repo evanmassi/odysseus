@@ -16,6 +16,8 @@ import {
 } from 'react';
 import type { ReactNode, CSSProperties } from 'react';
 
+import { useIconPop } from '@shared/hooks';
+
 export type TabOrientation = 'horizontal' | 'vertical';
 
 interface TabsProps {
@@ -82,12 +84,9 @@ export function Tab({ id, icon, children }: TabProps) {
   const isActive = value === id;
 
   // Icon-pop is a vertical-only hover micro-affordance.
-  const [isAnimating, setIsAnimating] = useState(false);
+  const { isAnimating, trigger } = useIconPop();
   const handleMouseEnter = () => {
-    if (orientation === 'vertical') {
-      setIsAnimating(true);
-      setTimeout(() => setIsAnimating(false), 350);
-    }
+    if (orientation === 'vertical') trigger();
   };
 
   const handleClick = () => onChange(id);

@@ -4,9 +4,7 @@
  * Shared item component for dropdown menus, overflow menus, and context menus.
  */
 
-import { useState } from 'react';
-
-import { useResolvedTheme } from '@shared/hooks';
+import { useIconPop, useResolvedTheme } from '@shared/hooks';
 
 import type { MenuItemProps } from './types';
 
@@ -55,12 +53,7 @@ export function MenuItem({
   children,
 }: MenuItemProps) {
   const isDark = useResolvedTheme() === 'dark';
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const handleMouseEnter = () => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 350);
-  };
+  const { isAnimating, trigger } = useIconPop();
 
   const tone: MenuTone = danger ? 'danger' : warning ? 'warning' : 'default';
   const hover = TONE_HOVER[tone];
@@ -76,7 +69,7 @@ export function MenuItem({
       // Firefox/Safari don't focus a button on mousedown, so without this the menu's
       // focusout lands outside the menu and closes it before the click registers.
       onMouseDown={e => e.preventDefault()}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={trigger}
       disabled={disabled}
       className={`
         group relative z-10 w-full flex items-center justify-between py-2 px-3 font-mono text-data tracking-data
