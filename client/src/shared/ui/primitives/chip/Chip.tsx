@@ -227,13 +227,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       if (isAction && onClick) onClick();
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        handleClick();
-      }
-    };
-
     const handleRemove = (e: React.MouseEvent) => {
       e.stopPropagation();
       if (!disabled && onRemove) onRemove();
@@ -271,7 +264,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           className={wrapperClasses}
           style={style}
           onClick={handleClick}
-          onKeyDown={handleKeyDown}
           disabled={disabled}
           aria-label={ariaLabel}
           aria-pressed={isSelectable ? selected : undefined}

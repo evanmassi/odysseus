@@ -62,13 +62,6 @@ export function MenuItem({
     setTimeout(() => setIsAnimating(false), 350);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === 'Enter' || e.key === ' ') && !disabled && onClick) {
-      e.preventDefault();
-      onClick();
-    }
-  };
-
   const tone: MenuTone = danger ? 'danger' : warning ? 'warning' : 'default';
   const hover = TONE_HOVER[tone];
   const stateClass = `${hover.base} ${isDark ? hover.darkBg : hover.lightBg}`;
@@ -83,7 +76,6 @@ export function MenuItem({
       // Firefox/Safari don't focus a button on mousedown, so without this the menu's
       // focusout lands outside the menu and closes it before the click registers.
       onMouseDown={e => e.preventDefault()}
-      onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
       disabled={disabled}
       className={`

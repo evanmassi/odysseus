@@ -14,7 +14,7 @@ import {
   useLayoutEffect,
   useRef,
 } from 'react';
-import type { ReactNode, KeyboardEvent, CSSProperties } from 'react';
+import type { ReactNode, CSSProperties } from 'react';
 
 export type TabOrientation = 'horizontal' | 'vertical';
 
@@ -92,13 +92,6 @@ export function Tab({ id, icon, children }: TabProps) {
 
   const handleClick = () => onChange(id);
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick();
-    }
-  };
-
   const orientationClasses =
     orientation === 'vertical'
       ? 'w-full flex items-center gap-2 px-4 py-2.5 text-left min-w-0'
@@ -113,7 +106,6 @@ export function Tab({ id, icon, children }: TabProps) {
       aria-selected={isActive}
       tabIndex={0}
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
       className={className}
     >
