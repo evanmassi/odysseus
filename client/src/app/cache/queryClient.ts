@@ -220,35 +220,15 @@ export const queryClient = new QueryClient({
 });
 
 export const DOMAIN_QUERY_OPTIONS = {
-  tubes: {
-    staleTime: CACHE_TIMES.REAL_TIME.staleTime,
-    gcTime: CACHE_TIMES.REAL_TIME.gcTime,
-    refetchOnMount: false,
-  },
-
   researchers: {
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,
     refetchOnMount: false,
   },
 
-  configuration: {
-    staleTime: CACHE_TIMES.CONFIG.staleTime,
-    gcTime: CACHE_TIMES.CONFIG.gcTime,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  },
-
   search: {
     staleTime: CACHE_TIMES.SEARCH.staleTime,
     gcTime: CACHE_TIMES.SEARCH.gcTime,
-    refetchOnMount: false,
-  },
-
-  statistics: {
-    staleTime: CACHE_TIMES.REAL_TIME.staleTime,
-    gcTime: CACHE_TIMES.REAL_TIME.gcTime,
     refetchOnMount: false,
   },
 } as const;
