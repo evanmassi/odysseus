@@ -26,7 +26,6 @@ import type { PrintableLabel } from '../supplyBarcodeSheetTypes';
 import type { SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 
-// Selection-card styling shared with the user-settings display-preferences tab.
 const FORMAT_CARD_BASE =
   'relative border px-3 py-2 transition-[background-color,border-color,box-shadow,color] duration-200 ' +
   'focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-primary/40';
