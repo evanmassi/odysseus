@@ -413,12 +413,7 @@ function BiobankWorkspace() {
         </div>
       </div>
 
-      <BiobankModals
-        currentRack={currentRack}
-        currentBox={currentBox}
-        currentUserId={user?.id}
-        tubes={tubes}
-      />
+      <BiobankModals currentUserId={user?.id} tubes={tubes} />
     </div>
   );
 }

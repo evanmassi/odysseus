@@ -60,8 +60,6 @@ export interface TubeEditorModalProps {
   isOpen?: boolean;
   onClose: () => void;
   tubeId?: string;
-  rackId?: string;
-  boxId?: string;
   selectedPositions?: Set<PositionKey>;
 }
 

@@ -33,8 +33,6 @@ interface TubeEditorModalState {
   tubeId?: string; // Single edit mode - tube ID only
   tubeIds?: string[]; // Bulk edit mode - tube IDs only
   positions?: PositionKey[]; // Add mode - position keys
-  rackId?: string;
-  boxId?: string;
   previousFocusElement?: HTMLElement | null;
   preserveSelection?: boolean; // Don't restore focus to specific position (for bulk operations)
 }
@@ -222,8 +220,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
         tubeId: config.tubeId,
         tubeIds: config.tubeIds,
         positions: config.positions,
-        rackId: config.rackId,
-        boxId: config.boxId,
         previousFocusElement,
         preserveSelection: config.preserveSelection,
       },

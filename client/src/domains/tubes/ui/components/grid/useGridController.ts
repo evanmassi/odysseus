@@ -167,8 +167,6 @@ export const useGridController = ({
       modalService.showTubeEditorModal({
         mode: 'add',
         positions,
-        rackId,
-        boxId,
       });
     } else if (selectionAnalysis.allFilled) {
       if (guardModifyOperation()) return;
@@ -199,8 +197,6 @@ export const useGridController = ({
     selectionAnalysis,
     selectedPositions,
     modalService,
-    rackId,
-    boxId,
     resolveTube,
     guardAddInViewOnly,
     guardModifyOperation,
@@ -240,8 +236,6 @@ export const useGridController = ({
         modalService.showTubeEditorModal({
           mode: 'add',
           positions: [positionKey],
-          rackId,
-          boxId,
         });
       }
     },
@@ -254,8 +248,6 @@ export const useGridController = ({
       isViewOnlySpace,
       isAdmin,
       modalService,
-      rackId,
-      boxId,
       openModal,
       clickTimerRef,
       guardAddInViewOnly,

@@ -21,18 +21,11 @@ import { UnsavedConfirmDialog } from '@shared/ui/components/overlays/UnsavedConf
 import type { TubeData } from '@odysseus/shared-schemas';
 
 interface BiobankModalsProps {
-  currentRack: string;
-  currentBox: string;
   currentUserId?: string;
   tubes: TubeData[];
 }
 
-export function BiobankModals({
-  currentRack,
-  currentBox,
-  currentUserId,
-  tubes,
-}: BiobankModalsProps) {
+export function BiobankModals({ currentUserId, tubes }: BiobankModalsProps) {
   const modalService = useModalStore();
 
   const modalPositionsSet = useMemo(
@@ -50,10 +43,6 @@ export function BiobankModals({
         <LazyModalBoundary name="TubeEditorModal-Add">
           <TubeEditorModal
             isOpen
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
-            rackId={modalService.tubeEditorModal.rackId || currentRack}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
-            boxId={modalService.tubeEditorModal.boxId || currentBox}
             onClose={handleCloseModal}
             selectedPositions={modalPositionsSet}
           />
