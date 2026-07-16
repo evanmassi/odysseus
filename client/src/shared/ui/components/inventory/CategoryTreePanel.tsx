@@ -18,6 +18,7 @@ import {
   Trash2,
 } from 'lucide-react';
 
+import { collectMatchingCategoryIds } from '@shared/utils/collectMatchingCategoryIds';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { Button, OverflowMenu, type OverflowMenuItem } from '../../primitives';
@@ -126,16 +127,7 @@ export function CategoryTreePanel<T extends TreeItem, C extends TreeCategory>({
 
   const matchingCategoryIds = useMemo(() => {
     if (!isSearching) return new Set<string>();
-    const query = searchQuery.toLowerCase();
-    const directMatches = categories.filter(c => c.name.toLowerCase().includes(query));
-    const ids = new Set<string>();
-    for (const cat of directMatches) {
-      ids.add(cat.id);
-      if (!cat.parentId) {
-        categories.filter(c => c.parentId === cat.id).forEach(c => ids.add(c.id));
-      }
-    }
-    return ids;
+    return collectMatchingCategoryIds(categories, searchQuery);
   }, [categories, searchQuery, isSearching]);
 
   const filteredItems = useMemo(() => {

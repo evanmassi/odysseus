@@ -11,6 +11,7 @@ import { useMemo, useCallback } from 'react';
 
 import { CornerDownRight, FolderOpen } from 'lucide-react';
 
+import { collectMatchingCategoryIds } from '@shared/utils/collectMatchingCategoryIds';
 import { compareByOrderThenName } from '@shared/utils/compareByOrderThenName';
 
 import { Checkbox, NubDivider, ScrollArea, SearchInput } from '../../primitives';
@@ -143,16 +144,7 @@ export function BulkCategoryTreeSelector<T extends BulkTreeItem, C extends BulkT
 
   const matchingCategoryIds = useMemo(() => {
     if (!searchQuery) return new Set<string>();
-    const q = searchQuery.toLowerCase();
-    const directMatches = categories.filter(c => c.name.toLowerCase().includes(q));
-    const ids = new Set<string>();
-    for (const cat of directMatches) {
-      ids.add(cat.id);
-      if (!cat.parentId) {
-        categories.filter(c => c.parentId === cat.id).forEach(c => ids.add(c.id));
-      }
-    }
-    return ids;
+    return collectMatchingCategoryIds(categories, searchQuery);
   }, [categories, searchQuery]);
 
   const filteredItems = useMemo(() => {
