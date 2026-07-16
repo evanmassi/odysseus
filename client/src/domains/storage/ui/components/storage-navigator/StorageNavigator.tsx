@@ -15,6 +15,7 @@ import { HeaderStrip, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
 import { useRackTubesByBox } from '../../../hooks/useRackTubesByBox';
+import { getEffectiveOwnerId } from '../../../utils/effectiveOwner';
 
 import './storage-navigator.css';
 import { StorageBoxMinimap } from './StorageBoxMinimap';
@@ -41,14 +42,6 @@ function getNodeKey(
   if (level === 'tank') return `tank:${tankId}`;
   if (level === 'rack') return `rack:${tankId}:${rackId}`;
   return `box:${tankId}:${rackId}:${boxId}`;
-}
-
-function getEffectiveOwner(
-  assignedUserId: string | null | undefined,
-  parentAssignedUserId?: string | null
-): string | null | undefined {
-  // Box inherits from rack if undefined (not explicitly set)
-  return assignedUserId === undefined ? parentAssignedUserId : assignedUserId;
 }
 
 function computeOwnershipType(
@@ -371,7 +364,7 @@ export function StorageNavigator({
                             const boxKey = getNodeKey('box', tank.id, rack.id, box.id);
                             const boxNodeIndex = nodeKeyToIndex.get(boxKey) ?? -1;
                             const boxNode = visibleNodes[boxNodeIndex];
-                            const effectiveBoxOwner = getEffectiveOwner(
+                            const effectiveBoxOwner = getEffectiveOwnerId(
                               box.assignedUserId,
                               rack.assignedUserId
                             );

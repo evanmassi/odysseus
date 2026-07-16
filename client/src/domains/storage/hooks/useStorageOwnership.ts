@@ -7,6 +7,8 @@ import { useMemo } from 'react';
 
 import { getPersonInitials } from '@odysseus/shared-schemas';
 
+import { getEffectiveOwnerId } from '../utils/effectiveOwner';
+
 import type {
   BoxConfiguration,
   RackConfiguration,
@@ -56,22 +58,9 @@ export function useStorageOwnership(
     () =>
       (resource: RackConfiguration | BoxConfiguration, parentRack?: RackConfiguration): boolean => {
         if (!currentUserId) return false;
-
-        // null = explicitly unassigned/common (not owned by anyone)
-        if (resource.assignedUserId === null) return false;
-
-        if (resource.assignedUserId === currentUserId) return true;
-
-        // Cascade: box inherits rack owner if unassigned (undefined, not null)
-        if (
-          parentRack &&
-          resource.assignedUserId === undefined &&
-          parentRack.assignedUserId === currentUserId
-        ) {
-          return true;
-        }
-
-        return false;
+        return (
+          getEffectiveOwnerId(resource.assignedUserId, parentRack?.assignedUserId) === currentUserId
+        );
       },
     [currentUserId]
   );

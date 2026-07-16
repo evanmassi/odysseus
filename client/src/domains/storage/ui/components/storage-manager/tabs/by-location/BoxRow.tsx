@@ -12,6 +12,7 @@ import { Lock, SquarePen, Tag, Trash2 } from 'lucide-react';
 
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 
+import { getEffectiveOwnerId } from '../../../../../utils/effectiveOwner';
 import { BoxOccupancyMatrix, boxOccupancyKey } from '../../../storage-navigator';
 import { TreeNub } from '../../../storage-navigator/TreeNub';
 import { useStorageManagerContext } from '../../StorageManagerContext';
@@ -46,9 +47,8 @@ export function BoxRow({ box, rack, tankId, rackId, tubes }: BoxRowProps) {
     onDeleteBox,
   } = useStorageManagerContext();
 
-  // null = explicitly unassigned/common, undefined = inherit from rack
   const effectiveOwnerId =
-    box.assignedUserId === null ? undefined : (box.assignedUserId ?? rack.assignedUserId);
+    getEffectiveOwnerId(box.assignedUserId, rack.assignedUserId) ?? undefined;
   const isBoxOwnedByUser = isOwnedByCurrentUser(box, rack);
   const locked = isResourceLocked(box);
 
