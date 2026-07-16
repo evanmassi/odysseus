@@ -19,7 +19,7 @@ import {
   DatabaseBackup,
 } from 'lucide-react';
 
-import { useAuthStore } from '@domains/authentication';
+import { useLabId } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import {
   Button,
@@ -48,7 +48,7 @@ interface SystemTabProps {
 }
 
 export function SystemTab({ stats }: SystemTabProps) {
-  const labId = useAuthStore(s => s.user?.labId);
+  const labId = useLabId();
   const hasLab = !!labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
   const { data: versionInfo } = useVersionInfoQuery();
