@@ -16,7 +16,7 @@ import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation'
 import { useUserProfile, useUserProfileActions } from '../../../../hooks/useUserProfile';
 import { DemoModeBanner } from '../DemoModeBanner';
 
-import type { UpdatePersonProfileWithPassword } from '../../../../services/PersonService';
+import type { UpdateMyProfileRequest } from '@odysseus/shared-schemas';
 
 interface AccountTabProps {
   /** Reports the number of unsaved profile field edits to the modal footer. */
@@ -89,7 +89,7 @@ export function AccountTab({ onDirtyChange }: AccountTabProps) {
       return;
     }
 
-    const updateData: UpdatePersonProfileWithPassword = {
+    const updateData: UpdateMyProfileRequest = {
       currentPassword,
     };
 

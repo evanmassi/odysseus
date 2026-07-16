@@ -8,9 +8,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@app/cache/queryKeys';
 import { MS_PER_MINUTE } from '@shared/utils';
 
-import { PersonService, type UpdatePersonProfileWithPassword } from '../services/PersonService';
+import { PersonService } from '../services/PersonService';
 
-import type { Person } from '@odysseus/shared-schemas';
+import type { UpdateMyProfileRequest, Person } from '@odysseus/shared-schemas';
 
 function useUserProfileQuery() {
   return useQuery({
@@ -24,7 +24,7 @@ function useUpdateUserProfileMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdatePersonProfileWithPassword) => PersonService.updateMyProfile(data),
+    mutationFn: (data: UpdateMyProfileRequest) => PersonService.updateMyProfile(data),
     onSuccess: (updatedProfile: Person) => {
       queryClient.setQueryData(queryKeys.users.profile(), updatedProfile);
     },
