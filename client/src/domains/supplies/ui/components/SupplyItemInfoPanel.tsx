@@ -65,7 +65,7 @@ import { SupplyBarcodeForm } from './SupplyBarcodeForm';
 import { SupplyBarcodePrint } from './SupplyBarcodePrint';
 import { SupplyTransactionTimeline } from './SupplyTransactionTimeline';
 
-import type { TransactionPrefill } from './SupplyTransactionForm';
+import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyBarcode, SupplyDocument } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
@@ -81,7 +81,7 @@ interface SupplyItemInfoPanelProps {
   onRecordTransaction: () => void;
   onVoidAndReplace: (
     itemId: string,
-    initialTab: 'received' | 'issued' | 'count' | 'disposed',
+    initialTab: TransactionMode,
     prefill: TransactionPrefill
   ) => void;
   onDeleted: () => void;

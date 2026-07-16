@@ -19,14 +19,13 @@ import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyBarcodeLinkDialog } from './SupplyBarcodeLinkDialog';
 
+import type { TransactionMode } from './SupplyTransactionForm';
 import type { SupplyItem, SupplyItemWithStock } from '@odysseus/shared-schemas';
-
-type TransactionTab = 'received' | 'issued' | 'count' | 'disposed';
 
 interface SupplyQuickScanBarProps {
   items: SupplyItemWithStock[];
   onViewItem: (itemId: string) => void;
-  onRecordTransaction: (itemId: string, initialTab: TransactionTab) => void;
+  onRecordTransaction: (itemId: string, initialTab: TransactionMode) => void;
 }
 
 export function SupplyQuickScanBar({
@@ -65,7 +64,7 @@ export function SupplyQuickScanBar({
   }, [scanValue]);
 
   const handleAction = useCallback(
-    (action: 'view' | TransactionTab) => {
+    (action: 'view' | TransactionMode) => {
       if (!resolvedItem) return;
       setShowActions(false);
       setScanValue('');

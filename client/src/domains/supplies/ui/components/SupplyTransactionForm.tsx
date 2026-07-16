@@ -39,7 +39,7 @@ import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
-type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';
+export type TransactionMode = 'received' | 'issued' | 'count' | 'disposed';
 
 const MODE_LABELS: Record<TransactionMode, string> = {
   received: 'Receive',

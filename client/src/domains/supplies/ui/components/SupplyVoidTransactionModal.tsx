@@ -19,7 +19,7 @@ import { formatDateForDisplay, normalizeDateString } from '@shared/utils/dateFor
 import { notifications } from '@shared/utils/notifications';
 import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
-import type { TransactionPrefill } from './SupplyTransactionForm';
+import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyTransaction } from '@odysseus/shared-schemas';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -36,7 +36,7 @@ interface SupplyVoidTransactionModalProps {
   onClose: () => void;
   onVoidAndReplace?: (
     itemId: string,
-    initialTab: 'received' | 'issued' | 'count' | 'disposed',
+    initialTab: TransactionMode,
     prefill: TransactionPrefill
   ) => void;
 }

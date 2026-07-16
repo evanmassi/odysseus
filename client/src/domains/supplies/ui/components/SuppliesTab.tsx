@@ -46,7 +46,7 @@ import { SupplyLowStockAlertPanel } from './SupplyLowStockAlertPanel';
 import { SupplyQuickScanBar } from './SupplyQuickScanBar';
 import { SupplyTransactionForm } from './SupplyTransactionForm';
 
-import type { TransactionPrefill } from './SupplyTransactionForm';
+import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyCategory, SupplyItemWithStock } from '@odysseus/shared-schemas';
 import type { SelectOption } from '@shared/ui';
 import type { OverflowMenuItem } from '@shared/ui/primitives/menus/types';
@@ -75,15 +75,13 @@ const TREE_LABELS: CategoryTreePanelLabels = {
   emptyCategoryBody: 'No items',
 };
 
-type TransactionTab = 'received' | 'issued' | 'count' | 'disposed';
-
 type RightPanelView =
   | { type: 'info'; itemId: string }
   | { type: 'edit'; item?: SupplyItemWithStock }
   | {
       type: 'transaction';
       itemId: string;
-      initialTab?: TransactionTab;
+      initialTab?: TransactionMode;
       prefill?: TransactionPrefill;
     };
 
@@ -153,13 +151,13 @@ export function SuppliesTab() {
     setRightPanel({ type: 'info', itemId });
   }, []);
 
-  const handleScanRecordTransaction = useCallback((itemId: string, initialTab: TransactionTab) => {
+  const handleScanRecordTransaction = useCallback((itemId: string, initialTab: TransactionMode) => {
     setSelectedItemId(itemId);
     setRightPanel({ type: 'transaction', itemId, initialTab });
   }, []);
 
   const handleVoidAndReplace = useCallback(
-    (itemId: string, initialTab: TransactionTab, prefill: TransactionPrefill) => {
+    (itemId: string, initialTab: TransactionMode, prefill: TransactionPrefill) => {
       setSelectedItemId(itemId);
       setRightPanel({ type: 'transaction', itemId, initialTab, prefill });
     },

@@ -28,7 +28,7 @@ import { pluralizeUnit } from '@shared/utils/pluralizeUnit';
 
 import { SupplyVoidTransactionModal } from './SupplyVoidTransactionModal';
 
-import type { TransactionPrefill } from './SupplyTransactionForm';
+import type { TransactionMode, TransactionPrefill } from './SupplyTransactionForm';
 import type { SupplyTransaction } from '@odysseus/shared-schemas';
 
 const TYPE_CONFIG: Record<string, { icon: typeof PackagePlus; color: string }> = {
@@ -44,7 +44,7 @@ interface SupplyTransactionTimelineProps {
   stockUnit?: string;
   onVoidAndReplace?: (
     itemId: string,
-    initialTab: 'received' | 'issued' | 'count' | 'disposed',
+    initialTab: TransactionMode,
     prefill: TransactionPrefill
   ) => void;
 }
