@@ -140,7 +140,7 @@ export function SupplyItemInfoPanel({
   }
 
   const { item, documents, barcodes, stock } = detail;
-  const statusConfig = SUPPLY_STATUS_DISPLAY[item.status] ?? SUPPLY_STATUS_DISPLAY['active'];
+  const statusConfig = SUPPLY_STATUS_DISPLAY[item.status];
   const isArchived = item.status === 'archived';
   const totalStock = stock.reduce((sum, s) => sum + s.quantity, 0);
 

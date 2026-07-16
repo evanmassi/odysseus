@@ -52,7 +52,11 @@ import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 
-import type { EquipmentDocument, EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
+import type {
+  EquipmentDocument,
+  EquipmentMaintenanceLog,
+  EquipmentStatus,
+} from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface EquipmentItemInfoPanelProps {
@@ -65,7 +69,7 @@ interface EquipmentItemInfoPanelProps {
   categoryName?: string;
 }
 
-const STATUS_COLORS: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
+const STATUS_COLORS: Record<EquipmentStatus, 'success' | 'warning' | 'danger' | 'default'> = {
   active: 'success',
   inactive: 'default',
   under_maintenance: 'warning',
@@ -121,8 +125,8 @@ export function EquipmentItemInfoPanel({
   }
 
   const { item, documents, maintenanceLog } = detail;
-  const statusColor = STATUS_COLORS[item.status] ?? 'success';
-  const statusLabel = EQUIPMENT_STATUS_LABELS[item.status] ?? EQUIPMENT_STATUS_LABELS.active;
+  const statusColor = STATUS_COLORS[item.status];
+  const statusLabel = EQUIPMENT_STATUS_LABELS[item.status];
   const isDecommissioned = item.status === 'decommissioned';
 
   const hasIdentification = [item.manufacturer, item.model, item.serialNumber, item.assetTag].some(
