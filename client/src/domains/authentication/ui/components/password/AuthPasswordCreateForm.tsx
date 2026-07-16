@@ -11,7 +11,7 @@ import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound } from 'lucide-react';
 
 import { usePasswordRequirementsQuery } from '@domains/authentication/hooks/usePasswordRequirementsQuery';
-import { AlertBanner, AuthInput, Button } from '@shared/ui';
+import { AlertBanner, AuthInput, AuthLinkButton, Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';
 
@@ -179,14 +179,9 @@ export function AuthPasswordCreateForm({
         <div className="mt-4 text-center">
           <p className="text-data-sm font-mono text-[rgb(var(--auth-text-mute))]">
             Return to{' '}
-            <button
-              type="button"
-              onClick={onCancel}
-              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
-              disabled={isLoading}
-            >
+            <AuthLinkButton onClick={onCancel} disabled={isLoading}>
               {cancelText}
-            </button>
+            </AuthLinkButton>
           </p>
         </div>
       )}

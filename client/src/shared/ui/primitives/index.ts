@@ -11,6 +11,7 @@ export { AlertBanner } from './banners/AlertBanner';
 
 export { Badge } from './badge/Badge';
 
+export { AuthLinkButton } from './button/AuthLinkButton';
 export { Button } from './button/Button';
 export type { ButtonVariant } from './button/types';
 

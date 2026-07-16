@@ -12,7 +12,7 @@ import { useAuthStackTransition } from '@domains/authentication/hooks/useAuthSta
 import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { AlertBanner, AuthInput, Button } from '@shared/ui';
+import { AlertBanner, AuthInput, AuthLinkButton, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthPasswordCreateForm } from '../password/AuthPasswordCreateForm';
@@ -161,13 +161,12 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           Please contact your administrator to reset your password.
         </p>
         <div className="mt-5 text-center">
-          <button
-            type="button"
+          <AuthLinkButton
             onClick={() => setShowForgotPassword(false)}
-            className="font-mono text-data-sm text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
+            className="font-mono text-data-sm"
           >
             ← Back to sign in
-          </button>
+          </AuthLinkButton>
         </div>
       </div>
     );
@@ -262,13 +261,12 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
             disabled={isLoading}
           />
           <div className="text-right mt-0.5">
-            <button
-              type="button"
+            <AuthLinkButton
               onClick={() => setShowForgotPassword(true)}
-              className="text-data-sm font-mono text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
+              className="font-mono text-data-sm"
             >
               Forgot password?
-            </button>
+            </AuthLinkButton>
           </div>
         </div>
 
@@ -289,13 +287,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
         <div className="mt-4 text-center">
           <p className="text-data-sm font-mono text-[rgb(var(--auth-text-mute))]">
             Don&apos;t have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToRegister}
-              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
-            >
-              Register here
-            </button>
+            <AuthLinkButton onClick={onSwitchToRegister}>Register here</AuthLinkButton>
           </p>
         </div>
       )}

@@ -23,7 +23,7 @@ import { useShellConfig } from '@domains/authentication/hooks/useShellConfig';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { generateUsernamePreview } from '@domains/authentication/utils/registrationUtils';
-import { AuthInput, Button } from '@shared/ui';
+import { AuthInput, AuthLinkButton, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 import { getValidationState, isValidEmail } from '@shared/utils/fieldValidation';
 
@@ -475,13 +475,7 @@ export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModal
         <div className="mt-5 text-center">
           <p className="font-mono text-data-sm text-[rgb(var(--auth-text-mute))]">
             Already have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="text-[rgb(var(--auth-ambient))] hover:opacity-80 transition-opacity rounded px-1"
-            >
-              Sign in
-            </button>
+            <AuthLinkButton onClick={onSwitchToLogin}>Sign in</AuthLinkButton>
           </p>
         </div>
       )}
