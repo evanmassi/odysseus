@@ -16,7 +16,6 @@ import type {
   CreateSupplyCategoryRequest,
   UpdateSupplyCategoryRequest,
   CreateSupplyLocationRequest,
-  UpdateSupplyLocationRequest,
   CreateSupplyItemRequest,
   UpdateSupplyItemRequest,
   CreateSupplyBarcodeRequest,
@@ -69,16 +68,6 @@ export function useCreateSupplyLocationMutation() {
 
   return useMutation({
     mutationFn: (data: CreateSupplyLocationRequest) => SupplyService.createLocation(data),
-    meta: { invalidates: [queryKeys.supplies.locations(labId)] },
-  });
-}
-
-export function useUpdateSupplyLocationMutation() {
-  const labId = useLabId();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateSupplyLocationRequest }) =>
-      SupplyService.updateLocation(id, data),
     meta: { invalidates: [queryKeys.supplies.locations(labId)] },
   });
 }
@@ -323,8 +312,6 @@ export function useRecordSupplyStockCountMutation() {
 // Bulk operations
 
 type SupplyBulkAction =
-  | { type: 'receive'; data: SupplyBulkReceiveRequest }
-  | { type: 'issue'; data: SupplyBulkIssueRequest }
   | { type: 'reassign-category'; itemIds: string[]; categoryId: string }
   | { type: 'archive'; itemIds: string[] };
 
@@ -352,10 +339,6 @@ export function useSupplyBulkUpdateMutation() {
   return useMutation({
     mutationFn: (action: SupplyBulkAction) => {
       switch (action.type) {
-        case 'receive':
-          return SupplyService.bulkReceive(action.data);
-        case 'issue':
-          return SupplyService.bulkIssue(action.data);
         case 'reassign-category':
           return SupplyService.bulkReassignCategory(action.itemIds, action.categoryId);
         case 'archive':
