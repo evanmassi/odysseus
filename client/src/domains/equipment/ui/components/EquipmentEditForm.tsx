@@ -16,7 +16,7 @@ import {
   useCreateEquipmentItemMutation,
   useUpdateEquipmentItemMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
-import { EQUIPMENT_STATUS_LABELS } from '@domains/equipment/utils/equipmentStatus';
+import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
 import {
   Button,
   CompletenessMeter,
@@ -48,7 +48,7 @@ interface EquipmentEditFormProps {
 }
 
 const STATUS_OPTIONS = (['active', 'inactive', 'under_maintenance', 'out_of_service'] as const).map(
-  status => ({ value: status, label: EQUIPMENT_STATUS_LABELS[status] })
+  status => ({ value: status, label: EQUIPMENT_STATUS_DISPLAY[status].label })
 );
 
 const TRACKED_FIELDS = [

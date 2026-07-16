@@ -207,7 +207,7 @@ function EditModeForm({
     setStaleWarningDismissed(false);
   };
 
-  // Reset all state when modal opens (component stays mounted, only isOpen changes)
+  // Reset all state when the modal opens
   useEffect(() => {
     if (isOpen) {
       form.reset(initialData);

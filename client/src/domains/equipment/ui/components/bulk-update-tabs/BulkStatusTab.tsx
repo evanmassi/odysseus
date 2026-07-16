@@ -13,7 +13,7 @@ import {
 } from '@odysseus/shared-schemas';
 import { useForm, Controller } from 'react-hook-form';
 
-import { EQUIPMENT_STATUS_LABELS } from '@domains/equipment/utils/equipmentStatus';
+import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
 import { Select, withPlaceholder } from '@shared/ui';
 import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
 import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
@@ -32,7 +32,7 @@ export function BulkStatusTab({
 }) {
   const statusOptions: SelectOption[] = equipmentBulkStatusValues.map(s => ({
     value: s,
-    label: EQUIPMENT_STATUS_LABELS[s],
+    label: EQUIPMENT_STATUS_DISPLAY[s].label,
   }));
 
   const {

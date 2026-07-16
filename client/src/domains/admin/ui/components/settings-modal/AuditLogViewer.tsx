@@ -158,7 +158,6 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
     setFilterState({});
   }, []);
 
-  // Pagination
   const goToNextPage = () => {
     if (pagination.hasMore) {
       setFilters(prev => ({ ...prev, offset: (prev.offset ?? 0) + (prev.limit ?? 50) }));
@@ -244,7 +243,6 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
     key => key !== 'datePreset' && filterState[key as keyof AuditFilterState]
   );
 
-  // Define table columns - use TableRow base type, cast in render functions
   const auditLogColumns: TableColumn<AuditLogEntry>[] = [
     {
       id: 'timestamp',
@@ -331,7 +329,6 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
 
   return (
     <div className="space-y-3">
-      {/* Header with Filters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {!hideHeader && (
@@ -394,7 +391,6 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
         </div>
       </div>
 
-      {/* Filter Panel */}
       {showFilters && (
         <AuditLogFilterPanel
           filters={filterState}
@@ -403,21 +399,18 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
         />
       )}
 
-      {/* Loading State */}
       {loading && (
         <div className="text-center py-8 text-body-sm text-muted-foreground">
           Loading audit log...
         </div>
       )}
 
-      {/* Error State */}
       {error && (
         <div className="bg-muted border border-danger-border text-danger-text px-3 py-2 rounded text-body-sm">
           {error}
         </div>
       )}
 
-      {/* Audit Log Table */}
       {!loading && !error && entries && entries.length > 0 && (
         <Table
           columns={auditLogColumns}
@@ -428,14 +421,12 @@ export function AuditLogViewer({ labId, readOnly, hideHeader = false }: AuditLog
         />
       )}
 
-      {/* Empty State */}
       {!loading && !error && (!entries || entries.length === 0) && (
         <div className="text-center py-8 text-body-sm text-muted-foreground">
           No audit log entries found.
         </div>
       )}
 
-      {/* Pagination */}
       {!loading && entries && entries.length > 0 && (
         <div className="flex items-center justify-between text-caption text-secondary-foreground">
           <div>

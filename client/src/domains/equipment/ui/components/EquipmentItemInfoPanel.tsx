@@ -30,7 +30,7 @@ import {
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { useEquipmentItemDetailQuery } from '@domains/equipment/hooks/useEquipmentQueries';
 import { EquipmentMaintenanceTimeline } from '@domains/equipment/ui/components/EquipmentMaintenanceTimeline';
-import { EQUIPMENT_STATUS_LABELS } from '@domains/equipment/utils/equipmentStatus';
+import { EQUIPMENT_STATUS_DISPLAY } from '@domains/equipment/utils/equipmentStatus';
 import {
   Button,
   Chip,
@@ -52,11 +52,7 @@ import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 import { formatCurrency } from '@shared/utils/formatCurrency';
 import { notifications } from '@shared/utils/notifications';
 
-import type {
-  EquipmentDocument,
-  EquipmentMaintenanceLog,
-  EquipmentStatus,
-} from '@odysseus/shared-schemas';
+import type { EquipmentDocument, EquipmentMaintenanceLog } from '@odysseus/shared-schemas';
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react';
 
 interface EquipmentItemInfoPanelProps {
@@ -68,14 +64,6 @@ interface EquipmentItemInfoPanelProps {
   onDeleted: () => void;
   categoryName?: string;
 }
-
-const STATUS_COLORS: Record<EquipmentStatus, 'success' | 'warning' | 'danger' | 'default'> = {
-  active: 'success',
-  inactive: 'default',
-  under_maintenance: 'warning',
-  out_of_service: 'danger',
-  decommissioned: 'danger',
-};
 
 function formatDate(date: Date | string | undefined): string | undefined {
   if (!date) return undefined;
@@ -125,8 +113,8 @@ export function EquipmentItemInfoPanel({
   }
 
   const { item, documents, maintenanceLog } = detail;
-  const statusColor = STATUS_COLORS[item.status];
-  const statusLabel = EQUIPMENT_STATUS_LABELS[item.status];
+  const statusColor = EQUIPMENT_STATUS_DISPLAY[item.status].color;
+  const statusLabel = EQUIPMENT_STATUS_DISPLAY[item.status].label;
   const isDecommissioned = item.status === 'decommissioned';
 
   const hasIdentification = [item.manufacturer, item.model, item.serialNumber, item.assetTag].some(

@@ -58,8 +58,6 @@ const BULK_SELECTOR_LABELS: BulkCategoryTreeSelectorLabels = {
   noMatch: 'No equipment matching',
 };
 
-// Main modal
-
 export function EquipmentBulkUpdateModal({
   isOpen,
   onClose,

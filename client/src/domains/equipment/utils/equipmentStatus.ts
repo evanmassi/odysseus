@@ -1,16 +1,19 @@
 /**
- * Equipment Status Labels
+ * Equipment Status Display
  *
- * Human-readable labels for equipment statuses, shared by the edit form,
+ * Chip color + label for each equipment status, shared by the edit form,
  * info panel, and bulk update.
  */
 
 import type { EquipmentStatus } from '@odysseus/shared-schemas';
 
-export const EQUIPMENT_STATUS_LABELS: Record<EquipmentStatus, string> = {
-  active: 'Active',
-  inactive: 'Inactive',
-  under_maintenance: 'Under Maintenance',
-  out_of_service: 'Out of Service',
-  decommissioned: 'Decommissioned',
+export const EQUIPMENT_STATUS_DISPLAY: Record<
+  EquipmentStatus,
+  { color: 'success' | 'warning' | 'danger' | 'default'; label: string }
+> = {
+  active: { color: 'success', label: 'Active' },
+  inactive: { color: 'default', label: 'Inactive' },
+  under_maintenance: { color: 'warning', label: 'Under Maintenance' },
+  out_of_service: { color: 'danger', label: 'Out of Service' },
+  decommissioned: { color: 'danger', label: 'Decommissioned' },
 };

@@ -191,7 +191,6 @@ export function AuthSessionTimeoutModal() {
             </AlertBanner>
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"
