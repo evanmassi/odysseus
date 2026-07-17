@@ -148,6 +148,13 @@ export function SupplyQuickScanBar({
         isOpen={showLinkDialog}
         barcodeValue={unresolvedBarcode}
         items={items}
+        onLinked={itemId => {
+          const item = items.find(i => i.id === itemId);
+          if (item) {
+            setResolvedItem(item);
+            setShowActions(true);
+          }
+        }}
         onClose={() => {
           setShowLinkDialog(false);
           setScanValue('');
