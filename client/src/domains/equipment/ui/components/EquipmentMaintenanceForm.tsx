@@ -10,20 +10,20 @@ import {
   updateEquipmentMaintenanceLogRequestSchema,
 } from '@odysseus/shared-schemas';
 import { Save, Wrench } from 'lucide-react';
-import { useForm, Controller, type FieldValues } from 'react-hook-form';
+import { useForm, type FieldValues } from 'react-hook-form';
 
 import {
   useAddEquipmentMaintenanceEntryMutation,
   useUpdateEquipmentMaintenanceEntryMutation,
 } from '@domains/equipment/hooks/useEquipmentMutations';
 import { useLookupValuesQuery } from '@shared/hooks/useLookupValuesQuery';
-import { Button, DatePicker, lookupOptions, NubDivider, Select } from '@shared/ui';
-import { FIELD_LABEL_COMPACT } from '@shared/ui/components/inputs/fieldLabelClass';
-import { ValidatedInput } from '@shared/ui/components/inputs/ValidatedInput';
+import { Button, lookupOptions, NubDivider } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 import { notifications } from '@shared/utils/notifications';
+
+import { EquipmentMaintenanceFields } from './EquipmentMaintenanceFields';
 
 import type {
   EquipmentMaintenanceLog,
@@ -56,7 +56,7 @@ export function EquipmentMaintenanceForm({
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm({
+  } = useForm<FieldValues>({
     resolver: zodResolver(
       isEditing
         ? updateEquipmentMaintenanceLogRequestSchema
@@ -113,111 +113,12 @@ export function EquipmentMaintenanceForm({
 
       <ScrollArea className="min-h-0 flex-1">
         <form id="maintenance-form" onSubmit={handleSubmit(onFormSubmit)} className="space-y-3 p-4">
-          <Controller
-            name="datePerformed"
+          <EquipmentMaintenanceFields
+            register={register}
             control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                <span className={FIELD_LABEL_COMPACT}>
-                  Date Performed <span className="text-danger-bg">*</span>
-                </span>
-                <DatePicker
-                  value={(value as string) ?? ''}
-                  onChange={onChange}
-                  state={error ? 'error' : 'default'}
-                  fullWidth
-                />
-                {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
-              </div>
-            )}
-          />
-
-          <Controller
-            name="maintenanceType"
-            control={control}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
-              <div>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Select is a custom component without native input */}
-                <label id="maintenance-type-label" className={FIELD_LABEL_COMPACT}>
-                  Maintenance Type <span className="text-danger-bg">*</span>
-                </label>
-                <Select
-                  options={typeOptions}
-                  value={value ?? ''}
-                  onChange={v => onChange(v)}
-                  state={error ? 'error' : 'default'}
-                  error={error?.message}
-                  fullWidth
-                  aria-labelledby="maintenance-type-label"
-                />
-              </div>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
-            <ValidatedInput
-              label="Performed By"
-              labelStyle="compact"
-              placeholder="e.g., TSS, In-house"
-              error={!!errors.performedBy}
-              helperText={errors.performedBy?.message}
-              registration={register('performedBy')}
-            />
-            <ValidatedInput
-              label="Technician"
-              labelStyle="compact"
-              placeholder="e.g., John Smith"
-              error={!!errors.technician}
-              helperText={errors.technician?.message}
-              registration={register('technician')}
-            />
-          </div>
-
-          <ValidatedInput
-            label="Description"
-            labelStyle="compact"
-            type="textarea"
-            placeholder="Work performed, parts replaced, etc."
-            registration={register('description')}
-          />
-
-          <div className="grid grid-cols-2 gap-2.5 [&>*]:min-w-0">
-            <Controller
-              name="nextScheduledDate"
-              control={control}
-              render={({ field: { value, onChange }, fieldState: { error } }) => (
-                <div>
-                  <span className={FIELD_LABEL_COMPACT}>Next Scheduled</span>
-                  <DatePicker
-                    value={(value as string) ?? ''}
-                    onChange={onChange}
-                    state={error ? 'error' : 'default'}
-                    fullWidth
-                    clearable
-                  />
-                  {error && <p className="mt-1 text-caption text-danger-text">{error.message}</p>}
-                </div>
-              )}
-            />
-            <ValidatedInput
-              label="Cost ($)"
-              labelStyle="compact"
-              type="number"
-              step="0.01"
-              error={!!errors.cost}
-              helperText={errors.cost?.message}
-              registration={register('cost', {
-                setValueAs: (v: string) => (v === '' ? undefined : Number(v)),
-              })}
-            />
-          </div>
-
-          <ValidatedInput
-            label="Notes"
-            labelStyle="compact"
-            type="textarea"
-            placeholder="Additional notes and observations..."
-            registration={register('notes')}
+            errors={errors}
+            typeOptions={typeOptions}
+            layout="grid"
           />
         </form>
       </ScrollArea>
