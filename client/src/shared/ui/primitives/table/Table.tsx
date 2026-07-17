@@ -24,54 +24,27 @@ type GlowTone = 'primary' | 'success' | 'warning' | 'danger';
 const stateToGlowTone = (state: RowState): GlowTone =>
   state === 'success' || state === 'warning' || state === 'danger' ? state : 'primary';
 
-// Each block is one literal string per tone — Tailwind JIT won't see interpolated classes.
-// Light is flat (tone tint + solid leading bar, readable color); the lit recipe (scanline +
-// directional wash + bloom + glowing bar + text glow) is restored under `dark:`.
+// One base recipe keyed to a per-row `--row-tone` custom property; each tone only sets that var.
+// Tailwind JIT needs literal classes, so the base is a literal string and the tones swap the var.
+// Light is flat (tone tint + solid leading bar); the lit recipe (scanline + directional wash +
+// bloom + glowing bar + text glow) is restored under `dark:`.
+const GLOW_BASE = [
+  '[background-image:linear-gradient(0deg,hsl(var(--row-tone)/0.1),hsl(var(--row-tone)/0.1))]',
+  'dark:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--row-tone)/var(--alpha-glow-tint)),hsl(var(--row-tone)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--row-tone)/var(--alpha-glow-wash-1))_0%,hsl(var(--row-tone)/var(--alpha-glow-wash-2))_18%,hsl(var(--row-tone)/var(--alpha-glow-wash-3))_48%,hsl(var(--row-tone)/var(--alpha-glow-wash-4))_78%,hsl(var(--row-tone)/0)_100%)]',
+  'dark:shadow-[inset_3px_0_0_0_hsl(var(--row-tone)),inset_14px_0_36px_-10px_hsl(var(--row-tone)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--row-tone)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--row-tone)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--row-tone)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--row-tone)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--row-tone)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--row-tone)/var(--alpha-glow-outer-far))]',
+  '[&>td]:!bg-transparent',
+  '[&>td:first-child]:relative',
+  '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-[hsl(var(--row-tone))] [&>td:first-child]:before:pointer-events-none',
+  'dark:[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--row-tone)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--row-tone)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--row-tone)/var(--alpha-glow-bar-far))]',
+  '[&>td]:font-semibold',
+  'dark:[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
+].join(' ');
+
 const ROW_GLOW: Record<GlowTone, string> = {
-  primary: [
-    '[background-image:linear-gradient(0deg,hsl(var(--primary)/0.1),hsl(var(--primary)/0.1))]',
-    'dark:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--primary)/var(--alpha-glow-tint)),hsl(var(--primary)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--primary)/var(--alpha-glow-wash-1))_0%,hsl(var(--primary)/var(--alpha-glow-wash-2))_18%,hsl(var(--primary)/var(--alpha-glow-wash-3))_48%,hsl(var(--primary)/var(--alpha-glow-wash-4))_78%,hsl(var(--primary)/0)_100%)]',
-    'dark:shadow-[inset_3px_0_0_0_hsl(var(--primary)),inset_14px_0_36px_-10px_hsl(var(--primary)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--primary)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--primary)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--primary)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--primary)/var(--alpha-glow-outer-far))]',
-    '[&>td]:!bg-transparent',
-    '[&>td:first-child]:relative',
-    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-primary [&>td:first-child]:before:pointer-events-none',
-    'dark:[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--primary)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--primary)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--primary)/var(--alpha-glow-bar-far))]',
-    '[&>td]:font-semibold',
-    'dark:[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
-  ].join(' '),
-  success: [
-    '[background-image:linear-gradient(0deg,hsl(var(--color-success-bg)/0.1),hsl(var(--color-success-bg)/0.1))]',
-    'dark:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-success-bg)/var(--alpha-glow-tint)),hsl(var(--color-success-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-success-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-success-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-success-bg)/0)_100%)]',
-    'dark:shadow-[inset_3px_0_0_0_hsl(var(--color-success-bg)),inset_14px_0_36px_-10px_hsl(var(--color-success-bg)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--color-success-bg)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--color-success-bg)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-success-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-success-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-success-bg)/var(--alpha-glow-outer-far))]',
-    '[&>td]:!bg-transparent',
-    '[&>td:first-child]:relative',
-    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-success-bg [&>td:first-child]:before:pointer-events-none',
-    'dark:[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--color-success-bg)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--color-success-bg)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--color-success-bg)/var(--alpha-glow-bar-far))]',
-    '[&>td]:font-semibold',
-    'dark:[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
-  ].join(' '),
-  warning: [
-    '[background-image:linear-gradient(0deg,hsl(var(--color-warning-bg)/0.1),hsl(var(--color-warning-bg)/0.1))]',
-    'dark:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-warning-bg)/var(--alpha-glow-tint)),hsl(var(--color-warning-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-warning-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-warning-bg)/0)_100%)]',
-    'dark:shadow-[inset_3px_0_0_0_hsl(var(--color-warning-bg)),inset_14px_0_36px_-10px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-warning-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-warning-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-warning-bg)/var(--alpha-glow-outer-far))]',
-    '[&>td]:!bg-transparent',
-    '[&>td:first-child]:relative',
-    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-warning-bg [&>td:first-child]:before:pointer-events-none',
-    'dark:[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--color-warning-bg)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--color-warning-bg)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--color-warning-bg)/var(--alpha-glow-bar-far))]',
-    '[&>td]:font-semibold',
-    'dark:[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
-  ].join(' '),
-  danger: [
-    '[background-image:linear-gradient(0deg,hsl(var(--color-danger-bg)/0.1),hsl(var(--color-danger-bg)/0.1))]',
-    'dark:[background-image:repeating-linear-gradient(to_bottom,hsl(var(--scanline))_0,hsl(var(--scanline))_1px,transparent_1px,transparent_3px),linear-gradient(180deg,hsl(var(--color-danger-bg)/var(--alpha-glow-tint)),hsl(var(--color-danger-bg)/var(--alpha-glow-tint))),linear-gradient(90deg,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-1))_0%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-2))_18%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-3))_48%,hsl(var(--color-danger-bg)/var(--alpha-glow-wash-4))_78%,hsl(var(--color-danger-bg)/0)_100%)]',
-    'dark:shadow-[inset_3px_0_0_0_hsl(var(--color-danger-bg)),inset_14px_0_36px_-10px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-inner)),inset_0_1px_0_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-rim)),inset_0_-1px_0_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-rim)),inset_0_10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-bloom)),inset_0_-10px_16px_-8px_hsl(var(--color-danger-bg)/var(--alpha-glow-edge-bloom)),0_0_32px_-4px_hsl(var(--color-danger-bg)/var(--alpha-glow-outer-near)),0_0_80px_4px_hsl(var(--color-danger-bg)/var(--alpha-glow-outer-far))]',
-    '[&>td]:!bg-transparent',
-    '[&>td:first-child]:relative',
-    '[&>td:first-child]:before:content-[""] [&>td:first-child]:before:absolute [&>td:first-child]:before:left-0 [&>td:first-child]:before:top-0 [&>td:first-child]:before:bottom-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-danger-bg [&>td:first-child]:before:pointer-events-none',
-    'dark:[&>td:first-child]:before:shadow-[0_0_6px_0_hsl(var(--color-danger-bg)/var(--alpha-glow-bar-strong)),0_0_24px_3px_hsl(var(--color-danger-bg)/var(--alpha-glow-bar-mid)),0_0_72px_10px_hsl(var(--color-danger-bg)/var(--alpha-glow-bar-far))]',
-    '[&>td]:font-semibold',
-    'dark:[&>td]:[text-shadow:0_0_5px_color-mix(in_srgb,currentColor_35%,transparent)]',
-  ].join(' '),
+  primary: `[--row-tone:var(--primary)] ${GLOW_BASE}`,
+  success: `[--row-tone:var(--color-success-bg)] ${GLOW_BASE}`,
+  warning: `[--row-tone:var(--color-warning-bg)] ${GLOW_BASE}`,
+  danger: `[--row-tone:var(--color-danger-bg)] ${GLOW_BASE}`,
 };
 
 const CHECKBOX_CELL_OVERRIDE = '!px-3 text-center w-10';
