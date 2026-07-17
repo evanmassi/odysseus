@@ -7,6 +7,8 @@
 
 import { HeaderStrip } from '../../primitives/header-strip/HeaderStrip';
 
+import { StripLabel } from './StripLabel';
+
 interface CompletenessMeterProps {
   filled: number;
   total: number;
@@ -18,13 +20,7 @@ export function CompletenessMeter({ filled, total }: CompletenessMeterProps) {
   return (
     <HeaderStrip className="px-4 py-2.5">
       <div className="flex items-center gap-3">
-        <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
-          <span
-            aria-hidden
-            className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-          />
-          Completeness
-        </span>
+        <StripLabel>Completeness</StripLabel>
         <span className="font-mono text-data-sm tracking-[0.06em] text-foreground">
           {filled}/{total}
         </span>
