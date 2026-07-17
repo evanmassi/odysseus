@@ -8,7 +8,7 @@
 import { useState, useMemo, useCallback } from 'react';
 
 import { isAdminRole } from '@odysseus/shared-schemas';
-import { Layers, Plus, Eye, EyeOff, ArrowUp, ArrowDown, Microscope } from 'lucide-react';
+import { Layers, Plus, Eye, EyeOff, Microscope } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import {
@@ -20,19 +20,14 @@ import {
   useEquipmentCategoriesQuery,
   useEquipmentItemsQuery,
 } from '@domains/equipment/hooks/useEquipmentQueries';
-import {
-  Button,
-  HeaderStrip,
-  InfoPanelEmpty,
-  PanelHeader,
-  SearchInput,
-  Select,
-  Tooltip,
-} from '@shared/ui';
+import { Button, HeaderStrip, InfoPanelEmpty, PanelHeader, SearchInput } from '@shared/ui';
 import {
   CategoryModal,
   CategoryTreePanel,
   type CategoryTreePanelLabels,
+  INVENTORY_SORT_OPTIONS,
+  SortControls,
+  type InventorySortField,
 } from '@shared/ui/components/inventory';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
@@ -52,15 +47,6 @@ import type {
   EquipmentItem,
   EquipmentMaintenanceLog,
 } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui';
-
-type SortField = 'name' | 'manufacturer' | 'dateAdded';
-
-const SORT_OPTIONS: SelectOption[] = [
-  { value: 'name', label: 'Name' },
-  { value: 'manufacturer', label: 'Manufacturer' },
-  { value: 'dateAdded', label: 'Date Added' },
-];
 
 const isEquipmentHidden = (item: EquipmentItem) => item.status === 'decommissioned';
 
@@ -101,7 +87,7 @@ export function EquipmentTab() {
   const [rightPanel, setRightPanel] = useState<RightPanelView | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [showDecommissioned, setShowDecommissioned] = useState(false);
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortField, setSortField] = useState<InventorySortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [categoryModal, setCategoryModal] = useState<{
     isOpen: boolean;
@@ -248,31 +234,13 @@ export function EquipmentTab() {
               className="w-64"
               aria-label="Search equipment"
             />
-            <span className="flex-shrink-0 text-body-sm font-medium text-secondary-foreground">
-              Sort
-            </span>
-            <Select
-              options={SORT_OPTIONS}
+            <SortControls
               value={sortField}
-              onChange={value => setSortField(value as SortField)}
-              size="xs"
-              aria-label="Sort field"
-              className="w-32"
+              onChange={setSortField}
+              direction={sortDirection}
+              onToggleDirection={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+              options={INVENTORY_SORT_OPTIONS}
             />
-            <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
-              <button
-                type="button"
-                onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
-                aria-label={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'}
-                className="rounded p-1 text-secondary-foreground transition-colors hover:bg-secondary hover:text-accent-foreground"
-              >
-                {sortDirection === 'asc' ? (
-                  <ArrowUp className="h-4 w-4" />
-                ) : (
-                  <ArrowDown className="h-4 w-4" />
-                )}
-              </button>
-            </Tooltip>
             <Button
               variant="ghost"
               size="sm"
