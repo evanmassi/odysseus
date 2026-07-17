@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react';
 
 import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
-import { ChevronDown, Link2, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
+import { ChevronDown, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { Chip, ConsolePanel, OverflowMenu, SectionHeader, Table, Tooltip } from '@shared/ui';
@@ -22,6 +22,7 @@ import {
   useDeleteLabUserMutation,
 } from '../../../hooks/useLabMutations';
 import { getRoleLabel } from '../../../utils/auditLogFormatters';
+import { LinkedPersonCell } from '../displays/LinkedPersonCell';
 
 import type { LabDetailsUser } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
@@ -251,34 +252,14 @@ function getUserColumns({
     {
       id: 'linkedResearcher',
       header: 'Linked Researcher',
-      render: (_value, row) => {
-        if (row.researcher) {
-          const isDeactivated = !row.researcher.active;
-          return (
-            <div className="flex flex-col gap-0.5">
-              <div
-                className={`flex items-center gap-1.5 whitespace-nowrap text-body-sm ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
-              >
-                <Link2
-                  size={14}
-                  className={`shrink-0 ${isDeactivated ? 'text-foreground/30' : 'text-success-text'}`}
-                />
-                <span className="font-sans">{row.researcher.name}</span>
-              </div>
-              {isDeactivated && (
-                <Chip size="sm" color="default" className="w-fit">
-                  Deactivated
-                </Chip>
-              )}
-            </div>
-          );
-        }
-        return (
-          <Chip size="sm" color="outlined">
-            None
-          </Chip>
-        );
-      },
+      render: (_value, row) => (
+        <LinkedPersonCell
+          label={row.researcher ? row.researcher.name : null}
+          deactivated={row.researcher ? !row.researcher.active : false}
+          tone="console"
+          sans
+        />
+      ),
     },
     {
       id: 'lastActivity',

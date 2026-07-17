@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Button, Chip, OverflowMenu, Table, Tooltip } from '@shared/ui';
+import { Button, OverflowMenu, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { formatRelativeTime, notifications } from '@shared/utils';
@@ -37,6 +37,7 @@ import {
   useUnlinkResearcherMutation,
   useUpdateUserRoleMutation,
 } from '../../../../hooks/useUserMutations';
+import { LinkedPersonCell } from '../../displays/LinkedPersonCell';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
@@ -273,34 +274,14 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     {
       id: 'linkedResearcher',
       header: 'Linked Researcher',
-      render: (_, user) => {
-        if (user.researcherId) {
-          const isDeactivated = user.researcherActive === false;
-          return (
-            <div className="flex flex-col gap-0.5">
-              <div
-                className={`flex items-center gap-1.5 text-body-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
-              >
-                <Link2
-                  size={14}
-                  className={`shrink-0 ${isDeactivated ? 'text-muted-foreground' : 'text-success-text'}`}
-                />
-                <span className="font-sans">{user.researcherName ?? 'Linked'}</span>
-              </div>
-              {isDeactivated && (
-                <Chip size="sm" color="default" className="w-fit">
-                  Deactivated
-                </Chip>
-              )}
-            </div>
-          );
-        }
-        return (
-          <Chip size="sm" color="outlined">
-            None
-          </Chip>
-        );
-      },
+      render: (_, user) => (
+        <LinkedPersonCell
+          label={user.researcherId ? (user.researcherName ?? 'Linked') : null}
+          deactivated={user.researcherActive === false}
+          tone="card"
+          sans
+        />
+      ),
     },
     {
       id: 'lastActivity',

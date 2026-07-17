@@ -11,7 +11,6 @@ import {
   ChevronDown,
   Dna,
   Link,
-  Link2,
   Plus,
   Power,
   RefreshCw,
@@ -31,6 +30,7 @@ import {
   useDeactivateResearcherMutation,
   useDeleteResearcherMutation,
 } from '../../../../hooks/useResearcherMutations';
+import { LinkedPersonCell } from '../../displays/LinkedPersonCell';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
@@ -267,36 +267,16 @@ export function ResearchersTab({
     {
       id: 'linkedUser',
       header: 'Linked User',
-      render: (_, researcher) => {
-        if (researcher.linkedUserId) {
-          const isDeactivated =
+      render: (_, researcher) => (
+        <LinkedPersonCell
+          label={researcher.linkedUserId ? (researcher.linkedUsername ?? 'Linked') : null}
+          deactivated={
             researcher.linkedUserStatus === 'deactivated' ||
-            researcher.linkedUserStatus === 'suspended';
-          return (
-            <div className="flex flex-col gap-0.5">
-              <div
-                className={`flex items-center gap-1.5 text-body-sm whitespace-nowrap ${isDeactivated ? 'text-muted-foreground opacity-60' : 'text-card-foreground'}`}
-              >
-                <Link2
-                  size={14}
-                  className={`shrink-0 ${isDeactivated ? 'text-muted-foreground' : 'text-success-text'}`}
-                />
-                <span>{researcher.linkedUsername ?? 'Linked'}</span>
-              </div>
-              {isDeactivated && (
-                <Chip size="sm" color="default" className="w-fit">
-                  Deactivated
-                </Chip>
-              )}
-            </div>
-          );
-        }
-        return (
-          <Chip size="sm" color="outlined">
-            None
-          </Chip>
-        );
-      },
+            researcher.linkedUserStatus === 'suspended'
+          }
+          tone="card"
+        />
+      ),
     },
     {
       id: 'actions',

@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { ChevronDown, Link2, Trash2 } from 'lucide-react';
+import { ChevronDown, Trash2 } from 'lucide-react';
 
 import { Button, Chip, ConsolePanel, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
@@ -14,6 +14,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import { useDeleteResearcherMutation } from '../../../hooks/useResearcherMutations';
+import { LinkedPersonCell } from '../displays/LinkedPersonCell';
 
 import type { LabDetailsResearcher } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
@@ -165,35 +166,17 @@ function getResearcherColumns(
     {
       id: 'linkedUser',
       header: 'Linked User',
-      render: (_value, row) => {
-        if (row.linkedUser) {
-          const isDeactivated =
-            row.linkedUser.status === 'deactivated' || row.linkedUser.status === 'suspended';
-          return (
-            <div className="flex flex-col gap-0.5">
-              <div
-                className={`flex items-center gap-1.5 whitespace-nowrap text-body-sm ${isDeactivated ? 'text-foreground/50' : 'text-foreground'}`}
-              >
-                <Link2
-                  size={14}
-                  className={`shrink-0 ${isDeactivated ? 'text-foreground/30' : 'text-success-text'}`}
-                />
-                <span>{row.linkedUser.username}</span>
-              </div>
-              {isDeactivated && (
-                <Chip size="sm" color="default" className="w-fit">
-                  Deactivated
-                </Chip>
-              )}
-            </div>
-          );
-        }
-        return (
-          <Chip size="sm" color="outlined">
-            None
-          </Chip>
-        );
-      },
+      render: (_value, row) => (
+        <LinkedPersonCell
+          label={row.linkedUser ? row.linkedUser.username : null}
+          deactivated={
+            row.linkedUser
+              ? row.linkedUser.status === 'deactivated' || row.linkedUser.status === 'suspended'
+              : false
+          }
+          tone="console"
+        />
+      ),
     },
     {
       id: 'actions',
