@@ -36,7 +36,7 @@ import {
 } from '@domains/tubes';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@infra/logger';
-import { ErrorBoundary, HeaderStrip, PanelHeader } from '@shared/ui';
+import { ErrorBoundary, HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 import { notifications } from '@shared/utils/notifications';
 
@@ -374,14 +374,13 @@ function BiobankWorkspace() {
                 </span>
                 <span className="flex-1" />
                 <span className="flex flex-shrink-0 items-center gap-2">
-                  <span className="relative h-1 w-20 bg-foreground/[0.07]">
-                    <span
-                      className="absolute inset-y-0 left-0 bg-primary dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-                      style={{
-                        width: `${gridCapacity > 0 ? (tubes.length / gridCapacity) * 100 : 0}%`,
-                      }}
-                    />
-                  </span>
+                  <OccupancyBar
+                    filled={tubes.length}
+                    capacity={gridCapacity}
+                    size="lg"
+                    glow
+                    className="w-20"
+                  />
                   <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/60">
                     {tubes.length}
                     <span className="text-foreground/35">/{gridCapacity}</span>

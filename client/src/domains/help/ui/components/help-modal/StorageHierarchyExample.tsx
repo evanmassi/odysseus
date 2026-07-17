@@ -10,7 +10,7 @@ import { refrigeratorFreezer } from '@lucide/lab';
 import { ChevronRight, Icon, Rows3 } from 'lucide-react';
 
 import { DEFAULT_GRID_CONFIG, BoxOccupancyMatrix } from '@domains/storage';
-import { Well } from '@shared/ui';
+import { OccupancyBar, Well } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 
 import type { GridConfiguration, RackTube } from '@odysseus/shared-schemas';
@@ -37,13 +37,10 @@ function Callout({ n }: { n: number }) {
   );
 }
 
-function OccupancyBar({ filled, capacity }: { filled: number; capacity: number }) {
-  const ratio = capacity > 0 ? (filled / capacity) * 100 : 0;
+function OccupancyRow({ filled, capacity }: { filled: number; capacity: number }) {
   return (
     <span className="flex flex-none items-center gap-1.5">
-      <span className="relative h-0.5 w-10 bg-foreground/[0.07]">
-        <span className="absolute inset-y-0 left-0 bg-primary/80" style={{ width: `${ratio}%` }} />
-      </span>
+      <OccupancyBar filled={filled} capacity={capacity} className="w-10" />
       <span className="font-mono text-data-sm tracking-data text-foreground/45">
         {filled}
         <span className="text-foreground/25">/{capacity}</span>
@@ -94,7 +91,7 @@ export function StorageHierarchyExample() {
           <Icon iconNode={refrigeratorFreezer} size={18} className="text-secondary-foreground" />
           <span className="font-mono text-data-sm tracking-data text-card-foreground">Tank A</span>
           <span className="flex-1" />
-          <OccupancyBar filled={31} capacity={50} />
+          <OccupancyRow filled={31} capacity={50} />
           <Callout n={2} />
         </div>
 
@@ -119,7 +116,7 @@ export function StorageHierarchyExample() {
               <span className="font-mono text-data-sm tracking-data text-card-foreground">
                 Box A
               </span>
-              <OccupancyBar filled={13} capacity={EXAMPLE_CAPACITY} />
+              <OccupancyRow filled={13} capacity={EXAMPLE_CAPACITY} />
             </span>
           </div>
 
@@ -134,12 +131,7 @@ export function StorageHierarchyExample() {
                 Box B
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="relative h-0.5 w-10 bg-foreground/[0.07]">
-                  <span
-                    className="absolute inset-y-0 left-0 bg-warning-bg"
-                    style={{ width: '100%' }}
-                  />
-                </span>
+                <OccupancyBar filled={1} capacity={1} full className="w-10" />
                 <span className="type-label text-label-2xs tracking-meta text-warning-text">
                   FULL
                 </span>

@@ -20,6 +20,7 @@ export {
   CompletenessMeter,
   DetailRow,
   InfoPanelEmpty,
+  OccupancyBar,
   StripLabel,
 } from './components/info-display';
 

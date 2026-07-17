@@ -12,7 +12,7 @@ import { Plus, ListTree, UsersRound } from 'lucide-react';
 import { useAuthStore } from '@domains/authentication';
 import { useLocationCounts } from '@domains/tubes';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
-import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
+import { AlertBanner, Button, OccupancyBar, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
@@ -250,14 +250,13 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       </span>
       <span className="flex-1" />
       <span className="flex flex-shrink-0 items-center gap-2" title="Facility occupancy">
-        <span className="relative h-1 w-16 bg-foreground/[0.07]">
-          <span
-            className="absolute inset-y-0 left-0 bg-primary dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-            style={{
-              width: `${occupancy.facility.capacity > 0 ? (occupancy.facility.filled / occupancy.facility.capacity) * 100 : 0}%`,
-            }}
-          />
-        </span>
+        <OccupancyBar
+          filled={occupancy.facility.filled}
+          capacity={occupancy.facility.capacity}
+          size="lg"
+          glow
+          className="w-16"
+        />
         <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/60">
           {occupancy.facility.filled}
           <span className="text-foreground/35">/{occupancy.facility.capacity}</span>

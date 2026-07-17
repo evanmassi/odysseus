@@ -11,7 +11,7 @@ import { Compass } from 'lucide-react';
 
 // deep import: avoids @domains/tubes↔@domains/storage barrel cycle
 import { useLocationCounts } from '@domains/tubes/hooks/useTubeQueries';
-import { HeaderStrip, PanelHeader } from '@shared/ui';
+import { HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
 import { useRackTubesByBox } from '../../../hooks/useRackTubesByBox';
@@ -252,14 +252,13 @@ export function StorageNavigator({
           </span>
           <span className="flex-1" />
           <span className="flex flex-shrink-0 items-center gap-2">
-            <span className="relative h-1 w-20 bg-foreground/[0.07]">
-              <span
-                className="absolute inset-y-0 left-0 bg-primary dark:shadow-[0_0_6px_hsl(var(--primary)/0.6)]"
-                style={{
-                  width: `${occupancy.facility.capacity > 0 ? (occupancy.facility.filled / occupancy.facility.capacity) * 100 : 0}%`,
-                }}
-              />
-            </span>
+            <OccupancyBar
+              filled={occupancy.facility.filled}
+              capacity={occupancy.facility.capacity}
+              size="lg"
+              glow
+              className="w-20"
+            />
             <span className="font-mono text-data-sm tracking-[0.06em] text-foreground/60">
               {occupancy.facility.filled}
               <span className="text-foreground/35">/{occupancy.facility.capacity}</span>

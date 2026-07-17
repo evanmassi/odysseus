@@ -7,7 +7,7 @@
  */
 
 import { useTextTruncation } from '@shared/hooks';
-import { Tooltip } from '@shared/ui';
+import { OccupancyBar, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges';
 
 import { BoxOccupancyMatrix } from './BoxOccupancyMatrix';
@@ -80,12 +80,7 @@ export function StorageBoxMinimap({
             )}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="relative h-0.5 flex-1 bg-foreground/[0.07]">
-              <span
-                className={`absolute inset-y-0 left-0 ${isFull ? 'bg-warning-bg' : 'bg-primary/80'}`}
-                style={{ width: `${capacity > 0 ? Math.min(100, (filled / capacity) * 100) : 0}%` }}
-              />
-            </span>
+            <OccupancyBar filled={filled} capacity={capacity} full={isFull} className="flex-1" />
             <span
               className={`w-20 flex-none text-right font-mono text-data-sm tabular-nums tracking-[0.08em] ${
                 isFull ? 'text-warning-text' : isSelected ? 'text-primary' : 'text-foreground/40'
