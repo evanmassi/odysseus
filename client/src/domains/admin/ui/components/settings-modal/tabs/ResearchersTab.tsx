@@ -7,16 +7,7 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import {
-  ChevronDown,
-  Dna,
-  Link,
-  Plus,
-  Power,
-  RefreshCw,
-  TestTubeDiagonal,
-  Trash2,
-} from 'lucide-react';
+import { Dna, Link, Plus, Power, RefreshCw, TestTubeDiagonal, Trash2 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
@@ -30,6 +21,7 @@ import {
   useDeactivateResearcherMutation,
   useDeleteResearcherMutation,
 } from '../../../../hooks/useResearcherMutations';
+import { CollapsibleInactiveSection } from '../../displays/CollapsibleInactiveSection';
 import { LinkedPersonCell } from '../../displays/LinkedPersonCell';
 import { ResearcherModal } from '../ResearcherModal';
 
@@ -65,7 +57,6 @@ export function ResearchersTab({
     researcherName: string;
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
-  const [showInactive, setShowInactive] = useState(false);
   const currentUserId = useAuthStore(s => s.user?.id);
 
   const tubesWithoutResearcher =
@@ -376,31 +367,21 @@ export function ResearchersTab({
       />
 
       {inactiveResearchers.length > 0 && (
-        <div className="pt-3 border-t border-border">
-          <button
-            onClick={() => setShowInactive(prev => !prev)}
-            className="flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ChevronDown
-              size={14}
-              className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
-            />
-            Inactive Researchers ({inactiveResearchers.length})
-          </button>
-          {showInactive && (
-            <div className="mt-2">
-              <Table
-                columns={
-                  readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns
-                }
-                data={inactiveResearchers}
-                emptyMessage=""
-                aria-label="Inactive researchers"
-                className="opacity-60"
-              />
-            </div>
-          )}
-        </div>
+        <CollapsibleInactiveSection
+          label="Inactive Researchers"
+          count={inactiveResearchers.length}
+          variant="divider"
+        >
+          <Table
+            columns={
+              readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns
+            }
+            data={inactiveResearchers}
+            emptyMessage=""
+            aria-label="Inactive researchers"
+            className="opacity-60"
+          />
+        </CollapsibleInactiveSection>
       )}
 
       <ResearcherModal

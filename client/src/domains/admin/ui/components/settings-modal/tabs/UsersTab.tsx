@@ -8,7 +8,6 @@ import { useState, useMemo } from 'react';
 
 import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
 import {
-  ChevronDown,
   KeyRound,
   Link2,
   Power,
@@ -37,6 +36,7 @@ import {
   useUnlinkResearcherMutation,
   useUpdateUserRoleMutation,
 } from '../../../../hooks/useUserMutations';
+import { CollapsibleInactiveSection } from '../../displays/CollapsibleInactiveSection';
 import { LinkedPersonCell } from '../../displays/LinkedPersonCell';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
@@ -70,7 +70,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     username: string;
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
-  const [showInactive, setShowInactive] = useState(false);
 
   const currentUserId = useAuthStore(s => s.user?.id);
   const deleteUserMutation = useDeleteUserMutation();
@@ -402,29 +401,19 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       />
 
       {inactiveUsers.length > 0 && (
-        <div className="pt-3 border-t border-border">
-          <button
-            onClick={() => setShowInactive(prev => !prev)}
-            className="flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ChevronDown
-              size={14}
-              className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
-            />
-            Inactive Users ({inactiveUsers.length})
-          </button>
-          {showInactive && (
-            <div className="mt-2">
-              <Table
-                columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
-                data={inactiveUsers}
-                emptyMessage=""
-                aria-label="Inactive users"
-                className="opacity-60"
-              />
-            </div>
-          )}
-        </div>
+        <CollapsibleInactiveSection
+          label="Inactive Users"
+          count={inactiveUsers.length}
+          variant="divider"
+        >
+          <Table
+            columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
+            data={inactiveUsers}
+            emptyMessage=""
+            aria-label="Inactive users"
+            className="opacity-60"
+          />
+        </CollapsibleInactiveSection>
       )}
 
       {researcherModalData && (

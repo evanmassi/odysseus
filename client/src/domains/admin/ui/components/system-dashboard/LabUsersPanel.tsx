@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react';
 
 import { getPersonInitials, getPersonSortName } from '@odysseus/shared-schemas';
-import { ChevronDown, Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
+import { Power, ShieldBan, Trash2, UserRoundCheck } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { Chip, ConsolePanel, OverflowMenu, SectionHeader, Table, Tooltip } from '@shared/ui';
@@ -22,6 +22,7 @@ import {
   useDeleteLabUserMutation,
 } from '../../../hooks/useLabMutations';
 import { getRoleLabel } from '../../../utils/auditLogFormatters';
+import { CollapsibleInactiveSection } from '../displays/CollapsibleInactiveSection';
 import { LinkedPersonCell } from '../displays/LinkedPersonCell';
 
 import type { LabDetailsUser } from '@odysseus/shared-schemas';
@@ -44,7 +45,6 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
   const activateUserMutation = useActivateLabUserMutation();
 
   const [userAction, setUserAction] = useState<UserAction | null>(null);
-  const [showInactive, setShowInactive] = useState(false);
 
   const handleActivate = (user: LabDetailsUser) => {
     activateUserMutation.mutate(
@@ -81,29 +81,19 @@ export function LabUsersPanel({ labId, users, sortConfig, onSort }: LabUsersPane
           />
 
           {inactiveUsers.length > 0 && (
-            <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.18)_0%,hsl(var(--foreground)/0.14)_42%,hsl(var(--foreground)/0.06)_82%,transparent_100%)]">
-              <button
-                onClick={() => setShowInactive(prev => !prev)}
-                className="flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
-                />
-                Inactive Users ({inactiveUsers.length})
-              </button>
-              {showInactive && (
-                <div className="mt-2">
-                  <Table
-                    columns={columns}
-                    data={inactiveUsers}
-                    emptyMessage=""
-                    aria-label="Inactive lab users"
-                    rowState={row => (row.status === 'suspended' ? 'danger' : 'muted')}
-                  />
-                </div>
-              )}
-            </div>
+            <CollapsibleInactiveSection
+              label="Inactive Users"
+              count={inactiveUsers.length}
+              variant="stripe"
+            >
+              <Table
+                columns={columns}
+                data={inactiveUsers}
+                emptyMessage=""
+                aria-label="Inactive lab users"
+                rowState={row => (row.status === 'suspended' ? 'danger' : 'muted')}
+              />
+            </CollapsibleInactiveSection>
           )}
         </div>
       </ConsolePanel>

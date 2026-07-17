@@ -6,7 +6,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { ChevronDown, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 import { Button, Chip, ConsolePanel, SectionHeader, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
@@ -14,6 +14,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import { useDeleteResearcherMutation } from '../../../hooks/useResearcherMutations';
+import { CollapsibleInactiveSection } from '../displays/CollapsibleInactiveSection';
 import { LinkedPersonCell } from '../displays/LinkedPersonCell';
 
 import type { LabDetailsResearcher } from '@odysseus/shared-schemas';
@@ -33,7 +34,6 @@ export function LabResearchersPanel({
   onResearcherDeleted,
 }: LabResearchersPanelProps) {
   const [deleteTarget, setDeleteTarget] = useState<LabDetailsResearcher | null>(null);
-  const [showInactive, setShowInactive] = useState(false);
   const deleteMutation = useDeleteResearcherMutation();
 
   const activeResearchers = useMemo(() => researchers.filter(r => r.active), [researchers]);
@@ -74,29 +74,19 @@ export function LabResearchersPanel({
           />
 
           {inactiveResearchers.length > 0 && (
-            <div className="relative mt-3 pt-3 before:absolute before:inset-x-0 before:top-0 before:h-px before:content-[''] before:[background:linear-gradient(90deg,hsl(var(--foreground)/0.20)_0%,hsl(var(--foreground)/0.12)_55%,hsl(var(--foreground)/0.04)_88%,transparent_100%)]">
-              <button
-                onClick={() => setShowInactive(prev => !prev)}
-                className="flex items-center gap-1.5 text-body-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
-                />
-                Inactive Researchers ({inactiveResearchers.length})
-              </button>
-              {showInactive && (
-                <div className="mt-2">
-                  <Table
-                    columns={columns}
-                    data={inactiveResearchers}
-                    emptyMessage=""
-                    aria-label="Inactive lab researchers"
-                    rowState={() => 'muted'}
-                  />
-                </div>
-              )}
-            </div>
+            <CollapsibleInactiveSection
+              label="Inactive Researchers"
+              count={inactiveResearchers.length}
+              variant="stripe"
+            >
+              <Table
+                columns={columns}
+                data={inactiveResearchers}
+                emptyMessage=""
+                aria-label="Inactive lab researchers"
+                rowState={() => 'muted'}
+              />
+            </CollapsibleInactiveSection>
           )}
         </div>
       </ConsolePanel>
