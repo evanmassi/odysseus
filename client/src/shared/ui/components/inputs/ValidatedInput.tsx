@@ -10,6 +10,13 @@ import { AlertCircle } from 'lucide-react';
 
 import { Input, Textarea } from '../../primitives';
 
+import {
+  FIELD_LABEL_COMPACT,
+  FIELD_LABEL_COMPACT_ERROR,
+  FIELD_LABEL_STANDARD,
+  FIELD_LABEL_STANDARD_ERROR,
+} from './fieldLabelClass';
+
 import type { InputState } from '../../primitives/input/types';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
@@ -48,18 +55,10 @@ export function ValidatedInput({
   labelStyle = 'default',
 }: ValidatedInputProps) {
   const getLabelClasses = () => {
-    const baseClasses =
-      labelStyle === 'compact'
-        ? 'block type-label text-label-2xs tracking-label-wide mb-1.5'
-        : 'block text-body-sm font-medium mb-1';
-
-    if (error) {
-      return `${baseClasses} text-danger-text`;
-    } else if (labelStyle === 'compact') {
-      return `${baseClasses} text-muted-foreground`;
-    } else {
-      return `${baseClasses} text-secondary-foreground`;
+    if (labelStyle === 'compact') {
+      return error ? FIELD_LABEL_COMPACT_ERROR : FIELD_LABEL_COMPACT;
     }
+    return error ? FIELD_LABEL_STANDARD_ERROR : FIELD_LABEL_STANDARD;
   };
 
   const getHelperTextClasses = () => {
