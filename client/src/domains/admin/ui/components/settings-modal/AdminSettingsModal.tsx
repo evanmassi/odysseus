@@ -22,6 +22,7 @@ import { queryKeys } from '@app/cache/queryKeys';
 import { useLabId, useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import {
+  AccentTick,
   AlertBanner,
   Button,
   ConsolePanel,
@@ -184,18 +185,11 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     </div>
   );
 
-  const accentBar = (
-    <span
-      aria-hidden
-      className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-    />
-  );
-
   const locator = (
     <div className="flex items-center justify-between gap-4 font-mono">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2.5">
-          {accentBar}
+          <AccentTick />
           <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             {isSystemAdmin ? 'Scope' : 'Lab'}
           </span>
@@ -218,7 +212,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {utilization && (
         <div className="flex items-center gap-2.5">
-          {accentBar}
+          <AccentTick />
           <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
             Storage
           </span>

@@ -1,17 +1,21 @@
 /**
  * Strip Label
  *
- * Mono label with a primary accent stripe, used for the field labels in an
+ * Mono label with an accent tick, used for the field labels in an
  * item info panel's header strip.
  */
+import { AccentTick, type AccentTickTone } from './AccentTick';
 
-export function StripLabel({ children }: { children: string }) {
+export function StripLabel({
+  children,
+  tone = 'primary',
+}: {
+  children: string;
+  tone?: AccentTickTone;
+}) {
   return (
     <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
-      <span
-        aria-hidden
-        className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-      />
+      <AccentTick tone={tone} />
       {children}
     </span>
   );

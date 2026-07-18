@@ -17,12 +17,14 @@ export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 
 // Info display components
 export {
+  AccentTick,
   CompletenessMeter,
   DetailRow,
   InfoPanelEmpty,
   OccupancyBar,
   StripLabel,
 } from './components/info-display';
+export type { AccentTickTone } from './components/info-display';
 
 // Loading components
 export { LoadingSkeleton, LoadingSpinner } from './components/loading';

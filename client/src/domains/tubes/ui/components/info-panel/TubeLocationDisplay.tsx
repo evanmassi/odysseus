@@ -13,6 +13,7 @@ import {
   formatPositionForBox,
 } from '@domains/storage';
 import { useUserSettings } from '@domains/users';
+import { AccentTick } from '@shared/ui';
 
 interface SinglePositionProps {
   tankId: string;
@@ -46,10 +47,7 @@ function LocationBreadcrumb({
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <span className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground">
-        <span
-          aria-hidden
-          className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-        />
+        <AccentTick />
         Location
       </span>
       <div className="flex flex-1 items-center gap-2 font-mono text-data-sm tracking-[0.06em] text-secondary-foreground">

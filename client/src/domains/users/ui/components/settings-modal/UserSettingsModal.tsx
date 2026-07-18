@@ -11,7 +11,7 @@ import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication';
 import { logger } from '@infra/logger';
-import { Button, Tab, LoadingSkeleton, SectionHeader, Tabs } from '@shared/ui';
+import { AccentTick, Button, Tab, LoadingSkeleton, SectionHeader, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
 
@@ -140,17 +140,10 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     </div>
   );
 
-  const accentBar = (
-    <span
-      aria-hidden
-      className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-    />
-  );
-
   const locator = (
     <div className="flex items-center gap-3 font-mono">
       <div className="flex items-center gap-2.5">
-        {accentBar}
+        <AccentTick />
         <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           User
         </span>

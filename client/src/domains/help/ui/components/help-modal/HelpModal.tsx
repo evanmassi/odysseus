@@ -11,7 +11,15 @@ import { isAdminRole } from '@odysseus/shared-schemas';
 import { CircleHelp, Search, X } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { Button, Tab, LoadingSkeleton, SearchInput, SectionHeader, Tabs } from '@shared/ui';
+import {
+  AccentTick,
+  Button,
+  Tab,
+  LoadingSkeleton,
+  SearchInput,
+  SectionHeader,
+  Tabs,
+} from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
 import { getHelpSection, HELP_TABS, HELP_TAB_META } from '../../../content/helpContent';
@@ -132,10 +140,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
   const locator = (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-2.5 font-mono">
-        <span
-          aria-hidden
-          className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-        />
+        <AccentTick />
         <span className="type-label text-label-2xs tracking-label-wide text-muted-foreground">
           Guide
         </span>

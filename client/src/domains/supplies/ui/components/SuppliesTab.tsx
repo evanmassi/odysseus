@@ -18,6 +18,7 @@ import {
   useUpdateSupplyCategoryMutation,
 } from '@domains/supplies/hooks/useSupplyMutations';
 import {
+  AccentTick,
   Button,
   HeaderStrip,
   InfoPanelEmpty,
@@ -225,10 +226,7 @@ export function SuppliesTab() {
           {/* Locator strip: inventory counts */}
           <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
             <span className="flex min-w-0 items-center gap-1.5">
-              <span
-                aria-hidden
-                className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-              />
+              <AccentTick />
               <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
                 {itemCount}{' '}
                 <span className="text-foreground/45">{itemCount === 1 ? 'item' : 'items'}</span>

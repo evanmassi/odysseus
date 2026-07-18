@@ -11,7 +11,7 @@ import { Compass } from 'lucide-react';
 
 // deep import: avoids @domains/tubes↔@domains/storage barrel cycle
 import { useLocationCounts } from '@domains/tubes/hooks/useTubeQueries';
-import { HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
+import { AccentTick, HeaderStrip, OccupancyBar, PanelHeader } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
 import { useRackTubesByBox } from '../../../hooks/useRackTubesByBox';
@@ -242,10 +242,7 @@ export function StorageNavigator({
       <HeaderStrip className="px-4 py-2.5">
         <div className="flex items-center gap-3">
           <span className="flex min-w-0 items-center gap-1.5">
-            <span
-              aria-hidden
-              className="h-2.5 w-0.5 flex-shrink-0 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
-            />
+            <AccentTick tone="warning" />
             <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
               {data.tanks.length} {data.tanks.length === 1 ? 'tank' : 'tanks'}
             </span>

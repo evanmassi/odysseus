@@ -12,7 +12,7 @@ import { AppHeader } from '@app/components/layout/AppHeader';
 import { EquipmentTab } from '@domains/equipment';
 import { useStorageData } from '@domains/storage';
 import { SuppliesTab } from '@domains/supplies';
-import { HeaderStrip, PanelHeader, Tab, Tabs } from '@shared/ui';
+import { AccentTick, HeaderStrip, PanelHeader, Tab, Tabs } from '@shared/ui';
 import { ConsolePanel } from '@shared/ui/primitives/console-panel/ConsolePanel';
 
 import '@shared/styles/base/layout.css';
@@ -64,10 +64,7 @@ export function LabManagementPage() {
 
             <HeaderStrip className="flex items-center gap-3 px-4 py-2.5">
               <span className="flex min-w-0 items-center gap-1.5">
-                <span
-                  aria-hidden
-                  className="h-2.5 w-0.5 flex-shrink-0 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-                />
+                <AccentTick />
                 <span className="whitespace-nowrap font-mono text-data-sm tracking-[0.04em] text-foreground">
                   {TABS.length} <span className="text-foreground/45">suites</span>
                 </span>

@@ -13,6 +13,8 @@ import { HeaderStrip } from '../../primitives/header-strip/HeaderStrip';
 import { PanelEmptyState } from '../../primitives/panel-empty-state/PanelEmptyState';
 import { PanelHeader } from '../../primitives/titles/PanelHeader';
 
+import { StripLabel } from './StripLabel';
+
 interface InfoPanelEmptyProps {
   title: string;
   emptyIcon: LucideIcon;
@@ -36,10 +38,7 @@ export function InfoPanelEmpty({
 
       <HeaderStrip className="px-4 py-2.5" tone="neutral">
         <div className="flex items-baseline gap-2">
-          <span className="flex items-center gap-2 whitespace-nowrap type-label text-label-2xs tracking-label-wide text-muted-foreground">
-            <span aria-hidden className="h-2.5 w-0.5 bg-muted-foreground/40" />
-            {stripLabel}
-          </span>
+          <StripLabel tone="muted">{stripLabel}</StripLabel>
           <span className="min-w-0 truncate font-mono text-data-sm tracking-[0.06em] text-muted-foreground">
             —
           </span>

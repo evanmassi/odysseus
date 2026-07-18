@@ -34,7 +34,7 @@ import { buildRemoveTubeConfirmation } from '@domains/tubes/utils/removeTubeConf
 import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api';
 import { logger } from '@infra/logger';
-import { AlertBanner, Button, Checkbox, LoadingSpinner } from '@shared/ui';
+import { AccentTick, AlertBanner, Button, Checkbox, LoadingSpinner } from '@shared/ui';
 import { BaseModal, type BaseModalHandle } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
@@ -294,10 +294,7 @@ function EditModeForm({
         <div className="flex items-center justify-between gap-4">
           {dirtyFieldCount > 0 ? (
             <div className="flex items-center gap-2 type-label text-label-2xs tracking-label-wide text-muted-foreground whitespace-nowrap">
-              <span
-                aria-hidden
-                className="h-2.5 w-0.5 bg-warning-bg/80 dark:shadow-[0_0_6px_hsl(var(--color-warning-bg)/0.55)]"
-              />
+              <AccentTick tone="warning" />
               <span className="text-secondary-foreground">{dirtyFieldCount}</span>
               <span>unsaved {dirtyFieldCount === 1 ? 'change' : 'changes'}</span>
             </div>

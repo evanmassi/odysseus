@@ -11,7 +11,7 @@ import { Download, ShoppingCart } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { httpClient } from '@infra/api';
-import { Button, Table } from '@shared/ui';
+import { AccentTick, Button, Table } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { downloadBlob } from '@shared/utils/downloadBlob';
 import { formatCurrency } from '@shared/utils/formatCurrency';
@@ -175,10 +175,7 @@ export function SupplyReorderList({ isOpen, onClose, items }: SupplyReorderListP
       size="lg"
       locator={
         <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden
-            className="h-2.5 w-0.5 bg-primary/80 dark:shadow-[0_0_6px_hsl(var(--primary)/0.55)]"
-          />
+          <AccentTick />
           <span className="font-mono text-data-sm tracking-[0.04em] text-foreground">
             {items.length} <span className="text-foreground/45">below reorder</span>
           </span>
