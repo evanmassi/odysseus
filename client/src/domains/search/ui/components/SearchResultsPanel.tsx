@@ -15,7 +15,7 @@ import {
 import { Download, MapPin, TestTubeDiagonal } from 'lucide-react';
 
 import { useResearchersQuery } from '@domains/researchers';
-import { useStorageData, formatPositionForBox } from '@domains/storage';
+import { useStorageData, formatPositionForBox, buildPositionRangeLabels } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettings, useUserLookupQuery } from '@domains/users';
 import { Button, Chip, LoadingSpinner, PanelEmptyState, Tooltip } from '@shared/ui';
@@ -384,41 +384,8 @@ export function SearchResultsPanel({
       return `Pos: ${labels.join(', ')}`;
     }
 
-    // Create smart ranges (work on numeric positions, then convert boundaries to labels)
-    const ranges: string[] = [];
-    let start = positions[0];
-    let end = positions[0];
-
-    for (let i = 1; i < positions.length; i++) {
-      if (positions[i] === end + 1) {
-        end = positions[i];
-      } else {
-        const startLabel = formatPositionForBox(
-          start,
-          tankId,
-          rackId,
-          boxId,
-          box.gridConfig,
-          currentLab,
-          userSettings
-        );
-        const endLabel = formatPositionForBox(
-          end,
-          tankId,
-          rackId,
-          boxId,
-          box.gridConfig,
-          currentLab,
-          userSettings
-        );
-        ranges.push(start === end ? startLabel : `${startLabel}-${endLabel}`);
-        start = positions[i];
-        end = positions[i];
-      }
-    }
-    // Don't forget the last range
-    const startLabel = formatPositionForBox(
-      start,
+    const ranges = buildPositionRangeLabels(
+      positions,
       tankId,
       rackId,
       boxId,
@@ -426,16 +393,6 @@ export function SearchResultsPanel({
       currentLab,
       userSettings
     );
-    const endLabel = formatPositionForBox(
-      end,
-      tankId,
-      rackId,
-      boxId,
-      box.gridConfig,
-      currentLab,
-      userSettings
-    );
-    ranges.push(start === end ? startLabel : `${startLabel}-${endLabel}`);
 
     if (ranges.length > 4) {
       const displayRanges = ranges.slice(0, 4);

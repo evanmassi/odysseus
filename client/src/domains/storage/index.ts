@@ -14,6 +14,7 @@ export {
   formatPositionForBox,
   getAxisLabelsForBox,
   formatPositionRangesForBox,
+  buildPositionRangeLabels,
 } from './utils/positionDisplayUtils';
 
 export {
