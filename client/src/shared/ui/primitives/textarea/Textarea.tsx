@@ -7,6 +7,8 @@
 import { forwardRef } from 'react';
 import type { ChangeEvent, FocusEvent } from 'react';
 
+import { INPUT_WELL_BASE, INPUT_WELL_BORDER_DEFAULT } from '../input/fieldStyles';
+
 type TextareaState = 'default' | 'error' | 'warning' | 'success';
 type TextareaResize = 'none' | 'vertical' | 'horizontal' | 'both';
 
@@ -32,7 +34,7 @@ interface TextareaProps {
 }
 
 const STATE_CLASSES: Record<TextareaState, string> = {
-  default: 'border-line-faint hover:border-foreground/30',
+  default: INPUT_WELL_BORDER_DEFAULT,
   error: 'border-danger-border',
   warning: 'border-warning-border',
   success: 'border-success-border',
@@ -90,12 +92,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         aria-invalid={ariaInvalid ?? state === 'error'}
         className={`
           ${fullWidth ? 'w-full' : 'w-auto'}
-          bg-[hsl(var(--input-well))] border
-          text-foreground
-          placeholder:text-foreground/40
-          transition-[border-color,background,box-shadow] duration-200
-          focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]
-          focus:shadow-[var(--input-focus-shadow)]
+          ${INPUT_WELL_BASE}
           disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line-faint
           px-3 py-2 text-body
           ${STATE_CLASSES[state]}

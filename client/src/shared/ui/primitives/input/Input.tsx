@@ -9,6 +9,7 @@ import type { ChangeEvent } from 'react';
 
 import { cva } from 'class-variance-authority';
 
+import { INPUT_WELL_BASE, INPUT_WELL_BORDER_DEFAULT } from './fieldStyles';
 import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef } from './types';
@@ -28,13 +29,8 @@ const wrapperVariants = cva(['relative flex flex-col'], {
 const inputVariants = cva(
   [
     'w-full relative',
-    'text-foreground',
-    'bg-[hsl(var(--input-well))] border border-line-faint',
-    'placeholder:text-foreground/40',
-    'transition-[border-color,background,box-shadow] duration-200',
-    'hover:border-foreground/30',
-    'focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]',
-    'focus:shadow-[var(--input-focus-shadow)]',
+    INPUT_WELL_BASE,
+    INPUT_WELL_BORDER_DEFAULT,
     'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line-faint',
     'read-only:cursor-default',
   ],

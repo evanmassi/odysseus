@@ -26,6 +26,7 @@ export { HeaderStrip } from './header-strip/HeaderStrip';
 export { KeyCombo } from './kbd/KeyCombo';
 
 export { AuthInput, Input, NumberInput, SearchInput } from './input';
+export { INPUT_WELL_BASE, INPUT_WELL_BORDER_DEFAULT } from './input';
 export type { InputState } from './input';
 
 export { ConsolePanel } from './console-panel/ConsolePanel';

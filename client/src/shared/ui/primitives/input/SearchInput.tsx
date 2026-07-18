@@ -9,6 +9,8 @@ import type { ReactNode } from 'react';
 
 import { Search } from 'lucide-react';
 
+import { INPUT_WELL_BASE, INPUT_WELL_BORDER_DEFAULT } from './fieldStyles';
+
 type SearchInputSize = 'sm';
 
 export interface SearchInputProps {
@@ -85,13 +87,10 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             ${styles.container}
             ${styles.text}
             ${padding}
-            font-mono tracking-[0.04em] text-foreground
-            bg-[hsl(var(--input-well))] border border-line-faint
-            placeholder:text-foreground/40 placeholder:font-normal
-            transition-[border-color,background,box-shadow] duration-200
-            hover:border-foreground/30
-            focus:outline-none focus:border-primary/70 focus:bg-primary/[0.04]
-            focus:shadow-[var(--input-focus-shadow)]
+            font-mono tracking-[0.04em]
+            ${INPUT_WELL_BASE}
+            ${INPUT_WELL_BORDER_DEFAULT}
+            placeholder:font-normal
             disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line-faint
             ${inputClassName ?? ''}
           `}
