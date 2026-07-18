@@ -25,6 +25,8 @@ import { CollapsibleInactiveSection } from '../../displays/CollapsibleInactiveSe
 import { LinkedPersonCell } from '../../displays/LinkedPersonCell';
 import { ResearcherModal } from '../ResearcherModal';
 
+import { visibleColumns } from './columnVisibility';
+
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
@@ -325,7 +327,7 @@ export function ResearchersTab({
   return (
     <div className="space-y-2">
       <Table
-        columns={readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns}
+        columns={visibleColumns(researcherColumns, readOnly)}
         data={activeResearchers}
         hoverable
         sortable
@@ -373,9 +375,7 @@ export function ResearchersTab({
           variant="divider"
         >
           <Table
-            columns={
-              readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns
-            }
+            columns={visibleColumns(researcherColumns, readOnly)}
             data={inactiveResearchers}
             emptyMessage=""
             aria-label="Inactive researchers"

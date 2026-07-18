@@ -62,6 +62,13 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   const [newCodeExpiryDays, setNewCodeExpiryDays] = useState(DEFAULT_EXPIRY_DAYS);
   const [showInactive, setShowInactive] = useState(false);
 
+  const resetForm = () => {
+    setShowCreateForm(false);
+    setNewCodeMaxUses(1);
+    setNewCodeCreateResearcher(false);
+    setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
+  };
+
   const handleCreate = () => {
     createMutation.mutate(
       {
@@ -75,10 +82,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
       {
         onSuccess: () => {
           notifications.success('Invite code created');
-          setShowCreateForm(false);
-          setNewCodeMaxUses(1);
-          setNewCodeCreateResearcher(false);
-          setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
+          resetForm();
         },
       }
     );
@@ -255,16 +259,7 @@ export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
             </SettingsRow>
           </Subsection>
           <div className="flex justify-end gap-2 border-t border-line-soft px-5 py-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setShowCreateForm(false);
-                setNewCodeMaxUses(1);
-                setNewCodeCreateResearcher(false);
-                setNewCodeExpiryDays(DEFAULT_EXPIRY_DAYS);
-              }}
-            >
+            <Button variant="ghost" size="sm" onClick={resetForm}>
               Cancel
             </Button>
             <Button

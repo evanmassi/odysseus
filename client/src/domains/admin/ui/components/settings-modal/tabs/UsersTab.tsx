@@ -41,6 +41,8 @@ import { LinkedPersonCell } from '../../displays/LinkedPersonCell';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
+import { visibleColumns } from './columnVisibility';
+
 import type { AdminUser, CreateResearcherProfile, UserRole } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
@@ -374,7 +376,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   return (
     <div className="space-y-2">
       <Table
-        columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
+        columns={visibleColumns(userColumns, readOnly)}
         data={activeUsers}
         hoverable
         sortable
@@ -407,7 +409,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
           variant="divider"
         >
           <Table
-            columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
+            columns={visibleColumns(userColumns, readOnly)}
             data={inactiveUsers}
             emptyMessage=""
             aria-label="Inactive users"
