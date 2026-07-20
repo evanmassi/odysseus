@@ -6,7 +6,7 @@
  * actions slot. Owners supply the animation state, focus-trap ref, and buttons.
  */
 
-import type { ComponentType, ReactNode, Ref } from 'react';
+import { useId, type ComponentType, type ReactNode, type Ref } from 'react';
 
 import { X } from 'lucide-react';
 
@@ -46,6 +46,9 @@ export function AlertDialog({
   closeDisabled = false,
   children,
 }: AlertDialogProps) {
+  const titleId = useId();
+  const messageId = useId();
+
   const backdropAnimationClass = isClosing
     ? 'animate-modal-backdrop-out'
     : 'animate-modal-backdrop-in';
@@ -61,8 +64,8 @@ export function AlertDialog({
           ref={trapRef}
           role="alertdialog"
           aria-modal="true"
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-message"
+          aria-labelledby={titleId}
+          aria-describedby={messageId}
           data-theme="dark"
           className={`relative isolate mx-4 w-full max-w-md px-7 py-6 ${modalAnimationClass} ${closingPointerEvents}`}
         >
@@ -79,7 +82,7 @@ export function AlertDialog({
             <div className="flex items-center gap-2.5">
               <Mark size={22} className={iconColor} />
               <h2
-                id="alert-dialog-title"
+                id={titleId}
                 className="phosphor-text type-label text-label-lg font-semibold text-tooltip-foreground"
               >
                 {title}
@@ -98,10 +101,7 @@ export function AlertDialog({
 
           <NubDivider tone="neutral" className="relative my-4" />
 
-          <p
-            id="alert-dialog-message"
-            className="mb-7 text-body leading-relaxed text-tooltip-foreground/80"
-          >
+          <p id={messageId} className="mb-7 text-body leading-relaxed text-tooltip-foreground/80">
             {message}
           </p>
 
